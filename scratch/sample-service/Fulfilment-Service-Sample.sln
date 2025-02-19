@@ -1,0 +1,97 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35527.113
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "@nuget", "@nuget", "{7929D41F-47A1-4186-9F53-F042C2F731F0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{3F182297-76C9-41C4-A756-657ADF669475}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.Infrastructure.Pipelines", "nuget\src\UKHO.Infrastructure.Pipelines\UKHO.Infrastructure.Pipelines.csproj", "{EEFE5365-FD8F-42B2-AE06-5669A49C4692}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.Infrastructure.Pipelines.Tests", "nuget\test\UKHO.Infrastructure.Pipelines.Tests\UKHO.Infrastructure.Pipelines.Tests.csproj", "{5D34A6AC-8AFC-448E-BF32-4E5A803BCAC1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.Infrastructure.Results", "nuget\src\UKHO.Infrastructure.Results\UKHO.Infrastructure.Results.csproj", "{339D8A8E-472E-433B-8606-E7CEE41E49E4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.Infrastructure.Results.Tests", "nuget\test\UKHO.Infrastructure.Results.Tests\UKHO.Infrastructure.Results.Tests.csproj", "{33E95F84-1A9C-4DAD-81A4-258BF417E61D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExchangeSetFulfilmentService", "src\ExchangeSetFulfilmentService\ExchangeSetFulfilmentService.csproj", "{0B720EDB-A19C-4300-A37F-58C535FF83A8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.ExchangeSets.Fulfilment", "src\UKHO.ExchangeSets.Fulfilment\UKHO.ExchangeSets.Fulfilment.csproj", "{9F038955-BD19-4107-976E-4D45E53A8E86}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "clients", "clients", "{4D99DDF6-D0E4-409F-AAAB-E506BB669A50}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.Clients.FileShare", "nuget\src\UKHO.Clients.FileShare\UKHO.Clients.FileShare.csproj", "{7952692E-15A6-47D1-BBFD-F1A3FA107B7D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.Clients.SalesCatalog", "nuget\src\UKHO.Clients.SalesCatalog\UKHO.Clients.SalesCatalog.csproj", "{17C37B4D-5564-4E21-8F7E-D1F86F05567D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.Infrastructure.Serialization", "nuget\src\UKHO.Infrastructure.Serialization\UKHO.Infrastructure.Serialization.csproj", "{CF4FA570-1DB4-4069-B9DA-0DE47A7BE601}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.Clients.Common", "nuget\src\UKHO.Clients.Common\UKHO.Clients.Common.csproj", "{2645D62D-1690-4F30-B6A0-C20342B0D11D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{59EAE64F-6D32-4B91-8FAD-0CBEF44B3EF8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EEFE5365-FD8F-42B2-AE06-5669A49C4692}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EEFE5365-FD8F-42B2-AE06-5669A49C4692}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EEFE5365-FD8F-42B2-AE06-5669A49C4692}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EEFE5365-FD8F-42B2-AE06-5669A49C4692}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5D34A6AC-8AFC-448E-BF32-4E5A803BCAC1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5D34A6AC-8AFC-448E-BF32-4E5A803BCAC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5D34A6AC-8AFC-448E-BF32-4E5A803BCAC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5D34A6AC-8AFC-448E-BF32-4E5A803BCAC1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{339D8A8E-472E-433B-8606-E7CEE41E49E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{339D8A8E-472E-433B-8606-E7CEE41E49E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{339D8A8E-472E-433B-8606-E7CEE41E49E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{339D8A8E-472E-433B-8606-E7CEE41E49E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{33E95F84-1A9C-4DAD-81A4-258BF417E61D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{33E95F84-1A9C-4DAD-81A4-258BF417E61D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{33E95F84-1A9C-4DAD-81A4-258BF417E61D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{33E95F84-1A9C-4DAD-81A4-258BF417E61D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B720EDB-A19C-4300-A37F-58C535FF83A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B720EDB-A19C-4300-A37F-58C535FF83A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B720EDB-A19C-4300-A37F-58C535FF83A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B720EDB-A19C-4300-A37F-58C535FF83A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F038955-BD19-4107-976E-4D45E53A8E86}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F038955-BD19-4107-976E-4D45E53A8E86}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F038955-BD19-4107-976E-4D45E53A8E86}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F038955-BD19-4107-976E-4D45E53A8E86}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7952692E-15A6-47D1-BBFD-F1A3FA107B7D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7952692E-15A6-47D1-BBFD-F1A3FA107B7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7952692E-15A6-47D1-BBFD-F1A3FA107B7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7952692E-15A6-47D1-BBFD-F1A3FA107B7D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17C37B4D-5564-4E21-8F7E-D1F86F05567D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17C37B4D-5564-4E21-8F7E-D1F86F05567D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17C37B4D-5564-4E21-8F7E-D1F86F05567D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17C37B4D-5564-4E21-8F7E-D1F86F05567D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF4FA570-1DB4-4069-B9DA-0DE47A7BE601}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF4FA570-1DB4-4069-B9DA-0DE47A7BE601}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF4FA570-1DB4-4069-B9DA-0DE47A7BE601}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF4FA570-1DB4-4069-B9DA-0DE47A7BE601}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2645D62D-1690-4F30-B6A0-C20342B0D11D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2645D62D-1690-4F30-B6A0-C20342B0D11D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2645D62D-1690-4F30-B6A0-C20342B0D11D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2645D62D-1690-4F30-B6A0-C20342B0D11D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3F182297-76C9-41C4-A756-657ADF669475} = {7929D41F-47A1-4186-9F53-F042C2F731F0}
+		{EEFE5365-FD8F-42B2-AE06-5669A49C4692} = {59EAE64F-6D32-4B91-8FAD-0CBEF44B3EF8}
+		{5D34A6AC-8AFC-448E-BF32-4E5A803BCAC1} = {3F182297-76C9-41C4-A756-657ADF669475}
+		{339D8A8E-472E-433B-8606-E7CEE41E49E4} = {59EAE64F-6D32-4B91-8FAD-0CBEF44B3EF8}
+		{33E95F84-1A9C-4DAD-81A4-258BF417E61D} = {3F182297-76C9-41C4-A756-657ADF669475}
+		{4D99DDF6-D0E4-409F-AAAB-E506BB669A50} = {59EAE64F-6D32-4B91-8FAD-0CBEF44B3EF8}
+		{7952692E-15A6-47D1-BBFD-F1A3FA107B7D} = {4D99DDF6-D0E4-409F-AAAB-E506BB669A50}
+		{17C37B4D-5564-4E21-8F7E-D1F86F05567D} = {4D99DDF6-D0E4-409F-AAAB-E506BB669A50}
+		{CF4FA570-1DB4-4069-B9DA-0DE47A7BE601} = {59EAE64F-6D32-4B91-8FAD-0CBEF44B3EF8}
+		{2645D62D-1690-4F30-B6A0-C20342B0D11D} = {4D99DDF6-D0E4-409F-AAAB-E506BB669A50}
+		{59EAE64F-6D32-4B91-8FAD-0CBEF44B3EF8} = {7929D41F-47A1-4186-9F53-F042C2F731F0}
+	EndGlobalSection
+EndGlobal

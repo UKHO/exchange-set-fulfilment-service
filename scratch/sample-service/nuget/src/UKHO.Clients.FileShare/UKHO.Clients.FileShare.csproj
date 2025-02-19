@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\UKHO.Clients.Common\UKHO.Clients.Common.csproj" />
+    <ProjectReference Include="..\UKHO.Infrastructure.Results\UKHO.Infrastructure.Results.csproj" />
+    <ProjectReference Include="..\UKHO.Infrastructure.Serialization\UKHO.Infrastructure.Serialization.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.1" />
+    <PackageReference Include="System.Text.Encodings.Web" Version="9.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Injection\" />
+  </ItemGroup>
+
+</Project>
