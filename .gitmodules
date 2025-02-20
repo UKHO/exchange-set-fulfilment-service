@@ -1,0 +1,3 @@
+[submodule "mock/repo"]
+	path = mock/repo
+	url = https://github.com/UKHO/UKHO.ADDS.Mocks
