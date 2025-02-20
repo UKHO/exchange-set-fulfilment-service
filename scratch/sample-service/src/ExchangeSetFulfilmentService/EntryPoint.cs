@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using UKHO.Clients.Common.Configuration;
 using UKHO.Clients.FileShare.Injection;
 using UKHO.Clients.SalesCatalog.Injection;
+using UKHO.ExchangeSets.Fulfilment;
 using UKHO.ExchangeSets.Fulfilment.Injection;
 
 namespace ExchangeSetFulfilmentService
@@ -16,8 +17,10 @@ namespace ExchangeSetFulfilmentService
             ConfigureLogging(serviceCollection);
             var serviceProvider = ConfigureInjection(serviceCollection);
 
+            var exchangeSetBuilder = serviceProvider.GetRequiredService<IIExchangeSetBuilder>();
+            var result = await exchangeSetBuilder.BuildExchangeSet();
 
-            return 0;
+            return (int)result;
         }
 
         private static void ConfigureLogging(IServiceCollection collection) =>

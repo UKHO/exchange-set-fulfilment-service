@@ -10,14 +10,14 @@ namespace UKHO.Infrastructure.Pipelines.Logging
         private static readonly ILoggerFactory _loggerFactory = new LoggerFactory();
 
         /// <summary>
-        ///     Creates a logger for the given type.
+        ///     Creates a logger for the given type
         /// </summary>
         /// <typeparam name="T">The type for which to a logger is created.</typeparam>
         /// <returns>The requested logger.</returns>
         public static ILogger CreateLogger<T>() => _loggerFactory.CreateLogger<T>();
 
         /// <summary>
-        ///     Creates a logger for the given instance type.
+        ///     Creates a logger for the given instance type
         /// </summary>
         /// <typeparam name="T">The type for which to a logger is created.</typeparam>
         /// <param name="instance">The instance used to derive a type for which a logger is created.</param>
