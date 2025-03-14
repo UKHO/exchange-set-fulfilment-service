@@ -10,8 +10,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ESSFulfilmentService.Tests"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{8952EBE4-0805-4D49-89CB-4B83A5E38B99}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ESSFulfilmentService.Builder", "src\ESSFulfilmentService.Builder\ESSFulfilmentService.Builder.csproj", "{32C55259-40B8-408E-AAB8-3B893AC07D8E}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,15 +28,14 @@ Global
 		{B1F6115E-06F5-4775-BAB6-33F645D932E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B1F6115E-06F5-4775-BAB6-33F645D932E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B1F6115E-06F5-4775-BAB6-33F645D932E0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{32C55259-40B8-408E-AAB8-3B893AC07D8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{32C55259-40B8-408E-AAB8-3B893AC07D8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{32C55259-40B8-408E-AAB8-3B893AC07D8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{32C55259-40B8-408E-AAB8-3B893AC07D8E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{B1F6115E-06F5-4775-BAB6-33F645D932E0} = {8952EBE4-0805-4D49-89CB-4B83A5E38B99}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4B1358AA-DB8A-4916-8DF1-2D186BA98A7F}
 	EndGlobalSection
 EndGlobal
