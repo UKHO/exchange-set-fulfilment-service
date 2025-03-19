@@ -14,6 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ESSFulfilmentService.Common\ESSFulfilmentService.Common.csproj" />
     <ProjectReference Include="..\ESSFulfilmentService.ServiceDefaults\ESSFulfilmentService.ServiceDefaults.csproj" />
   </ItemGroup>
 </Project>
