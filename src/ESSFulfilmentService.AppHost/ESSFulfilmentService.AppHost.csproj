@@ -18,7 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ESSFulfilmentService.Common\ESSFulfilmentService.Common.csproj" IsAspireProjectResource="false"/>
+    <ProjectReference Include="..\..\mock\repo\src\ADDSMock\ADDSMock.csproj" />
+    <ProjectReference Include="..\ESSFulfilmentService.Common\ESSFulfilmentService.Common.csproj" IsAspireProjectResource="false" />
     <ProjectReference Include="..\ESSFulfilmentService.Orchestrator\ESSFulfilmentService.Orchestrator.csproj" />
   </ItemGroup>
 
