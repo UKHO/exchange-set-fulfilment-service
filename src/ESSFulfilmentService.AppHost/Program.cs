@@ -11,11 +11,11 @@ var storage = builder.AddAzureStorage("storage").RunAsEmulator(
     });
 var storagequeue = storage.AddQueues("queueConnection");
 
-// To be replaced with container
-//var iic_custom = builder.AddDockerfile("iic",".")
-//    .WithHttpEndpoint(port: 8080, targetPort: 8080, name: "iic-endpoint");
+var iic_custom = builder.AddDockerfile("builder", "../ESSFulfilmentService.Builder")
+    .WithHttpEndpoint(port: 8080, targetPort: 8080, name: "iic-endpoint");
+    
 
-//var iic_endpoint = iic_custom.GetEndpoint("iic-endpoint");
+var iic_endpoint = iic_custom.GetEndpoint("iic-endpoint");
 
 
 builder.AddProject<Projects.ESSFulfilmentService_Orchestrator>("orchestrator")

@@ -14,6 +14,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ESSFulfilmentService.Builde
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ESSFulfilmentService.Orchestrator", "src\ESSFulfilmentService.Orchestrator\ESSFulfilmentService.Orchestrator.csproj", "{FF5E8A27-3CF5-4AD4-A954-BC853DCDCCAA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ADDSMock", "mock\repo\src\ADDSMock\ADDSMock.csproj", "{8915DB9B-7775-1461-21CB-555812BB59DD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -40,6 +42,10 @@ Global
 		{FF5E8A27-3CF5-4AD4-A954-BC853DCDCCAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FF5E8A27-3CF5-4AD4-A954-BC853DCDCCAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FF5E8A27-3CF5-4AD4-A954-BC853DCDCCAA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8915DB9B-7775-1461-21CB-555812BB59DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8915DB9B-7775-1461-21CB-555812BB59DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8915DB9B-7775-1461-21CB-555812BB59DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8915DB9B-7775-1461-21CB-555812BB59DD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
