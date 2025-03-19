@@ -1,6 +1,7 @@
 using Azure.Messaging.ServiceBus;
 using Azure.Storage.Queues;
-using Azure.Storage.Queues.Models;  
+using Azure.Storage.Queues.Models;
+using ESSFulfilmentService.Common.Configuration;
 
 namespace ESSFulfilmentService.Orchestrator
 {
@@ -13,10 +14,10 @@ namespace ESSFulfilmentService.Orchestrator
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var requestQueue = queueClient.GetQueueClient("requestqueue");
+            var requestQueue = queueClient.GetQueueClient(StorageConfiguration.RequestQueueName);
             await requestQueue.CreateIfNotExistsAsync(cancellationToken: stoppingToken);
 
-            var sender = busClient.CreateSender("iic-topic");
+            var sender = busClient.CreateSender(ServiceBusConfiguration.TopicName);
 
             while (!stoppingToken.IsCancellationRequested)
             {
