@@ -26,31 +26,31 @@ namespace ESSFulfilmentService.Builder
                 ConfigureLogging(serviceCollection);
                 var serviceProvider = ConfigureInjection(serviceCollection);
 
-                //var startupResult = await ExecutePipeline<StartupPipeline, StartupPipelineContext>(serviceProvider);
+                var startupResult = await ExecutePipeline<StartupPipeline, StartupPipelineContext>(serviceProvider);
 
-                //if (startupResult.IsSuccess(out var startupContext))
-                //{
-                //    var assemblyResult = await ExecutePipeline<AssemblyPipeline, AssemblyPipelineContext>(serviceProvider);
+                if (startupResult.IsSuccess(out var startupContext))
+                {
+                    var assemblyResult = await ExecutePipeline<AssemblyPipeline, AssemblyPipelineContext>(serviceProvider);
 
-                //    if (assemblyResult.IsSuccess(out var assemblyContext))
-                //    {
+                    if (assemblyResult.IsSuccess(out var assemblyContext))
+                    {
 
-                //    }
-                //    else
-                //    {
-                //        Log.Fatal("Assembly pipeline failed to execute");
-                //        return (int)ExchangeSetBuilderResult.AssemblyPipelineFailed;
-                //    }
-                //}
-                //else
-                //{
-                //    Log.Fatal("Startup pipeline failed to execute");
-                //    return (int)ExchangeSetBuilderResult.StartupPipelineFailed;
-                //}
+                    }
+                    else
+                    {
+                        Log.Fatal("Assembly pipeline failed to execute");
+                        return (int)ExchangeSetBuilderResult.AssemblyPipelineFailed;
+                    }
+                }
+                else
+                {
+                    Log.Fatal("Startup pipeline failed to execute");
+                    return (int)ExchangeSetBuilderResult.StartupPipelineFailed;
+                }
 
                 await Task.Delay(100000);
 
-                return 0;
+                return (int)ExchangeSetBuilderResult.Succeeded;
             }
             catch (Exception ex)
             {

@@ -9,5 +9,9 @@
         public const string BuilderContainerName = "builder";
 
         public const string BuilderContainerEndpointName = "builder-endpoint";
+
+        public const string MockContainerName = "addsmock";
+
+        public const string MockContainerEndpointName = "addsmock-endpoint";
     }
 }

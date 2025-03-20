@@ -19,8 +19,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\mock\repo\src\ADDSMock\ADDSMock.csproj" />
+    <ProjectReference Include="..\ESSFulfilmentService.API\ESSFulfilmentService.API.csproj" />
     <ProjectReference Include="..\ESSFulfilmentService.Common\ESSFulfilmentService.Common.csproj" IsAspireProjectResource="false" />
     <ProjectReference Include="..\ESSFulfilmentService.Orchestrator\ESSFulfilmentService.Orchestrator.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Extensions\" />
   </ItemGroup>
 
 </Project>

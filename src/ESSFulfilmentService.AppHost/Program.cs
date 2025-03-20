@@ -1,39 +1,49 @@
+using System;
+using System.Diagnostics;
+using System.Threading.Tasks;
 using Aspire.Hosting;
+using Aspire.Hosting.ApplicationModel;
+using ESSFulfilmentService.AppHost.Extensions;
 using ESSFulfilmentService.Common.Configuration;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
 var serviceBus = builder.AddAzureServiceBus(ServiceBusConfiguration.ServiceBusName).RunAsEmulator();
+
 serviceBus.AddServiceBusTopic(name: ServiceBusConfiguration.TopicName)
     .AddServiceBusSubscription(name: ServiceBusConfiguration.SubscriptionName);
 
-var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(
-    azurite =>
-    {
-        azurite.WithDataVolume();
-    });
+var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e => e.WithDataVolume());
 
 var storageQueue = storage.AddQueues(StorageConfiguration.QueuesName);
+var storageTable = storage.AddTables(StorageConfiguration.TablesName);
 
-var addsMock = builder.AddDockerfile("addsmock", @"..\..\mock\repo\src\ADDSMock")
-    .WithHttpEndpoint(port: 8080, targetPort: 8080, name: "mock-api" );
-var mock_endpoint = addsMock.GetEndpoint("mock-api");
+var addsMockContainer = builder.AddDockerfile(ContainerConfiguration.MockContainerName, @"..\..\mock\repo\src\ADDSMock")
+    .WithHttpEndpoint(port: 8080, targetPort: 8080, name: ContainerConfiguration.MockContainerEndpointName );
 
+var addsMockContainerEndpoint = addsMockContainer.GetEndpoint(ContainerConfiguration.MockContainerEndpointName);
 
-var iic_custom = builder.AddDockerfile(ContainerConfiguration.BuilderContainerName, "../ESSFulfilmentService.Builder")
+var builderContainer = builder.AddDockerfile(ContainerConfiguration.BuilderContainerName, "../ESSFulfilmentService.Builder")
     .WithHttpEndpoint(port: 8081, targetPort: 8080, name: ContainerConfiguration.BuilderContainerEndpointName);
-var iic_endpoint = iic_custom.GetEndpoint(ContainerConfiguration.BuilderContainerEndpointName);
 
+var builderContainerEndpoint = builderContainer.GetEndpoint(ContainerConfiguration.BuilderContainerEndpointName);
 
 builder.AddProject<Projects.ESSFulfilmentService_Orchestrator>(ContainerConfiguration.OrchestratorContainerName)
     .WithReference(storageQueue)
     .WaitFor(storageQueue)
     .WithReference(serviceBus)
     .WaitFor(serviceBus)
-    .WithReference(iic_endpoint)
-    .WaitFor(iic_custom)
-    .WithReference(mock_endpoint)
-    .WaitFor(addsMock);
+    .WithReference(builderContainerEndpoint)
+    .WaitFor(builderContainer)
+    .WithReference(addsMockContainerEndpoint)
+    .WaitFor(addsMockContainer);
 
+var apiService = builder.AddProject<Projects.ESSFulfilmentService_API>(ContainerConfiguration.ApiContainerName)
+    .WithReference(storageQueue)
+    .WaitFor(storageQueue)
+    .WithReference(storageTable)
+    .WaitFor(storageTable)
+    .WithScalar("ESS Fulfilment API documentation");
 
 builder.Build().Run();
