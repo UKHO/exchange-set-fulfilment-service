@@ -12,6 +12,7 @@ var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmu
     {
         azurite.WithDataVolume();
     });
+
 var storageQueue = storage.AddQueues(StorageConfiguration.QueuesName);
 
 var addsMock = builder.AddDockerfile("addsmock", @"..\..\mock\repo\src\ADDSMock")

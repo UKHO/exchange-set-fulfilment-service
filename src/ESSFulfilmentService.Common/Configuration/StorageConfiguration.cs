@@ -6,6 +6,8 @@
 
         public const string QueuesName = "queues";
 
+        public const string TablesName = "tables";
+
         public const string RequestQueueName = "request-queue";
     }
 }
