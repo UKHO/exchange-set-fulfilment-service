@@ -1,12 +1,49 @@
 using ESSFulfilmentService.Common.Configuration;
-using ESSFulfilmentService.Orchestrator;
+using Serilog;
 
-var builder = Host.CreateApplicationBuilder(args);
-builder.AddAzureQueueClient(StorageConfiguration.QueuesName);
-builder.AddAzureServiceBusClient(ServiceBusConfiguration.ServiceBusName);
+namespace ESSFulfilmentService.Orchestrator
+{
+    internal class Program
+    {
+        private static async Task<int> Main(string[] args)
+        {
+            Log.Logger = new LoggerConfiguration()
+                .Enrich.FromLogContext()
+                .WriteTo.Console()
+                .CreateLogger();
 
-builder.AddServiceDefaults();
-builder.Services.AddHostedService<Worker>();
+            try
+            {
+                var host = CreateHost(args);
+                await host.RunAsync();
 
-var host = builder.Build();
-host.Run();
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, "Host terminated unexpectedly");
+                return -1;
+            }
+
+            finally
+            {
+                await Log.CloseAndFlushAsync();
+            }
+        }
+
+        private static IHost CreateHost(string[] args)
+        {
+            var builder = Host.CreateApplicationBuilder(args);
+
+            builder.AddAzureQueueClient(StorageConfiguration.QueuesName);
+            builder.AddAzureServiceBusClient(ServiceBusConfiguration.ServiceBusName);
+
+            builder.AddServiceDefaults();
+            builder.Services.AddHostedService<Worker>();
+
+            builder.Services.AddSerilog();
+
+            return builder.Build();
+        }
+    }
+}

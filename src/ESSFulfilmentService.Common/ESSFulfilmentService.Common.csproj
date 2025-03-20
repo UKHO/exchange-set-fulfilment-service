@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -7,7 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Messages\" />
+    <PackageReference Include="UKHO.ADDS.Infrastructure.Results" Version="0.0.50312-alpha.7" />
+    <PackageReference Include="UKHO.ADDS.Infrastructure.Serialization" Version="0.0.50312-alpha.7" />
   </ItemGroup>
 
 </Project>
