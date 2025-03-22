@@ -1,0 +1,13 @@
+﻿@inherits TablerBaseComponent
+@namespace TabBlazor
+
+
+<div class="@ClassNames" @attributes="@UnmatchedParameters" @onclick="OnClick">
+    <div class="@BarClassNames" style="width: @Percentage.ToString()%" role="progressbar" aria-valuenow="@Percentage" aria-valuemin="0" aria-valuemax="100">
+        @if (!string.IsNullOrEmpty(Text))
+        {
+            <span>@Text</span>
+        }
+
+    </div>
+</div>

@@ -1,0 +1,87 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35527.113
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "@mock", "@mock", "{B1B5085C-0DFC-41B3-BD97-FBA5AC6CDD9C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ADDSMock", "mock\repo\src\ADDSMock\ADDSMock.csproj", "{5F7BC0C4-07DC-4587-8535-F44AF7D8F6DB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.ADDS.EFS.LocalHost", "src\UKHO.ADDS.EFS.LocalHost\UKHO.ADDS.EFS.LocalHost.csproj", "{5CDB6975-17E1-44B0-B162-8D5AE69ED447}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.ADDS.EFS.Builder", "src\UKHO.ADDS.EFS.Builder\UKHO.ADDS.EFS.Builder.csproj", "{D17EF688-D951-43BB-B310-4BDE79EEDAC1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "@local", "@local", "{FE1B3C08-90C0-4026-A00B-EDCCB1E16D1D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.ADDS.EFS.Orchestrator", "src\UKHO.ADDS.EFS.Orchestrator\UKHO.ADDS.EFS.Orchestrator.csproj", "{DF07C7FB-7A1D-4252-A985-279CE521A604}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.ADDS.EFS.Common.Services", "src\UKHO.ADDS.EFS.Common.Services\UKHO.ADDS.EFS.Common.Services.csproj", "{8D239562-4AB4-441D-878D-F763A4A043A4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.ADDS.EFS.Common", "src\UKHO.ADDS.EFS.Common\UKHO.ADDS.EFS.Common.csproj", "{21956C5C-1D4D-4F5C-AE34-A5AA209094D9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "@builder", "@builder", "{28CCD968-0171-429E-A2AA-0ECCA9B1CB81}"
+	ProjectSection(SolutionItems) = preProject
+		src\BuilderDockerfile = src\BuilderDockerfile
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "@dashboard", "@dashboard", "{0B0B27A3-3108-45B7-8BD9-3D4204C8B8B2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TabBlazor", "src\Dashboard\TabBlazor\TabBlazor.csproj", "{1E4EDC62-0DBA-4BA9-88CE-FDF224B741A9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.ADDS.EFS.Orchestrator.Dashboard", "src\UKHO.ADDS.EFS.Orchestrator.Dashboard\UKHO.ADDS.EFS.Orchestrator.Dashboard.csproj", "{56DE8E2C-A340-422F-80E6-CFF44BF9700C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.ADDS.EFS.Orchestrator.Services", "src\UKHO.ADDS.EFS.Orchestrator.Services\UKHO.ADDS.EFS.Orchestrator.Services.csproj", "{311D3C25-3123-441A-B9B0-CE4AF19D944A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5F7BC0C4-07DC-4587-8535-F44AF7D8F6DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F7BC0C4-07DC-4587-8535-F44AF7D8F6DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F7BC0C4-07DC-4587-8535-F44AF7D8F6DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F7BC0C4-07DC-4587-8535-F44AF7D8F6DB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5CDB6975-17E1-44B0-B162-8D5AE69ED447}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5CDB6975-17E1-44B0-B162-8D5AE69ED447}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5CDB6975-17E1-44B0-B162-8D5AE69ED447}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5CDB6975-17E1-44B0-B162-8D5AE69ED447}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D17EF688-D951-43BB-B310-4BDE79EEDAC1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D17EF688-D951-43BB-B310-4BDE79EEDAC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D17EF688-D951-43BB-B310-4BDE79EEDAC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D17EF688-D951-43BB-B310-4BDE79EEDAC1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DF07C7FB-7A1D-4252-A985-279CE521A604}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF07C7FB-7A1D-4252-A985-279CE521A604}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF07C7FB-7A1D-4252-A985-279CE521A604}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF07C7FB-7A1D-4252-A985-279CE521A604}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8D239562-4AB4-441D-878D-F763A4A043A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D239562-4AB4-441D-878D-F763A4A043A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D239562-4AB4-441D-878D-F763A4A043A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D239562-4AB4-441D-878D-F763A4A043A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{21956C5C-1D4D-4F5C-AE34-A5AA209094D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21956C5C-1D4D-4F5C-AE34-A5AA209094D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21956C5C-1D4D-4F5C-AE34-A5AA209094D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21956C5C-1D4D-4F5C-AE34-A5AA209094D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1E4EDC62-0DBA-4BA9-88CE-FDF224B741A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E4EDC62-0DBA-4BA9-88CE-FDF224B741A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E4EDC62-0DBA-4BA9-88CE-FDF224B741A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E4EDC62-0DBA-4BA9-88CE-FDF224B741A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{56DE8E2C-A340-422F-80E6-CFF44BF9700C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{56DE8E2C-A340-422F-80E6-CFF44BF9700C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{56DE8E2C-A340-422F-80E6-CFF44BF9700C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{56DE8E2C-A340-422F-80E6-CFF44BF9700C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{311D3C25-3123-441A-B9B0-CE4AF19D944A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{311D3C25-3123-441A-B9B0-CE4AF19D944A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{311D3C25-3123-441A-B9B0-CE4AF19D944A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{311D3C25-3123-441A-B9B0-CE4AF19D944A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{5F7BC0C4-07DC-4587-8535-F44AF7D8F6DB} = {B1B5085C-0DFC-41B3-BD97-FBA5AC6CDD9C}
+		{5CDB6975-17E1-44B0-B162-8D5AE69ED447} = {FE1B3C08-90C0-4026-A00B-EDCCB1E16D1D}
+		{D17EF688-D951-43BB-B310-4BDE79EEDAC1} = {28CCD968-0171-429E-A2AA-0ECCA9B1CB81}
+		{1E4EDC62-0DBA-4BA9-88CE-FDF224B741A9} = {0B0B27A3-3108-45B7-8BD9-3D4204C8B8B2}
+	EndGlobalSection
+EndGlobal

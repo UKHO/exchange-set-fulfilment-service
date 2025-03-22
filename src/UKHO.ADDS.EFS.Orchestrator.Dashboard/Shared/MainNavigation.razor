@@ -1,0 +1,44 @@
+﻿@using Microsoft.AspNetCore.Components.Routing
+<Navbar Background="appService.Settings.NavbarBackground" Direction="appService.Settings.NavbarDirection" NavLinkMatch="NavLinkMatch.All">
+
+    <a href="https://github.com/joadan/Blazor-Tabler" class="navbar-brand navbar-brand-autodark">
+        <img src="_content/UKHO.ADDS.EFS.Orchestrator.Dashboard/img/TabBlazorLogoWhite.png" alt="Tabler" class="navbar-brand-image me-2">
+        <h2 class="text-secondary m-0">
+            EFS Orchestrator
+            <div class="fs-6 lh-1">@ThisAssembly.AssemblyInformationalVersion</div>
+        </h2>
+
+    </a>
+
+    <NavbarMenu>
+
+        <NavbarMenuItem Href="dashboard" Text="Dashboard">
+            <MenuItemIcon>
+                <Icon class="icon" IconType="@TablerIcons.Dashboard"/>
+            </MenuItemIcon>
+        </NavbarMenuItem>
+
+        <NavbarMenuItem Text="Builders">
+            <MenuItemIcon>
+                <Icon class="icon" IconType="@TablerIcons.Code"/>
+            </MenuItemIcon>
+            <SubMenu>
+                <NavbarMenuItem Text="Active" Href="snippets/profiles" />
+                <NavbarMenuItem Text="Statistics" Href="snippets/statistcs"/>
+            </SubMenu>
+        </NavbarMenuItem>
+
+        <NavbarMenuItem Href="snippets/statistcs" Text="Builds">
+            <MenuItemIcon>
+                <Icon class="icon" IconType="@TablerIcons.Message"/>
+            </MenuItemIcon>
+        </NavbarMenuItem>
+
+        <NavbarMenuItem Href="app-settings" Text="App Settings">
+            <MenuItemIcon>
+                <Icon class="icon" IconType="@TablerIcons.Settings"/>
+            </MenuItemIcon>
+        </NavbarMenuItem>
+
+    </NavbarMenu>
+</Navbar>
