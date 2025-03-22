@@ -1,0 +1,31 @@
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+ARG BUILD_CONFIGURATION=Release
+
+WORKDIR /src
+
+COPY ["UKHO.ADDS.EFS.Builder/UKHO.ADDS.EFS.Builder.csproj","UKHO.ADDS.EFS.Builder/"]
+COPY ["UKHO.ADDS.EFS.Common/UKHO.ADDS.EFS.Common.csproj", "UKHO.ADDS.EFS.Common/"]
+
+RUN dotnet restore ./UKHO.ADDS.EFS.Builder/UKHO.ADDS.EFS.Builder.csproj
+
+COPY . .
+WORKDIR /src/UKHO.ADDS.EFS.Builder
+RUN dotnet build ./UKHO.ADDS.EFS.Builder.csproj -c $BUILD_CONFIGURATION  -o /app/build
+
+FROM mcr.microsoft.com/dotnet/runtime:9.0 AS runtime
+RUN apt-get update && apt-get install -y openjdk-17-jdk
+RUN apt-get update && apt-get install -y wget
+RUN wget https://downloads.apache.org/tomcat/tomcat-9/v9.0.102/bin/apache-tomcat-9.0.102.tar.gz && tar -xzvf apache-tomcat-9.0.102.tar.gz && \ 
+mv apache-tomcat-9.0.102 /usr/local/tomcat && rm -rf apache-tomcat-9.0.102.tar.gz && rm -rf /var/lib/apt/lists/*
+COPY UKHO.ADDS.EFS.Builder/iic/xchg-2.4.war /usr/local/tomcat/webapps/
+
+WORKDIR /app
+COPY --from=build /app/build .
+
+RUN echo '#!/bin/bash\n' > /startup.sh && \
+    echo '/usr/local/tomcat/bin/startup.sh\n' >> /startup.sh && \
+    echo 'dotnet /app/UKHO.ADDS.EFS.Builder.dll\n' >> /startup.sh && \
+    chmod +x /startup.sh
+
+ENTRYPOINT ["bash","/startup.sh"]
+EXPOSE 8080 5000

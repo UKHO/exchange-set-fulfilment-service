@@ -1,0 +1,21 @@
+﻿@namespace TabBlazor
+<div class="tooltip-wrapper">
+    <span>
+        @if (TooltipTemplate != null)
+        {
+            @TooltipTemplate
+        }
+        else
+        {
+            @Text
+        }
+
+    </span>
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment ChildContent { get; set; }
+    [Parameter] public RenderFragment TooltipTemplate { get; set; }
+    [Parameter] public string Text { get; set; }
+}

@@ -53,7 +53,7 @@ project.lock.json
 project.fragment.lock.json
 artifacts/
 **/Properties/launchSettings.json
-!src/ESSFulfilmentService.AppHost/Properties/launchSettings.json
+!src/UKHO.ADDS.EFS.LocalHost/Properties/launchSettings.json
 
 # StyleCop
 StyleCopReport.xml

@@ -1,0 +1,12 @@
+﻿@namespace TabBlazor
+@typeparam TItem
+
+@if (Items != null)
+{
+    <CascadingValue Name="Root" Value="this">
+        <TabBlazor.Components.TreeViews.TreeViewNodes Items="Items"
+                                                      Template="Template"
+                                                      ChildSelectorAsync="ChildSelectorAsync"
+                                                      AllowDrop="EnableDragAndDrop"/>
+    </CascadingValue>
+}
