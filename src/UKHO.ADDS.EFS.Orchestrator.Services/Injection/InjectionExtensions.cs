@@ -1,15 +1,21 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Threading.Channels;
+using Microsoft.Extensions.DependencyInjection;
+using UKHO.ADDS.EFS.Common.Messages;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services.Injection
 {
     public static class InjectionExtensions
     {
-        public static IServiceCollection AddOrchestrator(this IServiceCollection collection)
+        public static IServiceCollection AddOrchestrator(this IServiceCollection collection, int queuePollingMaxMessages)
         {
-            // Add services here
+            collection.AddSingleton(Channel.CreateBounded<ExchangeSetRequestMessage>(new BoundedChannelOptions(queuePollingMaxMessages)
+            {
+                FullMode = BoundedChannelFullMode.Wait
+            }));
+
+            collection.AddHostedService<QueuePollingService>();
 
             return collection;
         }
-
     }
 }

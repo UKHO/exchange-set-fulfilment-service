@@ -1,9 +1,13 @@
+using Azure.Storage.Queues;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using TabBlazor.QuickTable.EntityFramework;
+using UKHO.ADDS.EFS.Common.Configuration;
+using UKHO.ADDS.EFS.Common.Messages;
+using UKHO.ADDS.EFS.Orchestrator.Api;
 using UKHO.ADDS.EFS.Orchestrator.Dashboard;
-using UKHO.ADDS.EFS.Orchestrator.Services;
 using UKHO.ADDS.EFS.Orchestrator.Services.Injection;
+using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Orchestrator
 {
@@ -13,7 +17,13 @@ namespace UKHO.ADDS.EFS.Orchestrator
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            ConfigureServices(builder.Services);
+            var config = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json")
+                .AddJsonFile("appsettings.Development.json")
+                .Build();
+
+            ConfigureServices(builder, config);
 
             builder.AddServiceDefaults();
 
@@ -36,41 +46,29 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             app.UseAuthorization();
 
-            MapApis(app);
-
-//            var ts = new TestService();
-//            ts.TestMethod();
+            BuildsApi.Register(app);
 
             app.Run();
         }
 
-        public static void ConfigureServices(IServiceCollection services)
+        public static void ConfigureServices(WebApplicationBuilder builder, IConfigurationRoot config)
         {
-            services.AddAuthorization();
-            services.AddOpenApi();
+            builder.AddAzureQueueClient(StorageConfiguration.QueuesName);
+            builder.AddAzureTableClient(StorageConfiguration.TablesName);
 
-            services.AddScoped<IDataService, LocalDataService>();
-            services.AddDbContextFactory<ApplicationDbContext>(options => options.UseSqlite("Data Source=app.db"));
-            services.AddQuickTableEntityFrameworkAdapter();
-            services.AddRazorPages();
-            services.AddServerSideBlazor();
+            builder.Services.AddAuthorization();
+            builder.Services.AddOpenApi();
+            
+            builder.Services.AddScoped<IDataService, LocalDataService>();
+            builder.Services.AddDbContextFactory<ApplicationDbContext>(options => options.UseSqlite("Data Source=app.db"));
+            builder.Services.AddQuickTableEntityFrameworkAdapter();
+            builder.Services.AddRazorPages();
+            builder.Services.AddServerSideBlazor();
 
-            services.AddOrchestrator();
-            services.AddDashboard();
-        }
+            var queuePollingMaxMessages = config.GetValue<int>("QueuePolling:QueuePollingMaxMessages");
 
-        private static void MapApis(WebApplication app)
-        {
-            var summaries = new[] { "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching" };
-
-            app.MapGet("/weatherforecast", (HttpContext httpContext) =>
-                {
-                    var forecast = Enumerable.Range(1, 5).Select(index =>
-                            new WeatherForecast { Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)), TemperatureC = Random.Shared.Next(-20, 55), Summary = summaries[Random.Shared.Next(summaries.Length)] })
-                        .ToArray();
-                    return forecast;
-                })
-                .WithName("GetWeatherForecast");
+            builder.Services.AddOrchestrator(queuePollingMaxMessages);
+            builder.Services.AddDashboard();
         }
     }
 }

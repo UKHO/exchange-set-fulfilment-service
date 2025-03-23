@@ -41,8 +41,4 @@
 	<ItemGroup>
 	  <Folder Include="wwwroot\css" />
 	</ItemGroup>
-
-	<ItemGroup>
-	  <PackageReference Update="Nerdbank.GitVersioning" Version="3.7.115" />
-	</ItemGroup>
 </Project>

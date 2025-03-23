@@ -1,6 +1,8 @@
-using k8s.Models;
+using CliWrap;
+using CliWrap.Buffered;
 using Microsoft.Extensions.Configuration;
 using Projects;
+using Serilog;
 using UKHO.ADDS.EFS.Common.Configuration;
 using UKHO.ADDS.EFS.LocalHost.Extensions;
 
@@ -8,13 +10,20 @@ namespace UKHO.ADDS.EFS.LocalHost
 {
     class Program
     {
-        static async Task<int> Main(string[] args)
+        private static async Task<int> Main(string[] args)
         {
+            Log.Logger = new LoggerConfiguration()
+                .WriteTo.Console()
+                .CreateLogger();
+
+            Log.Information("ADDS EFS Local Host Aspire Orchestrator");
+
             var builder = DistributedApplication.CreateBuilder(args);
 
             var config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
+                .AddJsonFile("appsettings.Development.json")
                 .Build();
 
             var wasBlobPort = config.GetValue<int>("WASBlobPort");
@@ -23,9 +32,6 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             var mockEndpointPort = config.GetValue<int>("MockEndpointPort");
             var mockEndpointContainerPort = config.GetValue<int>("MockEndpointContainerPort");
-
-            var fulfilmentEndpointPort = config.GetValue<int>("FulfilmentEndpointPort");
-            var fulfilmentEndpointContainerPort = config.GetValue<int>("FulfilmentEndpointContainerPort");
 
             // Service bus configuration
 
@@ -48,36 +54,57 @@ namespace UKHO.ADDS.EFS.LocalHost
             var storageQueue = storage.AddQueues(StorageConfiguration.QueuesName);
             var storageTable = storage.AddTables(StorageConfiguration.TablesName);
 
+            // ADDS Mock
+
             var addsMockContainer = builder.AddDockerfile(ContainerConfiguration.MockContainerName, @"..\..\mock\repo\src\ADDSMock")
                 .WithHttpEndpoint(mockEndpointPort, mockEndpointContainerPort, ContainerConfiguration.MockContainerEndpointName);
 
-//            var builderContainer = builder.AddDockerfile(ContainerConfiguration.BuilderContainerName, "..", dockerfilePath: "BuilderDockerfile")
-//                .WithHttpEndpoint(fulfilmentEndpointPort, fulfilmentEndpointContainerPort, ContainerConfiguration.BuilderContainerEndpointName);
-
-            await CreateBuilderImage(builder);
+            // Orchestrator
 
             var orchestratorService = builder.AddProject<UKHO_ADDS_EFS_Orchestrator>(ContainerConfiguration.OrchestratorContainerName)
-                //.WithReference(storageQueue)
-                //.WaitFor(storageQueue)
-                //.WithReference(storageTable)
-                //.WaitFor(storageTable)
-                //.WithReference(serviceBus)
-                //.WaitFor(serviceBus)
-                //.WithReference(addsMockContainerEndpoint)
-                //.WaitFor(addsMockContainer)
+                .WithReference(storageQueue)
+                .WaitFor(storageQueue)
+                .WithReference(storageTable)
+                .WaitFor(storageTable)
+                .WithReference(serviceBus)
+                .WaitFor(serviceBus)
+                .WaitFor(addsMockContainer)
                 .WithOrchestratorDashboard("Builder dashboard")
                 .WithScalar("API documentation");
+
+            await CreateS100BuilderContainerImage();
 
             await builder.Build().RunAsync();
 
             return 0;
         }
 
-        private static async Task CreateBuilderImage(IDistributedApplicationBuilder builder)
+        private static async Task CreateS100BuilderContainerImage()
         {
+            Log.Information("Creating S-100 builder container image...");
+
             var localHostDirectory = Directory.GetCurrentDirectory();
+            var srcDirectory = Directory.GetParent(localHostDirectory)?.FullName!;
 
+            const string arguments = $"build -t {ContainerConfiguration.S100BuilderContainerName} -f ./UKHO.ADDS.EFS.Builder.S100/Dockerfile .";
 
+            var result = await Cli.Wrap("docker")
+                .WithArguments(arguments)
+                .WithWorkingDirectory(srcDirectory)
+                .WithValidation(CommandResultValidation.None)
+                .ExecuteBufferedAsync();
+
+            // 'docker' writes everything to stderr...
+
+            if (result.IsSuccess)
+            {
+                Log.Information(result.StandardError);
+            }
+            else
+            {
+                Log.Fatal(result.StandardError);
+                throw new Exception("Failed to create S-100 builder container image");
+            }
         }
     }
 }
