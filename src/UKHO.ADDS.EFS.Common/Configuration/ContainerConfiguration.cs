@@ -4,9 +4,7 @@
     {
         public const string OrchestratorContainerName = "efs-orchestrator";
 
-        public const string BuilderContainerName = "efs-builder";
-
-        public const string BuilderContainerEndpointName = "efs-builder-endpoint";
+        public const string S100BuilderContainerName = "efs-builder-s100";
 
         public const string MockContainerName = "efs-addsmock";
 

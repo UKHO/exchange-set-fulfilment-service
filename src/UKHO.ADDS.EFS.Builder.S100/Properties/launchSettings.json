@@ -1,0 +1,11 @@
+{
+    "profiles": {
+        "Docker": {
+            "commandName": "Docker",
+            "launchBrowser": false,
+            "environmentVariables": {
+                "DOTNET_ENVIRONMENT": "Development"
+            }
+        }
+    }
+}
