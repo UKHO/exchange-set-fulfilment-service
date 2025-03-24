@@ -1,14 +1,10 @@
-using Azure.Storage.Queues;
-using Microsoft.EntityFrameworkCore;
+using System.Threading.Channels;
 using Scalar.AspNetCore;
-using TabBlazor.QuickTable.EntityFramework;
 using UKHO.ADDS.EFS.Common.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Common.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Common.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api;
-using UKHO.ADDS.EFS.Orchestrator.Dashboard;
-using UKHO.ADDS.EFS.Orchestrator.Services.Injection;
-using UKHO.ADDS.Infrastructure.Serialization.Json;
+using UKHO.ADDS.EFS.Orchestrator.Services;
 
 namespace UKHO.ADDS.EFS.Orchestrator
 {
@@ -37,14 +33,6 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 app.MapScalarApiReference(_ => _.Servers = []); // Stop OpenAPI specifying the wrong port in the generated OpenAPI doc
             }
 
-            app.UseHttpsRedirection();
-            app.UseStaticFiles();
-
-            app.UseRouting();
-
-            app.MapBlazorHub();
-            app.MapFallbackToPage("/_Host");
-
             app.UseAuthorization();
 
             BuildsApi.Register(app);
@@ -60,12 +48,6 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddAuthorization();
             builder.Services.AddOpenApi();
             
-            builder.Services.AddScoped<IDataService, LocalDataService>();
-            builder.Services.AddDbContextFactory<ApplicationDbContext>(options => options.UseSqlite("Data Source=app.db"));
-            builder.Services.AddQuickTableEntityFrameworkAdapter();
-            builder.Services.AddRazorPages();
-            builder.Services.AddServerSideBlazor();
-
             var queuePollingMaxMessages = config.GetValue<int>("QueuePolling:QueuePollingMaxMessages");
 
             var builderStartupValue = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.BuilderStartup);
@@ -76,8 +58,12 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             var builderStartup = Enum.Parse<BuilderStartup>(builderStartupValue);
 
-            builder.Services.AddOrchestrator(queuePollingMaxMessages, builderStartup);
-            builder.Services.AddDashboard();
+            builder.Services.AddSingleton(Channel.CreateBounded<ExchangeSetRequestMessage>(new BoundedChannelOptions(queuePollingMaxMessages)
+            {
+                FullMode = BoundedChannelFullMode.Wait
+            }));
+
+            builder.Services.AddHostedService<QueuePollingService>();
         }
     }
 }

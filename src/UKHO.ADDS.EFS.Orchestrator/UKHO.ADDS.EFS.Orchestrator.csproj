@@ -13,12 +13,16 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.3" />
     <PackageReference Include="Scalar.AspNetCore" Version="2.1.1" />
+    <PackageReference Include="Docker.DotNet" Version="3.125.15" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.3" />
+    <PackageReference Include="Serilog" Version="4.2.0" />
+    <PackageReference Include="Aspire.Azure.Data.Tables" Version="9.1.0" />
+    <PackageReference Include="Aspire.Azure.Storage.Queues" Version="9.1.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\UKHO.ADDS.EFS.Common.Services\UKHO.ADDS.EFS.Common.Services.csproj" />
     <ProjectReference Include="..\UKHO.ADDS.EFS.Common\UKHO.ADDS.EFS.Common.csproj" />
-    <ProjectReference Include="..\UKHO.ADDS.EFS.Orchestrator.Dashboard\UKHO.ADDS.EFS.Orchestrator.Dashboard.csproj" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.3" />
   </ItemGroup>
 
