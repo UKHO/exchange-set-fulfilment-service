@@ -1,12 +1,13 @@
 ﻿using System.Threading.Channels;
 using Microsoft.Extensions.DependencyInjection;
+using UKHO.ADDS.EFS.Common.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Common.Messages;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services.Injection
 {
     public static class InjectionExtensions
     {
-        public static IServiceCollection AddOrchestrator(this IServiceCollection collection, int queuePollingMaxMessages)
+        public static IServiceCollection AddOrchestrator(this IServiceCollection collection, int queuePollingMaxMessages, BuilderStartup builderStartup)
         {
             collection.AddSingleton(Channel.CreateBounded<ExchangeSetRequestMessage>(new BoundedChannelOptions(queuePollingMaxMessages)
             {

@@ -2,7 +2,8 @@ using Azure.Storage.Queues;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using TabBlazor.QuickTable.EntityFramework;
-using UKHO.ADDS.EFS.Common.Configuration;
+using UKHO.ADDS.EFS.Common.Configuration.Namespaces;
+using UKHO.ADDS.EFS.Common.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Common.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api;
 using UKHO.ADDS.EFS.Orchestrator.Dashboard;
@@ -67,7 +68,15 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             var queuePollingMaxMessages = config.GetValue<int>("QueuePolling:QueuePollingMaxMessages");
 
-            builder.Services.AddOrchestrator(queuePollingMaxMessages);
+            var builderStartupValue = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.BuilderStartup);
+            if (builderStartupValue == null)
+            {
+                throw new InvalidOperationException($"Environment variable {OrchestratorEnvironmentVariables.BuilderStartup} is not set");
+            }
+
+            var builderStartup = Enum.Parse<BuilderStartup>(builderStartupValue);
+
+            builder.Services.AddOrchestrator(queuePollingMaxMessages, builderStartup);
             builder.Services.AddDashboard();
         }
     }

@@ -33,12 +33,13 @@ WORKDIR /src/UKHO.ADDS.EFS.Builder.S100
 RUN dotnet build UKHO.ADDS.EFS.Builder.S100.csproj -c $BUILD_CONFIGURATION -o /app/build
 
 # Copy WAR to Tomcat
-COPY UKHO.ADDS.EFS.Builder.S100/iic/xchg-2.4.war /usr/local/tomcat/webapps/
+COPY UKHO.ADDS.EFS.Builder.S100/Tomcat/xchg-2.7.war /usr/local/tomcat/webapps/
 
 # No need to copy anything — the build output is already there
 WORKDIR /app/build
 
-# The .NET process orchestrates Tomcat, so just start that
+# The .NET process orchestrates Tomcat, so just start that. Visual Studio also hijacks the ENTRYPOINT and injects its own
+# stuff as PID 1, so any bash shells don't run properly when debugging from Visual Studio...
 ENTRYPOINT ["dotnet", "/app/build/UKHO.ADDS.EFS.Builder.S100.dll"]
 
 EXPOSE 8080 5000

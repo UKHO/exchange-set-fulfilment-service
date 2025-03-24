@@ -3,7 +3,8 @@ using CliWrap.Buffered;
 using Microsoft.Extensions.Configuration;
 using Projects;
 using Serilog;
-using UKHO.ADDS.EFS.Common.Configuration;
+using UKHO.ADDS.EFS.Common.Configuration.Namespaces;
+using UKHO.ADDS.EFS.Common.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.LocalHost.Extensions;
 
 namespace UKHO.ADDS.EFS.LocalHost
@@ -18,23 +19,24 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             Log.Information("ADDS EFS Local Host Aspire Orchestrator");
 
-            var builder = DistributedApplication.CreateBuilder(args);
-
             var config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
                 .AddJsonFile("appsettings.Development.json")
                 .Build();
 
-            var wasBlobPort = config.GetValue<int>("WASBlobPort");
-            var wasQueuePort = config.GetValue<int>("WASQueuePort");
-            var wasTablePort = config.GetValue<int>("WASTablePort");
+            var wasBlobPort = config.GetValue<int>("Endpoints:WASBlobPort");
+            var wasQueuePort = config.GetValue<int>("Endpoints:WASQueuePort");
+            var wasTablePort = config.GetValue<int>("Endpoints:WASTablePort");
 
-            var mockEndpointPort = config.GetValue<int>("MockEndpointPort");
-            var mockEndpointContainerPort = config.GetValue<int>("MockEndpointContainerPort");
+            var mockEndpointPort = config.GetValue<int>("Endpoints:MockEndpointPort");
+            var mockEndpointContainerPort = config.GetValue<int>("Endpoints:MockEndpointContainerPort");
+
+            var builderStartup = config.GetValue<BuilderStartup>("Orchestrator:BuilderStartup");
+
+            var builder = DistributedApplication.CreateBuilder(args);
 
             // Service bus configuration
-
             var serviceBus = builder.AddAzureServiceBus(ServiceBusConfiguration.ServiceBusName).RunAsEmulator();
 
             serviceBus.AddServiceBusTopic(ServiceBusConfiguration.TopicName)
@@ -70,7 +72,8 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WaitFor(serviceBus)
                 .WaitFor(addsMockContainer)
                 .WithOrchestratorDashboard("Builder dashboard")
-                .WithScalar("API documentation");
+                .WithScalar("API documentation")
+                .WithEnvironment(OrchestratorEnvironmentVariables.BuilderStartup, builderStartup.ToString);
 
             await CreateS100BuilderContainerImage();
 
