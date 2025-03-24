@@ -18,6 +18,7 @@
     <PackageReference Include="Serilog" Version="4.2.0" />
     <PackageReference Include="Aspire.Azure.Data.Tables" Version="9.1.0" />
     <PackageReference Include="Aspire.Azure.Storage.Queues" Version="9.1.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageReference Include="UKHO.ADDS.Infrastructure.Pipelines" Version="0.0.50322-alpha.2" />
   </ItemGroup>
 

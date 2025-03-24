@@ -4,8 +4,6 @@ using Docker.DotNet.Models;
 using Docker.DotNet;
 using Serilog;
 using UKHO.ADDS.EFS.Common.Messages;
-using System.Net.Sockets;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using System.Text;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services
@@ -15,9 +13,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         const string ImageName = "efs-builder-s100";
         const string ContainerName = "efs-builder-s100-";
 
-        string[] command = new[] { "sh", "-c", "echo Starting; sleep 5; echo Healthy now; sleep 5; echo Exiting..." };
+        readonly string[] _command = new[] { "sh", "-c", "echo Starting; sleep 5; echo Healthy now; sleep 5; echo Exiting..." };
 
-        TimeSpan containerTimeout = TimeSpan.FromSeconds(20);
+        readonly TimeSpan _containerTimeout = TimeSpan.FromSeconds(20);
 
         private readonly Channel<ExchangeSetRequestMessage> _channel;
         private readonly SemaphoreSlim _concurrencyLimiter;
@@ -40,7 +38,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 {
                     try
                     {
-                        await ProcessRequest(request);
+                        await ProcessRequest(request, stoppingToken);
                     }
                     catch (Exception ex)
                     {
@@ -55,39 +53,51 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             }
         }
 
-        private async Task ProcessRequest(ExchangeSetRequestMessage request)
+        private async Task ProcessRequest(ExchangeSetRequestMessage request, CancellationToken stoppingToken)
         {
             var sessionId = Guid.NewGuid().ToString("N");
             var containerName = $"{ContainerName}{sessionId}";
 
-            using var docker = new DockerClientConfiguration(new Uri("unix:///var/run/docker.sock")).CreateClient();
+            using var docker = new DockerClientConfiguration(new Uri(GetDockerEndpoint())).CreateClient();
             await EnsureImageExistsAsync(docker, ImageName);
 
-            var containerId = await CreateContainerAsync(docker, ImageName, containerName, command);
+            var containerId = await CreateContainerAsync(docker, ImageName, containerName, _command);
             await StartContainerAsync(docker, containerId);
 
-            var logTask = StreamContainerLogsAsync(docker, containerId);
+            var logTask = DockerLogStreamer.StreamLogsAsync(
+                docker,
+                containerId,
+                logStdout: line =>
+                {
+                    Log.Information($"{containerName}] {line}");
+                },
+                logStderr: line =>
+                {
+                    Log.Error($"{containerName}] {line}");
+                },
+                cancellationToken: stoppingToken
+            );
 
             try
             {
-                var exitCode = await WaitForContainerExitAsync(docker, containerId, containerTimeout);
-                Console.WriteLine($"Container exited with code: {exitCode}");
+                var exitCode = await WaitForContainerExitAsync(docker, containerId, _containerTimeout);
+                Log.Information($"Container {containerId} exited with code: {exitCode}");
             }
             catch (TimeoutException)
             {
-                Console.WriteLine("Container exceeded timeout. Killing...");
-                await docker.Containers.StopContainerAsync(containerId, new ContainerStopParameters { });
+                Log.Error($"Container {containerId} exceeded timeout. Killing...");
+                await docker.Containers.StopContainerAsync(containerId, new ContainerStopParameters { }, stoppingToken);
             }
 
             await logTask;
 
-            Console.WriteLine("Removing container...");
-            await docker.Containers.RemoveContainerAsync(containerId, new ContainerRemoveParameters { Force = true });
+            Log.Information($"Removing container {containerId}");
+            await docker.Containers.RemoveContainerAsync(containerId, new ContainerRemoveParameters { Force = true }, stoppingToken);
         }
 
         public static async Task EnsureImageExistsAsync(DockerClient docker, string imageName, string tag = "latest")
         {
-            string reference = $"{imageName}:{tag}";
+            var reference = $"{imageName}:{tag}";
 
             var images = await docker.Images.ListImagesAsync(new ImagesListParameters
             {
@@ -102,11 +112,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
             if (images.Count > 0)
             {
-                Console.WriteLine($"Image '{reference}' already exists.");
+                Log.Information($"Image '{reference}' already exists");
                 return;
             }
 
-            Console.WriteLine($"Image '{reference}' not found. Pulling...");
+            Log.Information($"Image '{reference}' not found. Pulling...");
 
             await docker.Images.CreateImageAsync(
                 new ImagesCreateParameters
@@ -123,7 +133,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                     }
                 }));
 
-            Console.WriteLine($"Image '{reference}' pulled successfully.");
+            Log.Information($"Image '{reference}' pulled successfully");
         }
 
         static async Task<string> CreateContainerAsync(DockerClient client, string image, string name, string[] command)
@@ -154,33 +164,16 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 }
             });
 
-            Console.WriteLine($"Created container with ID: {response.ID}");
+            Log.Information($"Created container with ID: {response.ID}");
             return response.ID;
         }
 
         static async Task StartContainerAsync(DockerClient client, string containerId)
         {
-            bool started = await client.Containers.StartContainerAsync(containerId, new ContainerStartParameters());
+            var started = await client.Containers.StartContainerAsync(containerId, new ContainerStartParameters());
             if (!started)
-                throw new Exception("Failed to start container.");
-        }
-
-        static async Task StreamContainerLogsAsync(DockerClient client, string containerId)
-        {
-            using var logStream = await client.Containers.GetContainerLogsAsync(containerId, new ContainerLogsParameters
             {
-                ShowStdout = true,
-                ShowStderr = true,
-                Follow = true,
-                Timestamps = false,
-            });
-
-            using var reader = new StreamReader(logStream, Encoding.UTF8);
-            while (!reader.EndOfStream)
-            {
-                var line = await reader.ReadLineAsync();
-                if (line != null)
-                    Console.WriteLine("[container log] " + line);
+                throw new Exception("Failed to start container");
             }
         }
 
@@ -191,7 +184,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
             if (response.Error != null)
             {
-                Console.WriteLine($"Container reported error: {response.Error.Message}");
+                Log.Error($"Container reported error: {response.Error.Message}");
             }
 
             return response.StatusCode;

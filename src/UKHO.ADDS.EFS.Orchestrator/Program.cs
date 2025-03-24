@@ -1,5 +1,6 @@
 using System.Threading.Channels;
 using Scalar.AspNetCore;
+using Serilog;
 using UKHO.ADDS.EFS.Common.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Common.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Common.Messages;
@@ -12,7 +13,17 @@ namespace UKHO.ADDS.EFS.Orchestrator
     {
         public static void Main(string[] args)
         {
+            Log.Logger = new LoggerConfiguration()
+                .WriteTo.Console()
+                .CreateLogger();
+
             var builder = WebApplication.CreateBuilder(args);
+
+            builder.Host.UseSerilog((context, loggerConfiguration) =>
+            {
+                loggerConfiguration.WriteTo.Console();
+                loggerConfiguration.ReadFrom.Configuration(context.Configuration);
+            });
 
             var config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
@@ -55,8 +66,6 @@ namespace UKHO.ADDS.EFS.Orchestrator
             {
                 throw new InvalidOperationException($"Environment variable {OrchestratorEnvironmentVariables.BuilderStartup} is not set");
             }
-
-            var builderStartup = Enum.Parse<BuilderStartup>(builderStartupValue);
 
             builder.Services.AddSingleton(Channel.CreateBounded<ExchangeSetRequestMessage>(new BoundedChannelOptions(queueChannelSize)
             {
