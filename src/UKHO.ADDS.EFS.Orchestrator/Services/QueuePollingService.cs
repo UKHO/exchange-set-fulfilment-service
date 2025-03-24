@@ -17,6 +17,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         private readonly QueueClient _queueClient;
 
         private readonly int _pollingIntervalSeconds;
+        private readonly int _queueBatchSize;
 
         public QueuePollingService(Channel<ExchangeSetRequestMessage> channel, QueueServiceClient queueServiceClient, IConfiguration configuration)
         {
@@ -24,6 +25,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             _queueClient = queueServiceClient.GetQueueClient(StorageConfiguration.RequestQueueName);
 
             _pollingIntervalSeconds = configuration.GetValue<int>("QueuePolling:PollingIntervalSeconds");
+            _queueBatchSize = configuration.GetValue<int>("QueuePolling:BatchSize");
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -34,7 +36,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             {
                 try
                 {
-                    QueueMessage[] messages = await _queueClient.ReceiveMessagesAsync(maxMessages: 25, cancellationToken: stoppingToken);
+                    QueueMessage[] messages = await _queueClient.ReceiveMessagesAsync(maxMessages: _queueBatchSize, cancellationToken: stoppingToken);
 
                     foreach (var message in messages)
                     {
