@@ -9,18 +9,13 @@ namespace UKHO.ADDS.EFS.Builder.S100
     {
         private static async Task<int> Main(string[] args)
         {
-            Console.WriteLine("Running inside Docker");
-            Console.WriteLine(Environment.MachineName);
-
             Log.Logger = new LoggerConfiguration()
                 .Enrich.FromLogContext()
                 .WriteTo.Console()
                 .CreateLogger();
 
-            var builderRuntimeModeValue = Environment.GetEnvironmentVariable("RUNTIME_MODE");
-            var builderRuntimeMode = string.IsNullOrEmpty(builderRuntimeModeValue) ? RuntimeMode.Multiple : Enum.Parse<RuntimeMode>(builderRuntimeModeValue);
-
-            Log.Information($"Runtime mode : {builderRuntimeMode}");
+            Log.Information("UKHO ADDS EFS S100 Builder");
+            Log.Information($"Machine ID   : {Environment.MachineName}");
 
             try
             {
@@ -32,6 +27,13 @@ namespace UKHO.ADDS.EFS.Builder.S100
                 //var content = await response.Content.ReadAsStringAsync();
 
                 //Log.Information($"Content : {content}");
+
+                using var client = new HttpClient() { BaseAddress = new Uri("http://localhost:8080") };
+                using var response = await client.GetAsync("/xchg-2.7/v2.7/dev?arg=test&authkey=noauth");
+
+                var content = await response.Content.ReadAsStringAsync();
+
+                Log.Information($"Content : {content}");
 
                 while (true)
                 {
@@ -54,7 +56,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
 
         private static async Task StartTomcatAsync()
         {
-            Log.Information("🚀 Starting Tomcat...");
+            Log.Information("Starting Tomcat...");
 
             var process = new Process
             {
@@ -89,7 +91,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
                     var response = await httpClient.GetAsync("http://localhost:8080");
                     if (response.IsSuccessStatusCode)
                     {
-                        Console.WriteLine("✅ Tomcat is ready!");
+                        Console.WriteLine("Tomcat is ready");
                         ready = true;
                         break;
                     }
@@ -99,13 +101,13 @@ namespace UKHO.ADDS.EFS.Builder.S100
                     // Ignore and retry
                 }
 
-                Log.Information("⌛ Waiting for Tomcat to become ready...");
+                Log.Information("Waiting for Tomcat to become ready...");
                 await Task.Delay(1000);
             }
 
             if (!ready)
             {
-                throw new Exception("❌ Tomcat did not start in time.");
+                throw new Exception("Tomcat did not start in time");
             }
         }
 

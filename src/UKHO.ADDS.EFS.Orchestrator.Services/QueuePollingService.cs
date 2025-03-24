@@ -5,7 +5,7 @@ using Docker.DotNet.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Serilog;
-using UKHO.ADDS.EFS.Common.Configuration;
+using UKHO.ADDS.EFS.Common.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Common.Messages;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
