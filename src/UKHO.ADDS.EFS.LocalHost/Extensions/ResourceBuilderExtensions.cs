@@ -42,12 +42,12 @@ namespace UKHO.ADDS.EFS.LocalHost.Extensions
                 iconName: "Document", iconVariant: IconVariant.Filled);
         }
 
-        internal static IResourceBuilder<T> WithOrchestratorDashboard<T>(this IResourceBuilder<T> builder, string displayName) where T : IResourceWithEndpoints
+        internal static IResourceBuilder<T> WithOrchestratorDashboard<T>(this IResourceBuilder<T> builder, EndpointReference endpoint, string displayName) where T : IResourceWithEndpoints
         {
-            return builder.WithOrchestratorDashboard(displayName, "builder-dashboard");
+            return builder.WithOrchestratorDashboard(endpoint, displayName ,"builder-dashboard");
         }
 
-        internal static IResourceBuilder<T> WithOrchestratorDashboard<T>(this IResourceBuilder<T> builder, string displayName, string name)
+        internal static IResourceBuilder<T> WithOrchestratorDashboard<T>(this IResourceBuilder<T> builder, EndpointReference endpoint, string displayName, string name)
             where T : IResourceWithEndpoints
         {
             return builder.WithCommand(
@@ -57,8 +57,7 @@ namespace UKHO.ADDS.EFS.LocalHost.Extensions
                 {
                     try
                     {
-                        var endpoint = builder.GetEndpoint("https");
-                        var url = $"{endpoint.Url}";
+                        var url = endpoint.Url;
 
                         Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
 

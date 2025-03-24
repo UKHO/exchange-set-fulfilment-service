@@ -6,6 +6,7 @@ using Serilog;
 using UKHO.ADDS.EFS.Common.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Common.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.LocalHost.Extensions;
+using UKHO.ADDS.EFS.LocalHost.OpenTelemetryCollector;
 
 namespace UKHO.ADDS.EFS.LocalHost
 {
@@ -61,7 +62,24 @@ namespace UKHO.ADDS.EFS.LocalHost
             var addsMockContainer = builder.AddDockerfile(ContainerConfiguration.MockContainerName, @"..\..\mock\repo\src\ADDSMock")
                 .WithHttpEndpoint(mockEndpointPort, mockEndpointContainerPort, ContainerConfiguration.MockContainerEndpointName);
 
+            // Metrics
+            var prometheusContainer = builder.AddContainer("prometheus", "prom/prometheus:v3.0.1")
+                .WithBindMount("../Metrics/prometheus", "/etc/prometheus", isReadOnly: true)
+                .WithArgs("--web.enable-otlp-receiver", "--config.file=/etc/prometheus/prometheus.yml")
+                .WithHttpEndpoint(targetPort: 9090, name: "http");
+
+            var grafanaContainer = builder.AddContainer("grafana", "grafana/grafana")
+                .WithBindMount("../Metrics/grafana/config", "/etc/grafana", isReadOnly: true)
+                .WithBindMount("../Metrics/grafana/dashboards", "/var/lib/grafana/dashboards", isReadOnly: true)
+                .WithEnvironment("PROMETHEUS_ENDPOINT", prometheusContainer.GetEndpoint("http"))
+                .WithHttpEndpoint(targetPort: 3000, name: "http");
+
+            builder.AddOpenTelemetryCollector("otelcollector", "../Metrics/otelcollector/config.yaml")
+                .WithEnvironment("PROMETHEUS_ENDPOINT", $"{prometheusContainer.GetEndpoint("http")}/api/v1/otlp");
+
             // Orchestrator
+
+            var grafanaEndpoint = grafanaContainer.GetEndpoint("http");
 
             var orchestratorService = builder.AddProject<UKHO_ADDS_EFS_Orchestrator>(ContainerConfiguration.OrchestratorContainerName)
                 .WithReference(storageQueue)
@@ -71,7 +89,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WithReference(serviceBus)
                 .WaitFor(serviceBus)
                 .WaitFor(addsMockContainer)
-                .WithOrchestratorDashboard("Builder dashboard")
+                .WithOrchestratorDashboard(grafanaEndpoint, "Builder dashboard")
                 .WithScalar("API documentation")
                 .WithEnvironment(OrchestratorEnvironmentVariables.BuilderStartup, builderStartup.ToString);
 
