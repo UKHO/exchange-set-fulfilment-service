@@ -1,8 +1,0 @@
-﻿@inherits TablerBaseComponent
-@namespace TabBlazor
-
-
-@if (!string.IsNullOrWhiteSpace(objectURL))
-{
-    <iframe src="@(objectURL + UrlSuffix)" @attributes="@UnmatchedParameters"/>
-}
