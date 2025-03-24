@@ -48,7 +48,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddAuthorization();
             builder.Services.AddOpenApi();
             
-            var queuePollingMaxMessages = config.GetValue<int>("QueuePolling:QueuePollingMaxMessages");
+            var queueChannelSize = config.GetValue<int>("QueuePolling:ChannelSize");
 
             var builderStartupValue = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.BuilderStartup);
             if (builderStartupValue == null)
@@ -58,12 +58,13 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             var builderStartup = Enum.Parse<BuilderStartup>(builderStartupValue);
 
-            builder.Services.AddSingleton(Channel.CreateBounded<ExchangeSetRequestMessage>(new BoundedChannelOptions(queuePollingMaxMessages)
+            builder.Services.AddSingleton(Channel.CreateBounded<ExchangeSetRequestMessage>(new BoundedChannelOptions(queueChannelSize)
             {
                 FullMode = BoundedChannelFullMode.Wait
             }));
 
             builder.Services.AddHostedService<QueuePollingService>();
+            builder.Services.AddHostedService<BuilderDispatcherService>();
         }
     }
 }

@@ -29,3 +29,13 @@ To update the submodule reference in this repository to the latest version of AD
 git submodule update --remote --merge
 ```
 
+### Running the solution
+
+Open the EFS.sln in the root of the repository, ensure that the UKHO.ADDS.EFS.LocalHost project is set as start by default, and press f5!
+
+### TODO
+- manual running (debug)
+- visual studio container dockerfile need to knows
+- solution architecture overview (diagram)
+
+

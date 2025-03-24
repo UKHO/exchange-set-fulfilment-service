@@ -89,7 +89,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WithReference(serviceBus)
                 .WaitFor(serviceBus)
                 .WaitFor(addsMockContainer)
-                .WithOrchestratorDashboard(grafanaEndpoint, "Builder dashboard")
+                .WithOrchestratorDashboard(grafanaEndpoint, "OLTP Dashboard")
                 .WithScalar("API documentation")
                 .WithEnvironment(OrchestratorEnvironmentVariables.BuilderStartup, builderStartup.ToString);
 
@@ -109,21 +109,22 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             const string arguments = $"build -t {ContainerConfiguration.S100BuilderContainerName} -f ./UKHO.ADDS.EFS.Builder.S100/Dockerfile .";
 
+            // 'docker' writes everything to stderr...
+
             var result = await Cli.Wrap("docker")
                 .WithArguments(arguments)
                 .WithWorkingDirectory(srcDirectory)
                 .WithValidation(CommandResultValidation.None)
-                .ExecuteBufferedAsync();
-
-            // 'docker' writes everything to stderr...
+                .WithStandardOutputPipe(PipeTarget.ToDelegate(Log.Information))
+                .WithStandardErrorPipe(PipeTarget.ToDelegate(Log.Information))
+                .ExecuteAsync();
 
             if (result.IsSuccess)
             {
-                Log.Information(result.StandardError);
+                Log.Information($"{ContainerConfiguration.S100BuilderContainerName} built ok");
             }
             else
             {
-                Log.Fatal(result.StandardError);
                 throw new Exception("Failed to create S-100 builder container image");
             }
         }
