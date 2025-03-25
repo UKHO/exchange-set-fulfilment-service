@@ -58,7 +58,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             var sessionId = Guid.NewGuid().ToString("N");
             var containerName = $"{ContainerName}{sessionId}";
 
-            using var docker = new DockerClientConfiguration(new Uri(GetDockerEndpoint())).CreateClient();
+            using var docker = new DockerClientConfiguration(GetDockerEndpoint()).CreateClient();
             await EnsureImageExistsAsync(docker, ImageName);
 
             var containerId = await CreateContainerAsync(docker, ImageName, containerName, _command);
@@ -190,9 +190,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             return response.StatusCode;
         }
 
-        private static string GetDockerEndpoint() => RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                ? "npipe://./pipe/docker_engine"
-                : "unix:///var/run/docker.sock";
-   
+        private static Uri GetDockerEndpoint() => RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? new Uri("npipe://./pipe/docker_engine")
+                : new Uri("unix:///var/run/docker.sock");
     }
 }
