@@ -1,14 +1,11 @@
-﻿using System.Diagnostics;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Threading.Channels;
 using Docker.DotNet.Models;
 using Docker.DotNet;
 using Serilog;
 using UKHO.ADDS.EFS.Common.Messages;
-using System.Text;
 using UKHO.ADDS.EFS.Common.Configuration.Orchestrator;
 using Azure.Storage.Queues;
-using UKHO.ADDS.EFS.Common.Configuration.Namespaces;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services
@@ -54,9 +51,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 {
                     try
                     {
+                        var id = Guid.NewGuid().ToString("N");
+
                         var queueName = _builderStartup switch
                         {
-                            BuilderStartup.Orchestrator => $"builder-{Guid.NewGuid():N}",
+                            BuilderStartup.Orchestrator => $"builder-{id}",
                             BuilderStartup.Manual => "builder-manual",
                             _ => string.Empty
                         };
@@ -69,7 +68,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
                             case BuilderStartup.Orchestrator:
                                 await WriteMessageToQueueAsync(queueName, request);
-                                await ExecuteBuilder(request, stoppingToken, queueName);
+                                await ExecuteBuilder(request, stoppingToken, queueName, id);
                                 break;
                         }
                     }
@@ -101,11 +100,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             await queueClient.DeleteIfExistsAsync();
         }
 
-        private async Task ExecuteBuilder(ExchangeSetRequestMessage request, CancellationToken stoppingToken, string queueName)
+        private async Task ExecuteBuilder(ExchangeSetRequestMessage request, CancellationToken stoppingToken, string queueName, string id)
         {
-            var sessionId = Guid.NewGuid().ToString("N");
-            var containerName = $"{ContainerName}{sessionId}";
-
+            var containerName = $"{ContainerName}{id}";
 
             using var docker = new DockerClientConfiguration(GetDockerEndpoint()).CreateClient();
             await EnsureImageExistsAsync(docker, ImageName);
@@ -118,11 +115,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 containerId,
                 logStdout: line =>
                 {
-                    Log.Information($"{containerName}] {line}");
+                    Log.Information($"[{containerName}] {line}");
                 },
                 logStderr: line =>
                 {
-                    Log.Error($"{containerName}] {line}");
+                    Log.Error($"[{containerName}] {line}");
                 },
                 cancellationToken: stoppingToken
             );

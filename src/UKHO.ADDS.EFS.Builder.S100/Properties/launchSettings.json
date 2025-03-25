@@ -4,7 +4,8 @@
             "commandName": "Docker",
             "launchBrowser": false,
             "environmentVariables": {
-                "DOTNET_ENVIRONMENT": "Development"
+                "DOTNET_ENVIRONMENT": "Development",
+                "QUEUE_NAME": "builder-manual"
             }
         }
     }

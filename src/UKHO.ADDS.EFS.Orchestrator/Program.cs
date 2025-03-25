@@ -2,7 +2,6 @@ using System.Threading.Channels;
 using Scalar.AspNetCore;
 using Serilog;
 using UKHO.ADDS.EFS.Common.Configuration.Namespaces;
-using UKHO.ADDS.EFS.Common.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Common.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api;
 using UKHO.ADDS.EFS.Orchestrator.Services;
@@ -25,13 +24,13 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 loggerConfiguration.ReadFrom.Configuration(context.Configuration);
             });
 
-            var config = new ConfigurationBuilder()
+            var configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
                 .AddJsonFile("appsettings.Development.json")
                 .Build();
 
-            ConfigureServices(builder, config);
+            ConfigureServices(builder, configuration);
 
             builder.AddServiceDefaults();
 
@@ -51,7 +50,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
             app.Run();
         }
 
-        public static void ConfigureServices(WebApplicationBuilder builder, IConfigurationRoot config)
+        public static void ConfigureServices(WebApplicationBuilder builder, IConfigurationRoot configuration)
         {
             builder.AddAzureQueueClient(StorageConfiguration.QueuesName);
             builder.AddAzureTableClient(StorageConfiguration.TablesName);
@@ -59,7 +58,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddAuthorization();
             builder.Services.AddOpenApi();
             
-            var queueChannelSize = config.GetValue<int>("QueuePolling:ChannelSize");
+            var queueChannelSize = configuration.GetValue<int>("QueuePolling:ChannelSize");
 
             builder.Services.AddSingleton(Channel.CreateBounded<ExchangeSetRequestMessage>(new BoundedChannelOptions(queueChannelSize)
             {

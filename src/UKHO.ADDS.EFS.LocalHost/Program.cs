@@ -39,6 +39,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             var exposeOtlp = config.GetValue<bool>("Telemetry:ExposeOtlp");
 
             var containerRuntime = config.GetValue<ContainerRuntime>("Containers:ContainerRuntime");
+            var buildOnStartup = config.GetValue<bool>("Containers:BuildOnStartup");
 
             var builder = DistributedApplication.CreateBuilder(args);
 
@@ -61,7 +62,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             var addsMockContainer = builder.AddDockerfile(ContainerConfiguration.MockContainerName, @"..\..\mock\repo\src\ADDSMock")
                 .WithHttpEndpoint(mockEndpointPort, mockEndpointContainerPort, ContainerConfiguration.MockContainerEndpointName);
 
-            IResourceBuilder<ContainerResource> grafanaContainer = null;
+            IResourceBuilder<ContainerResource>? grafanaContainer = null;
 
             // Metrics
             if (exposeOtlp)
@@ -94,11 +95,14 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             if (exposeOtlp)
             {
-                var grafanaEndpoint = grafanaContainer.GetEndpoint("http");
+                var grafanaEndpoint = grafanaContainer!.GetEndpoint("http");
                 orchestratorService.WithOrchestratorDashboard(grafanaEndpoint, "OLTP Dashboard");
             }
 
-            await CreateS100BuilderContainerImage(containerRuntime);
+            if (buildOnStartup)
+            {
+                await CreateS100BuilderContainerImage(containerRuntime);
+            }
 
             await builder.Build().RunAsync();
 

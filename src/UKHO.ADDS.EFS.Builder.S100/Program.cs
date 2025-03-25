@@ -1,7 +1,13 @@
 ﻿using System.Diagnostics;
+using System.Threading.Tasks.Dataflow;
+using Azure.Storage.Queues;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using UKHO.ADDS.EFS.Common.Configuration.Orchestrator;
+using UKHO.ADDS.EFS.Common.Messages;
+using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Builder.S100
 {
@@ -15,11 +21,44 @@ namespace UKHO.ADDS.EFS.Builder.S100
                 .CreateLogger();
 
             Log.Information("UKHO ADDS EFS S100 Builder");
-            Log.Information($"Machine ID   : {Environment.MachineName}");
+            Log.Information($"Machine ID      : {Environment.MachineName}");
+
+            var builderQueue = Environment.GetEnvironmentVariable(BuilderEnvironmentVariables.QueueName);
+
+            if (string.IsNullOrEmpty(builderQueue))
+            {
+                Log.Error("Builder Queue is not set");
+                return -1;
+            }
+
+            Log.Information($"Builder Queue   : {builderQueue}");
+
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json")
+                .AddJsonFile("appsettings.Development.json", optional:true)
+                .Build();
+
+            var fileShareEndpoint = configuration.GetValue<string>("Endpoints:FileShareService");
+            var salesCatalogueEndpoint = configuration.GetValue<string>("Endpoints:SalesCatalogueService");
+            var queueEndpoint = configuration.GetValue<string>("Endpoints:Queue");
+
+            Log.Information($"File Share      : {fileShareEndpoint}");
+            Log.Information($"Sales Catalogue : {salesCatalogueEndpoint}");
+            Log.Information($"Queue           : {queueEndpoint}");
 
             try
             {
                 await StartTomcatAsync();
+
+                var queueServiceClient = new QueueServiceClient(new Uri(queueEndpoint!));
+                var queue = queueServiceClient.GetQueueClient(builderQueue);
+
+                var message = await QueueWaiter.WaitForSingleMessageAsync(queue, pollInterval: TimeSpan.FromSeconds(1));
+
+                Log.Information($"Received request : {message.MessageText}");
+
+                var request = JsonCodec.Decode<ExchangeSetRequestMessage>(message.MessageText)!;
 
                 //using var client = new HttpClient() { BaseAddress = new Uri("http://host.docker.internal:5679") };
                 //using var response = await client.GetAsync("/erp/health");
@@ -35,9 +74,13 @@ namespace UKHO.ADDS.EFS.Builder.S100
 
                 Log.Information($"Content : {content}");
 
-                while (true)
+                var i = 0;
+
+                while (i < 60)
                 {
-                    Console.WriteLine("Hello, World!");
+                    ++i;
+
+                    Console.WriteLine("Doing stuff...");
                     Thread.Sleep(1000);
                 }
 
