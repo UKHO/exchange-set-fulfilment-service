@@ -42,12 +42,6 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             var builder = DistributedApplication.CreateBuilder(args);
 
-            // Service bus configuration
-            var serviceBus = builder.AddAzureServiceBus(ServiceBusConfiguration.ServiceBusName).RunAsEmulator();
-
-            serviceBus.AddServiceBusTopic(ServiceBusConfiguration.TopicName)
-                .AddServiceBusSubscription(ServiceBusConfiguration.SubscriptionName);
-
             // Storage configuration
 
             var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e =>
@@ -94,8 +88,6 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WaitFor(storageQueue)
                 .WithReference(storageTable)
                 .WaitFor(storageTable)
-                .WithReference(serviceBus)
-                .WaitFor(serviceBus)
                 .WaitFor(addsMockContainer)
                 .WithScalar("API documentation")
                 .WithEnvironment(OrchestratorEnvironmentVariables.BuilderStartup, builderStartup.ToString);
