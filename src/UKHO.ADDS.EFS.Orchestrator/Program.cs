@@ -61,12 +61,6 @@ namespace UKHO.ADDS.EFS.Orchestrator
             
             var queueChannelSize = config.GetValue<int>("QueuePolling:ChannelSize");
 
-            var builderStartupValue = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.BuilderStartup);
-            if (builderStartupValue == null)
-            {
-                throw new InvalidOperationException($"Environment variable {OrchestratorEnvironmentVariables.BuilderStartup} is not set");
-            }
-
             builder.Services.AddSingleton(Channel.CreateBounded<ExchangeSetRequestMessage>(new BoundedChannelOptions(queueChannelSize)
             {
                 FullMode = BoundedChannelFullMode.Wait
