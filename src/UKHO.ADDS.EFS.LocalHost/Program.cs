@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using CliWrap;
 using CliWrap.Buffered;
 using Microsoft.Extensions.Configuration;
@@ -35,6 +36,10 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             var builderStartup = config.GetValue<BuilderStartup>("Orchestrator:BuilderStartup");
 
+            var exposeOtlp = config.GetValue<bool>("Telemetry:ExposeOtlp");
+
+            var containerRuntime = config.GetValue<ContainerRuntime>("Containers:ContainerRuntime");
+
             var builder = DistributedApplication.CreateBuilder(args);
 
             // Service bus configuration
@@ -62,24 +67,27 @@ namespace UKHO.ADDS.EFS.LocalHost
             var addsMockContainer = builder.AddDockerfile(ContainerConfiguration.MockContainerName, @"..\..\mock\repo\src\ADDSMock")
                 .WithHttpEndpoint(mockEndpointPort, mockEndpointContainerPort, ContainerConfiguration.MockContainerEndpointName);
 
+            IResourceBuilder<ContainerResource> grafanaContainer = null;
+
             // Metrics
-            var prometheusContainer = builder.AddContainer("prometheus", "prom/prometheus:v3.0.1")
-                .WithBindMount("../Metrics/prometheus", "/etc/prometheus", isReadOnly: true)
-                .WithArgs("--web.enable-otlp-receiver", "--config.file=/etc/prometheus/prometheus.yml")
-                .WithHttpEndpoint(targetPort: 9090, name: "http");
+            if (exposeOtlp)
+            {
+                var prometheusContainer = builder.AddContainer("prometheus", "prom/prometheus:v3.0.1")
+                    .WithBindMount("../Metrics/prometheus", "/etc/prometheus", isReadOnly: true)
+                    .WithArgs("--web.enable-otlp-receiver", "--config.file=/etc/prometheus/prometheus.yml")
+                    .WithHttpEndpoint(targetPort: 9090, name: "http");
 
-            var grafanaContainer = builder.AddContainer("grafana", "grafana/grafana")
-                .WithBindMount("../Metrics/grafana/config", "/etc/grafana", isReadOnly: true)
-                .WithBindMount("../Metrics/grafana/dashboards", "/var/lib/grafana/dashboards", isReadOnly: true)
-                .WithEnvironment("PROMETHEUS_ENDPOINT", prometheusContainer.GetEndpoint("http"))
-                .WithHttpEndpoint(targetPort: 3000, name: "http");
+                grafanaContainer = builder.AddContainer("grafana", "grafana/grafana")
+                    .WithBindMount("../Metrics/grafana/config", "/etc/grafana", isReadOnly: true)
+                    .WithBindMount("../Metrics/grafana/dashboards", "/var/lib/grafana/dashboards", isReadOnly: true)
+                    .WithEnvironment("PROMETHEUS_ENDPOINT", prometheusContainer.GetEndpoint("http"))
+                    .WithHttpEndpoint(targetPort: 3000, name: "http");
 
-            builder.AddOpenTelemetryCollector("otelcollector", "../Metrics/otelcollector/config.yaml")
-                .WithEnvironment("PROMETHEUS_ENDPOINT", $"{prometheusContainer.GetEndpoint("http")}/api/v1/otlp");
+                builder.AddOpenTelemetryCollector("otelcollector", "../Metrics/otelcollector/config.yaml")
+                    .WithEnvironment("PROMETHEUS_ENDPOINT", $"{prometheusContainer.GetEndpoint("http")}/api/v1/otlp");
+            }
 
             // Orchestrator
-
-            var grafanaEndpoint = grafanaContainer.GetEndpoint("http");
 
             var orchestratorService = builder.AddProject<UKHO_ADDS_EFS_Orchestrator>(ContainerConfiguration.OrchestratorContainerName)
                 .WithReference(storageQueue)
@@ -89,20 +97,26 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WithReference(serviceBus)
                 .WaitFor(serviceBus)
                 .WaitFor(addsMockContainer)
-                .WithOrchestratorDashboard(grafanaEndpoint, "OLTP Dashboard")
                 .WithScalar("API documentation")
                 .WithEnvironment(OrchestratorEnvironmentVariables.BuilderStartup, builderStartup.ToString);
 
-            await CreateS100BuilderContainerImage();
+            if (exposeOtlp)
+            {
+                var grafanaEndpoint = grafanaContainer.GetEndpoint("http");
+                orchestratorService.WithOrchestratorDashboard(grafanaEndpoint, "OLTP Dashboard");
+            }
+
+            await CreateS100BuilderContainerImage(containerRuntime);
 
             await builder.Build().RunAsync();
 
             return 0;
         }
 
-        private static async Task CreateS100BuilderContainerImage()
+        private static async Task CreateS100BuilderContainerImage(ContainerRuntime containerRuntime)
         {
             Log.Information("Creating S-100 builder container image...");
+            Log.Information($"Using container runtime '{containerRuntime}'");
 
             var localHostDirectory = Directory.GetCurrentDirectory();
             var srcDirectory = Directory.GetParent(localHostDirectory)?.FullName!;
@@ -111,7 +125,7 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             // 'docker' writes everything to stderr...
 
-            var result = await Cli.Wrap("docker")
+            var result = await Cli.Wrap(containerRuntime.ToString().ToLowerInvariant())
                 .WithArguments(arguments)
                 .WithWorkingDirectory(srcDirectory)
                 .WithValidation(CommandResultValidation.None)
