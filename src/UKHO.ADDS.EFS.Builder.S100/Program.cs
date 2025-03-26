@@ -1,13 +1,9 @@
 ﻿using System.Diagnostics;
-using System.Threading.Tasks.Dataflow;
-using Azure.Storage.Queues;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using UKHO.ADDS.EFS.Common.Configuration.Orchestrator;
-using UKHO.ADDS.EFS.Common.Messages;
-using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Builder.S100
 {
@@ -23,56 +19,32 @@ namespace UKHO.ADDS.EFS.Builder.S100
             Log.Information("UKHO ADDS EFS S100 Builder");
             Log.Information($"Machine ID      : {Environment.MachineName}");
 
-            var builderQueue = Environment.GetEnvironmentVariable(BuilderEnvironmentVariables.QueueName);
-
-            if (string.IsNullOrEmpty(builderQueue))
-            {
-                Log.Error("Builder Queue is not set");
-                return -1;
-            }
-
-            Log.Information($"Builder Queue   : {builderQueue}");
-
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
-                .AddJsonFile("appsettings.Development.json", optional:true)
+                .AddJsonFile("appsettings.Development.json", true)
                 .Build();
 
-            var fileShareEndpoint = configuration.GetValue<string>("Endpoints:FileShareService");
-            var salesCatalogueEndpoint = configuration.GetValue<string>("Endpoints:SalesCatalogueService");
-            var queueEndpoint = configuration.GetValue<string>("Endpoints:Queue");
+            var requestId = GetEnvironmentVariable(BuilderEnvironmentVariables.RequestId, WellKnownRequestId.DebugRequestId);
+            var fileShareEndpoint = GetEnvironmentVariable(BuilderEnvironmentVariables.FileShareEndpoint, configuration.GetValue<string>("Endpoints:FileShareService")!);
+            var salesCatalogueEndpoint = GetEnvironmentVariable(BuilderEnvironmentVariables.SalesCatalogueEndpoint, configuration.GetValue<string>("Endpoints:SalesCatalogueService")!);
+            var buildServiceEndpoint = GetEnvironmentVariable(BuilderEnvironmentVariables.BuildServiceEndpoint, configuration.GetValue<string>("Endpoints:BuildService")!);
 
+            Log.Information($"Request id      : {requestId}");
             Log.Information($"File Share      : {fileShareEndpoint}");
             Log.Information($"Sales Catalogue : {salesCatalogueEndpoint}");
-            Log.Information($"Queue           : {queueEndpoint}");
+            Log.Information($"Build Service   : {buildServiceEndpoint}");
 
             try
             {
                 await StartTomcatAsync();
 
-                var queueServiceClient = new QueueServiceClient(new Uri(queueEndpoint!));
-                var queue = queueServiceClient.GetQueueClient(builderQueue);
+                //Log.Information($"Request : {requestJson}");
 
-                var message = await QueueWaiter.WaitForSingleMessageAsync(queue, pollInterval: TimeSpan.FromSeconds(1));
-
-                Log.Information($"Received request : {message.MessageText}");
-
-                var request = JsonCodec.Decode<ExchangeSetRequestMessage>(message.MessageText)!;
-
-                //using var client = new HttpClient() { BaseAddress = new Uri("http://host.docker.internal:5679") };
-                //using var response = await client.GetAsync("/erp/health");
-
-                //var content = await response.Content.ReadAsStringAsync();
-
-                //Log.Information($"Content : {content}");
-
-                using var client = new HttpClient() { BaseAddress = new Uri("http://localhost:8080") };
-                using var response = await client.GetAsync("/xchg-2.7/v2.7/dev?arg=test&authkey=noauth");
-
-                var content = await response.Content.ReadAsStringAsync();
-
-                Log.Information($"Content : {content}");
+                await DoRequestAsync("http://localhost:8080", "/xchg-2.7/v2.7/dev?arg=test&authkey=noauth");
+                await DoRequestAsync(fileShareEndpoint, "/health");
+                await DoRequestAsync(salesCatalogueEndpoint, "/health");
+                await DoRequestAsync(buildServiceEndpoint, "/");
 
                 var i = 0;
 
@@ -95,6 +67,31 @@ namespace UKHO.ADDS.EFS.Builder.S100
             {
                 await Log.CloseAndFlushAsync();
             }
+        }
+
+        private static async Task DoRequestAsync(string baseAddress, string path)
+        {
+            using var client = new HttpClient { BaseAddress = new Uri(baseAddress) };
+            using var response = await client.GetAsync(path);
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            Log.Information($"Content : {content}");
+        }
+
+        private static string GetEnvironmentVariable(string variable, string overrideValue)
+        {
+            var value = Environment.GetEnvironmentVariable(variable);
+
+            if (!string.IsNullOrEmpty(value))
+            {
+                return value;
+            }
+
+
+
+            Log.Error($"{variable} is not set");
+            throw new InvalidOperationException($"{variable} is not set");
         }
 
         private static async Task StartTomcatAsync()
@@ -154,10 +151,6 @@ namespace UKHO.ADDS.EFS.Builder.S100
             }
         }
 
-        private static void ConfigureLogging(IServiceCollection collection)
-        {
-
-            collection.AddLogging(builder => { builder.AddConsole().AddSerilog(dispose: true); });
-        }
+        private static void ConfigureLogging(IServiceCollection collection) => collection.AddLogging(builder => { builder.AddConsole().AddSerilog(dispose: true); });
     }
 }

@@ -20,12 +20,12 @@
     <PackageReference Include="Aspire.Azure.Storage.Queues" Version="9.1.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageReference Include="UKHO.ADDS.Infrastructure.Pipelines" Version="0.0.50322-alpha.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\UKHO.ADDS.EFS.Common.Services\UKHO.ADDS.EFS.Common.Services.csproj" />
     <ProjectReference Include="..\UKHO.ADDS.EFS.Common\UKHO.ADDS.EFS.Common.csproj" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.3" />
   </ItemGroup>
 
 </Project>

@@ -5,7 +5,6 @@ using Docker.DotNet;
 using Serilog;
 using UKHO.ADDS.EFS.Common.Messages;
 using UKHO.ADDS.EFS.Common.Configuration.Orchestrator;
-using Azure.Storage.Queues;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services
@@ -20,14 +19,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         readonly TimeSpan _containerTimeout = TimeSpan.FromSeconds(20);
 
         private readonly Channel<ExchangeSetRequestMessage> _channel;
-        private readonly QueueServiceClient _queueServiceClient;
         private readonly BuilderStartup _builderStartup;
-        private readonly SemaphoreSlim _concurrencyLimiter;
+        
+        private readonly string _fileShareEndpoint;
+        private readonly string _salesCatalogueEndpoint;
+        private readonly string _builderServiceContainerEndpoint;
 
-        public BuilderDispatcherService(Channel<ExchangeSetRequestMessage> channel, QueueServiceClient queueServiceClient, IConfiguration configuration)
+        private readonly SemaphoreSlim _concurrencyLimiter;
+        
+        public BuilderDispatcherService(Channel<ExchangeSetRequestMessage> channel, IConfiguration configuration)
         {
             _channel = channel;
-            _queueServiceClient = queueServiceClient;
 
             var builderStartupValue = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.BuilderStartup);
             if (builderStartupValue == null)
@@ -36,6 +38,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             }
 
             _builderStartup = Enum.Parse<BuilderStartup>(builderStartupValue);
+
+            _fileShareEndpoint = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.FileShareEndpoint)!;
+            _salesCatalogueEndpoint = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.SalesCatalogueEndpoint)!;
+
+            var builderServiceEndpoint = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.BuildServiceEndpoint)!;
+            _builderServiceContainerEndpoint = new UriBuilder(builderServiceEndpoint)
+            {
+                Host = "host.docker.internal",
+            }.ToString();
 
             var maxConcurrentBuilders = configuration.GetValue<int>("Builders:MaximumConcurrentBuilders");
             _concurrencyLimiter = new SemaphoreSlim(maxConcurrentBuilders, maxConcurrentBuilders);
@@ -53,22 +64,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                     {
                         var id = Guid.NewGuid().ToString("N");
 
-                        var queueName = _builderStartup switch
-                        {
-                            BuilderStartup.Orchestrator => $"builder-{id}",
-                            BuilderStartup.Manual => "builder-manual",
-                            _ => string.Empty
-                        };
-
                         switch (_builderStartup)
                         {
                             case BuilderStartup.Manual:
-                                await WriteMessageToQueueAsync(queueName, request);
+                                await PublishRequest(WellKnownRequestId.DebugRequestId, request);
                                 break;
 
                             case BuilderStartup.Orchestrator:
-                                await WriteMessageToQueueAsync(queueName, request);
-                                await ExecuteBuilder(request, stoppingToken, queueName, id);
+                                await PublishRequest(id, request);
+                                await ExecuteBuilder(request, id, stoppingToken);
                                 break;
                         }
                     }
@@ -85,29 +89,22 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             }
         }
 
-        private async Task WriteMessageToQueueAsync(string queueName, ExchangeSetRequestMessage request)
+        private async Task PublishRequest(string requestId, ExchangeSetRequestMessage request)
         {
-            var queueClient = _queueServiceClient.GetQueueClient(queueName);
-            await queueClient.CreateIfNotExistsAsync();
+            var requestJson = JsonCodec.Encode(request);
 
-            var message = JsonCodec.Encode(request);
-            await queueClient.SendMessageAsync(message);
+            // In the db
+            
         }
 
-        private async Task DeleteQueueAsync(string queueName)
+        private async Task ExecuteBuilder(ExchangeSetRequestMessage request, string requestId, CancellationToken stoppingToken)
         {
-            var queueClient = _queueServiceClient.GetQueueClient(queueName);
-            await queueClient.DeleteIfExistsAsync();
-        }
-
-        private async Task ExecuteBuilder(ExchangeSetRequestMessage request, CancellationToken stoppingToken, string queueName, string id)
-        {
-            var containerName = $"{ContainerName}{id}";
+            var containerName = $"{ContainerName}{requestId}";
 
             using var docker = new DockerClientConfiguration(GetDockerEndpoint()).CreateClient();
             await EnsureImageExistsAsync(docker, ImageName);
 
-            var containerId = await CreateContainerAsync(docker, ImageName, containerName, _command, queueName);
+            var containerId = await CreateContainerAsync(docker, ImageName, containerName, _command, requestId);
             await StartContainerAsync(docker, containerId);
 
             var logTask = DockerLogStreamer.StreamLogsAsync(
@@ -136,7 +133,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             }
 
             await logTask;
-            await DeleteQueueAsync(queueName);
 
             Log.Information($"Removing container {containerId}");
             await docker.Containers.RemoveContainerAsync(containerId, new ContainerRemoveParameters { Force = true }, stoppingToken);
@@ -183,7 +179,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             Log.Information($"Image '{reference}' pulled successfully");
         }
 
-        static async Task<string> CreateContainerAsync(DockerClient client, string image, string name, string[] command, string queueName)
+        private async Task<string> CreateContainerAsync(DockerClient client, string image, string name, string[] command, string id)
         {
             var response = await client.Containers.CreateContainerAsync(new CreateContainerParameters
             {
@@ -195,7 +191,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 Tty = false,
                 Env = new List<string>
                 {
-                    $"{BuilderEnvironmentVariables.QueueName}={queueName}" 
+                    $"{BuilderEnvironmentVariables.RequestId}={id}",
+                    $"{BuilderEnvironmentVariables.FileShareEndpoint}={_fileShareEndpoint}",
+                    $"{BuilderEnvironmentVariables.SalesCatalogueEndpoint}={_salesCatalogueEndpoint}",
+                    $"{BuilderEnvironmentVariables.BuildServiceEndpoint}={_builderServiceContainerEndpoint}"
                 },
                 Healthcheck = new HealthConfig
                 {
@@ -219,7 +218,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             return response.ID;
         }
 
-        static async Task StartContainerAsync(DockerClient client, string containerId)
+        private static async Task StartContainerAsync(DockerClient client, string containerId)
         {
             var started = await client.Containers.StartContainerAsync(containerId, new ContainerStartParameters());
             if (!started)
@@ -228,7 +227,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             }
         }
 
-        static async Task<long> WaitForContainerExitAsync(DockerClient client, string containerId, TimeSpan timeout)
+        private static async Task<long> WaitForContainerExitAsync(DockerClient client, string containerId, TimeSpan timeout)
         {
             using var cts = new CancellationTokenSource(timeout);
             var response = await client.Containers.WaitContainerAsync(containerId, cts.Token);

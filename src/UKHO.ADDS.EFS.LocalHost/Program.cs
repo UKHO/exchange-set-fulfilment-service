@@ -1,6 +1,4 @@
-using System.Runtime.InteropServices;
 using CliWrap;
-using CliWrap.Buffered;
 using Microsoft.Extensions.Configuration;
 using Projects;
 using Serilog;
@@ -27,10 +25,6 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .AddJsonFile("appsettings.Development.json")
                 .Build();
 
-            var wasBlobPort = config.GetValue<int>("Endpoints:WASBlobPort");
-            var wasQueuePort = config.GetValue<int>("Endpoints:WASQueuePort");
-            var wasTablePort = config.GetValue<int>("Endpoints:WASTablePort");
-
             var mockEndpointPort = config.GetValue<int>("Endpoints:MockEndpointPort");
             var mockEndpointContainerPort = config.GetValue<int>("Endpoints:MockEndpointContainerPort");
 
@@ -48,10 +42,6 @@ namespace UKHO.ADDS.EFS.LocalHost
             var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e =>
             {
                 e.WithDataVolume();
-
-                e.WithBlobPort(wasBlobPort);
-                e.WithQueuePort(wasQueuePort);
-                e.WithTablePort(wasTablePort);
             });
 
             var storageQueue = storage.AddQueues(StorageConfiguration.QueuesName);
@@ -90,14 +80,38 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WithReference(storageTable)
                 .WaitFor(storageTable)
                 .WaitFor(addsMockContainer)
-                .WithScalar("API documentation")
-                .WithEnvironment(OrchestratorEnvironmentVariables.BuilderStartup, builderStartup.ToString);
+                .WithScalar("API documentation");
+                
 
             if (exposeOtlp)
             {
                 var grafanaEndpoint = grafanaContainer!.GetEndpoint("http");
                 orchestratorService.WithOrchestratorDashboard(grafanaEndpoint, "OLTP Dashboard");
             }
+
+            orchestratorService.WithEnvironment(OrchestratorEnvironmentVariables.BuilderStartup, builderStartup.ToString)
+                .WithEnvironment(c =>
+                {
+                    var addsMockEndpoint = addsMockContainer.GetEndpoint(ContainerConfiguration.MockContainerEndpointName);
+                    var fssEndpoint = new UriBuilder(addsMockEndpoint.Url)
+                    {
+                        Host = addsMockEndpoint.ContainerHost,
+                        Path = "fss"
+                    };
+
+                    var scsEndpoint = new UriBuilder(addsMockEndpoint.Url)
+                    {
+                        Host = addsMockEndpoint.ContainerHost,
+                        Path = "scs"
+                    };
+
+                    var orchestratorServiceEndpoint = orchestratorService.GetEndpoint(name:"http").Url;
+
+
+                    c.EnvironmentVariables[OrchestratorEnvironmentVariables.FileShareEndpoint] = fssEndpoint.ToString();
+                    c.EnvironmentVariables[OrchestratorEnvironmentVariables.SalesCatalogueEndpoint] = scsEndpoint.ToString();
+                    c.EnvironmentVariables[OrchestratorEnvironmentVariables.BuildServiceEndpoint] = orchestratorServiceEndpoint.ToString();
+                });
 
             if (buildOnStartup)
             {

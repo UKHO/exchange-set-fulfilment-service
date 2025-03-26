@@ -5,7 +5,7 @@
             "launchBrowser": false,
             "environmentVariables": {
                 "DOTNET_ENVIRONMENT": "Development",
-                "QUEUE_NAME": "builder-manual"
+                "REQUEST_ID": "debug"
             }
         }
     }

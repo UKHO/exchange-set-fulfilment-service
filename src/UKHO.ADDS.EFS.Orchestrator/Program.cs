@@ -57,13 +57,10 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             builder.Services.AddAuthorization();
             builder.Services.AddOpenApi();
-            
+
             var queueChannelSize = configuration.GetValue<int>("QueuePolling:ChannelSize");
 
-            builder.Services.AddSingleton(Channel.CreateBounded<ExchangeSetRequestMessage>(new BoundedChannelOptions(queueChannelSize)
-            {
-                FullMode = BoundedChannelFullMode.Wait
-            }));
+            builder.Services.AddSingleton(Channel.CreateBounded<ExchangeSetRequestMessage>(new BoundedChannelOptions(queueChannelSize) { FullMode = BoundedChannelFullMode.Wait }));
 
             builder.Services.AddHostedService<QueuePollingService>();
             builder.Services.AddHostedService<BuilderDispatcherService>();

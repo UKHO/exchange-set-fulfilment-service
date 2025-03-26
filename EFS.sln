@@ -26,6 +26,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "@build", "@build", "{8D6AAC
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.ADDS.EFS.Builder.S100", "src\UKHO.ADDS.EFS.Builder.S100\UKHO.ADDS.EFS.Builder.S100.csproj", "{3B3D8EFA-3B64-48DD-8EBD-70F9F91B7AF1}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "@Infrastructure", "@Infrastructure", "{3380D8EE-404F-4AB6-8262-74DA23EF239A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
