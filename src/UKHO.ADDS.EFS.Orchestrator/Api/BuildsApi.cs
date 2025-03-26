@@ -1,6 +1,7 @@
 ﻿using Azure.Storage.Queues;
 using UKHO.ADDS.EFS.Common.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Common.Messages;
+using UKHO.ADDS.EFS.Orchestrator.Tables;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Api
@@ -9,9 +10,22 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
     {
         public static void Register(WebApplication application)
         {
-            application.MapGet("/builds", (HttpContext context) =>
+            application.MapGet("/builds", async (ExchangeSetRequestTable table) =>
             {
+                var requests = await table.ListAsync();
+                return Results.Ok(requests);
+            });
 
+            application.MapGet("/builds/{id}/request", async (string id, ExchangeSetRequestTable table) =>
+            {
+                var requestResult = await table.GetAsync(id, id);
+
+                if (requestResult.IsSuccess(out var request))
+                {
+                    return Results.Ok(request);
+                }
+
+                return Results.NotFound();
             });
 
             application.MapPost("/builds", (ExchangeSetRequestMessage message, QueueServiceClient queueServiceClient) =>

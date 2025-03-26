@@ -107,7 +107,6 @@ namespace UKHO.ADDS.EFS.LocalHost
 
                     var orchestratorServiceEndpoint = orchestratorService.GetEndpoint(name:"http").Url;
 
-
                     c.EnvironmentVariables[OrchestratorEnvironmentVariables.FileShareEndpoint] = fssEndpoint.ToString();
                     c.EnvironmentVariables[OrchestratorEnvironmentVariables.SalesCatalogueEndpoint] = scsEndpoint.ToString();
                     c.EnvironmentVariables[OrchestratorEnvironmentVariables.BuildServiceEndpoint] = orchestratorServiceEndpoint.ToString();

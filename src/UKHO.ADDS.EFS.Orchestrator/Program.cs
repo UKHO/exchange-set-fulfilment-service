@@ -1,10 +1,14 @@
+using System.Text.Json;
 using System.Threading.Channels;
+using Microsoft.AspNetCore.Http.Json;
 using Scalar.AspNetCore;
 using Serilog;
 using UKHO.ADDS.EFS.Common.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Common.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api;
 using UKHO.ADDS.EFS.Orchestrator.Services;
+using UKHO.ADDS.EFS.Orchestrator.Tables;
+using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Orchestrator
 {
@@ -52,6 +56,8 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
         public static void ConfigureServices(WebApplicationBuilder builder, IConfigurationRoot configuration)
         {
+            builder.Services.Configure<JsonOptions>(options => JsonCodec.DefaultOptions.CopyTo(options.SerializerOptions));
+
             builder.AddAzureQueueClient(StorageConfiguration.QueuesName);
             builder.AddAzureTableClient(StorageConfiguration.TablesName);
 
@@ -64,6 +70,8 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             builder.Services.AddHostedService<QueuePollingService>();
             builder.Services.AddHostedService<BuilderDispatcherService>();
+
+            builder.Services.AddSingleton<ExchangeSetRequestTable>();
         }
     }
 }

@@ -1,9 +1,7 @@
 ﻿using System.Diagnostics;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Serilog;
-using UKHO.ADDS.EFS.Common.Configuration.Orchestrator;
+using UKHO.ADDS.EFS.Builder.S100.IIC;
+using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 
 namespace UKHO.ADDS.EFS.Builder.S100
 {
@@ -16,44 +14,47 @@ namespace UKHO.ADDS.EFS.Builder.S100
                 .WriteTo.Console()
                 .CreateLogger();
 
-            Log.Information("UKHO ADDS EFS S100 Builder");
-            Log.Information($"Machine ID      : {Environment.MachineName}");
-
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json")
-                .AddJsonFile("appsettings.Development.json", true)
-                .Build();
-
-            var requestId = GetEnvironmentVariable(BuilderEnvironmentVariables.RequestId, WellKnownRequestId.DebugRequestId);
-            var fileShareEndpoint = GetEnvironmentVariable(BuilderEnvironmentVariables.FileShareEndpoint, configuration.GetValue<string>("Endpoints:FileShareService")!);
-            var salesCatalogueEndpoint = GetEnvironmentVariable(BuilderEnvironmentVariables.SalesCatalogueEndpoint, configuration.GetValue<string>("Endpoints:SalesCatalogueService")!);
-            var buildServiceEndpoint = GetEnvironmentVariable(BuilderEnvironmentVariables.BuildServiceEndpoint, configuration.GetValue<string>("Endpoints:BuildService")!);
-
-            Log.Information($"Request id      : {requestId}");
-            Log.Information($"File Share      : {fileShareEndpoint}");
-            Log.Information($"Sales Catalogue : {salesCatalogueEndpoint}");
-            Log.Information($"Build Service   : {buildServiceEndpoint}");
-
             try
             {
-                await StartTomcatAsync();
 
-                //Log.Information($"Request : {requestJson}");
+                var provider = ConfigureServices();
 
-                await DoRequestAsync("http://localhost:8080", "/xchg-2.7/v2.7/dev?arg=test&authkey=noauth");
-                await DoRequestAsync(fileShareEndpoint, "/health");
-                await DoRequestAsync(salesCatalogueEndpoint, "/health");
-                await DoRequestAsync(buildServiceEndpoint, "/");
+                var pipelineContext = provider.GetRequiredService<PipelineContext>();
+                var startupPipeline = provider.GetRequiredService<StartupPipeline>();
 
-                var i = 0;
+                var startupResult = await startupPipeline.ExecutePipeline(pipelineContext);
 
-                while (i < 60)
+                if (startupResult.IsFailure(out var startupError))
                 {
-                    ++i;
+                    Log.Error($"Startup failed : {startupError.Message}");
+                    return -1;
+                }
 
-                    Console.WriteLine("Doing stuff...");
-                    Thread.Sleep(1000);
+                var assemblyPipeline = provider.GetRequiredService<AssemblyPipeline>();
+                var assemblyResult = await assemblyPipeline.ExecutePipeline(pipelineContext);
+
+                if (assemblyResult.IsFailure(out var assemblyError))
+                {
+                    Log.Error($"Assembly failed : {assemblyError.Message}");
+                    return -1;
+                }
+
+                var creationPipeline = provider.GetRequiredService<CreationPipeline>();
+                var creationResult = await creationPipeline.ExecutePipeline(pipelineContext);
+
+                if (creationResult.IsFailure(out var creationError))
+                {
+                    Log.Error($"Creation failed : {creationError.Message}");
+                    return -1;
+                }
+
+                var distributionPipeline = provider.GetRequiredService<DistributionPipeline>();
+                var distributionResult = await distributionPipeline.ExecutePipeline(pipelineContext);
+
+                if (distributionResult.IsFailure(out var distributionError))
+                {
+                    Log.Error($"Distribution failed : {distributionError.Message}");
+                    return -1;
                 }
 
                 return 0;
@@ -69,6 +70,32 @@ namespace UKHO.ADDS.EFS.Builder.S100
             }
         }
 
+        private static IServiceProvider ConfigureServices()
+        {
+            var collection = new ServiceCollection();
+
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json")
+                .AddJsonFile("appsettings.Development.json", true)
+                .Build();
+
+            collection.AddHttpClient();
+
+            collection.AddSingleton<IConfiguration>(x => configuration);
+
+            collection.AddSingleton<PipelineContext>();
+            collection.AddSingleton<StartupPipeline>();
+            collection.AddSingleton<AssemblyPipeline>();
+            collection.AddSingleton<CreationPipeline>();
+            collection.AddSingleton<DistributionPipeline>();
+
+            collection.AddSingleton<IToolClient, ToolClient>();
+            
+
+            return collection.BuildServiceProvider();
+        }
+
         private static async Task DoRequestAsync(string baseAddress, string path)
         {
             using var client = new HttpClient { BaseAddress = new Uri(baseAddress) };
@@ -79,19 +106,15 @@ namespace UKHO.ADDS.EFS.Builder.S100
             Log.Information($"Content : {content}");
         }
 
-        private static string GetEnvironmentVariable(string variable, string overrideValue)
+        private static async Task DoRequestTelemetryStyleAsync(string baseAddress, string path)
         {
-            var value = Environment.GetEnvironmentVariable(variable);
+            using var client = new HttpClient { BaseAddress = new Uri(baseAddress) };
+            using var response = await client.GetAsync(path);
 
-            if (!string.IsNullOrEmpty(value))
-            {
-                return value;
-            }
+            var content = await response.Content.ReadAsStringAsync();
+            var sanitisedContent = content.ReplaceLineEndings("");
 
-
-
-            Log.Error($"{variable} is not set");
-            throw new InvalidOperationException($"{variable} is not set");
+            Log.Information($"[TELEMETRY] {sanitisedContent}");
         }
 
         private static async Task StartTomcatAsync()
