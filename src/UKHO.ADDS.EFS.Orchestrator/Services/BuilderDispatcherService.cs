@@ -1,35 +1,33 @@
-﻿using System.Runtime.InteropServices;
-using System.Threading.Channels;
-using Docker.DotNet.Models;
-using Docker.DotNet;
+﻿using System.Threading.Channels;
+using Azure.Data.Tables;
 using Serilog;
-using UKHO.ADDS.EFS.Common.Messages;
 using UKHO.ADDS.EFS.Common.Configuration.Orchestrator;
-using UKHO.ADDS.Infrastructure.Serialization.Json;
+using UKHO.ADDS.EFS.Common.Entities;
+using UKHO.ADDS.EFS.Common.Messages;
+using UKHO.ADDS.EFS.Orchestrator.Tables;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services
 {
     internal class BuilderDispatcherService : BackgroundService
     {
-        const string ImageName = "efs-builder-s100";
-        const string ContainerName = "efs-builder-s100-";
-
-        readonly string[] _command = new[] { "sh", "-c", "echo Starting; sleep 5; echo Healthy now; sleep 5; echo Exiting..." };
-
-        readonly TimeSpan _containerTimeout = TimeSpan.FromSeconds(20);
+        private const string ImageName = "efs-builder-s100";
+        private const string ContainerName = "efs-builder-s100-";
+        private readonly BuilderStartup _builderStartup;
 
         private readonly Channel<ExchangeSetRequestMessage> _channel;
-        private readonly BuilderStartup _builderStartup;
-        
-        private readonly string _fileShareEndpoint;
-        private readonly string _salesCatalogueEndpoint;
-        private readonly string _builderServiceContainerEndpoint;
+        private readonly ExchangeSetRequestTable _exchangeSetRequestTable;
+
+        private readonly string[] _command = { "sh", "-c", "echo Starting; sleep 5; echo Healthy now; sleep 5; echo Exiting..." };
 
         private readonly SemaphoreSlim _concurrencyLimiter;
-        
-        public BuilderDispatcherService(Channel<ExchangeSetRequestMessage> channel, IConfiguration configuration)
+        private readonly ContainerService _containerService;
+
+        private readonly TimeSpan _containerTimeout = TimeSpan.FromSeconds(20);
+
+        public BuilderDispatcherService(Channel<ExchangeSetRequestMessage> channel, ExchangeSetRequestTable exchangeSetRequestTable, IConfiguration configuration)
         {
             _channel = channel;
+            _exchangeSetRequestTable = exchangeSetRequestTable;
 
             var builderStartupValue = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.BuilderStartup);
             if (builderStartupValue == null)
@@ -39,17 +37,16 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
             _builderStartup = Enum.Parse<BuilderStartup>(builderStartupValue);
 
-            _fileShareEndpoint = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.FileShareEndpoint)!;
-            _salesCatalogueEndpoint = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.SalesCatalogueEndpoint)!;
+            var fileShareEndpoint = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.FileShareEndpoint)!;
+            var salesCatalogueEndpoint = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.SalesCatalogueEndpoint)!;
 
             var builderServiceEndpoint = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.BuildServiceEndpoint)!;
-            _builderServiceContainerEndpoint = new UriBuilder(builderServiceEndpoint)
-            {
-                Host = "host.docker.internal",
-            }.ToString();
+            var builderServiceContainerEndpoint = new UriBuilder(builderServiceEndpoint) { Host = "host.docker.internal" }.ToString();
 
             var maxConcurrentBuilders = configuration.GetValue<int>("Builders:MaximumConcurrentBuilders");
             _concurrencyLimiter = new SemaphoreSlim(maxConcurrentBuilders, maxConcurrentBuilders);
+
+            _containerService = new ContainerService(fileShareEndpoint, salesCatalogueEndpoint, builderServiceContainerEndpoint);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -67,11 +64,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                         switch (_builderStartup)
                         {
                             case BuilderStartup.Manual:
-                                await PublishRequest(WellKnownRequestId.DebugRequestId, request);
+                                await StoreRequest(WellKnownRequestId.DebugRequestId, request);
                                 break;
 
                             case BuilderStartup.Orchestrator:
-                                await PublishRequest(id, request);
+                                await StoreRequest(id, request);
                                 await ExecuteBuilder(request, id, stoppingToken);
                                 break;
                         }
@@ -89,159 +86,54 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             }
         }
 
-        private async Task PublishRequest(string requestId, ExchangeSetRequestMessage request)
-        {
-            var requestJson = JsonCodec.Encode(request);
-
-            // In the db
-            
-        }
-
         private async Task ExecuteBuilder(ExchangeSetRequestMessage request, string requestId, CancellationToken stoppingToken)
         {
             var containerName = $"{ContainerName}{requestId}";
 
-            using var docker = new DockerClientConfiguration(GetDockerEndpoint()).CreateClient();
-            await EnsureImageExistsAsync(docker, ImageName);
+            await _containerService.EnsureImageExistsAsync(ImageName);
 
-            var containerId = await CreateContainerAsync(docker, ImageName, containerName, _command, requestId);
-            await StartContainerAsync(docker, containerId);
+            var containerId = await _containerService.CreateContainerAsync(ImageName, containerName, _command, requestId);
+            await _containerService.StartContainerAsync(containerId);
 
-            var logTask = DockerLogStreamer.StreamLogsAsync(
-                docker,
+            var streamer = _containerService.CreateBuilderLogStreamer();
+
+            var logTask = streamer.StreamLogsAsync(
                 containerId,
-                logStdout: line =>
+                line =>
                 {
-                    Log.Information($"[{containerName}] {line}");
+                    Log.Information($"[{containerName}] {line.ReplaceLineEndings("")}");
                 },
-                logStderr: line =>
-                {
-                    Log.Error($"[{containerName}] {line}");
-                },
-                cancellationToken: stoppingToken
+                line => { Log.Error($"[{containerName}] {line}"); },
+                stoppingToken
             );
 
             try
             {
-                var exitCode = await WaitForContainerExitAsync(docker, containerId, _containerTimeout);
+                var exitCode = await _containerService.WaitForContainerExitAsync(containerId, _containerTimeout);
                 Log.Information($"Container {containerId} exited with code: {exitCode}");
             }
             catch (TimeoutException)
             {
                 Log.Error($"Container {containerId} exceeded timeout. Killing...");
-                await docker.Containers.StopContainerAsync(containerId, new ContainerStopParameters { }, stoppingToken);
+                await _containerService.StopContainerAsync(containerId, stoppingToken);
             }
 
             await logTask;
 
-            Log.Information($"Removing container {containerId}");
-            await docker.Containers.RemoveContainerAsync(containerId, new ContainerRemoveParameters { Force = true }, stoppingToken);
+            await _containerService.RemoveContainerAsync(containerId, stoppingToken);
         }
 
-        public static async Task EnsureImageExistsAsync(DockerClient docker, string imageName, string tag = "latest")
+        private async Task StoreRequest(string requestId, ExchangeSetRequestMessage request)
         {
-            var reference = $"{imageName}:{tag}";
+            var requestEntity = new ExchangeSetRequest { Id = requestId, Message = request };
 
-            var images = await docker.Images.ListImagesAsync(new ImagesListParameters
-            {
-                Filters = new Dictionary<string, IDictionary<string, bool>>
-                {
-                    ["reference"] = new Dictionary<string, bool>
-                    {
-                        [reference] = true
-                    }
-                }
-            });
+            await _exchangeSetRequestTable.CreateTableIfNotExistsAsync();
+            await _exchangeSetRequestTable.AddAsync(requestEntity);
 
-            if (images.Count > 0)
-            {
-                Log.Information($"Image '{reference}' already exists");
-                return;
-            }
+            var entities = await _exchangeSetRequestTable.ListAsync();
+            var entity = await _exchangeSetRequestTable.GetAsync(requestId, requestId);
 
-            Log.Information($"Image '{reference}' not found. Pulling...");
-
-            await docker.Images.CreateImageAsync(
-                new ImagesCreateParameters
-                {
-                    FromImage = imageName,
-                    Tag = tag
-                },
-                authConfig: null,
-                progress: new Progress<JSONMessage>(msg =>
-                {
-                    if (!string.IsNullOrWhiteSpace(msg.Status))
-                    {
-                        Console.WriteLine($"{msg.Status} {(msg.ProgressMessage ?? "")}");
-                    }
-                }));
-
-            Log.Information($"Image '{reference}' pulled successfully");
+            var entity2 = await _exchangeSetRequestTable.GetAsync(requestId);
         }
-
-        private async Task<string> CreateContainerAsync(DockerClient client, string image, string name, string[] command, string id)
-        {
-            var response = await client.Containers.CreateContainerAsync(new CreateContainerParameters
-            {
-                Image = image,
-                Name = name,
-                Cmd = command,
-                AttachStdout = true,
-                AttachStderr = true,
-                Tty = false,
-                Env = new List<string>
-                {
-                    $"{BuilderEnvironmentVariables.RequestId}={id}",
-                    $"{BuilderEnvironmentVariables.FileShareEndpoint}={_fileShareEndpoint}",
-                    $"{BuilderEnvironmentVariables.SalesCatalogueEndpoint}={_salesCatalogueEndpoint}",
-                    $"{BuilderEnvironmentVariables.BuildServiceEndpoint}={_builderServiceContainerEndpoint}"
-                },
-                Healthcheck = new HealthConfig
-                {
-                    Test = new[] { "CMD-SHELL", "echo healthy" },
-                    Interval = TimeSpan.FromSeconds(3),
-                    Timeout = TimeSpan.FromSeconds(2),
-                    Retries = 3,
-                    StartPeriod = (long)TimeSpan.FromSeconds(2).TotalMilliseconds * 1000000,
-                },
-                HostConfig = new HostConfig
-                {
-                    RestartPolicy = new RestartPolicy
-                    {
-                        Name = RestartPolicyKind.OnFailure,
-                        MaximumRetryCount = 3
-                    }
-                }
-            });
-
-            Log.Information($"Created container with ID: {response.ID}");
-            return response.ID;
-        }
-
-        private static async Task StartContainerAsync(DockerClient client, string containerId)
-        {
-            var started = await client.Containers.StartContainerAsync(containerId, new ContainerStartParameters());
-            if (!started)
-            {
-                throw new Exception("Failed to start container");
-            }
-        }
-
-        private static async Task<long> WaitForContainerExitAsync(DockerClient client, string containerId, TimeSpan timeout)
-        {
-            using var cts = new CancellationTokenSource(timeout);
-            var response = await client.Containers.WaitContainerAsync(containerId, cts.Token);
-
-            if (response.Error != null)
-            {
-                Log.Error($"Container reported error: {response.Error.Message}");
-            }
-
-            return response.StatusCode;
-        }
-
-        private static Uri GetDockerEndpoint() => RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                ? new Uri("npipe://./pipe/docker_engine")
-                : new Uri("unix:///var/run/docker.sock");
     }
 }
