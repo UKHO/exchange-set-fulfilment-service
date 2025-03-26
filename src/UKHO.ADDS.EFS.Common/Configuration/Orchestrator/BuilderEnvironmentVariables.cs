@@ -2,6 +2,12 @@
 {
     public class BuilderEnvironmentVariables
     {
-        public const string QueueName = "QUEUE_NAME";
+        public const string RequestId = "REQUEST_ID";
+
+        public const string FileShareEndpoint = "FSS_ENDPOINT";
+
+        public const string SalesCatalogueEndpoint = "SCS_ENDPOINT";
+
+        public const string BuildServiceEndpoint = "BUILD_SVC_ENDPOINT";
     }
 }
