@@ -4,8 +4,7 @@
             "commandName": "Docker",
             "launchBrowser": false,
             "environmentVariables": {
-                "DOTNET_ENVIRONMENT": "Development",
-                "REQUEST_ID": "debug"
+                "DOTNET_ENVIRONMENT": "Development"
             }
         }
     }

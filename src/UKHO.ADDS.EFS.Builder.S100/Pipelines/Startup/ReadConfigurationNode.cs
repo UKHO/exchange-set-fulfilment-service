@@ -1,25 +1,38 @@
 ﻿using Serilog;
-using UKHO.ADDS.EFS.Builder.S100.Pipelines.Nodes;
 using UKHO.ADDS.EFS.Common.Configuration.Orchestrator;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
 {
-    internal class ReadConfigurationNode : BuilderNode<PipelineContext>
+    internal class ReadConfigurationNode : ExchangeSetPipelineNode
     {
-        protected override Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<PipelineContext> context)
+        private const string DebugRequestId = "DebugRequestId";
+
+        protected override Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
         {
             Log.Information("UKHO ADDS EFS S100 Builder");
             Log.Information($"Machine ID      : {Environment.MachineName}");
 
-            var requestId = GetEnvironmentVariable(BuilderEnvironmentVariables.RequestId, WellKnownRequestId.DebugRequestId);
+            var requestId = GetEnvironmentVariable(BuilderEnvironmentVariables.RequestId, DebugRequestId);
+
+            if (requestId.Equals(DebugRequestId, StringComparison.InvariantCultureIgnoreCase))
+            {
+                Log.Warning("Debug session - request id manually assigned");
+
+                context.Subject.IsDebugSession = true;
+                context.Subject.RequestId = Guid.NewGuid().ToString("N");
+            }
+            else
+            {
+                context.Subject.IsDebugSession = false;
+                context.Subject.RequestId = requestId;
+            }
 
             var fileShareEndpoint = GetEnvironmentVariable(BuilderEnvironmentVariables.FileShareEndpoint, context.Subject.Configuration.GetValue<string>("Endpoints:FileShareService")!);
             var salesCatalogueEndpoint = GetEnvironmentVariable(BuilderEnvironmentVariables.SalesCatalogueEndpoint, context.Subject.Configuration.GetValue<string>("Endpoints:SalesCatalogueService")!);
             var buildServiceEndpoint = GetEnvironmentVariable(BuilderEnvironmentVariables.BuildServiceEndpoint, context.Subject.Configuration.GetValue<string>("Endpoints:BuildService")!);
 
-            context.Subject.RequestId = requestId;
             context.Subject.FileShareEndpoint = fileShareEndpoint;
             context.Subject.SalesCatalogueEndpoint = salesCatalogueEndpoint;
             context.Subject.BuildServiceEndpoint = buildServiceEndpoint;

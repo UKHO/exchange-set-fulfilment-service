@@ -50,6 +50,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
             app.UseAuthorization();
 
             BuildsApi.Register(app);
+            StatusApi.Register(app);
 
             app.Run();
         }
@@ -72,6 +73,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddHostedService<BuilderDispatcherService>();
 
             builder.Services.AddSingleton<ExchangeSetRequestTable>();
+            builder.Services.AddSingleton<ExchangeSetBuilderNodeStatusTable>();
         }
     }
 }

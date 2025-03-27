@@ -7,7 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Remove="libman.json" />
+    <Compile Remove="Services\Tables\**" />
+    <Content Remove="Services\Tables\**" />
+    <EmbeddedResource Remove="Services\Tables\**" />
+    <None Remove="Services\Tables\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -27,10 +30,6 @@
   <ItemGroup>
     <ProjectReference Include="..\UKHO.ADDS.EFS.Common.Services\UKHO.ADDS.EFS.Common.Services.csproj" />
     <ProjectReference Include="..\UKHO.ADDS.EFS.Common\UKHO.ADDS.EFS.Common.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Services\Tables\" />
   </ItemGroup>
 
 </Project>
