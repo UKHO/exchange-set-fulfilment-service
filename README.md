@@ -5,7 +5,7 @@
 Please ensure the following are installed on your development machine before building EFS.
 
 * Git
-* Docker Desktop
+* Docker Desktop or Podman
 
 ### Cloning this repository
 
@@ -33,7 +33,18 @@ git submodule update --remote --merge
 
 Open the EFS.sln in the root of the repository, ensure that the UKHO.ADDS.EFS.LocalHost project is set as start by default, and press f5!
 
+If you are using Podman rather than Docker, you will need to edit the ```appsettings.json``` file in the ```UKHO.ADDS.EFS.LocalHost``` project. Change the setting:
+
+```json
+"Containers": {
+    "ContainerRuntime": "podman"
+    }
+```
+
+
+
 ### TODO
+- project structure
 - manual running (debug)
 - visual studio container dockerfile need to knows
 - solution architecture overview (diagram)
