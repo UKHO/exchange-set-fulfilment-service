@@ -1,4 +1,5 @@
-﻿using System.Threading.Channels;
+﻿using System.Globalization;
+using System.Threading.Channels;
 using Serilog;
 using UKHO.ADDS.EFS.Common.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Common.Entities;
@@ -107,7 +108,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
         private async Task StoreRequest(string requestId, ExchangeSetRequestMessage request)
         {
-            var requestEntity = new ExchangeSetRequest { Id = requestId, Message = request };
+            var requestEntity = new ExchangeSetRequest
+            {
+                Id = requestId,
+                Timestamp = DateTime.UtcNow.ToString(CultureInfo.InvariantCulture),
+                Message = request
+            };
 
             await _exchangeSetRequestTable.CreateTableIfNotExistsAsync();
             await _exchangeSetRequestTable.AddAsync(requestEntity);

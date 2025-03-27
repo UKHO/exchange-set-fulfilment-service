@@ -26,8 +26,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
 
             // Tomcat writes logs to stderr
 
-            process.OutputDataReceived += (sender, args) => Log.Information($"[Tomcat] {args.Data}");
-            process.ErrorDataReceived += (sender, args) => Log.Information($"[Tomcat] {args.Data}");
+            process.OutputDataReceived += (sender, args) => Log.Debug($"[Tomcat] {args.Data}");
+            process.ErrorDataReceived += (sender, args) => Log.Debug($"[Tomcat] {args.Data}");
 
             process.Start();
             process.BeginOutputReadLine();

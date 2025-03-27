@@ -5,6 +5,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
 {
     internal class CreateExchangeSetNode : ExchangeSetPipelineNode
     {
-        protected override Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context) => base.PerformExecuteAsync(context);
+        protected override Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
+        {
+            return Task.FromResult(NodeResultStatus.NotRun);
+        }
     }
 }
