@@ -1,17 +1,16 @@
 ﻿using System.IO.Compression;
 using System.Reflection;
 using Serilog;
-using UKHO.ADDS.EFS.Builder.S100.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
 {
-    internal class DeployWorkspaceNode : BuilderNode<PipelineContext>
+    internal class DeployWorkspaceNode : ExchangeSetPipelineNode
     {
         private const string WorkspaceResourcePath = "UKHO.ADDS.EFS.Builder.S100.Assets.workspace-root.zip";
 
-        protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<PipelineContext> context)
+        protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
         {
             var assembly = Assembly.GetExecutingAssembly();
             await using var stream = assembly.GetManifestResourceStream(WorkspaceResourcePath)!;

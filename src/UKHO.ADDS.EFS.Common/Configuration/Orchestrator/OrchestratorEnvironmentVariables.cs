@@ -2,8 +2,6 @@
 {
     public static class OrchestratorEnvironmentVariables
     {
-        public const string BuilderStartup = "ORCHESTRATOR_BUILDER_STARTUP";
-
         public const string FileShareEndpoint = "FSS_ENDPOINT";
 
         public const string SalesCatalogueEndpoint = "SCS_ENDPOINT";

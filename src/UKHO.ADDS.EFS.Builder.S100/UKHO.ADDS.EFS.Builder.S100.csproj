@@ -22,7 +22,6 @@
     <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
     <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.1.1" />
-    <PackageReference Include="UKHO.ADDS.Infrastructure.Pipelines" Version="0.0.50322-alpha.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -43,6 +42,7 @@
 
   <ItemGroup>
     <Folder Include="IIC\" />
+    <Folder Include="Pipelines\Assemble\" />
   </ItemGroup>
 
 </Project>

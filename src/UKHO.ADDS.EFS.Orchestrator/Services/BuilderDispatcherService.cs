@@ -1,5 +1,4 @@
 ﻿using System.Threading.Channels;
-using Azure.Data.Tables;
 using Serilog;
 using UKHO.ADDS.EFS.Common.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Common.Entities;
@@ -12,30 +11,22 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
     {
         private const string ImageName = "efs-builder-s100";
         private const string ContainerName = "efs-builder-s100-";
-        private readonly BuilderStartup _builderStartup;
 
         private readonly Channel<ExchangeSetRequestMessage> _channel;
         private readonly ExchangeSetRequestTable _exchangeSetRequestTable;
 
-        private readonly string[] _command = { "sh", "-c", "echo Starting; sleep 5; echo Healthy now; sleep 5; echo Exiting..." };
+        private readonly string[] _command = ["sh", "-c", "echo Starting; sleep 5; echo Healthy now; sleep 5; echo Exiting..."];
 
         private readonly SemaphoreSlim _concurrencyLimiter;
         private readonly ContainerService _containerService;
 
-        private readonly TimeSpan _containerTimeout = TimeSpan.FromSeconds(20);
+        // TODO Figure out how best to control this timeout
+        private readonly TimeSpan _containerTimeout = TimeSpan.FromMinutes(5);
 
         public BuilderDispatcherService(Channel<ExchangeSetRequestMessage> channel, ExchangeSetRequestTable exchangeSetRequestTable, IConfiguration configuration)
         {
             _channel = channel;
             _exchangeSetRequestTable = exchangeSetRequestTable;
-
-            var builderStartupValue = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.BuilderStartup);
-            if (builderStartupValue == null)
-            {
-                throw new InvalidOperationException($"Environment variable {OrchestratorEnvironmentVariables.BuilderStartup} is not set");
-            }
-
-            _builderStartup = Enum.Parse<BuilderStartup>(builderStartupValue);
 
             var fileShareEndpoint = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.FileShareEndpoint)!;
             var salesCatalogueEndpoint = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.SalesCatalogueEndpoint)!;
@@ -61,17 +52,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                     {
                         var id = Guid.NewGuid().ToString("N");
 
-                        switch (_builderStartup)
-                        {
-                            case BuilderStartup.Manual:
-                                await StoreRequest(WellKnownRequestId.DebugRequestId, request);
-                                break;
-
-                            case BuilderStartup.Orchestrator:
-                                await StoreRequest(id, request);
-                                await ExecuteBuilder(request, id, stoppingToken);
-                                break;
-                        }
+                        await StoreRequest(id, request);
+                        await ExecuteBuilder(request, id, stoppingToken);
                     }
                     catch (Exception ex)
                     {
@@ -129,11 +111,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
             await _exchangeSetRequestTable.CreateTableIfNotExistsAsync();
             await _exchangeSetRequestTable.AddAsync(requestEntity);
-
-            var entities = await _exchangeSetRequestTable.ListAsync();
-            var entity = await _exchangeSetRequestTable.GetAsync(requestId, requestId);
-
-            var entity2 = await _exchangeSetRequestTable.GetAsync(requestId);
         }
     }
 }

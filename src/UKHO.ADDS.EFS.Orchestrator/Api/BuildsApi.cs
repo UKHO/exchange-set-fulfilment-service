@@ -1,5 +1,7 @@
 ﻿using Azure.Storage.Queues;
+using Serilog;
 using UKHO.ADDS.EFS.Common.Configuration.Namespaces;
+using UKHO.ADDS.EFS.Common.Entities;
 using UKHO.ADDS.EFS.Common.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Tables;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
@@ -33,6 +35,16 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 var queueClient = queueServiceClient.GetQueueClient(StorageConfiguration.RequestQueueName);
                 queueClient.SendMessage(JsonCodec.Encode(message));
             });
+
+#if DEBUG
+            application.MapPost("/builds/debug/{id}", async (string id, ExchangeSetRequest request, ExchangeSetRequestTable table) =>
+            {
+                await table.CreateTableIfNotExistsAsync();
+                await table.AddAsync(request);
+
+                Log.Information($"Received debug build request : {id}");
+            });
+#endif
         }
     }
 }

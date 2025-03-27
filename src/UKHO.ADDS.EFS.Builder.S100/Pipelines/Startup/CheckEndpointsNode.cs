@@ -1,12 +1,11 @@
-﻿using UKHO.ADDS.EFS.Builder.S100.Pipelines.Nodes;
-using UKHO.ADDS.Infrastructure.Pipelines;
+﻿using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
 {
-    internal class CheckEndpointsNode : BuilderNode<PipelineContext>
+    internal class CheckEndpointsNode : ExchangeSetPipelineNode
     {
-        protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<PipelineContext> context)
+        protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
         {
             await CheckEndpointAsync("http://localhost:8080", "/xchg-2.7/v2.7/dev?arg=test&authkey=noauth");
             await CheckEndpointAsync(context.Subject.FileShareEndpoint, "/health");

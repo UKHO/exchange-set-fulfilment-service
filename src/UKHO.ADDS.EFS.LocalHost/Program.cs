@@ -28,8 +28,6 @@ namespace UKHO.ADDS.EFS.LocalHost
             var mockEndpointPort = config.GetValue<int>("Endpoints:MockEndpointPort");
             var mockEndpointContainerPort = config.GetValue<int>("Endpoints:MockEndpointContainerPort");
 
-            var builderStartup = config.GetValue<BuilderStartup>("Orchestrator:BuilderStartup");
-
             var exposeOtlp = config.GetValue<bool>("Telemetry:ExposeOtlp");
 
             var containerRuntime = config.GetValue<ContainerRuntime>("Containers:ContainerRuntime");
@@ -86,11 +84,10 @@ namespace UKHO.ADDS.EFS.LocalHost
             if (exposeOtlp)
             {
                 var grafanaEndpoint = grafanaContainer!.GetEndpoint("http");
-                orchestratorService.WithOrchestratorDashboard(grafanaEndpoint, "OLTP Dashboard");
+                orchestratorService.WithOrchestratorDashboard(grafanaEndpoint, "OTLP Dashboard");
             }
 
-            orchestratorService.WithEnvironment(OrchestratorEnvironmentVariables.BuilderStartup, builderStartup.ToString)
-                .WithEnvironment(c =>
+            orchestratorService.WithEnvironment(c =>
                 {
                     var addsMockEndpoint = addsMockContainer.GetEndpoint(ContainerConfiguration.MockContainerEndpointName);
                     var fssEndpoint = new UriBuilder(addsMockEndpoint.Url)
