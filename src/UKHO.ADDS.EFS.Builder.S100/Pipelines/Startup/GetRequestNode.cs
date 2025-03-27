@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.EFS.Common.Entities;
+﻿using System.Globalization;
+using UKHO.ADDS.EFS.Common.Entities;
 using UKHO.ADDS.EFS.Common.Messages;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
@@ -14,7 +15,16 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
             {
                 // Create a debug request object (TODO - read from appsettings.development.json)
                 // Send this back to the build API via the log context
-                var request = new ExchangeSetRequest() { Id = context.Subject.RequestId, Message = new ExchangeSetRequestMessage() { DataStandard = ExchangeSetDataStandard.S100, Products = "example" } };
+                var request = new ExchangeSetRequest()
+                {
+                    Id = context.Subject.RequestId,
+                    Timestamp = DateTime.UtcNow.ToString(CultureInfo.InvariantCulture),
+                    Message = new ExchangeSetRequestMessage()
+                    {
+                        DataStandard = ExchangeSetDataStandard.S100,
+                        Products = "example"
+                    }
+                };
                 context.Subject.Request = request;
 
                 // Write back to API

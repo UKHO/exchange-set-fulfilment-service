@@ -5,6 +5,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 {
     internal class DownloadFilesNode : ExchangeSetPipelineNode
     {
-        protected override Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context) => base.PerformExecuteAsync(context);
+        protected override Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
+        {
+            return Task.FromResult(NodeResultStatus.NotRun);
+        }
     }
 }

@@ -8,6 +8,8 @@ namespace UKHO.ADDS.EFS.Common.Entities
 
         public string Id { get; set; }
 
+        public string Timestamp { get; set; }
+
         public ExchangeSetRequestMessage Message { get; set; }
     }
 }
