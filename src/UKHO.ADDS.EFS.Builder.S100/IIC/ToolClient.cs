@@ -6,10 +6,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
     {
         private readonly IHttpClientFactory _clientFactory;
 
-        public ToolClient(IHttpClientFactory clientFactory)
-        {
-            _clientFactory = clientFactory;
-        }
+        public ToolClient(IHttpClientFactory clientFactory) => _clientFactory = clientFactory;
 
         public Task<Result> Ping() => Task.FromResult(Result.Success());
     }

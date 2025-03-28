@@ -2,12 +2,9 @@
 {
     internal static class IncrementingCounter
     {
-        private static int _counter = 0;
+        private static int _counter;
 
-        static IncrementingCounter()
-        {
-            _counter = 0;
-        }
+        static IncrementingCounter() => _counter = 0;
 
         public static string GetNext()
         {

@@ -1,9 +1,9 @@
 ﻿using System.Globalization;
 using System.Threading.Channels;
 using Serilog;
-using UKHO.ADDS.EFS.Common.Configuration.Orchestrator;
-using UKHO.ADDS.EFS.Common.Entities;
-using UKHO.ADDS.EFS.Common.Messages;
+using UKHO.ADDS.EFS.Configuration.Orchestrator;
+using UKHO.ADDS.EFS.Entities;
+using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Tables;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services
@@ -14,7 +14,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         private const string ContainerName = "efs-builder-s100-";
 
         private readonly Channel<ExchangeSetRequestMessage> _channel;
-        private readonly ExchangeSetRequestTable _exchangeSetRequestTable;
 
         private readonly string[] _command = ["sh", "-c", "echo Starting; sleep 5; echo Healthy now; sleep 5; echo Exiting..."];
 
@@ -23,6 +22,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
         // TODO Figure out how best to control this timeout
         private readonly TimeSpan _containerTimeout = TimeSpan.FromMinutes(5);
+        private readonly ExchangeSetRequestTable _exchangeSetRequestTable;
 
         public BuilderDispatcherService(Channel<ExchangeSetRequestMessage> channel, ExchangeSetRequestTable exchangeSetRequestTable, IConfiguration configuration)
         {
@@ -82,10 +82,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
             var logTask = streamer.StreamLogsAsync(
                 containerId,
-                line =>
-                {
-                    Log.Information($"[{containerName}] {line.ReplaceLineEndings("")}");
-                },
+                line => { Log.Information($"[{containerName}] {line.ReplaceLineEndings("")}"); },
                 line => { Log.Error($"[{containerName}] {line}"); },
                 stoppingToken
             );
@@ -108,12 +105,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
         private async Task StoreRequest(string requestId, ExchangeSetRequestMessage request)
         {
-            var requestEntity = new ExchangeSetRequest
-            {
-                Id = requestId,
-                Timestamp = DateTime.UtcNow.ToString(CultureInfo.InvariantCulture),
-                Message = request
-            };
+            var requestEntity = new ExchangeSetRequest { Id = requestId, Timestamp = DateTime.UtcNow.ToString(CultureInfo.InvariantCulture), Message = request };
 
             await _exchangeSetRequestTable.CreateTableIfNotExistsAsync();
             await _exchangeSetRequestTable.AddAsync(requestEntity);

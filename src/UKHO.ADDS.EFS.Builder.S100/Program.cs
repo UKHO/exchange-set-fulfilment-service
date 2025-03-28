@@ -93,7 +93,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
 
             collection.AddSingleton<INodeStatusWriter, NodeStatusWriter>();
             collection.AddSingleton<IToolClient, ToolClient>();
-            
+
 
             return collection.BuildServiceProvider();
         }

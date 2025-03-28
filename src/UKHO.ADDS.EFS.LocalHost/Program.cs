@@ -1,15 +1,15 @@
 using CliWrap;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Projects;
 using Serilog;
-using UKHO.ADDS.EFS.Common.Configuration.Namespaces;
-using UKHO.ADDS.EFS.Common.Configuration.Orchestrator;
+using UKHO.ADDS.EFS.Configuration.Namespaces;
+using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.LocalHost.Extensions;
-using UKHO.ADDS.EFS.LocalHost.OpenTelemetryCollector;
 
 namespace UKHO.ADDS.EFS.LocalHost
 {
-    class Program
+    internal class Program
     {
         private static async Task<int> Main(string[] args)
         {
@@ -28,8 +28,6 @@ namespace UKHO.ADDS.EFS.LocalHost
             var mockEndpointPort = config.GetValue<int>("Endpoints:MockEndpointPort");
             var mockEndpointContainerPort = config.GetValue<int>("Endpoints:MockEndpointContainerPort");
 
-            var exposeOtlp = config.GetValue<bool>("Telemetry:ExposeOtlp");
-
             var containerRuntime = config.GetValue<ContainerRuntime>("Containers:ContainerRuntime");
             var buildOnStartup = config.GetValue<bool>("Containers:BuildOnStartup");
 
@@ -37,10 +35,7 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             // Storage configuration
 
-            var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e =>
-            {
-                e.WithDataVolume();
-            });
+            var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e => { e.WithDataVolume(); });
 
             var storageQueue = storage.AddQueues(StorageConfiguration.QueuesName);
             var storageTable = storage.AddTables(StorageConfiguration.TablesName);
@@ -50,25 +45,24 @@ namespace UKHO.ADDS.EFS.LocalHost
             var addsMockContainer = builder.AddDockerfile(ContainerConfiguration.MockContainerName, @"..\..\mock\repo\src\ADDSMock")
                 .WithHttpEndpoint(mockEndpointPort, mockEndpointContainerPort, ContainerConfiguration.MockContainerEndpointName);
 
-            IResourceBuilder<ContainerResource>? grafanaContainer = null;
+            var elasticsearch = builder.AddContainer("elasticsearch", "docker.elastic.co/elasticsearch/elasticsearch:7.17.0")
+                .WithEnvironment("discovery.type", "single-node")
+                .WithEnvironment("xpack.security.enabled", "false")
+                .WithHttpEndpoint(9200, 9200);
 
-            // Metrics
-            if (exposeOtlp)
-            {
-                var prometheusContainer = builder.AddContainer("prometheus", "prom/prometheus:v3.0.1")
-                    .WithBindMount("../Metrics/prometheus", "/etc/prometheus", isReadOnly: true)
-                    .WithArgs("--web.enable-otlp-receiver", "--config.file=/etc/prometheus/prometheus.yml")
-                    .WithHttpEndpoint(targetPort: 9090, name: "http");
+            var kibanaContainer = builder.AddContainer("kibana", "docker.elastic.co/kibana/kibana:7.17.0")
+                .WithEnvironment("ELASTICSEARCH_HOSTS", "http://elasticsearch:9200")
+                .WithEnvironment("xpack.security.enabled", "false")
+                .WithHttpEndpoint(5601, 5601)
+                .WaitFor(elasticsearch);
 
-                grafanaContainer = builder.AddContainer("grafana", "grafana/grafana")
-                    .WithBindMount("../Metrics/grafana/config", "/etc/grafana", isReadOnly: true)
-                    .WithBindMount("../Metrics/grafana/dashboards", "/var/lib/grafana/dashboards", isReadOnly: true)
-                    .WithEnvironment("PROMETHEUS_ENDPOINT", prometheusContainer.GetEndpoint("http"))
-                    .WithHttpEndpoint(targetPort: 3000, name: "http");
-
-                builder.AddOpenTelemetryCollector("otelcollector", "../Metrics/otelcollector/config.yaml")
-                    .WithEnvironment("PROMETHEUS_ENDPOINT", $"{prometheusContainer.GetEndpoint("http")}/api/v1/otlp");
-            }
+            builder.AddContainer("apm-server", "docker.elastic.co/apm/apm-server:7.17.0")
+                .WithEnvironment("setup.kibana.host", "http://kibana:5601")
+                .WithEnvironment("setup.dashboards.enabled", "true")
+                .WithEnvironment("output.elasticsearch.hosts", "[\"http://elasticsearch:9200\"]")
+                .WithEnvironment("apm-server.host", "0.0.0.0:8200")
+                .WithHttpEndpoint(8200, 8200)
+                .WaitFor(elasticsearch);
 
             // Orchestrator
 
@@ -78,36 +72,24 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WithReference(storageTable)
                 .WaitFor(storageTable)
                 .WaitFor(addsMockContainer)
-                .WithScalar("API documentation");
-                
-
-            if (exposeOtlp)
-            {
-                var grafanaEndpoint = grafanaContainer!.GetEndpoint("http");
-                orchestratorService.WithOrchestratorDashboard(grafanaEndpoint, "OTLP Dashboard");
-            }
+                .WithScalar("API documentation")
+                .WithKibanaDashboard(kibanaContainer.GetEndpoint("http"), "Kibana dashboard");
 
             orchestratorService.WithEnvironment(c =>
-                {
-                    var addsMockEndpoint = addsMockContainer.GetEndpoint(ContainerConfiguration.MockContainerEndpointName);
-                    var fssEndpoint = new UriBuilder(addsMockEndpoint.Url)
-                    {
-                        Host = addsMockEndpoint.ContainerHost,
-                        Path = "fss"
-                    };
+            {
+                var addsMockEndpoint = addsMockContainer.GetEndpoint(ContainerConfiguration.MockContainerEndpointName);
+                var fssEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.ContainerHost, Path = "fss" };
 
-                    var scsEndpoint = new UriBuilder(addsMockEndpoint.Url)
-                    {
-                        Host = addsMockEndpoint.ContainerHost,
-                        Path = "scs"
-                    };
+                var scsEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.ContainerHost, Path = "scs" };
 
-                    var orchestratorServiceEndpoint = orchestratorService.GetEndpoint(name:"http").Url;
+                var orchestratorServiceEndpoint = orchestratorService.GetEndpoint("http").Url;
 
-                    c.EnvironmentVariables[OrchestratorEnvironmentVariables.FileShareEndpoint] = fssEndpoint.ToString();
-                    c.EnvironmentVariables[OrchestratorEnvironmentVariables.SalesCatalogueEndpoint] = scsEndpoint.ToString();
-                    c.EnvironmentVariables[OrchestratorEnvironmentVariables.BuildServiceEndpoint] = orchestratorServiceEndpoint.ToString();
-                });
+                c.EnvironmentVariables[OrchestratorEnvironmentVariables.FileShareEndpoint] = fssEndpoint.ToString();
+                c.EnvironmentVariables[OrchestratorEnvironmentVariables.SalesCatalogueEndpoint] = scsEndpoint.ToString();
+                c.EnvironmentVariables[OrchestratorEnvironmentVariables.BuildServiceEndpoint] = orchestratorServiceEndpoint;
+            });
+
+            builder.Services.AddHttpClient();
 
             if (buildOnStartup)
             {

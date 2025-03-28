@@ -1,5 +1,5 @@
 ﻿using Serilog;
-using UKHO.ADDS.EFS.Common.Configuration.Orchestrator;
+using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 

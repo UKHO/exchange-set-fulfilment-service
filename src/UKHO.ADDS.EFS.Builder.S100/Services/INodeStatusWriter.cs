@@ -1,4 +1,4 @@
-﻿using UKHO.ADDS.EFS.Common.Entities;
+﻿using UKHO.ADDS.EFS.Entities;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Services
 {

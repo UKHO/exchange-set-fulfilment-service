@@ -1,4 +1,4 @@
-﻿namespace UKHO.ADDS.EFS.Common.Configuration.Namespaces
+﻿namespace UKHO.ADDS.EFS.Configuration.Namespaces
 {
     public static class ContainerConfiguration
     {

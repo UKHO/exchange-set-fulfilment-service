@@ -1,6 +1,5 @@
 ﻿# Visual Studio does not like Dockerfiles that have multiple stages - it only recognises the first stage. So, we have to use a single stage Dockerfile.
 # Also note that this dockerfile must be in the same directory as the .csproj file, otherwise Visual Studio will not recognise it as a debug target.
-# That's 8 hours of my life I won't get back.
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0
 
@@ -25,7 +24,7 @@ WORKDIR /src
 # Copy and restore projects
 COPY ["Directory.Build.props", "."]
 COPY ["UKHO.ADDS.EFS.Builder.S100/UKHO.ADDS.EFS.Builder.S100.csproj", "UKHO.ADDS.EFS.Builder.S100/"]
-COPY ["UKHO.ADDS.EFS.Common/UKHO.ADDS.EFS.Common.csproj", "UKHO.ADDS.EFS.Common/"]
+COPY ["UKHO.ADDS.EFS.Domain/UKHO.ADDS.EFS.Domain.csproj", "UKHO.ADDS.EFS.Domain/"]
 RUN dotnet restore UKHO.ADDS.EFS.Builder.S100/UKHO.ADDS.EFS.Builder.S100.csproj
 
 # Copy remaining files and build

@@ -1,8 +1,8 @@
 ﻿using Azure.Storage.Queues;
 using Serilog;
-using UKHO.ADDS.EFS.Common.Configuration.Namespaces;
-using UKHO.ADDS.EFS.Common.Entities;
-using UKHO.ADDS.EFS.Common.Messages;
+using UKHO.ADDS.EFS.Configuration.Namespaces;
+using UKHO.ADDS.EFS.Entities;
+using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Tables;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 

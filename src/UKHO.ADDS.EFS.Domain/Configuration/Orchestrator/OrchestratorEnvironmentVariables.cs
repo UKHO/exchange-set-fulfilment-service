@@ -1,4 +1,4 @@
-﻿namespace UKHO.ADDS.EFS.Common.Configuration.Orchestrator
+﻿namespace UKHO.ADDS.EFS.Configuration.Orchestrator
 {
     public static class OrchestratorEnvironmentVariables
     {
