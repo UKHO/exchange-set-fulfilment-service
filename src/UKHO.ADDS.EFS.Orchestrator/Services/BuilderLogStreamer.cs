@@ -8,23 +8,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
     {
         private readonly ContainerService _containerService;
 
-        public BuilderLogStreamer(ContainerService containerService)
-        {
-            _containerService = containerService;
-        }
+        public BuilderLogStreamer(ContainerService containerService) => _containerService = containerService;
 
         public async Task StreamLogsAsync(string containerId, Action<string> logStdout, Action<string> logStderr, CancellationToken cancellationToken = default)
         {
             var stream = await _containerService.DockerClient.Containers.GetContainerLogsAsync(
                 containerId,
-                tty: false, // false = multiplexed stream with both stdout and stderr
-                new ContainerLogsParameters
-                {
-                    ShowStdout = true,
-                    ShowStderr = true,
-                    Follow = true,
-                    Timestamps = false
-                },
+                false, // false = multiplexed stream with both stdout and stderr
+                new ContainerLogsParameters { ShowStdout = true, ShowStderr = true, Follow = true, Timestamps = false },
                 cancellationToken
             );
 
@@ -40,7 +31,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 var result = await stream.ReadOutputAsync(buffer, 0, buffer.Length, cancellationToken);
 
                 if (result.EOF || result.Count == 0)
+                {
                     break;
+                }
 
                 var text = Encoding.UTF8.GetString(buffer, 0, result.Count).TrimEnd('\r', '\n');
 

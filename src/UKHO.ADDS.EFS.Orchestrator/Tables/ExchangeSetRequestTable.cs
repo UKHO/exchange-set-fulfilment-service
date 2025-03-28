@@ -1,5 +1,5 @@
 ﻿using Azure.Data.Tables;
-using UKHO.ADDS.EFS.Common.Entities;
+using UKHO.ADDS.EFS.Entities;
 using UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Tables

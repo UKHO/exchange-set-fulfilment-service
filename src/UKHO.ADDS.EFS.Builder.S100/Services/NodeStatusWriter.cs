@@ -1,5 +1,5 @@
 ﻿using System.Net.Http.Headers;
-using UKHO.ADDS.EFS.Common.Entities;
+using UKHO.ADDS.EFS.Entities;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Services
@@ -8,29 +8,15 @@ namespace UKHO.ADDS.EFS.Builder.S100.Services
     {
         private readonly HttpClient _httpClient;
 
-        public NodeStatusWriter(IHttpClientFactory clientFactory)
-        {
-            _httpClient = clientFactory.CreateClient();
-        }
+        public NodeStatusWriter(IHttpClientFactory clientFactory) => _httpClient = clientFactory.CreateClient();
 
         public async Task WriteNodeStatusTelemetry(ExchangeSetBuilderNodeStatus nodeStatus, string buildServiceEndpoint)
         {
-            var uri = new Uri(new Uri(buildServiceEndpoint), $"/status");
+            var uri = new Uri(new Uri(buildServiceEndpoint), "/status");
 
             var json = JsonCodec.Encode(nodeStatus);
 
-            var request = new HttpRequestMessage
-            {
-                Method = HttpMethod.Post,
-                RequestUri = uri,
-                Content = new StringContent(json)
-                {
-                    Headers =
-                    {
-                        ContentType = new MediaTypeHeaderValue("application/json")
-                    }
-                }
-            };
+            var request = new HttpRequestMessage { Method = HttpMethod.Post, RequestUri = uri, Content = new StringContent(json) { Headers = { ContentType = new MediaTypeHeaderValue("application/json") } } };
 
             using var _ = await _httpClient.SendAsync(request);
         }
@@ -41,18 +27,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Services
 
             var json = JsonCodec.Encode(exchangeSetRequest);
 
-            var request = new HttpRequestMessage
-            {
-                Method = HttpMethod.Post,
-                RequestUri = uri,
-                Content = new StringContent(json)
-                {
-                    Headers =
-                    {
-                        ContentType = new MediaTypeHeaderValue("application/json")
-                    }
-                }
-            };
+            var request = new HttpRequestMessage { Method = HttpMethod.Post, RequestUri = uri, Content = new StringContent(json) { Headers = { ContentType = new MediaTypeHeaderValue("application/json") } } };
 
             using var _ = await _httpClient.SendAsync(request);
         }

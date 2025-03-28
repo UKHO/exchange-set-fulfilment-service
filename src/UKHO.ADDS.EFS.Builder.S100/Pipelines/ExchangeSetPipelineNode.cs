@@ -1,5 +1,5 @@
 ﻿using UKHO.ADDS.EFS.Builder.S100.Services;
-using UKHO.ADDS.EFS.Common.Entities;
+using UKHO.ADDS.EFS.Entities;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
@@ -21,13 +21,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
                 return;
             }
 
-            var status = new ExchangeSetBuilderNodeStatus
-            {
-                RequestId = context.Subject.RequestId,
-                Timestamp = IncrementingCounter.GetNext(),
-                NodeId = type,
-                Status = nodeResult.Status
-            };
+            var status = new ExchangeSetBuilderNodeStatus { RequestId = context.Subject.RequestId, Sequence = IncrementingCounter.GetNext(), NodeId = type, Status = nodeResult.Status };
 
             if (result.Exception != null)
             {

@@ -1,5 +1,5 @@
 ﻿using Serilog;
-using UKHO.ADDS.EFS.Common.Entities;
+using UKHO.ADDS.EFS.Entities;
 using UKHO.ADDS.EFS.Orchestrator.Tables;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Api

@@ -27,8 +27,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\UKHO.ADDS.EFS.Common.Services\UKHO.ADDS.EFS.Common.Services.csproj" />
-    <ProjectReference Include="..\UKHO.ADDS.EFS.Common\UKHO.ADDS.EFS.Common.csproj" />
+    <ProjectReference Include="..\UKHO.ADDS.EFS.Aspire\UKHO.ADDS.EFS.Aspire.csproj" />
+    <ProjectReference Include="..\UKHO.ADDS.EFS.Domain\UKHO.ADDS.EFS.Domain.csproj" />
   </ItemGroup>
 
 </Project>

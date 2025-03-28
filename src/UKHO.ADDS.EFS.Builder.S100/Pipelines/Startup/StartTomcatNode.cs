@@ -1,5 +1,5 @@
-﻿using Serilog;
-using System.Diagnostics;
+﻿using System.Diagnostics;
+using Serilog;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 

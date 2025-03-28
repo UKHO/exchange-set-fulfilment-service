@@ -109,13 +109,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
 
         private static string SanitizeKey(string key) => key.Replace(" ", "_").Replace("/", "_").Replace("\\", "_");
 
-        private static string SanitizeTableName(string tableName)
-        {
-            return tableName
+        private static string SanitizeTableName(string tableName) =>
+            tableName
                 .Replace("<", "_")
                 .Replace(">", "_")
                 .Replace(",", "_")
                 .Replace(" ", "_");
-        }
     }
 }

@@ -1,6 +1,4 @@
-﻿using System.Runtime.Serialization;
-
-namespace UKHO.ADDS.EFS.Common.Messages
+﻿namespace UKHO.ADDS.EFS.Messages
 {
     public enum ExchangeSetDataStandard
     {

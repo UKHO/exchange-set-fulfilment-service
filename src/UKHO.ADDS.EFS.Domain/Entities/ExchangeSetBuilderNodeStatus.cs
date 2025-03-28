@@ -2,13 +2,13 @@
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
-namespace UKHO.ADDS.EFS.Common.Entities
+namespace UKHO.ADDS.EFS.Entities
 {
     public class ExchangeSetBuilderNodeStatus
     {
         public string RequestId { get; set; }
 
-        public string Timestamp { get; set; }
+        public string Sequence { get; set; }
 
         public string NodeId { get; set; }
 

@@ -1,7 +1,7 @@
-﻿namespace UKHO.ADDS.EFS.Common.Messages
+﻿namespace UKHO.ADDS.EFS.Messages
 {
     /// <summary>
-    /// An example of a message to request an exchange set build (properties for demo purposes only)
+    ///     An example of a message to request an exchange set build (properties for demo purposes only)
     /// </summary>
     public class ExchangeSetRequestMessage
     {
