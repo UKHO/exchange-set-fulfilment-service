@@ -56,6 +56,10 @@ artifacts/
 !src/UKHO.ADDS.EFS.LocalHost/Properties/launchSettings.json
 !src/UKHO.ADDS.EFS.Builder.S100/Properties/launchSettings.json
 
+# External 
+*.zip
+*.war
+
 # StyleCop
 StyleCopReport.xml
 
@@ -377,15 +381,4 @@ terraform_output.json
 
 # Ignore VS Code ionide extension temp folder
 /.ionide/
-/tests/UKHO.ERPFacade.API.FunctionalTests/ERPFacadePayloadTestData/1NewCellScenario.JSON
-/tests/UKHO.ERPFacade.API.FunctionalTests/ERPFacadeExpectedXmlTestData/1NewCellScenario.xml
-/tests/UKHO.ERPFacade.API.FunctionalTests/ERPFacadePayloadTestData/2NewCellScenario.JSON
-/tests/UKHO.ERPFacade.API.FunctionalTests/ERPFacadePayloadTestData/2CombinationNewCellOldCellScenario.JSON
-/tests/UKHO.ERPFacade.API.FunctionalTests/ERPFacadeExpectedXmlTestData/3CellsReplace2CellsCancel.xml
-/tests/UKHO.ERPFacade.API.FunctionalTests/ERPFacadeGeneratedXmlFiles/367ce4a4-1d62-4f56-b359-59e178d78200.xml
-/tests/UKHO.ERPFacade.API.FunctionalTests/ERPFacadeGeneratedXmlFiles/367ce4a4-1d62-4f56-b359-59e178d77100.xml
-/tests/UKHO.ERPFacade.API.FunctionalTests/ERPFacadeGeneratedXmlFiles
-/src/UKHO.SAP.MockAPIService
-/tests/UKHO.ERPFacade.API.FunctionalTests/ERPFacadePayloadTestData/FMLicenseUpdate
-/tests/UKHO.ERPFacade.API.FunctionalTests/Model/JSONHelperLU.cs
-/tests/UKHO.ERPFacade.API.FunctionalTests/ERPFacadeGeneratedJsonFiles
+
