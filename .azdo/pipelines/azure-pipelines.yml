@@ -29,7 +29,7 @@ stages:
   - job: MainBuild
     workspace:
       clean: all
-    displayName: Build, unit test and package
+    displayName: Build and unit test
     steps:
     - task: PowerShell@2
       displayName: Output environment variables
