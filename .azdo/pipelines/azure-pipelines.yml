@@ -19,11 +19,11 @@ variables:
 - name: UkhoAssemblyProduct
   value: "ESS Fulfilment Service"
 - name: SdkVersion
-  value: "8.0.x"
+  value: "9.0.x"
 
 stages:
-- stage: BuildTestPublish
-  displayName: Build, test and publish
+- stage: BuildTest
+  displayName: Build and test
   dependsOn: []
   jobs:
   - job: MainBuild
