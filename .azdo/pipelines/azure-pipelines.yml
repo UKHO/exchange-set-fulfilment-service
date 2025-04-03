@@ -1,19 +1,51 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
- 
+name: $(BuildDefinitionName)_$(SourceBranchName)_$(Date:yy)$(DayOfYear).$(BuildCounter)
+
 trigger:
-- main
- 
-pool:
-  vmImage: ubuntu-latest
- 
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
- 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+  - main
+  - release/*
+
+pool: $(WindowsPool) 
+
+variables:
+  - name: BuildConfiguration
+    value: "release"
+  - name: BuildPlatform
+    value: "any cpu"
+  - name: BuildCounter
+    value: $[counter(format('{0:yyyyMMdd}', pipeline.startTime), 1)]
+  - name: WindowsPool
+    value: "Mare Nubium"
+  - name: DotNetSdkVersion
+    value: "8.x"
+
+stages:
+  - stage: Build
+    displayName: "Build (Dotnet Build & Restore)"
+    jobs:     
+      - job: BuildMockProject
+        workspace:
+          clean: all
+        displayName: "Dotnet Build UKHO.SAP.MockAPIService"
+        steps:
+          - task: UseDotNet@2
+            displayName: Use .NET SDK $(DotNetSdkVersion)
+            inputs:
+              packageType: sdk
+              version: $(DotNetSdkVersion)
+
+          - task: DotNetCoreCLI@2
+            displayName: ".Net Core - NuGet restore"
+            inputs:
+              command: "restore"
+              projects: "**/UKHO.SAP.MockAPIService.csproj"
+              feedsToUse: config
+              noCache: true
+              nugetConfigPath: '$(Build.SourcesDirectory)\BuildNuget.config'
+              workingDirectory: '$(Build.SourcesDirectory)'
+
+          - task: DotNetCoreCLI@2
+            displayName: "dotnet build"
+            inputs:
+              command: "build"
+              projects: "**/UKHO.SAP.MockAPIService.csproj"
+              arguments: '--configuration $(BuildConfiguration) --no-restore'
