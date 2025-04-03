@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="UKHO.ADDS.EFS.Builder.S100.Tests"/>
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Include="Assets\workspace-root.zip" />
   </ItemGroup>
 
