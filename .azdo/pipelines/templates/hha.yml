@@ -1,0 +1,34 @@
+jobs:
+- job: BuildADDSMockService
+  workspace:
+    clean: all
+  displayName: "Dotnet Build ADDS Mock Service"
+  steps:
+
+    - checkout: self
+      submodules: true
+
+    - task: UseDotNet@2
+      displayName: 'Use .NET 8.0.x sdk'
+      inputs:
+        packageType: sdk
+        useGlobalJson: true
+        workingDirectory: '$(Build.SourcesDirectory)\src'
+              
+    - task: DotNetCoreCLI@2
+      displayName: ".Net Core - NuGet restore for non test projects only"
+      inputs:
+        command: "restore"
+        projects: '**/*ADDSMock.csproj'
+        feedsToUse: config
+        noCache: true
+        nugetConfigPath: '$(Build.SourcesDirectory)\mock\UKHO.ADDS-Mock\BuildNuget.config'
+        workingDirectory: '$(Build.SourcesDirectory)\mock\UKHO.ADDS-Mock\src\ADDSMock'
+        packagesDirectory: '$(Build.SourcesDirectory)\ADDSMock\packages'
+
+    - task: DotNetCoreCLI@2
+      displayName: "dotnet build task"
+      inputs:
+        command: "build"
+        projects: '**/*ADDSMock.csproj'
+        arguments: '--configuration $(BuildConfiguration)'
