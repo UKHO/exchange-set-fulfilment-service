@@ -8,12 +8,18 @@ jobs:
     - checkout: self
       submodules: true
 
+    # - task: UseDotNet@2
+    #   displayName: 'Use .NET 8.0.x sdk'
+    #   inputs:
+    #     packageType: sdk
+    #     useGlobalJson: true
+    #     workingDirectory: '$(Build.SourcesDirectory)\src'
+
     - task: UseDotNet@2
-      displayName: 'Use .NET 8.0.x sdk'
+      displayName: Use .NET SDK $(SdkVersion)
       inputs:
         packageType: sdk
-        useGlobalJson: true
-        workingDirectory: '$(Build.SourcesDirectory)\src'
+        version: $(SdkVersion)
               
     - task: DotNetCoreCLI@2
       displayName: ".Net Core - NuGet restore for non test projects only"
