@@ -1,3 +1,4 @@
+jobs:
 - job: BuildADDSMockService
   workspace:
     clean: all
