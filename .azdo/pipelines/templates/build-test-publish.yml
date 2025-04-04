@@ -22,9 +22,9 @@ jobs:
         projects: '**/*ADDSMock.csproj'
         feedsToUse: config
         noCache: true
-        nugetConfigPath: '$(Build.SourcesDirectory)\mock\UKHO.ADDS-Mock\BuildNuget.config'
-        workingDirectory: '$(Build.SourcesDirectory)\mock\UKHO.ADDS-Mock\src\ADDSMock'
-        packagesDirectory: '$(Build.SourcesDirectory)\ADDSMock\packages'
+        nugetConfigPath: '$(Build.SourcesDirectory)\mock\repo\BuildNuget.config'
+        workingDirectory: '$(Build.SourcesDirectory)\mock\repo\src\ADDSMock'
+        packagesDirectory: '$(Build.SourcesDirectory)\repo\packages'
 
     - task: DotNetCoreCLI@2
       displayName: "dotnet build task"
