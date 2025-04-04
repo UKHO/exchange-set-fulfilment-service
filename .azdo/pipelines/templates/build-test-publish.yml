@@ -8,13 +8,6 @@ jobs:
     - checkout: self
       submodules: true
 
-    # - task: UseDotNet@2
-    #   displayName: 'Use .NET 8.0.x sdk'
-    #   inputs:
-    #     packageType: sdk
-    #     useGlobalJson: true
-    #     workingDirectory: '$(Build.SourcesDirectory)\src'
-
     - task: UseDotNet@2
       displayName: Use .NET SDK $(SdkVersion)
       inputs:
