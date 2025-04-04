@@ -28,4 +28,4 @@ stages:
     displayName: "Build and Test"
     dependsOn: []
     jobs:
-    - template: Deployment/templates/build-test-publish.yml
+    - template: pipelines/templates/build-test-publish.yml
