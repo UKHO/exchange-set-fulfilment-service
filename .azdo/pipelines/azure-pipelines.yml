@@ -23,9 +23,17 @@ variables:
   - name: SdkVersion
     value: "9.0.x"
 
+resources:
+  repositories:
+  - repository: UKHOTemplates
+    type: github
+    name: UKHO/devops-pipelinetemplates
+    endpoint: UKHO
+    ref: refs/heads/main
+
 stages:
   - stage: BuildTest
     displayName: "Build and Test"
     dependsOn: []
     jobs:
-    - template: pipelines/templates/build-test-publish.yml
+    - template: .azdo/pipelines/templates/build-test-publish.yml
