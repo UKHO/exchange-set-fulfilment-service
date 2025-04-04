@@ -19,7 +19,7 @@ variables:
   - name: UkhoAssemblyProduct
     value: "ESS Fulfilment Service"
   - name: UKHOAssemblyCopyright
-    value: "Copyright © UK Hydrographic Office"
+    value: "Copyright Â© UK Hydrographic Office"
   - name: SdkVersion
     value: "9.0.x"
 
