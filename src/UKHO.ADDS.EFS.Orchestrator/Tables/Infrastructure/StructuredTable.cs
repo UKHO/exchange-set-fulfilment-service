@@ -5,13 +5,13 @@ using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
 {
-    internal abstract class Table<TEntity> : ITable<TEntity> where TEntity : class
+    internal abstract class StructuredTable<TEntity> : ITable<TEntity> where TEntity : class
     {
         private readonly Func<TEntity, string> _partitionKeySelector;
         private readonly Func<TEntity, string> _rowKeySelector;
         private readonly TableClient _tableClient;
 
-        protected Table(TableServiceClient tableServiceClient, Func<TEntity, string> partitionKeySelector, Func<TEntity, string> rowKeySelector)
+        protected StructuredTable(TableServiceClient tableServiceClient, Func<TEntity, string> partitionKeySelector, Func<TEntity, string> rowKeySelector)
         {
             _partitionKeySelector = partitionKeySelector ?? throw new ArgumentNullException(nameof(partitionKeySelector));
             _rowKeySelector = rowKeySelector ?? throw new ArgumentNullException(nameof(rowKeySelector));
@@ -23,7 +23,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
 
         public string Name { get; }
 
-        public async Task<Result> CreateTableIfNotExistsAsync()
+        public async Task<Result> CreateIfNotExistsAsync()
         {
             try
             {
@@ -32,6 +32,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
             }
             catch (Exception ex)
             {
+                Log.Error($"Error creating table: {ex.Message}");
                 return Result.Failure($"Error creating table: {ex.Message}");
             }
         }
@@ -58,7 +59,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
             }
         }
 
-        public async Task<Result<TEntity?>> GetAsync(string partitionKey, string rowKey)
+        public async Task<Result<TEntity>> GetAsync(string partitionKey, string rowKey)
         {
             partitionKey = SanitizeKey(partitionKey);
             rowKey = SanitizeKey(rowKey);
@@ -84,7 +85,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
 
             if (entities.Count == 0)
             {
-                return Enumerable.Empty<TEntity>();
+                return [];
             }
 
             return entities.Select(entity =>
@@ -108,7 +109,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
             });
         }
 
-        public async Task UpdateAsync(TEntity entity)
+        public async Task<Result> UpdateAsync(TEntity entity)
         {
             var partitionKey = SanitizeKey(_partitionKeySelector(entity));
             var rowKey = SanitizeKey(_rowKeySelector(entity));
@@ -118,20 +119,28 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
             try
             {
                 var existingEntity = await _tableClient.GetEntityAsync<JsonEntity>(partitionKey, rowKey);
+
+                if (!existingEntity.HasValue)
+                {
+                    return Result.Failure("Entity does not exist, unable to update.");
+                }
+
                 var etag = existingEntity.Value.ETag;
 
                 var internalEntity = JsonEntityBuilder.BuildEntity(serializedEntity, partitionKey, rowKey);
 
                 await _tableClient.UpdateEntityAsync(internalEntity, etag, TableUpdateMode.Replace);
+
+                return Result.Success();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error updating entity: {ex.Message}");
-                throw;
+                Log.Error($"Error updating entity: {ex.Message}");
+                return Result.Failure($"Error: {ex.Message}");
             }
         }
 
-        public async Task UpsertAsync(TEntity entity)
+        public async Task<Result> UpsertAsync(TEntity entity)
         {
             var partitionKey = SanitizeKey(_partitionKeySelector(entity));
             var rowKey = SanitizeKey(_rowKeySelector(entity));
@@ -143,15 +152,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
                 var internalEntity = JsonEntityBuilder.BuildEntity(serializedEntity, partitionKey, rowKey);
 
                 await _tableClient.UpsertEntityAsync(internalEntity);
+
+                return Result.Success();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error upserting entity: {ex.Message}");
-                throw;
+                Log.Error($"Error upserting entity: {ex.Message}");
+                return Result.Failure($"Error: {ex.Message}");
             }
         }
 
-        public async Task DeleteAsync(string partitionKey, string rowKey)
+        public async Task<Result> DeleteAsync(string partitionKey, string rowKey)
         {
             partitionKey = SanitizeKey(partitionKey);
             rowKey = SanitizeKey(rowKey);
@@ -160,15 +171,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
             {
                 await _tableClient.DeleteEntityAsync(partitionKey, rowKey);
                 Log.Information($"Entity with PartitionKey = {partitionKey}, RowKey = {rowKey} deleted successfully.");
+
+                return Result.Success();
             }
             catch (Exception ex)
             {
                 Log.Error($"Failed to delete entity with PartitionKey = {partitionKey}, RowKey = {rowKey}. Error: {ex.Message}");
-                throw;
+                return Result.Failure($"Error: {ex.Message}");
             }
         }
 
-        public async Task DeleteAsync(string partitionKey)
+        public async Task<Result> DeleteAsync(string partitionKey)
         {
             partitionKey = SanitizeKey(partitionKey);
 
@@ -186,9 +199,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
                 catch (Exception ex)
                 {
                     Log.Error($"Failed to delete entity with PartitionKey = {entity.PartitionKey}, RowKey = {entity.RowKey}. Error: {ex.Message}");
-                    throw;
+                    return Result.Failure($"Error: {ex.Message}");
                 }
             }
+
+            return Result.Success();
         }
 
         private static string SanitizeKey(string key) => key.Replace(" ", "_").Replace("/", "_").Replace("\\", "_");

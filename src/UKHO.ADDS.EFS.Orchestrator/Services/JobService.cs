@@ -26,7 +26,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
             var timestampKey = job.DataStandard.ToString().ToLowerInvariant();
 
-            await _timestampTable.CreateTableIfNotExistsAsync();
+            await _timestampTable.CreateIfNotExistsAsync();
             var timestampResult = await _timestampTable.GetAsync(timestampKey, timestampKey);
 
             var timestamp = DateTime.MinValue;
@@ -44,7 +44,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             job.Products = productInfo.json;
             job.SalesCatalogueTimestamp = productInfo.scsTimestamp;
 
-            await _jobTable.CreateTableIfNotExistsAsync();
+            await _jobTable.CreateIfNotExistsAsync();
             await _jobTable.AddAsync(job);
 
             return job;
@@ -90,7 +90,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             return Task.FromResult((productJson, DateTime.UtcNow));
         }
 
-        private async Task<ExchangeSetJob> CreateJobEntity(ExchangeSetRequestMessage request)
+        private Task<ExchangeSetJob> CreateJobEntity(ExchangeSetRequestMessage request)
         {
             var id = Guid.NewGuid().ToString("N");
 
@@ -102,7 +102,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 State = ExchangeSetJobState.Created,
             };
 
-            return job;
+            return Task.FromResult(job);
         }
     }
 }

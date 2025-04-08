@@ -20,7 +20,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
             Log.Logger = new LoggerConfiguration()
                 .WriteTo.Console()
                 .CreateLogger();
-
+            
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Host.UseSerilog((context, loggerConfiguration) =>
@@ -63,6 +63,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             builder.AddAzureQueueClient(StorageConfiguration.QueuesName);
             builder.AddAzureTableClient(StorageConfiguration.TablesName);
+            builder.AddAzureBlobClient(StorageConfiguration.BlobsName);
 
             builder.Services.AddAuthorization();
             builder.Services.AddOpenApi();

@@ -39,6 +39,7 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             var storageQueue = storage.AddQueues(StorageConfiguration.QueuesName);
             var storageTable = storage.AddTables(StorageConfiguration.TablesName);
+            var storageBlob = storage.AddBlobs(StorageConfiguration.BlobsName);
 
             // ADDS Mock
 
@@ -71,6 +72,8 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WaitFor(storageQueue)
                 .WithReference(storageTable)
                 .WaitFor(storageTable)
+                .WithReference(storageBlob)
+                .WaitFor(storageBlob)
                 .WaitFor(addsMockContainer)
                 .WithScalar("API Browser")
                 .WithKibanaDashboard(kibanaContainer.GetEndpoint("http"), "Kibana dashboard");

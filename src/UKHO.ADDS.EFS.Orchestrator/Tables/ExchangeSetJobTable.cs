@@ -1,13 +1,13 @@
-﻿using Azure.Data.Tables;
+﻿using Azure.Storage.Blobs;
 using UKHO.ADDS.EFS.Entities;
 using UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Tables
 {
-    internal class ExchangeSetJobTable : Table<ExchangeSetJob>
+    internal class ExchangeSetJobTable : BlobTable<ExchangeSetJob>
     {
-        public ExchangeSetJobTable(TableServiceClient tableServiceClient)
-            : base(tableServiceClient, x => x.Id, x => x.Id)
+        public ExchangeSetJobTable(BlobServiceClient blobServiceClient)
+            : base(blobServiceClient, x => x.Id, x => x.Id)
         {
         }
     }
