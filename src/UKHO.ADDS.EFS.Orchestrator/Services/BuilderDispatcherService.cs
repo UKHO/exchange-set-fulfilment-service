@@ -1,11 +1,8 @@
-﻿using System.Globalization;
-using System.Threading.Channels;
-using Microsoft.EntityFrameworkCore.Infrastructure;
+﻿using System.Threading.Channels;
 using Serilog;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Entities;
 using UKHO.ADDS.EFS.Messages;
-using UKHO.ADDS.EFS.Orchestrator.Tables;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services
 {
@@ -20,7 +17,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         private readonly string[] _command = ["sh", "-c", "echo Starting; sleep 5; echo Healthy now; sleep 5; echo Exiting..."];
 
         private readonly SemaphoreSlim _concurrencyLimiter;
-        private readonly ContainerService _containerService;
+        private readonly BuilderContainerService _containerService;
 
         // TODO Figure out how best to control this timeout
         private readonly TimeSpan _containerTimeout = TimeSpan.FromMinutes(5);
@@ -39,7 +36,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             var maxConcurrentBuilders = configuration.GetValue<int>("Builders:MaximumConcurrentBuilders");
             _concurrencyLimiter = new SemaphoreSlim(maxConcurrentBuilders, maxConcurrentBuilders);
 
-            _containerService = new ContainerService(fileShareEndpoint, salesCatalogueEndpoint, builderServiceContainerEndpoint);
+            _containerService = new BuilderContainerService(fileShareEndpoint, salesCatalogueEndpoint, builderServiceContainerEndpoint);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)

@@ -33,6 +33,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
             if (timestampResult.IsSuccess(out var timestampEntity))
             {
+                // We have an existing timestamp from SCS
                 timestamp = timestampEntity!.Timestamp;
             }
 
@@ -52,6 +53,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         public async Task CompleteJobAsync(long exitCode, ExchangeSetJob job)
         {
             // This should be the success path - set to 'Failed' to demonstrate writing the timestamp
+            // All jobs currently 'fail', because the builder reports that a number of pipeline stages return 'NotRun'
             if (exitCode == BuilderExitCodes.Failed)
             {
                 var updateTimestampEntity = new ExchangeSetTimestamp()
@@ -74,7 +76,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
         private Task<(string json, DateTime scsTimestamp)> GetProductJson(string requestProducts, DateTime timestamp)
         {
-            // TODO Call SCS and get the product list - all for now
+            // TODO Call SCS and get the product list - all for now. 'string json' will be POCO from SCS model
             const string productJson = "{ \"value\":123 }";
 
             // If SCS returns 304, the job is just marked as cancelled and processing stops

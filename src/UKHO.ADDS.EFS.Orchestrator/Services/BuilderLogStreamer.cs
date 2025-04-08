@@ -4,11 +4,11 @@ using Docker.DotNet.Models;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services
 {
-    public class BuilderLogStreamer
+    internal class BuilderLogStreamer
     {
-        private readonly ContainerService _containerService;
+        private readonly BuilderContainerService _containerService;
 
-        public BuilderLogStreamer(ContainerService containerService) => _containerService = containerService;
+        public BuilderLogStreamer(BuilderContainerService containerService) => _containerService = containerService;
 
         public async Task StreamLogsAsync(string containerId, Action<string> logStdout, Action<string> logStderr, CancellationToken cancellationToken = default)
         {
