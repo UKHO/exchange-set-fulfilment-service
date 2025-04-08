@@ -6,7 +6,7 @@ namespace UKHO.ADDS.EFS.Entities
 {
     public class ExchangeSetBuilderNodeStatus
     {
-        public string RequestId { get; set; }
+        public string JobId { get; set; }
 
         public string Sequence { get; set; }
 

@@ -21,7 +21,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
                 return;
             }
 
-            var status = new ExchangeSetBuilderNodeStatus { RequestId = context.Subject.RequestId, Sequence = IncrementingCounter.GetNext(), NodeId = type, Status = nodeResult.Status };
+            var status = new ExchangeSetBuilderNodeStatus { JobId = context.Subject.JobId, Sequence = IncrementingCounter.GetNext(), NodeId = type, Status = nodeResult.Status };
 
             if (result.Exception != null)
             {

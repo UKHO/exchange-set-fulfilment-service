@@ -10,15 +10,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
         {
             application.MapPost("/status", async (ExchangeSetBuilderNodeStatus status, ExchangeSetBuilderNodeStatusTable table) =>
             {
-                await table.CreateTableIfNotExistsAsync();
+                await table.CreateIfNotExistsAsync();
                 await table.AddAsync(status);
 
-                Log.Information($"Received builder node status update : {status.RequestId} -> {status.NodeId}");
+                Log.Information($"Received builder node status update : {status.JobId} -> {status.NodeId}");
             });
 
-            application.MapGet("/status/{requestId}", async (string requestId, ExchangeSetBuilderNodeStatusTable table) =>
+            application.MapGet("/status/{jobId}", async (string jobId, ExchangeSetBuilderNodeStatusTable table) =>
             {
-                var statuses = await table.GetAsync(requestId);
+                var statuses = await table.GetAsync(jobId);
                 return Results.Ok(statuses);
             });
         }

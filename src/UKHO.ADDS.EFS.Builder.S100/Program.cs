@@ -2,6 +2,7 @@
 using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Services;
+using UKHO.ADDS.EFS.Configuration.Orchestrator;
 
 namespace UKHO.ADDS.EFS.Builder.S100
 {
@@ -25,8 +26,8 @@ namespace UKHO.ADDS.EFS.Builder.S100
 
                 if (startupResult.IsFailure(out var startupError))
                 {
-                    Log.Error($"Startup failed : {startupError.Message}");
-                    return -1;
+                    Log.Error($"Startup pipeline failed : {startupError.Message}");
+                    return BuilderExitCodes.Failed;
                 }
 
                 var assemblyPipeline = provider.GetRequiredService<AssemblyPipeline>();
@@ -34,8 +35,8 @@ namespace UKHO.ADDS.EFS.Builder.S100
 
                 if (assemblyResult.IsFailure(out var assemblyError))
                 {
-                    Log.Error($"Assembly failed : {assemblyError.Message}");
-                    return -1;
+                    Log.Error($"Assembly pipeline failed : {assemblyError.Message}");
+                    return BuilderExitCodes.Failed;
                 }
 
                 var creationPipeline = provider.GetRequiredService<CreationPipeline>();
@@ -43,8 +44,8 @@ namespace UKHO.ADDS.EFS.Builder.S100
 
                 if (creationResult.IsFailure(out var creationError))
                 {
-                    Log.Error($"Creation failed : {creationError.Message}");
-                    return -1;
+                    Log.Error($"Creation pipeline failed : {creationError.Message}");
+                    return BuilderExitCodes.Failed;
                 }
 
                 var distributionPipeline = provider.GetRequiredService<DistributionPipeline>();
@@ -54,16 +55,16 @@ namespace UKHO.ADDS.EFS.Builder.S100
                 {
                     // TODO If the upload stage fails, we should retry?
 
-                    Log.Error($"Distribution failed : {distributionError.Message}");
-                    return -1;
+                    Log.Error($"Distribution pipeline failed : {distributionError.Message}");
+                    return BuilderExitCodes.Failed;
                 }
 
-                return 0;
+                return BuilderExitCodes.Success;
             }
             catch (Exception ex)
             {
                 Log.Fatal(ex, $"An unhandled exception occurred during execution : {ex.Message}");
-                return -1;
+                return BuilderExitCodes.Failed;
             }
             finally
             {

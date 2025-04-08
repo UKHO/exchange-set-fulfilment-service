@@ -8,6 +8,8 @@
 
         public const string TablesName = "tables";
 
+        public const string BlobsName = "blobs";
+
         public const string RequestQueueName = "request-queue";
     }
 }

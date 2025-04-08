@@ -1,10 +1,8 @@
-﻿using System.Globalization;
-using System.Threading.Channels;
+﻿using System.Threading.Channels;
 using Serilog;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Entities;
 using UKHO.ADDS.EFS.Messages;
-using UKHO.ADDS.EFS.Orchestrator.Tables;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services
 {
@@ -14,20 +12,20 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         private const string ContainerName = "efs-builder-s100-";
 
         private readonly Channel<ExchangeSetRequestMessage> _channel;
+        private readonly JobService _jobService;
 
         private readonly string[] _command = ["sh", "-c", "echo Starting; sleep 5; echo Healthy now; sleep 5; echo Exiting..."];
 
         private readonly SemaphoreSlim _concurrencyLimiter;
-        private readonly ContainerService _containerService;
+        private readonly BuilderContainerService _containerService;
 
         // TODO Figure out how best to control this timeout
         private readonly TimeSpan _containerTimeout = TimeSpan.FromMinutes(5);
-        private readonly ExchangeSetRequestTable _exchangeSetRequestTable;
 
-        public BuilderDispatcherService(Channel<ExchangeSetRequestMessage> channel, ExchangeSetRequestTable exchangeSetRequestTable, IConfiguration configuration)
+        public BuilderDispatcherService(Channel<ExchangeSetRequestMessage> channel, JobService jobService, IConfiguration configuration)
         {
             _channel = channel;
-            _exchangeSetRequestTable = exchangeSetRequestTable;
+            _jobService = jobService;
 
             var fileShareEndpoint = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.FileShareEndpoint)!;
             var salesCatalogueEndpoint = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.SalesCatalogueEndpoint)!;
@@ -38,44 +36,57 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             var maxConcurrentBuilders = configuration.GetValue<int>("Builders:MaximumConcurrentBuilders");
             _concurrencyLimiter = new SemaphoreSlim(maxConcurrentBuilders, maxConcurrentBuilders);
 
-            _containerService = new ContainerService(fileShareEndpoint, salesCatalogueEndpoint, builderServiceContainerEndpoint);
+            _containerService = new BuilderContainerService(fileShareEndpoint, salesCatalogueEndpoint, builderServiceContainerEndpoint);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             await foreach (var request in _channel.Reader.ReadAllAsync(stoppingToken))
             {
-                await _concurrencyLimiter.WaitAsync(stoppingToken);
-
-                _ = Task.Run(async () =>
+                try
                 {
-                    try
-                    {
-                        var id = Guid.NewGuid().ToString("N");
+                    var job = await _jobService.CreateJob(request);
 
-                        await StoreRequest(id, request);
-                        await ExecuteBuilder(request, id, stoppingToken);
-                    }
-                    catch (Exception ex)
+                    if (job.State == ExchangeSetJobState.Cancelled)
                     {
-                        Log.Error(ex, "Failed to process message");
+                        Log.Information($"Job {job.Id} was not run as no new products");
+                        return;
                     }
 
-                    finally
+                    await _concurrencyLimiter.WaitAsync(stoppingToken);
+
+                    _ = Task.Run(async () =>
                     {
-                        _concurrencyLimiter.Release();
-                    }
-                }, stoppingToken);
+                        try
+                        {
+                            await ExecuteBuilder(job, stoppingToken);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(ex, "Failed to execute builder");
+                        }
+
+                        finally
+                        {
+                            _concurrencyLimiter.Release();
+                        }
+                    }, stoppingToken);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Failed to create job");
+                    return;
+                }
             }
         }
 
-        private async Task ExecuteBuilder(ExchangeSetRequestMessage request, string requestId, CancellationToken stoppingToken)
+        private async Task ExecuteBuilder(ExchangeSetJob job, CancellationToken stoppingToken)
         {
-            var containerName = $"{ContainerName}{requestId}";
+            var containerName = $"{ContainerName}{job.Id}";
 
             await _containerService.EnsureImageExistsAsync(ImageName);
 
-            var containerId = await _containerService.CreateContainerAsync(ImageName, containerName, _command, requestId);
+            var containerId = await _containerService.CreateContainerAsync(ImageName, containerName, _command, job.Id);
             await _containerService.StartContainerAsync(containerId);
 
             var streamer = _containerService.CreateBuilderLogStreamer();
@@ -91,7 +102,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             {
                 var exitCode = await _containerService.WaitForContainerExitAsync(containerId, _containerTimeout);
                 Log.Information($"Container {containerId} exited with code: {exitCode}");
+
+                await _jobService.CompleteJobAsync(exitCode, job);
             }
+
             catch (TimeoutException)
             {
                 Log.Error($"Container {containerId} exceeded timeout. Killing...");
@@ -101,14 +115,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             await logTask;
 
             await _containerService.RemoveContainerAsync(containerId, stoppingToken);
-        }
-
-        private async Task StoreRequest(string requestId, ExchangeSetRequestMessage request)
-        {
-            var requestEntity = new ExchangeSetRequest { Id = requestId, Timestamp = DateTime.UtcNow.ToString(CultureInfo.InvariantCulture), Message = request };
-
-            await _exchangeSetRequestTable.CreateTableIfNotExistsAsync();
-            await _exchangeSetRequestTable.AddAsync(requestEntity);
         }
     }
 }

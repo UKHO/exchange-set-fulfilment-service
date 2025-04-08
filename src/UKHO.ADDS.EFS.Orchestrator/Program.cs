@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http.Json;
 using Scalar.AspNetCore;
 using Serilog;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
+using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api;
 using UKHO.ADDS.EFS.Orchestrator.Services;
@@ -19,7 +20,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
             Log.Logger = new LoggerConfiguration()
                 .WriteTo.Console()
                 .CreateLogger();
-
+            
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Host.UseSerilog((context, loggerConfiguration) =>
@@ -49,8 +50,9 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             app.UseAuthorization();
 
-            BuildsApi.Register(app);
+            RequestsApi.Register(app);
             StatusApi.Register(app);
+            JobsApi.Register(app);
 
             app.Run();
         }
@@ -61,6 +63,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             builder.AddAzureQueueClient(StorageConfiguration.QueuesName);
             builder.AddAzureTableClient(StorageConfiguration.TablesName);
+            builder.AddAzureBlobClient(StorageConfiguration.BlobsName);
 
             builder.Services.AddAuthorization();
             builder.Services.AddOpenApi();
@@ -72,8 +75,13 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddHostedService<QueuePollingService>();
             builder.Services.AddHostedService<BuilderDispatcherService>();
 
-            builder.Services.AddSingleton<ExchangeSetRequestTable>();
+            builder.Services.AddSingleton<ExchangeSetJobTable>();
+            builder.Services.AddSingleton<ExchangeSetTimestampTable>();
             builder.Services.AddSingleton<ExchangeSetBuilderNodeStatusTable>();
+
+            // TODO Will change once Aspire config stuff is done
+            var salesCatalogueEndpoint = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.SalesCatalogueEndpoint)!;
+            builder.Services.AddSingleton(x => new JobService(salesCatalogueEndpoint, x.GetRequiredService<ExchangeSetJobTable>(), x.GetRequiredService<ExchangeSetTimestampTable>()));
         }
     }
 }
