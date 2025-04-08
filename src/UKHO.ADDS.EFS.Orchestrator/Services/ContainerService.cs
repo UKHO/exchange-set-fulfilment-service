@@ -64,7 +64,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 AttachStdout = true,
                 AttachStderr = true,
                 Tty = false,
-                Env = new List<string> { $"{BuilderEnvironmentVariables.RequestId}={id}", $"{BuilderEnvironmentVariables.FileShareEndpoint}={_fileShareEndpoint}", $"{BuilderEnvironmentVariables.SalesCatalogueEndpoint}={_salesCatalogueEndpoint}", $"{BuilderEnvironmentVariables.BuildServiceEndpoint}={_builderServiceContainerEndpoint}" },
+                Env = new List<string> { $"{BuilderEnvironmentVariables.JobId}={id}", $"{BuilderEnvironmentVariables.FileShareEndpoint}={_fileShareEndpoint}", $"{BuilderEnvironmentVariables.SalesCatalogueEndpoint}={_salesCatalogueEndpoint}", $"{BuilderEnvironmentVariables.BuildServiceEndpoint}={_builderServiceContainerEndpoint}" },
                 Healthcheck = new HealthConfig
                 {
                     Test = new[] { "CMD-SHELL", "echo healthy" },

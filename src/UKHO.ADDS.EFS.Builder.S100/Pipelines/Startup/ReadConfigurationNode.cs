@@ -7,26 +7,26 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
 {
     internal class ReadConfigurationNode : ExchangeSetPipelineNode
     {
-        private const string DebugRequestId = "DebugRequestId";
+        private const string DebugJobId = "DebugJobId";
 
         protected override Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
         {
             Log.Information("UKHO ADDS EFS S100 Builder");
             Log.Information($"Machine ID      : {Environment.MachineName}");
 
-            var requestId = GetEnvironmentVariable(BuilderEnvironmentVariables.RequestId, DebugRequestId);
+            var jobId = GetEnvironmentVariable(BuilderEnvironmentVariables.JobId, DebugJobId);
 
-            if (requestId.Equals(DebugRequestId, StringComparison.InvariantCultureIgnoreCase))
+            if (jobId.Equals(DebugJobId, StringComparison.InvariantCultureIgnoreCase))
             {
                 Log.Warning("Debug session - request id manually assigned");
 
                 context.Subject.IsDebugSession = true;
-                context.Subject.RequestId = Guid.NewGuid().ToString("N");
+                context.Subject.JobId = Guid.NewGuid().ToString("N");
             }
             else
             {
                 context.Subject.IsDebugSession = false;
-                context.Subject.RequestId = requestId;
+                context.Subject.JobId = jobId;
             }
 
             var fileShareEndpoint = GetEnvironmentVariable(BuilderEnvironmentVariables.FileShareEndpoint, context.Subject.Configuration.GetValue<string>("Endpoints:FileShareService")!);
@@ -37,7 +37,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
             context.Subject.SalesCatalogueEndpoint = salesCatalogueEndpoint;
             context.Subject.BuildServiceEndpoint = buildServiceEndpoint;
 
-            Log.Information($"Request id      : {requestId}");
+            Log.Information($"Job id          : {jobId}");
             Log.Information($"File Share      : {fileShareEndpoint}");
             Log.Information($"Sales Catalogue : {salesCatalogueEndpoint}");
             Log.Information($"Build Service   : {buildServiceEndpoint}");

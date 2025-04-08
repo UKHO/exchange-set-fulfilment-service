@@ -72,7 +72,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WithReference(storageTable)
                 .WaitFor(storageTable)
                 .WaitFor(addsMockContainer)
-                .WithScalar("API documentation")
+                .WithScalar("API Browser")
                 .WithKibanaDashboard(kibanaContainer.GetEndpoint("http"), "Kibana dashboard");
 
             orchestratorService.WithEnvironment(c =>

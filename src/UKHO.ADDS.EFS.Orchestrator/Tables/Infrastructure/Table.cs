@@ -1,4 +1,5 @@
 ﻿using Azure.Data.Tables;
+using Serilog;
 using UKHO.ADDS.Infrastructure.Results;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
@@ -105,6 +106,89 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
                 var serializedEntity = JsonEntityBuilder.RebuildEntityData(entity);
                 return JsonCodec.Decode<TEntity>(serializedEntity)!;
             });
+        }
+
+        public async Task UpdateAsync(TEntity entity)
+        {
+            var partitionKey = SanitizeKey(_partitionKeySelector(entity));
+            var rowKey = SanitizeKey(_rowKeySelector(entity));
+
+            var serializedEntity = JsonCodec.Encode(entity);
+
+            try
+            {
+                var existingEntity = await _tableClient.GetEntityAsync<JsonEntity>(partitionKey, rowKey);
+                var etag = existingEntity.Value.ETag;
+
+                var internalEntity = JsonEntityBuilder.BuildEntity(serializedEntity, partitionKey, rowKey);
+
+                await _tableClient.UpdateEntityAsync(internalEntity, etag, TableUpdateMode.Replace);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating entity: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task UpsertAsync(TEntity entity)
+        {
+            var partitionKey = SanitizeKey(_partitionKeySelector(entity));
+            var rowKey = SanitizeKey(_rowKeySelector(entity));
+
+            var serializedEntity = JsonCodec.Encode(entity);
+
+            try
+            {
+                var internalEntity = JsonEntityBuilder.BuildEntity(serializedEntity, partitionKey, rowKey);
+
+                await _tableClient.UpsertEntityAsync(internalEntity);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error upserting entity: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task DeleteAsync(string partitionKey, string rowKey)
+        {
+            partitionKey = SanitizeKey(partitionKey);
+            rowKey = SanitizeKey(rowKey);
+
+            try
+            {
+                await _tableClient.DeleteEntityAsync(partitionKey, rowKey);
+                Log.Information($"Entity with PartitionKey = {partitionKey}, RowKey = {rowKey} deleted successfully.");
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Failed to delete entity with PartitionKey = {partitionKey}, RowKey = {rowKey}. Error: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task DeleteAsync(string partitionKey)
+        {
+            partitionKey = SanitizeKey(partitionKey);
+
+            var query = _tableClient.QueryAsync<JsonEntity>(e => e.PartitionKey == partitionKey);
+            var entities = await query.ToListAsync();
+
+            foreach (var entity in entities)
+            {
+                try
+                {
+                    // Delete each entity in the partition
+                    await _tableClient.DeleteEntityAsync(entity.PartitionKey, entity.RowKey);
+                    Log.Information($"Entity with PartitionKey = {entity.PartitionKey}, RowKey = {entity.RowKey} deleted successfully.");
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"Failed to delete entity with PartitionKey = {entity.PartitionKey}, RowKey = {entity.RowKey}. Error: {ex.Message}");
+                    throw;
+                }
+            }
         }
 
         private static string SanitizeKey(string key) => key.Replace(" ", "_").Replace("/", "_").Replace("\\", "_");

@@ -21,11 +21,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.Services
             using var _ = await _httpClient.SendAsync(request);
         }
 
-        public async Task WriteDebugExchangeSetRequest(ExchangeSetRequest exchangeSetRequest, string buildServiceEndpoint)
+        public async Task WriteDebugExchangeSetJob(ExchangeSetJob exchangeSetJob, string buildServiceEndpoint)
         {
-            var uri = new Uri(new Uri(buildServiceEndpoint), $"/builds/debug/{exchangeSetRequest.Id}");
+            var uri = new Uri(new Uri(buildServiceEndpoint), $"/jobs/debug/{exchangeSetJob.Id}");
 
-            var json = JsonCodec.Encode(exchangeSetRequest);
+            var json = JsonCodec.Encode(exchangeSetJob);
 
             var request = new HttpRequestMessage { Method = HttpMethod.Post, RequestUri = uri, Content = new StringContent(json) { Headers = { ContentType = new MediaTypeHeaderValue("application/json") } } };
 
