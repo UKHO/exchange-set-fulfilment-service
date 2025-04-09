@@ -6,14 +6,14 @@ using UKHO.ADDS.EFS.Configuration.Orchestrator;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services
 {
-    public class ContainerService
+    public class BuilderContainerService
     {
         private readonly string _builderServiceContainerEndpoint;
 
         private readonly string _fileShareEndpoint;
         private readonly string _salesCatalogueEndpoint;
 
-        public ContainerService(string fileShareEndpoint, string salesCatalogueEndpoint, string builderServiceContainerEndpoint)
+        public BuilderContainerService(string fileShareEndpoint, string salesCatalogueEndpoint, string builderServiceContainerEndpoint)
         {
             _fileShareEndpoint = fileShareEndpoint;
             _salesCatalogueEndpoint = salesCatalogueEndpoint;
@@ -24,7 +24,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
         internal DockerClient DockerClient { get; }
 
-        public BuilderLogStreamer CreateBuilderLogStreamer() => new(this);
+        internal BuilderLogStreamer CreateBuilderLogStreamer() => new(this);
 
         public async Task EnsureImageExistsAsync(string imageName, string tag = "latest")
         {
@@ -64,7 +64,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 AttachStdout = true,
                 AttachStderr = true,
                 Tty = false,
-                Env = new List<string> { $"{BuilderEnvironmentVariables.RequestId}={id}", $"{BuilderEnvironmentVariables.FileShareEndpoint}={_fileShareEndpoint}", $"{BuilderEnvironmentVariables.SalesCatalogueEndpoint}={_salesCatalogueEndpoint}", $"{BuilderEnvironmentVariables.BuildServiceEndpoint}={_builderServiceContainerEndpoint}" },
+                Env = new List<string> { $"{BuilderEnvironmentVariables.JobId}={id}", $"{BuilderEnvironmentVariables.FileShareEndpoint}={_fileShareEndpoint}", $"{BuilderEnvironmentVariables.SalesCatalogueEndpoint}={_salesCatalogueEndpoint}", $"{BuilderEnvironmentVariables.BuildServiceEndpoint}={_builderServiceContainerEndpoint}" },
                 Healthcheck = new HealthConfig
                 {
                     Test = new[] { "CMD-SHELL", "echo healthy" },

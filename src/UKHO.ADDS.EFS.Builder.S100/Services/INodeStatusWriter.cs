@@ -6,6 +6,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Services
     {
         Task WriteNodeStatusTelemetry(ExchangeSetBuilderNodeStatus nodeStatus, string buildServiceEndpoint);
 
-        Task WriteDebugExchangeSetRequest(ExchangeSetRequest request, string buildServiceEndpoint);
+        Task WriteDebugExchangeSetJob(ExchangeSetJob job, string buildServiceEndpoint);
     }
 }

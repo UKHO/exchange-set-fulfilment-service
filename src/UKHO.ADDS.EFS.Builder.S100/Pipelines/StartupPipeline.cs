@@ -14,7 +14,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
             pipeline.AddChild(new DeployWorkspaceNode());
             pipeline.AddChild(new StartTomcatNode());
             pipeline.AddChild(new CheckEndpointsNode());
-            pipeline.AddChild(new GetRequestNode());
+            pipeline.AddChild(new GetJobNode());
 
             var result = await pipeline.ExecuteAsync(context);
 

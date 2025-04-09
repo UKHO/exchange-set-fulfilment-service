@@ -2,7 +2,7 @@
 {
     public class BuilderEnvironmentVariables
     {
-        public const string RequestId = "REQUEST_ID";
+        public const string JobId = "JOB_ID";
 
         public const string FileShareEndpoint = "FSS_ENDPOINT";
 
