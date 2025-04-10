@@ -30,16 +30,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
             }
 
             var fileShareEndpoint = GetEnvironmentVariable(BuilderEnvironmentVariables.FileShareEndpoint, context.Subject.Configuration.GetValue<string>("Endpoints:FileShareService")!);
-            var salesCatalogueEndpoint = GetEnvironmentVariable(BuilderEnvironmentVariables.SalesCatalogueEndpoint, context.Subject.Configuration.GetValue<string>("Endpoints:SalesCatalogueService")!);
             var buildServiceEndpoint = GetEnvironmentVariable(BuilderEnvironmentVariables.BuildServiceEndpoint, context.Subject.Configuration.GetValue<string>("Endpoints:BuildService")!);
 
             context.Subject.FileShareEndpoint = fileShareEndpoint;
-            context.Subject.SalesCatalogueEndpoint = salesCatalogueEndpoint;
             context.Subject.BuildServiceEndpoint = buildServiceEndpoint;
 
             Log.Information($"Job id          : {jobId}");
             Log.Information($"File Share      : {fileShareEndpoint}");
-            Log.Information($"Sales Catalogue : {salesCatalogueEndpoint}");
             Log.Information($"Build Service   : {buildServiceEndpoint}");
 
             return Task.FromResult(NodeResultStatus.Succeeded);

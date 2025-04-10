@@ -28,7 +28,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
         public string JobId { get; set; }
         public bool IsDebugSession { get; set; }
         public string FileShareEndpoint { get; set; }
-        public string SalesCatalogueEndpoint { get; set; }
         public string BuildServiceEndpoint { get; set; }
         public string WorkspaceRootPath { get; set; }
         public ExchangeSetJob Job { get; set; }

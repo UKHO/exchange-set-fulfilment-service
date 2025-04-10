@@ -76,10 +76,31 @@ namespace UKHO.ADDS.EFS.Builder.S100
         {
             var collection = new ServiceCollection();
 
+            var catalinaHomePath = Environment.GetEnvironmentVariable("CATALINA_HOME") ?? string.Empty;
+
+            var currentDirectory = Directory.GetCurrentDirectory();
+            var appContextDirectory = AppContext.BaseDirectory;
+
+            var configPathPrefix = string.Empty;
+
+            if (currentDirectory.TrimEnd('/').Equals(catalinaHomePath.TrimEnd('/'), StringComparison.InvariantCultureIgnoreCase))
+            {
+                configPathPrefix = appContextDirectory;
+            }
+
+            var appsettingsPath = $"{configPathPrefix}appsettings.json";
+            var appsettingsDevPath = $"{configPathPrefix}appsettings.Development.json";
+
+            Log.Information($"Current working directory is {currentDirectory}");
+            Log.Information($"Current app context directory is {appContextDirectory}");
+
+            Log.Information($"App settings path is {appsettingsPath}");
+            Log.Information($"Dev app settings path is {appsettingsDevPath}");
+
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json")
-                .AddJsonFile("appsettings.Development.json", true)
+                .AddJsonFile(appsettingsPath)
+                .AddJsonFile(appsettingsDevPath, true)
                 .Build();
 
             collection.AddHttpClient();

@@ -1,5 +1,4 @@
-﻿using System.Globalization;
-using Serilog;
+﻿using Serilog;
 using UKHO.ADDS.EFS.Entities;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.Infrastructure.Pipelines;
