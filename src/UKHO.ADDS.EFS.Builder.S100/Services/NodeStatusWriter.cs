@@ -29,6 +29,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Services
 
             var request = new HttpRequestMessage { Method = HttpMethod.Post, RequestUri = uri, Content = new StringContent(json) { Headers = { ContentType = new MediaTypeHeaderValue("application/json") } } };
 
+            // TODO Hangs on exit? Investigate
+
             using var _ = await _httpClient.SendAsync(request);
         }
     }

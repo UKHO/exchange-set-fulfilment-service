@@ -58,8 +58,8 @@ artifacts/
 
 # External 
 *.zip
-!**/workspace-root.zip
 *.war
+*.tar.gz
 
 # StyleCop
 StyleCopReport.xml

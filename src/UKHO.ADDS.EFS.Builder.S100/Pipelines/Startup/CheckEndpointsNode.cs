@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.Infrastructure.Pipelines;
+﻿using Serilog;
+using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
@@ -8,8 +9,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
         {
             await CheckEndpointAsync("http://localhost:8080", "/xchg-2.7/v2.7/dev?arg=test&authkey=noauth");
+
+            await CheckEndpointAsync("http://localhost:8080", "/xchg-2.7/v2.7/listWorkspace?authkey=D89D11D265B19CA5C2BE97A7FCB1EF21");
+
             await CheckEndpointAsync(context.Subject.FileShareEndpoint, "/health");
-            await CheckEndpointAsync(context.Subject.SalesCatalogueEndpoint, "/health");
 
             return NodeResultStatus.Succeeded;
         }
@@ -18,6 +21,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
         {
             using var client = new HttpClient { BaseAddress = new Uri(baseAddress) };
             using var response = await client.GetAsync(path);
+
+            Log.Information($"Check endpoint {path} responded with HTTP status {response.StatusCode}");
 
             response.EnsureSuccessStatusCode();
         }

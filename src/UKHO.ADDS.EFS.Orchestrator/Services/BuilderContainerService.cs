@@ -11,12 +11,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         private readonly string _builderServiceContainerEndpoint;
 
         private readonly string _fileShareEndpoint;
-        private readonly string _salesCatalogueEndpoint;
 
-        public BuilderContainerService(string fileShareEndpoint, string salesCatalogueEndpoint, string builderServiceContainerEndpoint)
+        public BuilderContainerService(string fileShareEndpoint, string builderServiceContainerEndpoint)
         {
             _fileShareEndpoint = fileShareEndpoint;
-            _salesCatalogueEndpoint = salesCatalogueEndpoint;
             _builderServiceContainerEndpoint = builderServiceContainerEndpoint;
 
             DockerClient = new DockerClientConfiguration(GetDockerEndpoint()).CreateClient();
@@ -64,7 +62,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 AttachStdout = true,
                 AttachStderr = true,
                 Tty = false,
-                Env = new List<string> { $"{BuilderEnvironmentVariables.JobId}={id}", $"{BuilderEnvironmentVariables.FileShareEndpoint}={_fileShareEndpoint}", $"{BuilderEnvironmentVariables.SalesCatalogueEndpoint}={_salesCatalogueEndpoint}", $"{BuilderEnvironmentVariables.BuildServiceEndpoint}={_builderServiceContainerEndpoint}" },
+                Env = new List<string> { $"{BuilderEnvironmentVariables.JobId}={id}", $"{BuilderEnvironmentVariables.FileShareEndpoint}={_fileShareEndpoint}", $"{BuilderEnvironmentVariables.BuildServiceEndpoint}={_builderServiceContainerEndpoint}" },
                 Healthcheck = new HealthConfig
                 {
                     Test = new[] { "CMD-SHELL", "echo healthy" },

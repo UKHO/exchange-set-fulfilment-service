@@ -28,7 +28,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             _jobService = jobService;
 
             var fileShareEndpoint = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.FileShareEndpoint)!;
-            var salesCatalogueEndpoint = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.SalesCatalogueEndpoint)!;
 
             var builderServiceEndpoint = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.BuildServiceEndpoint)!;
             var builderServiceContainerEndpoint = new UriBuilder(builderServiceEndpoint) { Host = "host.docker.internal" }.ToString();
@@ -36,7 +35,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             var maxConcurrentBuilders = configuration.GetValue<int>("Builders:MaximumConcurrentBuilders");
             _concurrencyLimiter = new SemaphoreSlim(maxConcurrentBuilders, maxConcurrentBuilders);
 
-            _containerService = new BuilderContainerService(fileShareEndpoint, salesCatalogueEndpoint, builderServiceContainerEndpoint);
+            _containerService = new BuilderContainerService(fileShareEndpoint,  builderServiceContainerEndpoint);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)

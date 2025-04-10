@@ -20,23 +20,12 @@ To initialise the submodule (pull the code):
 git submodule update --init --recursive
 ```
 
-To update the submodule reference in this repository to the latest version of ADDS Mock:
-
-* Open a command prompt (cmd.exe)
-* Change to the repository root directory
-
- ```csharp
-git submodule update --remote --merge
-```
-
 ### Running the solution
 
 > [!CAUTION]
 > Before opening and compiling the solution for the first time, you need to copy into the source a copy of the IIC tool distribution and blank workspace archive.
 
-> ```\src\UKHO.ADDS.EFS.Builder.S100\Assets``` - replace the ```workspace_root.zip``` file with the copy that has been given to you.
-
-> ```\src\UKHO.ADDS.EFS.Builder.S100\Tomcat``` - replace the ```xchg-2.7.war``` file with the copy that has been given to you.
+> Copy ```root2.targ.gz``` and ```xchg-2.7.war``` into the root of the ```\src\UKHO.ADDS.EFS.Builder.S100``` directory. You will have been given these files separately.
 
 Open the EFS.sln in the root of the repository, ensure that the UKHO.ADDS.EFS.LocalHost project is set as start by default, and press f5!
 
@@ -47,7 +36,16 @@ If you are using Podman rather than Docker, you will need to edit the ```appsett
     "ContainerRuntime": "podman"
     }
 ```
+### Updating ADDS Mock to the latest version
 
+To update the submodule reference in this repository to the latest version of ADDS Mock:
+
+* Open a command prompt (cmd.exe)
+* Change to the repository root directory
+
+ ```csharp
+git submodule update --remote --merge
+```
 
 
 ### TODO

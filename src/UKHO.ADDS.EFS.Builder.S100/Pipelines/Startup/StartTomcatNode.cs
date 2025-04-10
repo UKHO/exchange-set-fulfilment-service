@@ -11,11 +11,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
         {
             Log.Information("Starting Tomcat...");
 
+            var catalinaHome = Environment.GetEnvironmentVariable("CATALINA_HOME");
+
             var process = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
                     FileName = "/usr/local/tomcat/bin/catalina.sh",
+                    WorkingDirectory = catalinaHome,
                     Arguments = "run",
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
@@ -41,7 +44,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
             {
                 try
                 {
-                    var response = await httpClient.GetAsync("http://localhost:8080");
+                    var response = await httpClient.GetAsync("http://localhost:8080/xchg-2.7/v2.7/dev?arg=test&authkey=noauth");
                     if (response.IsSuccessStatusCode)
                     {
                         Console.WriteLine("Tomcat is ready");
