@@ -1,5 +1,4 @@
-﻿using Serilog;
-using UKHO.ADDS.EFS.Entities;
+﻿using UKHO.ADDS.EFS.Entities;
 using UKHO.ADDS.EFS.Orchestrator.Tables;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Api
@@ -8,17 +7,24 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
     {
         public static void Register(WebApplication application)
         {
-            application.MapPost("/status", async (ExchangeSetBuilderNodeStatus status, ExchangeSetBuilderNodeStatusTable table) =>
+            application.MapPost("/status", async (ExchangeSetBuilderNodeStatus status, ExchangeSetBuilderNodeStatusTable table, ILoggerFactory loggerFactory) =>
             {
+                var logger = loggerFactory.CreateLogger("StatusApi");
+
                 await table.CreateIfNotExistsAsync();
                 await table.AddAsync(status);
 
-                Log.Information($"Received builder node status update : {status.JobId} -> {status.NodeId}");
+                logger.LogInformation("Received builder node status update : {status.JobId} -> {status.NodeId}", status.JobId, status.NodeId);
             });
 
-            application.MapGet("/status/{jobId}", async (string jobId, ExchangeSetBuilderNodeStatusTable table) =>
+            application.MapGet("/status/{jobId}", async (string jobId, ExchangeSetBuilderNodeStatusTable table, ILoggerFactory loggerFactory) =>
             {
+                var logger = loggerFactory.CreateLogger("StatusApi");
+
                 var statuses = await table.GetAsync(jobId);
+
+                logger.LogInformation("Received status request for job {jobId}", jobId);
+
                 return Results.Ok(statuses);
             });
         }

@@ -13,7 +13,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
         private readonly Channel<ExchangeSetRequestMessage> _channel;
         private readonly JobService _jobService;
-
+        private readonly ILogger<BuilderDispatcherService> _logger;
         private readonly string[] _command = ["sh", "-c", "echo Starting; sleep 5; echo Healthy now; sleep 5; echo Exiting..."];
 
         private readonly SemaphoreSlim _concurrencyLimiter;
@@ -22,10 +22,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         // TODO Figure out how best to control this timeout
         private readonly TimeSpan _containerTimeout = TimeSpan.FromMinutes(5);
 
-        public BuilderDispatcherService(Channel<ExchangeSetRequestMessage> channel, JobService jobService, IConfiguration configuration)
+        public BuilderDispatcherService(Channel<ExchangeSetRequestMessage> channel, JobService jobService, IConfiguration configuration, ILogger<BuilderDispatcherService> logger, ILoggerFactory loggerFactory)
         {
             _channel = channel;
             _jobService = jobService;
+            _logger = logger;
 
             var fileShareEndpoint = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.FileShareEndpoint)!;
 
@@ -35,7 +36,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             var maxConcurrentBuilders = configuration.GetValue<int>("Builders:MaximumConcurrentBuilders");
             _concurrencyLimiter = new SemaphoreSlim(maxConcurrentBuilders, maxConcurrentBuilders);
 
-            _containerService = new BuilderContainerService(fileShareEndpoint,  builderServiceContainerEndpoint);
+            _containerService = new BuilderContainerService(fileShareEndpoint, builderServiceContainerEndpoint, loggerFactory);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
