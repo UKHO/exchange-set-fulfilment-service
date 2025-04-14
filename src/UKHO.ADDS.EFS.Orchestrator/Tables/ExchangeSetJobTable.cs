@@ -7,7 +7,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables
     internal class ExchangeSetJobTable : BlobTable<ExchangeSetJob>
     {
         public ExchangeSetJobTable(BlobServiceClient blobServiceClient)
-            : base(blobServiceClient, x => x.Id, x => x.Id)
+            : base(blobServiceClient, x => "JobData", x => x.Id)
         {
         }
     }

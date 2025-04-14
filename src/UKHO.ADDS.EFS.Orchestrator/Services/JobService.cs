@@ -92,7 +92,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
         private Task<ExchangeSetJob> CreateJobEntity(ExchangeSetRequestMessage request)
         {
-            var id = Guid.NewGuid().ToString("N");
+            var id = Guid.NewGuid().ToString("N"); // TODO: details comment
 
             var job = new ExchangeSetJob()
             {

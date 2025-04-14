@@ -1,10 +1,9 @@
 ﻿namespace UKHO.ADDS.EFS.Messages
 {
-    /// <summary>
-    ///     An example of a message to request an exchange set build (properties for demo purposes only)
-    /// </summary>
     public class ExchangeSetRequestMessage
     {
+        public required string Id { get; set; }
+
         public ExchangeSetDataStandard DataStandard { get; set; }
 
         public required string Products { get; set; }
