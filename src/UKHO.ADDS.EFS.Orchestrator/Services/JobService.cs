@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.EFS.Configuration.Orchestrator;
+﻿using System.Text.Json;
+using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Entities;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Tables;
@@ -10,14 +11,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         private readonly string _salesCatalogueServiceEndpoint;
         private readonly ExchangeSetJobTable _jobTable;
         private readonly ExchangeSetTimestampTable _timestampTable;
+        private readonly ISalesCatalogueClient _salesCatalogueClient;
+
 
         // TODO Inject the SCS client here
 
-        public JobService(string salesCatalogueServiceEndpoint, ExchangeSetJobTable jobTable, ExchangeSetTimestampTable timestampTable)
+        public JobService(string salesCatalogueServiceEndpoint, ExchangeSetJobTable jobTable, ExchangeSetTimestampTable timestampTable, ISalesCatalogueClient salesCatalogueClient)
         {
             _salesCatalogueServiceEndpoint = salesCatalogueServiceEndpoint;
             _jobTable = jobTable;
             _timestampTable = timestampTable;
+            _salesCatalogueClient = salesCatalogueClient;
         }
 
         public async Task<ExchangeSetJob> CreateJob(ExchangeSetRequestMessage request)
@@ -74,20 +78,26 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             await _jobTable.UpdateAsync(job);
         }
 
-        private Task<(string json, DateTime scsTimestamp)> GetProductJson(string requestProducts, DateTime timestamp)
+        private async Task<(string json, DateTime scsTimestamp)> GetProductJson(string requestProducts, DateTime timestamp)
         {
+            var s100SalesCatalogueResponse = await _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync("v2", "s100", "",
+                "test-correlation-Id");
+
             // TODO Call SCS and get the product list - all for now. 'string json' will be POCO from SCS model
-            const string productJson = "{ \"value\":123 }";
+
+            var response = s100SalesCatalogueResponse.IsSuccess(out var s100SalesCatalogueData);
+
+            var productJson = JsonSerializer.Serialize(s100SalesCatalogueData!.ResponseBody);
 
             // If SCS returns 304, the job is just marked as cancelled and processing stops
             // Simulate with "none" in request message for now. Timestamp would be SCS timestamp.
             if (requestProducts.Equals("none", StringComparison.InvariantCultureIgnoreCase))
             {
-                return Task.FromResult((string.Empty, DateTime.UtcNow));
+                return await Task.FromResult((string.Empty, DateTime.UtcNow));
             }
 
             // Would be SCS timestamp - we will update that if the job succeeds
-            return Task.FromResult((productJson, DateTime.UtcNow));
+            return (await Task.FromResult((productJson, DateTime.UtcNow)))!;
         }
 
         private Task<ExchangeSetJob> CreateJobEntity(ExchangeSetRequestMessage request)

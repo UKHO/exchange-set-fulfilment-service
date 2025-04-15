@@ -20,7 +20,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
             Log.Logger = new LoggerConfiguration()
                 .WriteTo.Console()
                 .CreateLogger();
-            
+
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Host.UseSerilog((context, loggerConfiguration) =>
@@ -81,7 +81,17 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             // TODO Will change once Aspire config stuff is done
             var salesCatalogueEndpoint = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.SalesCatalogueEndpoint)!;
-            builder.Services.AddSingleton(x => new JobService(salesCatalogueEndpoint, x.GetRequiredService<ExchangeSetJobTable>(), x.GetRequiredService<ExchangeSetTimestampTable>()));
+
+            builder.Services.AddSingleton<ISalesCatalogueClientFactory>(provider =>
+                new SalesCatalogueClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
+
+            builder.Services.AddSingleton<ISalesCatalogueClient>(provider =>
+            {
+                var factory = provider.GetRequiredService<ISalesCatalogueClientFactory>();
+                return factory.CreateClient(salesCatalogueEndpoint, "");
+            });
+
+            builder.Services.AddSingleton(x => new JobService(salesCatalogueEndpoint, x.GetRequiredService<ExchangeSetJobTable>(), x.GetRequiredService<ExchangeSetTimestampTable>(), x.GetRequiredService<ISalesCatalogueClient>()));
         }
     }
 }
