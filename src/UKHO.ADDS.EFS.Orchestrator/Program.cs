@@ -8,6 +8,7 @@ using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api;
+using UKHO.ADDS.EFS.Orchestrator.Middleware;
 using UKHO.ADDS.EFS.Orchestrator.Services;
 using UKHO.ADDS.EFS.Orchestrator.Tables;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
@@ -24,17 +25,29 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Host.UseSerilog((context, loggerConfiguration) =>
-            {
-                loggerConfiguration.WriteTo.Console();
-                loggerConfiguration.ReadFrom.Configuration(context.Configuration);
-            });
-
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
+#if DEBUG
+                .AddJsonFile("appsettings.local.overrides.json")
+#endif
                 .AddJsonFile("appsettings.Development.json")
                 .Build();
+
+            builder.Services.AddLogging(loggingBuilder =>
+            {
+                loggingBuilder.ClearProviders();
+                loggingBuilder.AddConfiguration(configuration.GetSection("Logging"));
+                loggingBuilder.AddConsole();
+                loggingBuilder.AddDebug();
+#if DEBUG
+                Log.Logger = new LoggerConfiguration()
+                                .ReadFrom.Configuration(configuration)
+                                .CreateLogger();
+
+                loggingBuilder.AddSerilog(Log.Logger, dispose: true);
+#endif
+            });
 
             ConfigureServices(builder, configuration);
 
@@ -49,6 +62,9 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 app.MapScalarApiReference(_ => _.Servers = []); // Stop OpenAPI specifying the wrong port in the generated OpenAPI doc
             }
 
+            app.UseMiddleware<CorrelationIdMiddleware>();
+            app.UseMiddleware<ExceptionHandlingMiddleware>();
+
             app.UseAuthorization();
 
             RequestsApi.Register(app);
@@ -60,6 +76,8 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
         public static void ConfigureServices(WebApplicationBuilder builder, IConfigurationRoot configuration)
         {
+            builder.Services.AddHttpContextAccessor();
+
             builder.Services.Configure<JsonOptions>(options => JsonCodec.DefaultOptions.CopyTo(options.SerializerOptions));
 
             builder.AddAzureQueueClient(StorageConfiguration.QueuesName);

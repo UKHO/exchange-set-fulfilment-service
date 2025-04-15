@@ -22,6 +22,9 @@ namespace UKHO.ADDS.EFS.LocalHost
             var config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
+#if DEBUG
+                .AddJsonFile("appsettings.local.overrides.json")
+#endif
                 .AddJsonFile("appsettings.Development.json")
                 .Build();
 

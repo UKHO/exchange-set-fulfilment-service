@@ -102,7 +102,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
         private Task<ExchangeSetJob> CreateJobEntity(ExchangeSetRequestMessage request)
         {
-            var id = Guid.NewGuid().ToString("N");
+            var id = Guid.NewGuid().ToString("N"); // TODO: details comment
 
             var job = new ExchangeSetJob()
             {
@@ -110,6 +110,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 DataStandard = request.DataStandard,
                 Timestamp = DateTime.UtcNow,
                 State = ExchangeSetJobState.Created,
+                CorrelationId = request.CorrelationId
             };
 
             return Task.FromResult(job);
