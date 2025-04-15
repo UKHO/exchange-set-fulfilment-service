@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using UKHO.ADDS.Clients.SalesCatalogueService;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Entities;
 using UKHO.ADDS.EFS.Messages;
@@ -80,8 +81,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
         private async Task<(string json, DateTime scsTimestamp)> GetProductJson(string requestProducts, DateTime timestamp)
         {
-            var s100SalesCatalogueResponse = await _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync("v2", "s100", "",
-                "test-correlation-Id");
+            var s100SalesCatalogueResponse = await _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync("v2", "s100", "", "test-correlation-Id");
 
             // TODO Call SCS and get the product list - all for now. 'string json' will be POCO from SCS model
 

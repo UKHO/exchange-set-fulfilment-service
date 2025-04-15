@@ -3,6 +3,7 @@ using System.Threading.Channels;
 using Microsoft.AspNetCore.Http.Json;
 using Scalar.AspNetCore;
 using Serilog;
+using UKHO.ADDS.Clients.SalesCatalogueService;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Messages;
