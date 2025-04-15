@@ -38,7 +38,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
                     foreach (var message in messages)
                     {
+                        var exchangeSetRequestMessage = JsonCodec.Decode<ExchangeSetRequestMessage>(message.MessageText)!;
+
                         await _channel.Writer.WriteAsync(JsonCodec.Decode<ExchangeSetRequestMessage>(message.MessageText)!, stoppingToken);
+
+                        _logger.LogInformation("Message with ID: {MessageId} written to the channel. | Correlation ID: {_X-Correlation-ID}", message.MessageId, exchangeSetRequestMessage.CorrelationId);
 
                         await _queueClient.DeleteMessageAsync(message.MessageId, message.PopReceipt, stoppingToken);
                     }

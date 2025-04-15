@@ -10,6 +10,10 @@ namespace UKHO.ADDS.EFS.Exceptions
 
         public object[] MessageArguments { get; }
 
+        public OrchestratorException(string message, params object[] messageArguments) : base(message)
+        {
+            MessageArguments = messageArguments ?? [];
+        }
         public OrchestratorException(EventId eventId, string message, params object[] messageArguments) : base(message)
         {
             EventId = eventId;

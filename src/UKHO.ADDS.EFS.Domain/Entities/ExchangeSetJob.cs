@@ -17,5 +17,7 @@ namespace UKHO.ADDS.EFS.Entities
         public ExchangeSetJobState State { get; set; }
 
         public ExchangeSetDataStandard DataStandard { get; set; }
+
+        public string CorrelationId { get; set; }
     }
 }

@@ -15,15 +15,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                 var correlationId = httpContext.Request.Headers[ApiHeaderKeys.XCorrelationIdHeaderKey].FirstOrDefault() ?? string.Empty;
 
-                // Set correlation ID in the message
-                //message.Id = correlationId;
+                message.CorrelationId = correlationId;
 
                 var messageJson = JsonCodec.Encode(message);
 
                 var queueClient = queueServiceClient.GetQueueClient(StorageConfiguration.RequestQueueName);
                 await queueClient.SendMessageAsync(messageJson);
 
-                logger.LogInformation("Received request: {MessageJson}", messageJson);
+                logger.LogInformation("Received request: {MessageJson} | Correlation ID: {_X-Correlation-ID}", messageJson, correlationId);
             });
     }
 }

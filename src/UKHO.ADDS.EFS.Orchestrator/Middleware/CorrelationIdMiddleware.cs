@@ -5,38 +5,30 @@ namespace UKHO.ADDS.EFS.Orchestrator.Middleware
     public class CorrelationIdMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly ILogger<CorrelationIdMiddleware> _logger;
 
-        public CorrelationIdMiddleware(RequestDelegate next, ILogger<CorrelationIdMiddleware> logger)
+        public CorrelationIdMiddleware(RequestDelegate next)
         {
             _next = next;
-            _logger = logger;
         }
 
         public async Task InvokeAsync(HttpContext httpContext)
         {
+            var logger = httpContext.RequestServices.GetRequiredService<ILogger<CorrelationIdMiddleware>>();
+
             if (!httpContext.Request.Headers.TryGetValue(ApiHeaderKeys.XCorrelationIdHeaderKey, out var correlationId))
             {
                 correlationId = Guid.NewGuid().ToString();
                 httpContext.Request.Headers[ApiHeaderKeys.XCorrelationIdHeaderKey] = correlationId;
-                _logger.LogInformation("No correlation ID found. Generated new one: {CorrelationId}", correlationId!);
+                logger.LogInformation("No correlation ID found. Generated new one: {_X-Correlation-ID}", correlationId!);
             }
             else
             {
-                _logger.LogInformation("Using existing correlation ID: {CorrelationId}", correlationId!);
+                logger.LogInformation("Using existing correlation ID: {_X-Correlation-ID}", correlationId!);
             }
 
             httpContext.Response.Headers[ApiHeaderKeys.XCorrelationIdHeaderKey] = correlationId;
 
-            var state = new Dictionary<string, object>
-            {
-                [ApiHeaderKeys.XCorrelationIdHeaderKey] = correlationId!,
-            };
-
-            using (_logger.BeginScope(state))
-            {
-                await _next(httpContext);
-            }
+            await _next(httpContext);
         }
     }
 }
