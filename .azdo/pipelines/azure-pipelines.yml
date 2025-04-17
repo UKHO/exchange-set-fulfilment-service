@@ -43,8 +43,7 @@ stages:
           inputs:
             packagetype: sdk
             version: $(SdkVersion)
-            useglobaljson: true
-         
+                     
         - task: DotNetCoreCLI@2
           displayName: ".Net Core - NuGet restore test projects only"
           inputs:
