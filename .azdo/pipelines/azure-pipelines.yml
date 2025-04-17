@@ -71,11 +71,11 @@ stages:
             script: |
                Write-Host "Listing files in TestResults directory:"
                Get-ChildItem -Path "$(Build.SourcesDirectory)\TestResults" -Recurse
-              if (Test-Path "$(Build.SourcesDirectory)\TestResults\*.trx") {
-                Write-Host "Test results file found."
-              } else {
+               if (Test-Path "$(Build.SourcesDirectory)\TestResults\*.trx") {
+                 Write-Host "Test results file found."
+               } else {
                 Write-Error "No .trx file found in the expected location."
-              }
+               }
 
         - task: PublishTestResults@2
           displayName: "Publish Test Results"
