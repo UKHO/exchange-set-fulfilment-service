@@ -69,13 +69,18 @@ stages:
           inputs:
             targetType: inline
             script: |
-              Write-Host "Listing files in TestResults directory:"
-              Get-ChildItem -Path "$(Build.SourcesDirectory)/TestResults" -Recurse
+               Write-Host "Listing files in TestResults directory:"
+               Get-ChildItem -Path "$(Build.SourcesDirectory)\TestResults" -Recurse
+              if (Test-Path "$(Build.SourcesDirectory)\TestResults\*.trx") {
+                Write-Host "Test results file found."
+              } else {
+                Write-Error "No .trx file found in the expected location."
+              }
 
         - task: PublishTestResults@2
           displayName: "Publish Test Results"
-          inputs:
-            testResultsFiles: '**/TestResults/*.trx'
+          inputs:Get-ChildItem -Path "$(Build.SourcesDirectory)\TestResults" -Recurse
+            testResultsFiles: '$(Build.SourcesDirectory)/TestResults/*.trx'
             searchFolder: '$(Build.SourcesDirectory)'
             testRunTitle: "UnitTests for EFS Orchestrator"
 
