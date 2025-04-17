@@ -24,11 +24,11 @@ variables:
     value: "9.0.x"
 
 stages:
-  - stage: BuildTest
-    displayName: "Build and Test"
-    dependsOn: []
-    jobs:
-    - template: templates/build-test-publish.yml
+  #- stage: BuildTest
+   # displayName: "Build and Test"
+    #dependsOn: []
+    #jobs:
+    #- template: templates/build-test-publish.yml
 
   - stage: UnitTest
     displayName: "Unit Test & code coverage"
@@ -51,7 +51,7 @@ stages:
             projects: "**/*Tests.csproj"
             feedsToUse: config
             noCache: true
-            nugetConfigPath: '$(Build.SourcesDirectory)\mock\repo\BuildNuget.config'
+            nugetConfigPath: '$(Build.SourcesDirectory)\BuildNuget.config'
             workingDirectory: '$(Build.SourcesDirectory)'
             packagesDirectory: '$(Build.SourcesDirectory)\packagesForTests'
 
