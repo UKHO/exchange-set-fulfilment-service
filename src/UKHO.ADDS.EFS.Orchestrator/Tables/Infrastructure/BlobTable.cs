@@ -1,6 +1,5 @@
 ﻿using System.Text;
 using Azure.Storage.Blobs;
-using Serilog;
 using UKHO.ADDS.Infrastructure.Results;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
@@ -12,12 +11,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
 
         private readonly Func<TEntity, string> _partitionKeySelector;
         private readonly Func<TEntity, string> _rowKeySelector;
+        private readonly ILogger<BlobTable<TEntity>> _logger;
 
-        protected BlobTable(BlobServiceClient blobServiceClient, Func<TEntity, string> partitionKeySelector, Func<TEntity, string> rowKeySelector)
+        protected BlobTable(BlobServiceClient blobServiceClient, Func<TEntity, string> partitionKeySelector, Func<TEntity, string> rowKeySelector, ILogger<BlobTable<TEntity>> logger)
         {
             _partitionKeySelector = partitionKeySelector ?? throw new ArgumentNullException(nameof(partitionKeySelector));
             _rowKeySelector = rowKeySelector ?? throw new ArgumentNullException(nameof(rowKeySelector));
-
+            _logger = logger;
             _blobClient = blobServiceClient;
 
             Name = SanitizeContainerName(typeof(TEntity).Name);
@@ -46,7 +46,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
             }
             catch (Exception ex)
             {
-                Log.Error($"Error adding entity: {ex.Message}");
+                _logger.LogError(ex, "Error adding entity");
                 return Result.Failure($"Error: {ex.Message}");
             }
         }
@@ -79,7 +79,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
             }
             catch (Exception ex)
             {
-                Log.Error($"Error updating entity: {ex.Message}");
+                _logger.LogError(ex, "Error updating entity");
                 return Result.Failure($"Error: {ex.Message}");
             }
         }
@@ -105,7 +105,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
             }
             catch (Exception ex)
             {
-                Log.Error($"Error upserting entity: {ex.Message}");
+                _logger.LogError(ex, "Error upserting entity");
                 return Result.Failure($"Error: {ex.Message}");
             }
         }
@@ -139,7 +139,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
             }
             catch (Exception ex)
             {
-                Log.Error($"Error retrieving entity: {ex.Message}");
+                _logger.LogError(ex, "Error retrieving entity");
                 return Result.Failure<TEntity>($"Error: {ex.Message}");
             }
         }
@@ -175,7 +175,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
             }
             catch (Exception ex)
             {
-                Log.Error($"Error retrieving entities by PartitionKey: {ex.Message}");
+                _logger.LogError(ex, "Error retrieving entities by {PartitionKey}", partitionKey);
                 return [];
             }
         }
@@ -209,7 +209,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
             }
             catch (Exception ex)
             {
-                Log.Error($"Error retrieving entities by PartitionKey: {ex.Message}");
+                _logger.LogError(ex, "Error retrieving entities");
                 return [];
             }
         }
@@ -236,7 +236,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
             }
             catch (Exception ex)
             {
-                Log.Error($"Error deleting entity: {ex.Message}");
+                _logger.LogError($"Error deleting entity");
                 return Result.Failure($"Error: {ex.Message}");
             }
         }
@@ -261,7 +261,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
             }
             catch (Exception ex)
             {
-                Log.Error($"Error deleting entities: {ex.Message}");
+                _logger.LogError($"Error deleting entities");
                 return Result.Failure($"Error: {ex.Message}");
             }
         }
@@ -277,7 +277,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
             }
             catch (Exception ex)
             {
-                Log.Error($"Error creating blob table: {ex.Message}");
+                _logger.LogError($"Error creating blob table");
                 return Result.Failure($"Error creating blob table: {ex.Message}");
             }
         }
@@ -290,9 +290,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
             }
 
             return key.Trim()
-                .Replace(" ", "_")    
-                .Replace("\\", "_")   
-                .Replace("/", "_");   
+                .Replace(" ", "_")
+                .Replace("\\", "_")
+                .Replace("/", "_");
         }
 
         private static string SanitizeContainerName(string containerName)
@@ -303,15 +303,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
             }
 
             return containerName.Trim()
-                .ToLower()                   
-                .Replace(" ", "_")           
-                .Replace("<", "")            
+                .ToLower()
+                .Replace(" ", "_")
+                .Replace("<", "")
                 .Replace(">", "")
                 .Replace(",", "")
-                .Replace(".", "-")          
-                .Replace("_", "-")          
-                .TrimStart('-')             
-                .TrimEnd('-');              
+                .Replace(".", "-")
+                .Replace("_", "-")
+                .TrimStart('-')
+                .TrimEnd('-');
         }
     }
 }

@@ -100,6 +100,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 DataStandard = request.DataStandard,
                 Timestamp = DateTime.UtcNow,
                 State = ExchangeSetJobState.Created,
+                CorrelationId = request.CorrelationId
             };
 
             return Task.FromResult(job);
