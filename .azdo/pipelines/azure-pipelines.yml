@@ -60,8 +60,8 @@ stages:
           inputs:
             command: "test"
             projects: '**/UKHO.ADDS.EFS.Orchestrator.UnitTests.csproj'
-            arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)\test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)/'
-            #publishTestResults: true
+            arguments: $(BuildConfiguration) --settings "$(Build.SourcesDirectory)\test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)/TestResults/'
+            publishTestResults: true
             testRunTitle: "UnitTests for EFS Orchestrator"
 
         - task: PowerShell@2
@@ -70,22 +70,14 @@ stages:
             targetType: inline
             script: |
                Write-Host "Listing files in TestResults directory:"
-               Get-ChildItem -Path "$(Build.SourcesDirectory)/" -Recurse
-               Get-ChildItem -Path "$(Build.SourcesDirectory)" -Recurse
-               Write-Host "Listing files in TestResults directory complete."
-               
-
-        - task: PublishTestResults@2
-          displayName: "Publish Test Results"
-          inputs:
-            testResultsFiles: '**\_work\_temp\*.trx'
-            searchFolder: '$(Build.SourcesDirectory)'
-            testRunTitle: "UnitTests for EFS Orchestrator"
+               #Get-ChildItem -Path "$(Build.SourcesDirectory)/" -Recurse
+               #Get-ChildItem -Path "$(Build.SourcesDirectory)" -Recurse
+               Write-Host "Listing files in TestResults directory complete."            
 
         - task: publishcodecoverageresults@2
           displayName: "publish code coverage report for build quality checks"
           inputs:
-            summaryfilelocation: '$(Build.SourcesDirectory)/**/coverage.cobertura.xml'              
+            summaryfilelocation: '$(Build.SourcesDirectory)/TestResults/coverage.cobertura.xml'             
             failIfCoverageEmpty: true
 
         - task: PowerShell@2
