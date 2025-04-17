@@ -79,7 +79,7 @@ stages:
 
         - task: PublishTestResults@2
           displayName: "Publish Test Results"
-          inputs:Get-ChildItem -Path "$(Build.SourcesDirectory)\TestResults" -Recurse
+          inputs:
             testResultsFiles: '$(Build.SourcesDirectory)/TestResults/*.trx'
             searchFolder: '$(Build.SourcesDirectory)'
             testRunTitle: "UnitTests for EFS Orchestrator"
