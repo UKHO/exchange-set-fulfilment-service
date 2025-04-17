@@ -70,19 +70,19 @@ stages:
             targetType: inline
             script: |
               Write-Host "Listing files in TestResults directory:"
-              Get-ChildItem -Path "$(Build.SourcesDirectory)\TestResults" -Recurse
+              Get-ChildItem -Path "$(Build.SourcesDirectory)/TestResults" -Recurse
 
         - task: PublishTestResults@2
           displayName: "Publish Test Results"
           inputs:
-            testResultsFiles: '**\TestResults\*.trx'
+            testResultsFiles: '**/TestResults/*.trx'
             searchFolder: '$(Build.SourcesDirectory)'
             testRunTitle: "UnitTests for EFS Orchestrator"
 
         - task: publishcodecoverageresults@2
           displayName: "publish code coverage report for build quality checks"
           inputs:
-            summaryfilelocation: '$(Build.SourcesDirectory)\TestResults\coverage.cobertura.xml'              
+            summaryfilelocation: '$(Build.SourcesDirectory)/**/coverage.cobertura.xml'              
             failIfCoverageEmpty: true
 
         - task: PowerShell@2
