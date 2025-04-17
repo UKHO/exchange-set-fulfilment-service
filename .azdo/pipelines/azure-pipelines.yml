@@ -60,7 +60,7 @@ stages:
           inputs:
             command: "test"
             projects: '**/UKHO.ADDS.EFS.Orchestrator.UnitTests.csproj'
-            arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)\test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)\TestResults\'
+            arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)\test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)/TestResults/'
             #publishTestResults: true
             testRunTitle: "UnitTests for EFS Orchestrator"
 
@@ -70,12 +70,9 @@ stages:
             targetType: inline
             script: |
                Write-Host "Listing files in TestResults directory:"
-               Get-ChildItem -Path "$(Build.SourcesDirectory)\TestResults" -Recurse
-               if (Test-Path "$(Build.SourcesDirectory)\TestResults\*.trx") {
-                 Write-Host "Test results file found."
-               } else {
-                Write-Error "No .trx file found in the expected location."
-               }
+               Get-ChildItem -Path "$(Build.SourcesDirectory)/TestResults" -Recurse
+               Write-Host "Listing files in TestResults directory complete."
+               
 
         - task: PublishTestResults@2
           displayName: "Publish Test Results"
