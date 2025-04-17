@@ -60,21 +60,29 @@ stages:
           inputs:
             command: "test"
             projects: '**/UKHO.ADDS.EFS.Orchestrator.UnitTests.csproj'
-            arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)\test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)/TestResults/'
+            arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)\test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)\TestResults\'
             #publishTestResults: true
             testRunTitle: "UnitTests for EFS Orchestrator"
+
+        - task: PowerShell@2
+          displayName: "Debug: List TestResults Directory"
+          inputs:
+            targetType: inline
+            script: |
+              Write-Host "Listing files in TestResults directory:"
+              Get-ChildItem -Path "$(Build.SourcesDirectory)\TestResults" -Recurse
 
         - task: PublishTestResults@2
           displayName: "Publish Test Results"
           inputs:
-            testResultsFiles: '**/TestResults/*.trx'
+            testResultsFiles: '**\TestResults\*.trx'
             searchFolder: '$(Build.SourcesDirectory)'
             testRunTitle: "UnitTests for EFS Orchestrator"
 
         - task: publishcodecoverageresults@2
           displayName: "publish code coverage report for build quality checks"
           inputs:
-            summaryfilelocation: '$(Build.SourcesDirectory)/TestResults/coverage.cobertura.xml'              
+            summaryfilelocation: '$(Build.SourcesDirectory)\TestResults\coverage.cobertura.xml'              
             failIfCoverageEmpty: true
 
         - task: PowerShell@2
