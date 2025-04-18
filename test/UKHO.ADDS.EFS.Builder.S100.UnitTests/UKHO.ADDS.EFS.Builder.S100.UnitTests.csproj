@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\UKHO.ADDS.EFS.Orchestrator\UKHO.ADDS.EFS.Orchestrator.csproj" />
+    <ProjectReference Include="..\..\src\UKHO.ADDS.EFS.Builder.S100\UKHO.ADDS.EFS.Builder.S100.csproj" />
   </ItemGroup>
 
   <ItemGroup>
