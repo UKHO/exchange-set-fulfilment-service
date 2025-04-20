@@ -100,9 +100,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         {
             _logger.LogInformation("Starting GetProductJson with timestamp: {Timestamp} and correlationId: {CorrelationId}", timestamp, correlationId);
 
-            var timestampString = timestamp?.ToString("R") ?? string.Empty;
+            var timestampString = (timestamp.HasValue && timestamp.Value == DateTime.MinValue) ? string.Empty : timestamp?.ToString("R");
 
-            var s100SalesCatalogueResult = await _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(SCSApiVersion, ProductType, timestampString, correlationId);
+            var s100SalesCatalogueResult = await _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(SCSApiVersion, ProductType, timestampString!, correlationId);
 
             if (s100SalesCatalogueResult.IsSuccess(out var s100SalesCatalogueData, out var error))
             {
