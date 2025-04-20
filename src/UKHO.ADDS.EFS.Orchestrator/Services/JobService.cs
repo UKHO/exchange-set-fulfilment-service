@@ -17,10 +17,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         private readonly ExchangeSetTimestampTable _timestampTable;
         private readonly ISalesCatalogueClient _salesCatalogueClient;
         private readonly ILogger<JobService> _logger;
-
-
-        // TODO Inject the SCS client here
-
         public JobService(string salesCatalogueServiceEndpoint, ExchangeSetJobTable jobTable, ExchangeSetTimestampTable timestampTable, ISalesCatalogueClient salesCatalogueClient, ILogger<JobService> logger)
         {
             _salesCatalogueServiceEndpoint = salesCatalogueServiceEndpoint;
