@@ -10,7 +10,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 {
     public class JobService
     {
-        private const string SCSApiVersion = "v2";
+        private const string ScsApiVersion = "v2";
         private const string ProductType = "s100";
         private readonly string _salesCatalogueServiceEndpoint;
         private readonly ExchangeSetJobTable _jobTable;
@@ -111,7 +111,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
             var timestampString = (timestamp.HasValue && timestamp.Value == DateTime.MinValue) ? string.Empty : timestamp?.ToString("R");
 
-            var s100SalesCatalogueResult = await _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(SCSApiVersion, ProductType, timestampString, correlationId);
+            var s100SalesCatalogueResult = await _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(ScsApiVersion, ProductType, timestampString, correlationId);
 
             if (s100SalesCatalogueResult.IsSuccess(out var s100SalesCatalogueData, out var error))
             {
