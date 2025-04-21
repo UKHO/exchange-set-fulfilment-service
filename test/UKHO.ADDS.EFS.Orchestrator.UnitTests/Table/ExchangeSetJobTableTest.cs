@@ -21,6 +21,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
         private BlobClient _fakeBlobClient;
         private ExchangeSetJob _testEntity;
         private ILogger<BlobTable<ExchangeSetJob>> _fakeLogger;
+        private const string PartitionKey = "validPartitionKey";
+        private const string RowKey = "validRowKey";
 
         [SetUp]
         public void SetUp()
@@ -151,8 +153,16 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
             A.CallTo(() => _fakeBlobClient.DownloadAsync())
                 .Returns(Task.FromResult(Response.FromValue(BlobsModelFactory.BlobDownloadInfo(content: testEntityStream), A.Fake<Response>())));
 
-            var result = await _exchangeSetJobTable.GetAsync("pk", "rk");
-            Assert.That(result.IsSuccess, Is.True);
+            var result = await _exchangeSetJobTable.GetAsync(PartitionKey, RowKey);
+            result.IsSuccess(out var value, out var error);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(value.Products, Is.Not.Null);
+                Assert.That(value.Products.Count, Is.EqualTo(2));
+                Assert.That(value.Products[0].ProductName, Is.EqualTo("Product1"));
+                Assert.That(value.Products[1].ProductName, Is.EqualTo("Product2"));
+            });
         }
 
         [Test]
@@ -161,7 +171,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
             A.CallTo(() => _fakeBlobClient.ExistsAsync(A<CancellationToken>.Ignored))
                 .Throws(new Exception("Test exception"));
 
-            var result = await _exchangeSetJobTable.GetAsync("pk", "rk");
+            var result = await _exchangeSetJobTable.GetAsync(PartitionKey, PartitionKey);
 
             Assert.Multiple(() =>
             {
@@ -176,7 +186,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
             A.CallTo(() => _fakeBlobClient.ExistsAsync(A<CancellationToken>.Ignored))
                 .Returns(Task.FromResult(Response.FromValue(false, A.Fake<Response>())));
 
-            var result = await _exchangeSetJobTable.GetAsync("pk", "rk");
+            var result = await _exchangeSetJobTable.GetAsync(PartitionKey, PartitionKey);
 
             Assert.That(result.IsSuccess, Is.False);
         }
@@ -190,7 +200,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
             A.CallTo(() => _fakeBlobClient.DeleteIfExistsAsync(A<DeleteSnapshotsOption>.Ignored, A<BlobRequestConditions>.Ignored, A<CancellationToken>.Ignored))
                 .Returns(Task.FromResult(Response.FromValue(true, A.Fake<Response>())));
 
-            var result = await _exchangeSetJobTable.DeleteAsync("pk", "rk");
+            var result = await _exchangeSetJobTable.DeleteAsync(PartitionKey, PartitionKey);
 
             Assert.That(result.IsSuccess, Is.True);
             A.CallTo(() => _fakeBlobClient.DeleteIfExistsAsync(A<DeleteSnapshotsOption>.Ignored, A<BlobRequestConditions>.Ignored, A<CancellationToken>.Ignored))
@@ -203,7 +213,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
             A.CallTo(() => _fakeBlobClient.ExistsAsync(A<CancellationToken>.Ignored))
                 .Returns(Task.FromResult(Response.FromValue(false, A.Fake<Response>())));
 
-            var result = await _exchangeSetJobTable.DeleteAsync("pk", "rk");
+            var result = await _exchangeSetJobTable.DeleteAsync(PartitionKey, PartitionKey);
 
             Assert.That(result.IsSuccess, Is.True);
             A.CallTo(() => _fakeBlobClient.DeleteIfExistsAsync(A<DeleteSnapshotsOption>.Ignored, A<BlobRequestConditions>.Ignored, A<CancellationToken>.Ignored))
@@ -216,7 +226,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
             A.CallTo(() => _fakeBlobClient.ExistsAsync(A<CancellationToken>.Ignored))
                 .Throws(new Exception("Test exception"));
 
-            var result = await _exchangeSetJobTable.DeleteAsync("pk", "rk");
+            var result = await _exchangeSetJobTable.DeleteAsync(PartitionKey, PartitionKey);
 
             Assert.Multiple(() =>
             {
@@ -254,7 +264,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
                     A<IDictionary<string, string>>.Ignored,
                     A<BlobContainerEncryptionScopeOptions>.Ignored,
                     A<CancellationToken>.Ignored))
-            .Throws(new Exception("Error"));
+                .Throws(new Exception("Error"));
 
             var result = await _exchangeSetJobTable.CreateIfNotExistsAsync();
 
