@@ -64,7 +64,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                     {
                         try
                         {
-                            await ExecuteBuilder(job, stoppingToken); //temporary commenting code for the scope of this pbi.
+                            await ExecuteBuilder(job, stoppingToken);
 
                         }
                         catch (Exception ex)

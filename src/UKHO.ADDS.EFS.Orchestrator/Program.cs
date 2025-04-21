@@ -107,7 +107,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddSingleton<ISalesCatalogueClient>(provider =>
             {
                 var factory = provider.GetRequiredService<ISalesCatalogueClientFactory>();
-                return factory.CreateClient("http://localhost:5679/scs/v2", "");
+                return factory.CreateClient(salesCatalogueEndpoint + "/v2", "");
             });
 
             builder.Services.AddSingleton(x => new JobService(salesCatalogueEndpoint, x.GetRequiredService<ExchangeSetJobTable>(), x.GetRequiredService<ExchangeSetTimestampTable>(), x.GetRequiredService<ISalesCatalogueClient>(), x.GetRequiredService<ILogger<JobService>>()));
