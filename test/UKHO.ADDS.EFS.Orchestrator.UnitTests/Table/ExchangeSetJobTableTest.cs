@@ -38,7 +38,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
                 .Returns(_fakeBlobClient);
 
             _exchangeSetJobTable = new ExchangeSetJobTable(_fakeBlobServiceClient, _fakeLogger);
+        }
 
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
+        {
             _testEntity = new ExchangeSetJob
             {
                 Id = "test-id",
@@ -158,10 +162,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
 
             Assert.Multiple(() =>
             {
-                Assert.That(value.Products, Is.Not.Null);
-                Assert.That(value.Products.Count, Is.EqualTo(2));
-                Assert.That(value.Products[0].ProductName, Is.EqualTo("Product1"));
-                Assert.That(value.Products[1].ProductName, Is.EqualTo("Product2"));
+                Assert.That(value?.Products, Is.Not.Null);
+                Assert.That(value?.Products.Count, Is.EqualTo(2));
+                Assert.That(value?.Products[0].ProductName, Is.EqualTo("Product1"));
+                Assert.That(value?.Products[1].ProductName, Is.EqualTo("Product2"));
             });
         }
 
