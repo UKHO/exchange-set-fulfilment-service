@@ -16,7 +16,7 @@ using UKHO.ADDS.Infrastructure.Results;
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
 {
     [TestFixture]
-    public class JobServiceTests
+    public class JobServiceTest
     {
         private JobService _jobService;
         private ExchangeSetJobTable _jobTable;
