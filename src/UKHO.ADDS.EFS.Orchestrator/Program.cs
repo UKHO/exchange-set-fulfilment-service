@@ -103,6 +103,12 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddSingleton<ISalesCatalogueClient>(provider =>
             {
                 var factory = provider.GetRequiredService<ISalesCatalogueClientFactory>();
+                // Sanitize salesCatalogueEndpoint to prevent log forging
+                var sanitizedEndpoint = salesCatalogueEndpoint.Replace("\n", "").Replace("\r", "");
+                if (string.IsNullOrWhiteSpace(sanitizedEndpoint))
+                {
+                    throw new ArgumentException("Sales Catalogue Endpoint is invalid or empty.");
+                }
                 return factory.CreateClient(salesCatalogueEndpoint, "");
             });
 
