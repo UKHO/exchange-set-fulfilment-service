@@ -19,10 +19,6 @@ namespace UKHO.ADDS.EFS.Orchestrator
     {
         public static void Main(string[] args)
         {
-            Log.Logger = new LoggerConfiguration()
-                .WriteTo.Console()
-                .CreateLogger();
-
             var builder = WebApplication.CreateBuilder(args);
 
             var configuration = new ConfigurationBuilder()
@@ -107,7 +103,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddSingleton<ISalesCatalogueClient>(provider =>
             {
                 var factory = provider.GetRequiredService<ISalesCatalogueClientFactory>();
-                return factory.CreateClient(salesCatalogueEndpoint + "/v2", "");
+                return factory.CreateClient(salesCatalogueEndpoint, "");
             });
 
             builder.Services.AddSingleton(x => new JobService(salesCatalogueEndpoint, x.GetRequiredService<ExchangeSetJobTable>(), x.GetRequiredService<ExchangeSetTimestampTable>(), x.GetRequiredService<ISalesCatalogueClient>(), x.GetRequiredService<ILogger<JobService>>()));

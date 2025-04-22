@@ -6,7 +6,6 @@
 
         public required string Products { get; set; }
 
-        //[JsonIgnore]
         public string CorrelationId { get; set; }
 
     }
