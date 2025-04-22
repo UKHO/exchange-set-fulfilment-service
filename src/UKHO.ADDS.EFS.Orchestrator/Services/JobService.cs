@@ -53,7 +53,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             {
                 job.Products = productInfo.s100SalesCatalogueResponse.ResponseBody;
                 job.State = ExchangeSetJobState.InProgress;
+                job.SalesCatalogueTimestamp = productInfo.scsTimestamp;
+
+                await _jobTable.CreateIfNotExistsAsync();
+
+                await _jobTable.AddAsync(job);
+
                 _logger.LogInformation("Job state set to InProgress with {ProductCount} products. | Correlation ID: {_X-Correlation-ID}", productInfo.s100SalesCatalogueResponse.ResponseBody.Count, request.CorrelationId);
+                _logger.LogInformation("Job added to the table with Id: {JobId} | Correlation ID: {_X-Correlation-ID}", job.Id, request.CorrelationId);
             }
             else if (productInfo.s100SalesCatalogueResponse.ResponseCode == HttpStatusCode.NotModified)
             {
@@ -67,11 +74,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             }
 
             job.SalesCatalogueTimestamp = productInfo.scsTimestamp;
-
-            await _jobTable.CreateIfNotExistsAsync();
-
-            await _jobTable.AddAsync(job);
-            _logger.LogInformation("Job added to the table with Id: {JobId} | Correlation ID: {_X-Correlation-ID}", job.Id, request.CorrelationId);
 
             _logger.LogInformation("Create Job has completed with DataStandard: {DataStandard}. | Correlation ID: {_X-Correlation-ID}", request.DataStandard, request.CorrelationId);
 
@@ -130,10 +132,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             }
             else
             {
-                _logger.LogError("Failed to retrieve S100 products from Sales Catalogue Service. Error: {Error} | Correlation ID: {_X-Correlation-ID}", error?.Message, correlationId);
+                var errorMessage = string.IsNullOrEmpty(error?.Message) ? error?.Metadata["ErrorResponse"] : error?.Message;
+                _logger.LogWarning("Failed to retrieve S100 products from Sales Catalogue Service. Error: {Error} | Correlation ID: {_X-Correlation-ID}", errorMessage, correlationId);
             }
 
-            _logger.LogError("Returning empty product list and timestamp due to failure. | Correlation ID: {_X-Correlation-ID}", correlationId);
+            _logger.LogWarning("Returning empty product list and timestamp due to failure. | Correlation ID: {_X-Correlation-ID}", correlationId);
             return (new S100SalesCatalogueResponse(), timestamp);
         }
 
