@@ -96,14 +96,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
                 job.State = ExchangeSetJobState.Succeeded;
 
-                _logger.LogInformation("Job {job.Id} was completed. State: {job.State} | Correlation ID: {_X-Correlation-ID}", job.Id, job.State, job.CorrelationId);
+                _logger.LogInformation("Job {job.Id} was completed. State: {job.State} | Correlation ID: {_X-Correlation-ID}", Sanitize(job.Id), job.State, Sanitize(job.CorrelationId));
             }
             else
             {
                 job.State = ExchangeSetJobState.Failed;
-                _logger.LogInformation("Job {job.Id} was completed. State: {job.State} | Correlation ID: {_X-Correlation-ID}", job.Id, job.State, job.CorrelationId);
+                _logger.LogInformation("Job {job.Id} was completed. State: {job.State} | Correlation ID: {_X-Correlation-ID}", Sanitize(job.Id), job.State, Sanitize(job.CorrelationId));
             }
-
             await _jobTable.UpdateAsync(job);
         }
 
@@ -154,6 +153,19 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             };
 
             return Task.FromResult(job);
+        }
+
+        private static string Sanitize(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+            {
+                return string.Empty;
+            }
+
+            // Remove newline characters and other control characters
+            return input.Replace("\r", string.Empty)
+                        .Replace("\n", string.Empty)
+                        .Replace("\t", string.Empty);
         }
     }
 }
