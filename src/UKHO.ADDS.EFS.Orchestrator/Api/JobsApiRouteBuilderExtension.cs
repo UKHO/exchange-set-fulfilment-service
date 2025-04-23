@@ -1,20 +1,22 @@
-﻿using UKHO.ADDS.EFS.Constants;
+﻿using UKHO.ADDS.EFS.Orchestrator.Tables;
+using UKHO.ADDS.EFS.Constants;
+using static System.Net.Mime.MediaTypeNames;
 using UKHO.ADDS.EFS.Entities;
-using UKHO.ADDS.EFS.Orchestrator.Tables;
-
 namespace UKHO.ADDS.EFS.Orchestrator.Api
 {
-    internal static class JobsApi
+    public static class JobsApiRouteBuilderExtension
     {
-        public static void Register(WebApplication application)
+        public static void RegisterJobsApi(this IEndpointRouteBuilder routeBuilder)
         {
-            application.MapGet("/jobs", async (ExchangeSetJobTable table) =>
+            var jobsEndpoint = routeBuilder.MapGroup("/jobs");
+
+            jobsEndpoint.MapGet("/", async (ExchangeSetJobTable table) =>
             {
                 var requests = await table.ListAsync();
                 return Results.Ok(requests);
             });
 
-            application.MapGet("/jobs/{jobId}", async (string jobId, ExchangeSetJobTable table, HttpContext httpContext, ILoggerFactory loggerFactory
+            jobsEndpoint.MapGet("/{jobId}", async (string jobId, ExchangeSetJobTable table, HttpContext httpContext, ILoggerFactory loggerFactory
                 ) =>
             {
                 var logger = loggerFactory.CreateLogger("JobsApi");
@@ -35,7 +37,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
 #if DEBUG
             // Used by the builder in a debug session to send a debug job (created by the builder for testing) to the orchestrator
-            application.MapPost("/jobs/debug/{jobId}", async (string jobId, ExchangeSetJob job, ExchangeSetJobTable table, HttpContext httpContext, ILoggerFactory loggerFactory) =>
+            jobsEndpoint.MapPost("/debug/{jobId}", async (string jobId, ExchangeSetJob job, ExchangeSetJobTable table, HttpContext httpContext, ILoggerFactory loggerFactory) =>
             {
                 var logger = loggerFactory.CreateLogger("JobsApi");
 
@@ -47,6 +49,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 logger.LogInformation("Received debug build request : {jobId} | Correlation ID: {_X-Correlation-ID}", jobId, correlationId);
             });
 #endif
+
         }
     }
 }

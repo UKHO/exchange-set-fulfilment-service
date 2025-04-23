@@ -5,16 +5,14 @@ namespace UKHO.ADDS.EFS.LocalHost.Extensions
 {
     internal static class ResourceBuilderExtensions
     {
-        internal static IResourceBuilder<T> WithScalar<T>(this IResourceBuilder<T> builder) where T : IResourceWithEndpoints => builder.WithOpenApiDocs("Scalar API Documentation", "scalar/v1", "scalar-docs");
-
         internal static IResourceBuilder<T> WithScalar<T>(this IResourceBuilder<T> builder, string displayName) where T : IResourceWithEndpoints => builder.WithOpenApiDocs(displayName, "scalar/v1", "scalar-docs");
-
+        
         internal static IResourceBuilder<T> WithOpenApiDocs<T>(this IResourceBuilder<T> builder, string displayName, string openApiUiPath, string name)
             where T : IResourceWithEndpoints =>
             builder.WithCommand(
                 name,
                 displayName,
-                async _ =>
+                executeCommand: async (ExecuteCommandContext context) =>
                 {
                     try
                     {
@@ -29,8 +27,18 @@ namespace UKHO.ADDS.EFS.LocalHost.Extensions
                     {
                         return new ExecuteCommandResult { Success = false, ErrorMessage = e.ToString() };
                     }
-                }, context => context.ResourceSnapshot.HealthStatus == HealthStatus.Healthy ? ResourceCommandState.Enabled : ResourceCommandState.Disabled,
-                iconName: "Document", iconVariant: IconVariant.Filled);
+                },
+                commandOptions: new CommandOptions
+                {
+                    UpdateState = (UpdateCommandStateContext context) =>
+                    {
+                        // State update logic here
+                        return context.ResourceSnapshot.HealthStatus == HealthStatus.Healthy ? ResourceCommandState.Enabled : ResourceCommandState.Disabled;
+                    },
+                    IconName = "Document",
+                    IconVariant = IconVariant.Filled
+                });
+
 
         internal static IResourceBuilder<T> WithKibanaDashboard<T>(this IResourceBuilder<T> builder, EndpointReference endpoint, string displayName) where T : IResourceWithEndpoints => builder.WithKibanaDashboard(endpoint, displayName, "builder-dashboard");
 
@@ -39,7 +47,7 @@ namespace UKHO.ADDS.EFS.LocalHost.Extensions
             builder.WithCommand(
                 name,
                 displayName,
-                async _ =>
+                executeCommand: async (ExecuteCommandContext context) =>
                 {
                     try
                     {
@@ -53,7 +61,15 @@ namespace UKHO.ADDS.EFS.LocalHost.Extensions
                     {
                         return new ExecuteCommandResult { Success = false, ErrorMessage = e.ToString() };
                     }
-                }, context => context.ResourceSnapshot.HealthStatus == HealthStatus.Healthy ? ResourceCommandState.Enabled : ResourceCommandState.Disabled,
-                iconName: "Document", iconVariant: IconVariant.Filled);
+                },
+                commandOptions: new CommandOptions
+                {
+                    UpdateState = (UpdateCommandStateContext context) =>
+                    {
+                        return context.ResourceSnapshot.HealthStatus == HealthStatus.Healthy ? ResourceCommandState.Enabled : ResourceCommandState.Disabled;
+                    },
+                    IconName = "Document",
+                    IconVariant = IconVariant.Filled
+                });
     }
 }
