@@ -21,11 +21,11 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             var config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json")
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
 #if DEBUG
-                .AddJsonFile("appsettings.local.overrides.json")
+                .AddJsonFile("appsettings.local.overrides.json", optional: true, reloadOnChange: true)
 #endif
-                .AddJsonFile("appsettings.Development.json")
+                .AddJsonFile("appsettings.Development.json", optional: false, reloadOnChange: true)
                 .Build();
 
             var mockEndpointPort = config.GetValue<int>("Endpoints:MockEndpointPort");

@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using System.Text.RegularExpressions;
 using UKHO.ADDS.Clients.SalesCatalogueService;
 using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
@@ -97,12 +96,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
                 job.State = ExchangeSetJobState.Succeeded;
 
-                _logger.LogInformation("Job {job.Id} was completed. State: {job.State} | Correlation ID: {_X-Correlation-ID}", job.Id, job.State, job.CorrelationId);
+                _logger.LogInformation("Job {job.Id} was completed. State: {job.State} | Correlation ID: {_X-Correlation-ID}", job.Id, job.State, SanitiseCorrelationid(job.CorrelationId));
             }
             else
             {
                 job.State = ExchangeSetJobState.Failed;
-                _logger.LogInformation("Job {job.Id} was completed. State: {job.State} | Correlation ID: {_X-Correlation-ID}", job.Id, job.State, job.CorrelationId);
+                _logger.LogInformation("Job {job.Id} was completed. State: {job.State} | Correlation ID: {_X-Correlation-ID}", job.Id, job.State, SanitiseCorrelationid(job.CorrelationId));
             }
             await _jobTable.UpdateAsync(job);
         }
@@ -155,5 +154,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
             return Task.FromResult(job);
         }
+
+        private string SanitiseCorrelationid(string correlationId) => correlationId.Replace("\t", "").Replace("\n", "").Replace("\r", "");
     }
 }
