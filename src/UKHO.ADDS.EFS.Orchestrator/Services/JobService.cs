@@ -9,7 +9,7 @@ using UKHO.ADDS.EFS.Orchestrator.Tables;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services
 {
-    public partial class JobService
+    public class JobService
     {
         private const string ScsApiVersion = "v2";
         private const string ProductType = "s100";
@@ -158,10 +158,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
         public static string SanitiseCorrelationId(string correlationId)
         {
-            return SanitiseCorrelationIdRegex().Replace(correlationId, "");
+            return Regex.Replace(correlationId, "[^a-zA-Z0-9-]", "");
         }
-
-        [GeneratedRegex("[^a-zA-Z0-9-]")]
-        public static partial Regex SanitiseCorrelationIdRegex();
     }
 }
