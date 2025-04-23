@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Text.RegularExpressions;
 using UKHO.ADDS.Clients.SalesCatalogueService;
 using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
@@ -8,7 +9,7 @@ using UKHO.ADDS.EFS.Orchestrator.Tables;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services
 {
-    public class JobService
+    public partial class JobService
     {
         private const string ScsApiVersion = "v2";
         private const string ProductType = "s100";
@@ -29,7 +30,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
         public async Task<ExchangeSetJob> CreateJob(ExchangeSetRequestMessage request)
         {
-            _logger.LogInformation("Create Job started with DataStandard: {DataStandard} | Correlation ID: {_X-Correlation-ID}", request.DataStandard, request.CorrelationId);
+            _logger.LogInformation("Create Job started with DataStandard: {DataStandard} | Correlation ID: {_X-Correlation-ID}", request.DataStandard, SanitiseCorrelationId(request.CorrelationId));
 
             var job = await CreateJobEntity(request);
             _logger.LogInformation("Job entity created with Id: {JobId}", job.Id);
@@ -59,23 +60,23 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
                 await _jobTable.AddAsync(job);
 
-                _logger.LogInformation("Job state set to InProgress with {ProductCount} products. | Correlation ID: {_X-Correlation-ID}", productInfo.s100SalesCatalogueResponse.ResponseBody.Count, request.CorrelationId);
-                _logger.LogInformation("Job added to the table with Id: {JobId} | Correlation ID: {_X-Correlation-ID}", job.Id, request.CorrelationId);
+                _logger.LogInformation("Job state set to InProgress with {ProductCount} products. | Correlation ID: {_X-Correlation-ID}", productInfo.s100SalesCatalogueResponse.ResponseBody.Count, SanitiseCorrelationId(request.CorrelationId));
+                _logger.LogInformation("Job added to the table with Id: {JobId} | Correlation ID: {_X-Correlation-ID}", job.Id, SanitiseCorrelationId(request.CorrelationId));
             }
             else if (productInfo.s100SalesCatalogueResponse.ResponseCode == HttpStatusCode.NotModified)
             {
                 job.State = ExchangeSetJobState.ScsCatalogueUnchanged;
-                _logger.LogWarning("Job {job.Id} skipped as SCS catalogue is unchanged. State: {job.State} | Correlation ID: {_X-Correlation-ID}", job.Id, job.State, job.CorrelationId);
+                _logger.LogWarning("Job {job.Id} skipped as SCS catalogue is unchanged. State: {job.State} | Correlation ID: {_X-Correlation-ID}", job.Id, job.State, SanitiseCorrelationId(job.CorrelationId));
             }
             else
             {
                 job.State = ExchangeSetJobState.Cancelled;
-                _logger.LogWarning("Job {job.Id} skipped as SCS catalogue is cancelled. State: {job.State} | Correlation ID: {_X-Correlation-ID}", job.Id, job.State, job.CorrelationId);
+                _logger.LogWarning("Job {job.Id} skipped as SCS catalogue is cancelled. State: {job.State} | Correlation ID: {_X-Correlation-ID}", job.Id, job.State, SanitiseCorrelationId(job.CorrelationId));
             }
 
             job.SalesCatalogueTimestamp = productInfo.scsTimestamp;
 
-            _logger.LogInformation("Create Job has completed with DataStandard: {DataStandard}. | Correlation ID: {_X-Correlation-ID}", request.DataStandard, request.CorrelationId);
+            _logger.LogInformation("Create Job has completed with DataStandard: {DataStandard}. | Correlation ID: {_X-Correlation-ID}", request.DataStandard, SanitiseCorrelationId(request.CorrelationId));
 
             return job;
         }
@@ -96,46 +97,46 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
                 job.State = ExchangeSetJobState.Succeeded;
 
-                _logger.LogInformation("Job {job.Id} was completed. State: {job.State} | Correlation ID: {_X-Correlation-ID}", job.Id, job.State, job.CorrelationId);
+                _logger.LogInformation("Job {job.Id} was completed. State: {job.State} | Correlation ID: {_X-Correlation-ID}", job.Id, job.State, SanitiseCorrelationId(job.CorrelationId));
             }
             else
             {
                 job.State = ExchangeSetJobState.Failed;
-                _logger.LogInformation("Job {job.Id} was completed. State: {job.State} | Correlation ID: {_X-Correlation-ID}", job.Id, job.State, job.CorrelationId);
+                _logger.LogInformation("Job {job.Id} was completed. State: {job.State} | Correlation ID: {_X-Correlation-ID}", job.Id, job.State, SanitiseCorrelationId(job.CorrelationId));
             }
             await _jobTable.UpdateAsync(job);
         }
 
         private async Task<(S100SalesCatalogueResponse s100SalesCatalogueResponse, DateTime? scsTimestamp)> GetProductJson(DateTime? timestamp, string correlationId)
         {
-            _logger.LogInformation("Starting GetProductJson with timestamp: {Timestamp} | Correlation ID: {_X-Correlation-ID}", timestamp, correlationId);
+            _logger.LogInformation("Starting GetProductJson with timestamp: {Timestamp} | Correlation ID: {_X-Correlation-ID}", timestamp, SanitiseCorrelationId(correlationId));
 
             var timestampString = (timestamp.HasValue && timestamp.Value == DateTime.MinValue) ? string.Empty : timestamp?.ToString("R");
 
-            var s100SalesCatalogueResult = await _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(ScsApiVersion, ProductType, timestampString, correlationId);
+            var s100SalesCatalogueResult = await _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(ScsApiVersion, ProductType, timestampString, SanitiseCorrelationId(correlationId));
 
             if (s100SalesCatalogueResult.IsSuccess(out var s100SalesCatalogueData, out var error))
             {
-                _logger.LogInformation("Successfully retrieved data from Sales Catalogue Service with response code: {ResponseCode} | Correlation ID: {_X-Correlation-ID}", s100SalesCatalogueData!.ResponseCode, correlationId);
+                _logger.LogInformation("Successfully retrieved data from Sales Catalogue Service with response code: {ResponseCode} | Correlation ID: {_X-Correlation-ID}", s100SalesCatalogueData!.ResponseCode, SanitiseCorrelationId(correlationId));
 
                 switch (s100SalesCatalogueData.ResponseCode)
                 {
                     case HttpStatusCode.OK:
-                        _logger.LogInformation("Sales Catalogue Service returned OK with {ProductCount} products. | Correlation ID: {_X-Correlation-ID}", s100SalesCatalogueData.ResponseBody.Count, correlationId);
+                        _logger.LogInformation("Sales Catalogue Service returned OK with {ProductCount} products. | Correlation ID: {_X-Correlation-ID}", s100SalesCatalogueData.ResponseBody.Count, SanitiseCorrelationId(correlationId));
                         return (s100SalesCatalogueData, s100SalesCatalogueData.LastModified);
 
                     case HttpStatusCode.NotModified:
-                        _logger.LogInformation("Sales Catalogue Service returned NotModified. Using existing timestamp: {Timestamp} | Correlation ID: {_X-Correlation-ID}", timestamp, correlationId);
+                        _logger.LogInformation("Sales Catalogue Service returned NotModified. Using existing timestamp: {Timestamp} | Correlation ID: {_X-Correlation-ID}", timestamp, SanitiseCorrelationId(correlationId));
                         return (s100SalesCatalogueData, timestamp);
                 }
             }
             else
             {
                 var errorMessage = string.IsNullOrEmpty(error?.Message) ? error?.Metadata["ErrorResponse"] : error?.Message;
-                _logger.LogWarning("Failed to retrieve S100 products from Sales Catalogue Service. Error: {Error} | Correlation ID: {_X-Correlation-ID}", errorMessage, correlationId);
+                _logger.LogWarning("Failed to retrieve S100 products from Sales Catalogue Service. Error: {Error} | Correlation ID: {_X-Correlation-ID}", errorMessage, SanitiseCorrelationId(correlationId));
             }
 
-            _logger.LogWarning("Returning empty product list and timestamp due to failure. | Correlation ID: {_X-Correlation-ID}", correlationId);
+            _logger.LogWarning("Returning empty product list and timestamp due to failure. | Correlation ID: {_X-Correlation-ID}", SanitiseCorrelationId(correlationId));
             return (new S100SalesCatalogueResponse(), timestamp);
         }
 
@@ -154,5 +155,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
             return Task.FromResult(job);
         }
+
+        public static string SanitiseCorrelationId(string correlationId)
+        {
+            return SanitiseCorrelationIdRegex().Replace(correlationId, "");
+        }
+
+        [GeneratedRegex("[^a-zA-Z0-9-]")]
+        public static partial Regex SanitiseCorrelationIdRegex();
     }
 }
