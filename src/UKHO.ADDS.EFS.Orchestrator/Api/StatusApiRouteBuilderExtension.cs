@@ -1,14 +1,17 @@
 ﻿using UKHO.ADDS.EFS.Constants;
+using static System.Net.Mime.MediaTypeNames;
 using UKHO.ADDS.EFS.Entities;
 using UKHO.ADDS.EFS.Orchestrator.Tables;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Api
 {
-    internal static class StatusApi
+    public static class StatusApiRouteBuilderExtension
     {
-        public static void Register(WebApplication application)
+        public static void RegisterStatusApi(this IEndpointRouteBuilder routeBuilder)
         {
-            application.MapPost("/status", async (ExchangeSetBuilderNodeStatus status, ExchangeSetBuilderNodeStatusTable table, HttpContext httpContext, ILoggerFactory loggerFactory) =>
+            var statusEndpoint = routeBuilder.MapGroup("/status");
+
+            statusEndpoint.MapPost("/", async (ExchangeSetBuilderNodeStatus status, ExchangeSetBuilderNodeStatusTable table, HttpContext httpContext, ILoggerFactory loggerFactory) =>
             {
                 var logger = loggerFactory.CreateLogger("StatusApi");
 
@@ -20,7 +23,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 logger.LogInformation("Received builder node status update : {status.JobId} -> {status.NodeId} | Correlation ID: {_X-Correlation-ID}", status.JobId, status.NodeId, correlationId);
             });
 
-            application.MapGet("/status/{jobId}", async (string jobId, ExchangeSetBuilderNodeStatusTable table, HttpContext httpContext, ILoggerFactory loggerFactory) =>
+            statusEndpoint.MapGet("/{jobId}", async (string jobId, ExchangeSetBuilderNodeStatusTable table, HttpContext httpContext, ILoggerFactory loggerFactory) =>
             {
                 var logger = loggerFactory.CreateLogger("StatusApi");
 

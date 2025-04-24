@@ -1,15 +1,19 @@
 ﻿using Azure.Storage.Queues;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Constants;
+using static System.Net.Mime.MediaTypeNames;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Api
 {
-    internal static class RequestsApi
+    public static class RequestsApiRouteBuilderExtension
     {
-        public static void Register(WebApplication application) =>
-            application.MapPost("/requests", async (ExchangeSetRequestMessage message, QueueServiceClient queueServiceClient, HttpContext httpContext, ILoggerFactory loggerFactory) =>
+        public static void RegisterRequestsApi(this IEndpointRouteBuilder routeBuilder)
+        {
+            var requestsEndpoint = routeBuilder.MapGroup("/requests");
+
+            requestsEndpoint.MapPost("/", async (ExchangeSetRequestMessage message, QueueServiceClient queueServiceClient, HttpContext httpContext, ILoggerFactory loggerFactory) =>
             {
                 var logger = loggerFactory.CreateLogger("RequestsApi");
 
@@ -24,5 +28,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                 logger.LogInformation("Received request: {MessageJson} | Correlation ID: {_X-Correlation-ID}", messageJson, correlationId);
             });
+        }
     }
 }

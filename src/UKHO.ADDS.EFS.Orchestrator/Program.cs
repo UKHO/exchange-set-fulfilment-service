@@ -21,31 +21,24 @@ namespace UKHO.ADDS.EFS.Orchestrator
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-#if DEBUG
-                .AddJsonFile("appsettings.local.overrides.json", optional: true, reloadOnChange: true)
-#endif
-                .AddJsonFile("appsettings.Development.json", optional: false, reloadOnChange: true)
-                .Build();
+            builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());
 
             builder.Services.AddLogging(loggingBuilder =>
             {
                 loggingBuilder.ClearProviders();
-                loggingBuilder.AddConfiguration(configuration.GetSection("Logging"));
+                loggingBuilder.AddConfiguration(builder.Configuration.GetSection("Logging"));
                 loggingBuilder.AddConsole();
                 loggingBuilder.AddDebug();
 #if DEBUG
                 Log.Logger = new LoggerConfiguration()
-                                .ReadFrom.Configuration(configuration)
+                                .ReadFrom.Configuration(builder.Configuration)
                                 .CreateLogger();
 
                 loggingBuilder.AddSerilog(Log.Logger, dispose: true);
 #endif
             });
 
-            ConfigureServices(builder, configuration);
+            ConfigureServices(builder);
 
             builder.AddServiceDefaults();
 
@@ -63,15 +56,16 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             app.UseAuthorization();
 
-            RequestsApi.Register(app);
-            StatusApi.Register(app);
-            JobsApi.Register(app);
+            app.RegisterJobsApi();
+            app.RegisterStatusApi();
+            app.RegisterRequestsApi();
 
             app.Run();
         }
 
-        public static void ConfigureServices(WebApplicationBuilder builder, IConfigurationRoot configuration)
+        public static void ConfigureServices(WebApplicationBuilder builder)
         {
+            var configuration = builder.Configuration;
             builder.Services.AddHttpContextAccessor();
 
             builder.Services.Configure<JsonOptions>(options => JsonCodec.DefaultOptions.CopyTo(options.SerializerOptions));

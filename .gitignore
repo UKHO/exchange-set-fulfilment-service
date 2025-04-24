@@ -380,6 +380,9 @@ terraform.rc
 #terraform output file
 terraform_output.json
 
+#additional files
+*.Development.json
+
 # Ignore VS Code ionide extension temp folder
 /.ionide/
 

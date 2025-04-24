@@ -19,22 +19,16 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             Log.Information("ADDS EFS Local Host Aspire Orchestrator");
 
-            var config = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-#if DEBUG
-                .AddJsonFile("appsettings.local.overrides.json", optional: true, reloadOnChange: true)
-#endif
-                .AddJsonFile("appsettings.Development.json", optional: false, reloadOnChange: true)
-                .Build();
-
-            var mockEndpointPort = config.GetValue<int>("Endpoints:MockEndpointPort");
-            var mockEndpointContainerPort = config.GetValue<int>("Endpoints:MockEndpointContainerPort");
-
-            var containerRuntime = config.GetValue<ContainerRuntime>("Containers:ContainerRuntime");
-            var buildOnStartup = config.GetValue<bool>("Containers:BuildOnStartup");
-
             var builder = DistributedApplication.CreateBuilder(args);
+            builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());
+
+            var mockEndpointPort = builder.Configuration.GetValue<int>("Endpoints:MockEndpointPort");
+            var mockEndpointContainerPort = builder.Configuration.GetValue<int>("Endpoints:MockEndpointContainerPort");
+
+            var containerRuntime = builder.Configuration.GetValue<ContainerRuntime>("Containers:ContainerRuntime");
+            var buildOnStartup = builder.Configuration.GetValue<bool>("Containers:BuildOnStartup");
+
+
 
             // Storage configuration
 
