@@ -5,7 +5,7 @@ using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
 {
-    internal abstract class BlobTable<TEntity> : ITable<TEntity> where TEntity : class
+    public abstract class BlobTable<TEntity> : ITable<TEntity> where TEntity : class
     {
         private readonly BlobServiceClient _blobClient;
 

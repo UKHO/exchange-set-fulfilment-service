@@ -5,7 +5,7 @@ using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
 {
-    internal abstract class StructuredTable<TEntity> : ITable<TEntity> where TEntity : class
+    public abstract class StructuredTable<TEntity> : ITable<TEntity> where TEntity : class
     {
         private readonly Func<TEntity, string> _partitionKeySelector;
         private readonly Func<TEntity, string> _rowKeySelector;

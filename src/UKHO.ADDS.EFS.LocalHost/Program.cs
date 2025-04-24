@@ -19,7 +19,6 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             Log.Information("ADDS EFS Local Host Aspire Orchestrator");
 
-
             var builder = DistributedApplication.CreateBuilder(args);
             builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());
 

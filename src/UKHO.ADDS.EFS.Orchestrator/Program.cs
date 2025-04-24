@@ -3,6 +3,7 @@ using System.Threading.Channels;
 using Microsoft.AspNetCore.Http.Json;
 using Scalar.AspNetCore;
 using Serilog;
+using UKHO.ADDS.Clients.SalesCatalogueService;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Messages;
@@ -87,9 +88,25 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddSingleton<ExchangeSetTimestampTable>();
             builder.Services.AddSingleton<ExchangeSetBuilderNodeStatusTable>();
 
-            // TODO Will change once Aspire config stuff is done
+            // TODO Will change once Aspire config stuff is done  
             var salesCatalogueEndpoint = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.SalesCatalogueEndpoint)!;
-            builder.Services.AddSingleton(x => new JobService(salesCatalogueEndpoint, x.GetRequiredService<ExchangeSetJobTable>(), x.GetRequiredService<ExchangeSetTimestampTable>()));
+
+            builder.Services.AddSingleton<ISalesCatalogueClientFactory>(provider =>
+                new SalesCatalogueClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
+
+            builder.Services.AddSingleton<ISalesCatalogueClient>(provider =>
+            {
+                var factory = provider.GetRequiredService<ISalesCatalogueClientFactory>();
+                // Sanitize salesCatalogueEndpoint to prevent log forging  
+                var sanitizedEndpoint = salesCatalogueEndpoint.Replace("\n", "").Replace("\r", "").Replace("\t", "").Trim();
+                if (string.IsNullOrWhiteSpace(sanitizedEndpoint))
+                {
+                    throw new ArgumentException("Sales Catalogue Endpoint is invalid or empty.");
+                }
+                return factory.CreateClient(sanitizedEndpoint, "");
+            });
+
+            builder.Services.AddSingleton(x => new JobService(salesCatalogueEndpoint.Replace("\n", "").Replace("\r", "").Replace("\t", "").Trim(), x.GetRequiredService<ExchangeSetJobTable>(), x.GetRequiredService<ExchangeSetTimestampTable>(), x.GetRequiredService<ISalesCatalogueClient>(), x.GetRequiredService<ILogger<JobService>>()));
         }
     }
 }
