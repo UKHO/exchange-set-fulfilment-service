@@ -1,23 +1,27 @@
 ﻿using Azure.Storage.Queues;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Constants;
-using static System.Net.Mime.MediaTypeNames;
 using UKHO.ADDS.EFS.Messages;
+using UKHO.ADDS.EFS.Orchestrator.Extensions;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Api
 {
     public static class RequestsApiRouteBuilderExtension
     {
-        public static void RegisterRequestsApi(this IEndpointRouteBuilder routeBuilder)
+        public static void RegisterRequestsApi(this IEndpointRouteBuilder routeBuilder, ILoggerFactory loggerFactory)
         {
+            var logger = loggerFactory.CreateLogger("RequestsApi");
             var requestsEndpoint = routeBuilder.MapGroup("/requests");
 
-            requestsEndpoint.MapPost("/", async (ExchangeSetRequestMessage message, QueueServiceClient queueServiceClient, HttpContext httpContext, ILoggerFactory loggerFactory) =>
+            requestsEndpoint.MapPost("/", async (ExchangeSetRequestMessage message, QueueServiceClient queueServiceClient, HttpContext httpContext) =>
             {
-                var logger = loggerFactory.CreateLogger("RequestsApi");
+                var zz = new { Property1 = "a prop", Property2 = "another prop" };
 
-                var correlationId = httpContext.Request.Headers[ApiHeaderKeys.XCorrelationIdHeaderKey].FirstOrDefault() ?? string.Empty;
+                logger.LogInformation("Received request: {@zz}", zz);
+
+
+                var correlationId = httpContext.GetCorrelationId();
 
                 message.CorrelationId = correlationId;
 

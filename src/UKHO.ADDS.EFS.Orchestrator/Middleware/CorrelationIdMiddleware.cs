@@ -2,7 +2,7 @@
 
 namespace UKHO.ADDS.EFS.Orchestrator.Middleware
 {
-    public class CorrelationIdMiddleware
+    internal class CorrelationIdMiddleware
     {
         private readonly RequestDelegate _next;
 

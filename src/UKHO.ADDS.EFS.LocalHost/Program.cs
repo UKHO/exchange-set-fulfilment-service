@@ -80,7 +80,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                 var addsMockEndpoint = addsMockContainer.GetEndpoint(ContainerConfiguration.MockContainerEndpointName);
                 var fssEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.ContainerHost, Path = "fss" };
 
-                var scsEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.ContainerHost, Path = "scs" };
+                var scsEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.Host, Path = "scs" };
 
                 var orchestratorServiceEndpoint = orchestratorService.GetEndpoint("http").Url;
 

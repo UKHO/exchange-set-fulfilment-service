@@ -7,6 +7,7 @@ using UKHO.ADDS.EFS.Entities;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Tables;
 using UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure;
+using UKHO.ADDS.EFS.Orchestrator.UnitTests.Extensions;
 
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
 {
@@ -75,7 +76,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
                     A<int?>.Ignored,
                     A<List<string>>.Ignored,
                     A<CancellationToken>.Ignored))
-                .Returns(TestHelper.CreateAsyncPageable(new List<JsonEntity>()));
+                .Returns(new List<JsonEntity>().CreateAsyncPageable());
 
             var result = await _exchangeSetTimestampTable.GetAsync(PartitionKey, RowKey);
 
@@ -100,7 +101,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
                     A<int?>.Ignored,
                     A<List<string>>.Ignored,
                     A<CancellationToken>.Ignored))
-                .Returns(TestHelper.CreateAsyncPageable<JsonEntity>(fakeTable));
+                .Returns(fakeTable.CreateAsyncPageable());
 
             var result = await _exchangeSetTimestampTable.GetAsync(PartitionKey, RowKey);
             result.IsSuccess(out var value, out var error);
@@ -121,7 +122,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
                     A<int?>.Ignored,
                     A<List<string>>.Ignored,
                     A<CancellationToken>.Ignored))
-                .Returns(TestHelper.CreateAsyncPageable(new List<JsonEntity>()));
+                .Returns(new List<JsonEntity>().CreateAsyncPageable());
 
             var result = await _exchangeSetTimestampTable.GetAsync(PartitionKey);
 
@@ -152,7 +153,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
                     A<int?>.Ignored,
                     A<List<string>>.Ignored,
                     A<CancellationToken>.Ignored))
-                .Returns(TestHelper.CreateAsyncPageable(fakeTable));
+                .Returns(fakeTable.CreateAsyncPageable());
 
             var result = await _exchangeSetTimestampTable.GetAsync(PartitionKey);
 

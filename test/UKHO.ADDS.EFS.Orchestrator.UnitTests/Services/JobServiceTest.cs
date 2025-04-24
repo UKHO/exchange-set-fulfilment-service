@@ -11,6 +11,7 @@ using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Services;
 using UKHO.ADDS.EFS.Orchestrator.Tables;
 using UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure;
+using UKHO.ADDS.EFS.Orchestrator.UnitTests.Extensions;
 using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
@@ -35,7 +36,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
             _fakeTableClient = A.Fake<TableClient>();
 
             _jobService = new JobService(
-                "http://fake-endpoint",
                 _jobTable,
                 _timestampTable,
                 _salesCatalogueClient,
@@ -180,7 +180,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
                     A<int?>.Ignored,
                     A<List<string>>.Ignored,
                     A<CancellationToken>.Ignored))
-                .Returns(TestHelper.CreateAsyncPageable(new List<JsonEntity>()));
+                .Returns(new List<JsonEntity>().CreateAsyncPageable());
         }
     }
 }

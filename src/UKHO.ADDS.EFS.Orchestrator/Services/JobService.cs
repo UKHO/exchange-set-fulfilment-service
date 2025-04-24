@@ -12,15 +12,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
     {
         private const string ScsApiVersion = "v2";
         private const string ProductType = "s100";
-        private readonly string _salesCatalogueServiceEndpoint;
         private readonly ExchangeSetJobTable _jobTable;
         private readonly ExchangeSetTimestampTable _timestampTable;
         private readonly ISalesCatalogueClient _salesCatalogueClient;
         private readonly ILogger<JobService> _logger;
 
-        public JobService(string salesCatalogueServiceEndpoint, ExchangeSetJobTable jobTable, ExchangeSetTimestampTable timestampTable, ISalesCatalogueClient salesCatalogueClient, ILogger<JobService> logger)
+        public JobService(ExchangeSetJobTable jobTable, ExchangeSetTimestampTable timestampTable, ISalesCatalogueClient salesCatalogueClient, ILogger<JobService> logger)
         {
-            _salesCatalogueServiceEndpoint = salesCatalogueServiceEndpoint;
             _jobTable = jobTable;
             _timestampTable = timestampTable;
             _salesCatalogueClient = salesCatalogueClient;
@@ -108,6 +106,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
         private async Task<(S100SalesCatalogueResponse s100SalesCatalogueResponse, DateTime? scsTimestamp)> GetProductJson(DateTime? timestamp, string CorrelationId)
         {
+            // TODO Need to sort out the nullability (or not) of timestamps here
+
             _logger.LogInformation("Starting GetProductJson with timestamp: {Timestamp} | Correlation ID: {_X-Correlation-ID}", timestamp, CorrelationId);
 
             var timestampString = (timestamp.HasValue && timestamp.Value == DateTime.MinValue) ? string.Empty : timestamp?.ToString("R");

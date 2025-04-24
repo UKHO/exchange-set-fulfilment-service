@@ -6,7 +6,7 @@
 
         public required string Products { get; set; }
 
-        public string CorrelationId { get; set; }
+        public required string CorrelationId { get; set; }
 
     }
 }
