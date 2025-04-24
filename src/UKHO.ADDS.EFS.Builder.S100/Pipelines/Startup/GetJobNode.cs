@@ -1,4 +1,5 @@
 ﻿using Serilog;
+using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Entities;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.Infrastructure.Pipelines;
@@ -15,7 +16,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
             {
                 // Create a debug job (TODO - read example values from appsettings.development.json)
                 // Send this back to the build API via the log context
-                var debugJob = new ExchangeSetJob() { Id = context.Subject.JobId, DataStandard = ExchangeSetDataStandard.S100, Timestamp = DateTime.UtcNow, SalesCatalogueTimestamp = DateTime.UtcNow, State = ExchangeSetJobState.InProgress, Products = "{}"};
+                var debugJob = new ExchangeSetJob() { Id = context.Subject.JobId, DataStandard = ExchangeSetDataStandard.S100, Timestamp = DateTime.UtcNow, SalesCatalogueTimestamp = DateTime.UtcNow, State = ExchangeSetJobState.InProgress, Products = new List<S100Products>()};
                 context.Subject.Job = debugJob;
 
                 // Write back to API

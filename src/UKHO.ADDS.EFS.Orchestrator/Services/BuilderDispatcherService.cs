@@ -46,9 +46,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 {
                     var job = await _jobService.CreateJob(request);
 
+                    if (job.State == ExchangeSetJobState.ScsCatalogueUnchanged)
+                    {
+                        await _jobService.CompleteJobAsync(1, job);
+                        return;
+                    }
+
                     if (job.State == ExchangeSetJobState.Cancelled)
                     {
-                        _logger.LogInformation("Job {job.Id} was not run as no new products", job.Id);
+                        _logger.LogWarning("Job {job.Id} was cancelled. State: {job.State} | Correlation ID: {_X-Correlation-ID}", job.Id, job.State, job.CorrelationId);
                         return;
                     }
 
@@ -59,10 +65,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                         try
                         {
                             await ExecuteBuilder(job, stoppingToken);
+
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogError(ex, "Failed to execute builder");
+                            _logger.LogError(ex, "Failed to execute builder. | Correlation ID: {_X-Correlation-ID}", job.CorrelationId);
                         }
 
                         finally
