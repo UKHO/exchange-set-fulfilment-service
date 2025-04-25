@@ -26,7 +26,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 var queueClient = queueServiceClient.GetQueueClient(StorageConfiguration.RequestQueueName);
                 await queueClient.SendMessageAsync(messageJson);
 
-                logger.LogInformation("Received request: {MessageJson} | Correlation ID: {_X-Correlation-ID}", messageJson, correlationId);
+                logger.LogInformation("Received request: {MessageJson} | Correlation ID: {X-Correlation-ID}", messageJson, correlationId);
             });
         }
     }

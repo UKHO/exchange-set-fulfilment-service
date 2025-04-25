@@ -27,7 +27,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                 if (jobResult.IsSuccess(out var job))
                 {
-                    logger.LogInformation("Job {jobId} requested by builder | Correlation ID: {_X-Correlation-ID}", jobId, correlationId);
+                    logger.LogInformation("Job {jobId} requested by builder | Correlation ID: {X-Correlation-ID}", jobId, correlationId);
 
                     return Results.Ok(job);
                 }
@@ -46,7 +46,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 await table.CreateIfNotExistsAsync();
                 await table.AddAsync(job);
 
-                logger.LogInformation("Received debug build request : {jobId} | Correlation ID: {_X-Correlation-ID}", jobId, correlationId);
+                logger.LogInformation("Received debug build request : {jobId} | Correlation ID: {X-Correlation-ID}", jobId, correlationId);
             });
 #endif
 

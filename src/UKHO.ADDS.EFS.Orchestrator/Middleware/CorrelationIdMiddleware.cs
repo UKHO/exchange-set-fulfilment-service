@@ -19,11 +19,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Middleware
             {
                 correlationId = Guid.NewGuid().ToString();
                 httpContext.Request.Headers[ApiHeaderKeys.XCorrelationIdHeaderKey] = correlationId;
-                logger.LogInformation("No correlation ID found. Generated new one: {_X-Correlation-ID}", correlationId!);
+                logger.LogInformation("No correlation ID found. Generated new one: {X-Correlation-ID}", correlationId!);
             }
             else
             {
-                logger.LogInformation("Using existing correlation ID: {_X-Correlation-ID}", correlationId!);
+                logger.LogInformation("Using existing correlation ID: {X-Correlation-ID}", correlationId!);
             }
 
             httpContext.Response.Headers[ApiHeaderKeys.XCorrelationIdHeaderKey] = correlationId;

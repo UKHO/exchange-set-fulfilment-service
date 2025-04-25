@@ -20,7 +20,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 await table.CreateIfNotExistsAsync();
                 await table.AddAsync(status);
 
-                logger.LogInformation("Received builder node status update : {status.JobId} -> {status.NodeId} | Correlation ID: {_X-Correlation-ID}", status.JobId, status.NodeId, correlationId);
+                logger.LogInformation("Received builder node status update : {status.JobId} -> {status.NodeId} | Correlation ID: {X-Correlation-ID}", status.JobId, status.NodeId, correlationId);
             });
 
             statusEndpoint.MapGet("/{jobId}", async (string jobId, ExchangeSetBuilderNodeStatusTable table, HttpContext httpContext, ILoggerFactory loggerFactory) =>
@@ -31,7 +31,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                 var statuses = await table.GetAsync(jobId);
 
-                logger.LogInformation("Received status request for job {jobId} | Correlation ID: {_X-Correlation-ID}", jobId, correlationId);
+                logger.LogInformation("Received status request for job {jobId} | Correlation ID: {X-Correlation-ID}", jobId, correlationId);
 
                 return Results.Ok(statuses);
             });

@@ -54,7 +54,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
                     if (job.State == ExchangeSetJobState.Cancelled)
                     {
-                        _logger.LogWarning("Job {job.Id} was cancelled. State: {job.State} | Correlation ID: {_X-Correlation-ID}", job.Id, job.State, job.CorrelationId);
+                        _logger.LogWarning("Job {job.Id} was cancelled. State: {job.State} | Correlation ID: {X-Correlation-ID}", job.Id, job.State, job.CorrelationId);
                         return;
                     }
 
@@ -69,7 +69,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogError(ex, "Failed to execute builder. | Correlation ID: {_X-Correlation-ID}", job.CorrelationId);
+                            _logger.LogError(ex, "Failed to execute builder. | Correlation ID: {X-Correlation-ID}", job.CorrelationId);
                         }
 
                         finally
