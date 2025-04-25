@@ -51,25 +51,5 @@ namespace UKHO.ADDS.EFS.Orchestrator.Middleware
             httpContext.Response.Headers.Append(ApiHeaderKeys.OriginHeaderKey, "Orchestrator");
             await httpContext.Response.WriteAsJsonAsync(problemDetails);
         }
-
-        private async Task HandleExceptionAsync(HttpContext httpContext, Exception exception, EventId eventId, string message, params object[] messageArgs)
-        {
-            httpContext.Response.ContentType = ApiHeaderKeys.ContentType;
-            httpContext.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-
-            _logger.LogError(eventId, exception, message, messageArgs);
-
-            var correlationId = httpContext.Request.Headers[ApiHeaderKeys.XCorrelationIdHeaderKey].FirstOrDefault()!;
-
-            var problemDetails = new ProblemDetails
-            {
-                Extensions =
-                {
-                    ["correlationId"] = correlationId
-                }
-            };
-            httpContext.Response.Headers.Append(ApiHeaderKeys.OriginHeaderKey, "Orchestrator");
-            await httpContext.Response.WriteAsJsonAsync(problemDetails);
-        }
     }
 }
