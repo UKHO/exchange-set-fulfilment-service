@@ -1,5 +1,6 @@
 using Scalar.AspNetCore;
 using Serilog;
+using Serilog.Events;
 using UKHO.ADDS.EFS.Orchestrator.Api;
 using UKHO.ADDS.EFS.Orchestrator.Middleware;
 
@@ -29,7 +30,16 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     {
                         o.Endpoint = oltpEndpoint;
                     })
-                    .WriteTo.Console());
+                    .WriteTo.Console()
+                    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                    .MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Information)
+                    .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
+                    .MinimumLevel.Override("Microsoft.AspNetCore.Mvc", LogEventLevel.Warning)
+                    .MinimumLevel.Override("Microsoft.AspNetCore.Routing", LogEventLevel.Warning)
+                    .MinimumLevel.Override("Microsoft.AspNetCore.Hosting", LogEventLevel.Warning)
+                    .MinimumLevel.Override("Azure.Core", LogEventLevel.Fatal)
+                    .MinimumLevel.Override("Azure.Storage.Blobs", LogEventLevel.Fatal)
+                    .MinimumLevel.Override("Azure.Storage.Queues", LogEventLevel.Warning));
 
                 builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());
 
