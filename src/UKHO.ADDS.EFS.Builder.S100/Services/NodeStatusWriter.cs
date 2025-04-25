@@ -23,7 +23,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Services
 
         public async Task WriteDebugExchangeSetJob(ExchangeSetJob exchangeSetJob, string buildServiceEndpoint)
         {
-            var uri = new Uri(new Uri(buildServiceEndpoint), $"/jobs/debug/{exchangeSetJob.Id}");
+            var uri = new Uri(new Uri(buildServiceEndpoint), $"/jobs/debug/");
 
             var json = JsonCodec.Encode(exchangeSetJob);
 

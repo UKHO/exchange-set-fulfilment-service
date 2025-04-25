@@ -46,7 +46,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
         public async Task WhenCreateIfNotExistsAsyncCalled_ThenReturnsSuccess()
         {
             A.CallTo(() => _fakeTableClient.CreateIfNotExistsAsync(A<CancellationToken>.Ignored))
-                .Returns(Task.FromResult<Response<TableItem>>(null));
+                .Returns(Task.FromResult<Response<TableItem>>(null!));
 
             var result = await _exchangeSetTimestampTable.CreateIfNotExistsAsync();
 
@@ -173,7 +173,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
         public async Task WhenAddAsyncCalledWithValidEntity_ThenReturnsSuccess()
         {
             A.CallTo(() => _fakeTableClient.AddEntityAsync(A<JsonEntity>.Ignored, A<CancellationToken>.Ignored))
-                .Returns(Task.FromResult<Response>(null));
+                .Returns(Task.FromResult<Response>(null!));
 
             var result = await _exchangeSetTimestampTable.AddAsync(_entity);
 

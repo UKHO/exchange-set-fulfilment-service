@@ -53,7 +53,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         [Test]
         public async Task WhenCreateJobIsCalledWithProductsAreReturned_ThenJobStateShouldBeInProgress()
         {
-            var request = CreateRequestMessage();
+            var request = CreateQueueMessage();
             var successResponse = Result.Success(new S100SalesCatalogueResponse
             {
                 ResponseCode = HttpStatusCode.OK,
@@ -86,7 +86,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         [Test]
         public async Task WhenCreateJobIsCalledWithNotModified_ThenSetsJobStateToScsCatalogueUnchanged()
         {
-            var request = CreateRequestMessage();
+            var request = CreateQueueMessage();
             var successResponse = Result.Success(new S100SalesCatalogueResponse
             {
                 ResponseCode = HttpStatusCode.NotModified,
@@ -109,7 +109,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         [Test]
         public async Task WhenCreateJobIsCalledWithNoProductsAreReturned_ThenSetsJobStateToCancelled()
         {
-            var request = CreateRequestMessage();
+            var request = CreateQueueMessage();
             var failureResult = Result.Failure<S100SalesCatalogueResponse>(
                 new Error
                 {
@@ -141,7 +141,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
                 State = ExchangeSetJobState.Created
             };
 
-            await _jobService.CompleteJobAsync(BuilderExitCodes.Failed, job);
+            await _jobService.BuilderContainerCompletedAsync(BuilderExitCodes.Failed, job);
 
             Assert.Multiple(() => { Assert.That(job.State, Is.EqualTo(ExchangeSetJobState.Succeeded)); });
         }
@@ -157,15 +157,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
                 State = ExchangeSetJobState.Created
             };
 
-            await _jobService.CompleteJobAsync(BuilderExitCodes.Success, job);
+            await _jobService.BuilderContainerCompletedAsync(BuilderExitCodes.Success, job);
 
             Assert.Multiple(() => { Assert.That(job.State, Is.EqualTo(ExchangeSetJobState.Failed)); });
         }
 
-        private static ExchangeSetRequestMessage CreateRequestMessage(string correlationId = "test-correlation-id",
+        private static ExchangeSetRequestQueueMessage CreateQueueMessage(string correlationId = "test-correlation-id",
             string products = "TestProduct")
         {
-            return new ExchangeSetRequestMessage
+            return new ExchangeSetRequestQueueMessage
             {
                 DataStandard = ExchangeSetDataStandard.S100,
                 CorrelationId = correlationId,

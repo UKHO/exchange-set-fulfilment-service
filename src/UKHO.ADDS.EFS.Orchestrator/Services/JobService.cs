@@ -4,6 +4,7 @@ using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Entities;
 using UKHO.ADDS.EFS.Messages;
+using UKHO.ADDS.EFS.Orchestrator.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Tables;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services
@@ -25,12 +26,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             _logger = logger;
         }
 
-        public async Task<ExchangeSetJob> CreateJob(ExchangeSetRequestMessage request)
+        public async Task<ExchangeSetJob> CreateJob(ExchangeSetRequestQueueMessage queueMessage)
         {
-            _logger.LogInformation("Create Job started with DataStandard: {DataStandard} | Correlation ID: {_X-Correlation-ID}", request.DataStandard, request.CorrelationId);
-
-            var job = await CreateJobEntity(request);
-            _logger.LogInformation("Job entity created with Id: {JobId}", job.Id);
+            var job = await CreateJobEntity(queueMessage);
 
             var timestampKey = job.DataStandard.ToString().ToLowerInvariant();
 
@@ -45,44 +43,40 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 timestamp = timestampEntity.Timestamp;
             }
 
-            var productInfo = await GetProductJson(timestamp, request.CorrelationId);
+            var (s100SalesCatalogueResponse, scsTimestamp) = await GetProductJson(timestamp, queueMessage);
 
-            if (productInfo.s100SalesCatalogueResponse.ResponseCode == HttpStatusCode.OK && productInfo.s100SalesCatalogueResponse.ResponseBody.Any())
+            switch (s100SalesCatalogueResponse.ResponseCode)
             {
-                job.Products = productInfo.s100SalesCatalogueResponse.ResponseBody;
-                job.State = ExchangeSetJobState.InProgress;
-                job.SalesCatalogueTimestamp = productInfo.scsTimestamp;
+                case HttpStatusCode.OK when s100SalesCatalogueResponse.ResponseBody.Any():
 
-                await _jobTable.CreateIfNotExistsAsync();
+                    job.Products = s100SalesCatalogueResponse.ResponseBody;
+                    job.State = ExchangeSetJobState.InProgress;
+                    job.SalesCatalogueTimestamp = scsTimestamp;
 
-                await _jobTable.AddAsync(job);
+                    break;
+                case HttpStatusCode.NotModified:
 
-                _logger.LogInformation("Job state set to InProgress with {ProductCount} products. | Correlation ID: {_X-Correlation-ID}", productInfo.s100SalesCatalogueResponse.ResponseBody.Count, request.CorrelationId);
-                _logger.LogInformation("Job added to the table with Id: {JobId} | Correlation ID: {_X-Correlation-ID}", job.Id, request.CorrelationId);
-            }
-            else if (productInfo.s100SalesCatalogueResponse.ResponseCode == HttpStatusCode.NotModified)
-            {
-                job.State = ExchangeSetJobState.ScsCatalogueUnchanged;
-                _logger.LogWarning("Job {job.Id} skipped as SCS catalogue is unchanged. State: {job.State} | Correlation ID: {_X-Correlation-ID}", job.Id, job.State, job.CorrelationId);
-            }
-            else
-            {
-                job.State = ExchangeSetJobState.Cancelled;
-                _logger.LogWarning("Job {job.Id} skipped as SCS catalogue is cancelled. State: {job.State} | Correlation ID: {_X-Correlation-ID}", job.Id, job.State, job.CorrelationId);
+                    job.State = ExchangeSetJobState.ScsCatalogueUnchanged;
+                    break;
+                default:
+
+                    job.State = ExchangeSetJobState.Cancelled;
+                    break;
             }
 
-            job.SalesCatalogueTimestamp = productInfo.scsTimestamp;
+            job.SalesCatalogueTimestamp = scsTimestamp;
 
-            _logger.LogInformation("Create Job has completed with DataStandard: {DataStandard}. | Correlation ID: {_X-Correlation-ID}", request.DataStandard, request.CorrelationId);
+            await _jobTable.CreateIfNotExistsAsync();
+            await _jobTable.AddAsync(job);
+
+            _logger.LogJobUpdated(ExchangeSetJobLogView.CreateFromJob(job));
 
             return job;
         }
 
-        public async Task CompleteJobAsync(long exitCode, ExchangeSetJob job)
+        public async Task BuilderContainerCompletedAsync(long exitCode, ExchangeSetJob job)
         {
-            // This should be the success path - set to 'Failed' to demonstrate writing the timestamp
-            // All jobs currently 'fail', because the builder reports that a number of pipeline stages return 'NotRun'
-            if (exitCode == BuilderExitCodes.Failed)
+            if (exitCode == BuilderExitCodes.Success)
             {
                 var updateTimestampEntity = new ExchangeSetTimestamp()
                 {
@@ -93,55 +87,45 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 await _timestampTable.UpsertAsync(updateTimestampEntity);
 
                 job.State = ExchangeSetJobState.Succeeded;
-
-                _logger.LogInformation("Job {job.Id} was completed. State: {job.State} | Correlation ID: {_X-Correlation-ID}", job.Id, job.State, job.CorrelationId);
             }
             else
             {
                 job.State = ExchangeSetJobState.Failed;
-                _logger.LogInformation("Job {job.Id} was completed. State: {job.State} | Correlation ID: {_X-Correlation-ID}", job.Id, job.State, job.CorrelationId);
             }
+
             await _jobTable.UpdateAsync(job);
+
+            _logger.LogJobCompleted(ExchangeSetJobLogView.CreateFromJob(job));
         }
 
-        private async Task<(S100SalesCatalogueResponse s100SalesCatalogueResponse, DateTime? scsTimestamp)> GetProductJson(DateTime? timestamp, string CorrelationId)
+        private async Task<(S100SalesCatalogueResponse s100SalesCatalogueResponse, DateTime? scsTimestamp)> GetProductJson(DateTime? timestamp, ExchangeSetRequestQueueMessage message)
         {
-            // TODO Need to sort out the nullability (or not) of timestamps here
-
-            _logger.LogInformation("Starting GetProductJson with timestamp: {Timestamp} | Correlation ID: {_X-Correlation-ID}", timestamp, CorrelationId);
-
             var timestampString = (timestamp.HasValue && timestamp.Value == DateTime.MinValue) ? string.Empty : timestamp?.ToString("R");
 
-            var s100SalesCatalogueResult = await _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(ScsApiVersion, ProductType, timestampString, CorrelationId);
+            var s100SalesCatalogueResult = await _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(ScsApiVersion, ProductType, timestampString!, message.CorrelationId);
 
             if (s100SalesCatalogueResult.IsSuccess(out var s100SalesCatalogueData, out var error))
             {
-                _logger.LogInformation("Successfully retrieved data from Sales Catalogue Service with response code: {ResponseCode} | Correlation ID: {_X-Correlation-ID}", s100SalesCatalogueData!.ResponseCode, CorrelationId);
-
                 switch (s100SalesCatalogueData.ResponseCode)
                 {
                     case HttpStatusCode.OK:
-                        _logger.LogInformation("Sales Catalogue Service returned OK with {ProductCount} products. | Correlation ID: {_X-Correlation-ID}", s100SalesCatalogueData.ResponseBody.Count, CorrelationId);
                         return (s100SalesCatalogueData, s100SalesCatalogueData.LastModified);
 
                     case HttpStatusCode.NotModified:
-                        _logger.LogInformation("Sales Catalogue Service returned NotModified. Using existing timestamp: {Timestamp} | Correlation ID: {_X-Correlation-ID}", timestamp, CorrelationId);
                         return (s100SalesCatalogueData, timestamp);
                 }
             }
             else
             {
-                var errorMessage = string.IsNullOrEmpty(error?.Message) ? error?.Metadata["ErrorResponse"] : error?.Message;
-                _logger.LogWarning("Failed to retrieve S100 products from Sales Catalogue Service. Error: {Error} | Correlation ID: {_X-Correlation-ID}", errorMessage, CorrelationId);
+                _logger.LogSalesCatalogueError(error, message);
             }
 
-            _logger.LogWarning("Returning empty product list and timestamp due to failure. | Correlation ID: {_X-Correlation-ID}", CorrelationId);
             return (new S100SalesCatalogueResponse(), timestamp);
         }
 
-        private Task<ExchangeSetJob> CreateJobEntity(ExchangeSetRequestMessage request)
+        private Task<ExchangeSetJob> CreateJobEntity(ExchangeSetRequestQueueMessage request)
         {
-            var id = Guid.NewGuid().ToString("N");
+            var id = request.CorrelationId;
 
             var job = new ExchangeSetJob()
             {
@@ -151,6 +135,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 State = ExchangeSetJobState.Created,
                 CorrelationId = request.CorrelationId
             };
+
+            _logger.LogJobCreated(request.CorrelationId, ExchangeSetJobLogView.CreateFromJob(job));
 
             return Task.FromResult(job);
         }

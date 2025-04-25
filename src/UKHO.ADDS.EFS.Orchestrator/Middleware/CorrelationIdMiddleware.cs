@@ -1,9 +1,12 @@
 ﻿using UKHO.ADDS.EFS.Constants;
+using UKHO.ADDS.EFS.Exceptions;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Middleware
 {
     internal class CorrelationIdMiddleware
     {
+        private static readonly string[] _pathsWithoutCorrelationId = ["/scalar", "/healthcheck", "/openapi", "/jobs", "/status"];
+
         private readonly RequestDelegate _next;
 
         public CorrelationIdMiddleware(RequestDelegate next)
@@ -13,20 +16,24 @@ namespace UKHO.ADDS.EFS.Orchestrator.Middleware
 
         public async Task InvokeAsync(HttpContext httpContext)
         {
-            var logger = httpContext.RequestServices.GetRequiredService<ILogger<CorrelationIdMiddleware>>();
-
-            if (!httpContext.Request.Headers.TryGetValue(ApiHeaderKeys.XCorrelationIdHeaderKey, out var correlationId))
+            if (_pathsWithoutCorrelationId.All(v => httpContext.Request.Path.Value?.Contains(v, StringComparison.OrdinalIgnoreCase) != true))
             {
-                correlationId = Guid.NewGuid().ToString();
-                httpContext.Request.Headers[ApiHeaderKeys.XCorrelationIdHeaderKey] = correlationId;
-                logger.LogInformation("No correlation ID found. Generated new one: {_X-Correlation-ID}", correlationId!);
-            }
-            else
-            {
-                logger.LogInformation("Using existing correlation ID: {_X-Correlation-ID}", correlationId!);
-            }
+                var hasCorrelationId = httpContext.Request.Headers.TryGetValue(ApiHeaderKeys.XCorrelationIdHeaderKey, out var correlationId);
 
-            httpContext.Response.Headers[ApiHeaderKeys.XCorrelationIdHeaderKey] = correlationId;
+                if (!hasCorrelationId)
+                {
+                    throw new OrchestratorException("No correlation ID found in the request header");
+                }
+#if DEBUG
+                // Make the correlation ID unique for testing/debugging purposes.
+                var debugCorrelationId = $"{correlationId}-{DateTime.UtcNow:yyMMddHHmmss}";
+
+                httpContext.Request.Headers[ApiHeaderKeys.XCorrelationIdHeaderKey] = debugCorrelationId;
+                httpContext.Response.Headers[ApiHeaderKeys.XCorrelationIdHeaderKey] = debugCorrelationId;
+#else
+                httpContext.Response.Headers[ApiHeaderKeys.XCorrelationIdHeaderKey] = correlationId;
+#endif
+            }
 
             await _next(httpContext);
         }

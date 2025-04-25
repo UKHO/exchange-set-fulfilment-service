@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using UKHO.ADDS.EFS.Constants;
 using UKHO.ADDS.EFS.Exceptions;
 using UKHO.ADDS.EFS.Orchestrator.Extensions;
+using UKHO.ADDS.EFS.Orchestrator.Logging;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Middleware
 {
@@ -38,7 +39,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Middleware
             httpContext.Response.ContentType = ApiHeaderKeys.ContentType;
             httpContext.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
-            _logger.LogError(exception, message, messageArgs);
+            var errorMessage = string.Format(message, messageArgs);
+
+            _logger.LogUnhandledHttpError(errorMessage, exception);
 
             var correlationId = httpContext.GetCorrelationId();
 
@@ -49,7 +52,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Middleware
                     ["correlationId"] = correlationId
                 }
             };
-            httpContext.Response.Headers.Append(ApiHeaderKeys.OriginHeaderKey, "Orchestrator");
+
+            httpContext.Response.Headers.Append(ApiHeaderKeys.OriginHeaderKey, "EFS Orchestrator");
             await httpContext.Response.WriteAsJsonAsync(problemDetails);
         }
     }

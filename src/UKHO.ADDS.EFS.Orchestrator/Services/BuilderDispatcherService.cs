@@ -2,6 +2,7 @@
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Entities;
 using UKHO.ADDS.EFS.Messages;
+using UKHO.ADDS.EFS.Orchestrator.Logging;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services
 {
@@ -10,7 +11,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         private const string ImageName = "efs-builder-s100";
         private const string ContainerName = "efs-builder-s100-";
 
-        private readonly Channel<ExchangeSetRequestMessage> _channel;
+        private readonly Channel<ExchangeSetRequestQueueMessage> _channel;
         private readonly JobService _jobService;
         private readonly ILogger<BuilderDispatcherService> _logger;
         private readonly string[] _command = ["sh", "-c", "echo Starting; sleep 5; echo Healthy now; sleep 5; echo Exiting..."];
@@ -21,7 +22,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         // TODO Figure out how best to control this timeout
         private readonly TimeSpan _containerTimeout = TimeSpan.FromMinutes(5);
 
-        public BuilderDispatcherService(Channel<ExchangeSetRequestMessage> channel, JobService jobService, IConfiguration configuration, ILogger<BuilderDispatcherService> logger, ILoggerFactory loggerFactory)
+        public BuilderDispatcherService(Channel<ExchangeSetRequestQueueMessage> channel, JobService jobService, IConfiguration configuration, ILogger<BuilderDispatcherService> logger, ILoggerFactory loggerFactory)
         {
             _channel = channel;
             _jobService = jobService;
@@ -40,21 +41,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            await foreach (var request in _channel.Reader.ReadAllAsync(stoppingToken))
+            await foreach (var queueMessage in _channel.Reader.ReadAllAsync(stoppingToken))
             {
                 try
                 {
-                    var job = await _jobService.CreateJob(request);
+                    var job = await _jobService.CreateJob(queueMessage);
 
-                    if (job.State == ExchangeSetJobState.ScsCatalogueUnchanged)
+                    if (job.State is ExchangeSetJobState.ScsCatalogueUnchanged or ExchangeSetJobState.Cancelled)
                     {
-                        await _jobService.CompleteJobAsync(1, job);
-                        return;
-                    }
-
-                    if (job.State == ExchangeSetJobState.Cancelled)
-                    {
-                        _logger.LogWarning("Job {job.Id} was cancelled. State: {job.State} | Correlation ID: {_X-Correlation-ID}", job.Id, job.State, job.CorrelationId);
                         return;
                     }
 
@@ -65,11 +59,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                         try
                         {
                             await ExecuteBuilder(job, stoppingToken);
-
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogError(ex, "Failed to execute builder. | Correlation ID: {_X-Correlation-ID}", job.CorrelationId);
+                            _logger.LogContainerExecutionFailed(ExchangeSetJobLogView.CreateFromJob(job), ex);
                         }
 
                         finally
@@ -80,7 +73,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to create job");
+                    _logger.LogJobCreationFailed(ex);
                     return;
                 }
             }
@@ -99,22 +92,26 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
             var logTask = streamer.StreamLogsAsync(
                 containerId,
-                line => { _logger.LogInformation($"[{containerName}] {line.ReplaceLineEndings("")}"); },
-                line => { _logger.LogError($"[{containerName}] {line}"); },
+#pragma warning disable LOG001
+                line => //{ _logger.LogInformation($"[{containerName}] {line.ReplaceLineEndings("")}"); },
+                {
+                },
+                line => { }, //{ _logger.LogError($"[{containerName}] {line}"); };
+
+#pragma warning restore LOG001
                 stoppingToken
             );
 
             try
             {
                 var exitCode = await _containerService.WaitForContainerExitAsync(containerId, _containerTimeout);
-                _logger.LogInformation("Container {containerId} exited with code: {exitCode}", containerId, exitCode);
 
-                await _jobService.CompleteJobAsync(exitCode, job);
+                await _jobService.BuilderContainerCompletedAsync(exitCode, job);
             }
 
             catch (TimeoutException)
             {
-                _logger.LogError("Container {containerId} exceeded timeout. Killing...", containerId);
+                _logger.LogContainerTimeout(containerId, ExchangeSetJobLogView.CreateFromJob(job));
                 await _containerService.StopContainerAsync(containerId, stoppingToken);
             }
 

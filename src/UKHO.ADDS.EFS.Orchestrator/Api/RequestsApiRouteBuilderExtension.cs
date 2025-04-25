@@ -1,8 +1,9 @@
 ﻿using Azure.Storage.Queues;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
-using UKHO.ADDS.EFS.Constants;
 using UKHO.ADDS.EFS.Messages;
+using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Extensions;
+using UKHO.ADDS.EFS.Orchestrator.Logging;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Api
@@ -16,22 +17,26 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
             requestsEndpoint.MapPost("/", async (ExchangeSetRequestMessage message, QueueServiceClient queueServiceClient, HttpContext httpContext) =>
             {
-                var zz = new { Property1 = "a prop", Property2 = "another prop" };
+                try
+                {
+                    var correlationId = httpContext.GetCorrelationId();
 
-                logger.LogInformation("Received request: {@zz}", zz);
+                    var queueMessage = new ExchangeSetRequestQueueMessage { DataStandard = message.DataStandard, Products = message.Products, CorrelationId = correlationId };
 
+                    var messageJson = JsonCodec.Encode(queueMessage);
 
-                var correlationId = httpContext.GetCorrelationId();
+                    var queueClient = queueServiceClient.GetQueueClient(StorageConfiguration.RequestQueueName);
+                    await queueClient.SendMessageAsync(messageJson);
 
-                message.CorrelationId = correlationId;
+                    logger.LogPostedExchangeSetQueueMessage(queueMessage);
+                }
+                catch (Exception e)
+                {
+                    logger.LogPostedExchangeSetQueueFailedMessage(message, e);
+                    throw;
+                }
 
-                var messageJson = JsonCodec.Encode(message);
-
-                var queueClient = queueServiceClient.GetQueueClient(StorageConfiguration.RequestQueueName);
-                await queueClient.SendMessageAsync(messageJson);
-
-                logger.LogInformation("Received request: {MessageJson} | Correlation ID: {_X-Correlation-ID}", messageJson, correlationId);
-            });
+            }).WithRequiredHeader("x-correlation-id", "Correlation ID", "a-correlation-id");
         }
     }
 }

@@ -19,10 +19,16 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                 var builder = WebApplication.CreateBuilder(args);
 
+                var oltpEndpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]!;
+
                 builder.Services.AddSerilog((services, lc) => lc
                     .ReadFrom.Configuration(builder.Configuration)
                     .ReadFrom.Services(services)
                     .Enrich.FromLogContext()
+                    .WriteTo.OpenTelemetry(o =>
+                    {
+                        o.Endpoint = oltpEndpoint;
+                    })
                     .WriteTo.Console());
 
                 builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());

@@ -3,20 +3,21 @@ using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Messages;
+using UKHO.ADDS.EFS.Orchestrator.Logging;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services
 {
     internal class QueuePollingService : BackgroundService
     {
-        private readonly Channel<ExchangeSetRequestMessage> _channel;
+        private readonly Channel<ExchangeSetRequestQueueMessage> _channel;
         private readonly ILogger<QueuePollingService> _logger;
 
         private readonly int _pollingIntervalSeconds;
         private readonly int _queueBatchSize;
         private readonly QueueClient _queueClient;
 
-        public QueuePollingService(Channel<ExchangeSetRequestMessage> channel, QueueServiceClient queueServiceClient, IConfiguration configuration, ILogger<QueuePollingService> logger)
+        public QueuePollingService(Channel<ExchangeSetRequestQueueMessage> channel, QueueServiceClient queueServiceClient, IConfiguration configuration, ILogger<QueuePollingService> logger)
         {
             _channel = channel;
             _logger = logger;
@@ -34,22 +35,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             {
                 try
                 {
-                    QueueMessage[] messages = await _queueClient.ReceiveMessagesAsync(_queueBatchSize, cancellationToken: stoppingToken);
+                    QueueMessage[] queueMessages = await _queueClient.ReceiveMessagesAsync(_queueBatchSize, cancellationToken: stoppingToken);
 
-                    foreach (var message in messages)
+                    foreach (var message in queueMessages)
                     {
-                        var exchangeSetRequestMessage = JsonCodec.Decode<ExchangeSetRequestMessage>(message.MessageText)!;
-
-                        await _channel.Writer.WriteAsync(JsonCodec.Decode<ExchangeSetRequestMessage>(message.MessageText)!, stoppingToken);
-
-                        _logger.LogInformation("Message with ID: {MessageId} written to the channel. | Correlation ID: {_X-Correlation-ID}", message.MessageId, exchangeSetRequestMessage.CorrelationId);
-
+                        await _channel.Writer.WriteAsync(JsonCodec.Decode<ExchangeSetRequestQueueMessage>(message.MessageText)!, stoppingToken);
                         await _queueClient.DeleteMessageAsync(message.MessageId, message.PopReceipt, stoppingToken);
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error reading message in queue polling service");
+                    _logger.LogQueueServiceMessageReadFailed(ex);
 
                     // TODO: Dead letter, remove...
                 }
