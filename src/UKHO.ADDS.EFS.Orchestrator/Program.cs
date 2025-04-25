@@ -106,7 +106,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 return factory.CreateClient(sanitizedEndpoint, "");
             });
 
-            builder.Services.AddSingleton(x => new JobService(salesCatalogueEndpoint.Replace("\n", "").Replace("\r", "").Replace("\t", "").Trim(), x.GetRequiredService<ExchangeSetJobTable>(), x.GetRequiredService<ExchangeSetTimestampTable>(), x.GetRequiredService<ISalesCatalogueClient>(), x.GetRequiredService<ILogger<JobService>>()));
+            builder.Services.AddSingleton(x => new JobService(x.GetRequiredService<ExchangeSetJobTable>(), x.GetRequiredService<ExchangeSetTimestampTable>(), x.GetRequiredService<ISalesCatalogueClient>(), x.GetRequiredService<ILogger<JobService>>()));
         }
     }
 }

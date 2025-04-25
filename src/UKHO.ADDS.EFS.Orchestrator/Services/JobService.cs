@@ -12,15 +12,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
     {
         private const string ScsApiVersion = "v2";
         private const string ProductType = "s100";
-        private readonly string _salesCatalogueServiceEndpoint;
         private readonly ExchangeSetJobTable _jobTable;
         private readonly ExchangeSetTimestampTable _timestampTable;
         private readonly ISalesCatalogueClient _salesCatalogueClient;
         private readonly ILogger<JobService> _logger;
 
-        public JobService(string salesCatalogueServiceEndpoint, ExchangeSetJobTable jobTable, ExchangeSetTimestampTable timestampTable, ISalesCatalogueClient salesCatalogueClient, ILogger<JobService> logger)
+        public JobService(ExchangeSetJobTable jobTable, ExchangeSetTimestampTable timestampTable, ISalesCatalogueClient salesCatalogueClient, ILogger<JobService> logger)
         {
-            _salesCatalogueServiceEndpoint = salesCatalogueServiceEndpoint;
             _jobTable = jobTable;
             _timestampTable = timestampTable;
             _salesCatalogueClient = salesCatalogueClient;
@@ -106,36 +104,34 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             await _jobTable.UpdateAsync(job);
         }
 
-        private async Task<(S100SalesCatalogueResponse s100SalesCatalogueResponse, DateTime? scsTimestamp)> GetProductJson(DateTime? timestamp, string CorrelationId)
+        private async Task<(S100SalesCatalogueResponse s100SalesCatalogueResponse, DateTime? scsTimestamp)> GetProductJson(DateTime? timestamp, string correlationId)
         {
-            _logger.LogInformation("Starting GetProductJson with timestamp: {Timestamp} | Correlation ID: {X-Correlation-ID}", timestamp, CorrelationId);
+            _logger.LogInformation("Starting GetProductJson with timestamp: {Timestamp} | Correlation ID: {X-Correlation-ID}", timestamp, correlationId);
 
-            var timestampString = (timestamp.HasValue && timestamp.Value == DateTime.MinValue) ? string.Empty : timestamp?.ToString("R");
-
-            var s100SalesCatalogueResult = await _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(ScsApiVersion, ProductType, timestampString, CorrelationId);
+            var s100SalesCatalogueResult = await _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(ScsApiVersion, ProductType, timestamp, correlationId);
 
             if (s100SalesCatalogueResult.IsSuccess(out var s100SalesCatalogueData, out var error))
             {
-                _logger.LogInformation("Successfully retrieved data from Sales Catalogue Service with response code: {ResponseCode} | Correlation ID: {X-Correlation-ID}", s100SalesCatalogueData!.ResponseCode, CorrelationId);
+                _logger.LogInformation("Successfully retrieved data from Sales Catalogue Service with response code: {ResponseCode} | Correlation ID: {X-Correlation-ID}", s100SalesCatalogueData!.ResponseCode, correlationId);
 
                 switch (s100SalesCatalogueData.ResponseCode)
                 {
                     case HttpStatusCode.OK:
-                        _logger.LogInformation("Sales Catalogue Service returned OK with {ProductCount} products. | Correlation ID: {X-Correlation-ID}", s100SalesCatalogueData.ResponseBody.Count, CorrelationId);
+                        _logger.LogInformation("Sales Catalogue Service returned OK with {ProductCount} products. | Correlation ID: {X-Correlation-ID}", s100SalesCatalogueData.ResponseBody.Count, correlationId);
                         return (s100SalesCatalogueData, s100SalesCatalogueData.LastModified);
 
                     case HttpStatusCode.NotModified:
-                        _logger.LogInformation("Sales Catalogue Service returned NotModified. Using existing timestamp: {Timestamp} | Correlation ID: {X-Correlation-ID}", timestamp, CorrelationId);
+                        _logger.LogInformation("Sales Catalogue Service returned NotModified. Using existing timestamp: {Timestamp} | Correlation ID: {X-Correlation-ID}", timestamp, correlationId);
                         return (s100SalesCatalogueData, timestamp);
                 }
             }
             else
             {
                 var errorMessage = string.IsNullOrEmpty(error?.Message) ? error?.Metadata["ErrorResponse"] : error?.Message;
-                _logger.LogWarning("Failed to retrieve S100 products from Sales Catalogue Service. Error: {Error} | Correlation ID: {X-Correlation-ID}", errorMessage, CorrelationId);
+                _logger.LogWarning("Failed to retrieve S100 products from Sales Catalogue Service. Error: {Error} | Correlation ID: {X-Correlation-ID}", errorMessage, correlationId);
             }
 
-            _logger.LogWarning("Returning empty product list and timestamp due to failure. | Correlation ID: {X-Correlation-ID}", CorrelationId);
+            _logger.LogWarning("Returning empty product list and timestamp due to failure. | Correlation ID: {X-Correlation-ID}", correlationId);
             return (new S100SalesCatalogueResponse(), timestamp);
         }
 

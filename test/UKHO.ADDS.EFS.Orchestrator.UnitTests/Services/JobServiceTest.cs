@@ -35,7 +35,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
             _fakeTableClient = A.Fake<TableClient>();
 
             _jobService = new JobService(
-                "http://fake-endpoint",
                 _jobTable,
                 _timestampTable,
                 _salesCatalogueClient,
@@ -46,7 +45,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         private void MockSalesCatalogueClientResponse(IResult<S100SalesCatalogueResponse> response)
         {
             A.CallTo(() => _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(
-                    A<string>.Ignored, A<string>.Ignored, A<string>.Ignored, A<string>.Ignored))
+                    A<string>.Ignored, A<string>.Ignored, A<DateTime>.Ignored, A<string>.Ignored))
                 .Returns(response);
         }
 

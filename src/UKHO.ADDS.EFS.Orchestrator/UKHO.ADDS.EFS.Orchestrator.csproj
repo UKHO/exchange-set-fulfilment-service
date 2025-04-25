@@ -26,8 +26,8 @@
     <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.3" />
-    <PackageReference Include="UKHO.ADDS.Clients.Common" Version="0.0.50415-alpha.1" />
-    <PackageReference Include="UKHO.ADDS.Clients.SalesCatalogueService" Version="0.0.50415-alpha.1" />
+    <PackageReference Include="UKHO.ADDS.Clients.Common" Version="0.0.50422-alpha.3" />
+    <PackageReference Include="UKHO.ADDS.Clients.SalesCatalogueService" Version="0.0.50422-alpha.3" />
   </ItemGroup>
 
   <ItemGroup>
