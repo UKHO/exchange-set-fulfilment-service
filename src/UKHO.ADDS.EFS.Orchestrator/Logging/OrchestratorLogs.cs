@@ -68,14 +68,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Logging
         // A request for the job from a builder container has failed
         public static readonly EventId GetJobRequestFailed = new(GetJobRequestFailedId, nameof(GetJobRequestFailed));
 
-        [LoggerMessage(GetJobRequestFailedId, LogLevel.Error, "Get job request failed for job id: {jobId}", EventName = nameof(GetJobRequestFailed))]
+        [LoggerMessage(GetJobRequestFailedId, LogLevel.Error, "Get job request failed for job id: {@jobId}", EventName = nameof(GetJobRequestFailed))]
         public static partial void LogGetJobRequestFailed(this ILogger logger, string jobId);
 
 
         // A job has been created
         public static readonly EventId JobCreated = new(JobCreatedId, nameof(JobCreated));
 
-        [LoggerMessage(JobCreatedId, LogLevel.Information, "Job created from correlation id [{correlationId}]: {@job}", EventName = nameof(JobCreated))]
+        [LoggerMessage(JobCreatedId, LogLevel.Information, "Job created from correlation id [{@correlationId}]: {@job}", EventName = nameof(JobCreated))]
         public static partial void LogJobCreated(this ILogger logger, string correlationId, [LogProperties] ExchangeSetJobLogView job);
 
 
@@ -110,21 +110,21 @@ namespace UKHO.ADDS.EFS.Orchestrator.Logging
         // The container start failed
         public static readonly EventId ContainerStartFailed = new(ContainerStartFailedId, nameof(ContainerStartFailed));
 
-        [LoggerMessage(ContainerStartFailedId, LogLevel.Error, "Builder container start failed: {containerId}", EventName = nameof(ContainerStartFailed))]
+        [LoggerMessage(ContainerStartFailedId, LogLevel.Error, "Builder container start failed: {@containerId}", EventName = nameof(ContainerStartFailed))]
         public static partial void LogContainerStartFailed(this ILogger logger, string containerId);
 
 
         // The container wait failed
         public static readonly EventId ContainerWaitFailed = new(ContainerWaitFailedId, nameof(ContainerWaitFailed));
 
-        [LoggerMessage(ContainerWaitFailedId, LogLevel.Error, "Builder container start failed: {containerId} {message}", EventName = nameof(ContainerWaitFailed))]
+        [LoggerMessage(ContainerWaitFailedId, LogLevel.Error, "Builder container start failed: {@containerId} {@message}", EventName = nameof(ContainerWaitFailed))]
         public static partial void LogContainerWaitFailed(this ILogger logger, string containerId, string message);
 
 
         // The container was removed
         public static readonly EventId ContainerRemoved = new(ContainerRemovedId, nameof(ContainerRemoved));
 
-        [LoggerMessage(ContainerRemovedId, LogLevel.Information, "Builder container removed: {containerId}", EventName = nameof(ContainerRemoved))]
+        [LoggerMessage(ContainerRemovedId, LogLevel.Information, "Builder container removed: {@containerId}", EventName = nameof(ContainerRemoved))]
         public static partial void LogContainerRemoved(this ILogger logger, string containerId);
 
 
@@ -138,7 +138,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Logging
         // The builder container timed out
         public static readonly EventId ContainerTimeout = new(ContainerTimeoutId, nameof(ContainerTimeout));
 
-        [LoggerMessage(ContainerTimeoutId, LogLevel.Error, "Builder container timed out: {containerId} {@job}", EventName = nameof(ContainerTimeout))]
+        [LoggerMessage(ContainerTimeoutId, LogLevel.Error, "Builder container timed out: {@containerId} {@job}", EventName = nameof(ContainerTimeout))]
         public static partial void LogContainerTimeout(this ILogger logger, string containerId, [LogProperties] ExchangeSetJobLogView job);
 
 
