@@ -11,6 +11,7 @@ using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Services;
 using UKHO.ADDS.EFS.Orchestrator.Tables;
 using UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure;
+using UKHO.ADDS.EFS.Orchestrator.UnitTests.Extensions;
 using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
@@ -35,7 +36,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
             _fakeTableClient = A.Fake<TableClient>();
 
             _jobService = new JobService(
-                "http://fake-endpoint",
                 _jobTable,
                 _timestampTable,
                 _salesCatalogueClient,
@@ -53,7 +53,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         [Test]
         public async Task WhenCreateJobIsCalledWithProductsAreReturned_ThenJobStateShouldBeInProgress()
         {
-            var request = CreateRequestMessage();
+            var request = CreateQueueMessage();
             var successResponse = Result.Success(new S100SalesCatalogueResponse
             {
                 ResponseCode = HttpStatusCode.OK,
@@ -86,7 +86,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         [Test]
         public async Task WhenCreateJobIsCalledWithNotModified_ThenSetsJobStateToScsCatalogueUnchanged()
         {
-            var request = CreateRequestMessage();
+            var request = CreateQueueMessage();
             var successResponse = Result.Success(new S100SalesCatalogueResponse
             {
                 ResponseCode = HttpStatusCode.NotModified,
@@ -109,7 +109,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         [Test]
         public async Task WhenCreateJobIsCalledWithNoProductsAreReturned_ThenSetsJobStateToCancelled()
         {
-            var request = CreateRequestMessage();
+            var request = CreateQueueMessage();
             var failureResult = Result.Failure<S100SalesCatalogueResponse>(
                 new Error
                 {
@@ -131,7 +131,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         }
 
         [Test]
-        public async Task WhenCompleteJobAsyncIsCalledWithExitCodeIsFailed_ThenUpdatesJobStateToSucceeded()
+        public async Task WhenCompleteJobAsyncIsCalledWithExitCodeIsFailed_ThenUpdatesJobStateToFailed()
         {
             var job = new ExchangeSetJob
             {
@@ -141,31 +141,31 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
                 State = ExchangeSetJobState.Created
             };
 
-            await _jobService.CompleteJobAsync(BuilderExitCodes.Failed, job);
-
-            Assert.Multiple(() => { Assert.That(job.State, Is.EqualTo(ExchangeSetJobState.Succeeded)); });
-        }
-
-        [Test]
-        public async Task WhenCompleteJobAsyncIsCalledWithExitCodeSuccess_ThenUpdatesJobStateToFailed()
-        {
-            var job = new ExchangeSetJob
-            {
-                Id = "test-job-id",
-                DataStandard = ExchangeSetDataStandard.S100,
-                SalesCatalogueTimestamp = DateTime.UtcNow,
-                State = ExchangeSetJobState.Created
-            };
-
-            await _jobService.CompleteJobAsync(BuilderExitCodes.Success, job);
+            await _jobService.BuilderContainerCompletedAsync(BuilderExitCodes.Failed, job);
 
             Assert.Multiple(() => { Assert.That(job.State, Is.EqualTo(ExchangeSetJobState.Failed)); });
         }
 
-        private static ExchangeSetRequestMessage CreateRequestMessage(string correlationId = "test-correlation-id",
+        [Test]
+        public async Task WhenCompleteJobAsyncIsCalledWithExitCodeSuccess_ThenUpdatesJobStateToSucceeded()
+        {
+            var job = new ExchangeSetJob
+            {
+                Id = "test-job-id",
+                DataStandard = ExchangeSetDataStandard.S100,
+                SalesCatalogueTimestamp = DateTime.UtcNow,
+                State = ExchangeSetJobState.Created
+            };
+
+            await _jobService.BuilderContainerCompletedAsync(BuilderExitCodes.Success, job);
+
+            Assert.Multiple(() => { Assert.That(job.State, Is.EqualTo(ExchangeSetJobState.Succeeded)); });
+        }
+
+        private static ExchangeSetRequestQueueMessage CreateQueueMessage(string correlationId = "test-correlation-id",
             string products = "TestProduct")
         {
-            return new ExchangeSetRequestMessage
+            return new ExchangeSetRequestQueueMessage
             {
                 DataStandard = ExchangeSetDataStandard.S100,
                 CorrelationId = correlationId,
@@ -180,7 +180,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
                     A<int?>.Ignored,
                     A<List<string>>.Ignored,
                     A<CancellationToken>.Ignored))
-                .Returns(TestHelper.CreateAsyncPageable(new List<JsonEntity>()));
+                .Returns(new List<JsonEntity>().CreateAsyncPageable());
         }
     }
 }

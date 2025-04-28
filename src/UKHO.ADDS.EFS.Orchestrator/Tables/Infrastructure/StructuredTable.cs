@@ -32,7 +32,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
             }
             catch (Exception ex)
             {
-                Log.Error($"Error creating table: {ex.Message}");
                 return Result.Failure($"Error creating table: {ex.Message}");
             }
         }
@@ -135,7 +134,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
             }
             catch (Exception ex)
             {
-                Log.Error($"Error updating entity: {ex.Message}");
                 return Result.Failure($"Error: {ex.Message}");
             }
         }
@@ -157,7 +155,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
             }
             catch (Exception ex)
             {
-                Log.Error($"Error upserting entity: {ex.Message}");
                 return Result.Failure($"Error: {ex.Message}");
             }
         }
@@ -170,13 +167,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
             try
             {
                 await _tableClient.DeleteEntityAsync(partitionKey, rowKey);
-                Log.Information($"Entity with PartitionKey = {partitionKey}, RowKey = {rowKey} deleted successfully.");
 
                 return Result.Success();
             }
             catch (Exception ex)
             {
-                Log.Error($"Failed to delete entity with PartitionKey = {partitionKey}, RowKey = {rowKey}. Error: {ex.Message}");
                 return Result.Failure($"Error: {ex.Message}");
             }
         }
@@ -194,11 +189,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
                 {
                     // Delete each entity in the partition
                     await _tableClient.DeleteEntityAsync(entity.PartitionKey, entity.RowKey);
-                    Log.Information($"Entity with PartitionKey = {entity.PartitionKey}, RowKey = {entity.RowKey} deleted successfully.");
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"Failed to delete entity with PartitionKey = {entity.PartitionKey}, RowKey = {entity.RowKey}. Error: {ex.Message}");
                     return Result.Failure($"Error: {ex.Message}");
                 }
             }

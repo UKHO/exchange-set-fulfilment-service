@@ -7,6 +7,7 @@ using UKHO.ADDS.EFS.Entities;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Tables;
 using UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure;
+using UKHO.ADDS.EFS.Orchestrator.UnitTests.Extensions;
 
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
 {
@@ -45,7 +46,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
         public async Task WhenCreateIfNotExistsAsyncCalled_ThenReturnsSuccess()
         {
             A.CallTo(() => _fakeTableClient.CreateIfNotExistsAsync(A<CancellationToken>.Ignored))
-                .Returns(Task.FromResult<Response<TableItem>>(null));
+                .Returns(Task.FromResult<Response<TableItem>>(null!));
 
             var result = await _exchangeSetTimestampTable.CreateIfNotExistsAsync();
 
@@ -75,7 +76,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
                     A<int?>.Ignored,
                     A<List<string>>.Ignored,
                     A<CancellationToken>.Ignored))
-                .Returns(TestHelper.CreateAsyncPageable(new List<JsonEntity>()));
+                .Returns(new List<JsonEntity>().CreateAsyncPageable());
 
             var result = await _exchangeSetTimestampTable.GetAsync(PartitionKey, RowKey);
 
@@ -100,7 +101,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
                     A<int?>.Ignored,
                     A<List<string>>.Ignored,
                     A<CancellationToken>.Ignored))
-                .Returns(TestHelper.CreateAsyncPageable<JsonEntity>(fakeTable));
+                .Returns(fakeTable.CreateAsyncPageable());
 
             var result = await _exchangeSetTimestampTable.GetAsync(PartitionKey, RowKey);
             result.IsSuccess(out var value, out var error);
@@ -121,7 +122,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
                     A<int?>.Ignored,
                     A<List<string>>.Ignored,
                     A<CancellationToken>.Ignored))
-                .Returns(TestHelper.CreateAsyncPageable(new List<JsonEntity>()));
+                .Returns(new List<JsonEntity>().CreateAsyncPageable());
 
             var result = await _exchangeSetTimestampTable.GetAsync(PartitionKey);
 
@@ -152,7 +153,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
                     A<int?>.Ignored,
                     A<List<string>>.Ignored,
                     A<CancellationToken>.Ignored))
-                .Returns(TestHelper.CreateAsyncPageable(fakeTable));
+                .Returns(fakeTable.CreateAsyncPageable());
 
             var result = await _exchangeSetTimestampTable.GetAsync(PartitionKey);
 
@@ -172,7 +173,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
         public async Task WhenAddAsyncCalledWithValidEntity_ThenReturnsSuccess()
         {
             A.CallTo(() => _fakeTableClient.AddEntityAsync(A<JsonEntity>.Ignored, A<CancellationToken>.Ignored))
-                .Returns(Task.FromResult<Response>(null));
+                .Returns(Task.FromResult<Response>(null!));
 
             var result = await _exchangeSetTimestampTable.AddAsync(_entity);
 

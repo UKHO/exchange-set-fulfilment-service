@@ -8,7 +8,6 @@ namespace UKHO.ADDS.EFS.Entities
     {
         public string Id { get; set; }
 
-        // TODO - replace with POCO describing products
         public List<S100Products> Products { get; set; }
 
         public DateTime Timestamp { get; set; }

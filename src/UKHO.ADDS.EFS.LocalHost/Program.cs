@@ -28,8 +28,6 @@ namespace UKHO.ADDS.EFS.LocalHost
             var containerRuntime = builder.Configuration.GetValue<ContainerRuntime>("Containers:ContainerRuntime");
             var buildOnStartup = builder.Configuration.GetValue<bool>("Containers:BuildOnStartup");
 
-
-
             // Storage configuration
 
             var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e => { e.WithDataVolume(); });
@@ -80,7 +78,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                 var addsMockEndpoint = addsMockContainer.GetEndpoint(ContainerConfiguration.MockContainerEndpointName);
                 var fssEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.ContainerHost, Path = "fss" };
 
-                var scsEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.ContainerHost, Path = "scs" };
+                var scsEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.Host, Path = "scs" };
 
                 var orchestratorServiceEndpoint = orchestratorService.GetEndpoint("http").Url;
 

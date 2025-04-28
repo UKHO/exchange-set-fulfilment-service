@@ -35,7 +35,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                     break;
                 }
 
-                var text = Encoding.UTF8.GetString(buffer, 0, result.Count).TrimEnd('\r', '\n');
+                var text = Encoding.UTF8.GetString(buffer, 0, result.Count);
 
                 switch (result.Target)
                 {

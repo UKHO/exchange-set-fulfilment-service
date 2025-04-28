@@ -46,7 +46,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error adding entity");
                 return Result.Failure($"Error: {ex.Message}");
             }
         }
@@ -79,7 +78,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating entity");
                 return Result.Failure($"Error: {ex.Message}");
             }
         }
@@ -105,7 +103,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error upserting entity");
                 return Result.Failure($"Error: {ex.Message}");
             }
         }
@@ -139,7 +136,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving entity");
                 return Result.Failure<TEntity>($"Error: {ex.Message}");
             }
         }
@@ -173,9 +169,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
 
                 return entities;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                _logger.LogError(ex, "Error retrieving entities by {PartitionKey}", partitionKey);
                 return [];
             }
         }
@@ -207,9 +202,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
 
                 return entities;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                _logger.LogError(ex, "Error retrieving entities");
                 return [];
             }
         }
@@ -236,7 +230,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error deleting entity");
                 return Result.Failure($"Error: {ex.Message}");
             }
         }
@@ -261,7 +254,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error deleting entities");
                 return Result.Failure($"Error: {ex.Message}");
             }
         }
@@ -277,7 +269,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error creating blob table");
                 return Result.Failure($"Error creating blob table: {ex.Message}");
             }
         }

@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Serilog;
+using UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
@@ -9,7 +10,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
     {
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
         {
-            Log.Information("Starting Tomcat...");
+            var logger = context.Subject.LoggerFactory.CreateLogger<StartTomcatNode>();
 
             var catalinaHome = Environment.GetEnvironmentVariable("CATALINA_HOME");
 
@@ -29,8 +30,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
 
             // Tomcat writes logs to stderr
 
-            process.OutputDataReceived += (sender, args) => Log.Debug($"[Tomcat] {args.Data}");
-            process.ErrorDataReceived += (sender, args) => Log.Debug($"[Tomcat] {args.Data}");
+            process.OutputDataReceived += (sender, args) => logger.LogTomcatMessage(new TomcatLogView() { TomcatMessage = args.Data!});
+            process.ErrorDataReceived += (sender, args) => logger.LogTomcatMessage(new TomcatLogView() { TomcatMessage = args.Data! });
 
             process.Start();
             process.BeginOutputReadLine();
@@ -40,14 +41,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
             using var httpClient = new HttpClient();
             var ready = false;
 
-            for (var i = 0; i < 30; i++) // ~30s timeout
+            for (var i = 0; i < 30; i++) // TODO configure this from orchestrator ~30s timeout
             {
                 try
                 {
                     var response = await httpClient.GetAsync("http://localhost:8080/xchg-2.7/v2.7/dev?arg=test&authkey=noauth");
                     if (response.IsSuccessStatusCode)
                     {
-                        Console.WriteLine("Tomcat is ready");
                         ready = true;
                         break;
                     }
@@ -57,7 +57,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
                     // Ignore and retry
                 }
 
-                Log.Information("Waiting for Tomcat to become ready...");
                 await Task.Delay(1000);
             }
 

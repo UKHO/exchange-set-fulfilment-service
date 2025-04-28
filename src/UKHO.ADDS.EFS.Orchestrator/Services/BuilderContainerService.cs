@@ -2,19 +2,23 @@
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
+using UKHO.ADDS.EFS.Orchestrator.Logging;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services
 {
     public class BuilderContainerService
     {
         private readonly string _builderServiceContainerEndpoint;
+        private readonly string _otlpContainerEndpoint;
         private readonly ILogger<BuilderContainerService> _logger;
         private readonly string _fileShareEndpoint;
 
-        public BuilderContainerService(string fileShareEndpoint, string builderServiceContainerEndpoint, ILoggerFactory loggerFactory)
+        public BuilderContainerService(string fileShareEndpoint, string builderServiceContainerEndpoint, string otlpContainerEndpoint, ILoggerFactory loggerFactory)
         {
             _fileShareEndpoint = fileShareEndpoint;
             _builderServiceContainerEndpoint = builderServiceContainerEndpoint;
+            _otlpContainerEndpoint = otlpContainerEndpoint;
+
             _logger = loggerFactory.CreateLogger<BuilderContainerService>();
 
             DockerClient = new DockerClientConfiguration(GetDockerEndpoint()).CreateClient();
@@ -28,15 +32,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         {
             var reference = $"{imageName}:{tag}";
 
-            var images = await DockerClient.Images.ListImagesAsync(new ImagesListParameters { Filters = new Dictionary<string, IDictionary<string, bool>> { ["reference"] = new Dictionary<string, bool> { [reference] = true } } });
+            var images = await DockerClient.Images.ListImagesAsync(new ImagesListParameters
+            {
+                Filters = new Dictionary<string, IDictionary<string, bool>> { ["reference"] = new Dictionary<string, bool> { [reference] = true } }
+            });
 
             if (images.Count > 0)
             {
-                _logger.LogInformation("Image '{reference}' already exists", reference);
                 return;
             }
-
-            _logger.LogInformation("Image '{reference}' not found. Pulling...", reference);
 
             await DockerClient.Images.CreateImageAsync(
                 new ImagesCreateParameters { FromImage = imageName, Tag = tag },
@@ -48,8 +52,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                         Console.WriteLine($"{msg.Status} {msg.ProgressMessage ?? ""}");
                     }
                 }));
-
-            _logger.LogInformation("Image '{reference}' pulled successfully", reference);
         }
 
         public async Task<string> CreateContainerAsync(string image, string name, string[] command, string id)
@@ -62,7 +64,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 AttachStdout = true,
                 AttachStderr = true,
                 Tty = false,
-                Env = new List<string> { $"{BuilderEnvironmentVariables.JobId}={id}", $"{BuilderEnvironmentVariables.FileShareEndpoint}={_fileShareEndpoint}", $"{BuilderEnvironmentVariables.BuildServiceEndpoint}={_builderServiceContainerEndpoint}" },
+                Env = new List<string>
+                {
+                    $"{BuilderEnvironmentVariables.JobId}={id}",
+                    $"{BuilderEnvironmentVariables.FileShareEndpoint}={_fileShareEndpoint}",
+                    $"{BuilderEnvironmentVariables.BuildServiceEndpoint}={_builderServiceContainerEndpoint}",
+                    $"{BuilderEnvironmentVariables.OtlpEndpoint}={_otlpContainerEndpoint}"
+                },
                 Healthcheck = new HealthConfig
                 {
                     Test = new[] { "CMD-SHELL", "echo healthy" },
@@ -74,7 +82,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 HostConfig = new HostConfig { RestartPolicy = new RestartPolicy { Name = RestartPolicyKind.OnFailure, MaximumRetryCount = 3 } }
             });
 
-            _logger.LogInformation("Created container with ID: {response.ID}", response.ID);
             return response.ID;
         }
 
@@ -83,6 +90,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             var started = await DockerClient.Containers.StartContainerAsync(containerId, new ContainerStartParameters());
             if (!started)
             {
+                _logger.LogContainerStartFailed(containerId);
                 throw new Exception("Failed to start container");
             }
         }
@@ -94,7 +102,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
             if (response.Error != null)
             {
-                _logger.LogError("Container reported error: {response.Error.Message}", response.Error.Message);
+                _logger.LogContainerWaitFailed(containerId, response.Error.Message);
             }
 
             return response.StatusCode;
@@ -104,7 +112,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
         public async Task RemoveContainerAsync(string containerId, CancellationToken stoppingToken)
         {
-            _logger.LogInformation("Removing container {containerId}", containerId);
+            _logger.LogContainerRemoved(containerId);
             await DockerClient.Containers.RemoveContainerAsync(containerId, new ContainerRemoveParameters { Force = true }, stoppingToken);
         }
 

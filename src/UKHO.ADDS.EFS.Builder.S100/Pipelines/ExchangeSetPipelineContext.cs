@@ -11,12 +11,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
         private readonly IConfiguration _configuration;
         private readonly INodeStatusWriter _nodeStatusWriter;
         private readonly IToolClient _toolClient;
+        private readonly ILoggerFactory _loggerFactory;
 
-        public ExchangeSetPipelineContext(IConfiguration configuration, INodeStatusWriter nodeStatusWriter, IToolClient toolClient)
+        public ExchangeSetPipelineContext(IConfiguration configuration, INodeStatusWriter nodeStatusWriter, IToolClient toolClient, ILoggerFactory loggerFactory)
         {
             _configuration = configuration;
             _nodeStatusWriter = nodeStatusWriter;
             _toolClient = toolClient;
+            _loggerFactory = loggerFactory;
         }
 
         public IConfiguration Configuration => _configuration;
@@ -24,6 +26,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
         public IToolClient ToolClient => _toolClient;
 
         public INodeStatusWriter NodeStatusWriter => _nodeStatusWriter;
+
+        public ILoggerFactory LoggerFactory => _loggerFactory;
 
         public string JobId { get; set; }
         public bool IsDebugSession { get; set; }

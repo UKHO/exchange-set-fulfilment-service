@@ -1,33 +1,42 @@
 ﻿using Azure.Storage.Queues;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
-using UKHO.ADDS.EFS.Constants;
-using static System.Net.Mime.MediaTypeNames;
 using UKHO.ADDS.EFS.Messages;
+using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
+using UKHO.ADDS.EFS.Orchestrator.Extensions;
+using UKHO.ADDS.EFS.Orchestrator.Logging;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Api
 {
     public static class RequestsApiRouteBuilderExtension
     {
-        public static void RegisterRequestsApi(this IEndpointRouteBuilder routeBuilder)
+        public static void RegisterRequestsApi(this IEndpointRouteBuilder routeBuilder, ILoggerFactory loggerFactory)
         {
+            var logger = loggerFactory.CreateLogger("RequestsApi");
             var requestsEndpoint = routeBuilder.MapGroup("/requests");
 
-            requestsEndpoint.MapPost("/", async (ExchangeSetRequestMessage message, QueueServiceClient queueServiceClient, HttpContext httpContext, ILoggerFactory loggerFactory) =>
+            requestsEndpoint.MapPost("/", async (ExchangeSetRequestMessage message, QueueServiceClient queueServiceClient, HttpContext httpContext) =>
             {
-                var logger = loggerFactory.CreateLogger("RequestsApi");
+                try
+                {
+                    var correlationId = httpContext.GetCorrelationId();
 
-                var correlationId = httpContext.Request.Headers[ApiHeaderKeys.XCorrelationIdHeaderKey].FirstOrDefault() ?? string.Empty;
+                    var queueMessage = new ExchangeSetRequestQueueMessage { DataStandard = message.DataStandard, Products = message.Products, CorrelationId = correlationId };
 
-                message.CorrelationId = correlationId;
+                    var messageJson = JsonCodec.Encode(queueMessage);
 
-                var messageJson = JsonCodec.Encode(message);
+                    var queueClient = queueServiceClient.GetQueueClient(StorageConfiguration.RequestQueueName);
+                    await queueClient.SendMessageAsync(messageJson);
 
-                var queueClient = queueServiceClient.GetQueueClient(StorageConfiguration.RequestQueueName);
-                await queueClient.SendMessageAsync(messageJson);
+                    logger.LogPostedExchangeSetQueueMessage(queueMessage);
+                }
+                catch (Exception e)
+                {
+                    logger.LogPostedExchangeSetQueueFailedMessage(message, e);
+                    throw;
+                }
 
-                logger.LogInformation("Received request: {MessageJson} | Correlation ID: {_X-Correlation-ID}", messageJson, correlationId);
-            });
+            }).WithRequiredHeader("x-correlation-id", "Correlation ID", "a-correlation-id");
         }
     }
 }
