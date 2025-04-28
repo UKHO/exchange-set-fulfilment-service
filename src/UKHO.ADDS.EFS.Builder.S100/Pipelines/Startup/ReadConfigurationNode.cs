@@ -1,4 +1,4 @@
-﻿using Serilog;
+﻿using UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
@@ -11,14 +11,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
 
         protected override Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
         {
-            Log.Information("UKHO ADDS EFS S100 Builder");
-            Log.Information($"Machine ID      : {Environment.MachineName}");
+            var logger = context.Subject.LoggerFactory.CreateLogger<ReadConfigurationNode>();
 
             var jobId = GetEnvironmentVariable(BuilderEnvironmentVariables.JobId, DebugJobId);
 
             if (jobId.Equals(DebugJobId, StringComparison.InvariantCultureIgnoreCase))
             {
-                Log.Warning("Debug session - request id manually assigned");
+                logger.LogDebugJobWarning();
 
                 context.Subject.IsDebugSession = true;
                 context.Subject.JobId = Guid.NewGuid().ToString("N");
@@ -35,9 +34,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
             context.Subject.FileShareEndpoint = fileShareEndpoint;
             context.Subject.BuildServiceEndpoint = buildServiceEndpoint;
 
-            Log.Information($"Job id          : {jobId}");
-            Log.Information($"File Share      : {fileShareEndpoint}");
-            Log.Information($"Build Service   : {buildServiceEndpoint}");
+            var configurationLogView = new ConfigurationLogView()
+            {
+                JobId = jobId,
+                FileShareEndpoint = fileShareEndpoint,
+                BuildServiceEndpoint = buildServiceEndpoint,
+            };
+
+            logger.LogStartupConfiguration(configurationLogView);
 
             return Task.FromResult(NodeResultStatus.Succeeded);
         }
@@ -53,7 +57,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
 
             if (string.IsNullOrEmpty(overrideValue))
             {
-                Log.Error($"{variable} is not set");
                 throw new InvalidOperationException($"{variable} is not set");
             }
 

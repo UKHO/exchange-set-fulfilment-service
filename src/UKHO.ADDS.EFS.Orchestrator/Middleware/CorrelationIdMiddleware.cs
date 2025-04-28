@@ -5,7 +5,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Middleware
 {
     internal class CorrelationIdMiddleware
     {
-        private static readonly string[] _pathsWithoutCorrelationId = ["/scalar", "/healthcheck", "/openapi", "/jobs", "/status"];
+        private static readonly string[] _pathsWithoutCorrelationId = ["/scalar", "/healthcheck", "/openapi", "/jobs", "/status", "/favicon.ico"];
 
         private readonly RequestDelegate _next;
 

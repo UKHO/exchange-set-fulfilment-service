@@ -7,13 +7,18 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace UKHO.ADDS.EFS.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class DisallowRawLoggerUsageAnalyzer : DiagnosticAnalyzer
+    public class DisallowNonLoggerMessageLoggingAnalyzer : DiagnosticAnalyzer
     {
         public const string DiagnosticId = "LOG001";
         private const string Category = "Logging";
 
-        private static readonly LocalizableString _title = "Raw logging usage is not allowed";
-        private static readonly LocalizableString _messageFormat = "This project uses Structured Logging. Avoid calling '{0}' directly. Use LoggerMessage source-generated methods instead.";
+        private static readonly LocalizableString _title = "Only LoggerMessage-based logging is allowed";
+
+        private static readonly LocalizableString _messageFormat =
+            "This project uses Structured logging. Avoid calling '{0}' directly. Use LoggerMessage source-generated methods instead.";
+
+        private static readonly LocalizableString _description =
+            "Structured logging must use LoggerMessage source-generated methods only. Do not use Serilog.Log or ILogger directly.";
 
         private static readonly DiagnosticDescriptor _rule = new(
             DiagnosticId,
@@ -21,9 +26,14 @@ namespace UKHO.ADDS.EFS.Analyzers
             _messageFormat,
             Category,
             DiagnosticSeverity.Error,
-            true);
+            true,
+            _description);
 
-        private static readonly string[] _disallowedMethods = { "LogTrace", "LogDebug", "LogInformation", "LogWarning", "LogError", "LogCritical" };
+        private static readonly string[] _disallowedMethodNames =
+        [
+            "LogTrace", "LogDebug", "LogInformation", "LogWarning", "LogError", "LogCritical", "Log",
+            "Verbose", "Debug", "Information", "Warning", "Error", "Fatal"
+        ];
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [_rule];
 
@@ -36,33 +46,52 @@ namespace UKHO.ADDS.EFS.Analyzers
 
         private static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
         {
-            var invocation = (InvocationExpressionSyntax)context.Node;
+            if (context.Node is not InvocationExpressionSyntax invocation)
+            {
+                return;
+            }
 
             var expression = invocation.Expression;
-            if (expression is not MemberAccessExpressionSyntax memberAccess)
-            {
-                return;
-            }
 
-            var methodName = memberAccess.Name.Identifier.Text;
-            if (!_disallowedMethods.Contains(methodName))
+            // Handle static and instance member access: e.g., Log.Information(...) or logger.LogInformation(...)
+            if (expression is MemberAccessExpressionSyntax memberAccess)
             {
-                return;
-            }
+                var methodName = memberAccess.Name.Identifier.Text;
+                if (!_disallowedMethodNames.Contains(methodName))
+                {
+                    return;
+                }
 
-            var symbolInfo = context.SemanticModel.GetSymbolInfo(memberAccess);
-            if (symbolInfo.Symbol is not IMethodSymbol methodSymbol)
-            {
-                return;
-            }
+                var methodSymbol = context.SemanticModel.GetSymbolInfo(memberAccess).Symbol as IMethodSymbol;
+                if (methodSymbol is null)
+                {
+                    return;
+                }
 
-            if (methodSymbol.ContainingType.ToDisplayString() != "Microsoft.Extensions.Logging.LoggerExtensions")
-            {
-                return;
-            }
+                // Allow LoggerMessage-generated methods
+                if (methodSymbol.GetAttributes().Any(attr =>
+                        attr.AttributeClass?.ToDisplayString() == "System.Runtime.CompilerServices.CompilerGeneratedAttribute"))
+                {
+                    return;
+                }
 
-            var diagnostic = Diagnostic.Create(_rule, memberAccess.GetLocation(), methodName);
-            context.ReportDiagnostic(diagnostic);
+                var containingType = methodSymbol.ContainingType;
+
+                // Block Serilog.Log static method calls
+                if (containingType.ToDisplayString() == "Serilog.Log")
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(_rule, memberAccess.Name.GetLocation(), $"Serilog.Log.{methodName}"));
+                    return;
+                }
+
+                // Block Microsoft.Extensions.Logging calls
+                if (IsMicrosoftLogging(containingType))
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(_rule, memberAccess.Name.GetLocation(), $"{containingType.ToDisplayString()}.{methodName}"));
+                }
+            }
         }
+
+        private static bool IsMicrosoftLogging(INamedTypeSymbol containingType) => containingType.ToDisplayString().StartsWith("Microsoft.Extensions.Logging");
     }
 }

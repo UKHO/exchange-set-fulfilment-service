@@ -4,9 +4,9 @@ using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Logging
 {
-    internal static partial class OrchestratorLogging
+    internal static partial class OrchestratorLogs
     {
-        private const int BaseEventId = 1000;
+        private const int BaseEventId = 10000;
 
         private const int UnhandledHttpErrorId = BaseEventId + 1;
 
@@ -33,6 +33,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Logging
         private const int JobCreationFailedId = BaseEventId + 15;
 
         private const int QueueServiceMessageReadFailedId = BaseEventId + 16;
+
+        private const int LogForwardParseFailedId = BaseEventId + 17;
+        private const int LogForwardParseNullId = BaseEventId + 18;
 
         // An unhandled HTTP error has occurred
         public static readonly EventId UnhandledHttpError = new(UnhandledHttpErrorId, nameof(UnhandledHttpError));
@@ -140,9 +143,24 @@ namespace UKHO.ADDS.EFS.Orchestrator.Logging
 
 
         // The Queue service failed to read a message
-        public static readonly EventId QueueServiceMessageReadFailed = new(ContainerTimeoutId, nameof(QueueServiceMessageReadFailedId));
+        public static readonly EventId QueueServiceMessageReadFailed = new(ContainerTimeoutId, nameof(QueueServiceMessageReadFailed));
 
         [LoggerMessage(QueueServiceMessageReadFailedId, LogLevel.Error, "Queue service failed to read message", EventName = nameof(QueueServiceMessageReadFailed))]
         public static partial void LogQueueServiceMessageReadFailed(this ILogger logger, Exception exception);
+
+
+        // The log forwarder failed to parse a message
+        public static readonly EventId LogForwardParseFailed = new(LogForwardParseFailedId, nameof(LogForwardParseFailed));
+
+        [LoggerMessage(LogForwardParseFailedId, LogLevel.Error, "Log forwarding parse failure: {@line}", EventName = nameof(LogForwardParseFailed))]
+        public static partial void LogForwarderParseFailure(this ILogger logger, string line, Exception exception);
+
+
+        // The log forwarder failed to parse a message (null)
+        public static readonly EventId LogForwardParseNull = new(LogForwardParseNullId, nameof(LogForwardParseNull));
+
+        [LoggerMessage(LogForwardParseNullId, LogLevel.Error, "Log forwarding parse failure: {@line}", EventName = nameof(LogForwardParseNull))]
+        public static partial void LogForwarderParseNull(this ILogger logger, string line);
     }
 }
+

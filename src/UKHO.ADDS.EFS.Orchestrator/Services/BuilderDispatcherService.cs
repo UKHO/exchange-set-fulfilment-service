@@ -11,9 +11,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         private const string ImageName = "efs-builder-s100";
         private const string ContainerName = "efs-builder-s100-";
 
+        private readonly ILogger<BuilderDispatcherService> _logger;
+        private readonly ILoggerFactory _loggerFactory;
+
         private readonly Channel<ExchangeSetRequestQueueMessage> _channel;
         private readonly JobService _jobService;
-        private readonly ILogger<BuilderDispatcherService> _logger;
+        
         private readonly string[] _command = ["sh", "-c", "echo Starting; sleep 5; echo Healthy now; sleep 5; echo Exiting..."];
 
         private readonly SemaphoreSlim _concurrencyLimiter;
@@ -22,21 +25,26 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         // TODO Figure out how best to control this timeout
         private readonly TimeSpan _containerTimeout = TimeSpan.FromMinutes(5);
 
-        public BuilderDispatcherService(Channel<ExchangeSetRequestQueueMessage> channel, JobService jobService, IConfiguration configuration, ILogger<BuilderDispatcherService> logger, ILoggerFactory loggerFactory)
+        public BuilderDispatcherService(Channel<ExchangeSetRequestQueueMessage> channel, JobService jobService, IConfiguration configuration, ILoggerFactory loggerFactory)
         {
             _channel = channel;
             _jobService = jobService;
-            _logger = logger;
 
-            var fileShareEndpoint = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.FileShareEndpoint)!;
+            _loggerFactory = loggerFactory;
+            _logger = loggerFactory.CreateLogger<BuilderDispatcherService>();
 
-            var builderServiceEndpoint = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.BuildServiceEndpoint)!;
+            var fileShareEndpoint = configuration[OrchestratorEnvironmentVariables.FileShareEndpoint]!;
+
+            var builderServiceEndpoint = configuration[OrchestratorEnvironmentVariables.BuildServiceEndpoint]!;
             var builderServiceContainerEndpoint = new UriBuilder(builderServiceEndpoint) { Host = "host.docker.internal" }.ToString();
+
+            var otlpEndpoint = configuration[GlobalEnvironmentVariables.OtlpEndpoint]!;
+            var otlpContainerEndpoint = new UriBuilder(otlpEndpoint) { Host = "host.docker.internal" }.ToString();
 
             var maxConcurrentBuilders = configuration.GetValue<int>("Builders:MaximumConcurrentBuilders");
             _concurrencyLimiter = new SemaphoreSlim(maxConcurrentBuilders, maxConcurrentBuilders);
 
-            _containerService = new BuilderContainerService(fileShareEndpoint, builderServiceContainerEndpoint, loggerFactory);
+            _containerService = new BuilderContainerService(fileShareEndpoint, builderServiceContainerEndpoint, otlpContainerEndpoint, loggerFactory);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -90,14 +98,19 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
             var streamer = _containerService.CreateBuilderLogStreamer();
 
+            var forwarder = new LogForwarder(_loggerFactory.CreateLogger(containerName), job, containerName);
+
             var logTask = streamer.StreamLogsAsync(
                 containerId,
 #pragma warning disable LOG001
-                line => //{ _logger.LogInformation($"[{containerName}] {line.ReplaceLineEndings("")}"); },
+                line =>
                 {
+                    forwarder.ForwardLog(LogLevel.Information, line);
                 },
-                line => { }, //{ _logger.LogError($"[{containerName}] {line}"); };
-
+                line =>
+                {
+                    forwarder.ForwardLog(LogLevel.Error, line);
+                },
 #pragma warning restore LOG001
                 stoppingToken
             );

@@ -131,7 +131,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         }
 
         [Test]
-        public async Task WhenCompleteJobAsyncIsCalledWithExitCodeIsFailed_ThenUpdatesJobStateToSucceeded()
+        public async Task WhenCompleteJobAsyncIsCalledWithExitCodeIsFailed_ThenUpdatesJobStateToFailed()
         {
             var job = new ExchangeSetJob
             {
@@ -143,11 +143,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
 
             await _jobService.BuilderContainerCompletedAsync(BuilderExitCodes.Failed, job);
 
-            Assert.Multiple(() => { Assert.That(job.State, Is.EqualTo(ExchangeSetJobState.Succeeded)); });
+            Assert.Multiple(() => { Assert.That(job.State, Is.EqualTo(ExchangeSetJobState.Failed)); });
         }
 
         [Test]
-        public async Task WhenCompleteJobAsyncIsCalledWithExitCodeSuccess_ThenUpdatesJobStateToFailed()
+        public async Task WhenCompleteJobAsyncIsCalledWithExitCodeSuccess_ThenUpdatesJobStateToSucceeded()
         {
             var job = new ExchangeSetJob
             {
@@ -159,7 +159,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
 
             await _jobService.BuilderContainerCompletedAsync(BuilderExitCodes.Success, job);
 
-            Assert.Multiple(() => { Assert.That(job.State, Is.EqualTo(ExchangeSetJobState.Failed)); });
+            Assert.Multiple(() => { Assert.That(job.State, Is.EqualTo(ExchangeSetJobState.Succeeded)); });
         }
 
         private static ExchangeSetRequestQueueMessage CreateQueueMessage(string correlationId = "test-correlation-id",

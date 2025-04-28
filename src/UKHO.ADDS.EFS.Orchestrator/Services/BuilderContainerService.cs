@@ -9,13 +9,16 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
     public class BuilderContainerService
     {
         private readonly string _builderServiceContainerEndpoint;
+        private readonly string _otlpContainerEndpoint;
         private readonly ILogger<BuilderContainerService> _logger;
         private readonly string _fileShareEndpoint;
 
-        public BuilderContainerService(string fileShareEndpoint, string builderServiceContainerEndpoint, ILoggerFactory loggerFactory)
+        public BuilderContainerService(string fileShareEndpoint, string builderServiceContainerEndpoint, string otlpContainerEndpoint, ILoggerFactory loggerFactory)
         {
             _fileShareEndpoint = fileShareEndpoint;
             _builderServiceContainerEndpoint = builderServiceContainerEndpoint;
+            _otlpContainerEndpoint = otlpContainerEndpoint;
+
             _logger = loggerFactory.CreateLogger<BuilderContainerService>();
 
             DockerClient = new DockerClientConfiguration(GetDockerEndpoint()).CreateClient();
@@ -29,7 +32,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         {
             var reference = $"{imageName}:{tag}";
 
-            var images = await DockerClient.Images.ListImagesAsync(new ImagesListParameters { Filters = new Dictionary<string, IDictionary<string, bool>> { ["reference"] = new Dictionary<string, bool> { [reference] = true } } });
+            var images = await DockerClient.Images.ListImagesAsync(new ImagesListParameters
+            {
+                Filters = new Dictionary<string, IDictionary<string, bool>> { ["reference"] = new Dictionary<string, bool> { [reference] = true } }
+            });
 
             if (images.Count > 0)
             {
@@ -58,7 +64,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 AttachStdout = true,
                 AttachStderr = true,
                 Tty = false,
-                Env = new List<string> { $"{BuilderEnvironmentVariables.JobId}={id}", $"{BuilderEnvironmentVariables.FileShareEndpoint}={_fileShareEndpoint}", $"{BuilderEnvironmentVariables.BuildServiceEndpoint}={_builderServiceContainerEndpoint}" },
+                Env = new List<string>
+                {
+                    $"{BuilderEnvironmentVariables.JobId}={id}",
+                    $"{BuilderEnvironmentVariables.FileShareEndpoint}={_fileShareEndpoint}",
+                    $"{BuilderEnvironmentVariables.BuildServiceEndpoint}={_builderServiceContainerEndpoint}",
+                    $"{BuilderEnvironmentVariables.OtlpEndpoint}={_otlpContainerEndpoint}"
+                },
                 Healthcheck = new HealthConfig
                 {
                     Test = new[] { "CMD-SHELL", "echo healthy" },

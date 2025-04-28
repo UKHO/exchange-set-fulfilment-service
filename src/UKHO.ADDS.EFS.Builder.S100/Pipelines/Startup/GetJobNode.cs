@@ -1,5 +1,6 @@
 ﻿using Serilog;
 using UKHO.ADDS.Clients.SalesCatalogueService.Models;
+using UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging;
 using UKHO.ADDS.EFS.Entities;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.Infrastructure.Pipelines;
@@ -33,7 +34,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
 
         private static async Task GetJobAsync(string baseAddress, string path, ExchangeSetPipelineContext context)
         {
-            using var client = new HttpClient { BaseAddress = new Uri(baseAddress) };
+            using var client = new HttpClient();
+            client.BaseAddress = new Uri(baseAddress);
+
             using var response = await client.GetAsync(path);
 
             response.EnsureSuccessStatusCode();
@@ -43,7 +46,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
 
             context.Job = job;
 
-            Log.Information($"Received job : {jobJson}");
+            var logger = context.LoggerFactory.CreateLogger<GetJobNode>();
+            logger.LogJobRetrieved(ExchangeSetJobLogView.CreateFromJob(job));
         }
     }
 }

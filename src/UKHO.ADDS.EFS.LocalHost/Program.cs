@@ -28,8 +28,6 @@ namespace UKHO.ADDS.EFS.LocalHost
             var containerRuntime = builder.Configuration.GetValue<ContainerRuntime>("Containers:ContainerRuntime");
             var buildOnStartup = builder.Configuration.GetValue<bool>("Containers:BuildOnStartup");
 
-
-
             // Storage configuration
 
             var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e => { e.WithDataVolume(); });

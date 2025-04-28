@@ -7,5 +7,7 @@
         public const string FileShareEndpoint = "FSS_ENDPOINT";
 
         public const string BuildServiceEndpoint = "BUILD_SVC_ENDPOINT";
+
+        public const string OtlpEndpoint = "OTLP_ENDPOINT";
     }
 }

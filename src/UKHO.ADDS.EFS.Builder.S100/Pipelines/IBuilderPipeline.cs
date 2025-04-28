@@ -1,9 +1,9 @@
-﻿using UKHO.ADDS.Infrastructure.Results;
+﻿using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
 {
-    public interface IBuilderPipeline<TContext> where TContext : class
+    public interface IBuilderPipeline<in TContext> where TContext : class
     {
-        Task<IResult<TContext>> ExecutePipeline(TContext context);
+        Task<NodeResult> ExecutePipeline(TContext context);
     }
 }

@@ -1,6 +1,7 @@
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
+using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Orchestrator.Api;
 using UKHO.ADDS.EFS.Orchestrator.Middleware;
 
@@ -16,11 +17,13 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             try
             {
+#pragma warning disable LOG001
                 Log.Information("Starting the EFS Orchestrator");
+#pragma warning restore LOG001
 
                 var builder = WebApplication.CreateBuilder(args);
 
-                var oltpEndpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]!;
+                var oltpEndpoint = builder.Configuration[GlobalEnvironmentVariables.OtlpEndpoint]!;
 
                 builder.Services.AddSerilog((services, lc) => lc
                     .ReadFrom.Configuration(builder.Configuration)
@@ -32,9 +35,9 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     })
                     .WriteTo.Console()
                     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-                    .MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Information)
-                    .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
-                    .MinimumLevel.Override("Microsoft.AspNetCore.Mvc", LogEventLevel.Warning)
+                    .MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Error)
+                    .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Error)
+                    .MinimumLevel.Override("Microsoft.AspNetCore.Mvc", LogEventLevel.Error)
                     .MinimumLevel.Override("Microsoft.AspNetCore.Routing", LogEventLevel.Warning)
                     .MinimumLevel.Override("Microsoft.AspNetCore.Hosting", LogEventLevel.Warning)
                     .MinimumLevel.Override("Azure.Core", LogEventLevel.Fatal)
@@ -72,7 +75,9 @@ namespace UKHO.ADDS.EFS.Orchestrator
             }
             catch (Exception ex)
             {
+#pragma warning disable LOG001
                 Log.Fatal(ex, "EFS Orchestrator terminated unexpectedly");
+#pragma warning restore LOG001
             }
             finally
             {
