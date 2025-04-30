@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Text.Json;
+using System.Web;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Models;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
@@ -11,14 +12,15 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private const string ProductName = "$batch(ProductName) eq '{0}' and ";
         private const string EditionNumber = "$batch(EditionNumber) eq '{0}' and ";
         private const string UpdateNumber = "$batch(UpdateNumber) eq '{0}' ";
+        private const string BusinessUnit = "ADDS-S100"; //this needs to be fetch from config 
+        private const string ProductType = "$batch(ProductType) eq 'S-100' and ";
         private const int ParallelSearchTaskCount = 5;
         private const int UpdateNumberLimit = 5;
         private const int ProductLimit = 4;
         private const int Limit = 100;
         private const int Start = 0;
-        private const string BusinessUnit = "ADDS-S100"; //this needs to be fetch from config 
-        private const string ProductType = "$batch(ProductType) eq 'S-100' and ";
-        
+
+
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
         {
             var products = context.Subject.Job?.Products;
@@ -42,27 +44,27 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
             var tasks = productsList.Select(async productGroup =>
             {
-                var batchDetails = await QueryFileShareServiceFilesAsync(productGroup, cancellationTokenSource.Token);
+                var batchDetails = await QueryFileShareServiceFilesAsync(productGroup,cancellationTokenSource, cancellationTokenSource.Token);
                 batchList.AddRange(batchDetails);
             });
 
             await Task.WhenAll(tasks);
             return NodeResultStatus.Succeeded;
         }
-        private async Task<List<BatchDetail>> QueryFileShareServiceFilesAsync(List<SearchBatchProducts> products, CancellationToken cancellationToken)
+        private async Task<List<BatchDetail>> QueryFileShareServiceFilesAsync(List<SearchBatchProducts> products, CancellationTokenSource cancellationTokenSource, CancellationToken cancellationToken)
         {
             var batchDetails = new List<BatchDetail>();
             if (products == null || products.Count == 0)
                 return batchDetails;
 
             var batchProducts = SliceProductsForFssQuery(products);
-            var fssSearchQueryCount = 0;
+            //var fssSearchQueryCount = 0;
             foreach (var productBatch in batchProducts)
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
-                    var productDetail = new StringBuilder();
                     //needs to handle code for cancellation token
+                    //var productDetail = new StringBuilder();
                     //    var productDetail = new StringBuilder();
                     //    foreach (var productitem in item) 
                     //    {
@@ -72,9 +74,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                     throw new OperationCanceledException();
                 }
 
-                var result = await FetchBatchDetailsForProductsAsync(productBatch);
+                var result = await FetchBatchDetailsForProductsAsync(productBatch,cancellationTokenSource, cancellationToken);
                 batchDetails.AddRange(result.Entries);
-                fssSearchQueryCount += result.QueryCount;
+                //fssSearchQueryCount += result.QueryCount;
             }
             //this commented code needs to be removed once confirm
             //var fulFilmentDataResponse = SetFulfilmentDataResponse(new SearchBatchResponse()
@@ -99,7 +101,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             var queryBuilder = new StringBuilder();
             var logBuilder = new StringBuilder();
 
-            if (products == null || !products.Any())
+            if (products == null || products.Count == 0)
                 return (string.Empty, string.Empty);
 
             queryBuilder.Append('(');
@@ -142,47 +144,67 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
         private static List<SearchBatchProducts> SliceProductsWithUpdateNumberForFssQuery(List<SearchBatchProducts> products)
         {
-            return products.SelectMany(product =>
+            return [.. products.SelectMany(product =>
                 SplitList(product.UpdateNumbers, UpdateNumberLimit)
                 .Select(updateNumbers => new SearchBatchProducts
                 {
                     ProductName = product.ProductName,
                     EditionNumber = product.EditionNumber,
                     UpdateNumbers = updateNumbers
-                })).ToList();
+                }))];
         }
         private static IEnumerable<List<SearchBatchProducts>> SliceProductsForFssQuery(List<SearchBatchProducts> products)
         {
             return SplitList((SliceProductsWithUpdateNumberForFssQuery(products)), ProductLimit);
         }
-        
-        private async Task<SearchBatchResponse> FetchBatchDetailsForProductsAsync(List<SearchBatchProducts> products)
-        {
-            
-            var searchBatchResponse = new SearchBatchResponse { Entries = new List<BatchDetail>() };
 
+        private async Task<SearchBatchResponse> FetchBatchDetailsForProductsAsync(List<SearchBatchProducts> products, CancellationTokenSource cancellationTokenSource, CancellationToken cancellationToken)
+        {
+            var searchBatchResponse = new SearchBatchResponse { Entries = new List<BatchDetail>() };
             if (products == null || products.Count == 0)
                 return searchBatchResponse;
 
             var productQuery = GenerateQueryForFss(products);
-            var uri = $"/batch?limit={Limit}&start={Start}&$filter=BusinessUnit eq '{BusinessUnit}' and {ProductType} {productQuery.Item1}";
+            //remove this once client is ready
+            //var uri = $"/batch?limit={Limit}&start={Start}&$filter=BusinessUnit eq '{BusinessUnit}' and {ProductType} {productQuery.Item1}";
             var totalUpdateCount = products.Sum(p => p.UpdateNumbers.Count);
             var queryCount = 0;
-
+            var filter = $"BusinessUnit eq '{BusinessUnit}' and {ProductType} {productQuery.Item1}";
+            var limit = Limit;
+            var start = Start;
             HttpResponseMessage httpResponse;
             //need to uncomment once FSS Search batch integration is done
             //do
             //{
             //    queryCount++;
+            //    if (cancellationToken.IsCancellationRequested)
+            //    {
+            //        //To do -add log message
+            //        //logger.LogError(EventIds.CancellationTokenEvent.ToEventId(), "Operation cancelled as IsCancellationRequested flag is true while searching ENC files with cancellationToken:{cancellationTokenSource.Token} and uri:{Uri} and BatchId:{batchId} and _X-Correlation-ID:{correlationId}", JsonConvert.SerializeObject(cancellationTokenSource.Token), uri, message.BatchId, message.CorrelationId);
+            //        throw new OperationCanceledException();
+            //    }
+            //    //replace below line with the actual uri once FSS Search batch integration is done
             //    httpResponse = await fileShareServiceClient.CallFileShareServiceApi(HttpMethod.Get, null, accessToken, uri, CancellationToken.None, null);
 
             //    if (!httpResponse.IsSuccessStatusCode)
-            //        // Handle non-successful response
-            //        break;
-
+            //    {
+            //        cancellationTokenSource.Cancel();
+            //        //To do -add log message
+            //        //logger.LogError(EventIds.QueryFileShareServiceENCFilesNonOkResponse.ToEventId(), "Error in file share service while searching ENC files with uri:{RequestUri}, responded with {StatusCode} and BatchId:{batchId} and _X-Correlation-ID:{correlationId}", httpResponse.RequestMessage.RequestUri, httpResponse.StatusCode, message.BatchId, message.CorrelationId);
+            //        //logger.LogError(EventIds.CancellationTokenEvent.ToEventId(), "Request cancelled for Error in file share service while searching ENC files with cancellationToken:{cancellationTokenSource.Token} with uri:{RequestUri}, responded with {StatusCode} and BatchId:{batchId} and _X-Correlation-ID:{correlationId}", JsonConvert.SerializeObject(cancellationTokenSource.Token), httpResponse.RequestMessage.RequestUri, httpResponse.StatusCode, message.BatchId, message.CorrelationId);
+            //        //throw new FulfilmentException(EventIds.QueryFileShareServiceENCFilesNonOkResponse.ToEventId());
+            //    }
             //    var response = await ParseSearchBatchResponse(httpResponse);
             //    searchBatchResponse.Entries.AddRange(response.Entries);
-            //    uri = response.Links?.Next?.Href;
+            //    var queryString = response.Links?.Next?.Href;
+            //    //uri = response.Links?.Next?.Href;
+            //    if (!string.IsNullOrEmpty(queryString))
+            //    {
+            //        var parsedValues = ParseQueryString(queryString);
+            //        limit = parsedValues.TryGetValue("limit", out var urlLimit) ? int.Parse(urlLimit) : limit;
+            //        start = parsedValues.TryGetValue("start", out var urlStart) ? int.Parse(urlStart) : start;
+            //        filter = parsedValues.TryGetValue("$filter", out var urlFilter) ? urlFilter : filter;
+            //    }
 
             //} while (httpResponse.IsSuccessStatusCode && searchBatchResponse.Entries.Count < totalUpdateCount && !string.IsNullOrWhiteSpace(uri));
 
@@ -193,6 +215,27 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         {
             var body = await httpResponse.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<SearchBatchResponse>(body);
+        }
+
+        static Dictionary<string, string> ParseQueryString(string queryString)
+        {
+            // Remove everything before '?' to isolate the query string
+            var queryIndex = queryString.IndexOf('?');
+            var queryPart = queryIndex >= 0 ? queryString.Substring(queryIndex + 1) : queryString;
+
+            // Use HttpUtility.ParseQueryString to parse key-value pairs
+            var queryParams = HttpUtility.ParseQueryString(queryPart);
+            var result = new Dictionary<string, string>();
+
+            foreach (string key in queryParams)
+            {
+                if (key != null) // Only add non-null keys
+                {
+                    result[key] = queryParams[key];
+                }
+            }
+
+            return result;
         }
     }
 }

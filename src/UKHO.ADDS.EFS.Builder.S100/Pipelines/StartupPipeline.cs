@@ -14,7 +14,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
             pipeline.AddChild(new StartTomcatNode());   
             pipeline.AddChild(new CheckEndpointsNode());
             pipeline.AddChild(new GetJobNode());
-            pipeline.AddChild(new ProductSearchNode());
 
             var result = await pipeline.ExecuteAsync(context);
 

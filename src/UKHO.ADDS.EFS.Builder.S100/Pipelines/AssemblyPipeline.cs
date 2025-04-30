@@ -11,6 +11,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
 
             pipeline.AddChild(new QuerySalesCatalogueNode());
             pipeline.AddChild(new DownloadFilesNode());
+            pipeline.AddChild(new ProductSearchNode());
 
             var result = await pipeline.ExecuteAsync(context);
 
