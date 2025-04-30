@@ -1,91 +1,90 @@
 name: $(BuildDefinitionName)_$(SourceBranchName)_$(Date:yyyyMMdd).$(BuildCounter)
- 
- parameters:
-   - name: DisableStryker
-     displayName: "Disable Stryker"
-     type: boolean
-     default: false
- 
-   - name: DisableSnyk
-     displayName: "Disable Snyk"
-     type: boolean
-     default: false
- 
- trigger:
-   - main
- 
- pool: NautilusBuild
- 
- variables:
-   - name: BuildConfiguration
-     value: "Release"
-   - name: BuildPlatform
-     value: "any cpu"
-   - name: BuildCounter
-     value: $[counter(format('{0:yyyyMMdd}', pipeline.startTime), 1)]
-   - name: UkhoAssemblyCompany
-     value: "UK Hydrographic Office"
-   - name: UkhoAssemblyVersionPrefix
-     value: "1.0."
-   - name: UkhoAssemblyProduct
-     value: "ESS Fulfilment Service"
-   - name: UKHOAssemblyCopyright
-     value: "Copyright © UK Hydrographic Office"
-   - name: SdkVersion
-     value: "9.0.x"
-   - name: WindowsPool
-     value: "Mare Nubium"
-   - name: snykAbzuOrganizationId
-     value: b862e284-787d-4fd1-8007-23b7f976cde8 
- 
- stages:
-   - stage: VulnerabilityChecks
-     displayName: "Snyk checks"
-     displayName: "Snyk Checks"
-     condition: eq('${{ parameters.DisableSnyk }}', false)    
-     dependsOn: []
-     jobs:
-     - template: templates/vulnerability-checks.yml
- 
-   - stage: Stryker_Mutator
-     displayName: "Stryker Mutator"
-     condition: eq('${{ parameters.DisableStryker }}', false)  
-     dependsOn: []
-     jobs:
-     - job: Stryker
-       workspace:
-         clean: all
-       steps:
-         - task: UseDotNet@2
-           displayName: 'Use .NET SDK for Stryker'
-           inputs:
-             packageType: sdk
-             version: $(SdkVersion)
- 
-         - task: DotNetCoreCLI@2
-           displayName: "Install Stryker"
-           inputs:
-             command: custom
-             custom: tool
-             workingDirectory: $(Agent.TempDirectory)
-             arguments: install dotnet-stryker --tool-path $(Agent.BuildDirectory)/tools
- 
-         - task: Powershell@2
-           displayName: "Run Stryker for EFS Orchestrator UnitTests"
-           inputs:
-             workingDirectory: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Orchestrator.UnitTests'
-             targetType: 'inline'
-             pwsh: true
-             script: $(Agent.BuildDirectory)/tools/dotnet-stryker --test-project $(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Orchestrator.UnitTests/UKHO.ADDS.EFS.Orchestrator.UnitTests.csproj
- 
-         - task: PublishMutationReport@0
-           displayName: 'Publish Strkyer Mutator Report'
-           inputs:
-             reportPattern: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Orchestrator.UnitTests/**/mutation-report.html'
-             reportDisplayName: 'EFS Orchestrator UnitTests'
- 
-   - stage: BuildTest
-     displayName: "Build and Test"
-     dependsOn: []
-     jobs:
-     - template: templates/build-test-publish.yml
+
+parameters:
+  - name: DisableStryker
+    displayName: "Disable Stryker"
+    type: boolean
+    default: false
+
+  - name: DisableSnyk
+    displayName: "Disable Snyk"
+    type: boolean
+    default: false
+
+trigger:
+  - main
+
+pool: NautilusBuild
+
+variables:
+  - name: BuildConfiguration
+    value: "Release"
+  - name: BuildPlatform
+    value: "any cpu"
+  - name: BuildCounter
+    value: $[counter(format('{0:yyyyMMdd}', pipeline.startTime), 1)]
+  - name: UkhoAssemblyCompany
+    value: "UK Hydrographic Office"
+  - name: UkhoAssemblyVersionPrefix
+    value: "1.0."
+  - name: UkhoAssemblyProduct
+    value: "ESS Fulfilment Service"
+  - name: UKHOAssemblyCopyright
+    value: "Copyright © UK Hydrographic Office"
+  - name: SdkVersion
+    value: "9.0.x"
+  - name: WindowsPool
+    value: "Mare Nubium"
+  - name: snykAbzuOrganizationId
+    value: b862e284-787d-4fd1-8007-23b7f976cde8 
+
+stages:
+  - stage: VulnerabilityChecks
+    displayName: "Snyk Checks"
+    condition: eq('${{ parameters.DisableSnyk }}', false)    
+    dependsOn: []
+    jobs:
+    - template: templates/vulnerability-checks.yml
+
+  - stage: Stryker_Mutator
+    displayName: "Stryker Mutator"
+    condition: eq('${{ parameters.DisableStryker }}', false)  
+    dependsOn: []
+    jobs:
+    - job: Stryker
+      workspace:
+        clean: all
+      steps:
+        - task: UseDotNet@2
+          displayName: 'Use .NET SDK for Stryker'
+          inputs:
+            packageType: sdk
+            version: $(SdkVersion)
+
+        - task: DotNetCoreCLI@2
+          displayName: "Install Stryker"
+          inputs:
+            command: custom
+            custom: tool
+            workingDirectory: $(Agent.TempDirectory)
+            arguments: install dotnet-stryker --tool-path $(Agent.BuildDirectory)/tools
+
+        - task: Powershell@2
+          displayName: "Run Stryker for EFS Orchestrator UnitTests"
+          inputs:
+            workingDirectory: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Orchestrator.UnitTests'
+            targetType: 'inline'
+            pwsh: true
+            script: $(Agent.BuildDirectory)/tools/dotnet-stryker --test-project $(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Orchestrator.UnitTests/UKHO.ADDS.EFS.Orchestrator.UnitTests.csproj
+
+        - task: PublishMutationReport@0
+          displayName: 'Publish Strkyer Mutator Report'
+          inputs:
+            reportPattern: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Orchestrator.UnitTests/**/mutation-report.html'
+            reportDisplayName: 'EFS Orchestrator UnitTests'
+
+  - stage: BuildTest
+    displayName: "Build and Test"
+    dependsOn: []
+    jobs:
+    - template: templates/build-test-publish.yml
