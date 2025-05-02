@@ -5,14 +5,8 @@ using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 {
-    internal class CreateBatchNode : ExchangeSetPipelineNode
+    public class CreateBatchNode(IFileShareReadWriteClient fileShareReadWriteClient) : ExchangeSetPipelineNode
     {
-        private readonly IFileShareReadWriteClient _fileShareReadWriteClient;
-        public CreateBatchNode(IFileShareReadWriteClient fileShareReadWriteClient)
-        {
-            _fileShareReadWriteClient = fileShareReadWriteClient;
-        }
-
         protected override async Task<NodeResultStatus> PerformExecuteAsync(
             IExecutionContext<ExchangeSetPipelineContext> context)
         {
@@ -23,12 +17,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
         private async Task<string> CreateBatchAsync()
         {
-            var batchResponse = await _fileShareReadWriteClient.CreateBatchAsync(new BatchModel(), "Test102");
-            if (batchResponse.IsSuccess(out var value, out _))
-            {
-                return value.BatchId ?? string.Empty;
-            }
-            return string.Empty;
+            var batchResponse = await fileShareReadWriteClient.CreateBatchAsync(new BatchModel(), "400-badrequest-guid-fss-create-batch");
+            return batchResponse.IsSuccess(out var value, out _) ? value.BatchId : string.Empty;
         }
     }
 }
