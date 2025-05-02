@@ -1,6 +1,7 @@
 ﻿using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Json;
+using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging;
@@ -152,6 +153,14 @@ namespace UKHO.ADDS.EFS.Builder.S100
             collection.AddSingleton<INodeStatusWriter, NodeStatusWriter>();
             collection.AddSingleton<IToolClient, ToolClient>();
 
+            collection.AddSingleton<IFileShareReadOnlyClientFactory>(provider =>
+                new FileShareReadOnlyClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
+
+            collection.AddSingleton(provider =>
+            {
+                var factory = provider.GetRequiredService<IFileShareReadOnlyClientFactory>();
+                return factory.CreateClient("", "");
+            });
             return collection.BuildServiceProvider();
         }
     }

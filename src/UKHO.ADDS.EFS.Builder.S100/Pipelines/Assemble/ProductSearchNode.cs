@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using System.Text.Json;
 using System.Web;
+using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Models;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
@@ -19,7 +20,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private const int ProductLimit = 4;
         private const int Limit = 100;
         private const int Start = 0;
+        private readonly IFileShareReadOnlyClient _fileShareReadOnlyClient;
 
+        public ProductSearchNode(IFileShareReadOnlyClient fileShareReadOnlyClient)
+        {
+            _fileShareReadOnlyClient = fileShareReadOnlyClient ?? throw new ArgumentNullException(nameof(fileShareReadOnlyClient));
+        }
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
         {
@@ -88,6 +94,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             //return fulFilmentDataResponse; 
             return batchDetails;
         }
+
         private static IEnumerable<List<T>> SplitList<T>(List<T> masterList, int size = 30)
         {
             for (var i = 0; i < masterList.Count; i += size)
@@ -153,6 +160,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                     UpdateNumbers = updateNumbers
                 }))];
         }
+
         private static IEnumerable<List<SearchBatchProducts>> SliceProductsForFssQuery(List<SearchBatchProducts> products)
         {
             return SplitList((SliceProductsWithUpdateNumberForFssQuery(products)), ProductLimit);
@@ -207,10 +215,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             //    }
 
             //} while (httpResponse.IsSuccessStatusCode && searchBatchResponse.Entries.Count < totalUpdateCount && !string.IsNullOrWhiteSpace(uri));
+            var fileShareServiceQueryUrl = "";
+           
+            var fssResult = await _fileShareReadOnlyClient.SearchAsync(fileShareServiceQueryUrl, 100, 0, cancellationToken);
 
             searchBatchResponse.QueryCount = queryCount;
             return searchBatchResponse;
         }
+
         private static async Task<SearchBatchResponse> ParseSearchBatchResponse(HttpResponseMessage httpResponse)
         {
             var body = await httpResponse.Content.ReadAsStringAsync();
