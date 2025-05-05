@@ -18,7 +18,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
             var pipeline = new PipelineNode<ExchangeSetPipelineContext>();
 
             pipeline.AddChild(new CreateBatchNode(_fileShareReadWriteClient));
-            pipeline.AddChild(new QuerySalesCatalogueNode());
             pipeline.AddChild(new DownloadFilesNode());
 
             var result = await pipeline.ExecuteAsync(context);

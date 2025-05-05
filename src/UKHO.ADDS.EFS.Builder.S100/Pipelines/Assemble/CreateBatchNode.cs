@@ -5,8 +5,14 @@ using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 {
-    public class CreateBatchNode(IFileShareReadWriteClient fileShareReadWriteClient) : ExchangeSetPipelineNode
+    public class CreateBatchNode : ExchangeSetPipelineNode
     {
+        private readonly IFileShareReadWriteClient _fileShareReadWriteClient;
+
+        public CreateBatchNode(IFileShareReadWriteClient fileShareReadWriteClient) : base()
+        {
+            _fileShareReadWriteClient = fileShareReadWriteClient ?? throw new ArgumentNullException(nameof(fileShareReadWriteClient));
+        }
         protected override async Task<NodeResultStatus> PerformExecuteAsync(
             IExecutionContext<ExchangeSetPipelineContext> context)
         {
@@ -17,7 +23,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
         private async Task<string> CreateBatchAsync(string correlationId)
         {
-            var batchResponse = await fileShareReadWriteClient.CreateBatchAsync(GetBatchModel(), correlationId);
+            var batchResponse = await _fileShareReadWriteClient.CreateBatchAsync(GetBatchModel(), correlationId);
             return batchResponse.IsSuccess(out var value, out _) ? value.BatchId : string.Empty;
         }
 
@@ -32,12 +38,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                     ReadGroups = new List<string> { "public" }
                 },
                 Attributes = new List<KeyValuePair<string, string>>
-               {
-                   new("Exchange Set Type", "Base"),
-                   new("Frequency", "DAILY"),
-                   new("Product Type", "S-100"),
-                   new("Media Type", "Zip")
-               },
+                    {
+                        new("Exchange Set Type", "Base"),
+                        new("Frequency", "DAILY"),
+                        new("Product Type", "S-100"),
+                        new("Media Type", "Zip")
+                    },
                 ExpiryDate = null
             };
         }
