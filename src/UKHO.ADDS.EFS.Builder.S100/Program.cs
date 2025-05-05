@@ -160,7 +160,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
             collection.AddSingleton(provider =>
             {
                 var factory = provider.GetRequiredService<IFileShareReadOnlyClientFactory>();
-                return factory.CreateClient(fileShareEndpoint, "");
+                return factory.CreateClient(fileShareEndpoint, string.Empty);
             });
             return collection.BuildServiceProvider();
         }
