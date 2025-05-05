@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Web;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Models;
@@ -197,7 +198,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 //    }
                 //replace below line with the actual uri once FSS Search batch integration is done
 
-                var result = await _fileShareReadOnlyClient.SearchAsync(filter, 100, 0, cancellationToken);
+                var result = await _fileShareReadOnlyClient.SearchAsync(filter, limit, start, cancellationToken);
                 if (result.IsSuccess(out var value, out _))
                 {
                     if (value.Entries.Any())
@@ -214,22 +215,45 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 //        //logger.LogError(EventIds.CancellationTokenEvent.ToEventId(), "Request cancelled for Error in file share service while searching ENC files with cancellationToken:{cancellationTokenSource.Token} with uri:{RequestUri}, responded with {StatusCode} and BatchId:{batchId} and _X-Correlation-ID:{correlationId}", JsonConvert.SerializeObject(cancellationTokenSource.Token), httpResponse.RequestMessage.RequestUri, httpResponse.StatusCode, message.BatchId, message.CorrelationId);
                 //        //throw new FulfilmentException(EventIds.QueryFileShareServiceENCFilesNonOkResponse.ToEventId());
                 //    }
-                //    var response = await ParseSearchBatchResponse(httpResponse);
-                //    searchBatchResponse.Entries.AddRange(response.Entries);
-                //    var queryString = response.Links?.Next?.Href;
-                uri = batchSearchResponse.Links?.Next?.Href;
-                //    if (!string.IsNullOrEmpty(queryString))
-                //    {
-                //        var parsedValues = ParseQueryString(queryString);
-                //        limit = parsedValues.TryGetValue("limit", out var urlLimit) ? int.Parse(urlLimit) : limit;
-                //        start = parsedValues.TryGetValue("start", out var urlStart) ? int.Parse(urlStart) : start;
-                //        filter = parsedValues.TryGetValue("$filter", out var urlFilter) ? urlFilter : filter;
-                //    }
+                
+                var queryString = batchSearchResponse.Links?.Next?.Href;
+                if (!string.IsNullOrEmpty(queryString))
+                {
+                    var parsedValues = ParseQueryString(queryString);
+                    limit = parsedValues.TryGetValue("limit", out var urlLimit) ? int.Parse(urlLimit) : limit;
+                    start = parsedValues.TryGetValue("start", out var urlStart) ? int.Parse(urlStart) : start;
+                    filter = parsedValues.TryGetValue("$filter", out var urlFilter) ? urlFilter : filter;
+                }
+                else
+                {
+                    filter = string.Empty;
+                }
 
-            } while (batchSearchResponse.Entries.Count < totalUpdateCount && !string.IsNullOrWhiteSpace(uri));
+            } while (batchSearchResponse.Entries.Count < totalUpdateCount && !string.IsNullOrWhiteSpace(filter));
 
             batchSearchResponse.Count = queryCount;
             return batchSearchResponse;
+        }
+
+        static Dictionary<string, string> ParseQueryString(string queryString)
+        {
+            // Remove everything before '?' to isolate the query string
+            var queryIndex = queryString.IndexOf('?');
+            var queryPart = queryIndex >= 0 ? queryString.Substring(queryIndex + 1) : queryString;
+
+            // Use HttpUtility.ParseQueryString to parse key-value pairs
+            var queryParams = HttpUtility.ParseQueryString(queryPart);
+            var result = new Dictionary<string, string>();
+
+            foreach (string key in queryParams)
+            {
+                if (key != null) // Only add non-null keys
+                {
+                    result[key] = queryParams[key];
+                }
+            }
+
+            return result;
         }
     }
 }
