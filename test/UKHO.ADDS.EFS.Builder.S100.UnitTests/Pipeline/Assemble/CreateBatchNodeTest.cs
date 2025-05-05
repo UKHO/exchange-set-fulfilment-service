@@ -55,6 +55,29 @@ internal class CreateBatchNodeTest
         });
     }
 
+    [Test]
+    public void WhenGetBatchModelIsCalled_ThenReturnsExpectedBatchModel()
+    {
+        var batchModel = typeof(CreateBatchNode)
+            .GetMethod("GetBatchModel", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
+            .Invoke(null, null) as BatchModel;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(batchModel, Is.Not.Null);
+            Assert.That(batchModel.BusinessUnit, Is.EqualTo("ADDS-S100"));
+            Assert.That(batchModel.Acl.ReadUsers, Is.EquivalentTo(new List<string> { "public" }));
+            Assert.That(batchModel.Acl.ReadGroups, Is.EquivalentTo(new List<string> { "public" }));
+            Assert.That(batchModel.Attributes, Has.Exactly(4).Items);
+            Assert.That(batchModel.Attributes, Does.Contain(new KeyValuePair<string, string>("Exchange Set Type", "Base")));
+            Assert.That(batchModel.Attributes, Does.Contain(new KeyValuePair<string, string>("Frequency", "DAILY")));
+            Assert.That(batchModel.Attributes, Does.Contain(new KeyValuePair<string, string>("Product Type", "S-100")));
+            Assert.That(batchModel.Attributes, Does.Contain(new KeyValuePair<string, string>("Media Type", "Zip")));
+            Assert.That(batchModel.ExpiryDate, Is.Null);
+        });
+    }
+
+
     private class TestableCreateBatchNode(IFileShareReadWriteClient fileShareReadWriteClient)
         : CreateBatchNode(fileShareReadWriteClient)
     {

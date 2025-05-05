@@ -10,15 +10,36 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         protected override async Task<NodeResultStatus> PerformExecuteAsync(
             IExecutionContext<ExchangeSetPipelineContext> context)
         {
-            var batchId = await CreateBatchAsync();
+            var batchId = await CreateBatchAsync(context.Subject.Job.CorrelationId);
             context.Subject.BatchId = batchId;
             return NodeResultStatus.Succeeded;
         }
 
-        private async Task<string> CreateBatchAsync()
+        private async Task<string> CreateBatchAsync(string correlationId)
         {
-            var batchResponse = await fileShareReadWriteClient.CreateBatchAsync(new BatchModel(), "400-badrequest-guid-fss-create-batch");
+            var batchResponse = await fileShareReadWriteClient.CreateBatchAsync(GetBatchModel(), correlationId);
             return batchResponse.IsSuccess(out var value, out _) ? value.BatchId : string.Empty;
+        }
+
+        private static BatchModel GetBatchModel()
+        {
+            return new BatchModel
+            {
+                BusinessUnit = "ADDS-S100",
+                Acl = new Acl
+                {
+                    ReadUsers = new List<string> { "public" },
+                    ReadGroups = new List<string> { "public" }
+                },
+                Attributes = new List<KeyValuePair<string, string>>
+               {
+                   new("Exchange Set Type", "Base"),
+                   new("Frequency", "DAILY"),
+                   new("Product Type", "S-100"),
+                   new("Media Type", "Zip")
+               },
+                ExpiryDate = null
+            };
         }
     }
 }
