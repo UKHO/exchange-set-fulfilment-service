@@ -111,7 +111,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
             var collection = new ServiceCollection();
 
             var catalinaHomePath = Environment.GetEnvironmentVariable("CATALINA_HOME") ?? string.Empty;
-
+       
             var currentDirectory = Directory.GetCurrentDirectory();
             var appContextDirectory = AppContext.BaseDirectory;
 
@@ -139,6 +139,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
                 .AddJsonFile(appsettingsPath)
                 .AddJsonFile(appsettingsDevPath, true)
                 .Build();
+            var fileShareEndpoint = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.FileShareEndpoint)! ?? configuration["Endpoints:FileShareService"]!;
 
             collection.AddHttpClient();
 
@@ -159,7 +160,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
             collection.AddSingleton(provider =>
             {
                 var factory = provider.GetRequiredService<IFileShareReadOnlyClientFactory>();
-                return factory.CreateClient("", "");
+                return factory.CreateClient(fileShareEndpoint, "");
             });
             return collection.BuildServiceProvider();
         }
