@@ -5,7 +5,7 @@ using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
 {
-    internal abstract class ExchangeSetPipelineNode : Node<ExchangeSetPipelineContext>
+    public abstract class ExchangeSetPipelineNode : Node<ExchangeSetPipelineContext>
     {
         protected override void OnAfterExecute(IExecutionContext<ExchangeSetPipelineContext> context)
         {

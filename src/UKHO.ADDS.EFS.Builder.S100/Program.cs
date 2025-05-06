@@ -148,6 +148,13 @@ namespace UKHO.ADDS.EFS.Builder.S100
             collection.AddSingleton<ExchangeSetPipelineContext>();
             collection.AddSingleton<StartupPipeline>();
             collection.AddSingleton<AssemblyPipeline>();
+            collection.AddSingleton<IFileShareReadOnlyClientFactory>(provider =>
+                new FileShareReadOnlyClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
+            collection.AddSingleton(provider =>
+            {
+                var factory = provider.GetRequiredService<IFileShareReadOnlyClientFactory>();
+                return factory.CreateClient(fileShareEndpoint, string.Empty);
+            });
             collection.AddSingleton<CreationPipeline>();
             collection.AddSingleton<DistributionPipeline>();
 
