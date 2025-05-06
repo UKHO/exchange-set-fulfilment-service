@@ -1,5 +1,6 @@
-﻿using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
-using UKHO.ADDS.Clients.FileShareService.ReadWrite;
+﻿using UKHO.ADDS.Clients.FileShareService.ReadWrite;
+using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
+using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
@@ -16,7 +17,15 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         protected override async Task<NodeResultStatus> PerformExecuteAsync(
             IExecutionContext<ExchangeSetPipelineContext> context)
         {
-            var batchId = await CreateBatchAsync(context.Subject.Job.CorrelationId);
+            var logger = context.Subject.LoggerFactory.CreateLogger<CreateBatchNode>();
+
+            var correlationId = context.Subject.Job.CorrelationId;
+            var batchId = await CreateBatchAsync(correlationId);
+            if (string.IsNullOrEmpty(batchId))
+            {
+                logger.LogCreateBatchNodeFailed(correlationId);
+                return NodeResultStatus.Failed;
+            }
             context.Subject.BatchId = batchId;
             return NodeResultStatus.Succeeded;
         }
