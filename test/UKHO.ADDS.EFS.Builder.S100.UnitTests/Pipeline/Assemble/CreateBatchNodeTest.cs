@@ -1,4 +1,5 @@
 ﻿using FakeItEasy;
+using Microsoft.Extensions.Logging;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
@@ -23,12 +24,14 @@ internal class CreateBatchNodeTest
         _fileShareReadWriteClient = A.Fake<IFileShareReadWriteClient>();
         _testableCreateBatchNode = new TestableCreateBatchNode(_fileShareReadWriteClient);
         _executionContext = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
+    }
 
-        var exchangeSetPipelineContext = new ExchangeSetPipelineContext(
-            null,
-            null,
-            null,
-            null)
+    [SetUp]
+    public void Setup()
+    {
+        var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+
+        var exchangeSetPipelineContext = new ExchangeSetPipelineContext(null, null, null, loggerFactory)
         {
             Job = new ExchangeSetJob { CorrelationId = "TestCorrelationId" }
         };
@@ -54,7 +57,7 @@ internal class CreateBatchNodeTest
     }
 
     [Test]
-    public async Task WhenPerformExecuteAsyncIsCalledAndCreateBatchFails_ThenReturnsSucceededWithEmptyBatchId()
+    public async Task WhenPerformExecuteAsyncIsCalledAndCreateBatchFails_ThenReturnsFailedWithNullBatchId()
     {
         A.CallTo(() => _fileShareReadWriteClient.CreateBatchAsync(A<BatchModel>._, A<string>._, A<CancellationToken>._))
             .Returns(Result.Failure<IBatchHandle>("Error creating batch"));
@@ -63,13 +66,13 @@ internal class CreateBatchNodeTest
 
         Assert.Multiple(() =>
         {
-            Assert.That(result, Is.EqualTo(NodeResultStatus.Succeeded));
-            Assert.That(_executionContext.Subject.BatchId, Is.EqualTo(string.Empty));
+            Assert.That(result, Is.EqualTo(NodeResultStatus.Failed));
+            Assert.That(_executionContext.Subject.BatchId, Is.EqualTo(null));
         });
     }
 
     [Test]
-    public async Task When_PerformExecuteAsyncIsCalledAndBatchIdIsNull_ThenReturnsSucceededWithEmptyBatchId()
+    public async Task WhenPerformExecuteAsyncIsCalledAndBatchIdIsNull_ThenReturnsFailedWithNullBatchId()
     {
         var batchHandle = A.Fake<IBatchHandle>();
         A.CallTo(() => batchHandle.BatchId)!.Returns(null);
@@ -80,7 +83,7 @@ internal class CreateBatchNodeTest
 
         Assert.Multiple(() =>
         {
-            Assert.That(result, Is.EqualTo(NodeResultStatus.Succeeded));
+            Assert.That(result, Is.EqualTo(NodeResultStatus.Failed));
             Assert.That(_executionContext.Subject.BatchId, Is.EqualTo(null));
         });
     }
