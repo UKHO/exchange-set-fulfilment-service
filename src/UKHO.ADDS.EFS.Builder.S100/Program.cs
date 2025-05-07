@@ -10,6 +10,7 @@ using UKHO.ADDS.EFS.Builder.S100.Pipelines.Create.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Services;
+using UKHO.ADDS.EFS.Configuration.Builder;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Extensions;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
@@ -142,11 +143,11 @@ namespace UKHO.ADDS.EFS.Builder.S100
                 .AddJsonFile(appsettingsDevPath, true)
                 .Build();
             var fileShareEndpoint = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.FileShareEndpoint)! ?? configuration["Endpoints:FileShareService"]!;
-
+            
             collection.AddHttpClient();
 
             collection.AddSingleton<IConfiguration>(x => configuration);
-
+            collection.Configure<FileShareServiceSettings>(configuration.GetSection("FileShareServiceConfiguration"));
             collection.AddSingleton<ExchangeSetPipelineContext>();
             collection.AddSingleton<StartupPipeline>();
              collection.AddSingleton<AssemblyPipeline>();
@@ -154,11 +155,18 @@ namespace UKHO.ADDS.EFS.Builder.S100
              collection.AddSingleton<IFileShareReadWriteClientFactory>(provider =>
                 new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
 
-            var fileShareEndpoint = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.FileShareEndpoint)! ?? configuration["Endpoints:FileShareService"]!;
-
             collection.AddSingleton(provider =>
             {
                 var factory = provider.GetRequiredService<IFileShareReadWriteClientFactory>();
+                return factory.CreateClient(fileShareEndpoint.RemoveControlCharacters(), "");
+            });
+
+            collection.AddSingleton<IFileShareReadOnlyClientFactory>(provider =>
+                new FileShareReadOnlyClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
+
+            collection.AddSingleton(provider =>
+            {
+                var factory = provider.GetRequiredService<IFileShareReadOnlyClientFactory>();
                 return factory.CreateClient(fileShareEndpoint.RemoveControlCharacters(), "");
             });
 
@@ -168,14 +176,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
             collection.AddSingleton<INodeStatusWriter, NodeStatusWriter>();
             collection.AddSingleton<IToolClient, ToolClient>();
 
-            collection.AddSingleton<IFileShareReadOnlyClientFactory>(provider =>
-                new FileShareReadOnlyClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
-
-            collection.AddSingleton(provider =>
-            {
-                var factory = provider.GetRequiredService<IFileShareReadOnlyClientFactory>();
-                return factory.CreateClient(fileShareEndpoint, string.Empty);
-            });
+            
             return collection.BuildServiceProvider();
         }
     }

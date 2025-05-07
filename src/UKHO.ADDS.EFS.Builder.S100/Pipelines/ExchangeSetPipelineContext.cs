@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.EFS.Builder.S100.IIC;
+﻿using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
+using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.Services;
 using UKHO.ADDS.EFS.Entities;
 
@@ -35,6 +36,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
         public string BuildServiceEndpoint { get; set; }
         public string WorkspaceRootPath { get; set; }
         public ExchangeSetJob Job { get; set; }
+        public List<BatchDetails> BatchDetails { get; set; }
         public string BatchId { get; set; }
     }
 }
