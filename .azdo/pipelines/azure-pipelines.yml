@@ -70,32 +70,19 @@ stages:
             arguments: install dotnet-stryker --tool-path $(Agent.BuildDirectory)/tools
 
         - task: Powershell@2
-          displayName: "Run Stryker for EFS Orchestrator UnitTests"
+          displayName: "Run Stryker for All UnitTests"
           inputs:
-            workingDirectory: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Orchestrator.UnitTests'
-            targetType: 'inline'
-            pwsh: true
-            script: $(Agent.BuildDirectory)/tools/dotnet-stryker --test-project $(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Orchestrator.UnitTests/UKHO.ADDS.EFS.Orchestrator.UnitTests.csproj
-
-        - task: PublishMutationReport@0
-          displayName: 'Publish Strkyer Mutator Report'
-          inputs:
-            reportPattern: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Orchestrator.UnitTests/**/mutation-report.html'
-            reportDisplayName: 'EFS Orchestrator UnitTests'
-
-        - task: Powershell@2
-          displayName: "Run Stryker for EFS Builder S100 UnitTests"
-          inputs:
-            workingDirectory: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Builder.S100.UnitTests'
             targetType: 'inline'
             pwsh: true
             script: |
-              $(Agent.BuildDirectory)/tools/dotnet-stryker --test-project $(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Builder.S100.UnitTests/UKHO.ADDS.EFS.Builder.S100.UnitTests.csproj
-              Write-Host "Checking report files..."
-              Get-ChildItem -Recurse -Path $(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Builder.S100.UnitTests
+              # Run Stryker for Orchestrator UnitTests
+              $(Agent.BuildDirectory)/tools/dotnet-stryker --test-project $(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Orchestrator.UnitTests/UKHO.ADDS.EFS.Orchestrator.UnitTests.csproj --output $(Build.SourcesDirectory)/mutation-reports/orchestrator
+
+              # Run Stryker for Builder S100 UnitTests
+              $(Agent.BuildDirectory)/tools/dotnet-stryker --test-project $(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Builder.S100.UnitTests/UKHO.ADDS.EFS.Builder.S100.UnitTests.csproj --output $(Build.SourcesDirectory)/mutation-reports/builder-s100
 
         - task: PublishMutationReport@0
-          displayName: 'Publish Stryker Report for Builder S100'
+          displayName: "Publish Stryker Reports for All UnitTests"
           inputs:
-            reportPattern: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Builder.S100.UnitTests/**/mutation-report.html'
-            reportDisplayName: 'EFS Builder S100 UnitTests'
+            reportPattern: '$(Build.SourcesDirectory)/mutation-reports/**/mutation-report.html'
+            reportDisplayName: 'Combined Stryker Mutation Reports'
