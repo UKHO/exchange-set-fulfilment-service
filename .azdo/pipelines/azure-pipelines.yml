@@ -39,6 +39,13 @@ variables:
     value: b862e284-787d-4fd1-8007-23b7f976cde8 
 
 stages:
+  #- stage: VulnerabilityChecks
+  #  displayName: "Snyk Checks"
+   # condition: eq('${{ parameters.DisableSnyk }}', false)    
+   # dependsOn: []
+   # jobs:
+   # - template: templates/vulnerability-checks.yml
+
   - stage: Stryker_Mutator
     displayName: "Stryker Mutator"
     condition: eq('${{ parameters.DisableStryker }}', false)  
