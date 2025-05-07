@@ -17,7 +17,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private const string UpdateNumber = "$batch(UpdateNumber) eq '{0}' ";
         private const string BusinessUnit = "ADDS-S100";
         private const string ProductType = "$batch(ProductType) eq 'S-100' and ";
-        private const int ParallelSearchTaskCount = 1;
+        private const int ParallelSearchTaskCount = 5;
         private const int UpdateNumberLimit = 5;
         private const int ProductLimit = 4;
         private const int Limit = 100;
@@ -27,7 +27,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         public ProductSearchNode(IFileShareReadOnlyClient fileShareReadOnlyClient)
         {
             _fileShareReadOnlyClient = fileShareReadOnlyClient ?? throw new ArgumentNullException(nameof(fileShareReadOnlyClient));
-
         }
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
@@ -37,7 +36,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             var products = context.Subject.Job?.Products;
             string correlationId = context.Subject.Job?.CorrelationId;
             if (products == null || products.Count == 0)
-                return NodeResultStatus.Succeeded;
+                return NodeResultStatus.NotRun;
 
             var cancellationTokenSource = new CancellationTokenSource();
             var batchList = new List<BatchDetails>();
@@ -60,6 +59,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 batchList.AddRange(batchDetails);
             });            
             await Task.WhenAll(tasks);
+            context.Subject.Job.BatchDetails = batchList;
             _logger.LogProductSearchPipelineCompleted(batchList.Count);
             return NodeResultStatus.Succeeded;
         }
@@ -85,6 +85,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                     //    logger.LogError(EventIds.CancellationTokenEvent.ToEventId(), "Operation cancelled as IsCancellationRequested flag is true while searching ENC files from File Share Service with cancellationToken:{cancellationTokenSource.Token} at time:{DateTime.UtcNow} and productdetails:{productDetail.ToString()} and BatchId:{batchId} and _X-Correlation-ID:{correlationId}", JsonConvert.SerializeObject(cancellationTokenSource.Token), DateTime.UtcNow, productDetail.ToString(), message.BatchId, message.CorrelationId);
                     //throw new OperationCanceledException();
                     _logger.LogProductSearchPipelineFailed(correlationId);
+                    break;
                 }
 
                 var result = await FetchBatchDetailsForProductsAsync(productBatch, cancellationTokenSource, cancellationToken, correlationId);
