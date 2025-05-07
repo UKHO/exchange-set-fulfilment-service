@@ -19,21 +19,16 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         {
             var logger = context.Subject.LoggerFactory.CreateLogger<CreateBatchNode>();
 
-            var correlationId = context.Subject.Job.CorrelationId;
-            var batchId = await CreateBatchAsync(correlationId);
-            if (string.IsNullOrEmpty(batchId))
-            {
-                logger.LogCreateBatchNodeFailed(correlationId);
-                return NodeResultStatus.Failed;
-            }
-            context.Subject.BatchId = batchId;
-            return NodeResultStatus.Succeeded;
-        }
+            var createBatchResponseResult = await _fileShareReadWriteClient.CreateBatchAsync(GetBatchModel(), context.Subject.Job.CorrelationId);
 
-        private async Task<string> CreateBatchAsync(string correlationId)
-        {
-            var batchResponse = await _fileShareReadWriteClient.CreateBatchAsync(GetBatchModel(), correlationId);
-            return batchResponse.IsSuccess(out var value, out _) ? value.BatchId : string.Empty;
+            if (createBatchResponseResult.IsSuccess(out var value, out var error))
+            {
+                context.Subject.BatchId = value.BatchId;
+                return NodeResultStatus.Succeeded;
+            }
+
+            logger.LogCreateBatchNodeFailed(context.Subject.JobId, error);
+            return NodeResultStatus.Failed;
         }
 
         private static BatchModel GetBatchModel()

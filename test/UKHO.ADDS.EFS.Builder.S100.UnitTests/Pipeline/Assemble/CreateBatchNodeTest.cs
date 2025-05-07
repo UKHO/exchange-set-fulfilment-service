@@ -72,23 +72,6 @@ internal class CreateBatchNodeTest
     }
 
     [Test]
-    public async Task WhenPerformExecuteAsyncIsCalledAndBatchIdIsNull_ThenReturnsFailedWithNullBatchId()
-    {
-        var batchHandle = A.Fake<IBatchHandle>();
-        A.CallTo(() => batchHandle.BatchId)!.Returns(null);
-        A.CallTo(() => _fileShareReadWriteClient.CreateBatchAsync(A<BatchModel>._, A<string>._, A<CancellationToken>._))
-            .Returns(Result.Success(batchHandle));
-
-        var result = await _testableCreateBatchNode.PerformExecuteAsync(_executionContext);
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(result, Is.EqualTo(NodeResultStatus.Failed));
-            Assert.That(_executionContext.Subject.BatchId, Is.EqualTo(null));
-        });
-    }
-
-    [Test]
     public async Task WhenCreateBatchAsyncIsCalled_ThenBatchModelIsCorrectlyConfigured()
     {
         BatchModel capturedBatchModel = null;

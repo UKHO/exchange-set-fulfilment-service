@@ -53,9 +53,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                     job.State = ExchangeSetJobState.InProgress;
                     job.SalesCatalogueTimestamp = scsTimestamp;
 
-                    await _jobTable.CreateIfNotExistsAsync();
-                    await _jobTable.AddAsync(job);
-
                     break;
                 case HttpStatusCode.NotModified:
 
@@ -68,6 +65,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             }
 
             job.SalesCatalogueTimestamp = scsTimestamp;
+
+            await _jobTable.CreateIfNotExistsAsync();
+            await _jobTable.AddAsync(job);
 
             _logger.LogJobUpdated(ExchangeSetJobLogView.CreateFromJob(job));
 
