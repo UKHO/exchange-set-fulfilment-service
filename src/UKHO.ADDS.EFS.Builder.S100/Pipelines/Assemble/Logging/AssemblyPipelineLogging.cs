@@ -1,4 +1,5 @@
 ﻿using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
+using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
 {
@@ -7,22 +8,19 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
         private const int BaseEventId = 2000;
 
         private const int AssemblyPipelineFailedId = BaseEventId + 1;
-        private const int ProductSearchPipelineCompletedId = BaseEventId + 2;
-        private const int ProductSearchPipelineFailedId = BaseEventId + 3;
+
+        private const int CreateBatchNodeFailedId = BaseEventId + 2;
 
         // The assembly pipeline failed
         public static readonly EventId AssemblyPipelineFailed = new(AssemblyPipelineFailedId, nameof(AssemblyPipelineFailed));
-        public static readonly EventId ProductSearchPipelineCompleted = new(ProductSearchPipelineCompletedId, nameof(ProductSearchPipelineCompleted));
-        public static readonly EventId ProductSearchPipelineFailed = new(ProductSearchPipelineFailedId, nameof(ProductSearchPipelineFailed));
 
         [LoggerMessage(AssemblyPipelineFailedId, LogLevel.Error, "Assembly pipeline failed: {@result}", EventName = nameof(AssemblyPipelineFailed))]
         public static partial void LogAssemblyPipelineFailed(this ILogger logger, [LogProperties] NodeResult result);
 
-        [LoggerMessage(ProductSearchPipelineCompletedId, LogLevel.Information, "Product search pipeline Completed, Total Batch Count: {@result}", EventName = nameof(ProductSearchPipelineCompleted))]
-        public static partial void LogProductSearchPipelineCompleted(this ILogger logger, [LogProperties] int result);
+        // The Create Batch Node Failed
+        public static readonly EventId CreateBatchNodeFailed = new(CreateBatchNodeFailedId, nameof(CreateBatchNodeFailed));
 
-        [LoggerMessage(ProductSearchPipelineFailedId, LogLevel.Information, "Product search pipeline failed: {@result}", EventName = nameof(ProductSearchPipelineFailed))]
-        public static partial void LogProductSearchPipelineFailed(this ILogger logger, [LogProperties] string result);
-
+        [LoggerMessage(CreateBatchNodeFailedId, LogLevel.Error, "CreateBatchNode failed for job id: {@jobId} {@error}", EventName = nameof(CreateBatchNodeFailed))]
+        public static partial void LogCreateBatchNodeFailed(this ILogger logger, string jobId, [LogProperties] IError error);
     }
 }

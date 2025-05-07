@@ -1,6 +1,7 @@
 ﻿using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Json;
+using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
@@ -10,6 +11,7 @@ using UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Services;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
+using UKHO.ADDS.EFS.Extensions;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
@@ -111,7 +113,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
             var collection = new ServiceCollection();
 
             var catalinaHomePath = Environment.GetEnvironmentVariable("CATALINA_HOME") ?? string.Empty;
-       
+
             var currentDirectory = Directory.GetCurrentDirectory();
             var appContextDirectory = AppContext.BaseDirectory;
 
@@ -147,14 +149,19 @@ namespace UKHO.ADDS.EFS.Builder.S100
 
             collection.AddSingleton<ExchangeSetPipelineContext>();
             collection.AddSingleton<StartupPipeline>();
-            collection.AddSingleton<AssemblyPipeline>();
-            collection.AddSingleton<IFileShareReadOnlyClientFactory>(provider =>
-                new FileShareReadOnlyClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
+             collection.AddSingleton<AssemblyPipeline>();
+
+             collection.AddSingleton<IFileShareReadWriteClientFactory>(provider =>
+                new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
+
+            var fileShareEndpoint = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.FileShareEndpoint)! ?? configuration["Endpoints:FileShareService"]!;
+
             collection.AddSingleton(provider =>
             {
-                var factory = provider.GetRequiredService<IFileShareReadOnlyClientFactory>();
-                return factory.CreateClient(fileShareEndpoint, string.Empty);
+                var factory = provider.GetRequiredService<IFileShareReadWriteClientFactory>();
+                return factory.CreateClient(fileShareEndpoint.RemoveControlCharacters(), "");
             });
+
             collection.AddSingleton<CreationPipeline>();
             collection.AddSingleton<DistributionPipeline>();
 

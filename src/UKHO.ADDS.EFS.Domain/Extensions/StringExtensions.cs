@@ -1,8 +1,8 @@
 ﻿using System.Text;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Extensions
+namespace UKHO.ADDS.EFS.Extensions
 {
-    internal static class StringExtensions
+    public static class StringExtensions
     {
         /// <summary>
         ///     Removes all control characters from a string, including ASCII and Unicode control codes.
