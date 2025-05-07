@@ -10,6 +10,7 @@ using UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Services;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
+using UKHO.ADDS.EFS.Extensions;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
@@ -156,7 +157,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
             collection.AddSingleton(provider =>
             {
                 var factory = provider.GetRequiredService<IFileShareReadWriteClientFactory>();
-                return factory.CreateClient(fileShareEndpoint, string.Empty);
+                return factory.CreateClient(fileShareEndpoint.RemoveControlCharacters(), "");
             });
 
             collection.AddSingleton<CreationPipeline>();

@@ -6,16 +6,16 @@ using Microsoft.OpenApi.Models;
 using UKHO.ADDS.Clients.SalesCatalogueService;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
+using UKHO.ADDS.EFS.Extensions;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
-using UKHO.ADDS.EFS.Orchestrator.Extensions;
 using UKHO.ADDS.EFS.Orchestrator.Services;
 using UKHO.ADDS.EFS.Orchestrator.Tables;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Orchestrator
 {
-    internal static  class InjectionExtensions
+    internal static class InjectionExtensions
     {
         private const string OpenApiRequiredType = "string";
 
@@ -55,7 +55,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddSingleton(provider =>
             {
                 var factory = provider.GetRequiredService<ISalesCatalogueClientFactory>();
-                return factory.CreateClient(salesCatalogueEndpoint.RemoveControlCharacters(), "");
+                return factory.CreateClient(salesCatalogueEndpoint.RemoveControlCharacters(), string.Empty);
             });
 
             return builder;

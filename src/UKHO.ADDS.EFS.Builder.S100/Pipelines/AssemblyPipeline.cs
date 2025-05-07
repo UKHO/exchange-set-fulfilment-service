@@ -10,7 +10,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
 
         public AssemblyPipeline(IFileShareReadWriteClient fileShareReadWriteClient)
         {
-            _fileShareReadWriteClient = fileShareReadWriteClient;
+            _fileShareReadWriteClient = fileShareReadWriteClient ?? throw new ArgumentNullException(nameof(fileShareReadWriteClient));
         }
 
         public async Task<NodeResult> ExecutePipeline(ExchangeSetPipelineContext context)
