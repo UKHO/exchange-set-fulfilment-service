@@ -39,50 +39,63 @@ variables:
     value: b862e284-787d-4fd1-8007-23b7f976cde8 
 
 stages:
-  - stage: Stryker_Mutator
-    displayName: "Stryker Mutator"
-    condition: eq('${{ parameters.DisableStryker }}', false)
+  - stage: VulnerabilityChecks
+    displayName: "Snyk Checks"
+    condition: eq('${{ parameters.DisableSnyk }}', false)    
     dependsOn: []
     jobs:
-      - job: Stryker
-        workspace:
-          clean: all
-        steps:
-          - task: UseDotNet@2
-            displayName: 'Use .NET SDK 9.0.x'
-            inputs:
-              packageType: sdk
-              version: 9.0.x
-              installationPath: $(Agent.ToolsDirectory)/dotnet
+    - template: templates/vulnerability-checks.yml
 
-          - task: DotNetCoreCLI@2
-            displayName: "Install Stryker"
-            inputs:
-              command: custom
-              custom: tool
-              arguments: install dotnet-stryker --tool-path $(Agent.BuildDirectory)/tools
+  - stage: Stryker_Mutator
+    displayName: "Stryker Mutator"
+    condition: eq('${{ parameters.DisableStryker }}', false)  
+    dependsOn: []
+    jobs:
+    - job: Stryker
+      workspace:
+        clean: all
+      steps:
+        - task: UseDotNet@2
+          displayName: 'Use .NET SDK for Stryker'
+          inputs:
+            packageType: sdk
+            version: $(SdkVersion)
 
-          - task: Powershell@2
-            displayName: "Run Stryker for All UnitTests"
-            inputs:
-              targetType: 'inline'
-              pwsh: true
-              script: |
-                # Use the installed .NET 9.0 SDK
-                $env:DOTNET_ROOT = "$(Agent.ToolsDirectory)/dotnet"
-                $env:PATH = "$env:DOTNET_ROOT;$env:PATH"
+        - task: DotNetCoreCLI@2
+          displayName: "Install Stryker"
+          inputs:
+            command: custom
+            custom: tool
+            workingDirectory: $(Agent.TempDirectory)
+            arguments: install dotnet-stryker --tool-path $(Agent.BuildDirectory)/tools
 
-                # Run Stryker for Orchestrator UnitTests
-                $(Agent.BuildDirectory)/tools/dotnet-stryker --test-project $(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Orchestrator.UnitTests/UKHO.ADDS.EFS.Orchestrator.UnitTests.csproj --output $(Build.SourcesDirectory)/mutation-reports/orchestrator
+        - task: Powershell@2
+          displayName: "Run Stryker for EFS Orchestrator UnitTests"
+          inputs:
+            workingDirectory: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Orchestrator.UnitTests'
+            targetType: 'inline'
+            pwsh: true
+            script: $(Agent.BuildDirectory)/tools/dotnet-stryker --test-project $(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Orchestrator.UnitTests/UKHO.ADDS.EFS.Orchestrator.UnitTests.csproj --output $(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Orchestrator.UnitTests/mutation-reports
 
-                # Run Stryker for Builder S100 UnitTests
-                $(Agent.BuildDirectory)/tools/dotnet-stryker --test-project $(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Builder.S100.UnitTests/UKHO.ADDS.EFS.Builder.S100.UnitTests.csproj --output $(Build.SourcesDirectory)/mutation-reports/builder-s100
+        - task: PublishMutationReport@0
+          displayName: 'Publish Strkyer Mutator Report'
+          inputs:
+            reportPattern: '$(Build.SourcesDirectory)/test/**/**/mutation-report.html'
+            reportDisplayName: 'EFS Orchestrator UnitTests'
 
-          - task: PublishMutationReport@0
-            displayName: "Publish Stryker Reports for All UnitTests"
-            inputs:
-              reportPattern: '$(Build.SourcesDirectory)/mutation-reports/**/mutation-report.html'
-              reportDisplayName: 'Combined Stryker Mutation Reports'      
+        - task: Powershell@2
+          displayName: "Run Stryker for EFS Builder S100 UnitTests"
+          inputs:
+            workingDirectory: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Builder.S100.UnitTests'
+            targetType: 'inline'
+            pwsh: true
+            script: $(Agent.BuildDirectory)/tools/dotnet-stryker --test-project $(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Builder.S100.UnitTests/UKHO.ADDS.EFS.Builder.S100.UnitTests.csproj --output $(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Builder.S100.UnitTests/mutation-reports
+
+        - task: PublishMutationReport@0
+          displayName: 'Publish Strkyer Mutator Report'
+          inputs:
+            reportPattern: '$(Build.SourcesDirectory)/test/**/**/mutation-report.html'
+            reportDisplayName: 'EFS Builder S100 UnitTests'
 
   - stage: BuildTest
     displayName: "Build and Test"
