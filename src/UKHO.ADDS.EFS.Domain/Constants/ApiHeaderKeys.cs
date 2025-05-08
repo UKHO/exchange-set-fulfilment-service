@@ -8,6 +8,6 @@ namespace UKHO.ADDS.EFS.Constants
         public const string XCorrelationIdHeaderKey = "x-correlation-id";
         public const string OriginHeaderKey = "x-origin";
 
-        public const string ContentType = "application/json";
+        public const string ContentType = "application/json; charset=utf-8";
     }
 }
