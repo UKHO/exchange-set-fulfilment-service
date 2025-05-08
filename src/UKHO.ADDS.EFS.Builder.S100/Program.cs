@@ -147,7 +147,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
             collection.AddHttpClient();
 
             collection.AddSingleton<IConfiguration>(x => configuration);
-            collection.Configure<FileShareServiceSettings>(configuration.GetSection("FileShareServiceConfiguration"));
+            collection.Configure<FileShareServiceConfiguration>(configuration.GetSection("FileShareServiceConfiguration"));
             collection.AddSingleton<ExchangeSetPipelineContext>();
             collection.AddSingleton<StartupPipeline>();
              collection.AddSingleton<AssemblyPipeline>();

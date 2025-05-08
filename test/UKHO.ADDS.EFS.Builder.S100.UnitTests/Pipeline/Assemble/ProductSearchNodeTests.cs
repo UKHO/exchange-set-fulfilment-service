@@ -1,14 +1,17 @@
 ﻿using FakeItEasy;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble;
+using UKHO.ADDS.EFS.Configuration.Builder;
 using UKHO.ADDS.EFS.Entities;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
+using Error = UKHO.ADDS.Infrastructure.Results.Error;
 
 namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
 {
@@ -18,12 +21,26 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         private IFileShareReadOnlyClient _fileShareReadOnlyClientFake;
         private TestableProductSearchNode _testableProductSearchNode;
         private IExecutionContext<ExchangeSetPipelineContext> _executionContext;
+        private IOptions<FileShareServiceConfiguration> _fileShareServiceConfiguration;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
             _fileShareReadOnlyClientFake = A.Fake<IFileShareReadOnlyClient>();
-            _testableProductSearchNode = new TestableProductSearchNode(_fileShareReadOnlyClientFake);
+            _fileShareServiceConfiguration = Options.Create(new FileShareServiceConfiguration
+            {
+                ParallelSearchTaskCount = 2,
+                ProductName = "ProductName eq '{0}'",
+                EditionNumber = "EditionNumber eq {0}",
+                UpdateNumber = "UpdateNumber eq {0}",
+                BusinessUnit = "TestBusinessUnit",
+                ProductType = "ProductType eq 'TestType'",
+                Limit = 10,
+                Start = 0,
+                UpdateNumberLimit = 5,
+                ProductLimit = 10
+            });
+            _testableProductSearchNode = new TestableProductSearchNode(_fileShareReadOnlyClientFake, _fileShareServiceConfiguration);
             _executionContext = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
         }
 
@@ -37,123 +54,153 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
                 Job = new ExchangeSetJob
                 {
                     CorrelationId = "TestCorrelationId",
-                    Products = new List<S100Products>
-                    {
+                    Products =
+                    [
                         new S100Products { ProductName = "Product1", LatestEditionNumber = 1, LatestUpdateNumber = 0 },
                         new S100Products { ProductName = "Product2", LatestEditionNumber = 2, LatestUpdateNumber = 1 }
-                    }
+                    ]
                 }
             };
 
             A.CallTo(() => _executionContext.Subject).Returns(exchangeSetPipelineContext);
+            
         }
 
         [Test]
-        public void WhenFileShareReadOnlyClientIsNull_ThenThrowsArgumentNullException()
+        public void WhenFileShareReadOnlyClientAnConfigurationIsNull_ThenThrowsArgumentNullException()
         {
-            Assert.Throws<ArgumentNullException>(() => new ProductSearchNode(null));
+            Assert.Throws<ArgumentNullException>(() => new ProductSearchNode(null, _fileShareServiceConfiguration));
+            Assert.Throws<ArgumentNullException>(() => new ProductSearchNode(_fileShareReadOnlyClientFake, null));
         }
 
         [Test]
-        public async Task WhenPerformExecuteAsyncIsCalledWithNoProducts_ThenReturnsSucceeded()
+        public async Task WhenPerformExecuteAsyncCalledWithValidProducts_ThenReturnSucceeded()
         {
-            // Arrange
-            var emptyContext = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
+            // Arrange  
+            var batchDetails = new List<BatchDetails>
+            {
+                new() { BatchId = "TestBatchId1" }
+            };
+            A.CallTo(() => _fileShareReadOnlyClientFake.SearchAsync(A<string>._, A<int?>._, A<int?>._, A<string>._))
+                .Returns(Result.Success(new BatchSearchResponse { Entries = batchDetails }));
 
             // Act
-            var result = await _testableProductSearchNode.PerformExecuteAsync(emptyContext);
+            var result = await _testableProductSearchNode.PerformExecuteAsync(_executionContext);
 
-            // Assert
-            Assert.That(result, Is.EqualTo(NodeResultStatus.Succeeded));
+            Assert.Multiple(() =>
+            {
+                // Assert
+                Assert.That(result, Is.EqualTo(NodeResultStatus.Succeeded));
+                Assert.That(_executionContext.Subject.BatchDetails, Is.Not.Null);
+                Assert.That(_executionContext.Subject.BatchDetails, Has.Count.EqualTo(2));
+                A.CallTo(() => _fileShareReadOnlyClientFake.SearchAsync(A<string>._, A<int?>._, A<int?>._, A<string>._))
+               .MustHaveHappened();
+            });
         }
 
         [Test]
-        public async Task WhenPerformExecuteAsyncIsCalledWithProducts_ThenCallsFileShareService()
+        public async Task WhenPerformExecuteAsyncCalledWithNoProductsInContext_ThenReturnNoRun()
         {
             // Arrange
-            var batchSearchResponse = new BatchSearchResponse
+            _executionContext.Subject.Job.Products = [];
+
+            // Act
+            var result = await _testableProductSearchNode.PerformExecuteAsync(_executionContext);
+
+            Assert.Multiple(() =>
             {
-                Entries = new List<BatchDetails>
+                // Assert
+                Assert.That(result, Is.EqualTo(NodeResultStatus.NotRun));
+                Assert.That(_executionContext.Subject?.BatchDetails, Is.Null);
+            });
+        }
+
+        [Test]
+        public async Task WhenPerformExecuteAsyncIsCalledAndSearchFails_ThenReturnFailed()
+        {
+            // Arrange            
+            var error = new Error { Message = "Search failed" };
+            A.CallTo(() => _fileShareReadOnlyClientFake.SearchAsync(A<string>._, A<int?>._, A<int?>._, A<string>._))                
+                .Returns(Result.Failure<BatchSearchResponse>(error));
+
+            // Act            
+            var result = await _testableProductSearchNode.PerformExecuteAsync(_executionContext);
+
+            // Assert
+            Assert.Multiple(() =>
+            {
+                Assert.That(_executionContext.Subject.BatchDetails, Is.Null);
+                Assert.That(result, Is.EqualTo(NodeResultStatus.Failed));
+            });            
+        }
+
+        [Test]
+        public async Task WhenPerformExecuteAsyncIsCalled_ThenQueryIsCorrectlyConfigured()
+        {
+            // Arrange
+            var searchQuery = "BusinessUnit eq 'TestBusinessUnit' and ProductType eq 'TestType' ((ProductName eq 'Product2'EditionNumber eq 2((UpdateNumber eq 1))))";
+            string? capturedQuery = null;
+            var batchResponse = new BatchSearchResponse
+            {
+                Entries = []
+            };
+            A.CallTo(() => _fileShareReadOnlyClientFake.SearchAsync(A<string>._, A<int?>._, A<int?>._, A<string>._))
+                .Invokes((string query, int? pageSize, int? start, string correlationId) =>
                 {
-                    new BatchDetails { BatchId = "Batch1", BusinessUnit = "ADDS-S100" }
-                }
+                    capturedQuery = query;
+                })
+                .Returns(Result.Success(batchResponse));
+
+            // Act
+            await _testableProductSearchNode.PerformExecuteAsync(_executionContext);
+
+            // Assert
+            Assert.That(capturedQuery, Is.Not.Null);
+            Assert.That(capturedQuery, Is.EqualTo(searchQuery));
+        }
+
+        [Test]
+        public async Task WhenPerformExecuteAsyncIsCalledFssReturnNextHrefUrl_ThenHandleNextHrefUrl()
+        {
+            // Arrange
+            var batchSearchResponseOne = new BatchSearchResponse
+            {
+                Entries = [new BatchDetails { BatchId = "TestBatchId1" }],
+                Links = new Links(
+                    self: null,
+                    first: null,
+                    previous: null,
+                    next: new Link(href: "https://example.com?start=10&limit=5"),
+                    last: null
+                )
             };
 
-            A.CallTo(() => _fileShareReadOnlyClientFake.SearchAsync(A<string>._, A<int?>._, A<int?>._, A<CancellationToken>._))
-                .Returns(Result.Success(batchSearchResponse));
+            var batchSearchResponseTwo = new BatchSearchResponse
+            {
+                Entries = [new BatchDetails { BatchId = "TestBatchId2" }],
+            };
+            A.CallTo(() => _fileShareReadOnlyClientFake.SearchAsync(A<string>._, A<int?>._, A<int?>._, A<string>._))
+                .ReturnsNextFromSequence(
+                Result.Success(batchSearchResponseOne),
+                Result.Success(batchSearchResponseTwo)
+                );
 
             // Act
             var result = await _testableProductSearchNode.PerformExecuteAsync(_executionContext);
 
             // Assert
-            Assert.That(result, Is.EqualTo(NodeResultStatus.Succeeded));
-            //A.CallTo(() => _fileShareReadOnlyClientFake.SearchAsync(A<string>.Ignored, A<int?>.Ignored, A<int?>.Ignored, A<CancellationToken>.Ignored))
-            //    .MustHaveHappened();            
+            Assert.Multiple(() =>
+            {
+                Assert.That(_executionContext.Subject.BatchDetails, Has.Count.EqualTo(2));
+                Assert.That(_executionContext.Subject.BatchDetails[0].BatchId, Is.EqualTo("TestBatchId1"));
+                Assert.That(_executionContext.Subject.BatchDetails[1].BatchId, Is.EqualTo("TestBatchId2"));
+            });
+
         }
-
-        [Test]
-        public async Task WhenPerformExecuteAsyncIsCalledAndSearchFails_ThenReturnsFailed()
-        {
-            // Arrange
-            A.CallTo(() => _fileShareReadOnlyClientFake.SearchAsync(A<string>._, A<int?>._, A<int?>._, A<CancellationToken>._))
-                .Returns(Result.Failure<BatchSearchResponse>("Error searching batches"));
-
-            // Act
-            var result = await _testableProductSearchNode.PerformExecuteAsync(_executionContext);
-
-            // Assert
-            Assert.That(result, Is.EqualTo(NodeResultStatus.Succeeded));
-        }
-
-        //[Test]
-        //public async Task WhenPerformExecuteAsyncIsCalledAndCancellationIsRequested_ThenThrowsOperationCanceledException()
-        //{
-        //    // Arrange
-        //    var cancellationTokenSource = new CancellationTokenSource();
-        //    cancellationTokenSource.Cancel();
-
-        //    var batchSearchResponse = new BatchSearchResponse
-        //    {
-        //        Entries = new List<BatchDetails>
-        //        {
-        //            new BatchDetails { BatchId = "Batch1", BusinessUnit = "ADDS-S100" }
-        //        }
-        //    };
-
-        //    A.CallTo(() => _fileShareReadOnlyClientFake.SearchAsync(A<string>._, A<int?>._, A<int?>._, cancellationTokenSource.Token))
-        //        .Returns(Result.Success(batchSearchResponse));
-
-        //    // Act & Assert
-        //    Assert.ThrowsAsync<OperationCanceledException>(async () =>
-        //    {
-        //        await _testableProductSearchNode.PerformExecuteAsync(_executionContext);
-        //    });
-        //}
-
-        //[Test]
-        //public async Task WhenPerformExecuteAsyncIsCalled_ThenQueryIsCorrectlyConfigured()
-        //{
-        //    // Arrange
-        //    string capturedQuery = null;
-        //    A.CallTo(() => _fileShareReadOnlyClientFake.SearchAsync(A<string>._, A<int?>._, A<int?>._, A<CancellationToken>._))
-        //        .Invokes((string query, int? pageSize, int? start, string correlationId, CancellationToken _) =>
-        //        {
-        //            capturedQuery = query;
-        //        })
-        //        .Returns(Result.Success(new BatchSearchResponse()));
-
-        //    // Act
-        //    await _testableProductSearchNode.PerformExecuteAsync(_executionContext);
-
-        //    // Assert
-        //    Assert.That(capturedQuery, Is.Not.Null);
-        //    Assert.That(capturedQuery, Does.Contain("ADDS-S100"));
-        //}
-
         private class TestableProductSearchNode : ProductSearchNode
         {
-            public TestableProductSearchNode(IFileShareReadOnlyClient fileShareReadOnlyClient)
-                : base(fileShareReadOnlyClient)
+            public TestableProductSearchNode(IFileShareReadOnlyClient fileShareReadOnlyClient, IOptions<FileShareServiceConfiguration> fileShareServiceSettings)
+                : base(fileShareReadOnlyClient,fileShareServiceSettings)
             {
             }
 
