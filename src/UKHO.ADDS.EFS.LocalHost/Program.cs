@@ -41,25 +41,6 @@ namespace UKHO.ADDS.EFS.LocalHost
             var addsMockContainer = builder.AddDockerfile(ContainerConfiguration.MockContainerName, @"..\..\mock\repo\src\ADDSMock")
                 .WithHttpEndpoint(mockEndpointPort, mockEndpointContainerPort, ContainerConfiguration.MockContainerEndpointName);
 
-            var elasticsearch = builder.AddContainer("elasticsearch", "docker.elastic.co/elasticsearch/elasticsearch:7.17.0")
-                .WithEnvironment("discovery.type", "single-node")
-                .WithEnvironment("xpack.security.enabled", "false")
-                .WithHttpEndpoint(9200, 9200);
-
-            var kibanaContainer = builder.AddContainer("kibana", "docker.elastic.co/kibana/kibana:7.17.0")
-                .WithEnvironment("ELASTICSEARCH_HOSTS", "http://elasticsearch:9200")
-                .WithEnvironment("xpack.security.enabled", "false")
-                .WithHttpEndpoint(5601, 5601)
-                .WaitFor(elasticsearch);
-
-            builder.AddContainer("apm-server", "docker.elastic.co/apm/apm-server:7.17.0")
-                .WithEnvironment("setup.kibana.host", "http://kibana:5601")
-                .WithEnvironment("setup.dashboards.enabled", "true")
-                .WithEnvironment("output.elasticsearch.hosts", "[\"http://elasticsearch:9200\"]")
-                .WithEnvironment("apm-server.host", "0.0.0.0:8200")
-                .WithHttpEndpoint(8200, 8200)
-                .WaitFor(elasticsearch);
-
             // Orchestrator
 
             var orchestratorService = builder.AddProject<UKHO_ADDS_EFS_Orchestrator>(ContainerConfiguration.OrchestratorContainerName)
@@ -70,8 +51,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WithReference(storageBlob)
                 .WaitFor(storageBlob)
                 .WaitFor(addsMockContainer)
-                .WithScalar("API Browser")
-                .WithKibanaDashboard(kibanaContainer.GetEndpoint("http"), "Kibana dashboard");
+                .WithScalar("API Browser");
 
             orchestratorService.WithEnvironment(c =>
             {
