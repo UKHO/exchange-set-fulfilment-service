@@ -68,14 +68,14 @@ stages:
               targetType: 'inline'
               pwsh: true
               script: |
-              # Use the installed .NET 9.0 SDK
+                # Use the installed .NET 9.0 SDK
                 export DOTNET_ROOT=$(Agent.ToolsDirectory)/dotnet
                 export PATH=$DOTNET_ROOT:$PATH
 
-              # Run Stryker for Orchestrator UnitTests
+                # Run Stryker for Orchestrator UnitTests
                 $(Agent.BuildDirectory)/tools/dotnet-stryker --test-project $(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Orchestrator.UnitTests/UKHO.ADDS.EFS.Orchestrator.UnitTests.csproj --output $(Build.SourcesDirectory)/mutation-reports/orchestrator
 
-              # Run Stryker for Builder S100 UnitTests
+                # Run Stryker for Builder S100 UnitTests
                 $(Agent.BuildDirectory)/tools/dotnet-stryker --test-project $(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Builder.S100.UnitTests/UKHO.ADDS.EFS.Builder.S100.UnitTests.csproj --output $(Build.SourcesDirectory)/mutation-reports/builder-s100
 
           - task: PublishMutationReport@0
