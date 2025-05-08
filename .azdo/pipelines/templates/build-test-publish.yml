@@ -22,7 +22,7 @@ jobs:
         packagesDirectory: '$(Build.SourcesDirectory)\packagesForTests'
 
     - task: DotNetCoreCLI@2
-      displayName: "Dotnet test - EFS Orchestrator API Unit Tests"
+      displayName: "Dotnet test - Perform unit tests"
       inputs:
         command: "test"
         projects: |
