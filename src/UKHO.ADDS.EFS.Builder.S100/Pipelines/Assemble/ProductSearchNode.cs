@@ -139,7 +139,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private string GenerateQueryForFss(List<SearchBatchProducts> products)
         {
             var queryBuilder = new StringBuilder();
-            //var logBuilder = new StringBuilder();
+            var logBuilder = new StringBuilder();
 
             if (products == null || products.Count == 0)
                 return string.Empty;
@@ -159,15 +159,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                     queryBuilder.Append("))");
                 }
                 queryBuilder.Append(i == products.Count - 1 ? ")" : ") or ");
-                //logBuilder.AppendFormat("\n Product/CellName:{0}, EditionNumber:{1}, UpdateNumbers:[{2}]",
-                //    product.ProductName,
-                //    product.EditionNumber,
-                //    string.Join(",", product?.UpdateNumbers?.Where(u => u.HasValue) ?? []));                
+                logBuilder.AppendFormat("\n Product/ProductName:{0}, EditionNumber:{1}, UpdateNumbers:[{2}]",
+                    product.ProductName,
+                    product.EditionNumber,
+                    string.Join(",", product?.UpdateNumbers?.Where(u => u.HasValue) ?? []));
             }
-
             queryBuilder.Append(')');
-
-            //return (queryBuilder.ToString(), logBuilder.ToString());
+            _logger.LogProductSearchNodeFssQueryProducts(logBuilder.ToString());
             return (queryBuilder.ToString());
         }
 
