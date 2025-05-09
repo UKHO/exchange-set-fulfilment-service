@@ -18,7 +18,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private readonly IFileShareReadOnlyClient _fileShareReadOnlyClient;
         private ILogger _logger;
 
-        public ProductSearchNode(IFileShareReadOnlyClient fileShareReadOnlyClient, IOptions<FileShareServiceConfiguration> fileShareServiceOptions)
+        public ProductSearchNode(IFileShareReadOnlyClient fileShareReadOnlyClient, IOptions<FileShareServiceConfiguration> fileShareServiceOptions):base()
         {
             _fileShareReadOnlyClient = fileShareReadOnlyClient ?? throw new ArgumentNullException(nameof(fileShareReadOnlyClient));
             _fileShareServiceConfiguration = fileShareServiceOptions?.Value?? throw new ArgumentNullException(nameof(fileShareServiceOptions)); ;
@@ -28,14 +28,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         {
             try
             {
-                _logger = context.Subject.LoggerFactory.CreateLogger<AssemblyPipeline>();
-
+                _logger = context.Subject.LoggerFactory.CreateLogger<ProductSearchNode>();
                 var products = context.Subject.Job?.Products;
                 if (products == null || products.Count == 0)
                     return NodeResultStatus.NotRun;
 
                 var batchList = new List<BatchDetails>();
-
                 var groupedProducts = products
                     .GroupBy(p => p.ProductName)
                     .Select(g => new SearchBatchProducts
@@ -47,22 +45,21 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
                 var productGroupCount = (int)Math.Ceiling((double)products.Count / _fileShareServiceConfiguration.ParallelSearchTaskCount);
                 var productsList = SplitList(groupedProducts, productGroupCount);
-
-                var tasks = productsList.Select(async productGroup =>
+                foreach(var productGroup in productsList)
                 {
                     var batchDetails = await QueryFileShareServiceFilesAsync(productGroup, context.Subject.Job?.CorrelationId);
                     if (batchDetails != null)
                         batchList.AddRange(batchDetails);
-                });
-                await Task.WhenAll(tasks);
+                }               
+               
                 context.Subject.BatchDetails = batchList;
                 return NodeResultStatus.Succeeded;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogProductSearchNodeFailed(ex.Message);
                 return NodeResultStatus.Failed;
-            } 
+            }             
         }
 
         private async Task<List<BatchDetails>> QueryFileShareServiceFilesAsync(List<SearchBatchProducts> products, string correlationId)
@@ -92,11 +89,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
             var totalUpdateCount = products.Sum(p => p.UpdateNumbers.Count);
             var queryCount = 0;
-            var filter = $"BusinessUnit eq '{_fileShareServiceConfiguration.BusinessUnit}' and {_fileShareServiceConfiguration.ProductType} {productQuery.Item1}";
+            var filter = $"BusinessUnit eq '{_fileShareServiceConfiguration.BusinessUnit}' and {_fileShareServiceConfiguration.ProductType} {productQuery}";
             var limit = _fileShareServiceConfiguration.Limit;
             var start = _fileShareServiceConfiguration.Start;
             do
-            {
+            {               
                 queryCount++;
                 var result = await _fileShareReadOnlyClient.SearchAsync(filter, limit, start, correlationId);
                 if (result.IsSuccess(out var value, out var error))
@@ -139,36 +136,39 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             }
         }
 
-        private (string, string) GenerateQueryForFss(List<SearchBatchProducts> products)
+        private string GenerateQueryForFss(List<SearchBatchProducts> products)
         {
             var queryBuilder = new StringBuilder();
-            var logBuilder = new StringBuilder();
+            //var logBuilder = new StringBuilder();
 
             if (products == null || products.Count == 0)
-                return (string.Empty, string.Empty);
+                return string.Empty;
 
             queryBuilder.Append('(');
             for (var i = 0; i < products.Count; i++)
-            {
+            {                
                 var product = products[i];
                 queryBuilder.Append('(')
-                    .AppendFormat(_fileShareServiceConfiguration.ProductName, product.ProductName)
-                    .AppendFormat(_fileShareServiceConfiguration.EditionNumber, product.EditionNumber);
+                    .AppendFormat(_fileShareServiceConfiguration.ProductName ?? string.Empty, product.ProductName)
+                    .AppendFormat(_fileShareServiceConfiguration.EditionNumber ?? string.Empty, product.EditionNumber);
 
                 if (product.UpdateNumbers != null && product.UpdateNumbers.Any())
                 {
                     queryBuilder.Append("((");
-                    queryBuilder.Append(string.Join(" or ", product.UpdateNumbers.Select(u => string.Format(_fileShareServiceConfiguration.UpdateNumber, u))));
+                    queryBuilder.Append(string.Join(" or ", product.UpdateNumbers.Select(u => string.Format(_fileShareServiceConfiguration.UpdateNumber ?? string.Empty, u))));
                     queryBuilder.Append("))");
                 }
                 queryBuilder.Append(i == products.Count - 1 ? ")" : ") or ");
-                logBuilder.AppendFormat("\n Product/CellName:{0}, EditionNumber:{1}, UpdateNumbers:[{2}]",
-                    product.ProductName, product.EditionNumber, string.Join(",", product.UpdateNumbers));
+                //logBuilder.AppendFormat("\n Product/CellName:{0}, EditionNumber:{1}, UpdateNumbers:[{2}]",
+                //    product.ProductName,
+                //    product.EditionNumber,
+                //    string.Join(",", product?.UpdateNumbers?.Where(u => u.HasValue) ?? []));                
             }
 
             queryBuilder.Append(')');
 
-            return (queryBuilder.ToString(), logBuilder.ToString());
+            //return (queryBuilder.ToString(), logBuilder.ToString());
+            return (queryBuilder.ToString());
         }
 
         private List<SearchBatchProducts> SliceProductsWithUpdateNumberForFssQuery(List<SearchBatchProducts> products)

@@ -21,8 +21,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
         // The Create Batch Node Failed
         public static readonly EventId CreateBatchNodeFailed = new(CreateBatchNodeFailedId, nameof(CreateBatchNodeFailed));
 
-        [LoggerMessage(CreateBatchNodeFailedId, LogLevel.Error, "CreateBatchNode failed for job id: {@jobId} {@error}", EventName = nameof(CreateBatchNodeFailed))]
-        public static partial void LogCreateBatchNodeFailed(this ILogger logger, string jobId, [LogProperties] IError error); 
+        [LoggerMessage(CreateBatchNodeFailedId, LogLevel.Error, "CreateBatchNode failed: {@error}", EventName = nameof(CreateBatchNodeFailed))]
+        public static partial void LogCreateBatchNodeFailed(this ILogger logger, [LogProperties] IError error); 
 
         //The Product Search node failed
         public static readonly EventId ProductSearchNodeFailed = new(ProductSearchNodeFailedId, nameof(ProductSearchNodeFailed));
