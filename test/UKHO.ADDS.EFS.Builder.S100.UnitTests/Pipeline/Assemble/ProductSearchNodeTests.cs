@@ -63,7 +63,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
             };
 
             A.CallTo(() => _executionContext.Subject).Returns(exchangeSetPipelineContext);
-            
+
         }
 
         [Test]
@@ -120,7 +120,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         {
             // Arrange            
             var error = new Error { Message = "Search failed" };
-            A.CallTo(() => _fileShareReadOnlyClientFake.SearchAsync(A<string>._, A<int?>._, A<int?>._, A<string>._))                
+            A.CallTo(() => _fileShareReadOnlyClientFake.SearchAsync(A<string>._, A<int?>._, A<int?>._, A<string>._))
                 .Returns(Result.Failure<BatchSearchResponse>(error));
 
             // Act            
@@ -131,7 +131,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
             {
                 Assert.That(_executionContext.Subject.BatchDetails, Is.Null);
                 Assert.That(result, Is.EqualTo(NodeResultStatus.Failed));
-            });            
+            });
         }
 
         [Test]
@@ -200,7 +200,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         private class TestableProductSearchNode : ProductSearchNode
         {
             public TestableProductSearchNode(IFileShareReadOnlyClient fileShareReadOnlyClient, IOptions<FileShareServiceConfiguration> fileShareServiceSettings)
-                : base(fileShareReadOnlyClient,fileShareServiceSettings)
+                : base(fileShareReadOnlyClient, fileShareServiceSettings)
             {
             }
 

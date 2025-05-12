@@ -11,6 +11,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
         private const int CreateBatchNodeFailedId = BaseEventId + 2;
         private const int ProductSearchNodeFailedId = BaseEventId + 3;
         private const int ProductSearchNodeFssSearchFailedId = BaseEventId + 4;
+        private const int ProductSearchNodeFssQueryProductsId = BaseEventId + 5;
 
         // The assembly pipeline failed
         public static readonly EventId AssemblyPipelineFailed = new(AssemblyPipelineFailedId, nameof(AssemblyPipelineFailed));
@@ -21,8 +22,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
         // The Create Batch Node Failed
         public static readonly EventId CreateBatchNodeFailed = new(CreateBatchNodeFailedId, nameof(CreateBatchNodeFailed));
 
-        [LoggerMessage(CreateBatchNodeFailedId, LogLevel.Error, "CreateBatchNode failed for job id: {@jobId} {@error}", EventName = nameof(CreateBatchNodeFailed))]
-        public static partial void LogCreateBatchNodeFailed(this ILogger logger, string jobId, [LogProperties] IError error); 
+        [LoggerMessage(CreateBatchNodeFailedId, LogLevel.Error, "CreateBatchNode failed: {@error}", EventName = nameof(CreateBatchNodeFailed))]
+        public static partial void LogCreateBatchNodeFailed(this ILogger logger, [LogProperties] IError error); 
 
         //The Product Search node failed
         public static readonly EventId ProductSearchNodeFailed = new(ProductSearchNodeFailedId, nameof(ProductSearchNodeFailed));
@@ -35,5 +36,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
 
         [LoggerMessage(ProductSearchNodeFssSearchFailedId, LogLevel.Error, "ProductSearchNode File Share Service Search failed: {@error}", EventName = nameof(ProductSearchNodeFssSearchFailed))]
         public static partial void LogProductSearchNodeFssSearchFailed(this ILogger logger, [LogProperties] IError error);
+
+        //The Product Search node FSS Query Products
+        public static readonly EventId ProductSearchNodeFssQueryProducts = new(ProductSearchNodeFssQueryProductsId, nameof(ProductSearchNodeFssQueryProducts));
+
+        [LoggerMessage(ProductSearchNodeFssQueryProductsId, LogLevel.Information, "ProductSearchNode File Share Service Query generated for Products: {@message}", EventName = nameof(ProductSearchNodeFssQueryProducts))]
+        public static partial void LogProductSearchNodeFssQueryProducts(this ILogger logger, string message);
     }
 }
