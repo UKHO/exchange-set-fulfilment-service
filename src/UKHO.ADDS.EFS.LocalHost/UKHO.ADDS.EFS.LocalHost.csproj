@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\mock\UKHO.ADDS.Mocks.EFS\UKHO.ADDS.Mocks.EFS.csproj" />
     <ProjectReference Include="..\UKHO.ADDS.EFS.Domain\UKHO.ADDS.EFS.Domain.csproj" IsAspireProjectResource="false" />
     <ProjectReference Include="..\UKHO.ADDS.EFS.Orchestrator\UKHO.ADDS.EFS.Orchestrator.csproj" />
   </ItemGroup>
