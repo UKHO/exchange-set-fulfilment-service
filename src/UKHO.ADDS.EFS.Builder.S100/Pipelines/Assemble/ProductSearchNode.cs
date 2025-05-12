@@ -14,14 +14,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 {
     public class ProductSearchNode : ExchangeSetPipelineNode
     {
-        private readonly FileShareServiceConfiguration _fileShareServiceConfiguration;
+        private readonly IOptions<FileShareServiceConfiguration> _fileShareServiceConfiguration;
         private readonly IFileShareReadOnlyClient _fileShareReadOnlyClient;
         private ILogger _logger;
 
         public ProductSearchNode(IFileShareReadOnlyClient fileShareReadOnlyClient, IOptions<FileShareServiceConfiguration> fileShareServiceOptions):base()
         {
             _fileShareReadOnlyClient = fileShareReadOnlyClient ?? throw new ArgumentNullException(nameof(fileShareReadOnlyClient));
-            _fileShareServiceConfiguration = fileShareServiceOptions?.Value?? throw new ArgumentNullException(nameof(fileShareServiceOptions)); ;
+            _fileShareServiceConfiguration = fileShareServiceOptions ?? throw new ArgumentNullException(nameof(fileShareServiceOptions)); ;
         }
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
@@ -43,7 +43,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                         UpdateNumbers = g.Select(p => p.LatestUpdateNumber).ToList()
                     }).ToList();
 
-                var productGroupCount = (int)Math.Ceiling((double)products.Count / _fileShareServiceConfiguration.ParallelSearchTaskCount);
+                var productGroupCount = (int)Math.Ceiling((double)products.Count / _fileShareServiceConfiguration.Value.ParallelSearchTaskCount);
                 var productsList = SplitList(groupedProducts, productGroupCount);
                 foreach(var productGroup in productsList)
                 {
@@ -89,9 +89,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
             var totalUpdateCount = products.Sum(p => p.UpdateNumbers.Count);
             var queryCount = 0;
-            var filter = $"BusinessUnit eq '{_fileShareServiceConfiguration.BusinessUnit}' and {_fileShareServiceConfiguration.ProductType} {productQuery}";
-            var limit = _fileShareServiceConfiguration.Limit;
-            var start = _fileShareServiceConfiguration.Start;
+            var filter = $"BusinessUnit eq '{_fileShareServiceConfiguration.Value.BusinessUnit}' and {_fileShareServiceConfiguration.Value.ProductType} {productQuery}";
+            var limit = _fileShareServiceConfiguration.Value.Limit;
+            var start = _fileShareServiceConfiguration.Value.Start;
             do
             {               
                 queryCount++;
@@ -149,13 +149,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             {                
                 var product = products[i];
                 queryBuilder.Append('(')
-                    .AppendFormat(_fileShareServiceConfiguration.ProductName ?? string.Empty, product.ProductName)
-                    .AppendFormat(_fileShareServiceConfiguration.EditionNumber ?? string.Empty, product.EditionNumber);
+                    .AppendFormat(_fileShareServiceConfiguration.Value.ProductName ?? string.Empty, product.ProductName)
+                    .AppendFormat(_fileShareServiceConfiguration.Value.EditionNumber ?? string.Empty, product.EditionNumber);
 
                 if (product.UpdateNumbers != null && product.UpdateNumbers.Any())
                 {
                     queryBuilder.Append("((");
-                    queryBuilder.Append(string.Join(" or ", product.UpdateNumbers.Select(u => string.Format(_fileShareServiceConfiguration.UpdateNumber ?? string.Empty, u))));
+                    queryBuilder.Append(string.Join(" or ", product.UpdateNumbers.Select(u => string.Format(_fileShareServiceConfiguration.Value.UpdateNumber ?? string.Empty, u))));
                     queryBuilder.Append("))");
                 }
                 queryBuilder.Append(i == products.Count - 1 ? ")" : ") or ");
@@ -172,7 +172,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private List<SearchBatchProducts> SliceProductsWithUpdateNumberForFssQuery(List<SearchBatchProducts> products)
         {
             return [.. products.SelectMany(product =>
-                SplitList(product.UpdateNumbers, _fileShareServiceConfiguration.UpdateNumberLimit)
+                SplitList(product.UpdateNumbers, _fileShareServiceConfiguration.Value.UpdateNumberLimit)
                     .Select(updateNumbers => new SearchBatchProducts
                     {
                         ProductName = product.ProductName,
@@ -183,7 +183,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
         private IEnumerable<List<SearchBatchProducts>> SliceProductsForFssQuery(List<SearchBatchProducts> products)
         {
-            return SplitList((SliceProductsWithUpdateNumberForFssQuery(products)), _fileShareServiceConfiguration.ProductLimit);
+            return SplitList((SliceProductsWithUpdateNumberForFssQuery(products)), _fileShareServiceConfiguration.Value.ProductLimit);
         }
         
         static Dictionary<string, string> ParseQueryString(string queryString)

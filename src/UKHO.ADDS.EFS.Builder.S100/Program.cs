@@ -20,6 +20,8 @@ namespace UKHO.ADDS.EFS.Builder.S100
 {
     internal class Program
     {
+        private static IConfiguration _configuration;
+
         private static async Task<int> Main(string[] args)
         {
             Log.Logger = new LoggerConfiguration()
@@ -137,23 +139,23 @@ namespace UKHO.ADDS.EFS.Builder.S100
                 loggingBuilder.AddSerilog(dispose: true);
             });
 
-            var configuration = new ConfigurationBuilder()
+            _configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile(appsettingsPath)
                 .AddJsonFile(appsettingsDevPath, true)
                 .Build();
-            var fileShareEndpoint = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.FileShareEndpoint)! ?? configuration["Endpoints:FileShareService"]!;
-            
+            var fileShareEndpoint = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.FileShareEndpoint)! ?? _configuration["Endpoints:FileShareService"]!;
+
             collection.AddHttpClient();
 
-            collection.AddSingleton<IConfiguration>(x => configuration);
-            collection.Configure<FileShareServiceConfiguration>(configuration.GetSection("FileShareServiceConfiguration"));
+            collection.AddSingleton<IConfiguration>(x => _configuration);
+            collection.Configure<FileShareServiceConfiguration>(_configuration.GetSection("FileShareServiceConfiguration"));
             collection.AddSingleton<ExchangeSetPipelineContext>();
             collection.AddSingleton<StartupPipeline>();
-             collection.AddSingleton<AssemblyPipeline>();
+            collection.AddSingleton<AssemblyPipeline>();
 
-             collection.AddSingleton<IFileShareReadWriteClientFactory>(provider =>
-                new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
+            collection.AddSingleton<IFileShareReadWriteClientFactory>(provider =>
+               new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
 
             collection.AddSingleton(provider =>
             {
@@ -176,7 +178,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
             collection.AddSingleton<INodeStatusWriter, NodeStatusWriter>();
             collection.AddSingleton<IToolClient, ToolClient>();
 
-            
+
             return collection.BuildServiceProvider();
         }
     }
