@@ -56,9 +56,9 @@ namespace UKHO.ADDS.EFS.LocalHost
             orchestratorService.WithEnvironment(c =>
             {
                 var addsMockEndpoint = mockService.GetEndpoint("http");
-                var fssEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = "host.docker.internal", Path = "fss" };
+                var fssEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = "host.docker.internal", Path = "fss/" };
 
-                var scsEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.Host, Path = "scs" };
+                var scsEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.Host, Path = "scs/" };
 
                 var orchestratorServiceEndpoint = orchestratorService.GetEndpoint("http").Url;
 
