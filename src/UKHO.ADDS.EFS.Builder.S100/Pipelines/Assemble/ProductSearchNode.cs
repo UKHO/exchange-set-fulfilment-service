@@ -19,10 +19,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private ILogger _logger;
         private const int DefaultSplitSize = 30;
 
-        public ProductSearchNode(IFileShareReadOnlyClient fileShareReadOnlyClient, IOptions<FileShareServiceConfiguration> fileShareServiceOptions):base()
+        public ProductSearchNode(IFileShareReadOnlyClient fileShareReadOnlyClient, IOptions<FileShareServiceConfiguration> fileShareServiceOptions) : base()
         {
             _fileShareReadOnlyClient = fileShareReadOnlyClient ?? throw new ArgumentNullException(nameof(fileShareReadOnlyClient));
-            _fileShareServiceConfiguration = fileShareServiceOptions ?? throw new ArgumentNullException(nameof(fileShareServiceOptions)); ;
+            _fileShareServiceConfiguration = fileShareServiceOptions ?? throw new ArgumentNullException(nameof(fileShareServiceOptions));
         }
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
@@ -58,13 +58,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
                     context.Subject.BatchDetails = batchList;
                     return NodeResultStatus.Succeeded;
-                }                  
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogProductSearchNodeFailed(ex.Message);
                 return NodeResultStatus.Failed;
-            }             
+            }
         }
 
         private async Task<List<BatchDetails>> QueryFileShareServiceFilesAsync(List<SearchBatchProducts> products, string correlationId)
@@ -182,7 +182,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 queryBuilder.Append(')');
                 _logger.LogProductSearchNodeFssQueryProducts(logBuilder.ToString());
                 return (queryBuilder.ToString());
-            } 
+            }
         }
 
         private List<SearchBatchProducts> ChunkProductsByUpdateNumberLimit(List<SearchBatchProducts> products)
@@ -201,7 +201,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         {
             return SplitList((ChunkProductsByUpdateNumberLimit(products)), _fileShareServiceConfiguration.Value.ProductLimit);
         }
-        
+
         static Dictionary<string, string> ParseQueryString(string queryString)
         {
             var queryIndex = queryString.IndexOf('?');
