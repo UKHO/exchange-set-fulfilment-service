@@ -37,9 +37,8 @@ namespace UKHO.ADDS.EFS.LocalHost
             var storageBlob = storage.AddBlobs(StorageConfiguration.BlobsName);
 
             // ADDS Mock
-
-            var addsMockContainer = builder.AddDockerfile(ContainerConfiguration.MockContainerName, @"..\..\mock\repo\src\ADDSMock")
-                .WithHttpEndpoint(mockEndpointPort, mockEndpointContainerPort, ContainerConfiguration.MockContainerEndpointName);
+            var mockService = builder.AddProject<UKHO_ADDS_Mocks_EFS>(ContainerConfiguration.MockContainerName)
+                .WithDashboard("Dashboard");
 
             // Orchestrator
 
@@ -50,15 +49,16 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WaitFor(storageTable)
                 .WithReference(storageBlob)
                 .WaitFor(storageBlob)
-                .WaitFor(addsMockContainer)
+                .WithReference(mockService)
+                .WaitFor(mockService)
                 .WithScalar("API Browser");
 
             orchestratorService.WithEnvironment(c =>
             {
-                var addsMockEndpoint = addsMockContainer.GetEndpoint(ContainerConfiguration.MockContainerEndpointName);
-                var fssEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.ContainerHost, Path = "fss" };
+                var addsMockEndpoint = mockService.GetEndpoint("http");
+                var fssEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = "host.docker.internal", Path = "fss/" };
 
-                var scsEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.Host, Path = "scs" };
+                var scsEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.Host, Path = "scs/" };
 
                 var orchestratorServiceEndpoint = orchestratorService.GetEndpoint("http").Url;
 
