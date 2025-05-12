@@ -147,10 +147,10 @@ namespace UKHO.ADDS.EFS.Builder.S100
 
             collection.AddSingleton<ExchangeSetPipelineContext>();
             collection.AddSingleton<StartupPipeline>();
-             collection.AddSingleton<AssemblyPipeline>();
+            collection.AddSingleton<AssemblyPipeline>();
 
-             collection.AddSingleton<IFileShareReadWriteClientFactory>(provider =>
-                new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
+            collection.AddSingleton<IFileShareReadWriteClientFactory>(provider =>
+               new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
 
             var fileShareEndpoint = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.FileShareEndpoint)! ?? configuration["Endpoints:FileShareService"]!;
 
@@ -164,7 +164,14 @@ namespace UKHO.ADDS.EFS.Builder.S100
             collection.AddSingleton<DistributionPipeline>();
 
             collection.AddSingleton<INodeStatusWriter, NodeStatusWriter>();
-            collection.AddSingleton<IToolClient, ToolClient>();
+            collection.AddHttpClient<IToolClient, ToolClient>((serviceProvider, client) =>
+            {
+                var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+                var baseUrl = configuration["IICTool:BaseUrl"];
+                if (string.IsNullOrWhiteSpace(baseUrl))
+                    throw new InvalidOperationException("IICTool:BaseUrl configuration is missing.");
+                client.BaseAddress = new Uri(baseUrl);
+            });
 
             return collection.BuildServiceProvider();
         }
