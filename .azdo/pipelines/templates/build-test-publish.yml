@@ -78,35 +78,3 @@ jobs:
         projects: '**/*.csproj'
         arguments: '--configuration $(BuildConfiguration)'
 
-- job: BuildADDSMockService
-  workspace:
-    clean: all
-  displayName: "Dotnet Build ADDS Mock Service"
-  steps:
-
-    - checkout: self
-      submodules: true
-
-    - task: UseDotNet@2
-      displayName: Use .NET SDK $(SdkVersion)
-      inputs:
-        packageType: sdk
-        version: $(SdkVersion)
-              
-    - task: DotNetCoreCLI@2
-      displayName: ".Net Core - NuGet restore for non test projects only"
-      inputs:
-        command: "restore"
-        projects: '**/*UKHO.ADDS.Mocks.csproj'
-        feedsToUse: config
-        noCache: true
-        nugetConfigPath: '$(Build.SourcesDirectory)\mock\repo\BuildNuget.config'
-        workingDirectory: '$(Build.SourcesDirectory)\mock\repo\src\UKHO.ADDS.Mocks'
-        packagesDirectory: '$(Build.SourcesDirectory)\repo\packages'
-
-    - task: DotNetCoreCLI@2
-      displayName: "Dotnet build task"
-      inputs:
-        command: "build"
-        projects: '**/*UKHO.ADDS.Mocks.csproj'
-        arguments: '--configuration $(BuildConfiguration)'
