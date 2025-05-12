@@ -93,16 +93,16 @@ jobs:
       displayName: ".Net Core - NuGet restore for non test projects only"
       inputs:
         command: "restore"
-        projects: '**/*ADDSMock.csproj'
+        projects: '**/*UKHO.ADDS.Mocks.csproj'
         feedsToUse: config
         noCache: true
         nugetConfigPath: '$(Build.SourcesDirectory)\mock\repo\BuildNuget.config'
-        workingDirectory: '$(Build.SourcesDirectory)\mock\repo\src\ADDSMock'
+        workingDirectory: '$(Build.SourcesDirectory)\mock\repo\src\UKHO.ADDS.Mocks'
         packagesDirectory: '$(Build.SourcesDirectory)\repo\packages'
 
     - task: DotNetCoreCLI@2
       displayName: "Dotnet build task"
       inputs:
         command: "build"
-        projects: '**/*ADDSMock.csproj'
+        projects: '**/*UKHO.ADDS.Mocks.csproj'
         arguments: '--configuration $(BuildConfiguration)'
