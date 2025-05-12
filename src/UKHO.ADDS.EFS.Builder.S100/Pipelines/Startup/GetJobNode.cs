@@ -98,21 +98,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
             logger.LogJobRetrieved(ExchangeSetJobLogView.CreateFromJob(job));
         }
 
-        private List<S100Products> GetSampleProducts()
-        {
-            return new List<S100Products>
-                    {
-                        new S100Products { ProductName = "101GB004DEVQJ", LatestEditionNumber = 1, LatestUpdateNumber = 9 },
-                        new S100Products { ProductName = "101GB004DEVQK", LatestEditionNumber = 2, LatestUpdateNumber = 10 },
-                        new S100Products { ProductName = "101GB004DEAAJ", LatestEditionNumber = 1, LatestUpdateNumber = 4 },
-                        new S100Products { ProductName = "101GB004DEVBJ", LatestEditionNumber = 2, LatestUpdateNumber = 2 },
-                        new S100Products { ProductName = "101GB004DEVCJ", LatestEditionNumber = 1, LatestUpdateNumber = 1 },
-                        new S100Products { ProductName = "101GB004DEVLJ", LatestEditionNumber = 2, LatestUpdateNumber = 5 },
-                        new S100Products { ProductName = "101GB004DEVQJ", LatestEditionNumber = 1, LatestUpdateNumber = 10 },
-                        new S100Products { ProductName = "101GB004DEVQJ", LatestEditionNumber = 1, LatestUpdateNumber = 11 },
-                        new S100Products { ProductName = "101GB004DEVQJ", LatestEditionNumber = 1, LatestUpdateNumber = 13 },
-                        new S100Products { ProductName = "101GB004DEVQJ", LatestEditionNumber = 1, LatestUpdateNumber = 14 },
-                    };
-        }
+        
     }
 }
