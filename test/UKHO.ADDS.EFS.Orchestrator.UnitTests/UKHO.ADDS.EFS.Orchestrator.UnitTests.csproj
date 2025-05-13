@@ -25,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\mock\repo\src\UKHO.ADDS.Mocks.Client\UKHO.ADDS.Mocks.Client.csproj" />
     <ProjectReference Include="..\..\src\UKHO.ADDS.EFS.Orchestrator\UKHO.ADDS.EFS.Orchestrator.csproj" />
   </ItemGroup>
 

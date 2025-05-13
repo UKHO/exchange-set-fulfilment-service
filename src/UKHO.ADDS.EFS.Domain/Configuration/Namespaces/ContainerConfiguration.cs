@@ -6,8 +6,6 @@
 
         public const string S100BuilderContainerName = "efs-builder-s100";
 
-        public const string MockContainerName = "efs-addsmock";
-
-        public const string MockContainerEndpointName = "efs-addsmock-endpoint";
+        public const string MockContainerName = "adds-mocks-efs";
     }
 }
