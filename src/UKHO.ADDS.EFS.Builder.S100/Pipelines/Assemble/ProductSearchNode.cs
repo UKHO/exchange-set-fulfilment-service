@@ -185,7 +185,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             }
         }
 
-        private List<SearchBatchProducts> ChunkProductsByUpdateNumberLimit(List<SearchBatchProducts> products)
+        private List<SearchBatchProducts> ChunkProductsByUpdateNumberLimit(IEnumerable<SearchBatchProducts> products)
         {
             return [.. products.SelectMany(product =>
                 SplitList(product.UpdateNumbers, _fileShareServiceConfiguration.Value.UpdateNumberLimit)
@@ -197,7 +197,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                     }))];
         }
 
-        private IEnumerable<List<SearchBatchProducts>> ChunkProductsByProductLimit(List<SearchBatchProducts> products)
+        private IEnumerable<List<SearchBatchProducts>> ChunkProductsByProductLimit(IEnumerable<SearchBatchProducts> products)
         {
             return SplitList((ChunkProductsByUpdateNumberLimit(products)), _fileShareServiceConfiguration.Value.ProductLimit);
         }
