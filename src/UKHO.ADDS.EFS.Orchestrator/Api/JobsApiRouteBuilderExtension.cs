@@ -1,7 +1,5 @@
 ﻿using UKHO.ADDS.EFS.Orchestrator.Tables;
-using UKHO.ADDS.EFS.Constants;
 using UKHO.ADDS.EFS.Entities;
-using UKHO.ADDS.EFS.Orchestrator.Extensions;
 using UKHO.ADDS.EFS.Orchestrator.Logging;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Api
