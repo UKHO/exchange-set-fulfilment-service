@@ -1,12 +1,10 @@
 ﻿using FakeItEasy;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble;
-using UKHO.ADDS.EFS.Configuration.Builder;
 using UKHO.ADDS.EFS.Entities;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
@@ -21,26 +19,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         private IFileShareReadOnlyClient _fileShareReadOnlyClientFake;
         private TestableProductSearchNode _testableProductSearchNode;
         private IExecutionContext<ExchangeSetPipelineContext> _executionContext;
-        private IOptions<FileShareServiceConfiguration> _fileShareServiceConfiguration;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
             _fileShareReadOnlyClientFake = A.Fake<IFileShareReadOnlyClient>();
-            _fileShareServiceConfiguration = Options.Create(new FileShareServiceConfiguration
-            {
-                ParallelSearchTaskCount = 2,
-                ProductName = "ProductName eq '{0}'",
-                EditionNumber = "EditionNumber eq {0}",
-                UpdateNumber = "UpdateNumber eq {0}",
-                BusinessUnit = "TestBusinessUnit",
-                ProductType = "ProductType eq 'TestType'",
-                Limit = 10,
-                Start = 0,
-                UpdateNumberLimit = 5,
-                ProductLimit = 10
-            });
-            _testableProductSearchNode = new TestableProductSearchNode(_fileShareReadOnlyClientFake, _fileShareServiceConfiguration);
+            _testableProductSearchNode = new TestableProductSearchNode(_fileShareReadOnlyClientFake);
             _executionContext = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
         }
 
@@ -67,10 +51,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         }
 
         [Test]
-        public void WhenFileShareReadOnlyClientAnConfigurationIsNull_ThenThrowsArgumentNullException()
+        public void WhenFileShareReadOnlyClientIsNull_ThenThrowsArgumentNullException()
         {
-            Assert.Throws<ArgumentNullException>(() => new ProductSearchNode(null, _fileShareServiceConfiguration));
-            Assert.Throws<ArgumentNullException>(() => new ProductSearchNode(_fileShareReadOnlyClientFake, null));
+            Assert.Throws<ArgumentNullException>(() => new ProductSearchNode(null));
         }
 
         [Test]
@@ -92,7 +75,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
                 // Assert
                 Assert.That(result, Is.EqualTo(NodeResultStatus.Succeeded));
                 Assert.That(_executionContext.Subject.BatchDetails, Is.Not.Null);
-                Assert.That(_executionContext.Subject.BatchDetails, Has.Count.EqualTo(2));
+                Assert.That(_executionContext.Subject.BatchDetails.ToList(), Has.Count.EqualTo(2));
                 A.CallTo(() => _fileShareReadOnlyClientFake.SearchAsync(A<string>._, A<int?>._, A<int?>._, A<string>._))
                .MustHaveHappened();
             });
@@ -138,7 +121,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         public async Task WhenPerformExecuteAsyncIsCalled_ThenQueryIsCorrectlyConfigured()
         {
             // Arrange
-            var searchQuery = "BusinessUnit eq 'TestBusinessUnit' and ProductType eq 'TestType' ((ProductName eq 'Product2'EditionNumber eq 2((UpdateNumber eq 1))))";
+            var searchQuery = "BusinessUnit eq 'ADDS-S100' and $batch(ProductType) eq 'S-100' and  (($batch(ProductName) eq 'Product2' and $batch(EditionNumber) eq '2' and (($batch(UpdateNumber) eq '1' ))))";
             string? capturedQuery = null;
             var batchResponse = new BatchSearchResponse
             {
@@ -191,16 +174,15 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
             // Assert
             Assert.Multiple(() =>
             {
-                Assert.That(_executionContext.Subject.BatchDetails, Has.Count.EqualTo(2));
-                Assert.That(_executionContext.Subject.BatchDetails[0].BatchId, Is.EqualTo("TestBatchId1"));
-                Assert.That(_executionContext.Subject.BatchDetails[1].BatchId, Is.EqualTo("TestBatchId2"));
+                Assert.That(_executionContext.Subject.BatchDetails.ToList(), Has.Count.EqualTo(2));
+                Assert.That(_executionContext.Subject.BatchDetails.ToList()[0].BatchId, Is.EqualTo("TestBatchId1"));
+                Assert.That(_executionContext.Subject.BatchDetails.ToList()[1].BatchId, Is.EqualTo("TestBatchId2"));
             });
-
         }
         private class TestableProductSearchNode : ProductSearchNode
         {
-            public TestableProductSearchNode(IFileShareReadOnlyClient fileShareReadOnlyClient, IOptions<FileShareServiceConfiguration> fileShareServiceSettings)
-                : base(fileShareReadOnlyClient, fileShareServiceSettings)
+            public TestableProductSearchNode(IFileShareReadOnlyClient fileShareReadOnlyClient)
+                : base(fileShareReadOnlyClient)
             {
             }
 

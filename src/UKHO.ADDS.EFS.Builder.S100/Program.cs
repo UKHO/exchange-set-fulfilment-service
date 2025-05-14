@@ -1,8 +1,8 @@
 ﻿using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Json;
-using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly;
+using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging;
@@ -10,7 +10,6 @@ using UKHO.ADDS.EFS.Builder.S100.Pipelines.Create.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Services;
-using UKHO.ADDS.EFS.Configuration.Builder;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Extensions;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
@@ -147,7 +146,6 @@ namespace UKHO.ADDS.EFS.Builder.S100
             collection.AddHttpClient();
 
             collection.AddSingleton<IConfiguration>(x => configuration);
-            collection.Configure<FileShareServiceConfiguration>(configuration.GetSection(nameof(FileShareServiceConfiguration)));
             collection.AddSingleton<ExchangeSetPipelineContext>();
             collection.AddSingleton<StartupPipeline>();
             collection.AddSingleton<AssemblyPipeline>();
