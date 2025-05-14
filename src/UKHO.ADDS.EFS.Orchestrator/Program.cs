@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
@@ -7,6 +8,7 @@ using UKHO.ADDS.EFS.Orchestrator.Middleware;
 
 namespace UKHO.ADDS.EFS.Orchestrator
 {
+    [ExcludeFromCodeCoverage]
     public class Program
     {
         public static void Main(string[] args)
