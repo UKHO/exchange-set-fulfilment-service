@@ -116,27 +116,28 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 {
                     if (value.Entries.Count != 0)
                     {
-                        batchSearchResponse.Entries.AddRange(value.Entries);
+                        batchSearchResponse.Entries.AddRange(value.Entries);                        
+                    }
+
+                    var queryString = value.Links?.Next?.Href;
+                    if (!string.IsNullOrEmpty(queryString))
+                    {
+                        var parsedValues = ParseQueryString(queryString);
+                        limit = parsedValues.TryGetValue("limit", out var urlLimit) ? int.Parse(urlLimit) : limit;
+                        start = parsedValues.TryGetValue("start", out var urlStart) ? int.Parse(urlStart) : start;
+                        filter = parsedValues.TryGetValue("$filter", out var urlFilter) ? urlFilter : filter;
+                    }
+                    else
+                    {
+                        filter = string.Empty;
                     }
                 }
                 else
                 {
+                    //TODO: - log search query of unsuccessful response from fss
                     _logger.LogProductSearchNodeFssSearchFailed(error);
                     throw new S100BuilderException("An error occurred while executing the ProductSearchNode.");
-                }
-
-                var queryString = batchSearchResponse.Links?.Next?.Href;
-                if (!string.IsNullOrEmpty(queryString))
-                {
-                    var parsedValues = ParseQueryString(queryString);
-                    limit = parsedValues.TryGetValue("limit", out var urlLimit) ? int.Parse(urlLimit) : limit;
-                    start = parsedValues.TryGetValue("start", out var urlStart) ? int.Parse(urlStart) : start;
-                    filter = parsedValues.TryGetValue("$filter", out var urlFilter) ? urlFilter : filter;
-                }
-                else
-                {
-                    filter = string.Empty;
-                }
+                }               
 
             } while (batchSearchResponse.Entries.Count < totalUpdateCount && !string.IsNullOrWhiteSpace(filter));
 
@@ -155,7 +156,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private string GenerateQueryForFss(List<SearchBatchProducts> products)
         {
             var queryBuilder = new StringBuilder();
-            var logBuilder = new StringBuilder();
 
             if (products == null || products.Count == 0)
             {
@@ -177,15 +177,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                     queryBuilder.Append("))");
                 }
                 queryBuilder.Append(i == products.Count - 1 ? ")" : ") or ");
-
-                logBuilder.AppendFormat("\n Product/ProductName:{0}, EditionNumber:{1}, UpdateNumbers:[{2}]",
-                    product.ProductName,
-                    product.EditionNumber,
-                    string.Join(",", product?.UpdateNumbers?.Where(u => u.HasValue) ?? []));
             }
-            queryBuilder.Append(')');
-
-            _logger.LogProductSearchNodeFssQueryProducts(logBuilder.ToString());
+            queryBuilder.Append(')');           
             return (queryBuilder.ToString());
         }
 
