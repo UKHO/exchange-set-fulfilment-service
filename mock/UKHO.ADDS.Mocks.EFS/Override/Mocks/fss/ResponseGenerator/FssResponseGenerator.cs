@@ -53,7 +53,7 @@ namespace UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss.ResponseGenerator
                         ["batchId"] = batchId,
                         ["status"] = "Committed",
                         ["allFilesZipSize"] = null,
-                        ["attributes"] = new JsonArray { CreateAttribute("ProductName", product.ProductName), CreateAttribute("EditionNumber", product.EditionNumber), CreateAttribute("UpdateNumber", updateNumber), CreateAttribute("ProductCode", filterDetails.ProductCode) },
+                        ["attributes"] = new JsonArray { CreateAttribute("ProductName", product.ProductName), CreateAttribute("EditionNumber", product.EditionNumber.ToString()), CreateAttribute("UpdateNumber", updateNumber.ToString()), CreateAttribute("ProductCode", filterDetails.ProductCode) },
                         ["businessUnit"] = filterDetails.BusinessUnit,
                         ["batchPublishedDate"] = DateTime.UtcNow.AddMonths(-2).ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
                         ["expiryDate"] = DateTime.UtcNow.AddMonths(2).ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),

@@ -16,12 +16,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private ILogger _logger;
         private const int DefaultSplitSize = 30;
 
-        private const string ProductName = "$batch(ProductName) eq '{0}' and ";
-        private const string EditionNumber = "$batch(EditionNumber) eq '{0}' and ";
-        private const string UpdateNumber = "$batch(UpdateNumber) eq '{0}' ";
+        private const string ProductNameQueryClause = "$batch(ProductName) eq '{0}' and ";
+        private const string EditionNumberQueryClause = "$batch(EditionNumber) eq '{0}' and ";
+        private const string UpdateNumberQueryClause = "$batch(UpdateNumber) eq '{0}' ";
         private const string BusinessUnit = "ADDS-S100";
-        private const string ProductType = "$batch(ProductType) eq 'S-100' and ";
-        private const int ParallelSearchTaskCount = 5;
+        private const string ProductTypeQueryClause = "$batch(ProductType) eq 'S-100' and ";
+        private const int MaxParallelSearchOperations = 5;
         private const int UpdateNumberLimit = 5;
         private const int ProductLimit = 4;
         private const int Limit = 100;
@@ -54,7 +54,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                         UpdateNumbers = g.Select(p => p.LatestUpdateNumber).ToList()
                     }).ToList();
 
-                var productGroupCount = (int)Math.Ceiling((double)products.Count / ParallelSearchTaskCount);
+                var productGroupCount = (int)Math.Ceiling((double)products.Count / MaxParallelSearchOperations);
                 var productsList = SplitList(groupedProducts, productGroupCount);
 
                 foreach (var productGroup in productsList)
@@ -105,7 +105,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             var productQuery = GenerateQueryForFss(products);
             var totalUpdateCount = products.Sum(p => p.UpdateNumbers.Count);
             var queryCount = 0;
-            var filter = $"BusinessUnit eq '{BusinessUnit}' and {ProductType} {productQuery}";
+            var filter = $"BusinessUnit eq '{BusinessUnit}' and {ProductTypeQueryClause} {productQuery}";
             var limit = Limit;
             var start = Start;
             do
@@ -167,13 +167,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             {
                 var product = products[i];
                 queryBuilder.Append('(')
-                    .AppendFormat(ProductName ?? string.Empty, product.ProductName)
-                    .AppendFormat(EditionNumber ?? string.Empty, product.EditionNumber);
+                    .AppendFormat(ProductNameQueryClause ?? string.Empty, product.ProductName)
+                    .AppendFormat(EditionNumberQueryClause ?? string.Empty, product.EditionNumber);
 
                 if (product.UpdateNumbers != null && product.UpdateNumbers.Any())
                 {
                     queryBuilder.Append("((");
-                    queryBuilder.Append(string.Join(" or ", product.UpdateNumbers.Select(u => string.Format(UpdateNumber ?? string.Empty, u))));
+                    queryBuilder.Append(string.Join(" or ", product.UpdateNumbers.Select(u => string.Format(UpdateNumberQueryClause ?? string.Empty, u))));
                     queryBuilder.Append("))");
                 }
                 queryBuilder.Append(i == products.Count - 1 ? ")" : ") or ");
