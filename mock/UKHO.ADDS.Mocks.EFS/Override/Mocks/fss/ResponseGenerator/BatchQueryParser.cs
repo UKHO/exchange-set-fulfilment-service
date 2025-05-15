@@ -7,7 +7,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.fss.ResponseGenerator
     {
         private const string BatchPattern = @"\$batch\((?<Property>\w+)\) eq '(?<Value>[^']*)'";
         private static readonly Regex _businessUnitRegex = new(@"BusinessUnit\s*eq\s*'([^']*)'", RegexOptions.Compiled);
-        private static readonly Regex ProductTypeRegex = new Regex(@"\$batch\(ProductType\) eq '(?<Value>[^']*)'", RegexOptions.Compiled);
+        private static readonly Regex _productTypeRegex = new Regex(@"\$batch\(ProductType\) eq '(?<Value>[^']*)'", RegexOptions.Compiled);
 
         public static FSSSearchFilterDetails ParseBatchQuery(string odataQuery)
         {
@@ -30,7 +30,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.fss.ResponseGenerator
             var businessUnitMatch = _businessUnitRegex.Match(filter);
             filterDetails.BusinessUnit = businessUnitMatch.Success ? businessUnitMatch.Groups[1].Value : string.Empty;
 
-            var productTypeMatch = ProductTypeRegex.Match(filter);
+            var productTypeMatch = _productTypeRegex.Match(filter);
             filterDetails.ProductType = productTypeMatch.Success ? productTypeMatch.Groups[1].Value : string.Empty;
 
             var conditions = filter.Split(")))", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
