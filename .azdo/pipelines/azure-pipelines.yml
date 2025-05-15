@@ -83,6 +83,20 @@ stages:
             reportPattern: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Orchestrator.UnitTests/**/mutation-report.html'
             reportDisplayName: 'EFS Orchestrator UnitTests'
 
+        - task: Powershell@2
+          displayName: "Run Stryker for EFS Builder S100 UnitTests"
+          inputs:
+            workingDirectory: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Builder.S100.UnitTests'
+            targetType: 'inline'
+            pwsh: true
+            script: $(Agent.BuildDirectory)/tools/dotnet-stryker --test-project $(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Builder.S100.UnitTests/UKHO.ADDS.EFS.Builder.S100.UnitTests.csproj
+
+        - task: PublishMutationReport@0
+          displayName: 'Publish Strkyer Mutator Report'
+          inputs:
+            reportPattern: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Builder.S100.UnitTests/**/mutation-report.html'
+            reportDisplayName: 'EFS Builder S100 UnitTests'
+
   - stage: BuildTest
     displayName: "Build and Test"
     dependsOn: []
