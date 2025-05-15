@@ -103,7 +103,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             }
 
             var productQuery = GenerateQueryForFss(products);
-            var totalUpdateCount = products.Sum(p => p.UpdateNumbers.Count);
+            var totalUpdateCount = products.Sum(p => p.UpdateNumbers.ToList().Count);
             var queryCount = 0;
             var filter = $"BusinessUnit eq '{BusinessUnit}' and {ProductTypeQueryClause} {productQuery}";
             var limit = Limit;
@@ -192,7 +192,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private static List<SearchBatchProducts> ChunkProductsByUpdateNumberLimit(IEnumerable<SearchBatchProducts> products)
         {
             return [.. products.SelectMany(product =>
-                SplitList(product.UpdateNumbers, UpdateNumberLimit)
+                SplitList(product.UpdateNumbers.ToList(), UpdateNumberLimit)
                     .Select(updateNumbers => new SearchBatchProducts
                     {
                         ProductName = product.ProductName,
