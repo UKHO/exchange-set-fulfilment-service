@@ -13,7 +13,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
         {
-            await context.Subject.ToolClient.AddExchangeSetAsync(context.Subject.WorkspaceRootPath, ExchangeSetId);
+            await context.Subject.ToolClient.AddExchangeSetAsync(ExchangeSetId);
             await context.Subject.ToolClient.AddContentAsync(context.Subject.WorkspaceRootPath, ExchangeSetId);
             await context.Subject.ToolClient.SignExchangeSetAsync(context.Subject.WorkspaceRootPath, ExchangeSetId);
             await context.Subject.ToolClient.ExtractExchangeSetAsync(context.Subject.WorkspaceRootPath, ExchangeSetId);
