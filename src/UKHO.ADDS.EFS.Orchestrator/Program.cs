@@ -65,7 +65,6 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                         client.AddSecretClient(vaultUri);
                         client.AddKeyClient(vaultUri);
-                        client.AddCertificateClient(vaultUri);
                     });
                 }
 
