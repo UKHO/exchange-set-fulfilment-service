@@ -176,9 +176,9 @@ namespace UKHO.ADDS.EFS.Builder.S100
             collection.AddHttpClient<IToolClient, ToolClient>((serviceProvider, client) =>
             {
                 var configuration = serviceProvider.GetRequiredService<IConfiguration>();
-                var baseUrl = configuration["IICTool:BaseUrl"];
+                var baseUrl = configuration["Endpoints:IICTool"];
                 if (string.IsNullOrWhiteSpace(baseUrl))
-                    throw new InvalidOperationException("IICTool:BaseUrl configuration is missing.");
+                    throw new InvalidOperationException("Endpoints:IICTool configuration is missing.");
                 client.BaseAddress = new Uri(baseUrl);
             });
 

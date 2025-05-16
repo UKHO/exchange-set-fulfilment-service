@@ -11,10 +11,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
         {
             var logger = context.Subject.LoggerFactory.CreateLogger<StartTomcatNode>();
 
-            context.Subject.WorkspaceRootPath = @"/usr/local/tomcat/ROOT";
-
             var catalinaHome = Environment.GetEnvironmentVariable("CATALINA_HOME");
-
 
             var process = new Process
             {

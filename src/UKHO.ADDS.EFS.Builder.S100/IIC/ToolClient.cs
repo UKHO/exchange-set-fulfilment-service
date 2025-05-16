@@ -9,15 +9,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
     internal class ToolClient : IToolClient
     {
         private readonly HttpClient _httpClient;
-        private readonly string _workSpaceId;
-        private readonly string _authKey;
+        private const string WorkSpaceId = "working9";
+        private const string WorkSpaceRootPath = @"/usr/local/tomcat/ROOT/spool";
         private const string ApiVersion = "2.7";
 
-        public ToolClient(HttpClient httpClient, IConfiguration configuration)
+        public ToolClient(HttpClient httpClient)
         {
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-            _workSpaceId = configuration["IICTool:WorkSpaceId"] ?? throw new ArgumentNullException("IICTool:WorkSpaceId");
-            _authKey = configuration["IICTool:AuthKey"] ?? throw new ArgumentNullException("IICTool:AuthKey");
         }
 
         public async Task PingAsync()
@@ -29,17 +27,17 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
         public Task<IResult<OperationResponse>> AddExchangeSetAsync(string exchangeSetId, string authKey, string correlationId) =>
             SendApiRequestAsync<OperationResponse>("addExchangeSet", exchangeSetId, authKey, correlationId);
 
-        public async Task<IResult<OperationResponse>> AddContentAsync(string workspaceRootPath, string resourceLocation, string exchangeSetId, string authKey, string correlationId)
+        public async Task<IResult<OperationResponse>> AddContentAsync(string resourceLocation, string exchangeSetId, string authKey, string correlationId)
         {
-            var directoryName = $"fss-data/{Path.GetFileName(resourceLocation)}";
+            var directoryName = Path.Combine("fss-data", Path.GetFileName(resourceLocation));
             return await SendApiRequestAsync<OperationResponse>("addContent", exchangeSetId, authKey, correlationId, directoryName);
         }
 
-        public async Task<IResult<OperationResponse>> AddContentAsync(string workspaceRootPath, string exchangeSetId, string authKey, string correlationId)
+        public async Task<IResult<OperationResponse>> AddContentAsync(string exchangeSetId, string authKey, string correlationId)
         {
             try
             {
-                string resourceLocation = Path.Combine(workspaceRootPath, "spool/spec-wise");
+                string resourceLocation = Path.Combine(WorkSpaceRootPath, "spec-wise");
                 var directories = Directory.GetDirectories(resourceLocation);
 
                 if (directories.Length == 0)
@@ -51,13 +49,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
 
                 foreach (var directory in directories)
                 {
-                    var directoryName = $"spec-wise/{Path.GetFileName(directory)}";
+                    var directoryName = Path.Combine("spec-wise", Path.GetFileName(directory));
                     var result = await SendApiRequestAsync<OperationResponse>("addContent", exchangeSetId, authKey, correlationId, directoryName);
                     if (!result.IsSuccess())
+                    {
                         return result;
+                    }
                 }
 
-                // If all succeeded, return the last result (or a success result)
                 return Result.Success(new OperationResponse
                 {
                     Code = (int)HttpStatusCode.OK,
@@ -71,14 +70,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
             }
         }
 
-        public Task<IResult<SigningResponse>> SignExchangeSetAsync(string workspaceRootPath, string exchangeSetId, string authKey, string correlationId) =>
+        public Task<IResult<SigningResponse>> SignExchangeSetAsync(string exchangeSetId, string authKey, string correlationId) =>
             SendApiRequestAsync<SigningResponse>("signExchangeSet", exchangeSetId, authKey, correlationId);
 
-        public async Task<IResult<Stream>> ExtractExchangeSetAsync(string workspaceRootPath, string exchangeSetId, string authKey, string correlationId)
+        public async Task<IResult<Stream>> ExtractExchangeSetAsync(string exchangeSetId, string authKey, string correlationId)
         {
             try
             {
-                var path = BuildApiPath("extractExchangeSet", exchangeSetId);
+                var path = BuildApiPath("extractExchangeSet", exchangeSetId, authKey);
                 using var response = await _httpClient.GetAsync(path);
                 return await response.CreateResultAsync<Stream>("IICToolAPI", correlationId);
             }
@@ -92,7 +91,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
         {
             try
             {
-                var path = BuildApiPath(action, exchangeSetId, resourceLocation);
+                var path = BuildApiPath(action, exchangeSetId, authKey, resourceLocation);
                 using var response = await _httpClient.GetAsync(path);
                 var content = await response.Content.ReadAsStringAsync();
                 var resultObj = JsonCodec.Decode<T>(content);
@@ -113,20 +112,20 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
             }
         }
 
-        private string BuildApiPath(string action, string exchangeSetId, string? resourceLocation = null)
+        private string BuildApiPath(string action, string exchangeSetId, string authKey, string? resourceLocation = null)
         {
-            var basePath = $"/xchg-{ApiVersion}/v{ApiVersion}/{action}/{_workSpaceId}/{exchangeSetId}";
-            var query = $"?authkey={_authKey}";
+            var basePath = $"/xchg-{ApiVersion}/v{ApiVersion}/{action}/{WorkSpaceId}/{exchangeSetId}";
+            var query = $"?authkey={authKey}";
             if (!string.IsNullOrEmpty(resourceLocation))
                 query += $"&resourceLocation={resourceLocation}";
             return basePath + query;
         }
 
-        public async Task<IResult<string>> ListWorkspaceAsync()
+        public async Task<IResult<string>> ListWorkspaceAsync(string authKey)
         {
             try
             {
-                var path = $"/xchg-{ApiVersion}/v{ApiVersion}/listWorkspace?authkey={_authKey}";
+                var path = $"/xchg-{ApiVersion}/v{ApiVersion}/listWorkspace?authkey={authKey}";
                 using var response = await _httpClient.GetAsync(path);
                 var content = await response.Content.ReadAsStringAsync();
 

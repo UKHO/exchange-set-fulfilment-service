@@ -8,7 +8,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
         {
             await context.Subject.ToolClient.PingAsync();
-            await context.Subject.ToolClient.ListWorkspaceAsync();
+            await context.Subject.ToolClient.ListWorkspaceAsync(context.Subject.WorkspaceAuthenticationKey);
             await CheckEndpointAsync(context.Subject.FileShareEndpoint, "health");
 
             return NodeResultStatus.Succeeded;
