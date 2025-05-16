@@ -1,12 +1,11 @@
-﻿using System.Net;
-using UKHO.ADDS.Clients.Common.Extensions;
+﻿using UKHO.ADDS.Clients.Common.Extensions;
 using UKHO.ADDS.EFS.Builder.S100.IIC.Models;
 using UKHO.ADDS.Infrastructure.Results;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Builder.S100.IIC
 {
-    internal class ToolClient : IToolClient
+    public class ToolClient : IToolClient
     {
         private readonly HttpClient _httpClient;
         private const string WorkSpaceId = "working9";
@@ -31,43 +30,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
         {
             var directoryName = Path.Combine("fss-data", Path.GetFileName(resourceLocation));
             return await SendApiRequestAsync<OperationResponse>("addContent", exchangeSetId, authKey, correlationId, directoryName);
-        }
-
-        public async Task<IResult<OperationResponse>> AddContentAsync(string exchangeSetId, string authKey, string correlationId)
-        {
-            try
-            {
-                string resourceLocation = Path.Combine(WorkSpaceRootPath, "spec-wise");
-                var directories = Directory.GetDirectories(resourceLocation);
-
-                if (directories.Length == 0)
-                {
-                    var errorMetadata = ErrorFactory.CreateProperties(correlationId);
-                    var error = ErrorFactory.CreateError(HttpStatusCode.NotFound, "No directories found to add content.", errorMetadata);
-                    return Result.Failure<OperationResponse>(error);
-                }
-
-                foreach (var directory in directories)
-                {
-                    var directoryName = Path.Combine("spec-wise", Path.GetFileName(directory));
-                    var result = await SendApiRequestAsync<OperationResponse>("addContent", exchangeSetId, authKey, correlationId, directoryName);
-                    if (!result.IsSuccess())
-                    {
-                        return result;
-                    }
-                }
-
-                return Result.Success(new OperationResponse
-                {
-                    Code = (int)HttpStatusCode.OK,
-                    Type = "Success",
-                    Message = "All content directories added successfully."
-                });
-            }
-            catch (Exception ex)
-            {
-                return Result.Failure<OperationResponse>(ex);
-            }
         }
 
         public Task<IResult<SigningResponse>> SignExchangeSetAsync(string exchangeSetId, string authKey, string correlationId) =>
