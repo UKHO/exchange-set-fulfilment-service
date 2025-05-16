@@ -15,9 +15,58 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
         {
             if (context.Subject.IsDebugSession)
             {
-                // Create a debug job (TODO - read example values from appsettings.development.json)
-                // Send this back to the build API via the log context
-                var debugJob = new ExchangeSetJob() { Id = context.Subject.JobId, DataStandard = ExchangeSetDataStandard.S100, Timestamp = DateTime.UtcNow, SalesCatalogueTimestamp = DateTime.UtcNow, State = ExchangeSetJobState.InProgress, Products = new List<S100Products>()};
+                // Read DebugJob section from appsettings.development.json
+                var debugJobConfig = context.Subject.Configuration.GetSection("DebugJob").Get<ExchangeSetJob>();
+
+                // If DebugJob is null, use default values
+                var debugJob = debugJobConfig ?? new ExchangeSetJob()
+                {
+                    Id = context.Subject.JobId,
+                    DataStandard = ExchangeSetDataStandard.S100,
+                    Timestamp = DateTime.UtcNow,
+                    SalesCatalogueTimestamp = DateTime.UtcNow,
+                    State = ExchangeSetJobState.InProgress,
+                    Products = new List<S100Products>()
+                    {
+                        new S100Products
+                        {
+                            ProductName = "Product1",
+                            LatestEditionNumber = 0,
+                            LatestUpdateNumber = 1,
+                            Status = new S100ProductStatus
+                            {
+                                StatusName = "newDataset",
+                                StatusDate = DateTime.UtcNow
+                            }
+                        },
+                        new S100Products
+                        {
+                            ProductName = "Product2",
+                            LatestEditionNumber = 0,
+                            LatestUpdateNumber = 1,
+                            Status = new S100ProductStatus
+                            {
+                                StatusName = "newDataset",
+                                StatusDate = DateTime.UtcNow.AddDays(-1)
+                            }
+                        },
+                        new S100Products
+                        {
+                            ProductName = "Product3",
+                            LatestEditionNumber = 0,
+                            LatestUpdateNumber = 1,
+                            Status = new S100ProductStatus
+                            {
+                                StatusName = "newDataset",
+                                StatusDate = DateTime.UtcNow.AddDays(-7)
+                            }
+                        }
+                    }
+                };
+
+                debugJob.Id = context.Subject.JobId;
+                debugJob.CorrelationId = context.Subject.JobId;
+
                 context.Subject.Job = debugJob;
 
                 // Write back to API
@@ -31,7 +80,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
 
             return NodeResultStatus.Succeeded;
         }
-
         private static async Task GetJobAsync(string baseAddress, string path, ExchangeSetPipelineContext context)
         {
             using var client = new HttpClient();
@@ -49,5 +97,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
             var logger = context.LoggerFactory.CreateLogger<GetJobNode>();
             logger.LogJobRetrieved(ExchangeSetJobLogView.CreateFromJob(job));
         }
+
+        
     }
 }

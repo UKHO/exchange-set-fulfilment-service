@@ -1,6 +1,7 @@
 ﻿using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Json;
+using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
@@ -140,11 +141,11 @@ namespace UKHO.ADDS.EFS.Builder.S100
                 .AddJsonFile(appsettingsPath)
                 .AddJsonFile(appsettingsDevPath, true)
                 .Build();
+            var fileShareEndpoint = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.FileShareEndpoint)! ?? configuration["Endpoints:FileShareService"]!;
 
             collection.AddHttpClient();
 
             collection.AddSingleton<IConfiguration>(x => configuration);
-
             collection.AddSingleton<ExchangeSetPipelineContext>();
             collection.AddSingleton<StartupPipeline>();
             collection.AddSingleton<AssemblyPipeline>();
@@ -152,11 +153,18 @@ namespace UKHO.ADDS.EFS.Builder.S100
             collection.AddSingleton<IFileShareReadWriteClientFactory>(provider =>
                new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
 
-            var fileShareEndpoint = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.FileShareEndpoint)! ?? configuration["Endpoints:FileShareService"]!;
-
             collection.AddSingleton(provider =>
             {
                 var factory = provider.GetRequiredService<IFileShareReadWriteClientFactory>();
+                return factory.CreateClient(fileShareEndpoint.RemoveControlCharacters(), "");
+            });
+
+            collection.AddSingleton<IFileShareReadOnlyClientFactory>(provider =>
+                new FileShareReadOnlyClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
+
+            collection.AddSingleton(provider =>
+            {
+                var factory = provider.GetRequiredService<IFileShareReadOnlyClientFactory>();
                 return factory.CreateClient(fileShareEndpoint.RemoveControlCharacters(), "");
             });
 
@@ -172,6 +180,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
                     throw new InvalidOperationException("IICTool:BaseUrl configuration is missing.");
                 client.BaseAddress = new Uri(baseUrl);
             });
+
 
             return collection.BuildServiceProvider();
         }

@@ -27,7 +27,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 return NodeResultStatus.Succeeded;
             }
 
-            logger.LogCreateBatchNodeFailed(context.Subject.JobId, error);
+            logger.LogCreateBatchNodeFailed(error);
             return NodeResultStatus.Failed;
         }
 

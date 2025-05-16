@@ -53,12 +53,12 @@ namespace UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss.ResponseGenerator
                         ["batchId"] = batchId,
                         ["status"] = "Committed",
                         ["allFilesZipSize"] = null,
-                        ["attributes"] = new JsonArray { CreateAttribute("ProductName", product.ProductName), CreateAttribute("EditionNumber", product.EditionNumber), CreateAttribute("UpdateNumber", updateNumber), CreateAttribute("ProductCode", filterDetails.ProductCode) },
+                        ["attributes"] = new JsonArray { CreateAttribute("ProductName", product.ProductName), CreateAttribute("EditionNumber", product.EditionNumber.ToString()), CreateAttribute("UpdateNumber", updateNumber.ToString()), CreateAttribute("ProductType", filterDetails.ProductType) },
                         ["businessUnit"] = filterDetails.BusinessUnit,
                         ["batchPublishedDate"] = DateTime.UtcNow.AddMonths(-2).ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
                         ["expiryDate"] = DateTime.UtcNow.AddMonths(2).ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
                         ["isAllFilesZipAvailable"] = true,
-                        ["files"] = CreateFilesArray(product.ProductName, batchId, updateNumber)
+                        ["files"] = CreateFilesArray(product.ProductName, batchId, updateNumber.ToString())
                     });
                 });
             }
@@ -66,15 +66,18 @@ namespace UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss.ResponseGenerator
             jsonTemplate["count"] = entries.Count;
             jsonTemplate["total"] = entries.Count;
             jsonTemplate["entries"] = entries;
-            jsonTemplate["_links"] = CreateLinkObject(filterDetails.ProductCode, filterDetails.Products.FirstOrDefault());
+            jsonTemplate["_links"] = CreateLinkObject(filterDetails.ProductType, filterDetails.Products.FirstOrDefault());
         }
 
         private static JsonObject CreateAttribute(string attr, object value) =>
             new() { ["key"] = attr, ["value"] = JsonValue.Create(value) };
 
-        private static JsonArray CreateFilesArray(string productName, string batchId, int updateNo) =>
-            new() { CreateFileObject(productName, $".{updateNo:D3}", 874, batchId), CreateFileObject(productName, ".TXT", 1192, batchId) };
-
+        private static JsonArray CreateFilesArray(string productName, string batchId, string updateNo) =>
+            new()
+            {
+                CreateFileObject(productName, $".{updateNo.PadLeft(3,'0')}", 874, batchId),
+                CreateFileObject(productName, ".TXT", 1192, batchId)
+            };
         private static JsonObject CreateFileObject(string productName, string extension, int fileSize, string batchId) =>
             new()
             {
@@ -82,24 +85,23 @@ namespace UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss.ResponseGenerator
                 ["fileSize"] = fileSize,
                 ["mimeType"] = "text/plain",
                 ["hash"] = string.Empty,
+                ["attributes"] = new JsonArray(),
                 ["links"] = new JsonObject { ["get"] = new JsonObject { ["href"] = $"/batch/{batchId}/files/{productName}{extension}" } }
             };
 
-        private static JsonObject CreateLinkObject(string? productCode, Product? product)
+        private static JsonObject CreateLinkObject(string productType, Product product)
         {
             var filterValue = !string.IsNullOrEmpty(product?.ProductName)
-                ? $"$batch(ProductCode) eq '{productCode}' and $batch(ProductName) eq '{product.ProductName}' and $batch(EditionNumber) eq '{product.EditionNumber}' and $batch(UpdateNumber) eq '{product.UpdateNumbers.FirstOrDefault()}'"
-                : $"$batch(ProductCode) eq '{productCode}'";
+                ? $"$batch(ProductType) eq '{productType}' and $batch(ProductName) eq '{product.ProductName}' and $batch(EditionNumber) eq '{product.EditionNumber}' and $batch(UpdateNumber) eq '{product.UpdateNumbers.FirstOrDefault()}'"
+                : $"$batch(ProductType) eq '{productType}'";
 
             var encodedFilterUrl = $"/batch?limit=10&start=0&$filter={Uri.EscapeDataString(filterValue)}";
 
             return new JsonObject
             {
-                ["self"] = encodedFilterUrl,
-                ["first"] = encodedFilterUrl,
-                ["previous"] = encodedFilterUrl,
-                ["next"] = encodedFilterUrl,
-                ["last"] = encodedFilterUrl
+                ["self"] = new JsonObject { ["href"] = encodedFilterUrl },
+                ["first"] = new JsonObject { ["href"] = encodedFilterUrl },
+                ["last"] = new JsonObject { ["href"] = encodedFilterUrl }
             };
         }
     }
