@@ -8,6 +8,8 @@
 
         public const string BuildServiceEndpoint = "BUILD_SVC_ENDPOINT";
 
+        public const string WorkspaceKey = "WORKSPACE_KEY";
+
         public const string OtlpEndpoint = "OTLP_ENDPOINT";
     }
 }

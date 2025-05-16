@@ -141,7 +141,8 @@ namespace UKHO.ADDS.EFS.Builder.S100
                 .AddJsonFile(appsettingsPath)
                 .AddJsonFile(appsettingsDevPath, true)
                 .Build();
-            var fileShareEndpoint = Environment.GetEnvironmentVariable(OrchestratorEnvironmentVariables.FileShareEndpoint)! ?? configuration["Endpoints:FileShareService"]!;
+
+            var fileShareEndpoint = Environment.GetEnvironmentVariable(BuilderEnvironmentVariables.FileShareEndpoint) ?? configuration["Endpoints:FileShareService"]!;
 
             collection.AddHttpClient();
 
