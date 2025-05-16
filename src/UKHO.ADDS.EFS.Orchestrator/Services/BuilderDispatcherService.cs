@@ -36,7 +36,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
             var fileShareEndpointSecret = secretClient.GetSecret(OrchestratorConfigurationKeys.FileShareEndpoint)!;
             var builderServiceEndpointSecret = secretClient.GetSecret(OrchestratorConfigurationKeys.OrchestratorServiceEndpoint)!;
-            var workspaceAuthenticationKeySecret = secretClient.GetSecret(OrchestratorConfigurationKeys.WorkspaceAuthenticationKey)!;
+            var workspaceAuthenticationKeySecret = secretClient.GetSecret(OrchestratorConfigurationKeys.WorkspaceKey)!;
 
             var builderServiceContainerEndpoint = new UriBuilder(builderServiceEndpointSecret.Value.Value) { Host = "host.docker.internal" }.ToString();
 

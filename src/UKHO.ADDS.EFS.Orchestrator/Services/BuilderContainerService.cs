@@ -72,7 +72,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                     $"{BuilderEnvironmentVariables.FileShareEndpoint}={_fileShareEndpoint}",
                     $"{BuilderEnvironmentVariables.BuildServiceEndpoint}={_builderServiceContainerEndpoint}",
                     $"{BuilderEnvironmentVariables.OtlpEndpoint}={_otlpContainerEndpoint}",
-                    $"{BuilderEnvironmentVariables.WorkspaceAuthenticationKey}={_workspaceAuthenticationKey}"
+                    $"{BuilderEnvironmentVariables.WorkspaceKey}={_workspaceAuthenticationKey}"
                 },
                 Healthcheck = new HealthConfig
                 {

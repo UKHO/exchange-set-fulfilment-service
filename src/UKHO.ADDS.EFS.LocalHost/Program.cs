@@ -78,7 +78,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                 await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.FileShareEndpoint, fssEndpoint.Uri.ToString());
                 await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.SalesCatalogueEndpoint, scsEndpoint.Uri.ToString());
                 await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.OrchestratorServiceEndpoint, orchestratorEndpoint);
-                await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.WorkspaceAuthenticationKey, workspaceAuthenticationKey);
+                await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.WorkspaceKey, workspaceAuthenticationKey);
             });
 
             // Fixed endpoint

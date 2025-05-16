@@ -14,7 +14,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
             var logger = context.Subject.LoggerFactory.CreateLogger<ReadConfigurationNode>();
 
             var jobId = GetEnvironmentVariable(BuilderEnvironmentVariables.JobId, DebugJobId);
-            var workspaceAuthenticationKey = GetEnvironmentVariable(BuilderEnvironmentVariables.WorkspaceAuthenticationKey, "D89D11D265B19CA5C2BE97A7FCB1EF21");
+            var workspaceAuthenticationKey = GetEnvironmentVariable(BuilderEnvironmentVariables.WorkspaceKey, "D89D11D265B19CA5C2BE97A7FCB1EF21");
 
             if (jobId.Equals(DebugJobId, StringComparison.InvariantCultureIgnoreCase))
             {

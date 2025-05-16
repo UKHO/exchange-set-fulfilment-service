@@ -8,6 +8,6 @@
 
         public const string SalesCatalogueEndpoint = "SalesCatalogueEndpoint";
 
-        public const string WorkspaceAuthenticationKey = "IICWorkspaceAuthenticationKey";
+        public const string WorkspaceKey = "IICWorkspaceAuthenticationKey";
     }
 }
