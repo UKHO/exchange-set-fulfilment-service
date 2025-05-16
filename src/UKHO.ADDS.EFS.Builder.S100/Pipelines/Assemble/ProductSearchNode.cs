@@ -1,7 +1,10 @@
-﻿using System.Text;
+﻿using System.Collections.Generic;
+using System.Text;
 using System.Web;
+using Microsoft.Extensions.Logging;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
+using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Models;
 using UKHO.ADDS.EFS.Exceptions;
@@ -108,6 +111,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             var filter = $"BusinessUnit eq '{BusinessUnit}' and {ProductTypeQueryClause} {productQuery}";
             var limit = Limit;
             var start = Start;
+            var productList = new List<string>();
             do
             {
                 queryCount++;
@@ -131,7 +135,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                             //    if (!productList.Contains(compareProducts))
                             //    {
                             //await CheckProductOrCancellationData(internalSearchBatchResponse, productList, item, productItem, updateNumber, compareProducts, message, cancellationTokenSource, cancellationToken, exchangeSetRootPath);
-                            await CheckProductOrCancellationData(item);
+                            //await CheckProductOrCancellationData(item);
+                           // await SelectLatestPublishedDateBatch(products, item, productList);
                             //}
                             //}
                         }
@@ -288,6 +293,23 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             //        var downloadPath = Path.Combine(exchangeSetRootPath, productName.Substring(0, 2), productName, editionNumber, updateNumber);
             //        return await fileShareDownloadService.DownloadBatchFiles(item, item.Files.Select(a => a.Links.Get.Href).ToList(), downloadPath, message, cancellationTokenSource, cancellationToken);
             //    }, productName, editionNumber, updateNumber, item.Files.Select(a => a.Links.Get.Href), message.BatchId, message.CorrelationId);
+        }
+
+        private async Task<Task> SelectLatestPublishedDateBatch(List<SearchBatchProducts> products , BatchDetails item, List<string> productList)
+        {
+           foreach (var productItem in products)
+            {
+                var matchProduct = item.Attributes.Where(a => a.Key == "UpdateNumber");
+                var updateNumber = matchProduct.Select(a => a.Value).FirstOrDefault();
+                var compareProducts = $"{productItem.ProductName}|{productItem.EditionNumber}|{updateNumber}";
+                if (!productList.Contains(compareProducts))
+                {
+                //await CheckProductOrCancellationData(internalSearchBatchResponse, productList, item, productItem, updateNumber, compareProducts, message, cancellationTokenSource, cancellationToken, exchangeSetRootPath);
+                  await CheckProductOrCancellationData(item);
+                }
+            }
+
+           return Task.CompletedTask;
         }
 
         static Dictionary<string, string> ParseQueryString(string queryString)
