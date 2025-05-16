@@ -14,6 +14,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
             var logger = context.Subject.LoggerFactory.CreateLogger<ReadConfigurationNode>();
 
             var jobId = GetEnvironmentVariable(BuilderEnvironmentVariables.JobId, DebugJobId);
+            var workspaceAuthenticationKey = GetEnvironmentVariable(BuilderEnvironmentVariables.WorkspaceAuthenticationKey, "D89D11D265B19CA5C2BE97A7FCB1EF21");
 
             if (jobId.Equals(DebugJobId, StringComparison.InvariantCultureIgnoreCase))
             {
@@ -33,12 +34,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
 
             context.Subject.FileShareEndpoint = fileShareEndpoint;
             context.Subject.BuildServiceEndpoint = buildServiceEndpoint;
+            context.Subject.WorkspaceAuthenticationKey = workspaceAuthenticationKey;
 
             var configurationLogView = new ConfigurationLogView()
             {
                 JobId = jobId,
                 FileShareEndpoint = fileShareEndpoint,
                 BuildServiceEndpoint = buildServiceEndpoint,
+                WorkspaceAuthenticationKey = workspaceAuthenticationKey,
             };
 
             logger.LogStartupConfiguration(configurationLogView);

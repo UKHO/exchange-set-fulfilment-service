@@ -7,5 +7,7 @@
         public const string S100BuilderContainerName = "efs-builder-s100";
 
         public const string MockContainerName = "adds-mocks-efs";
+
+        public const string KeyVaultContainerName = "efs-keyvault";
     }
 }

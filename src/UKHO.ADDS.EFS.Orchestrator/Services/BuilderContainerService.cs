@@ -11,10 +11,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         private readonly string _builderServiceContainerEndpoint;
         private readonly string _otlpContainerEndpoint;
         private readonly ILogger<BuilderContainerService> _logger;
+        private readonly string _workspaceAuthenticationKey;
         private readonly string _fileShareEndpoint;
 
-        public BuilderContainerService(string fileShareEndpoint, string builderServiceContainerEndpoint, string otlpContainerEndpoint, ILoggerFactory loggerFactory)
+        public BuilderContainerService(string workspaceAuthenticationKey, string fileShareEndpoint, string builderServiceContainerEndpoint, string otlpContainerEndpoint, ILoggerFactory loggerFactory)
         {
+            _workspaceAuthenticationKey = workspaceAuthenticationKey;
             _fileShareEndpoint = fileShareEndpoint;
             _builderServiceContainerEndpoint = builderServiceContainerEndpoint;
             _otlpContainerEndpoint = otlpContainerEndpoint;
@@ -69,7 +71,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                     $"{BuilderEnvironmentVariables.JobId}={id}",
                     $"{BuilderEnvironmentVariables.FileShareEndpoint}={_fileShareEndpoint}",
                     $"{BuilderEnvironmentVariables.BuildServiceEndpoint}={_builderServiceContainerEndpoint}",
-                    $"{BuilderEnvironmentVariables.OtlpEndpoint}={_otlpContainerEndpoint}"
+                    $"{BuilderEnvironmentVariables.OtlpEndpoint}={_otlpContainerEndpoint}",
+                    $"{BuilderEnvironmentVariables.WorkspaceAuthenticationKey}={_workspaceAuthenticationKey}"
                 },
                 Healthcheck = new HealthConfig
                 {

@@ -1,7 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
+using AzureKeyVaultEmulator.Aspire.Client;
+using Microsoft.Extensions.Azure;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
+using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Orchestrator.Api;
 using UKHO.ADDS.EFS.Orchestrator.Middleware;
@@ -31,10 +34,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     .ReadFrom.Configuration(builder.Configuration)
                     .ReadFrom.Services(services)
                     .Enrich.FromLogContext()
-                    .WriteTo.OpenTelemetry(o =>
-                    {
-                        o.Endpoint = oltpEndpoint;
-                    })
+                    .WriteTo.OpenTelemetry(o => { o.Endpoint = oltpEndpoint; })
                     .WriteTo.Console()
                     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
                     .MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Error)
@@ -50,6 +50,24 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                 builder.AddServiceDefaults()
                     .AddOrchestratorServices();
+
+                var vaultEndpoint = builder.Configuration.GetConnectionString(ContainerConfiguration.KeyVaultContainerName) ?? string.Empty;
+
+                if (builder.Environment.IsDevelopment())
+                {
+                    builder.Services.AddAzureKeyVaultEmulator(vaultEndpoint, true, certificates: false, keys: true);
+                }
+                else
+                {
+                    builder.Services.AddAzureClients(client =>
+                    {
+                        var vaultUri = new Uri(vaultEndpoint);
+
+                        client.AddSecretClient(vaultUri);
+                        client.AddKeyClient(vaultUri);
+                        client.AddCertificateClient(vaultUri);
+                    });
+                }
 
                 var app = builder.Build();
 

@@ -1,3 +1,9 @@
+using Aspire.Hosting.Azure;
+using Azure.Identity;
+using Azure.Security.KeyVault.Keys;
+using Azure.Security.KeyVault.Secrets;
+using AzureKeyVaultEmulator.Aspire.Client;
+using AzureKeyVaultEmulator.Aspire.Hosting;
 using CliWrap;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,14 +28,9 @@ namespace UKHO.ADDS.EFS.LocalHost
             var builder = DistributedApplication.CreateBuilder(args);
             builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());
 
-            var mockEndpointPort = builder.Configuration.GetValue<int>("Endpoints:MockEndpointPort");
-            var mockEndpointContainerPort = builder.Configuration.GetValue<int>("Endpoints:MockEndpointContainerPort");
-
-            var containerRuntime = builder.Configuration.GetValue<ContainerRuntime>("Containers:ContainerRuntime");
             var buildOnStartup = builder.Configuration.GetValue<bool>("Containers:BuildOnStartup");
 
             // Storage configuration
-
             var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e => { e.WithDataVolume(); });
 
             var storageQueue = storage.AddQueues(StorageConfiguration.QueuesName);
@@ -40,8 +41,14 @@ namespace UKHO.ADDS.EFS.LocalHost
             var mockService = builder.AddProject<UKHO_ADDS_Mocks_EFS>(ContainerConfiguration.MockContainerName)
                 .WithDashboard("Dashboard");
 
-            // Orchestrator
+            // Key vault
+            var keyVault = builder.AddAzureKeyVaultEmulator(ContainerConfiguration.KeyVaultContainerName,
+                new KeyVaultEmulatorOptions
+                {
+                    Persist = true
+                });
 
+            // Orchestrator
             var orchestratorService = builder.AddProject<UKHO_ADDS_EFS_Orchestrator>(ContainerConfiguration.OrchestratorContainerName)
                 .WithReference(storageQueue)
                 .WaitFor(storageQueue)
@@ -51,38 +58,51 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WaitFor(storageBlob)
                 .WithReference(mockService)
                 .WaitFor(mockService)
+                .WithReference(keyVault)
+                .WaitFor(keyVault)
                 .WithScalar("API Browser");
 
-            orchestratorService.WithEnvironment(c =>
+            orchestratorService.WithEnvironment(async c =>
             {
                 var addsMockEndpoint = mockService.GetEndpoint("http");
                 var fssEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = "host.docker.internal", Path = "fss/" };
 
                 var scsEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.Host, Path = "scs/" };
 
-                var orchestratorServiceEndpoint = orchestratorService.GetEndpoint("http").Url;
+                var orchestratorEndpoint = orchestratorService.GetEndpoint("http").Url;
 
-                c.EnvironmentVariables[OrchestratorEnvironmentVariables.FileShareEndpoint] = fssEndpoint.ToString();
-                c.EnvironmentVariables[OrchestratorEnvironmentVariables.SalesCatalogueEndpoint] = scsEndpoint.ToString();
-                c.EnvironmentVariables[OrchestratorEnvironmentVariables.BuildServiceEndpoint] = orchestratorServiceEndpoint;
+                var workspaceAuthenticationKey = "D89D11D265B19CA5C2BE97A7FCB1EF21";
+
+                var secretClient = c.ExecutionContext.ServiceProvider.GetRequiredService<SecretClient>();
+
+                await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.FileShareEndpoint, fssEndpoint.Uri.ToString());
+                await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.SalesCatalogueEndpoint, scsEndpoint.Uri.ToString());
+                await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.OrchestratorServiceEndpoint, orchestratorEndpoint);
+                await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.WorkspaceAuthenticationKey, workspaceAuthenticationKey);
             });
+
+            // Fixed endpoint
+            var keyVaultUri = "https://localhost:4997";
+
+            builder.Services.AddAzureKeyVaultEmulator(keyVaultUri, secrets: true, keys: true, certificates: false);
 
             builder.Services.AddHttpClient();
 
             if (buildOnStartup)
             {
-                await CreateS100BuilderContainerImage(containerRuntime);
+                await CreateS100BuilderContainerImage();
             }
 
-            await builder.Build().RunAsync();
+            var application = builder.Build();
+
+            await application.RunAsync();
 
             return 0;
         }
 
-        private static async Task CreateS100BuilderContainerImage(ContainerRuntime containerRuntime)
+        private static async Task CreateS100BuilderContainerImage()
         {
             Log.Information("Creating S-100 builder container image...");
-            Log.Information($"Using container runtime '{containerRuntime}'");
 
             var localHostDirectory = Directory.GetCurrentDirectory();
             var srcDirectory = Directory.GetParent(localHostDirectory)?.FullName!;
@@ -91,7 +111,7 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             // 'docker' writes everything to stderr...
 
-            var result = await Cli.Wrap(containerRuntime.ToString().ToLowerInvariant())
+            var result = await Cli.Wrap("docker")
                 .WithArguments(arguments)
                 .WithWorkingDirectory(srcDirectory)
                 .WithValidation(CommandResultValidation.None)
