@@ -28,11 +28,22 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
         /// <summary>
         /// Pings the IIC Tool API to verify connectivity.
         /// </summary>
-        /// <returns>A task representing the asynchronous operation.</returns>
-        public async Task PingAsync()
+        /// <returns>
+        /// A result indicating whether the ping was successful.
+        /// Returns <c>true</c> if the API is reachable; otherwise, returns a failure result.
+        /// </returns>
+        public async Task<IResult<bool>> PingAsync()
         {
-            using var response = await _httpClient.GetAsync($"/xchg-{ApiVersion}/v{ApiVersion}/dev?arg=test&authkey=noauth");
-            response.EnsureSuccessStatusCode();
+            try
+            {
+                using var response = await _httpClient.GetAsync($"/xchg-{ApiVersion}/v{ApiVersion}/dev?arg=test&authkey=noauth");
+                response.EnsureSuccessStatusCode();
+                return Result.Success(true);
+            }
+            catch (Exception ex)
+            {
+                return Result.Failure<bool>(ex);
+            }
         }
 
         /// <summary>
