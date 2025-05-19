@@ -34,7 +34,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
         public bool IsDebugSession { get; set; }
         public string FileShareEndpoint { get; set; }
         public string BuildServiceEndpoint { get; set; }
-        public string WorkspaceRootPath { get; set; }
+        public string WorkspaceAuthenticationKey { get; set; }
         public ExchangeSetJob Job { get; set; }
         public IEnumerable<BatchDetails> BatchDetails { get; set; }
         public string BatchId { get; set; }

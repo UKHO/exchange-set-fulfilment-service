@@ -5,7 +5,7 @@
 Please ensure the following are installed on your development machine before building EFS.
 
 * Git
-* Docker Desktop or Podman
+* Docker Desktop
 
 ### Cloning this repository
 
@@ -28,14 +28,6 @@ git submodule update --init --recursive
 > Copy ```root2.tar.gz``` and ```xchg-2.7.war``` into the root of the ```\src\UKHO.ADDS.EFS.Builder.S100``` directory. You will have been given these files separately.
 
 Open the EFS.sln in the root of the repository, ensure that the UKHO.ADDS.EFS.LocalHost project is set as start by default, and press f5!
-
-If you are using Podman rather than Docker, you will need to edit the ```appsettings.json``` file in the ```UKHO.ADDS.EFS.LocalHost``` project. Change the setting:
-
-```json
-"Containers": {
-    "ContainerRuntime": "podman"
-    }
-```
 ### Updating ADDS Mock to the latest version
 
 To update the submodule reference in this repository to the latest version of ADDS Mock:
