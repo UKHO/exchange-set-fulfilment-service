@@ -1,6 +1,5 @@
 ﻿using System.Net;
 using System.Text;
-using Castle.Components.DictionaryAdapter.Xml;
 using FakeItEasy;
 using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.IIC.Models;
@@ -277,6 +276,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
                 .Where(call => call.Method.Name == "SendAsync")
                 .WithReturnType<Task<HttpResponseMessage>>()
                 .Returns(Task.FromResult(response));
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            _httpClient.Dispose();
+            _httpMessageHandler.Dispose();
         }
     }
 }
