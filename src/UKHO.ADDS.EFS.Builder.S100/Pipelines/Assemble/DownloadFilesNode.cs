@@ -9,8 +9,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
     {
         private readonly IFileShareReadOnlyClient _fileShareReadOnlyClient;
         private ILogger _logger;
-        //private const string DownloadPath = @"/usr/local/tomcat/ROOT/spool/fssdata";
-        private const string DownloadPath = @"CopyToFolder";
+        private const string DownloadPath = @"/usr/local/tomcat/ROOT/spool/fssdata";
+        private const long FileSizeInBytes = 10485750;
 
         public DownloadFilesNode(IFileShareReadOnlyClient fileShareReadOnlyClient)
         {
@@ -53,25 +53,18 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                         foreach (var file in latestPublishBatch.Files)
                         {
                             var fileName = file.Filename;
-                            var httpResponse = await _fileShareReadOnlyClient.DownloadFileAsync(latestPublishBatch.BatchId, fileName);
-
                             if (!Directory.Exists(DownloadPath))
                             {
                                 Directory.CreateDirectory(DownloadPath);
                             }
 
                             var path = Path.Combine(DownloadPath, fileName);
-                            if (httpResponse.IsSuccess(out var value, out var error))
+                            await using var outputFileStream = new FileStream(path, FileMode.Create, FileAccess.ReadWrite);
+                            var httpResponse = await _fileShareReadOnlyClient.DownloadFileAsync(latestPublishBatch.BatchId, fileName, outputFileStream, context.Subject.Job?.CorrelationId!, FileSizeInBytes);
+
+                            if (httpResponse.IsFailure(out var value, out var error))
                             {
-                                if (value != null)
-                                {
-                                    await using var outputFileStream = new FileStream(path, FileMode.Create, FileAccess.ReadWrite);
-                                    await value.CopyToAsync(outputFileStream);
-                                }
-                            }
-                            else
-                            {
-                                _logger.LogDownloadFilesNodeFssDownloadFailed(error);                                
+                                _logger.LogDownloadFilesNodeFssDownloadFailed(value);
                                 return NodeResultStatus.Failed;
                             }
                         }
