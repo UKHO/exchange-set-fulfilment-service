@@ -40,10 +40,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
         }
 
         [Test]
-        public void WhenPingAsyncIsCalledAndNotSuccess_ThenThrowsException()
+        public async Task WhenPingAsyncIsCalledAndNotSuccess_ThenReturnFailure()
         {
             SetupHttpResponse(HttpStatusCode.InternalServerError);
-            Assert.That(async () => await _toolClient.PingAsync(), Throws.Exception);
+            var result = await _toolClient.PingAsync();
+            Assert.That(result.IsFailure(out var value, out var error), Is.EqualTo(true));
         }
 
         [Test]
