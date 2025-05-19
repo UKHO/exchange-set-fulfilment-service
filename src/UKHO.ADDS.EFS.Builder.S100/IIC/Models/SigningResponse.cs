@@ -7,7 +7,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC.Models
         [JsonPropertyName("certificate")]
         public string Certificate { get; set; }
 
-        [JsonPropertyName("signingKey")]
+        [JsonPropertyName("signingkey")]
         public string SigningKey { get; set; }
 
         [JsonPropertyName("status")]
