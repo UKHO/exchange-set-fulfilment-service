@@ -1,4 +1,5 @@
 ﻿using UKHO.ADDS.Clients.FileShareService.ReadOnly;
+using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
@@ -7,6 +8,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
     public class DownloadFilesNode : ExchangeSetPipelineNode
     {
         private readonly IFileShareReadOnlyClient _fileShareReadOnlyClient;
+        private ILogger _logger;
+        //private const string DownloadPath = @"/usr/local/tomcat/ROOT/spool/fssdata";
+        private const string DownloadPath = @"CopyToFolder";
 
         public DownloadFilesNode(IFileShareReadOnlyClient fileShareReadOnlyClient)
         {
@@ -15,38 +19,69 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
         {
+            _logger = context.Subject.LoggerFactory.CreateLogger<DownloadFilesNode>();
+
+            var products = context.Subject.Job?.Products;
+            var batchDetails = context.Subject.BatchDetails;
+            List<string> productList = new List<string>();
+
             try
             {
-                var products = context.Subject.BatchDetails;
+                if (products == null || products.Count == 0 || batchDetails == null || !batchDetails.Any())
+                {
+                    return NodeResultStatus.NotRun;
+                }
 
                 foreach (var product in products)
                 {
-                    foreach (var file in product.Files)
+                    var latestPublishBatch = batchDetails
+                        .Where(b =>
+                            b.Attributes.Any(a => a.Key == "ProductName" && a.Value == product.ProductName) &&
+                            b.Attributes.Any(a => a.Key == "UpdateNumber" && a.Value == product.LatestUpdateNumber.ToString()) &&
+                            b.Attributes.Any(a => a.Key == "EditionNumber" && a.Value == product.LatestEditionNumber.ToString()))
+                        .OrderByDescending(b => b.BatchPublishedDate)
+                        .FirstOrDefault();
+
+                    if (latestPublishBatch == null)
                     {
-                        var fileName = file.Filename;
+                        return NodeResultStatus.Failed;
+                    }
 
-                        var httpResponse = await _fileShareReadOnlyClient.DownloadFileAsync(product.BatchId, fileName);
-                        var downloadPath = @"/usr/local/tomcat/ROOT/spool/fssdata";
-                        //const string downloadPath = @"CopyToFolder";
-
-                        if (!Directory.Exists(downloadPath))
+                    var compareProducts = $"{product.ProductName}|{product.LatestEditionNumber}|{product.LatestUpdateNumber}";
+                    if (!productList.Contains(compareProducts))
+                    {
+                        foreach (var file in latestPublishBatch.Files)
                         {
-                            Directory.CreateDirectory(downloadPath);
-                        }
+                            var fileName = file.Filename;
+                            var httpResponse = await _fileShareReadOnlyClient.DownloadFileAsync(latestPublishBatch.BatchId, fileName);
 
-                        var path = Path.Combine(downloadPath, fileName);
-                        httpResponse.IsSuccess(out var value, out var error);
-                        if (value != null)
-                        {
-                            await using var outputFileStream = new FileStream(path, FileMode.Create, FileAccess.ReadWrite);
-                            await value.CopyToAsync(outputFileStream);
+                            if (!Directory.Exists(DownloadPath))
+                            {
+                                Directory.CreateDirectory(DownloadPath);
+                            }
+
+                            var path = Path.Combine(DownloadPath, fileName);
+                            if (httpResponse.IsSuccess(out var value, out var error))
+                            {
+                                if (value != null)
+                                {
+                                    await using var outputFileStream = new FileStream(path, FileMode.Create, FileAccess.ReadWrite);
+                                    await value.CopyToAsync(outputFileStream);
+                                }
+                            }
+                            else
+                            {
+                                _logger.LogDownloadFilesNodeFssDownloadFailed(error);                                
+                                return NodeResultStatus.Failed;
+                            }
                         }
                     }
                 }
                 return NodeResultStatus.Succeeded;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
+                _logger.LogDownloadFilesNodeFailed(ex.Message);
                 return NodeResultStatus.Failed;
             }
         }
