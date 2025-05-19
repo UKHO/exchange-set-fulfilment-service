@@ -7,8 +7,16 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
     {
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
         {
-            await context.Subject.ToolClient.PingAsync();
-            await context.Subject.ToolClient.ListWorkspaceAsync(context.Subject.WorkspaceAuthenticationKey);
+            if (!(await context.Subject.ToolClient.PingAsync()).IsSuccess(out _))
+            {
+                return NodeResultStatus.Failed;
+            }
+
+            if (!(await context.Subject.ToolClient.ListWorkspaceAsync(context.Subject.WorkspaceAuthenticationKey)).IsSuccess(out _))
+            {
+                return NodeResultStatus.Failed;
+            }
+
             await CheckEndpointAsync(context.Subject.FileShareEndpoint, "health");
 
             return NodeResultStatus.Succeeded;
@@ -18,7 +26,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
         {
             using var client = new HttpClient { BaseAddress = new Uri(baseAddress) };
             using var response = await client.GetAsync(path);
-
             response.EnsureSuccessStatusCode();
         }
     }

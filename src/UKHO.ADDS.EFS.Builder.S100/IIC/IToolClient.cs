@@ -5,7 +5,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
 {
     public interface IToolClient
     {
-        Task PingAsync();
+        Task<IResult<bool>> PingAsync();
         Task<IResult<OperationResponse>> AddExchangeSetAsync(string exchangeSetId, string authKey, string correlationId);
         Task<IResult<OperationResponse>> AddContentAsync(string resourceLocation, string exchangeSetId, string authKey, string correlationId);
         Task<IResult<SigningResponse>> SignExchangeSetAsync(string exchangeSetId, string authKey, string correlationId);
