@@ -120,8 +120,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
                 }
                 else
                 {
-                    var errorMetadata = await response.CreateErrorMetadata("IICToolAPI", "correlationId");
-                    return Result.Failure<string>(ErrorFactory.CreateError(response.StatusCode, errorMetadata));
+                    return Result.Failure<string>(ErrorFactory.CreateError(response.StatusCode));
                 }
             }
             catch (Exception ex)
