@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using Serilog;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
@@ -30,7 +29,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
 
             // Tomcat writes logs to stderr
 
-            process.OutputDataReceived += (sender, args) => logger.LogTomcatMessage(new TomcatLogView() { TomcatMessage = args.Data!});
+            process.OutputDataReceived += (sender, args) => logger.LogTomcatMessage(new TomcatLogView() { TomcatMessage = args.Data! });
             process.ErrorDataReceived += (sender, args) => logger.LogTomcatMessage(new TomcatLogView() { TomcatMessage = args.Data! });
 
             process.Start();
