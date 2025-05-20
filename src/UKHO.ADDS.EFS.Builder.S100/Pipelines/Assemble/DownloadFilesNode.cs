@@ -62,13 +62,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                             await using var outputFileStream = new FileStream(path, FileMode.Create, FileAccess.ReadWrite);
                             var httpResponse = await _fileShareReadOnlyClient.DownloadFileAsync(latestPublishBatch.BatchId, fileName, outputFileStream, context.Subject.Job?.CorrelationId!, FileSizeInBytes);
 
-                            if (httpResponse.IsSuccess(out _, out var error))
+                            if (httpResponse.IsFailure(out var value, out var error))
                             {
-                               continue;
+                                _logger.LogDownloadFilesNodeFssDownloadFailed(value);
+                                return NodeResultStatus.Failed;
                             }
-
-                            _logger.LogDownloadFilesNodeFssDownloadFailed(error);
-                            return NodeResultStatus.Failed;
                         }
                     }
                 }
