@@ -173,7 +173,14 @@ namespace UKHO.ADDS.EFS.Builder.S100
             collection.AddSingleton<DistributionPipeline>();
 
             collection.AddSingleton<INodeStatusWriter, NodeStatusWriter>();
-            collection.AddSingleton<IToolClient, ToolClient>();
+            collection.AddHttpClient<IToolClient, ToolClient>((serviceProvider, client) =>
+            {
+                var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+                var baseUrl = configuration["Endpoints:IICTool"];
+                if (string.IsNullOrWhiteSpace(baseUrl))
+                    throw new InvalidOperationException("Endpoints:IICTool configuration is missing.");
+                client.BaseAddress = new Uri(baseUrl);
+            });
 
 
             return collection.BuildServiceProvider();
