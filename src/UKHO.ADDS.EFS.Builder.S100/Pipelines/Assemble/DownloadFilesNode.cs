@@ -1,5 +1,6 @@
 ﻿using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging;
+using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Models;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
@@ -62,11 +63,29 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                             await using var outputFileStream = new FileStream(path, FileMode.Create, FileAccess.ReadWrite);
                             var httpResponse = await _fileShareReadOnlyClient.DownloadFileAsync(latestPublishBatch.BatchId, fileName, outputFileStream, context.Subject.Job?.CorrelationId!, FileSizeInBytes);
 
-                            if (httpResponse.IsFailure(out var value, out var error))
+                            if (httpResponse.IsFailure(out var error, out var value))
                             {
-                                _logger.LogDownloadFilesNodeFssDownloadFailed(value);
+                                var listUpdateNumbers = new List<int?>
+                                {
+                                    product.LatestUpdateNumber
+                                };
+                                var batchProduct = new SearchBatchProducts 
+                                {
+                                    ProductName = product.ProductName!,
+                                    EditionNumber = product.LatestEditionNumber,
+                                    UpdateNumbers = listUpdateNumbers
+                                };
+                                var downloadFilesLogView=new DownloadFilesLogView
+                                {
+                                    BatchId = latestPublishBatch.BatchId,
+                                    Product=batchProduct,
+                                    FileName = fileName,
+                                    CorrelationId= context.Subject.Job?.CorrelationId!,
+                                    Error = string.IsNullOrEmpty(error?.Message) ? string.Empty : error.Message
+                                };
+                                _logger.LogDownloadFilesNodeFssDownloadFailed(downloadFilesLogView);
                                 return NodeResultStatus.Failed;
-                            }
+                            }                              
                         }
                     }
                 }

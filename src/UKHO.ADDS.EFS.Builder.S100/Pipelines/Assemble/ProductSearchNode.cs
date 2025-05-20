@@ -20,8 +20,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private const string EditionNumberQueryClause = "$batch(EditionNumber) eq '{0}' and ";
         private const string UpdateNumberQueryClause = "$batch(UpdateNumber) eq '{0}' ";
         private const string BusinessUnit = "ADDS-S100";
-        private const string ProductTypeQueryClause = "$batch(ProductType) eq 'S-100' and ";
-        private const int MaxParallelSearchOperations = 5;
+        private const string ProductTypeQueryClause = "$batch(ProductType) eq '{0}' and ";
+        private const string ProductType = "S-100";
+        private const int MaxSearchOperations = 5;
         private const int UpdateNumberLimit = 5;
         private const int ProductLimit = 4;
         private const int Limit = 100;
@@ -54,7 +55,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                         UpdateNumbers = g.Select(p => p.LatestUpdateNumber).ToList()
                     }).ToList();
 
-                var productGroupCount = (int)Math.Ceiling((double)products.Count / MaxParallelSearchOperations);
+                var productGroupCount = (int)Math.Ceiling((double)products.Count / MaxSearchOperations);
                 var productsList = SplitList(groupedProducts, productGroupCount);
 
                 foreach (var productGroup in productsList)
@@ -67,6 +68,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 }
                 context.Subject.BatchDetails = batchList;
                 return NodeResultStatus.Succeeded;
+            }
+            catch (S100BuilderException)
+            {
+                return NodeResultStatus.Failed;
             }
             catch (Exception ex)
             {
@@ -105,7 +110,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             var productQuery = GenerateQueryForFss(products);
             var totalUpdateCount = products.Sum(p => p.UpdateNumbers.ToList().Count);
             var queryCount = 0;
-            var filter = $"BusinessUnit eq '{BusinessUnit}' and {ProductTypeQueryClause} {productQuery}";
+            var filter = $"BusinessUnit eq '{BusinessUnit}' and {string.Format(ProductTypeQueryClause, ProductType)} {productQuery}";
             var limit = Limit;
             var start = Start;
             do
@@ -133,11 +138,26 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                     }
                 }
                 else
-                {
-                    //TODO: - log search query of unsuccessful response from fss
-                    _logger.LogProductSearchNodeFssSearchFailed(error);
+                {                    
+                    var searchQuery = new SearchQuery
+                    {
+                        Filter = filter,
+                        Limit = limit,
+                        Start = start
+                    };
+                    var batchSearchProductsLogVeiw = new BatchSearchProductsLogView
+                    {
+                        BatchProducts = products,
+                        CorrelationId = correlationId,
+                        BusinessUnit = BusinessUnit,
+                        ProductType = ProductType,
+                        Query = searchQuery,
+                        Error = string.IsNullOrEmpty(error?.Message) ? string.Empty : error.Message,
+                    };
+
+                    _logger.LogProductSearchNodeFssSearchFailed(batchSearchProductsLogVeiw);
                     throw new S100BuilderException("An error occurred while executing the ProductSearchNode.");
-                }               
+                }
 
             } while (batchSearchResponse.Entries.Count < totalUpdateCount && !string.IsNullOrWhiteSpace(filter));
 
@@ -178,7 +198,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 }
                 queryBuilder.Append(i == products.Count - 1 ? ")" : ") or ");
             }
-            queryBuilder.Append(')');           
+            queryBuilder.Append(')');
             return (queryBuilder.ToString());
         }
 

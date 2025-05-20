@@ -35,8 +35,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
         //The Product Search node FSS Search failed
         public static readonly EventId ProductSearchNodeFssSearchFailed = new(ProductSearchNodeFssSearchFailedId, nameof(ProductSearchNodeFssSearchFailed));
 
-        [LoggerMessage(ProductSearchNodeFssSearchFailedId, LogLevel.Error, "ProductSearchNode File Share Service Search failed: {@error}", EventName = nameof(ProductSearchNodeFssSearchFailed))]
-        public static partial void LogProductSearchNodeFssSearchFailed(this ILogger logger, [LogProperties] IError error);
+        [LoggerMessage(ProductSearchNodeFssSearchFailedId, LogLevel.Error, "ProductSearchNode File Share Service Search failed:  {@result}", EventName = nameof(ProductSearchNodeFssSearchFailed))]
+        public static partial void LogProductSearchNodeFssSearchFailed(this ILogger logger,BatchSearchProductsLogView result);
 
         //The Download Files Node failed
         public static readonly EventId DownloadFilesNodeFailed = new(DownloadFilesNodeFailedId, nameof(DownloadFilesNodeFailed));
@@ -47,7 +47,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
         //The Download Files Node failed
         public static readonly EventId DownloadFilesNodeFssDownloadFailed = new(DownloadFilesNodeFssDownloadFailedId, nameof(DownloadFilesNodeFssDownloadFailed));
 
-        [LoggerMessage(DownloadFilesNodeFssDownloadFailedId, LogLevel.Error, "DownloadFilesNode File Share Service Download failed: {@error}", EventName = nameof(DownloadFilesNodeFssDownloadFailed))]
-        public static partial void LogDownloadFilesNodeFssDownloadFailed(this ILogger logger, [LogProperties] IError error);
+        [LoggerMessage(DownloadFilesNodeFssDownloadFailedId, LogLevel.Error, "DownloadFilesNode File Share Service Download failed: {@result}", EventName = nameof(DownloadFilesNodeFssDownloadFailed))]
+        public static partial void LogDownloadFilesNodeFssDownloadFailed(this ILogger logger, DownloadFilesLogView result);
     }
 }
