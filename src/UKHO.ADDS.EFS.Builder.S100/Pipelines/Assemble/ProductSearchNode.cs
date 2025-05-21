@@ -20,8 +20,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private const string EditionNumberQueryClause = "$batch(EditionNumber) eq '{0}' and ";
         private const string UpdateNumberQueryClause = "$batch(UpdateNumber) eq '{0}' ";
         private const string BusinessUnit = "ADDS-S100";
-        private const string ProductTypeQueryClause = "$batch(ProductType) eq '{0}' and ";
         private const string ProductType = "S-100";
+        private const string ProductTypeQueryClause = "$batch(ProductType) eq '{0}' and ";
         private const int MaxSearchOperations = 5;
         private const int UpdateNumberLimit = 5;
         private const int ProductLimit = 4;
@@ -110,7 +110,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             var productQuery = GenerateQueryForFss(products);
             var totalUpdateCount = products.Sum(p => p.UpdateNumbers.ToList().Count);
             var queryCount = 0;
-            var filter = $"BusinessUnit eq '{BusinessUnit}' and {string.Format(ProductTypeQueryClause, ProductType)} {productQuery}";
+            var filter = $"BusinessUnit eq '{BusinessUnit}' and {ProductTypeQueryClause} {productQuery}";
             var limit = Limit;
             var start = Start;
             do
