@@ -16,7 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="UKHO.ADDS.EFS.Builder.S100.Tests" />
+    <InternalsVisibleTo Include="UKHO.ADDS.EFS.Builder.S100.UnitTests" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
 
   <ItemGroup>
