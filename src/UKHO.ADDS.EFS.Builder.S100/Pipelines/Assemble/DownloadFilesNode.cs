@@ -78,14 +78,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                     var fileName = file.Filename;
                     var downloadPath = Path.Combine(workSpaceRootPath, fileName);
 
-                    if (!Directory.Exists(workSpaceRootPath))
-                    {
-                        Directory.CreateDirectory(workSpaceRootPath);
-                    }
+                    CheckAndCreateFolder(workSpaceRootPath);
 
-                    var httpResponse = await DownloadFileAsync(context, fileName, batch, downloadPath);
+                    var streamResult = await DownloadFileAsync(context, fileName, batch, downloadPath);
 
-                    if (httpResponse.IsFailure(out var error, out var value))
+                    if (streamResult.IsFailure(out var error, out var value))
                     {
                         var downloadFilesLogView = new DownloadFilesLogView
                         {
@@ -112,6 +109,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 batch.BatchId, fileName, outputFileStream, context.Subject.Job?.CorrelationId!, FileSizeInBytes);
 
             return httpResponse;
+        }
+
+        private static void CheckAndCreateFolder(string workSpaceRootPath)
+        {
+            if (!Directory.Exists(workSpaceRootPath))
+            {
+                Directory.CreateDirectory(workSpaceRootPath);
+            }
         }
     }
 }

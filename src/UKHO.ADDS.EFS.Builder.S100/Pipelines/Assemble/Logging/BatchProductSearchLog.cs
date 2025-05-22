@@ -2,7 +2,7 @@
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
 {
-    internal class BatchSearchProductsLogView
+    internal class BatchProductSearchLog
     {
         public List<SearchBatchProducts> BatchProducts { get; set; }
         public string BusinessUnit { get; set; }

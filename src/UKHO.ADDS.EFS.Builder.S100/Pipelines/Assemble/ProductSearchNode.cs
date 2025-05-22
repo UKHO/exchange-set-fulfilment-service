@@ -145,7 +145,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                         Limit = limit,
                         Start = start
                     };
-                    var batchSearchProductsLogVeiw = new BatchSearchProductsLogView
+                    var batchSearchProductsLogVeiw = new BatchProductSearchLog
                     {
                         BatchProducts = products,
                         CorrelationId = correlationId,
