@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="UKHO.ADDS.EFS.Builder.S100.Tests" />
+    <InternalsVisibleTo Include="UKHO.ADDS.EFS.Builder.S100.UnitTests" />
   </ItemGroup>
 
   <ItemGroup>

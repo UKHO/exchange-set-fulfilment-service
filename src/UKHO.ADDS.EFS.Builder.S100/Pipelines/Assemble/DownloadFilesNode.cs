@@ -7,7 +7,7 @@ using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 {
-    public class DownloadFilesNode : ExchangeSetPipelineNode
+    internal class DownloadFilesNode : ExchangeSetPipelineNode
     {
         private readonly IFileShareReadOnlyClient _fileShareReadOnlyClient;
         private ILogger _logger;
