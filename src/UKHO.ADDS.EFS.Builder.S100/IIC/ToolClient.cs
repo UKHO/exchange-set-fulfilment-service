@@ -12,7 +12,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
     {
         private readonly HttpClient _httpClient;
         private const string WorkSpaceId = "working9";
-        private const string WorkSpaceRootPath = @"/usr/local/tomcat/ROOT/spool";
         private const string ApiVersion = "2.7";
 
         /// <summary>

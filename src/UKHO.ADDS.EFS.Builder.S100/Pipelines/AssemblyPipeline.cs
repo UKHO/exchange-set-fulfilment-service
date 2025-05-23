@@ -22,7 +22,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
 
             pipeline.AddChild(new CreateBatchNode(_fileShareReadWriteClient));
             pipeline.AddChild(new ProductSearchNode(_fileShareReadOnlyClient));
-            pipeline.AddChild(new DownloadFilesNode());
+            pipeline.AddChild(new DownloadFilesNode(_fileShareReadOnlyClient));
 
             var result = await pipeline.ExecuteAsync(context);
 

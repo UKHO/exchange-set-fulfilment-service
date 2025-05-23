@@ -10,7 +10,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
         {
             var logger = context.Subject.LoggerFactory.CreateLogger<StartTomcatNode>();
-
+            context.Subject.WorkSpaceRootPath = @"/usr/local/tomcat/ROOT/spool";
             var catalinaHome = Environment.GetEnvironmentVariable("CATALINA_HOME");
 
             var process = new Process
