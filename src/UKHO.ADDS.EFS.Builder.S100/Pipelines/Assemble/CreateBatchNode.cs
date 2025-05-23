@@ -6,7 +6,7 @@ using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 {
-    public class CreateBatchNode : ExchangeSetPipelineNode
+    internal class CreateBatchNode : ExchangeSetPipelineNode
     {
         private readonly IFileShareReadWriteClient _fileShareReadWriteClient;
 

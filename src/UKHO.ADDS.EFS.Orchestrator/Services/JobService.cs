@@ -9,7 +9,7 @@ using UKHO.ADDS.EFS.Orchestrator.Tables;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services
 {
-    public class JobService
+    internal class JobService
     {
         private const string ScsApiVersion = "v2";
         private const string ProductType = "s100";

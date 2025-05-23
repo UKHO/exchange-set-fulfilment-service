@@ -7,7 +7,7 @@ using UKHO.ADDS.EFS.Entities;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
 {
-    public class ExchangeSetPipelineContext
+    internal class ExchangeSetPipelineContext
     {
         private readonly IConfiguration _configuration;
         private readonly INodeStatusWriter _nodeStatusWriter;
