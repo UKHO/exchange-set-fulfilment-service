@@ -7,6 +7,7 @@ using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Models;
 using UKHO.ADDS.EFS.Exceptions;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
+using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 {
@@ -138,24 +139,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                     }
                 }
                 else
-                {                    
-                    var searchQuery = new SearchQuery
-                    {
-                        Filter = filter,
-                        Limit = limit,
-                        Start = start
-                    };
-                    var batchSearchProductsLogVeiw = new BatchProductSearchLog
-                    {
-                        BatchProducts = products,
-                        CorrelationId = correlationId,
-                        BusinessUnit = BusinessUnit,
-                        ProductType = ProductType,
-                        Query = searchQuery,
-                        Error = string.IsNullOrEmpty(error?.Message) ? string.Empty : error.Message,
-                    };
+                {
+                    LogFssSearchFailed(products, correlationId, filter, limit, start, error);
 
-                    _logger.LogProductSearchNodeFssSearchFailed(batchSearchProductsLogVeiw);
                     throw new S100BuilderException("An error occurred while executing the ProductSearchNode.");
                 }
 
@@ -163,6 +149,32 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
             batchSearchResponse.Count = queryCount;
             return batchSearchResponse;
+        }
+
+        private void LogFssSearchFailed(List<SearchBatchProducts> products, string correlationId, string filter, int limit, int start, IError error)
+        {
+            var searchQuery = new SearchQuery
+            {
+                Filter = filter,
+                Limit = limit,
+                Start = start
+            };
+            var batchSearchProductsLogVeiw = new BatchProductSearchLog
+            {
+                BatchProducts = products,
+                CorrelationId = correlationId,
+                BusinessUnit = BusinessUnit,
+                ProductType = ProductType,
+                Query = searchQuery,
+                Error = string.IsNullOrEmpty(error?.Message) ? string.Empty : error.Message,
+            };
+
+            _logger.LogProductSearchNodeFssSearchFailed(batchSearchProductsLogVeiw);
+        }
+
+        private IEnumerable<List<SearchBatchProducts>> ChunkProductsByProductLimit(IEnumerable<SearchBatchProducts> products)
+        {
+            return SplitList((ChunkProductsByUpdateNumberLimit(products)), ProductLimit);
         }
 
         private static IEnumerable<List<T>> SplitList<T>(List<T> masterList, int size = DefaultSplitSize)
@@ -212,11 +224,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                         EditionNumber = product.EditionNumber,
                         UpdateNumbers = updateNumbers
                     }))];
-        }
-
-        private IEnumerable<List<SearchBatchProducts>> ChunkProductsByProductLimit(IEnumerable<SearchBatchProducts> products)
-        {
-            return SplitList((ChunkProductsByUpdateNumberLimit(products)), ProductLimit);
         }
 
         static Dictionary<string, string> ParseQueryString(string queryString)

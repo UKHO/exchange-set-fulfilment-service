@@ -26,27 +26,26 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         {
             try
             {
+                var batchDetails = context.Subject.BatchDetails;
+                var downloadPath = Path.Combine(context.Subject.WorkSpaceRootPath, "fssdata");
+
                 _logger = context.Subject.LoggerFactory.CreateLogger<DownloadFilesNode>();
 
-                var batchDetails = context.Subject.BatchDetails;
+                EnsureDownloadDirectoryExists(downloadPath);
 
-                if (!batchDetails.Any())
-                {
-                    return NodeResultStatus.NotRun;
-                }
+                var result = await DownloadLatestBatchFilesAsync(context, SelectLatestBatchesByProductEditionAndUpdate(batchDetails));
 
-                var latestBatches = GetLatestBatchDetailsList(batchDetails);
-
-                return await DownloadLatestBatchesAsync(context, latestBatches);
+                return result;
             }
             catch (Exception ex)
             {
                 _logger.LogDownloadFilesNodeFailed(ex.Message);
+
                 return NodeResultStatus.Failed;
             }
         }
 
-        private static List<BatchDetails> GetLatestBatchDetailsList(IEnumerable<BatchDetails> batchDetails)
+        private static IEnumerable<BatchDetails> SelectLatestBatchesByProductEditionAndUpdate(IEnumerable<BatchDetails> batchDetails)
         {
             var latestBatches = batchDetails
                 .Where(b => b.Attributes != null)
@@ -63,7 +62,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             return latestBatches;
         }
 
-        private async Task<NodeResultStatus> DownloadLatestBatchesAsync(IExecutionContext<ExchangeSetPipelineContext> context, List<BatchDetails> latestBatches)
+        private async Task<NodeResultStatus> DownloadLatestBatchFilesAsync(IExecutionContext<ExchangeSetPipelineContext> context, IEnumerable<BatchDetails> latestBatches)
         {
             foreach (var batch in latestBatches)
             {
@@ -74,25 +73,18 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
                 foreach (var file in batch.Files)
                 {
-                    var workSpaceRootPath = context.Subject.WorkSpaceRootPath;
                     var fileName = file.Filename;
-                    var downloadPath = Path.Combine(workSpaceRootPath, fileName);
+                    var downloadPath = Path.Combine(context.Subject.WorkSpaceRootPath, "fssdata", fileName);
 
-                    CheckAndCreateFolder(workSpaceRootPath);
+                    await using var outputFileStream = new FileStream(downloadPath, FileMode.Create, FileAccess.ReadWrite);
 
-                    var streamResult = await DownloadFileAsync(context, fileName, batch, downloadPath);
+                    var streamResult = await _fileShareReadOnlyClient.DownloadFileAsync(
+                        batch.BatchId, fileName, outputFileStream, context.Subject.Job?.CorrelationId!, FileSizeInBytes);
 
                     if (streamResult.IsFailure(out var error, out var value))
                     {
-                        var downloadFilesLogView = new DownloadFilesLogView
-                        {
-                            BatchId = batch.BatchId,
-                            FileName = fileName,
-                            CorrelationId = context.Subject.Job?.CorrelationId!,
-                            Error = string.IsNullOrEmpty(error?.Message) ? string.Empty : error.Message
-                        };
+                        LogFssDownloadFailed(context, batch, fileName, error);
 
-                        _logger.LogDownloadFilesNodeFssDownloadFailed(downloadFilesLogView);
                         return NodeResultStatus.Failed;
                     }
                 }
@@ -101,21 +93,24 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             return NodeResultStatus.Succeeded;
         }
 
-        private async Task<IResult<Stream>> DownloadFileAsync(IExecutionContext<ExchangeSetPipelineContext> context, string fileName, BatchDetails batch, string downloadPath)
+        private void LogFssDownloadFailed(IExecutionContext<ExchangeSetPipelineContext> context, BatchDetails batch, string fileName, IError error)
         {
-            await using var outputFileStream = new FileStream(downloadPath, FileMode.Create, FileAccess.ReadWrite);
+            var downloadFilesLogView = new DownloadFilesLogView
+            {
+                BatchId = batch.BatchId,
+                FileName = fileName,
+                CorrelationId = context.Subject.Job?.CorrelationId!,
+                Error = string.IsNullOrEmpty(error?.Message) ? string.Empty : error.Message
+            };
 
-            var httpResponse = await _fileShareReadOnlyClient.DownloadFileAsync(
-                batch.BatchId, fileName, outputFileStream, context.Subject.Job?.CorrelationId!, FileSizeInBytes);
-
-            return httpResponse;
+            _logger.LogDownloadFilesNodeFssDownloadFailed(downloadFilesLogView);
         }
 
-        private static void CheckAndCreateFolder(string workSpaceRootPath)
+        private static void EnsureDownloadDirectoryExists(string downloadPath)
         {
-            if (!Directory.Exists(workSpaceRootPath))
+            if (!Directory.Exists(downloadPath))
             {
-                Directory.CreateDirectory(workSpaceRootPath);
+                Directory.CreateDirectory(downloadPath);
             }
         }
     }
