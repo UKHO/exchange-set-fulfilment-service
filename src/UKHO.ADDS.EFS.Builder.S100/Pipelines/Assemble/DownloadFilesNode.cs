@@ -12,7 +12,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private readonly IFileShareReadOnlyClient _fileShareReadOnlyClient;
         private ILogger _logger;
 
-        private const long FileSizeInBytes = 10485750;
+        private const long FileSizeInBytes = 10485760;
         private const string ProductName = "ProductName";
         private const string EditionNumber = "EditionNumber";
         private const string UpdateNumber = "UpdateNumber";

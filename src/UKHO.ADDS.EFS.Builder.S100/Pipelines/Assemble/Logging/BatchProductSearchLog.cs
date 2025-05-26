@@ -4,7 +4,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
 {
     internal class BatchProductSearchLog
     {
-        public List<SearchBatchProducts> BatchProducts { get; set; }
+        public IEnumerable<BatchProductDetail> BatchProducts { get; set; }
         public string BusinessUnit { get; set; }
         public string ProductType { get; set; }
         public string CorrelationId { get; set; }
