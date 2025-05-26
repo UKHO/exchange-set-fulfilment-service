@@ -121,7 +121,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         public async Task WhenPerformExecuteAsyncIsCalled_ThenQueryIsCorrectlyConfigured()
         {
             // Arrange
-            var searchQuery = "BusinessUnit eq 'ADDS-S100' and $batch(ProductType) eq 'S-100' and  (($batch(ProductName) eq 'Product2' and $batch(EditionNumber) eq '2' and (($batch(UpdateNumber) eq '1' ))))";
+            var searchQuery = "BusinessUnit eq 'ADDS-S100' and $batch(ProductType) eq 'S-100' and (($batch(ProductName) eq 'Product2' and $batch(EditionNumber) eq '2' and (($batch(UpdateNumber) eq '1' ))))";
             string? capturedQuery = null;
             var batchResponse = new BatchSearchResponse
             {

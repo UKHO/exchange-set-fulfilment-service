@@ -111,7 +111,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             var productQuery = GenerateQueryForFss(products);
             var totalUpdateCount = products.Sum(p => p.UpdateNumbers.ToList().Count);
             var queryCount = 0;
-            var filter = $"BusinessUnit eq '{BusinessUnit}' and {ProductTypeQueryClause} {productQuery}";
+            var productTypeClause = string.Format(ProductTypeQueryClause, ProductType);
+            var filter = $"BusinessUnit eq '{BusinessUnit}' and {productTypeClause}{productQuery}";
             var limit = Limit;
             var start = Start;
             do

@@ -49,68 +49,66 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
             A.CallTo(() => _executionContext.Subject).Returns(exchangeSetPipelineContext);
         }
 
-        //[Test]
-        //public async Task When_DownloadFileAsyncFails_Then_ReturnsFailed()
-        //{
-        //    var batch = new BatchDetails(
-        //        batchId: "b1",
-        //        attributes: new List<BatchDetailsAttributes>
-        //        {
-        //            new BatchDetailsAttributes("ProductName", "P1"),
-        //            new BatchDetailsAttributes("EditionNumber", "1"),
-        //            new BatchDetailsAttributes("UpdateNumber", "1")
-        //        },
-        //        batchPublishedDate: DateTime.UtcNow,
-        //        files: new List<BatchDetailsFiles>
-        //        {
-        //            new BatchDetailsFiles("file1.txt")
-        //        }
-        //    );
-        //    _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
+        [Test]
+        public async Task WhenDownloadFileAsyncFails_ThenReturnsFailed()
+        {
+            var batch = new BatchDetails(
+                batchId: "b1",
+                attributes: new List<BatchDetailsAttributes>
+                {
+                    new BatchDetailsAttributes("ProductName", "P1"),
+                    new BatchDetailsAttributes("EditionNumber", "1"),
+                    new BatchDetailsAttributes("UpdateNumber", "1")
+                },
+                batchPublishedDate: DateTime.UtcNow,
+                files: new List<BatchDetailsFiles>
+                {
+                    new BatchDetailsFiles("file1.txt")
+                }
+            );
+            _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
 
-        //    var fakeResult = A.Fake<IResult<Stream>>();
-        //    IError outError = A.Fake<IError>();
-        //    Stream outStream = null;
+            var fakeResult = A.Fake<IResult<Stream>>();
+            IError outError = A.Fake<IError>();
+            Stream outStream = null;
 
-        //    A.CallTo(() => fakeResult.IsFailure(out outError, out outStream)).Returns(true);
+            A.CallTo(() => fakeResult.IsFailure(out outError, out outStream)).Returns(true);
 
-        //    A.CallTo(() => _fileShareReadOnlyClient.DownloadFileAsync(
-        //            "B1", "file1.txt", A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._))
-        //        .Returns(Task.FromResult(fakeResult));
+            A.CallTo(() => _fileShareReadOnlyClient.DownloadFileAsync(A<string>._, A<string>._, A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._))
+                .Returns(Task.FromResult(fakeResult));
 
-        //    var result = await _testableCreateBatchNode.PerformExecuteAsync(_executionContext);
-        //    Assert.That(result, Is.EqualTo(NodeResultStatus.Failed));
-        //}
-
-        //[Test]
-        //public async Task When_ExceptionThrown_Then_ReturnsFailed()
-        //{
-        //    var batch = new BatchDetails(
-        //        batchId: "b1",
-        //        attributes: new List<BatchDetailsAttributes>
-        //        {
-        //            new BatchDetailsAttributes("ProductName", "P1"),
-        //            new BatchDetailsAttributes("EditionNumber", "1"),
-        //            new BatchDetailsAttributes("UpdateNumber", "1")
-        //        },
-        //        batchPublishedDate: DateTime.UtcNow,
-        //        files: new List<BatchDetailsFiles>
-        //        {
-        //            new BatchDetailsFiles("file1.txt")
-        //        }
-        //    );
-        //    _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
-
-        //    A.CallTo(() => _fileShareReadOnlyClient.DownloadFileAsync(
-        //            "B1", "file1.txt", A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._))
-        //        .Throws<Exception>();
-
-        //    var result = await _testableCreateBatchNode.PerformExecuteAsync(_executionContext);
-        //    Assert.That(result, Is.EqualTo(NodeResultStatus.Failed));
-        //}
+            var result = await _testableCreateBatchNode.PerformExecuteAsync(_executionContext);
+            Assert.That(result, Is.EqualTo(NodeResultStatus.Failed));
+        }
 
         [Test]
-        public async Task When_BatchFilesIsEmpty_Then_SkipsBatchAndReturnsSucceeded()
+        public async Task WhenDownloadFileAsyncExceptionThrown_ThenReturnsFailed()
+        {
+            var batch = new BatchDetails(
+                batchId: "b1",
+                attributes: new List<BatchDetailsAttributes>
+                {
+                    new BatchDetailsAttributes("ProductName", "P1"),
+                    new BatchDetailsAttributes("EditionNumber", "1"),
+                    new BatchDetailsAttributes("UpdateNumber", "1")
+                },
+                batchPublishedDate: DateTime.UtcNow,
+                files: new List<BatchDetailsFiles>
+                {
+                    new BatchDetailsFiles("file1.txt")
+                }
+            );
+            _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
+
+            A.CallTo(() => _fileShareReadOnlyClient.DownloadFileAsync(A<string>._, A<string>._, A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._))
+                .Throws<Exception>();
+
+            var result = await _testableCreateBatchNode.PerformExecuteAsync(_executionContext);
+            Assert.That(result, Is.EqualTo(NodeResultStatus.Failed));
+        }
+
+        [Test]
+        public async Task WhenBatchFilesIsEmpty_ThenSkipsBatchAndReturnsSucceeded()
         {
             var batch = new BatchDetails(
                 batchId: "b1",
@@ -129,7 +127,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         }
 
         [Test]
-        public async Task When_DownloadFileAsyncSucceeds_Then_ReturnsSucceeded()
+        public async Task WhenDownloadFileAsyncSucceeds_ThenReturnsSucceeded()
         {
             var batch = new BatchDetails(
                 batchId: "b1",
@@ -151,15 +149,15 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
             IError outError = null;
             Stream outStream = new MemoryStream();
             A.CallTo(() => fakeResult.IsFailure(out outError, out outStream)).Returns(false);
-            A.CallTo(() => _fileShareReadOnlyClient.DownloadFileAsync(
-                "B1", "file1.txt", A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._)).Returns(Task.FromResult(fakeResult));
+            A.CallTo(() => _fileShareReadOnlyClient.DownloadFileAsync(A<string>._, A<string>._, A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._))
+                .Returns(Task.FromResult(fakeResult));
 
             var result = await _testableCreateBatchNode.PerformExecuteAsync(_executionContext);
             Assert.That(result, Is.EqualTo(NodeResultStatus.Succeeded));
         }
 
         [Test]
-        public async Task When_MultipleBatchesWithSameProductEditionUpdate_Then_OnlyLatestIsProcessed()
+        public async Task WhenMultipleBatchesWithSameProductEditionUpdate_ThenOnlyLatestIsProcessed()
         {
             var now = DateTime.UtcNow;
             var batch1 = new BatchDetails(
@@ -196,8 +194,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
             IError outError = null;
             Stream outStream = new MemoryStream();
             A.CallTo(() => fakeResult.IsFailure(out outError, out outStream)).Returns(false);
-            A.CallTo(() => _fileShareReadOnlyClient.DownloadFileAsync(
-                    "B1", "file1.txt", A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._))
+            A.CallTo(() => _fileShareReadOnlyClient.DownloadFileAsync(A<string>._, A<string>._, A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._))
                 .Returns(Task.FromResult(fakeResult));
 
             var result = await _testableCreateBatchNode.PerformExecuteAsync(_executionContext);
