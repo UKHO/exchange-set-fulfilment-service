@@ -89,10 +89,10 @@ namespace UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss.ResponseGenerator
         {           
             IEnumerable<string> extensions = productName switch
             {
-                var name when name.StartsWith(((int)ProductIdentifiers.P101).ToString()) => new[] { $".{updateNo.PadLeft(3, '0')}", ".TXT", ".TIF", ".IMG" },
-                var name when name.StartsWith(((int)ProductIdentifiers.P102).ToString()) => new[] { ".h5", ".TXT", ".TIF", ".IMG" },
-                var name when name.StartsWith(((int)ProductIdentifiers.P104).ToString()) => new[] { ".h5", ".TXT", ".TIF", ".IMG" },
-                var name when name.StartsWith(((int)ProductIdentifiers.P111).ToString()) => new[] { ".h5", ".TXT", ".TIF", ".IMG" }               
+                var name when name.StartsWith(((int)ProductCodes.P101).ToString()) => new[] { $".{updateNo.PadLeft(3, '0')}", ".TXT", ".TIF", ".IMG" },
+                var name when name.StartsWith(((int)ProductCodes.P102).ToString()) => new[] { ".h5", ".TXT", ".TIF", ".IMG" },
+                var name when name.StartsWith(((int)ProductCodes.P104).ToString()) => new[] { ".h5", ".TXT", ".TIF", ".IMG" },
+                var name when name.StartsWith(((int)ProductCodes.P111).ToString()) => new[] { ".h5", ".TXT", ".TIF", ".TIFF", ".IMG" }               
             };
 
             return CreateFiles(productName, batchId, extensions);
