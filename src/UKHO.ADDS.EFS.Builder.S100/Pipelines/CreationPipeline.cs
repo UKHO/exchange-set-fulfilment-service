@@ -19,6 +19,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
 
             pipeline.AddChild(new CreateExchangeSetNode());
             pipeline.AddChild(new AddContentExchangeSetNode(_toolClient));
+            pipeline.AddChild(new SignExchangeSetNode(_toolClient));
 
             var result = await pipeline.ExecuteAsync(context);
 

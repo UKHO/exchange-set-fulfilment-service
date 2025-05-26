@@ -14,6 +14,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
         private const int DownloadFilesNodeFailedId = BaseEventId + 5;
         private const int DownloadFilesNodeFssDownloadFailedId = BaseEventId + 6;
         private const int AddContentExchangeSetNodeFailedId = BaseEventId + 7;
+        private const int SignExchangeSetNodeFailedId = BaseEventId + 7;
 
         // The assembly pipeline failed
         public static readonly EventId AssemblyPipelineFailed = new(AssemblyPipelineFailedId, nameof(AssemblyPipelineFailed));
@@ -56,5 +57,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
 
         [LoggerMessage(AddContentExchangeSetNodeFailedId, LogLevel.Error, "AddContentExchangeSetNode failed: {@error}", EventName = nameof(AddContentExchangeSetNodeFailed))]
         public static partial void LogAddContentExchangeSetNodeFailed(this ILogger logger, [LogProperties] IError error);
+
+        // The Sign Exchange Set Node Failed
+        public static readonly EventId SignExchangeSetNodeFailed = new(SignExchangeSetNodeFailedId, nameof(SignExchangeSetNodeFailed));
+
+        [LoggerMessage(SignExchangeSetNodeFailedId, LogLevel.Error, "SignExchangeSetNode failed: {@error}", EventName = nameof(SignExchangeSetNodeFailed))]
+        public static partial void LogSignExchangeSetNodeFailed(this ILogger logger, [LogProperties] IError error);
     }
 }
