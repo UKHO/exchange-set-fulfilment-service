@@ -13,6 +13,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
         private const int ProductSearchNodeFssSearchFailedId = BaseEventId + 4;
         private const int DownloadFilesNodeFailedId = BaseEventId + 5;
         private const int DownloadFilesNodeFssDownloadFailedId = BaseEventId + 6;
+        private const int AddContentExchangeSetNodeFailedId = BaseEventId + 7;
 
         // The assembly pipeline failed
         public static readonly EventId AssemblyPipelineFailed = new(AssemblyPipelineFailedId, nameof(AssemblyPipelineFailed));
@@ -49,5 +50,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
 
         [LoggerMessage(DownloadFilesNodeFssDownloadFailedId, LogLevel.Error, "DownloadFilesNode File Share Service Download failed: {@downloadFilesLog}", EventName = nameof(DownloadFilesNodeFssDownloadFailed))]
         public static partial void LogDownloadFilesNodeFssDownloadFailed(this ILogger logger, DownloadFilesLogView downloadFilesLog);
+
+        // The Add Content ExchangeSet Node Failed
+        public static readonly EventId AddContentExchangeSetNodeFailed = new(AddContentExchangeSetNodeFailedId, nameof(AddContentExchangeSetNodeFailed));
+
+        [LoggerMessage(AddContentExchangeSetNodeFailedId, LogLevel.Error, "AddContentExchangeSetNode failed: {@error}", EventName = nameof(AddContentExchangeSetNodeFailed))]
+        public static partial void LogAddContentExchangeSetNodeFailed(this ILogger logger, [LogProperties] IError error);
     }
 }
