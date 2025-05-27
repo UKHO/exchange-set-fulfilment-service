@@ -32,7 +32,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
                 EnsureDownloadDirectoryExists(downloadPath);
 
-                return await DownloadLatestBatchFilesAsync(SelectLatestBatchesByProductEditionAndUpdate(context.Subject.BatchDetails), downloadPath, context.Subject.Job.CorrelationId);
+                var latestBatches = SelectLatestBatchesByProductEditionAndUpdate(context.Subject.BatchDetails);
+
+                return await DownloadLatestBatchFilesAsync(latestBatches, downloadPath, context.Subject.Job.CorrelationId);
             }
             catch (Exception ex)
             {
