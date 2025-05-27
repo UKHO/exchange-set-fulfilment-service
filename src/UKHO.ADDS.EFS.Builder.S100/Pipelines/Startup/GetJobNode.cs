@@ -30,7 +30,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
                     {
                         new S100Products
                         {
-                            ProductName = "Product1",
+                            ProductName = "101GB00Product1",
                             LatestEditionNumber = 0,
                             LatestUpdateNumber = 1,
                             Status = new S100ProductStatus
@@ -41,7 +41,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
                         },
                         new S100Products
                         {
-                            ProductName = "Product2",
+                            ProductName = "101GB00Product2",
                             LatestEditionNumber = 0,
                             LatestUpdateNumber = 1,
                             Status = new S100ProductStatus
@@ -52,7 +52,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
                         },
                         new S100Products
                         {
-                            ProductName = "Product3",
+                            ProductName = "101FR00Product3",
                             LatestEditionNumber = 0,
                             LatestUpdateNumber = 1,
                             Status = new S100ProductStatus
