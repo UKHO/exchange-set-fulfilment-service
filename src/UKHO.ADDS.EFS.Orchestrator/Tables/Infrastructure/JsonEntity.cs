@@ -5,7 +5,7 @@ using Azure.Data.Tables;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
 {
-    public class JsonEntity : ITableEntity
+    internal class JsonEntity : ITableEntity
     {
         public string P0 { get; set; }
         public string P1 { get; set; }
