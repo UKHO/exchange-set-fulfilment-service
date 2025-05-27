@@ -17,16 +17,17 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
     public class SignExchangeSetNodeTests
     {
         private IToolClient _toolClient;
-        private TestableSignExchangeSetNode _node;
-        private IExecutionContext<ExchangeSetPipelineContext> _context;
+        private TestableSignExchangeSetNode _testableSignExchangeSetNode;
+        private IExecutionContext<ExchangeSetPipelineContext> _executionContext;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
             _toolClient = A.Fake<IToolClient>();
-            _node = new TestableSignExchangeSetNode(_toolClient);
-            _context = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
+            _testableSignExchangeSetNode = new TestableSignExchangeSetNode(_toolClient);
+            _executionContext = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
         }
+
         [SetUp]
         public void SetUp()
         {
@@ -37,7 +38,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
                 JobId = "jobid",
                 WorkspaceAuthenticationKey = "authkey"
             };
-            A.CallTo(() => _context.Subject).Returns(exchangeSetPipelineContext);
+            A.CallTo(() => _executionContext.Subject).Returns(exchangeSetPipelineContext);
         }
 
         [Test]
@@ -47,7 +48,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
             var result = Result.Success(signingResponse);
             A.CallTo(() => _toolClient.SignExchangeSetAsync("jobid", "authkey", "TestCorrelationId")).Returns(Task.FromResult<IResult<SigningResponse>>(result));
 
-            var status = await _node.PerformExecuteAsync(_context);
+            var status = await _testableSignExchangeSetNode.PerformExecuteAsync(_executionContext);
 
             Assert.That(status, Is.EqualTo(NodeResultStatus.Succeeded));
         }
@@ -59,7 +60,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
             var result = Result.Failure<SigningResponse>(error);
             A.CallTo(() => _toolClient.SignExchangeSetAsync("jobid", "authkey", "TestCorrelationId")).Returns(Task.FromResult<IResult<SigningResponse>>(result));
 
-            var status = await _node.PerformExecuteAsync(_context);
+            var status = await _testableSignExchangeSetNode.PerformExecuteAsync(_executionContext);
 
             Assert.That(status, Is.EqualTo(NodeResultStatus.Failed));
         }
@@ -86,7 +87,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
             var context = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
             A.CallTo(() => context.Subject).Returns(pipelineContext);
 
-            Assert.That(async () => await _node.PerformExecuteAsync(context), Throws.Exception);
+            Assert.That(async () => await _testableSignExchangeSetNode.PerformExecuteAsync(context), Throws.Exception);
         }
 
         private class TestableSignExchangeSetNode : SignExchangeSetNode
