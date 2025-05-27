@@ -9,7 +9,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
     {
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
         {
-            context.Subject.WorkSpaceRootPath = @"/usr/local/tomcat/ROOT/spool";
+            context.Subject.WorkSpaceRootPath = @"/usr/local/tomcat/ROOT";
 
             var logger = context.Subject.LoggerFactory.CreateLogger<StartTomcatNode>();
             var catalinaHome = Environment.GetEnvironmentVariable("CATALINA_HOME");

@@ -1,9 +1,7 @@
 ﻿using UKHO.ADDS.EFS.Builder.S100.IIC;
-using UKHO.ADDS.EFS.Builder.S100.IIC.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
-using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
 {
@@ -20,12 +18,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
         {
             var logger = context.Subject.LoggerFactory.CreateLogger<AddContentExchangeSetNode>();
 
-            var exchangeSetId = context.Subject.JobId;
-            var authKey = context.Subject.WorkspaceAuthenticationKey;
-            var correlationId = context.Subject.JobId;
-            var resourceLocation = context.Subject.WorkSpaceRootPath;
-
-            IResult<OperationResponse> result = await _toolClient.AddContentAsync(resourceLocation, exchangeSetId, authKey, correlationId);
+            var result = await _toolClient.AddContentAsync(context.Subject.WorkSpaceSpoolPath, context.Subject.JobId, context.Subject.WorkspaceAuthenticationKey, context.Subject.JobId);
 
             if (!result.IsSuccess(out var value, out var error))
             {
