@@ -12,7 +12,7 @@ using UKHO.ADDS.Infrastructure.Results;
 namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
 {
     [TestFixture]
-    internal class CreateExchangeSetNodeTest
+    internal class AddExchangeSetNodeTest
     {
         private IToolClient _toolClient;
         private TestableCreateExchangeSetNode _testableCreateExchangeSetNode;
@@ -75,10 +75,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         [Test]
         public void WhenToolClientIsNull_ThenThrowsArgumentNullException()
         {
-            Assert.Throws<ArgumentNullException>(() => new CreateExchangeSetNode(null));
+            Assert.Throws<ArgumentNullException>(() => new AddExchangeSetNode(null));
         }
 
-        private class TestableCreateExchangeSetNode : CreateExchangeSetNode
+        private class TestableCreateExchangeSetNode : AddExchangeSetNode
         {
             public TestableCreateExchangeSetNode(IToolClient toolClient)
                 : base(toolClient)
