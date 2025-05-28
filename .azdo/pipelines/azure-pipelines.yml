@@ -22,6 +22,10 @@ stages:
     steps:
     - checkout: self
       clean: true
+
+    - script: git submodule update --init --recursive
+      displayName: Restore mock submodule
+      workingDirectory: '$(Build.SourcesDirectory)'
   
     - script: curl -fsSL https://aka.ms/install-azd.sh | bash
       displayName: Install azd
