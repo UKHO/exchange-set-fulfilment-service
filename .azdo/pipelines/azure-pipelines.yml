@@ -4,7 +4,7 @@ parameters:
   type: boolean
   default: false
 
-pool: NautilusBuild
+pool: Mare Nectaris
 
 variables:
 - group: EFS-Dev-Test
@@ -29,11 +29,11 @@ stages:
     #     targetType: inline
     #     script: |
     #       curl -fsSL https://aka.ms/install-azd.sh | bash
-    - script: powershell -ex AllSigned -c "Invoke-RestMethod 'https://aka.ms/install-azd.ps1' | Invoke-Expression"
+    - script: curl -fsSL https://aka.ms/install-azd.sh | bash
       displayName: Install azd
 
     # azd delegate auth to az to use service connection with AzureCLI@2
-    - script: azd config set auth.useAzCliAuth "true"
+    - pwsh: azd config set auth.useAzCliAuth "true"
       displayName: Configure azd to use az CLI authentication.
 
     # - task: UseDotNet@2
