@@ -46,7 +46,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
             };
 
             A.CallTo(() => _executionContext.Subject).Returns(_pipelineContext);
-
             A.CallTo(() => _loggerFactory.CreateLogger(typeof(ExtractExchangeSetNode).FullName!)).Returns(_logger);
         }
 
@@ -54,10 +53,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         public async Task WhenPerformExecuteAsyncIICResultIsSuccess_ThenReturnSucceeded()
         {
             var fakeStream = new MemoryStream();
-            Stream outStream = fakeStream;
-            IError outError;
             var fakeResult = A.Fake<IResult<Stream>>();
-            _ = A.CallTo(() => fakeResult.IsSuccess(out outStream!, out outError!)).Returns(true);
+            Stream outStream = fakeStream;
+            IError outError = null;
+
+            A.CallTo(() => fakeResult.IsSuccess(out outStream!, out outError!)).Returns(true);
             A.CallTo(() => _toolClient.ExtractExchangeSetAsync(A<string>._, A<string>._, A<string>._)).Returns(Task.FromResult(fakeResult));
 
             var status = await _testableExtractExchangeSetNode.PerformExecuteAsync(_executionContext);
@@ -74,7 +74,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         {
             var fakeError = A.Fake<IError>();
             var fakeResult = A.Fake<IResult<Stream>>();
-            Stream outStream;
+            Stream outStream = null;
+
             A.CallTo(() => fakeResult.IsSuccess(out outStream!, out fakeError)).Returns(false);
             A.CallTo(() => _toolClient.ExtractExchangeSetAsync(A<string>._, A<string>._, A<string>._)).Returns(Task.FromResult(fakeResult));
 
@@ -97,8 +98,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
             Assert.That(status, Is.EqualTo(NodeResultStatus.Failed));
         }
 
-        private class TestableExtractExchangeSetNode(IToolClient toolClient) : ExtractExchangeSetNode(toolClient)
+        private class TestableExtractExchangeSetNode : ExtractExchangeSetNode
         {
+            public TestableExtractExchangeSetNode(IToolClient toolClient) : base(toolClient) { }
+
             public new async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
             {
                 return await base.PerformExecuteAsync(context);
