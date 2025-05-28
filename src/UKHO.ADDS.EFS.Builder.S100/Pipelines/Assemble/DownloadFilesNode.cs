@@ -28,7 +28,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
             try
             {
-                var downloadPath = Path.Combine(context.Subject.WorkSpaceRootPath, "fssdata");
+                var downloadPath = Path.Combine(context.Subject.WorkSpaceRootPath, context.Subject.WorkSpaceSpoolPath, context.Subject.WorkSpacefssdataPath);
 
                 EnsureDownloadDirectoryExists(downloadPath);
 
