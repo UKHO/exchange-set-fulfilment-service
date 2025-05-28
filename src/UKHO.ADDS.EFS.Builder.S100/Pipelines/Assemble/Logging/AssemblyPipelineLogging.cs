@@ -11,6 +11,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
         private const int CreateBatchNodeFailedId = BaseEventId + 2;
         private const int ProductSearchNodeFailedId = BaseEventId + 3;
         private const int ProductSearchNodeFssSearchFailedId = BaseEventId + 4;
+        private const int DownloadFilesNodeFailedId = BaseEventId + 5;
+        private const int DownloadFilesNodeFssDownloadFailedId = BaseEventId + 6;
 
         // The assembly pipeline failed
         public static readonly EventId AssemblyPipelineFailed = new(AssemblyPipelineFailedId, nameof(AssemblyPipelineFailed));
@@ -22,7 +24,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
         public static readonly EventId CreateBatchNodeFailed = new(CreateBatchNodeFailedId, nameof(CreateBatchNodeFailed));
 
         [LoggerMessage(CreateBatchNodeFailedId, LogLevel.Error, "CreateBatchNode failed: {@error}", EventName = nameof(CreateBatchNodeFailed))]
-        public static partial void LogCreateBatchNodeFailed(this ILogger logger, [LogProperties] IError error); 
+        public static partial void LogCreateBatchNodeFailed(this ILogger logger, [LogProperties] IError error);
 
         //The Product Search node failed
         public static readonly EventId ProductSearchNodeFailed = new(ProductSearchNodeFailedId, nameof(ProductSearchNodeFailed));
@@ -33,7 +35,19 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
         //The Product Search node FSS Search failed
         public static readonly EventId ProductSearchNodeFssSearchFailed = new(ProductSearchNodeFssSearchFailedId, nameof(ProductSearchNodeFssSearchFailed));
 
-        [LoggerMessage(ProductSearchNodeFssSearchFailedId, LogLevel.Error, "ProductSearchNode File Share Service Search failed: {@error}", EventName = nameof(ProductSearchNodeFssSearchFailed))]
-        public static partial void LogProductSearchNodeFssSearchFailed(this ILogger logger, [LogProperties] IError error);
+        [LoggerMessage(ProductSearchNodeFssSearchFailedId, LogLevel.Error, "ProductSearchNode File Share Service Search failed: {@batchSearchProductsLog}", EventName = nameof(ProductSearchNodeFssSearchFailed))]
+        public static partial void LogProductSearchNodeFssSearchFailed(this ILogger logger, BatchProductSearchLog batchSearchProductsLog);
+
+        //The Download Files Node failed
+        public static readonly EventId DownloadFilesNodeFailed = new(DownloadFilesNodeFailedId, nameof(DownloadFilesNodeFailed));
+
+        [LoggerMessage(DownloadFilesNodeFailedId, LogLevel.Error, "DownloadFilesNode failed: {@errorMessage}", EventName = nameof(DownloadFilesNodeFailed))]
+        public static partial void LogDownloadFilesNodeFailed(this ILogger logger, string errorMessage);
+
+        //The Download Files Node failed
+        public static readonly EventId DownloadFilesNodeFssDownloadFailed = new(DownloadFilesNodeFssDownloadFailedId, nameof(DownloadFilesNodeFssDownloadFailed));
+
+        [LoggerMessage(DownloadFilesNodeFssDownloadFailedId, LogLevel.Error, "DownloadFilesNode File Share Service Download failed: {@downloadFilesLog}", EventName = nameof(DownloadFilesNodeFssDownloadFailed))]
+        public static partial void LogDownloadFilesNodeFssDownloadFailed(this ILogger logger, DownloadFilesLogView downloadFilesLog);
     }
 }
