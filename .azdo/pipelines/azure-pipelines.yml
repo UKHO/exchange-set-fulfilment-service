@@ -19,7 +19,7 @@ stages:
   - job: AzdDeploy
     displayName: Deploy with azd
     #pool: NautilusBuild
-    condition: and(succeeded(), eq(variables['DestroyResources'], 'false'))
+    #condition: and(succeeded(), eq(variables['DestroyResources'], 'false'))
     steps:
     - checkout: self
   
