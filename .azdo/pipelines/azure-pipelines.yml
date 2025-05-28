@@ -4,7 +4,7 @@ parameters:
   type: boolean
   default: false
 
-pool: NautilusBuild
+pool: Mare Nubium
 
 variables:
 - group: EFS-Dev-Test
