@@ -69,29 +69,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
                 foreach (var file in batch.Files)
                 {
-                    string downloadPath;
-                    var fileName = file.Filename;
-                    var extension = Path.GetExtension(fileName);
 
-                    //Check if extension is .000 to .999
-                    if (extension is { Length: 4 } && int.TryParse(extension[1..], out int extNum) && extNum is >= 0 and <= 999)
-                    {
-                        if (fileName.Length >= 7)
-                        {
-                            var folderName = fileName.Substring(3, 4);
-                            var folderPath = Path.Combine(workSpaceRootPath, folderName);
-                            EnsureDownloadDirectoryExists(folderPath);
-                            downloadPath = Path.Combine(folderPath, fileName);
-                        }
-                        else
-                        {
-                            downloadPath = Path.Combine(workSpaceRootPath, fileName);
-                        }
-                    }
-                    else
-                    {
-                        downloadPath = Path.Combine(workSpaceRootPath, fileName);
-                    }
+                    var fileName = file.Filename;
+
+                    var downloadPath = GetDownloadPath(workSpaceRootPath, fileName);
 
                     await using var outputFileStream = new FileStream(downloadPath, FileMode.Create, FileAccess.ReadWrite);
 
@@ -128,6 +109,26 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             {
                 Directory.CreateDirectory(downloadPath);
             }
+        }
+
+        private string GetDownloadPath(string workSpaceRootPath, string fileName)
+        {
+            var extension = Path.GetExtension(fileName);
+
+            if (extension is { Length: 4 } && int.TryParse(extension[1..], out var extNum) && extNum is >= 0 and <= 999)
+            {
+                if (fileName.Length >= 7)
+                {
+                    var folderName = fileName.Substring(3, 4);
+                    var folderPath = Path.Combine(workSpaceRootPath, folderName);
+                    EnsureDownloadDirectoryExists(folderPath);
+                    return Path.Combine(folderPath, fileName);
+                }
+
+                return Path.Combine(workSpaceRootPath, fileName);
+            }
+
+            return Path.Combine(workSpaceRootPath, fileName);
         }
     }
 }
