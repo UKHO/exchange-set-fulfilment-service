@@ -18,7 +18,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
         {
-            var logger = context.Subject.LoggerFactory.CreateLogger<ProductSearchNode>();
+            var logger = context.Subject.LoggerFactory.CreateLogger<UploadFilesNode>();
             var batchId = context.Subject.BatchId;
             var correlationId = context.Subject.Job.CorrelationId;
 
