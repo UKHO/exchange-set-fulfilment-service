@@ -1,11 +1,14 @@
 ﻿using System.Text.Json.Nodes;
 using UKHO.ADDS.Mocks.Configuration.Mocks.fss.ResponseGenerator;
+using UKHO.ADDS.Mocks.EFS.Override.Mocks.fss.Enums;
 using UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss.Models;
 
 namespace UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss.ResponseGenerator
 {
     public static class FssResponseGenerator
     {
+        private static readonly Random _random = new Random();
+
         private static readonly string _template =
             """
             {
@@ -70,14 +73,32 @@ namespace UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss.ResponseGenerator
         }
 
         private static JsonObject CreateAttribute(string attr, object value) =>
-            new() { ["key"] = attr, ["value"] = JsonValue.Create(value) };
+            new() { ["key"] = attr, ["value"] = JsonValue.Create(value) };      
 
-        private static JsonArray CreateFilesArray(string productName, string batchId, string updateNo) =>
-            new()
+        private static JsonArray CreateFiles(string productName, string batchId, IEnumerable<string> extensions)
+        {
+            var array = new JsonArray();           
+            foreach (var ext in extensions)
             {
-                CreateFileObject(productName, $".{updateNo.PadLeft(3,'0')}", 874, batchId),
-                CreateFileObject(productName, ".TXT", 1192, batchId)
+                int fileSize = _random.Next(800, 2000); // Random file size between 800 and 2000
+                array.Add(CreateFileObject(productName, ext, fileSize, batchId));
+            }
+            return array;
+        }
+
+        private static JsonArray CreateFilesArray(string productName, string batchId, string updateNo)
+        {           
+            IEnumerable<string> extensions = productName switch
+            {
+                var name when name.StartsWith(((int)ProductIdentifiers.s101).ToString()) => new[] { $".{updateNo.PadLeft(3, '0')}", ".TXT", ".TIF", ".TIFF", ".HTM", ".XML", ".IMG"},
+                var name when name.StartsWith(((int)ProductIdentifiers.s102).ToString()) => new[] { ".h5"},
+                var name when name.StartsWith(((int)ProductIdentifiers.s104).ToString()) => new[] { ".h5", ".XML"},
+                var name when name.StartsWith(((int)ProductIdentifiers.s111).ToString()) => new[] { ".h5", ".XML"}               
             };
+
+            return CreateFiles(productName, batchId, extensions);
+        }
+
         private static JsonObject CreateFileObject(string productName, string extension, int fileSize, string batchId) =>
             new()
             {
