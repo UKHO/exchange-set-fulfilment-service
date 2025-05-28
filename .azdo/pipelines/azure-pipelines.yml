@@ -45,5 +45,5 @@ stages:
         version: '9.x'
       displayName: Set up .NET 9
 
-    - script: echo "AZD_INITIAL_ENVIRONMENT_CONFIG: $(AZD_INITIAL_ENVIRONMENT_CONFIG)"
+    - script: echo AZD_INITIAL_ENVIRONMENT_CONFIG - $(AZD_INITIAL_ENVIRONMENT_CONFIG)
       displayName: Show AZD_INITIAL_ENVIRONMENT_CONFIG
