@@ -4,7 +4,7 @@ parameters:
   type: boolean
   default: false
 
-pool: Mare Nubium
+pool: Mare Nectaris
 
 variables:
 - group: EFS-Dev-Test
