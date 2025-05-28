@@ -12,6 +12,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Logging
 
         private readonly JsonObjectAggregator _aggregator;
 
+        /// <summary>
+        /// Initializes a new instance of the LogForwarder class with the specified logger, job, and container name.
+        /// </summary>
+        /// <param name="logger">The logger to use for forwarding logs.</param>
+        /// <param name="job">The job associated with the logs.</param>
+        /// <param name="containerName">The name of the container/server for log enrichment.</param>
         public LogForwarder(ILogger logger, ExchangeSetJob job, string containerName)
         {
             _logger = logger;
@@ -21,6 +27,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Logging
             _aggregator = new JsonObjectAggregator();
         }
 
+        /// <summary>
+        /// Processes an incoming log line, aggregates it if necessary, and forwards completed log entries for structured logging.
+        /// </summary>
+        /// <param name="logLevel">The default log level to use if not specified in the log line.</param>
+        /// <param name="logLine">The log line to process and forward.</param>
         public void ForwardLog(LogLevel logLevel, string logLine)
         {
             foreach (var completedLine in _aggregator.Append(logLine.AsSpan()))
@@ -30,6 +41,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Logging
             }
         }
 
+        /// <summary>
+        /// Parses a log line, enriches it with job and container information, determines the log level, and writes it using structured logging.
+        /// </summary>
+        /// <param name="logLevel">The default log level to use if not specified in the log line.</param>
+        /// <param name="logLine">The log line to parse and write.</param>
         private void WriteLog(LogLevel logLevel, string logLine)
         {
             if (string.IsNullOrWhiteSpace(logLine))
@@ -86,6 +102,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Logging
             }
         }
 
+        /// <summary>
+        /// Extracts and maps the log level from the parsed log entry, falling back to the provided default if not found.
+        /// </summary>
+        /// <param name="parsedLog">The parsed log entry as a dictionary.</param>
+        /// <param name="defaultLevel">The default log level to use if not found in the log entry.</param>
+        /// <returns>The determined log level.</returns>
         private LogLevel DetermineLogLevel(Dictionary<string, object> parsedLog, LogLevel defaultLevel)
         {
             if (parsedLog.TryGetValue("Level", out var levelValue) &&
