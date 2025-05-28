@@ -75,13 +75,51 @@ namespace UKHO.ADDS.EFS.Orchestrator.Logging
                 logMessage = fallbackMessageElement.GetString() ?? "(no message)";
             }
 
+            var effectiveLogLevel = DetermineLogLevel(parsedLog, logLevel);
+
             // Flatten the dictionary into structured log properties
             using (_logger.BeginScope(mergedLog))
             {
 #pragma warning disable LOG001
-                _logger.Log(logLevel, $"Job {_job.Id}: {logMessage}");
+                _logger.Log(effectiveLogLevel, $"Job {_job.Id}: {logMessage}");
 #pragma warning restore LOG001
             }
+        }
+
+        private LogLevel DetermineLogLevel(Dictionary<string, object> parsedLog, LogLevel defaultLevel)
+        {
+            if (parsedLog.TryGetValue("Level", out var levelValue) &&
+                levelValue is JsonElement levelElement &&
+                levelElement.ValueKind == JsonValueKind.String)
+            {
+                var levelString = levelElement.GetString();
+                if (!string.IsNullOrEmpty(levelString))
+                {
+                    if (Enum.TryParse<LogLevel>(levelString, true, out var parsedLevel))
+                    {
+                        return parsedLevel;
+                    }
+
+                    switch (levelString.ToLowerInvariant())
+                    {
+                        case "fatal":
+                            return LogLevel.Critical;
+                        case "error":
+                            return LogLevel.Error;
+                        case "warn":
+                        case "warning":
+                            return LogLevel.Warning;
+                        case "info":
+                        case "information":
+                            return LogLevel.Information;
+                        case "debug":
+                            return LogLevel.Debug;
+                        case "trace":
+                            return LogLevel.Trace;
+                    }
+                }
+            }
+            return defaultLevel;
         }
     }
 }
