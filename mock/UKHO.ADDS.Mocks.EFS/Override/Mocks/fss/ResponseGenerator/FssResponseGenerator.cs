@@ -7,6 +7,8 @@ namespace UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss.ResponseGenerator
 {
     public static class FssResponseGenerator
     {
+        private static readonly Random _random = new Random();
+
         private static readonly string _template =
             """
             {
@@ -75,11 +77,10 @@ namespace UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss.ResponseGenerator
 
         private static JsonArray CreateFiles(string productName, string batchId, IEnumerable<string> extensions)
         {
-            var array = new JsonArray();
-            var random = new Random();
+            var array = new JsonArray();           
             foreach (var ext in extensions)
             {
-                int fileSize = random.Next(800, 2000); // Random file size between 800 and 2000
+                int fileSize = _random.Next(800, 2000); // Random file size between 800 and 2000
                 array.Add(CreateFileObject(productName, ext, fileSize, batchId));
             }
             return array;
