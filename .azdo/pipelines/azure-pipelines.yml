@@ -7,6 +7,7 @@ parameters:
 pool: Mare Nectaris
 
 variables:
+- group: ESS-Deployment-Variables-DEV
 - group: EFS-Dev-Test
 - name: AZD_INITIAL_ENVIRONMENT_CONFIG
   value: '{"AZURE_ENV_NAME": "$(AZURE_ENV_NAME)", "AZURE_LOCATION": "$(AZURE_LOCATION)", "AZURE_SUBSCRIPTION_ID": "$(AZURE_SUBSCRIPTION_ID)"}'
@@ -18,33 +19,33 @@ stages:
   jobs:
   - job: AzdDeploy
     displayName: Deploy with azd
-    #pool: NautilusBuild
-    #condition: and(succeeded(), eq(variables['DestroyResources'], 'false'))
     steps:
     - checkout: self
+      clean: true
   
-    # - task: Bash@3
-    #   displayName: Install azd
-    #   inputs:
-    #     targetType: inline
-    #     script: |
-    #       curl -fsSL https://aka.ms/install-azd.sh | bash
     - script: curl -fsSL https://aka.ms/install-azd.sh | bash
       displayName: Install azd
 
-    # azd delegate auth to az to use service connection with AzureCLI@2
     - pwsh: azd config set auth.useAzCliAuth "true"
       displayName: Configure azd to use az CLI authentication.
-
-    # - task: UseDotNet@2
-    #   inputs:
-    #     version: '8.x'
-    #   displayName: Set up .NET 8
 
     - task: UseDotNet@2
       inputs:
         version: '9.x'
       displayName: Set up .NET 9
 
-    - script: echo AZD_INITIAL_ENVIRONMENT_CONFIG - $(AZD_INITIAL_ENVIRONMENT_CONFIG)
-      displayName: Show AZD_INITIAL_ENVIRONMENT_CONFIG
+    - task: AzureCLI@2
+      displayName: Provision infrastructure
+      condition: ne('${{ parameters.DestroyResources }}', true)
+      inputs:
+        azureSubscription: Exchange-Set-Service-Dev-A-008-02
+        scriptType: bash
+        scriptLocation: inlineScript
+        keepAzSessionActive: true
+        inlineScript: |
+          azd provision --no-prompt
+      env:
+        AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+        AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+        AZURE_LOCATION: $(AZURE_LOCATION)
+        AZD_INITIAL_ENVIRONMENT_CONFIG: $(AZD_INITIAL_ENVIRONMENT_CONFIG)
