@@ -1,104 +1,49 @@
-name: $(BuildDefinitionName)_$(SourceBranchName)_$(Date:yyyyMMdd).$(BuildCounter)
-
 parameters:
-  - name: DisableStryker
-    displayName: "Disable Stryker"
-    type: boolean
-    default: false
-
-  - name: DisableSnyk
-    displayName: "Disable Snyk"
-    type: boolean
-    default: false
-
-trigger:
-  - main
+- name: DestroyResources
+  displayName: "Destroy Environment"
+  type: boolean
+  default: false
 
 pool: NautilusBuild
 
 variables:
-  - name: BuildConfiguration
-    value: "Release"
-  - name: BuildPlatform
-    value: "any cpu"
-  - name: BuildCounter
-    value: $[counter(format('{0:yyyyMMdd}', pipeline.startTime), 1)]
-  - name: UkhoAssemblyCompany
-    value: "UK Hydrographic Office"
-  - name: UkhoAssemblyVersionPrefix
-    value: "1.0."
-  - name: UkhoAssemblyProduct
-    value: "ESS Fulfilment Service"
-  - name: UKHOAssemblyCopyright
-    value: "Copyright © UK Hydrographic Office"
-  - name: SdkVersion
-    value: "9.0.x"
-  - name: WindowsPool
-    value: "Mare Nubium"
-  - name: snykAbzuOrganizationId
-    value: aeb7543b-8394-457c-8334-a31493d8910d
+- group: EFS-Dev-Test
+- name: AZD_INITIAL_ENVIRONMENT_CONFIG
+  value: '{"AZURE_ENV_NAME": "$(AZURE_ENV_NAME)", "AZURE_LOCATION": "$(AZURE_LOCATION)", "AZURE_SUBSCRIPTION_ID": "$(AZURE_SUBSCRIPTION_ID)"}'
 
 stages:
-  - stage: VulnerabilityChecks
-    displayName: "Snyk Checks"
-    condition: eq('${{ parameters.DisableSnyk }}', false)    
-    dependsOn: []
-    jobs:
-    - template: templates/vulnerability-checks.yml
+- stage: Deploy
+  displayName: Deploy to dev
+  dependsOn: []
+  jobs:
+  - job: AzdDeploy
+    displayName: Deploy with azd
+    #pool: NautilusBuild
+    condition: and(succeeded(), eq(variables['DestroyResources'], 'false'))
+    steps:
+    - checkout: self
+  
+    - task: Bash@3
+      displayName: Install azd
+      inputs:
+        targetType: inline
+        script: |
+          curl -fsSL https://aka.ms/install-azd.sh | bash
 
-  - stage: Stryker_Mutator
-    displayName: "Stryker Mutator"
-    condition: eq('${{ parameters.DisableStryker }}', false)  
-    dependsOn: []
-    jobs:
-    - job: Stryker
-      workspace:
-        clean: all
-      steps:
-        - task: UseDotNet@2
-          displayName: 'Use .NET SDK for Stryker'
-          inputs:
-            packageType: sdk
-            version: $(SdkVersion)
+    # azd delegate auth to az to use service connection with AzureCLI@2
+    - pwsh: |
+        azd config set auth.useAzCliAuth "true"
+      displayName: Configure azd to use az CLI authentication.
 
-        - task: DotNetCoreCLI@2
-          displayName: "Install Stryker"
-          inputs:
-            command: custom
-            custom: tool
-            workingDirectory: $(Agent.TempDirectory)
-            arguments: install dotnet-stryker --tool-path $(Agent.BuildDirectory)/tools
+    # - task: UseDotNet@2
+    #   inputs:
+    #     version: '8.x'
+    #   displayName: Set up .NET 8
 
-        - task: Powershell@2
-          displayName: "Run Stryker for EFS Orchestrator UnitTests"
-          inputs:
-            workingDirectory: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Orchestrator.UnitTests'
-            targetType: 'inline'
-            pwsh: true
-            script: $(Agent.BuildDirectory)/tools/dotnet-stryker --test-project $(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Orchestrator.UnitTests/UKHO.ADDS.EFS.Orchestrator.UnitTests.csproj
+    - task: UseDotNet@2
+      inputs:
+        version: '9.x'
+      displayName: Set up .NET 9
 
-        - task: PublishMutationReport@0
-          displayName: 'Publish Strkyer Mutator Report'
-          inputs:
-            reportPattern: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Orchestrator.UnitTests/**/mutation-report.html'
-            reportDisplayName: 'EFS Orchestrator UnitTests'
-
-        - task: Powershell@2
-          displayName: "Run Stryker for EFS Builder S100 UnitTests"
-          inputs:
-            workingDirectory: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Builder.S100.UnitTests'
-            targetType: 'inline'
-            pwsh: true
-            script: $(Agent.BuildDirectory)/tools/dotnet-stryker --test-project $(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Builder.S100.UnitTests/UKHO.ADDS.EFS.Builder.S100.UnitTests.csproj
-
-        - task: PublishMutationReport@0
-          displayName: 'Publish Strkyer Mutator Report'
-          inputs:
-            reportPattern: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Builder.S100.UnitTests/**/mutation-report.html'
-            reportDisplayName: 'EFS Builder S100 UnitTests'
-
-  - stage: BuildTest
-    displayName: "Build and Test"
-    dependsOn: []
-    jobs:
-    - template: templates/build-test-publish.yml
+    - script: echo "AZD_INITIAL_ENVIRONMENT_CONFIG: $(AZD_INITIAL_ENVIRONMENT_CONFIG)"
+      displayName: Show AZD_INITIAL_ENVIRONMENT_CONFIG
