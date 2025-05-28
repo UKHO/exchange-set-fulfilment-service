@@ -10,7 +10,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
     internal class UploadFilesNode : ExchangeSetPipelineNode
     {
         private readonly IFileShareReadWriteClient _fileShareReadWriteClient;
-        private ILogger _logger;
 
         public UploadFilesNode(IFileShareReadWriteClient fileShareReadWriteClient) : base()
         {
@@ -19,38 +18,31 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
         {
-            _logger = context.Subject.LoggerFactory.CreateLogger<ProductSearchNode>();
+            var logger = context.Subject.LoggerFactory.CreateLogger<ProductSearchNode>();
+            var batchId = context.Subject.BatchId;
+            var correlationId = context.Subject.Job.CorrelationId;
 
-            var products = context.Subject.Job?.Products;
-            if (products == null || products.Count == 0)
-            {
-                return NodeResultStatus.NotRun;
-            }
-
-            var batchHandle = new BatchHandle(context.Subject.BatchId);
-            const string filepath = "/usr/local/tomcat/ROOT/workspaces/working9/etc/JP8.zip";
-            string fileName = Path.GetFileName(filepath);
+            var batchHandle = new BatchHandle(batchId);
             const string mimeType = "application/octet-stream";
+            string fileName = $"S100_ExchangeSet_{DateTime.UtcNow:yyyyMMdd}.zip";
 
             try
             {
-                using FileStream fileStream = new(filepath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, useAsync: true);
-                var cancellationToken = CancellationToken.None;
-                Action<(int blocksComplete, int totalBlockCount)> progressUpdate = static _ => { };
+                var fileStream = context.Subject.ExchangeSetStream;
 
                 var createBatchResponseResult = await _fileShareReadWriteClient.AddFileToBatchAsync(
                     batchHandle,
                     fileStream,
                     fileName,
                     mimeType,
-                    progressUpdate,
-                    context.Subject.Job.CorrelationId,
-                    cancellationToken
+                    correlationId,
+                    CancellationToken.None
                 ).ConfigureAwait(false);
 
                 if (!createBatchResponseResult.IsSuccess(out _, out var error))
                 {
-                    _logger.LogAddFileNodeFailed($"Failed to add file {fileName} to batch: {error}");
+                    logger.LogAddFileNodeFailed(
+                        $"Failed to add file {fileName} to batch: {batchId} | CorrelationId:{correlationId} | Error: {error}");
                     return NodeResultStatus.Failed;
                 }
 
@@ -58,12 +50,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
             }
             catch (Exception ex)
             {
-                _logger.LogAddFileNodeFssAddFileFailed(new AddFileLogView
-                {
-                    FileName = fileName,
-                    BatchId = context.Subject.BatchId,
-                    Error = ex.Message
-                });
+                logger.LogAddFileNodeFssAddFileFailed(
+                    $"Failed to add file {fileName} to batch {batchId} | CorrelationId:{correlationId} | Error: {ex.Message}");
                 return NodeResultStatus.Failed;
             }
         }
