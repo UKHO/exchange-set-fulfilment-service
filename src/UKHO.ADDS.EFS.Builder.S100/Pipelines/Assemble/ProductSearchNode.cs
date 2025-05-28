@@ -7,6 +7,7 @@ using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Models;
 using UKHO.ADDS.EFS.Exceptions;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
+using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 {
@@ -20,8 +21,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private const string EditionNumberQueryClause = "$batch(EditionNumber) eq '{0}' and ";
         private const string UpdateNumberQueryClause = "$batch(UpdateNumber) eq '{0}' ";
         private const string BusinessUnit = "ADDS-S100";
-        private const string ProductTypeQueryClause = "$batch(ProductType) eq 'S-100' and ";
-        private const int MaxParallelSearchOperations = 5;
+        private const string ProductType = "S-100";
+        private const string ProductTypeQueryClause = $"$batch(ProductType) eq '{ProductType}' and ";
+        private const int MaxSearchOperations = 5;
         private const int UpdateNumberLimit = 5;
         private const int ProductLimit = 4;
         private const int Limit = 100;
@@ -47,14 +49,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 var batchList = new List<BatchDetails>();
                 var groupedProducts = products
                     .GroupBy(p => p.ProductName)
-                    .Select(g => new SearchBatchProducts
+                    .Select(g => new BatchProductDetail
                     {
                         ProductName = g.Key,
                         EditionNumber = g.First().LatestEditionNumber,
                         UpdateNumbers = g.Select(p => p.LatestUpdateNumber).ToList()
                     }).ToList();
 
-                var productGroupCount = (int)Math.Ceiling((double)products.Count / MaxParallelSearchOperations);
+                var productGroupCount = (int)Math.Ceiling((double)products.Count / MaxSearchOperations);
                 var productsList = SplitList(groupedProducts, productGroupCount);
 
                 foreach (var productGroup in productsList)
@@ -68,6 +70,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 context.Subject.BatchDetails = batchList;
                 return NodeResultStatus.Succeeded;
             }
+            catch (S100BuilderException)
+            {
+                return NodeResultStatus.Failed;
+            }
             catch (Exception ex)
             {
                 _logger.LogProductSearchNodeFailed(ex.Message);
@@ -75,7 +81,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             }
         }
 
-        private async Task<List<BatchDetails>> QueryFileShareServiceFilesAsync(List<SearchBatchProducts> products, string correlationId)
+        private async Task<List<BatchDetails>> QueryFileShareServiceFilesAsync(List<BatchProductDetail> products, string correlationId)
         {
             var batchDetails = new List<BatchDetails>();
             if (products == null || products.Count == 0)
@@ -93,7 +99,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             return batchDetails;
         }
 
-        private async Task<BatchSearchResponse> FetchBatchDetailsForProductsAsync(List<SearchBatchProducts> products,
+        private async Task<BatchSearchResponse> FetchBatchDetailsForProductsAsync(List<BatchProductDetail> products,
              string correlationId)
         {
             var batchSearchResponse = new BatchSearchResponse { Entries = new List<BatchDetails>() };
@@ -105,7 +111,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             var productQuery = GenerateQueryForFss(products);
             var totalUpdateCount = products.Sum(p => p.UpdateNumbers.ToList().Count);
             var queryCount = 0;
-            var filter = $"BusinessUnit eq '{BusinessUnit}' and {ProductTypeQueryClause} {productQuery}";
+            var filter = $"BusinessUnit eq '{BusinessUnit}' and {ProductTypeQueryClause}{productQuery}";
             var limit = Limit;
             var start = Start;
             do
@@ -134,15 +140,41 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 }
                 else
                 {
-                    //TODO: - log search query of unsuccessful response from fss
-                    _logger.LogProductSearchNodeFssSearchFailed(error);
+                    LogFssSearchFailed(products, correlationId, filter, limit, start, error);
+
                     throw new S100BuilderException("An error occurred while executing the ProductSearchNode.");
-                }               
+                }
 
             } while (batchSearchResponse.Entries.Count < totalUpdateCount && !string.IsNullOrWhiteSpace(filter));
 
             batchSearchResponse.Count = queryCount;
             return batchSearchResponse;
+        }
+
+        private void LogFssSearchFailed(IEnumerable<BatchProductDetail> products, string correlationId, string filter, int limit, int start, IError error)
+        {
+            var searchQuery = new SearchQuery
+            {
+                Filter = filter,
+                Limit = limit,
+                Start = start
+            };
+            var batchSearchProductsLogVeiw = new BatchProductSearchLog
+            {
+                BatchProducts = products,
+                CorrelationId = correlationId,
+                BusinessUnit = BusinessUnit,
+                ProductType = ProductType,
+                Query = searchQuery,
+                Error = string.IsNullOrEmpty(error?.Message) ? string.Empty : error.Message,
+            };
+
+            _logger.LogProductSearchNodeFssSearchFailed(batchSearchProductsLogVeiw);
+        }
+
+        private IEnumerable<List<BatchProductDetail>> ChunkProductsByProductLimit(IEnumerable<BatchProductDetail> products)
+        {
+            return SplitList((ChunkProductsByUpdateNumberLimit(products)), ProductLimit);
         }
 
         private static IEnumerable<List<T>> SplitList<T>(List<T> masterList, int size = DefaultSplitSize)
@@ -153,7 +185,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             }
         }
 
-        private string GenerateQueryForFss(List<SearchBatchProducts> products)
+        private string GenerateQueryForFss(List<BatchProductDetail> products)
         {
             var queryBuilder = new StringBuilder();
 
@@ -178,25 +210,20 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 }
                 queryBuilder.Append(i == products.Count - 1 ? ")" : ") or ");
             }
-            queryBuilder.Append(')');           
+            queryBuilder.Append(')');
             return (queryBuilder.ToString());
         }
 
-        private static List<SearchBatchProducts> ChunkProductsByUpdateNumberLimit(IEnumerable<SearchBatchProducts> products)
+        private static List<BatchProductDetail> ChunkProductsByUpdateNumberLimit(IEnumerable<BatchProductDetail> products)
         {
             return [.. products.SelectMany(product =>
                 SplitList(product.UpdateNumbers.ToList(), UpdateNumberLimit)
-                    .Select(updateNumbers => new SearchBatchProducts
+                    .Select(updateNumbers => new BatchProductDetail
                     {
                         ProductName = product.ProductName,
                         EditionNumber = product.EditionNumber,
                         UpdateNumbers = updateNumbers
                     }))];
-        }
-
-        private IEnumerable<List<SearchBatchProducts>> ChunkProductsByProductLimit(IEnumerable<SearchBatchProducts> products)
-        {
-            return SplitList((ChunkProductsByUpdateNumberLimit(products)), ProductLimit);
         }
 
         static Dictionary<string, string> ParseQueryString(string queryString)
