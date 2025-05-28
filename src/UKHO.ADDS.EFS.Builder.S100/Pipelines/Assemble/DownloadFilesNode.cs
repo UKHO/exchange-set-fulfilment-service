@@ -124,10 +124,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                     EnsureDownloadDirectoryExists(folderPath);
                     return Path.Combine(folderPath, fileName);
                 }
-
                 return Path.Combine(workSpaceRootPath, fileName);
             }
-
             return Path.Combine(workSpaceRootPath, fileName);
         }
     }

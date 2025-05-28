@@ -72,7 +72,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         }
 
         [Test]
-        public async Task WhenContextSubjectLoggerFactoryIsNull_ThenThrowsNullReferenceException()
+        public Task WhenContextSubjectLoggerFactoryIsNull_ThenThrowsNullReferenceException()
         {
             var pipelineContext = new ExchangeSetPipelineContext(A.Fake<Microsoft.Extensions.Configuration.IConfiguration>(), A.Fake<INodeStatusWriter>(), _toolClient, null)
             {
@@ -84,6 +84,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
             A.CallTo(() => context.Subject).Returns(pipelineContext);
 
             Assert.That(async () => await _testableSignExchangeSetNode.PerformExecuteAsync(context), Throws.Exception);
+            return Task.CompletedTask;
         }
 
         private class TestableSignExchangeSetNode : SignExchangeSetNode
