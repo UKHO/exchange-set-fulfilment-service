@@ -42,6 +42,22 @@ stages:
       displayName: Set up .NET 9
 
     - task: AzureCLI@2
+      displayName: Destroy infrastructure
+      condition: eq('${{ parameters.DestroyResources }}', true)
+      inputs:
+        azureSubscription: Exchange-Set-Service-Dev-A-008-02
+        scriptType: bash
+        scriptLocation: inlineScript
+        keepAzSessionActive: true
+        inlineScript: |
+          azd down --no-prompt --force --purge --debug
+      env:
+        AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+        AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+        AZURE_LOCATION: $(AZURE_LOCATION)
+        AZD_INITIAL_ENVIRONMENT_CONFIG: $(AZD_INITIAL_ENVIRONMENT_CONFIG)
+
+    - task: AzureCLI@2
       displayName: Provision infrastructure
       condition: ne('${{ parameters.DestroyResources }}', true)
       inputs:
@@ -51,6 +67,22 @@ stages:
         keepAzSessionActive: true
         inlineScript: |
           azd provision --no-prompt --debug
+      env:
+        AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+        AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+        AZURE_LOCATION: $(AZURE_LOCATION)
+        AZD_INITIAL_ENVIRONMENT_CONFIG: $(AZD_INITIAL_ENVIRONMENT_CONFIG)
+
+    - task: AzureCLI@2
+      displayName: Deploy application
+      condition: ne('${{ parameters.DestroyResources }}', true)
+      inputs:
+        azureSubscription: Exchange-Set-Service-Dev-A-008-02
+        scriptType: bash
+        scriptLocation: inlineScript
+        keepAzSessionActive: true
+        inlineScript: |
+          azd deploy --no-prompt --debug
       env:
         AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
         AZURE_ENV_NAME: $(AZURE_ENV_NAME)
