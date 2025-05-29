@@ -1,0 +1,109 @@
+﻿using System;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using FakeItEasy;
+using Microsoft.Extensions.Logging;
+using NUnit.Framework;
+using UKHO.ADDS.Clients.FileShareService.ReadWrite;
+using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
+using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
+using UKHO.ADDS.EFS.Builder.S100.Pipelines;
+using UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute;
+using UKHO.ADDS.EFS.Entities;
+using UKHO.ADDS.Infrastructure.Pipelines;
+using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
+using UKHO.ADDS.Infrastructure.Results;
+
+namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
+{
+    [TestFixture]
+    internal class UploadFilesNodeTests
+    {
+        private IFileShareReadWriteClient _fileShareReadWriteClient;
+        private UploadFilesNode _uploadFilesNode;
+        private IExecutionContext<ExchangeSetPipelineContext> _executionContext;
+
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
+        {
+            _fileShareReadWriteClient = A.Fake<IFileShareReadWriteClient>();
+            _uploadFilesNode = new UploadFilesNode(_fileShareReadWriteClient);
+            _executionContext = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
+        }
+
+        [SetUp]
+        public void SetUp()
+        {
+            var loggerFactory = LoggerFactory.Create(builder => { });
+            var context = new ExchangeSetPipelineContext(null, null, null, loggerFactory)
+            {
+                Job = new ExchangeSetJob { CorrelationId = "TestCorrelationId" },
+                BatchId = "TestBatchId"
+            };
+
+            A.CallTo(() => _executionContext.Subject).Returns(context);
+        }
+
+        [Test]
+        public void WhenFileShareReadWriteClientIsNull_ThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() => new UploadFilesNode(null));
+        }
+
+        [Test]
+        public async Task WhenPerformExecuteAsyncIsCalled_ThenReturnsSucceededAndSetsBatchId()
+        {
+            A.CallTo(() => _fileShareReadWriteClient.AddFileToBatchAsync(
+                A<BatchHandle>._,
+                A<Stream>._,
+                A<string>._,
+                A<string>._,
+                A<string>._,
+                A<CancellationToken>._))
+                .Returns(Result.Success(new AddFileToBatchResponse()));
+
+            var result = await _uploadFilesNode.ExecuteAsync(_executionContext);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
+                Assert.That(_executionContext.Subject.BatchId, Is.EqualTo("TestBatchId"));
+            });
+        }
+
+        [Test]
+        public async Task WhenPerformExecuteAsyncIsCalledAndAddFileToBatchFails_ThenReturnsFailed()
+        {
+            A.CallTo(() => _fileShareReadWriteClient.AddFileToBatchAsync(
+                A<BatchHandle>._,
+                A<Stream>._,
+                A<string>._,
+                A<string>._,
+                A<string>._,
+                A<CancellationToken>._))
+                .Returns(Result.Failure<AddFileToBatchResponse>(new Error("Failed to add file to batch")));
+
+            var result = await _uploadFilesNode.ExecuteAsync(_executionContext);
+
+            Assert.Multiple(() => { Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed)); });
+        }
+
+        [Test]
+        public async Task WhenPerformExecuteAsyncIsCalledAndThrowsException_ThenReturnsFailed()
+        {
+            A.CallTo(() => _fileShareReadWriteClient.AddFileToBatchAsync(
+                A<BatchHandle>._,
+                A<Stream>._,
+                A<string>._,
+                A<string>._,
+                A<string>._,
+                A<CancellationToken>._))
+                .Throws(new Exception("Test exception"));
+
+            var result = await _uploadFilesNode.ExecuteAsync(_executionContext);
+
+            Assert.Multiple(() => { Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed)); });
+        }
+    }
+}
