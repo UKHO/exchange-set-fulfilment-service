@@ -85,12 +85,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
         /// <param name="exchangeSetId">The ID of the exchange set.</param>
         /// <param name="authKey">The authentication key.</param>
         /// <param name="correlationId">The correlation ID for tracking.</param>
+        /// <param name="destination">The destination location.</param>
         /// <returns>A result containing the extracted stream.</returns>
-        public async Task<IResult<Stream>> ExtractExchangeSetAsync(string exchangeSetId, string authKey, string correlationId)
+        public async Task<IResult<Stream>> ExtractExchangeSetAsync(string exchangeSetId, string authKey, string correlationId, string destination)
         {
             try
             {
-                var path = BuildApiPath("extractExchangeSet", exchangeSetId, authKey);
+                var path = BuildApiPath("extractExchangeSet", exchangeSetId, authKey, null, destination);
                 var response = await _httpClient.GetAsync(path);
                 return await response.CreateResultAsync<Stream>("IICToolAPI", correlationId);
             }
@@ -171,13 +172,17 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
         /// <param name="authKey">The authentication key.</param>
         /// <param name="resourceLocation">Optional resource location parameter.</param>
         /// <returns>The constructed API path.</returns>
-        private string BuildApiPath(string action, string exchangeSetId, string authKey, string? resourceLocation = null)
+        private string BuildApiPath(string action, string exchangeSetId, string authKey, string? resourceLocation = null, string? destination = null)
         {
             var basePath = $"/xchg-{ApiVersion}/v{ApiVersion}/{action}/{WorkSpaceId}/{exchangeSetId}";
             var query = $"?authkey={authKey}";
             if (!string.IsNullOrEmpty(resourceLocation))
             {
                 query += $"&resourceLocation={resourceLocation}";
+            }
+            if (!string.IsNullOrEmpty(destination))
+            {
+                query += $"&destination={destination}";
             }
             return basePath + query;
         }

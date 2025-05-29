@@ -57,16 +57,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
             Stream outStream = fakeStream;
             IError outError = null;
 
-            A.CallTo(() => fakeResult.IsSuccess(out outStream!, out outError!)).Returns(true);
-            A.CallTo(() => _toolClient.ExtractExchangeSetAsync(A<string>._, A<string>._, A<string>._)).Returns(Task.FromResult(fakeResult));
+            A.CallTo(() => fakeResult.IsFailure(out outError!, out outStream!)).Returns(false);
+            A.CallTo(() => _toolClient.ExtractExchangeSetAsync(A<string>._, A<string>._, A<string>._, A<string>._)).Returns(Task.FromResult(fakeResult));
 
             var status = await _testableExtractExchangeSetNode.PerformExecuteAsync(_executionContext);
 
-            Assert.Multiple(() =>
-            {
-                Assert.That(_executionContext.Subject.ExchangeSetStream, Is.Not.Null);
-                Assert.That(status, Is.EqualTo(NodeResultStatus.Succeeded));
-            });
+            Assert.That(status, Is.EqualTo(NodeResultStatus.Succeeded));
         }
 
         [Test]
@@ -76,22 +72,18 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
             var fakeResult = A.Fake<IResult<Stream>>();
             Stream outStream = null;
 
-            A.CallTo(() => fakeResult.IsSuccess(out outStream!, out fakeError)).Returns(false);
-            A.CallTo(() => _toolClient.ExtractExchangeSetAsync(A<string>._, A<string>._, A<string>._)).Returns(Task.FromResult(fakeResult));
+            A.CallTo(() => fakeResult.IsFailure(out fakeError, out outStream!)).Returns(true);
+            A.CallTo(() => _toolClient.ExtractExchangeSetAsync(A<string>._, A<string>._, A<string>._, A<string>._)).Returns(Task.FromResult(fakeResult));
 
             var status = await _testableExtractExchangeSetNode.PerformExecuteAsync(_executionContext);
 
-            Assert.Multiple(() =>
-            {
-                Assert.That(_executionContext.Subject.ExchangeSetStream, Is.Null);
-                Assert.That(status, Is.EqualTo(NodeResultStatus.Failed));
-            });
+            Assert.That(status, Is.EqualTo(NodeResultStatus.Failed));
         }
 
         [Test]
         public async Task WhenPerformExecuteAsyncThrowsException_ThenReturnFailed()
         {
-            A.CallTo(() => _toolClient.ExtractExchangeSetAsync(A<string>._, A<string>._, A<string>._)).Throws(new Exception("fail"));
+            A.CallTo(() => _toolClient.ExtractExchangeSetAsync(A<string>._, A<string>._, A<string>._, A<string>._)).Throws(new Exception("fail"));
 
             var status = await _testableExtractExchangeSetNode.PerformExecuteAsync(_executionContext);
 
@@ -109,6 +101,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         }
     }
 
-    
+
 }
 

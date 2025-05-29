@@ -2,7 +2,6 @@
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute.Logging;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
-using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
 {
@@ -10,6 +9,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
     {
         private readonly IToolClient _toolClient;
         private ILogger _logger;
+        private const string DestinationPath = "xchg";
 
         public ExtractExchangeSetNode(IToolClient toolClient)
         {
@@ -32,31 +32,16 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
 
         private async Task<NodeResultStatus> ExtractExchangeSetAsync(IExecutionContext<ExchangeSetPipelineContext> context)
         {
-            var result = await _toolClient.ExtractExchangeSetAsync("JP8", context.Subject.WorkspaceAuthenticationKey, context.Subject.Job.CorrelationId);
-            //var result = await _toolClient.ExtractExchangeSetAsync(context.Subject.Job?.Id!, context.Subject.WorkspaceAuthenticationKey, context.Subject.Job.CorrelationId);
+            var result = await _toolClient.ExtractExchangeSetAsync("JP8", context.Subject.WorkspaceAuthenticationKey, context.Subject.Job.CorrelationId, DestinationPath);
+            //var result = await _toolClient.ExtractExchangeSetAsync(context.Subject.Job?.Id!, context.Subject.WorkspaceAuthenticationKey, context.Subject.Job?.CorrelationId!, DestinationPath);
 
-            if (result.IsSuccess(out var stream, out var error))
+            if (result.IsFailure( out var error,out var _))
             {
-                context.Subject.ExchangeSetStream = stream;
-                return NodeResultStatus.Succeeded;             
+                _logger.LogExtractExchangeSetNodeFailed(error?.Message!);
+                return NodeResultStatus.Failed;            
             }
-            else
-            {
-                LogIICExtractExchangeSetFailed(context, error);
-                return NodeResultStatus.Failed;
-            }
-        }
 
-        private void LogIICExtractExchangeSetFailed(IExecutionContext<ExchangeSetPipelineContext> context, IError error)
-        {
-            var extractExchangeSetLogView = new ExtractExchangeSetLogView
-            {
-                ExchangeSetId = context.Subject.Job?.Id!,
-                CorrelationId = context.Subject.Job?.CorrelationId ?? string.Empty,
-                Error = error?.Message ?? string.Empty
-            };
-
-            _logger.LogExtractExchangeSetNodeIICFailed(extractExchangeSetLogView);
-        }
+            return NodeResultStatus.Succeeded;
+        }        
     }
 }
