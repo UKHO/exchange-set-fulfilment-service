@@ -62,7 +62,6 @@ stages:
 
       - task: AzureCLI@2
         displayName: Provision infrastructure
-        condition: ne('${{ parameters.DestroyResources }}', true)
         inputs:
           azureSubscription: Exchange-Set-Service-Dev-A-008-02
           scriptType: bash
@@ -78,7 +77,6 @@ stages:
 
       - task: AzureCLI@2
         displayName: Deploy application
-        condition: ne('${{ parameters.DestroyResources }}', true)
         inputs:
           azureSubscription: Exchange-Set-Service-Dev-A-008-02
           scriptType: bash
