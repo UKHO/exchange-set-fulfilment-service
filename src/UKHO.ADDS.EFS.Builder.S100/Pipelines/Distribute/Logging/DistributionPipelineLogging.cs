@@ -27,8 +27,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute.Logging
         [LoggerMessage(AddFileNodeFailedId, LogLevel.Error, "AddFileNode failed: {@errorMessage}", EventName = nameof(AddFileNodeFailed))]
         public static partial void LogAddFileNodeFailed(this ILogger logger, string errorMessage);
 
-        [LoggerMessage(AddFileNodeFssAddFileFailedId, LogLevel.Error, "AddFileNode File Share Service AddFile failed: {@errorMessage}", EventName = nameof(AddFileNodeFssAddFileFailed))]
-        public static partial void LogAddFileNodeFssAddFileFailed(this ILogger logger, string errorMessage);
+        [LoggerMessage(AddFileNodeFssAddFileFailedId, LogLevel.Error, "AddFileNode File Share Service AddFile failed: {@addFileLog}", EventName = nameof(AddFileNodeFssAddFileFailed))]
+        public static partial void LogAddFileNodeFssAddFileFailed(this ILogger logger, AddFileLogView addFileLog);
 
         // The Extract ExchangeSet Node failed
         public static readonly EventId ExtractExchangeSetNodeFailed = new(ExtractExchangeSetNodeFailedId, nameof(ExtractExchangeSetNodeFailed));

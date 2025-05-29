@@ -1,15 +1,18 @@
 ﻿using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble;
+using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute.Logging;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
+using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
 {
     internal class UploadFilesNode : ExchangeSetPipelineNode
     {
         private readonly IFileShareReadWriteClient _fileShareReadWriteClient;
+        private ILogger _logger;
 
         public UploadFilesNode(IFileShareReadWriteClient fileShareReadWriteClient) : base()
         {
@@ -18,7 +21,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
         {
-            var logger = context.Subject.LoggerFactory.CreateLogger<UploadFilesNode>();
+            _logger = context.Subject.LoggerFactory.CreateLogger<UploadFilesNode>();
             var batchId = context.Subject.BatchId;
             var correlationId = context.Subject.Job.CorrelationId;
 
@@ -37,12 +40,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
                     mimeType,
                     correlationId,
                     CancellationToken.None
-                ).ConfigureAwait(false);
+                );
 
                 if (!createBatchResponseResult.IsSuccess(out _, out var error))
                 {
-                    logger.LogAddFileNodeFailed(
-                        $"Failed to add file {fileName} to batch: {batchId} | CorrelationId:{correlationId} | Error: {error}");
+                    CreateAddFileLogView(fileName, context.Subject.BatchId, error);
                     return NodeResultStatus.Failed;
                 }
 
@@ -50,10 +52,22 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
             }
             catch (Exception ex)
             {
-                logger.LogAddFileNodeFssAddFileFailed(
-                    $"Failed to add file {fileName} to batch {batchId} | CorrelationId:{correlationId} | Error: {ex.Message}");
+                _logger.LogAddFileNodeFailed(ex.Message);
                 return NodeResultStatus.Failed;
             }
         }
+
+        private void CreateAddFileLogView(string fileName, string batchId, IError error)
+        {
+            var addFileLogView = new AddFileLogView
+            {
+                FileName = fileName,
+                BatchId = batchId,
+                Error = error
+            };
+
+            _logger.LogAddFileNodeFssAddFileFailed(addFileLogView);
+        }
+
     }
 }
