@@ -1,11 +1,7 @@
 ﻿using FakeItEasy;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.IIC.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
-using UKHO.ADDS.EFS.Builder.S100.Pipelines.Create;
-using UKHO.ADDS.EFS.Builder.S100.Services;
 using UKHO.ADDS.EFS.Entities;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
@@ -115,7 +111,5 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
             var result = await _creationPipeline.ExecutePipeline(_context);
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
         }
-
-       
     }
 }
