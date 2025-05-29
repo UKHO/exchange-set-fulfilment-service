@@ -42,7 +42,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             var keyVault = builder.AddAzureKeyVaultEmulator(ContainerConfiguration.KeyVaultContainerName,
                 new KeyVaultEmulatorOptions
                 {
-                    Persist = true
+                    Persist = false
                 });
 
             // Orchestrator
