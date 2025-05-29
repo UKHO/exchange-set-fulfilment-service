@@ -9,7 +9,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
     {
         private readonly IToolClient _toolClient;
         private ILogger _logger;
-        private const string DestinationPath = "xchg";
+        private const string ExchangeSetOutputDirectory = "IicExchangeSetOutput";
 
         public ExtractExchangeSetNode(IToolClient toolClient)
         {
@@ -32,13 +32,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
 
         private async Task<NodeResultStatus> ExtractExchangeSetAsync(IExecutionContext<ExchangeSetPipelineContext> context)
         {
-            var result = await _toolClient.ExtractExchangeSetAsync("JP8", context.Subject.WorkspaceAuthenticationKey, context.Subject.Job.CorrelationId, DestinationPath);
-            //var result = await _toolClient.ExtractExchangeSetAsync(context.Subject.Job?.Id!, context.Subject.WorkspaceAuthenticationKey, context.Subject.Job?.CorrelationId!, DestinationPath);
+            //var result = await _toolClient.ExtractExchangeSetAsync("JP8", context.Subject.WorkspaceAuthenticationKey, context.Subject.Job.CorrelationId, DestinationPath);
+            var result = await _toolClient.ExtractExchangeSetAsync(context.Subject.Job?.Id!, context.Subject.WorkspaceAuthenticationKey, context.Subject.Job?.CorrelationId!, ExchangeSetOutputDirectory);
 
             if (result.IsFailure( out var error,out var _))
             {
                 _logger.LogExtractExchangeSetNodeFailed(error?.Message!);
-                return NodeResultStatus.Failed;            
+                return NodeResultStatus.Failed;
             }
 
             return NodeResultStatus.Succeeded;
