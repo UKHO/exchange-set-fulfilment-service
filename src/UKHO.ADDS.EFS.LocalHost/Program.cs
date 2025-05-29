@@ -59,22 +59,6 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WaitFor(keyVault)
                 .WithScalar("API Browser");
 
-            // Fixed endpoint
-            var keyVaultUri = "https://localhost:4997";
-
-            builder.Services.AddAzureKeyVaultEmulator(keyVaultUri, secrets: true, keys: true, certificates: false);
-
-            builder.Services.AddHttpClient();
-
-            if (buildOnStartup)
-            {
-                await CreateS100BuilderContainerImage();
-            }
-
-            var application = builder.Build();
-
-            await application.RunAsync();
-
             orchestratorService.WithEnvironment(async c =>
             {
                 var addsMockEndpoint = mockService.GetEndpoint("http");
@@ -93,6 +77,22 @@ namespace UKHO.ADDS.EFS.LocalHost
                 await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.OrchestratorServiceEndpoint, orchestratorEndpoint);
                 await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.WorkspaceKey, workspaceKey);
             });
+
+            // Fixed endpoint
+            var keyVaultUri = "https://localhost:4997";
+
+            builder.Services.AddAzureKeyVaultEmulator(keyVaultUri, secrets: true, keys: true, certificates: false);
+
+            builder.Services.AddHttpClient();
+
+            if (buildOnStartup)
+            {
+                await CreateS100BuilderContainerImage();
+            }
+
+            var application = builder.Build();
+
+            await application.RunAsync();
 
             return 0;
         }
