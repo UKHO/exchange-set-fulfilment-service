@@ -47,8 +47,10 @@ stages:
     #     targetType: inline
     #     script: |
     #       curl -fsSL https://aka.ms/install-azd.sh | bash
-    - task: setup-azd@1
-      displayName: Install azd
+    # - task: setup-azd@1
+    #   displayName: Install azd
+    - script: |
+        choco install azd
 
     - script: |
         azd version
