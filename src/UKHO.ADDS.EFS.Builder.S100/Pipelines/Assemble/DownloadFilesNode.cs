@@ -28,13 +28,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
             try
             {
-                var downloadPath = Path.Combine(context.Subject.WorkSpaceRootPath, "fssdata");
+                var downloadPath = Path.Combine(context.Subject.WorkSpaceRootPath, context.Subject.WorkSpaceSpoolPath);
 
-                EnsureDownloadDirectoryExists(downloadPath);
+                CreateDirectoryIfNotExists(downloadPath);
 
                 var latestBatches = SelectLatestBatchesByProductEditionAndUpdate(context.Subject.BatchDetails);
 
-                return await DownloadLatestBatchFilesAsync(latestBatches, downloadPath, context.Subject.Job.CorrelationId);
+                return await DownloadLatestBatchFilesAsync(latestBatches, downloadPath, context.Subject.Job.CorrelationId, context.Subject.WorkSpaceSpoolDataSetFilesPath, context.Subject.WorkSpaceSpoolSupportFilesPath);
             }
             catch (Exception ex)
             {
@@ -58,34 +58,103 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 .Select(g => g.OrderByDescending(x => x.Batch.BatchPublishedDate).First().Batch);
         }
 
-        private async Task<NodeResultStatus> DownloadLatestBatchFilesAsync(IEnumerable<BatchDetails> latestBatches, string workSpaceRootPath, string correlationId)
+        private async Task<NodeResultStatus> DownloadLatestBatchFilesAsync(IEnumerable<BatchDetails> latestBatches, string workSpaceRootPath, string correlationId, string workSpaceSpoolDataSetFilesPath, string workSpaceSpoolSupportFilesPath)
         {
-            foreach (var batch in latestBatches)
+            // Track directories we've already created
+            var createdDirectories = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            // Ensure main directory exists
+            CreateDirectoryIfNotExists(workSpaceRootPath, createdDirectories);
+
+            // Flatten batch and file structure into a single enumeration
+            var allFilesToProcess = latestBatches
+                .Where(batch => batch.Files.Any())
+                .SelectMany(batch => batch.Files.Select(file => new
+                {
+                    Batch = batch,
+                    FileName = file.Filename
+                }))
+                .ToList();
+
+            // Return early if no files to process
+            if (allFilesToProcess.Count == 0)
             {
-                if (!batch.Files.Any())
+                _logger.LogDownloadFilesNodeFailed($"No files to process for CorrelationId: {correlationId}");
+                return NodeResultStatus.Failed;
+            }
+
+            // First, determine and create all required directories
+            var fileDirectoryPaths = allFilesToProcess
+                .Select(item => GetDirectoryPathForFile(workSpaceRootPath, item.FileName, workSpaceSpoolDataSetFilesPath, workSpaceSpoolSupportFilesPath))
+                .Distinct();
+
+            foreach (var directoryPath in fileDirectoryPaths)
+            {
+                CreateDirectoryIfNotExists(directoryPath, createdDirectories);
+            }
+
+            // Now download all files (all directories are guaranteed to exist)
+            foreach (var item in allFilesToProcess)
+            {
+                var directoryPath = GetDirectoryPathForFile(workSpaceRootPath, item.FileName, workSpaceSpoolDataSetFilesPath, workSpaceSpoolSupportFilesPath);
+                var downloadPath = Path.Combine(directoryPath, item.FileName);
+
+                await using var outputFileStream = new FileStream(downloadPath, FileMode.Create, FileAccess.ReadWrite);
+
+                var streamResult = await _fileShareReadOnlyClient.DownloadFileAsync(
+                    item.Batch.BatchId, item.FileName, outputFileStream, correlationId, FileSizeInBytes);
+
+                if (streamResult.IsFailure(out var error, out var value))
                 {
-                    continue;
-                }
-
-                foreach (var file in batch.Files)
-                {
-                    var fileName = file.Filename;
-                    var downloadPath = Path.Combine(workSpaceRootPath, fileName);
-
-                    await using var outputFileStream = new FileStream(downloadPath, FileMode.Create, FileAccess.ReadWrite);
-
-                    var streamResult = await _fileShareReadOnlyClient.DownloadFileAsync(batch.BatchId, fileName, outputFileStream, correlationId, FileSizeInBytes);
-
-                    if (streamResult.IsFailure(out var error, out var value))
-                    {
-                        LogFssDownloadFailed(batch, fileName, error, correlationId);
-
-                        return NodeResultStatus.Failed;
-                    }
+                    LogFssDownloadFailed(item.Batch, item.FileName, error, correlationId);
+                    return NodeResultStatus.Failed;
                 }
             }
 
             return NodeResultStatus.Succeeded;
+        }
+
+        private static void CreateDirectoryIfNotExists(string downloadPath, HashSet<string> createdDirectories = null)
+        {
+            // Early return if we've already created this directory
+            if (createdDirectories?.Contains(downloadPath) == true)
+            {
+                return;
+            }
+
+            // Create directory if it doesn't exist
+            if (!Directory.Exists(downloadPath))
+            {
+                Directory.CreateDirectory(downloadPath);
+            }
+
+            // Add to our tracking set if we're using one
+            createdDirectories?.Add(downloadPath);
+        }
+
+        private string GetDirectoryPathForFile(string workSpaceRootPath, string fileName,string workSpaceSpoolDataSetFilesPath, string workSpaceSpoolSupportFilesPath)
+        {
+            var extension = Path.GetExtension(fileName);
+
+            // Handle numeric extensions (.000 to .999)
+            if (extension is { Length: 4 } && int.TryParse(extension[1..], out var extNum) && extNum is >= 0 and <= 999)
+            {
+                if (fileName.Length >= 7)
+                {
+                    var folderName = fileName.Substring(3, 4);
+                    return Path.Combine(workSpaceRootPath, workSpaceSpoolDataSetFilesPath, folderName);
+                }
+            }
+            // Handle .h5 extension
+            else if (extension.Equals(".h5", StringComparison.OrdinalIgnoreCase))
+            {
+                if (fileName.Length >= 7)
+                {
+                    var folderName = fileName.Substring(3, 4);
+                    return Path.Combine(workSpaceRootPath, workSpaceSpoolDataSetFilesPath, folderName);
+                }
+            }
+            return Path.Combine(workSpaceRootPath, workSpaceSpoolSupportFilesPath);
         }
 
         private void LogFssDownloadFailed(BatchDetails batch, string fileName, IError error, string correlationId)
@@ -99,14 +168,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             };
 
             _logger.LogDownloadFilesNodeFssDownloadFailed(downloadFilesLogView);
-        }
-
-        private static void EnsureDownloadDirectoryExists(string downloadPath)
-        {
-            if (!Directory.Exists(downloadPath))
-            {
-                Directory.CreateDirectory(downloadPath);
-            }
         }
     }
 }

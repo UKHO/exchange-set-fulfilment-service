@@ -65,8 +65,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
         /// <returns>A result containing the operation response.</returns>
         public async Task<IResult<OperationResponse>> AddContentAsync(string resourceLocation, string exchangeSetId, string authKey, string correlationId)
         {
-            var directoryName = Path.Combine("fss-data", Path.GetFileName(resourceLocation));
-            return await SendApiRequestAsync<OperationResponse>("addContent", exchangeSetId, authKey, correlationId, directoryName);
+            return await SendApiRequestAsync<OperationResponse>("addContent", exchangeSetId, authKey, correlationId, resourceLocation);
         }
 
         /// <summary>
