@@ -9,7 +9,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
     {
         private readonly IToolClient _toolClient;
         private ILogger _logger;
-        private const string ExchangeSetOutputDirectory = "IicExchangeSetOutput";
+        private const string ExchangeSetOutputDirectory = "iicExchangeSetOutput";
 
         public ExtractExchangeSetNode(IToolClient toolClient)
         {
