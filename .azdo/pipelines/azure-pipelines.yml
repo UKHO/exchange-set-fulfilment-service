@@ -84,6 +84,7 @@ stages:
           scriptLocation: inlineScript
           keepAzSessionActive: true
           inlineScript: |
+            refreshenv
             azd down --no-prompt --force --purge --debug
         env:
           AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
@@ -100,6 +101,7 @@ stages:
           scriptLocation: inlineScript
           keepAzSessionActive: true
           inlineScript: |
+            refreshenv
             azd provision --no-prompt --debug
         env:
           AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
@@ -115,6 +117,7 @@ stages:
           scriptLocation: inlineScript
           keepAzSessionActive: true
           inlineScript: |
+            refreshenv
             azd deploy --no-prompt --debug
         env:
           AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
