@@ -40,8 +40,11 @@ stages:
     #   displayName: Install azd
     - script: |
         powershell -ex AllSigned -c "Invoke-RestMethod 'https://aka.ms/install-azd.ps1' | Invoke-Expression"
-        azd version
       displayName: Install azd
+
+    - script: |
+        azd version
+      displayName: Display azd version
 
     - pwsh: azd config set auth.useAzCliAuth "true"
       displayName: Configure azd to use az CLI authentication.
