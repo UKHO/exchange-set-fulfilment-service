@@ -7,8 +7,8 @@ parameters:
 trigger:
 - main
 
-pool: Mare Nectaris
-#pool: Mare Nubium
+#pool: Mare Nectaris
+pool: Mare Nubium
 #pool: NautilusBuild
 
 variables:
@@ -35,10 +35,10 @@ stages:
       displayName: Restore mock submodule
       workingDirectory: '$(Build.SourcesDirectory)'
   
-    - script: |
-        curl -fsSL https://aka.ms/install-azd.sh | bash
-        azd version
-      displayName: Install azd
+    # - script: |
+    #     curl -fsSL https://aka.ms/install-azd.sh | bash
+    #     azd version
+    #   displayName: Install azd
     # - script: |
     #     powershell -ex AllSigned -c "Invoke-RestMethod 'https://aka.ms/install-azd.ps1' | Invoke-Expression"
     #   displayName: Install azd
@@ -50,19 +50,19 @@ stages:
     #       curl -fsSL https://aka.ms/install-azd.sh | bash
     # - task: setup-azd@1
     #   displayName: Install azd
-    # - pwsh: |
-    #     choco install azd
-    #     Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
-    #     refreshenv
-    #     azd version
-    #     azd config set auth.useAzCliAuth "true"
-    #   displayName: Install azd
+    - pwsh: |
+        choco install azd
+        Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
+        refreshenv
+        azd version
+        azd config set auth.useAzCliAuth "true"
+      displayName: Install azd
 
     # - script: azd version
     #   displayName: Display azd version
 
-    - script: azd config set auth.useAzCliAuth "true"
-      displayName: Configure azd to use az CLI authentication
+    # - pwsh: azd config set auth.useAzCliAuth "true"
+    #   displayName: Configure azd to use az CLI authentication
 
     - task: UseDotNet@2
       inputs:
@@ -80,10 +80,12 @@ stages:
         displayName: Destroy infrastructure
         inputs:
           azureSubscription: Exchange-Set-Service-Dev-A-008-02
-          scriptType: bash
+          scriptType: pscore
           scriptLocation: inlineScript
           keepAzSessionActive: true
           inlineScript: |
+            Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
+            refreshenv
             azd down --no-prompt --force --purge --debug
         env:
           AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
@@ -96,10 +98,12 @@ stages:
         displayName: Provision infrastructure
         inputs:
           azureSubscription: Exchange-Set-Service-Dev-A-008-02
-          scriptType: bash
+          scriptType: pscore
           scriptLocation: inlineScript
           keepAzSessionActive: true
           inlineScript: |
+            Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
+            refreshenv
             azd provision --no-prompt --debug
         env:
           AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
@@ -111,10 +115,12 @@ stages:
         displayName: Deploy application
         inputs:
           azureSubscription: Exchange-Set-Service-Dev-A-008-02
-          scriptType: bash
+          scriptType: pscore
           scriptLocation: inlineScript
           keepAzSessionActive: true
           inlineScript: |
+            Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
+            refreshenv
             azd deploy --no-prompt --debug
         env:
           AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
