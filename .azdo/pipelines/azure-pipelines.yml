@@ -9,6 +9,7 @@ trigger:
 
 #pool: Mare Nectaris
 pool: Mare Nubium
+#pool: NautilusBuild
 
 variables:
 - group: ESS-Deployment-Variables-DEV
@@ -51,6 +52,8 @@ stages:
     #   displayName: Install azd
     - script: |
         choco install azd
+        refreshenv
+        displayName: Install azd
 
     - script: |
         azd version
