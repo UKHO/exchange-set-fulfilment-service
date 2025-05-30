@@ -41,12 +41,14 @@ stages:
     # - script: |
     #     powershell -ex AllSigned -c "Invoke-RestMethod 'https://aka.ms/install-azd.ps1' | Invoke-Expression"
     #   displayName: Install azd
-    - task: Bash@3
+    # - task: Bash@3
+    #   displayName: Install azd
+    #   inputs:
+    #     targetType: inline
+    #     script: |
+    #       curl -fsSL https://aka.ms/install-azd.sh | bash
+    - task: setup-azd@1
       displayName: Install azd
-      inputs:
-        targetType: inline
-        script: |
-          curl -fsSL https://aka.ms/install-azd.sh | bash
 
     - script: |
         azd version
