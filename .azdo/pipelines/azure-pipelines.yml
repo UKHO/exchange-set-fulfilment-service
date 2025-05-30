@@ -50,7 +50,7 @@ stages:
     #       curl -fsSL https://aka.ms/install-azd.sh | bash
     # - task: setup-azd@1
     #   displayName: Install azd
-    - pwsh: |
+    - script: |
         choco install azd
       displayName: Install azd
 
@@ -59,7 +59,7 @@ stages:
         azd version
       displayName: Display azd version
 
-    - pwsh: azd config set auth.useAzCliAuth "true"
+    - script: azd config set auth.useAzCliAuth "true"
       displayName: Configure azd to use az CLI authentication.
 
     - task: UseDotNet@2
