@@ -32,11 +32,20 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
         {
             var logger = context.Subject.LoggerFactory.CreateLogger<AddContentExchangeSetNode>();
 
-            var result = await _toolClient.AddContentAsync(context.Subject.WorkSpaceFssDataPath, context.Subject.JobId, context.Subject.WorkspaceAuthenticationKey, context.Subject.Job.CorrelationId);
 
-            if (!result.IsSuccess(out _, out var error))
+            var result = await _toolClient.AddContentAsync(context.Subject.WorkSpaceSpoolDataSetFilesPath, context.Subject.JobId, context.Subject.WorkspaceAuthenticationKey, context.Subject.JobId);
+
+            if (!result.IsSuccess(out var value, out var error))
             {
                 logger.LogAddContentExchangeSetNodeFailed(error);
+                return NodeResultStatus.Failed;
+            }
+
+            var result1 = await _toolClient.AddContentAsync(context.Subject.WorkSpaceSpoolSupportFilesPath, context.Subject.JobId, context.Subject.WorkspaceAuthenticationKey, context.Subject.JobId);
+
+            if (!result1.IsSuccess(out var value1, out var error1))
+            {
+                logger.LogAddContentExchangeSetNodeFailed(error1);
                 return NodeResultStatus.Failed;
             }
 

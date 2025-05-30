@@ -1,5 +1,4 @@
-﻿using Serilog;
-using UKHO.ADDS.Clients.SalesCatalogueService.Models;
+﻿using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging;
 using UKHO.ADDS.EFS.Entities;
 using UKHO.ADDS.EFS.Messages;
@@ -30,7 +29,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
                     {
                         new S100Products
                         {
-                            ProductName = "101GB00Product1",
+                            ProductName = "101GB00479ABCDEFG",
                             LatestEditionNumber = 0,
                             LatestUpdateNumber = 1,
                             Status = new S100ProductStatus
@@ -41,7 +40,29 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
                         },
                         new S100Products
                         {
-                            ProductName = "101GB00Product2",
+                            ProductName = "101FR00479ABCDXYZ",
+                            LatestEditionNumber = 0,
+                            LatestUpdateNumber = 0,
+                            Status = new S100ProductStatus
+                            {
+                                StatusName = "newDataset",
+                                StatusDate = DateTime.UtcNow
+                            }
+                        },
+                        new S100Products
+                        {
+                            ProductName = "101FR004791234567",
+                            LatestEditionNumber = 0,
+                            LatestUpdateNumber = 1,
+                            Status = new S100ProductStatus
+                            {
+                                StatusName = "newDataset",
+                                StatusDate = DateTime.UtcNow
+                            }
+                        },
+                        new S100Products
+                        {
+                            ProductName = "104GB00_479ABCDEFG",
                             LatestEditionNumber = 0,
                             LatestUpdateNumber = 1,
                             Status = new S100ProductStatus
@@ -52,7 +73,51 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
                         },
                         new S100Products
                         {
-                            ProductName = "101FR00Product3",
+                            ProductName = "104FR00479ABCDXYZ",
+                            LatestEditionNumber = 0,
+                            LatestUpdateNumber = 1,
+                            Status = new S100ProductStatus
+                            {
+                                StatusName = "newDataset",
+                                StatusDate = DateTime.UtcNow.AddDays(-7)
+                            }
+                        },
+                        new S100Products
+                        {
+                            ProductName = "111CA00_3456tyu_DEFG",
+                            LatestEditionNumber = 0,
+                            LatestUpdateNumber = 1,
+                            Status = new S100ProductStatus
+                            {
+                                StatusName = "newDataset",
+                                StatusDate = DateTime.UtcNow.AddDays(-7)
+                            }
+                        },
+                        new S100Products
+                        {
+                            ProductName = "111FR00_t6yhgtu_YZ",
+                            LatestEditionNumber = 0,
+                            LatestUpdateNumber = 1,
+                            Status = new S100ProductStatus
+                            {
+                                StatusName = "newDataset",
+                                StatusDate = DateTime.UtcNow.AddDays(-7)
+                            }
+                        },
+                        new S100Products
+                        {
+                            ProductName = "102GB00_fgbhty78_edfr",
+                            LatestEditionNumber = 0,
+                            LatestUpdateNumber = 1,
+                            Status = new S100ProductStatus
+                            {
+                                StatusName = "newDataset",
+                                StatusDate = DateTime.UtcNow.AddDays(-7)
+                            }
+                        },
+                        new S100Products
+                        {
+                            ProductName = "102GB01_qwser_ZZ",
                             LatestEditionNumber = 0,
                             LatestUpdateNumber = 1,
                             Status = new S100ProductStatus
@@ -98,6 +163,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
             logger.LogJobRetrieved(ExchangeSetJobLogView.CreateFromJob(job));
         }
 
-        
+
     }
 }
