@@ -34,7 +34,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
                 var latestBatches = SelectLatestBatchesByProductEditionAndUpdate(context.Subject.BatchDetails);
 
-                return await DownloadLatestBatchFilesAsync(latestBatches, downloadPath, context.Subject.Job.CorrelationId);
+                return await DownloadLatestBatchFilesAsync(latestBatches, downloadPath, context.Subject.Job.CorrelationId, context.Subject.WorkSpaceSpoolDataSetFilesPath, context.Subject.WorkSpaceSpoolSupportFilesPath);
             }
             catch (Exception ex)
             {
@@ -58,7 +58,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 .Select(g => g.OrderByDescending(x => x.Batch.BatchPublishedDate).First().Batch);
         }
 
-        private async Task<NodeResultStatus> DownloadLatestBatchFilesAsync(IEnumerable<BatchDetails> latestBatches, string workSpaceRootPath, string correlationId)
+        private async Task<NodeResultStatus> DownloadLatestBatchFilesAsync(IEnumerable<BatchDetails> latestBatches, string workSpaceRootPath, string correlationId, string workSpaceSpoolDataSetFilesPath, string workSpaceSpoolSupportFilesPath)
         {
             // Track directories we've already created
             var createdDirectories = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -79,13 +79,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             // Return early if no files to process
             if (allFilesToProcess.Count == 0)
             {
-                //add log for no files to process
+                _logger.LogDownloadFilesNodeFailed($"No files to process for CorrelationId: {correlationId}");
                 return NodeResultStatus.Failed;
             }
 
             // First, determine and create all required directories
             var fileDirectoryPaths = allFilesToProcess
-                .Select(item => GetDirectoryPathForFile(workSpaceRootPath, item.FileName))
+                .Select(item => GetDirectoryPathForFile(workSpaceRootPath, item.FileName, workSpaceSpoolDataSetFilesPath, workSpaceSpoolSupportFilesPath))
                 .Distinct();
 
             foreach (var directoryPath in fileDirectoryPaths)
@@ -96,7 +96,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             // Now download all files (all directories are guaranteed to exist)
             foreach (var item in allFilesToProcess)
             {
-                var directoryPath = GetDirectoryPathForFile(workSpaceRootPath, item.FileName);
+                var directoryPath = GetDirectoryPathForFile(workSpaceRootPath, item.FileName, workSpaceSpoolDataSetFilesPath, workSpaceSpoolSupportFilesPath);
                 var downloadPath = Path.Combine(directoryPath, item.FileName);
 
                 await using var outputFileStream = new FileStream(downloadPath, FileMode.Create, FileAccess.ReadWrite);
@@ -132,7 +132,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             createdDirectories?.Add(downloadPath);
         }
 
-        private string GetDirectoryPathForFile(string workSpaceRootPath, string fileName)
+        private string GetDirectoryPathForFile(string workSpaceRootPath, string fileName,string workSpaceSpoolDataSetFilesPath, string workSpaceSpoolSupportFilesPath)
         {
             var extension = Path.GetExtension(fileName);
 
@@ -142,7 +142,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 if (fileName.Length >= 7)
                 {
                     var folderName = fileName.Substring(3, 4);
-                    return Path.Combine(workSpaceRootPath, "dataSet_files", folderName);
+                    return Path.Combine(workSpaceRootPath, workSpaceSpoolDataSetFilesPath, folderName);
                 }
             }
             // Handle .h5 extension
@@ -151,10 +151,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 if (fileName.Length >= 7)
                 {
                     var folderName = fileName.Substring(3, 4);
-                    return Path.Combine(workSpaceRootPath, "dataSet_files", folderName);
+                    return Path.Combine(workSpaceRootPath, workSpaceSpoolDataSetFilesPath, folderName);
                 }
             }
-            return Path.Combine(workSpaceRootPath, "support_files");
+            return Path.Combine(workSpaceRootPath, workSpaceSpoolSupportFilesPath);
         }
 
         private void LogFssDownloadFailed(BatchDetails batch, string fileName, IError error, string correlationId)

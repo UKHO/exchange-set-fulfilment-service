@@ -32,20 +32,25 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
         {
             var logger = context.Subject.LoggerFactory.CreateLogger<AddContentExchangeSetNode>();
 
-
-            var result = await _toolClient.AddContentAsync(context.Subject.WorkSpaceSpoolDataSetFilesPath, context.Subject.JobId, context.Subject.WorkspaceAuthenticationKey, context.Subject.JobId);
-
-            if (!result.IsSuccess(out var value, out var error))
+            async Task<bool> TryAddContentAsync(string path)
             {
+                var result = await _toolClient.AddContentAsync(path, context.Subject.JobId, context.Subject.WorkspaceAuthenticationKey, context.Subject.JobId);
+                if (result.IsSuccess(out var value, out var error))
+                {
+                    return true;
+                }
+
                 logger.LogAddContentExchangeSetNodeFailed(error);
+                return false;
+            }
+
+            if (!await TryAddContentAsync(context.Subject.WorkSpaceSpoolDataSetFilesPath))
+            {
                 return NodeResultStatus.Failed;
             }
 
-            var result1 = await _toolClient.AddContentAsync(context.Subject.WorkSpaceSpoolSupportFilesPath, context.Subject.JobId, context.Subject.WorkspaceAuthenticationKey, context.Subject.JobId);
-
-            if (!result1.IsSuccess(out var value1, out var error1))
+            if (!await TryAddContentAsync(context.Subject.WorkSpaceSpoolSupportFilesPath))
             {
-                logger.LogAddContentExchangeSetNodeFailed(error1);
                 return NodeResultStatus.Failed;
             }
 
