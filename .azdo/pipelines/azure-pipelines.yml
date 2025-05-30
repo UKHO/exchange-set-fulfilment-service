@@ -52,10 +52,10 @@ stages:
     #   displayName: Install azd
     - pwsh: |
         choco install azd
-        refreshenv
-        displayName: Install azd
+      displayName: Install azd
 
     - pwsh: |
+        refreshenv
         azd version
       displayName: Display azd version
 
