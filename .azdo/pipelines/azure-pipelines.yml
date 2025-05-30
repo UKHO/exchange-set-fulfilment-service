@@ -55,6 +55,7 @@ stages:
         Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
         refreshenv
         azd version
+        azd config set auth.useAzCliAuth "true"
       displayName: Install azd
 
     # - pwsh: |
@@ -62,8 +63,8 @@ stages:
     #     azd version
     #   displayName: Display azd version
 
-    - pwsh: azd config set auth.useAzCliAuth "true"
-      displayName: Configure azd to use az CLI authentication.
+    # - pwsh: azd config set auth.useAzCliAuth "true"
+    #   displayName: Configure azd to use az CLI authentication
 
     - task: UseDotNet@2
       inputs:
