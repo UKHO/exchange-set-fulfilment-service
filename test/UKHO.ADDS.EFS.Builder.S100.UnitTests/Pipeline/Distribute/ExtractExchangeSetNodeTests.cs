@@ -27,7 +27,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
             _testableExtractExchangeSetNode = new TestableExtractExchangeSetNode(_toolClient);
             _executionContext = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
             _loggerFactory = A.Fake<ILoggerFactory>();
-            _logger = A.Fake<ILogger>();
+            _logger = A.Fake<ILogger<ExtractExchangeSetNode>>();
         }
 
         [OneTimeTearDown]
@@ -50,6 +50,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         }
 
         [Test]
+        public void WhenToolClientIsNull_ThenThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() => new ExtractExchangeSetNode(null));
+        }
+
+        [Test]
         public async Task WhenPerformExecuteAsyncIICResultIsSuccess_ThenReturnSucceeded()
         {
             var fakeStream = new MemoryStream();
@@ -58,7 +64,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
             IError outError = null;
 
             A.CallTo(() => fakeResult.IsFailure(out outError!, out outStream!)).Returns(false);
-            A.CallTo(() => _toolClient.ExtractExchangeSetAsync(A<string>._, A<string>._, A<string>._, A<string>._)).Returns(Task.FromResult(fakeResult));
+            A.CallTo(() => _toolClient.ExtractExchangeSetAsync(A<string>._, A<string>._, A<string>._, A<string>._))
+                .Returns(Task.FromResult(fakeResult));
 
             var status = await _testableExtractExchangeSetNode.PerformExecuteAsync(_executionContext);
 
@@ -73,21 +80,48 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
             Stream outStream = null;
 
             A.CallTo(() => fakeResult.IsFailure(out fakeError, out outStream!)).Returns(true);
-            A.CallTo(() => _toolClient.ExtractExchangeSetAsync(A<string>._, A<string>._, A<string>._, A<string>._)).Returns(Task.FromResult(fakeResult));
+            A.CallTo(() => _toolClient.ExtractExchangeSetAsync(A<string>._, A<string>._, A<string>._, A<string>._))
+                .Returns(Task.FromResult(fakeResult));
 
             var status = await _testableExtractExchangeSetNode.PerformExecuteAsync(_executionContext);
 
             Assert.That(status, Is.EqualTo(NodeResultStatus.Failed));
+            A.CallTo(() => _logger.Log<LoggerMessageState>(
+                    LogLevel.Error,
+                    A<EventId>.That.Matches(e => e.Name == "ExtractExchangeSetNodeFailed"),
+                    A<LoggerMessageState>._,
+                    null,
+                    A<Func<LoggerMessageState, Exception?, string>>._))
+                .MustHaveHappenedOnceExactly();
         }
 
         [Test]
         public async Task WhenPerformExecuteAsyncThrowsException_ThenReturnFailed()
         {
-            A.CallTo(() => _toolClient.ExtractExchangeSetAsync(A<string>._, A<string>._, A<string>._, A<string>._)).Throws(new Exception("fail"));
+            var exceptionMessage = "Extract exchange set failed";
+            string loggedMessage = null;
+
+            A.CallTo(() => _toolClient.ExtractExchangeSetAsync(A<string>._, A<string>._, A<string>._, A<string>._))
+                .Throws(new Exception(exceptionMessage));
+
+            A.CallTo(() => _logger.Log<LoggerMessageState>(
+                    LogLevel.Error,
+                    A<EventId>.That.Matches(e => e.Name == "ExtractExchangeSetNodeFailed"),
+                    A<LoggerMessageState>._,
+                    null,
+                    A<Func<LoggerMessageState, Exception?, string>>._))
+                .Invokes((LogLevel level, EventId eventId, LoggerMessageState state, Exception ex, Func<LoggerMessageState, Exception?, string> formatter) =>
+                {
+                    loggedMessage = formatter(state, ex);
+                });
 
             var status = await _testableExtractExchangeSetNode.PerformExecuteAsync(_executionContext);
 
-            Assert.That(status, Is.EqualTo(NodeResultStatus.Failed));
+            Assert.Multiple(() =>
+            {
+                Assert.That(status, Is.EqualTo(NodeResultStatus.Failed));
+                Assert.That(loggedMessage, Does.Contain(exceptionMessage));
+            });
         }
 
         private class TestableExtractExchangeSetNode : ExtractExchangeSetNode

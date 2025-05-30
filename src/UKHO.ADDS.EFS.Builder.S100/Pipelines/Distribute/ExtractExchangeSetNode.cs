@@ -16,6 +16,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
             _toolClient = toolClient ?? throw new ArgumentNullException(nameof(toolClient));
         }
 
+        /// <summary>
+        /// Executes the node asynchronously within the provided execution context.
+        /// </summary>
+        /// <param name="context">The execution context containing pipeline and job information.</param>
+        /// <returns>NodeResultStatus indicating whether the node execution succeeded or failed</returns>
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
         {
             _logger = context.Subject.LoggerFactory.CreateLogger<ExtractExchangeSetNode>();
@@ -30,18 +35,24 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
             }
         }
 
+        /// <summary>
+        /// Extracts the exchange set using the IIC Tool Client.
+        /// </summary>
+        /// <param name="context">The execution context containing pipeline and job information.</param>
+        /// <returns>NodeResultStatus indicating whether the node execution succeeded or failed</returns>
         private async Task<NodeResultStatus> ExtractExchangeSetAsync(IExecutionContext<ExchangeSetPipelineContext> context)
         {
+            //TODO:need to remove commented code once dependent PBI code is merged
             //var result = await _toolClient.ExtractExchangeSetAsync("JP8", context.Subject.WorkspaceAuthenticationKey, context.Subject.Job.CorrelationId, DestinationPath);
             var result = await _toolClient.ExtractExchangeSetAsync(context.Subject.Job?.Id!, context.Subject.WorkspaceAuthenticationKey, context.Subject.Job?.CorrelationId!, ExchangeSetOutputDirectory);
 
-            if (result.IsFailure( out var error,out var _))
+            if (result.IsFailure(out var error, out var _))
             {
                 _logger.LogExtractExchangeSetNodeFailed(error?.Message!);
                 return NodeResultStatus.Failed;
-            }
+            }  
 
             return NodeResultStatus.Succeeded;
-        }        
+        }
     }
 }
