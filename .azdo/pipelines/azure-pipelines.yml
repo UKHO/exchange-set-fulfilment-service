@@ -25,10 +25,6 @@ stages:
     variables:
     - name: AZD_INITIAL_ENVIRONMENT_CONFIG
       value: '{"AZURE_ENV_NAME": "$(AZURE_ENV_NAME)", "AZURE_LOCATION": "$(AZURE_LOCATION)", "AZURE_SUBSCRIPTION_ID": "$(AZURE_SUBSCRIPTION_ID)"}'
-    env:
-      AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-      AZURE_ENV_NAME: $(AZURE_ENV_NAME)
-      AZURE_LOCATION: $(AZURE_LOCATION)
     steps:
     - checkout: self
       clean: true
@@ -47,6 +43,11 @@ stages:
 
     - task: UseDotNet@2
       inputs:
+        version: '8.x'
+      displayName: Set up .NET 8
+
+    - task: UseDotNet@2
+      inputs:
         version: '9.x'
       displayName: Set up .NET 9
 
@@ -61,10 +62,10 @@ stages:
           keepAzSessionActive: true
           inlineScript: |
             azd down --no-prompt --force --purge --debug
-        # env:
-        #   AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-        #   AZURE_ENV_NAME: $(AZURE_ENV_NAME)
-        #   AZURE_LOCATION: $(AZURE_LOCATION)
+        env:
+          AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+          AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+          AZURE_LOCATION: $(AZURE_LOCATION)
         #   AZD_INITIAL_ENVIRONMENT_CONFIG: $(AZD_INITIAL_ENVIRONMENT_CONFIG)
 
     - ${{ else }}:
@@ -79,9 +80,9 @@ stages:
           inlineScript: |
             azd provision --no-prompt --debug
         env:
-          # AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-          # AZURE_ENV_NAME: $(AZURE_ENV_NAME)
-          # AZURE_LOCATION: $(AZURE_LOCATION)
+          AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+          AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+          AZURE_LOCATION: $(AZURE_LOCATION)
           AZD_INITIAL_ENVIRONMENT_CONFIG: $(AZD_INITIAL_ENVIRONMENT_CONFIG)
 
       - task: AzureCLI@2
@@ -93,8 +94,8 @@ stages:
           keepAzSessionActive: true
           inlineScript: |
             azd deploy --no-prompt --debug
-        # env:
-        #   AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-        #   AZURE_ENV_NAME: $(AZURE_ENV_NAME)
-        #   AZURE_LOCATION: $(AZURE_LOCATION)
+        env:
+          AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+          AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+          AZURE_LOCATION: $(AZURE_LOCATION)
         #   AZD_INITIAL_ENVIRONMENT_CONFIG: $(AZD_INITIAL_ENVIRONMENT_CONFIG)
