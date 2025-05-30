@@ -12,8 +12,6 @@ pool: Mare Nectaris
 variables:
 - group: ESS-Deployment-Variables-DEV
 - group: EFS-Dev-Test
-- name: AZD_INITIAL_ENVIRONMENT_CONFIG
-  value: '{"AZURE_ENV_NAME": "$(AZURE_ENV_NAME)", "AZURE_LOCATION": "$(AZURE_LOCATION)", "AZURE_SUBSCRIPTION_ID": "$(AZURE_SUBSCRIPTION_ID)"}'
 
 stages:
 - stage: Deploy
@@ -22,6 +20,15 @@ stages:
   jobs:
   - job: AzdDeploy
     displayName: Deploy with azd
+    workspace:
+      clean: all
+    variables:
+    - name: AZD_INITIAL_ENVIRONMENT_CONFIG
+      value: '{"AZURE_ENV_NAME": "$(AZURE_ENV_NAME)", "AZURE_LOCATION": "$(AZURE_LOCATION)", "AZURE_SUBSCRIPTION_ID": "$(AZURE_SUBSCRIPTION_ID)"}'
+    env:
+      AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+      AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+      AZURE_LOCATION: $(AZURE_LOCATION)
     steps:
     - checkout: self
       clean: true
@@ -30,7 +37,9 @@ stages:
       displayName: Restore mock submodule
       workingDirectory: '$(Build.SourcesDirectory)'
   
-    - script: curl -fsSL https://aka.ms/install-azd.sh | bash
+    - script: |
+        curl -fsSL https://aka.ms/install-azd.sh | bash
+        azd version
       displayName: Install azd
 
     - pwsh: azd config set auth.useAzCliAuth "true"
@@ -52,11 +61,11 @@ stages:
           keepAzSessionActive: true
           inlineScript: |
             azd down --no-prompt --force --purge --debug
-        env:
-          AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-          AZURE_ENV_NAME: $(AZURE_ENV_NAME)
-          AZURE_LOCATION: $(AZURE_LOCATION)
-          AZD_INITIAL_ENVIRONMENT_CONFIG: $(AZD_INITIAL_ENVIRONMENT_CONFIG)
+        # env:
+        #   AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+        #   AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+        #   AZURE_LOCATION: $(AZURE_LOCATION)
+        #   AZD_INITIAL_ENVIRONMENT_CONFIG: $(AZD_INITIAL_ENVIRONMENT_CONFIG)
 
     - ${{ else }}:
 
@@ -70,9 +79,9 @@ stages:
           inlineScript: |
             azd provision --no-prompt --debug
         env:
-          AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-          AZURE_ENV_NAME: $(AZURE_ENV_NAME)
-          AZURE_LOCATION: $(AZURE_LOCATION)
+          # AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+          # AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+          # AZURE_LOCATION: $(AZURE_LOCATION)
           AZD_INITIAL_ENVIRONMENT_CONFIG: $(AZD_INITIAL_ENVIRONMENT_CONFIG)
 
       - task: AzureCLI@2
@@ -84,8 +93,8 @@ stages:
           keepAzSessionActive: true
           inlineScript: |
             azd deploy --no-prompt --debug
-        env:
-          AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-          AZURE_ENV_NAME: $(AZURE_ENV_NAME)
-          AZURE_LOCATION: $(AZURE_LOCATION)
-          AZD_INITIAL_ENVIRONMENT_CONFIG: $(AZD_INITIAL_ENVIRONMENT_CONFIG)
+        # env:
+        #   AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+        #   AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+        #   AZURE_LOCATION: $(AZURE_LOCATION)
+        #   AZD_INITIAL_ENVIRONMENT_CONFIG: $(AZD_INITIAL_ENVIRONMENT_CONFIG)
