@@ -38,7 +38,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
                 context.Subject.Job.CorrelationId
             );
 
-            if (!result.IsSuccess(out var value, out var error))
+            if (!result.IsSuccess(out _, out var error))
             {
                 logger.LogAddExchangeSetNodeFailed(error);
                 return NodeResultStatus.Failed;

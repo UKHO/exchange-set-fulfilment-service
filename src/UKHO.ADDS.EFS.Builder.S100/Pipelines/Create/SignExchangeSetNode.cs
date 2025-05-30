@@ -34,7 +34,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
 
             var result = await _toolClient.SignExchangeSetAsync(context.Subject.JobId, context.Subject.WorkspaceAuthenticationKey, context.Subject.Job.CorrelationId);
                 
-            if (!result.IsSuccess(out var value, out var error))
+            if (!result.IsSuccess(out _, out var error))
             {
                 logger.LogSignExchangeSetNodeFailed(error);
                 return NodeResultStatus.Failed;
