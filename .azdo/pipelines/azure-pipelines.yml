@@ -7,8 +7,8 @@ parameters:
 trigger:
 - main
 
-#pool: Mare Nectaris
-pool: Mare Nubium
+pool: Mare Nectaris
+#pool: Mare Nubium
 #pool: NautilusBuild
 
 variables:
@@ -35,10 +35,10 @@ stages:
       displayName: Restore mock submodule
       workingDirectory: '$(Build.SourcesDirectory)'
   
-    # - script: |
-    #     curl -fsSL https://aka.ms/install-azd.sh | bash
-    #     azd version
-    #   displayName: Install azd
+    - script: |
+        curl -fsSL https://aka.ms/install-azd.sh | bash
+        azd version
+      displayName: Install azd
     # - script: |
     #     powershell -ex AllSigned -c "Invoke-RestMethod 'https://aka.ms/install-azd.ps1' | Invoke-Expression"
     #   displayName: Install azd
@@ -50,21 +50,19 @@ stages:
     #       curl -fsSL https://aka.ms/install-azd.sh | bash
     # - task: setup-azd@1
     #   displayName: Install azd
-    - pwsh: |
-        choco install azd
-        Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
-        refreshenv
-        azd version
-        azd config set auth.useAzCliAuth "true"
-      displayName: Install azd
-
     # - pwsh: |
+    #     choco install azd
+    #     Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
     #     refreshenv
     #     azd version
-    #   displayName: Display azd version
+    #     azd config set auth.useAzCliAuth "true"
+    #   displayName: Install azd
 
-    # - pwsh: azd config set auth.useAzCliAuth "true"
-    #   displayName: Configure azd to use az CLI authentication
+    - script: azd version
+      displayName: Display azd version
+
+    - script: azd config set auth.useAzCliAuth "true"
+      displayName: Configure azd to use az CLI authentication
 
     - task: UseDotNet@2
       inputs:
