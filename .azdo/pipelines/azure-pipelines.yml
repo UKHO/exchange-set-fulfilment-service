@@ -54,7 +54,7 @@ stages:
         choco install azd
       displayName: Install azd
 
-    - pwsh: |
+    - script: |
         refreshenv
         azd version
       displayName: Display azd version
