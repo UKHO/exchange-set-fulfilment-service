@@ -50,12 +50,12 @@ stages:
     #       curl -fsSL https://aka.ms/install-azd.sh | bash
     # - task: setup-azd@1
     #   displayName: Install azd
-    - script: |
+    - pwsh: |
         choco install azd
         refreshenv
         displayName: Install azd
 
-    - script: |
+    - pwsh: |
         azd version
       displayName: Display azd version
 
