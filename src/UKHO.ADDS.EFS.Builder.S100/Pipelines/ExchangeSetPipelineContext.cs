@@ -35,11 +35,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
         public string FileShareEndpoint { get; set; }
         public string BuildServiceEndpoint { get; set; }
         public string WorkspaceAuthenticationKey { get; set; }
-        public string WorkSpaceRootPath { get; set; }
+        public string WorkSpaceRootPath { get; set; } = @"/usr/local/tomcat/ROOT";
         public ExchangeSetJob Job { get; set; }
         public IEnumerable<BatchDetails> BatchDetails { get; set; }
         public string BatchId { get; set; }
-        public string WorkSpacefssdataPath { get; } = "fssdata";
+        public string WorkSpaceFssDataPath { get; } = "fssdata";
         public string WorkSpaceSpoolPath { get; } = "spool";
     }
 }
