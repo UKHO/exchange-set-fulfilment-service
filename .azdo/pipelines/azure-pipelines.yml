@@ -50,16 +50,19 @@ stages:
     #       curl -fsSL https://aka.ms/install-azd.sh | bash
     # - task: setup-azd@1
     #   displayName: Install azd
-    - script: |
+    - pwsh: |
         choco install azd
-      displayName: Install azd
-
-    - script: |
+        Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
         refreshenv
         azd version
-      displayName: Display azd version
+      displayName: Install azd
 
-    - script: azd config set auth.useAzCliAuth "true"
+    # - pwsh: |
+    #     refreshenv
+    #     azd version
+    #   displayName: Display azd version
+
+    - pwsh: azd config set auth.useAzCliAuth "true"
       displayName: Configure azd to use az CLI authentication.
 
     - task: UseDotNet@2
