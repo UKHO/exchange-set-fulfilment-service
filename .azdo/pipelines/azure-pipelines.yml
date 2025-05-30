@@ -84,6 +84,7 @@ stages:
           scriptLocation: inlineScript
           keepAzSessionActive: true
           inlineScript: |
+            Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
             refreshenv
             azd down --no-prompt --force --purge --debug
         env:
@@ -101,6 +102,7 @@ stages:
           scriptLocation: inlineScript
           keepAzSessionActive: true
           inlineScript: |
+            Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
             refreshenv
             azd provision --no-prompt --debug
         env:
@@ -117,6 +119,7 @@ stages:
           scriptLocation: inlineScript
           keepAzSessionActive: true
           inlineScript: |
+            Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
             refreshenv
             azd deploy --no-prompt --debug
         env:
