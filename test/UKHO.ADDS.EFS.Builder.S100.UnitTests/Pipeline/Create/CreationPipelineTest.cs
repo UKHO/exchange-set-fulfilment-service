@@ -23,7 +23,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
 
             _context = A.Fake<ExchangeSetPipelineContext>();
             _context.JobId = "TestJobId";
-            _context.WorkspaceAuthenticationKey = "TestAuthKey";
+            _context.WorkspaceAuthenticationKey = "Test123";
             _context.Job = new ExchangeSetJob { CorrelationId = "TestCorrelationId" };
         }
 
@@ -65,9 +65,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
             Assert.That(async () => await _creationPipeline.ExecutePipeline(null), Throws.ArgumentException);
         }
 
-        [TestCase("", "TestAuthKey", "TestCorrelationId")]
+        [TestCase("", "Test123", "TestCorrelationId")]
         [TestCase("TestJobId", "", "TestCorrelationId")]
-        [TestCase("TestJobId", "TestAuthKey", "")]
+        [TestCase("TestJobId", "Test123", "")]
         public async Task WhenRequiredContextPropertiesAreNull_ThenReturnsFailedNodeResult(string jobId, string authKey, string correlationId)
         {
             _context.JobId = jobId;
@@ -88,7 +88,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         [Test]
         public async Task WhenCreateExchangeSetNodeFails_ThenReturnsFailedNodeResult()
         {
-            A.CallTo(() => _toolClient.AddExchangeSetAsync("TestJobId", "TestAuthKey", "TestCorrelationId"))
+            A.CallTo(() => _toolClient.AddExchangeSetAsync("TestJobId", "Test123", "TestCorrelationId"))
                 .Throws<Exception>();
             var result = await _creationPipeline.ExecutePipeline(_context);
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
@@ -106,7 +106,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         [Test]
         public async Task WhenSignExchangeSetNodeFails_ThenReturnsFailedNodeResult()
         {
-            A.CallTo(() => _toolClient.SignExchangeSetAsync("TestJobId", "TestAuthKey", "TestCorrelationId"))
+            A.CallTo(() => _toolClient.SignExchangeSetAsync("TestJobId", "Test123", "TestCorrelationId"))
                 .Throws<Exception>();
             var result = await _creationPipeline.ExecutePipeline(_context);
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));

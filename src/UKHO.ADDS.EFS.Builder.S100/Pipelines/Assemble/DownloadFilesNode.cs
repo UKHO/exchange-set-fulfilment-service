@@ -16,6 +16,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private const string ProductName = "ProductName";
         private const string EditionNumber = "EditionNumber";
         private const string UpdateNumber = "UpdateNumber";
+        // S-100 standard: Characters 4-7 of the filename (index 3, length 4) are used as the dataset folder name.
+        private const int StartIndexToExtractFolderName = 3;
+        private const int ExtractFolderNameLength = 4;
 
         public DownloadFilesNode(IFileShareReadOnlyClient fileShareReadOnlyClient)
         {
@@ -141,7 +144,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             {
                 if (fileName.Length >= 7)
                 {
-                    var folderName = fileName.Substring(3, 4);
+                    var folderName = fileName.Substring(StartIndexToExtractFolderName, ExtractFolderNameLength);
                     return Path.Combine(workSpaceRootPath, workSpaceSpoolDataSetFilesPath, folderName);
                 }
             }
@@ -150,7 +153,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             {
                 if (fileName.Length >= 7)
                 {
-                    var folderName = fileName.Substring(3, 4);
+                    // Extract the 4-character folder name from the filename, starting at index 3.
+                    // This is based on the S-100 naming convention where characters 4-7 of file name used to create folder while downloading file.
+                    var folderName = fileName.Substring(StartIndexToExtractFolderName, ExtractFolderNameLength);
                     return Path.Combine(workSpaceRootPath, workSpaceSpoolDataSetFilesPath, folderName);
                 }
             }

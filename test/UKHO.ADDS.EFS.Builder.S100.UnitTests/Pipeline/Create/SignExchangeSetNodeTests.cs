@@ -36,7 +36,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
             {
                 Job = new ExchangeSetJob { CorrelationId = "TestCorrelationId" },
                 JobId = "TestJobId",
-                WorkspaceAuthenticationKey = "TestAuthKey"
+                WorkspaceAuthenticationKey = "Test123"
             };
             A.CallTo(() => _executionContext.Subject).Returns(exchangeSetPipelineContext);
         }
@@ -46,7 +46,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         {
             var signingResponse = new SigningResponse { Certificate = "cert", SigningKey = "key", Status = "ok" };
             var result = Result.Success(signingResponse);
-            A.CallTo(() => _toolClient.SignExchangeSetAsync("TestJobId", "TestAuthKey", "TestCorrelationId")).Returns(Task.FromResult<IResult<SigningResponse>>(result));
+            A.CallTo(() => _toolClient.SignExchangeSetAsync("TestJobId", "Test123", "TestCorrelationId")).Returns(Task.FromResult<IResult<SigningResponse>>(result));
 
             var status = await _testableSignExchangeSetNode.PerformExecuteAsync(_executionContext);
 
@@ -58,7 +58,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         {
             var error = ErrorFactory.CreateError(HttpStatusCode.BadRequest);
             var result = Result.Failure<SigningResponse>(error);
-            A.CallTo(() => _toolClient.SignExchangeSetAsync("TestJobId", "TestAuthKey", "TestCorrelationId")).Returns(Task.FromResult<IResult<SigningResponse>>(result));
+            A.CallTo(() => _toolClient.SignExchangeSetAsync("TestJobId", "Test123", "TestCorrelationId")).Returns(Task.FromResult<IResult<SigningResponse>>(result));
 
             var status = await _testableSignExchangeSetNode.PerformExecuteAsync(_executionContext);
 
@@ -77,7 +77,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
             var pipelineContext = new ExchangeSetPipelineContext(A.Fake<Microsoft.Extensions.Configuration.IConfiguration>(), A.Fake<INodeStatusWriter>(), _toolClient, null)
             {
                 JobId = "TestJobId",
-                WorkspaceAuthenticationKey = "TestAuthKey"
+                WorkspaceAuthenticationKey = "Test123"
             };
 
             var context = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();

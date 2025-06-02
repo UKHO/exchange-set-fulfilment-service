@@ -140,7 +140,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
                 batchPublishedDate: DateTime.UtcNow,
                 files: new List<BatchDetailsFiles>
                 {
-                    new BatchDetailsFiles("file1.txt")
+                    new BatchDetailsFiles("file1.txt"),
+                    new BatchDetailsFiles("ABC1234.001"),
+                    new BatchDetailsFiles("DEF5678.h5")
                 }
             );
             _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
