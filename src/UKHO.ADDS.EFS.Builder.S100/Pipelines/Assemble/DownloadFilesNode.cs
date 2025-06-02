@@ -107,7 +107,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 var directoryPath = GetDirectoryPathForFile(workSpaceRootPath, item.FileName, workSpaceSpoolDataSetFilesPath, workSpaceSpoolSupportFilesPath);
                 var downloadPath = Path.Combine(directoryPath, item.FileName);
 
-                await using var outputFileStream = new FileStream(downloadPath, FileMode.Create, FileAccess.ReadWrite);
+                await using var outputFileStream = new FileStream(downloadPath, FileMode.Create, FileAccess.Write);
 
                 var streamResult = await _fileShareReadOnlyClient.DownloadFileAsync(
                     item.Batch.BatchId, item.FileName, outputFileStream, correlationId, FileSizeInBytes);
