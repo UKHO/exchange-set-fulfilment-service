@@ -89,6 +89,7 @@ stages:
           scriptType: bash
           scriptLocation: inlineScript
           keepAzSessionActive: true
+          continueOnError: true
           inlineScript: |
             azd deploy --no-prompt --debug
         env:
@@ -96,12 +97,22 @@ stages:
           AZURE_ENV_NAME: $(AZURE_ENV_NAME)
           AZURE_LOCATION: $(AZURE_LOCATION)
           MSBUILDDEBUGENGINE: '1'
-          MSBUILDDEBUGPATH: '$(Build.SourcesDirectory)/msbuilddebug'
+          #MSBUILDDEBUGPATH: '$(Build.SourcesDirectory)/msbuilddebug'
 
-      - task: PublishPipelineArtifact@1
-        displayName: Publish MSBuild log
-        condition: always()
+      - task: CopyFiles@2
+        displayName: Copy binlogs
         inputs:
-          targetPath: '$(Build.SourcesDirectory)/msbuilddebug'
-          artifact: 'MSBuild $(system.JobId)'
-          publishLocation: 'pipeline'
+          contents: '**/*.binlog'
+          targetFolder: '$(Build.ArtifactStagingDirectory)/logs'
+
+      - publish: '$(Build.ArtifactStagingDirectory)/logs'
+        displayName: Publish MSBuild logs
+        artifact: 'MSBuild $(system.JobId)'
+
+      # - task: PublishPipelineArtifact@1
+      #   displayName: Publish MSBuild log
+      #   condition: always()
+      #   inputs:
+      #     targetPath: '$(Build.SourcesDirectory)/msbuilddebug'
+      #     artifact: 'MSBuild $(system.JobId)'
+      #     publishLocation: 'pipeline'
