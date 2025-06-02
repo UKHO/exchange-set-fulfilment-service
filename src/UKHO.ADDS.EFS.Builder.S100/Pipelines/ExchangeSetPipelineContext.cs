@@ -39,6 +39,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
         public ExchangeSetJob Job { get; set; }
         public IEnumerable<BatchDetails> BatchDetails { get; set; }
         public string BatchId { get; set; }
-        public Stream ExchangeSetStream { get; set; }
+        public string ExchangeSetFileName { get; set; }
+        public string ExchangeSetFilePath { get; set; }
     }
 }

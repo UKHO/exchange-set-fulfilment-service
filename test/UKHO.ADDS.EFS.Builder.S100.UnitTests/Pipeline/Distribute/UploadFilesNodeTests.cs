@@ -1,10 +1,5 @@
-﻿using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-using FakeItEasy;
+﻿using FakeItEasy;
 using Microsoft.Extensions.Logging;
-using NUnit.Framework;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
@@ -38,8 +33,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
             var loggerFactory = LoggerFactory.Create(builder => { });
             var context = new ExchangeSetPipelineContext(null, null, null, loggerFactory)
             {
-                Job = new ExchangeSetJob { CorrelationId = "TestCorrelationId" },
-                BatchId = "TestBatchId"
+                Job = new ExchangeSetJob { CorrelationId = "TestCorrelationId", Id = "TestJobId", },
+                BatchId = "TestBatchId",
+                ExchangeSetFilePath = Path.GetTempPath(),
+                ExchangeSetFileName = "test-job-id.zip",
+               
             };
 
             A.CallTo(() => _executionContext.Subject).Returns(context);
@@ -54,6 +52,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         [Test]
         public async Task WhenPerformExecuteAsyncIsCalled_ThenReturnsSucceededAndSetsBatchId()
         {
+            var tempFilePath = Path.Combine(_executionContext.Subject.ExchangeSetFilePath, _executionContext.Subject.Job.Id + ".zip");
+            File.WriteAllText(tempFilePath, "Temporary test file content.");
+
             A.CallTo(() => _fileShareReadWriteClient.AddFileToBatchAsync(
                 A<BatchHandle>._,
                 A<Stream>._,

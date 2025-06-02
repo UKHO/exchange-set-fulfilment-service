@@ -10,6 +10,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
         private readonly IToolClient _toolClient;
         private ILogger _logger;
         private const string ExchangeSetOutputDirectory = "iicExchangeSetOutput";
+        private const string ExchangSetOutputPath = "/usr/local/tomcat/ROOT/xchg";
 
         public ExtractExchangeSetNode(IToolClient toolClient)
         {
@@ -50,9 +51,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
             {
                 _logger.LogExtractExchangeSetNodeFailed(error?.Message!);
                 return NodeResultStatus.Failed;
-            }  
-
-            return NodeResultStatus.Succeeded;
+            }
+            else
+            {
+                context.Subject.ExchangeSetFilePath = Path.Combine(ExchangSetOutputPath,ExchangeSetOutputDirectory);
+                return NodeResultStatus.Succeeded;
+            }   
         }
     }
 }

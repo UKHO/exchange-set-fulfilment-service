@@ -12,10 +12,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
         private readonly IFileShareReadWriteClient _fileShareReadWriteClient;
         private ILogger _logger;
 
-        private const string ExchangeSetOutputDirectory = "iicExchangeSetOutput";
         private const string MimeType = "application/octet-stream";
         private const int FileBufferSize = 81920;
-
+        
         public UploadFilesNode(IFileShareReadWriteClient fileShareReadWriteClient) : base()
         {
             _fileShareReadWriteClient = fileShareReadWriteClient ?? throw new ArgumentNullException(nameof(fileShareReadWriteClient));
@@ -29,7 +28,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
             var jobId = context.Subject.Job?.Id;
 
             var fileName = GetExchangeSetFileName();
-            var filePath = GetExchangeSetFilePath(jobId);
+            var filePath = GetExchangeSetFilePath(context.Subject.ExchangeSetFilePath,jobId);
 
             if (!File.Exists(filePath))
             {
@@ -56,8 +55,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
                     LogAddFileFailure(fileName, batchId, error);
                     return NodeResultStatus.Failed;
                 }
-
-                return NodeResultStatus.Succeeded;
+                else
+                {
+                    context.Subject.ExchangeSetFileName = fileName;
+                    return NodeResultStatus.Succeeded;
+                } 
             }
             catch (Exception ex)
             {
@@ -68,7 +70,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
 
         private static string GetExchangeSetFileName() => $"S100_ExchangeSet_{DateTime.UtcNow:yyyyMMdd}.zip";
 
-        private static string GetExchangeSetFilePath(string jobId) => $"/usr/local/tomcat/ROOT/xchg/{ExchangeSetOutputDirectory}/{jobId}.zip";
+        private static string GetExchangeSetFilePath(string exchangeSetFilePath, string jobId) => Path.Combine(exchangeSetFilePath,$"{jobId}.zip");
 
         private static FileStream OpenExchangeSetFileStream(string filePath)
         {
