@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <Sdk Name="Aspire.AppHost.Sdk" Version="9.3.0" />
 
@@ -15,7 +15,7 @@
     <PackageReference Include="Aspire.Hosting.AppHost" Version="9.3.0" />
     <PackageReference Include="Aspire.Hosting.Azure.KeyVault" Version="9.3.0" />
     <PackageReference Include="Aspire.Hosting.Azure.Storage" Version="9.3.0" />
-    <PackageReference Include="AzureKeyVaultEmulator.Aspire.Hosting" Version="2.3.1" />
+    <PackageReference Include="AzureKeyVaultEmulator.Aspire.Hosting" Version="2.3.2" />
     <PackageReference Include="AzureKeyVaultEmulator.Client" Version="2.3.1" />
     <PackageReference Include="CliWrap" Version="3.8.2" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
