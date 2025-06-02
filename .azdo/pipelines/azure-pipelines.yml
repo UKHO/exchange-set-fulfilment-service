@@ -89,7 +89,6 @@ stages:
           scriptType: bash
           scriptLocation: inlineScript
           keepAzSessionActive: true
-          continueOnError: true
           inlineScript: |
             azd deploy --no-prompt --debug
         env:
@@ -101,11 +100,13 @@ stages:
 
       - task: CopyFiles@2
         displayName: Copy binlogs
+        condition: always()
         inputs:
           contents: '**/*.binlog'
           targetFolder: '$(Build.ArtifactStagingDirectory)/logs'
 
       - publish: '$(Build.ArtifactStagingDirectory)/logs'
+        condition: always()
         displayName: Publish MSBuild logs
         artifact: 'MSBuild $(system.JobId)'
 
