@@ -95,3 +95,13 @@ stages:
           AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
           AZURE_ENV_NAME: $(AZURE_ENV_NAME)
           AZURE_LOCATION: $(AZURE_LOCATION)
+          MSBUILDDEBUGENGINE: '1'
+          MSBUILDDEBUGPATH: '$(Build.SourcesDirectory)/msbuilddebug'
+
+      - task: PublishPipelineArtifact@1
+        displayName: Publish MSBuild log
+        condition: always()
+        inputs:
+          targetPath: '$(Build.SourcesDirectory)/msbuilddebug'
+          artifact: 'MSBuild $(system.JobId)'
+          publishLocation: 'pipeline'
