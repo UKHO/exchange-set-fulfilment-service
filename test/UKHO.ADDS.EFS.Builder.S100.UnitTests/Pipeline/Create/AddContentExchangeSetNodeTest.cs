@@ -22,7 +22,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         public void OneTimeSetUp()
         {
             _toolClient = A.Fake<IToolClient>();
-            _testableNode = new TestableAddContentExchangeSetNode(_toolClient);
+            _testableNode = new TestableAddContentExchangeSetNode();
             _executionContext = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
         }
 
@@ -46,7 +46,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
             var fakeResult = A.Fake<IResult<OperationResponse>>();
             var opResponse = new OperationResponse { Code = 0, Type = "Success", Message = "OK" };
             IError? error = null;
-            
+
             A.CallTo(() => fakeResult.IsSuccess(out opResponse, out error)).Returns(true);
 
             A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<string>._, A<string>._, A<string>._))
@@ -68,16 +68,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
             Assert.That(result, Is.EqualTo(NodeResultStatus.Failed));
         }
 
-        [Test]
-        public void WhenToolClientIsNull_ThenThrowsArgumentException()
-        {
-            Assert.Throws<ArgumentException>(() => new AddContentExchangeSetNode(null));
-        }
-
         private class TestableAddContentExchangeSetNode : AddContentExchangeSetNode
         {
-            public TestableAddContentExchangeSetNode(IToolClient toolClient) : base(toolClient) { }
-
             public new async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
             {
                 return await base.PerformExecuteAsync(context);

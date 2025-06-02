@@ -24,7 +24,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         public void OneTimeSetUp()
         {
             _toolClient = A.Fake<IToolClient>();
-            _testableSignExchangeSetNode = new TestableSignExchangeSetNode(_toolClient);
+            _testableSignExchangeSetNode = new TestableSignExchangeSetNode();
             _executionContext = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
         }
 
@@ -32,7 +32,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         public void SetUp()
         {
             var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
-            var exchangeSetPipelineContext = new ExchangeSetPipelineContext(null, null, null, loggerFactory)
+            var exchangeSetPipelineContext = new ExchangeSetPipelineContext(null, null, _toolClient, loggerFactory)
             {
                 Job = new ExchangeSetJob { CorrelationId = "TestCorrelationId" },
                 JobId = "TestJobId",
@@ -66,12 +66,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         }
 
         [Test]
-        public void WhenToolClientIsNull_ThenThrowsArgumentException()
-        {
-            Assert.That(() => new SignExchangeSetNode(null), Throws.ArgumentException);
-        }
-
-        [Test]
         public Task WhenContextSubjectLoggerFactoryIsNull_ThenThrowsNullReferenceException()
         {
             var pipelineContext = new ExchangeSetPipelineContext(A.Fake<Microsoft.Extensions.Configuration.IConfiguration>(), A.Fake<INodeStatusWriter>(), _toolClient, null)
@@ -89,11 +83,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
 
         private class TestableSignExchangeSetNode : SignExchangeSetNode
         {
-            public TestableSignExchangeSetNode(IToolClient iToolClient)
-                : base(iToolClient)
-            {
-            }
-
             public new async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
             {
                 return await base.PerformExecuteAsync(context);

@@ -22,7 +22,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         public void OneTimeSetUp()
         {
             _toolClient = A.Fake<IToolClient>();
-            _testableCreateExchangeSetNode = new TestableCreateExchangeSetNode(_toolClient);
+            _testableCreateExchangeSetNode = new TestableCreateExchangeSetNode();
             _executionContext = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
         }
 
@@ -31,7 +31,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         {
             var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
 
-            var exchangeSetPipelineContext = new ExchangeSetPipelineContext(null, null, null, loggerFactory)
+            var exchangeSetPipelineContext = new ExchangeSetPipelineContext(null, null, _toolClient, loggerFactory)
             {
                 Job = new ExchangeSetJob { CorrelationId = "TestCorrelationId" },
                 JobId = "TestJobId",
@@ -72,19 +72,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
             Assert.That(result, Is.EqualTo(NodeResultStatus.Failed));
         }
 
-        [Test]
-        public void WhenToolClientIsNull_ThenThrowsArgumentNullException()
-        {
-            Assert.Throws<ArgumentNullException>(() => new AddExchangeSetNode(null));
-        }
-
         private class TestableCreateExchangeSetNode : AddExchangeSetNode
         {
-            public TestableCreateExchangeSetNode(IToolClient toolClient)
-                : base(toolClient)
-            {
-            }
-
             public new async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
             {
                 return await base.PerformExecuteAsync(context);
