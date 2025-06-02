@@ -77,18 +77,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
             A.CallTo(() => _fileShareReadOnlyClient.DownloadFileAsync(A<string>._, A<string>._, A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._))
                 .Returns(Task.FromResult(fakeResult));
 
-        [Test]
-        public async Task When_LatestPublishBatchIsNull_Then_ReturnsFailed()
-        {
-            var product = new S100Products
-            {
-                ProductName = "P1",
-                LatestEditionNumber = 1,
-                LatestUpdateNumber = 1
-            };
-            _executionContext.Subject.Job = new ExchangeSetJob { Products = new List<S100Products> { product } };
-            _executionContext.Subject.BatchDetails = new List<BatchDetails>(); // No batch matches
-
             var result = await _testableCreateBatchNode.PerformExecuteAsync(_executionContext);
             Assert.That(result, Is.EqualTo(NodeResultStatus.Failed));
         }
@@ -99,16 +87,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
             var batch = new BatchDetails(
                 batchId: "b1",
                 attributes: new List<BatchDetailsAttributes>
-                {
-                ProductName = "P1",
-                LatestEditionNumber = 1,
-                LatestUpdateNumber = 1
-            };
-            var batch = new BatchDetails
-            {
-                BatchId = "B1",
-                BatchPublishedDate = DateTime.UtcNow,
-                Attributes = new List<BatchDetailsAttributes>
                 {
                     new BatchDetailsAttributes("ProductName", "P1"),
                     new BatchDetailsAttributes("EditionNumber", "1"),
@@ -126,7 +104,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
                 .Throws<Exception>();
 
             var result = await _testableCreateBatchNode.PerformExecuteAsync(_executionContext);
-
             Assert.That(result, Is.EqualTo(NodeResultStatus.Failed));
         }
 
@@ -176,7 +153,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
                 .Returns(Task.FromResult(fakeResult));
 
             var result = await _testableCreateBatchNode.PerformExecuteAsync(_executionContext);
-
             Assert.That(result, Is.EqualTo(NodeResultStatus.Succeeded));
         }
 
@@ -222,7 +198,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
                 .Returns(Task.FromResult(fakeResult));
 
             var result = await _testableCreateBatchNode.PerformExecuteAsync(_executionContext);
-
             Assert.That(result, Is.EqualTo(NodeResultStatus.Succeeded));
         }
 
