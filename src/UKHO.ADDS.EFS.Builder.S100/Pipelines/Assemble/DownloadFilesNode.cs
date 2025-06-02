@@ -16,9 +16,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private const string ProductName = "ProductName";
         private const string EditionNumber = "EditionNumber";
         private const string UpdateNumber = "UpdateNumber";
-        // S-100 standard: Characters 4-7 of the filename (index 3, length 4) are used as the dataset folder name.
-        private const int StartIndexToExtractFolderName = 3;
-        private const int ExtractFolderNameLength = 4;
+        private const int ProducerCodeStartIndex = 3;
+        private const int ProducerCodeLength = 4;
+        private const string H5Extension = ".h5";
+        private const int MinimumFilenameLength = 7; // Producer code starts at index 3 and is 4 chars long
+        private const int NumericExtensionLength = 4; // Includes the period (.)
+        private const int NumericPartStartIndex = 1;  // Skip the period
+        private const int MinNumericValue = 000;
+        private const int MaxNumericValue = 999;
 
         public DownloadFilesNode(IFileShareReadOnlyClient fileShareReadOnlyClient)
         {
@@ -117,7 +122,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             return NodeResultStatus.Succeeded;
         }
 
-        private static void CreateDirectoryIfNotExists(string downloadPath, HashSet<string> createdDirectories = null)
+        private static void CreateDirectoryIfNotExists(string downloadPath, HashSet<string>? createdDirectories = null)
         {
             // Early return if we've already created this directory
             if (createdDirectories?.Contains(downloadPath) == true)
@@ -135,31 +140,43 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             createdDirectories?.Add(downloadPath);
         }
 
-        private string GetDirectoryPathForFile(string workSpaceRootPath, string fileName,string workSpaceSpoolDataSetFilesPath, string workSpaceSpoolSupportFilesPath)
+        private string GetDirectoryPathForFile(string workSpaceRootPath, string fileName, string workSpaceSpoolDataSetFilesPath, string workSpaceSpoolSupportFilesPath)
         {
             var extension = Path.GetExtension(fileName);
 
-            // Handle numeric extensions (.000 to .999)
-            if (extension is { Length: 4 } && int.TryParse(extension[1..], out var extNum) && extNum is >= 0 and <= 999)
+            // Check if file should go into dataset-specific folder
+            if (IsDatasetFile(fileName, extension))
             {
-                if (fileName.Length >= 7)
-                {
-                    var folderName = fileName.Substring(StartIndexToExtractFolderName, ExtractFolderNameLength);
-                    return Path.Combine(workSpaceRootPath, workSpaceSpoolDataSetFilesPath, folderName);
-                }
+                // Extract the producer code from filename (chars 4-7 per S-100 standard)
+                var producerCode = fileName.Substring(ProducerCodeStartIndex, ProducerCodeLength);
+                return Path.Combine(workSpaceRootPath, workSpaceSpoolDataSetFilesPath, producerCode);
             }
-            // Handle .h5 extension
-            else if (extension.Equals(".h5", StringComparison.OrdinalIgnoreCase))
-            {
-                if (fileName.Length >= 7)
-                {
-                    // Extract the 4-character folder name from the filename, starting at index 3.
-                    // This is based on the S-100 naming convention where characters 4-7 of file name used to create folder while downloading file.
-                    var folderName = fileName.Substring(StartIndexToExtractFolderName, ExtractFolderNameLength);
-                    return Path.Combine(workSpaceRootPath, workSpaceSpoolDataSetFilesPath, folderName);
-                }
-            }
+
+            // All other files go to support files folder
             return Path.Combine(workSpaceRootPath, workSpaceSpoolSupportFilesPath);
+        }
+
+        /// <summary>
+        /// Determines if the file is an S-100 dataset file that should be placed in a producer-specific subfolder.
+        /// </summary>
+        /// <param name="fileName">The name of the file</param>
+        /// <param name="extension">The file extension</param>
+        /// <returns>True if the file is a dataset file, false otherwise</returns>
+        private static bool IsDatasetFile(string fileName, string extension)
+        {
+            // File must be long enough to contain a producer code
+            if (fileName.Length < MinimumFilenameLength)
+            {
+                return false;
+            }
+
+            // Check for numeric extensions (.000 to .999)
+            var isNumericExtension = extension is { Length: NumericExtensionLength } &&
+                                     int.TryParse(extension[NumericPartStartIndex..], out var extNum) &&
+                                     extNum is >= MinNumericValue and <= MaxNumericValue;
+
+            // Either numeric extension or H5 extension
+            return isNumericExtension || extension.Equals(H5Extension, StringComparison.OrdinalIgnoreCase);
         }
 
         private void LogFssDownloadFailed(BatchDetails batch, string fileName, IError error, string correlationId)
