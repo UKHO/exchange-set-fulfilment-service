@@ -28,10 +28,10 @@ namespace UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss
                     d.Append(new MarkdownHeader("Gets Batches", 3));
                     d.Append(new MarkdownParagraph(new MarkdownEmphasis("This is driven from Response Generator Process")));
 
-                    d.Append(new MarkdownParagraph("Sample query attributes:"));
+                    d.Append(new MarkdownParagraph("S-100 Sample query attributes:"));
                     d.Append(new MarkdownList(
                         new MarkdownTextListItem("Key $Filter"),
-                        new MarkdownTextListItem("Value BusinessUnit eq 'ADDS' and $batch(ProductCode) eq 'AVCS' and  (($batch(ProductName) eq '101GB004DEVQK' and $batch(EditionNumber) eq '2' and (($batch(UpdateNumber) eq '0' or $batch(UpdateNumber) eq '1' ))))")
+                        new MarkdownTextListItem("Value BusinessUnit eq 'ADDS-S100' and $batch(ProductType) eq 's100' and  (($batch(ProductName) eq '101GB004DEVQK' and $batch(EditionNumber) eq '2' and (($batch(UpdateNumber) eq '0' or $batch(UpdateNumber) eq '1' ))))")
                     ));
                 });
     }

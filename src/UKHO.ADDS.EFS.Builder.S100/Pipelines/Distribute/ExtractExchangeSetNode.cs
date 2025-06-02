@@ -54,9 +54,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
             }
             else
             {
-                context.Subject.ExchangeSetFilePath = Path.Combine(ExchangSetOutputPath,ExchangeSetOutputDirectory);
+                context.Subject.ExchangeSetFilePath = Path.Combine(ExchangSetOutputPath, ExchangeSetOutputDirectory);
                 return NodeResultStatus.Succeeded;
-            }   
+            }
         }
     }
 }

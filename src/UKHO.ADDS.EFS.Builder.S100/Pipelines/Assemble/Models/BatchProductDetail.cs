@@ -1,6 +1,6 @@
 ﻿namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Models
 {
-    internal class SearchBatchProducts
+    internal class BatchProductDetail
     {
         public string ProductName { get; set; }
         public int? EditionNumber { get; set; }

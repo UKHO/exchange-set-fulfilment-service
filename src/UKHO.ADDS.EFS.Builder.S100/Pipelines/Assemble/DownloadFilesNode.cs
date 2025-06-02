@@ -12,7 +12,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private readonly IFileShareReadOnlyClient _fileShareReadOnlyClient;
         private ILogger _logger;
 
-        private const long FileSizeInBytes = 10485750;
+        private const long FileSizeInBytes = 10485760;
         private const string ProductName = "ProductName";
         private const string EditionNumber = "EditionNumber";
         private const string UpdateNumber = "UpdateNumber";
@@ -24,45 +24,41 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
         {
+            _logger = context.Subject.LoggerFactory.CreateLogger<DownloadFilesNode>();
+
             try
             {
-                var batchDetails = context.Subject.BatchDetails;
                 var downloadPath = Path.Combine(context.Subject.WorkSpaceRootPath, "fssdata");
-
-                _logger = context.Subject.LoggerFactory.CreateLogger<DownloadFilesNode>();
 
                 EnsureDownloadDirectoryExists(downloadPath);
 
-                var result = await DownloadLatestBatchFilesAsync(context, SelectLatestBatchesByProductEditionAndUpdate(batchDetails));
+                var latestBatches = SelectLatestBatchesByProductEditionAndUpdate(context.Subject.BatchDetails);
 
-                return result;
+                return await DownloadLatestBatchFilesAsync(latestBatches, downloadPath, context.Subject.Job.CorrelationId);
             }
             catch (Exception ex)
             {
-                _logger.LogDownloadFilesNodeFailed(ex.Message);
-
+                _logger.LogDownloadFilesNodeFailed(ex.ToString());
                 return NodeResultStatus.Failed;
             }
         }
 
         private static IEnumerable<BatchDetails> SelectLatestBatchesByProductEditionAndUpdate(IEnumerable<BatchDetails> batchDetails)
         {
-            var latestBatches = batchDetails
+            return batchDetails
                 .Where(b => b.Attributes != null)
-                .GroupBy(b =>
-                    new
-                    {
-                        ProductName = b.Attributes.FirstOrDefault(a => a.Key == ProductName)?.Value,
-                        EditionNumber = b.Attributes.FirstOrDefault(a => a.Key == EditionNumber)?.Value,
-                        UpdateNumber = b.Attributes.FirstOrDefault(a => a.Key == UpdateNumber)?.Value
-                    })
-                .Select(g => g.OrderByDescending(b => b.BatchPublishedDate).First())
-                .ToList();
-
-            return latestBatches;
+                .Select(b =>
+                {
+                    var productName = b.Attributes.FirstOrDefault(a => a.Key == ProductName)?.Value;
+                    var editionNumber = b.Attributes.FirstOrDefault(a => a.Key == EditionNumber)?.Value;
+                    var updateNumber = b.Attributes.FirstOrDefault(a => a.Key == UpdateNumber)?.Value;
+                    return new { Batch = b, productName, editionNumber, updateNumber };
+                })
+                .GroupBy(x => (x.productName, x.editionNumber, x.updateNumber))
+                .Select(g => g.OrderByDescending(x => x.Batch.BatchPublishedDate).First().Batch);
         }
 
-        private async Task<NodeResultStatus> DownloadLatestBatchFilesAsync(IExecutionContext<ExchangeSetPipelineContext> context, IEnumerable<BatchDetails> latestBatches)
+        private async Task<NodeResultStatus> DownloadLatestBatchFilesAsync(IEnumerable<BatchDetails> latestBatches, string workSpaceRootPath, string correlationId)
         {
             foreach (var batch in latestBatches)
             {
@@ -74,16 +70,15 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 foreach (var file in batch.Files)
                 {
                     var fileName = file.Filename;
-                    var downloadPath = Path.Combine(context.Subject.WorkSpaceRootPath, "fssdata", fileName);
+                    var downloadPath = Path.Combine(workSpaceRootPath, fileName);
 
                     await using var outputFileStream = new FileStream(downloadPath, FileMode.Create, FileAccess.ReadWrite);
 
-                    var streamResult = await _fileShareReadOnlyClient.DownloadFileAsync(
-                        batch.BatchId, fileName, outputFileStream, context.Subject.Job?.CorrelationId!, FileSizeInBytes);
+                    var streamResult = await _fileShareReadOnlyClient.DownloadFileAsync(batch.BatchId, fileName, outputFileStream, correlationId, FileSizeInBytes);
 
                     if (streamResult.IsFailure(out var error, out var value))
                     {
-                        LogFssDownloadFailed(context, batch, fileName, error);
+                        LogFssDownloadFailed(batch, fileName, error, correlationId);
 
                         return NodeResultStatus.Failed;
                     }
@@ -93,13 +88,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             return NodeResultStatus.Succeeded;
         }
 
-        private void LogFssDownloadFailed(IExecutionContext<ExchangeSetPipelineContext> context, BatchDetails batch, string fileName, IError error)
+        private void LogFssDownloadFailed(BatchDetails batch, string fileName, IError error, string correlationId)
         {
             var downloadFilesLogView = new DownloadFilesLogView
             {
                 BatchId = batch.BatchId,
                 FileName = fileName,
-                CorrelationId = context.Subject.Job?.CorrelationId!,
+                CorrelationId = correlationId,
                 Error = string.IsNullOrEmpty(error?.Message) ? string.Empty : error.Message
             };
 
