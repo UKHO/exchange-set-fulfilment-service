@@ -36,6 +36,7 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             // ADDS Mock
             var mockService = builder.AddProject<UKHO_ADDS_Mocks_EFS>(ContainerConfiguration.MockContainerName)
+                .WithExternalHttpEndpoints()
                 .WithDashboard("Dashboard");
 
             // Key vault
@@ -46,18 +47,18 @@ namespace UKHO.ADDS.EFS.LocalHost
                 });
 
             // Orchestrator
-            var orchestratorService = builder.AddProject<UKHO_ADDS_EFS_Orchestrator>(ContainerConfiguration.OrchestratorContainerName);
-                //.WithReference(storageQueue)
-                //.WaitFor(storageQueue)
-                //.WithReference(storageTable)
-                //.WaitFor(storageTable)
-                //.WithReference(storageBlob)
-                //.WaitFor(storageBlob)
-                //.WithReference(mockService)
-                //.WaitFor(mockService)
-                //.WithReference(keyVault)
-                //.WaitFor(keyVault)
-                //.WithScalar("API Browser");
+            var orchestratorService = builder.AddProject<UKHO_ADDS_EFS_Orchestrator>(ContainerConfiguration.OrchestratorContainerName)
+                .WithReference(storageQueue)
+                .WaitFor(storageQueue)
+                .WithReference(storageTable)
+                .WaitFor(storageTable)
+                .WithReference(storageBlob)
+                .WaitFor(storageBlob)
+                .WithReference(mockService)
+                .WaitFor(mockService)
+                .WithReference(keyVault)
+                .WaitFor(keyVault)
+                .WithScalar("API Browser");
 
             //orchestratorService.WithEnvironment(async c =>
             //{

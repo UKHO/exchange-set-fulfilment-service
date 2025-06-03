@@ -43,10 +43,10 @@ stages:
         azd config set auth.useAzCliAuth "true"
       displayName: Install azd
 
-    - task: UseDotNet@2
-      inputs:
-        version: '8.x'
-      displayName: Set up .NET 8
+    # - task: UseDotNet@2
+    #   inputs:
+    #     version: '8.x'
+    #   displayName: Set up .NET 8
 
     - task: UseDotNet@2
       inputs:
