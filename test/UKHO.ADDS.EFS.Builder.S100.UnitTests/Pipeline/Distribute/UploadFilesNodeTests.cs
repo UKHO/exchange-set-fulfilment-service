@@ -99,7 +99,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
 
             A.CallTo(() => _logger.Log<LoggerMessageState>(
                 LogLevel.Error,
-                A<EventId>.That.Matches(e => e.Name == "UploadFilesNotAvailable"),
+                A<EventId>.That.Matches(e => e.Name == "UploadFilesNotFound"),
                 A<LoggerMessageState>._,
                 null,
                 A<Func<LoggerMessageState, Exception?, string>>._))
@@ -123,7 +123,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
             Assert.Multiple(() => { Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed)); });
             A.CallTo(() => _logger.Log<LoggerMessageState>(
                     LogLevel.Error,
-                    A<EventId>.That.Matches(e => e.Name == "AddFileNodeFssAddFileFailed"),
+                    A<EventId>.That.Matches(e => e.Name == "FileShareAddFileToBatchError"),
                     A<LoggerMessageState>._,
                     null,
                     A<Func<LoggerMessageState, Exception?, string>>._))

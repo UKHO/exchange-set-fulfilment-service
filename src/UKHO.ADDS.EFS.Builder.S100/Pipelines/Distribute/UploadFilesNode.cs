@@ -45,13 +45,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
 
             if (!File.Exists(filePath))
             {
-                LogUploadFilesNotAvailable(fileName, batchId, correlationId);
+                LogExchangeSetFileNotFound(fileName, filePath, batchId, correlationId);
                 return NodeResultStatus.Failed;
             }
 
             try
             {
-                await using var fileStream = GetExchangeSetFileStream(filePath);
+                await using var fileStream = CreateExchangeSetFileStream(filePath);
 
                 var batchHandle = new BatchHandle(batchId);
                 var addFileResult = await _fileShareReadWriteClient.AddFileToBatchAsync(
@@ -65,7 +65,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
 
                 if (!addFileResult.IsSuccess(out _, out var error))
                 {
-                    LogAddFileFailure(fileName, batchId, correlationId, error);
+                    LogAddFileToBatchError(fileName, batchId, correlationId, error);
                     return NodeResultStatus.Failed;
                 }
 
@@ -83,7 +83,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
         /// </summary>
         /// <param name="filePath">The path to the exchange set file.</param>
         /// <returns>A <see cref="FileStream"/> for reading the file.</returns>
-        private static FileStream GetExchangeSetFileStream(string filePath)
+        private static FileStream CreateExchangeSetFileStream(string filePath)
         {
             return new FileStream(
                 filePath,
@@ -101,7 +101,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
         /// <param name="batchId">The batch identifier.</param>
         /// <param name="correlationId">The correlation identifier.</param>
         /// <param name="error">The error details.</param>
-        private void LogAddFileFailure(string fileName, string batchId, string correlationId, IError error)
+        private void LogAddFileToBatchError(string fileName, string batchId, string correlationId, IError error)
         {
             var addFileLogView = new AddFileLogView
             {
@@ -115,21 +115,23 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
         }
 
         /// <summary>
-        /// Logs a message when the upload file is not available.
+        /// Logs information about a file that was expected but not found during an exchange set operation.
         /// </summary>
-        /// <param name="fileName">The name of the file.</param>
-        /// <param name="batchId">The batch identifier.</param>
-        /// <param name="correlationId">The correlation identifier.</param>
-        private void LogUploadFilesNotAvailable(string fileName, string batchId, string correlationId)
+        /// <param name="fileName">The name of the file that was not found.</param>
+        /// <param name="filePath">The expected file path of the missing file.</param>
+        /// <param name="batchId">The identifier for the batch associated with the operation.</param>
+        /// <param name="correlationId">The correlation identifier used to trace the operation across systems.</param>
+        private void LogExchangeSetFileNotFound(string fileName, string filePath, string batchId, string correlationId)
         {
-            var uploadFilesLogView = new UploadFilesLogView
+            var fileNotFoundLogView = new FileNotFoundLogView
             {
                 FileName = fileName,
+                FilePath = filePath,
                 BatchId = batchId,
                 CorrelationId = correlationId
             };
 
-            _logger.LogUploadFilesNotAvailable(uploadFilesLogView);
+            _logger.LogUploadFilesNotFound(fileNotFoundLogView);
         }
     }
 }
