@@ -9,8 +9,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
         {
             var pipeline = new PipelineNode<ExchangeSetPipelineContext>();
 
-            pipeline.AddChild(new CreateWorkspaceNode());
-            pipeline.AddChild(new CreateExchangeSetNode());
+            pipeline.AddChild(new AddExchangeSetNode());
+            pipeline.AddChild(new AddContentExchangeSetNode());
+            pipeline.AddChild(new SignExchangeSetNode());
 
             var result = await pipeline.ExecuteAsync(context);
 
