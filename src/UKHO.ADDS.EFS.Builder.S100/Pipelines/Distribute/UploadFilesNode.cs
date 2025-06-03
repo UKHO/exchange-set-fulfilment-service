@@ -28,7 +28,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
             var jobId = context.Subject.Job?.Id;
 
             string fileName = context.Subject.ExchangeSetFileName;
-            string filePath = Path.Combine(context.Subject.ExchangeSetFilePath,context.Subject.ExchangeSetOutputDirectory, $"{jobId}.zip");
+            string filePath = Path.Combine(context.Subject.ExchangeSetFilePath, $"{jobId}.zip");
 
             if (!File.Exists(filePath))
             {

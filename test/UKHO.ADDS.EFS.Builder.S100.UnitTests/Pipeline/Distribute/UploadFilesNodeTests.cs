@@ -36,18 +36,16 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         [SetUp]
         public void SetUp()
         {
-            string tempPath = Path.GetTempPath();
             var context = new ExchangeSetPipelineContext(null, null, null, _loggerFactory)
             {
                 Job = new ExchangeSetJob { CorrelationId = "TestCorrelationId", Id = "TestJobId" },
                 BatchId = "TestBatchId",
-                ExchangeSetFilePath = Directory.GetParent(tempPath.TrimEnd(Path.DirectorySeparatorChar))!.FullName!,
-                ExchangeSetOutputDirectory = new DirectoryInfo(tempPath.TrimEnd(Path.DirectorySeparatorChar)).Name
+                ExchangeSetFilePath = Path.GetTempPath()
             };
 
             A.CallTo(() => _loggerFactory.CreateLogger(typeof(UploadFilesNode).FullName!)).Returns(_logger);
 
-            _tempFilePath = Path.Combine(context.ExchangeSetFilePath,context.ExchangeSetOutputDirectory, context.Job.Id + ".zip");
+            _tempFilePath = Path.Combine(context.ExchangeSetFilePath, context.Job.Id + ".zip");
             File.WriteAllText(_tempFilePath, "Temporary test file content.");
             A.CallTo(() => _executionContext.Subject).Returns(context);
         }
