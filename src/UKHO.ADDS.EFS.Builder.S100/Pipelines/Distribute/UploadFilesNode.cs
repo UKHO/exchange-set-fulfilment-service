@@ -38,7 +38,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
 
             try
             {
-                await using var fileStream = OpenExchangeSetFileStream(filePath);
+                await using var fileStream = GetExchangeSetFileStream(filePath);
 
                 var batchHandle = new BatchHandle(batchId);
                 var addFileResult = await _fileShareReadWriteClient.AddFileToBatchAsync(
@@ -52,14 +52,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
 
                 if (!addFileResult.IsSuccess(out _, out var error))
                 {
-                    LogAddFileFailure(fileName, batchId, error);
+                    LogAddFileFailure(fileName, batchId, correlationId, error);
                     return NodeResultStatus.Failed;
                 }
-                else
-                {
-                    context.Subject.ExchangeSetFileName = fileName;
-                    return NodeResultStatus.Succeeded;
-                }
+
+                context.Subject.ExchangeSetFileName = fileName;
+                return NodeResultStatus.Succeeded;
             }
             catch (Exception ex)
             {
@@ -72,7 +70,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
 
         private static string GetExchangeSetFilePath(string exchangeSetFilePath, string jobId) => Path.Combine(exchangeSetFilePath, $"{jobId}.zip");
 
-        private static FileStream OpenExchangeSetFileStream(string filePath)
+        private static FileStream GetExchangeSetFileStream(string filePath)
         {
             return new FileStream(
                 filePath,
@@ -83,12 +81,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
                 FileOptions.Asynchronous | FileOptions.SequentialScan);
         }
 
-        private void LogAddFileFailure(string fileName, string batchId, IError error)
+        private void LogAddFileFailure(string fileName, string batchId, string correlationId, IError error)
         {
             var addFileLogView = new AddFileLogView
             {
                 FileName = fileName,
                 BatchId = batchId,
+                CorrelationId = correlationId,
                 Error = error
             };
             _logger.LogAddFileNodeFssAddFileFailed(addFileLogView);

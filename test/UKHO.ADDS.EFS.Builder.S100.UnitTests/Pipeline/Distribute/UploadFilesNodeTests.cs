@@ -18,6 +18,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         private IFileShareReadWriteClient _fileShareReadWriteClient;
         private UploadFilesNode _uploadFilesNode;
         private IExecutionContext<ExchangeSetPipelineContext> _executionContext;
+        private string _tempFilePath;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
@@ -30,16 +31,17 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         [SetUp]
         public void SetUp()
         {
-            var loggerFactory = LoggerFactory.Create(builder => { });
+            var loggerFactory = LoggerFactory.Create(_ => { });
             var context = new ExchangeSetPipelineContext(null, null, null, loggerFactory)
             {
-                Job = new ExchangeSetJob { CorrelationId = "TestCorrelationId", Id = "TestJobId", },
+                Job = new ExchangeSetJob { CorrelationId = "TestCorrelationId", Id = "TestJobId" },
                 BatchId = "TestBatchId",
                 ExchangeSetFilePath = Path.GetTempPath(),
-                ExchangeSetFileName = "test-job-id.zip",
-               
+                ExchangeSetFileName = "test-job-id.zip"
             };
 
+            _tempFilePath = Path.Combine(context.ExchangeSetFilePath, context.Job.Id + ".zip");
+            File.WriteAllText(_tempFilePath, "Temporary test file content.");
             A.CallTo(() => _executionContext.Subject).Returns(context);
         }
 
@@ -50,11 +52,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         }
 
         [Test]
-        public async Task WhenPerformExecuteAsyncIsCalled_ThenReturnsSucceededAndSetsBatchId()
+        public async Task WhenPerformExecuteAsyncIsCalled_ThenReturnsSucceededAndSetsBatchIdAndExchangeSetFileName()
         {
-            var tempFilePath = Path.Combine(_executionContext.Subject.ExchangeSetFilePath, _executionContext.Subject.Job.Id + ".zip");
-            File.WriteAllText(tempFilePath, "Temporary test file content.");
-
             A.CallTo(() => _fileShareReadWriteClient.AddFileToBatchAsync(
                 A<BatchHandle>._,
                 A<Stream>._,
@@ -66,11 +65,33 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
 
             var result = await _uploadFilesNode.ExecuteAsync(_executionContext);
 
+            var expectedFileName = $"S100_ExchangeSet_{DateTime.UtcNow:yyyyMMdd}.zip";
+
             Assert.Multiple(() =>
             {
                 Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
                 Assert.That(_executionContext.Subject.BatchId, Is.EqualTo("TestBatchId"));
+                Assert.That(_executionContext.Subject.ExchangeSetFileName, Is.EqualTo(expectedFileName));
             });
+        }
+
+        [Test]
+        public async Task WhenPerformExecuteAsyncIsCalledAndFileDoesNotExists_ThenReturnsFailed()
+        {
+            if (File.Exists(_tempFilePath))
+                File.Delete(_tempFilePath);
+
+            A.CallTo(() => _fileShareReadWriteClient.AddFileToBatchAsync(
+                    A<BatchHandle>._,
+                    A<Stream>._,
+                    A<string>._,
+                    A<string>._,
+                    A<string>._,
+                    A<CancellationToken>._))
+                .Returns(Result.Success(new AddFileToBatchResponse()));
+
+            var result = await _uploadFilesNode.ExecuteAsync(_executionContext);
+            Assert.Multiple(() => { Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed)); });
         }
 
         [Test]
@@ -105,6 +126,15 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
             var result = await _uploadFilesNode.ExecuteAsync(_executionContext);
 
             Assert.Multiple(() => { Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed)); });
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            if (!string.IsNullOrEmpty(_tempFilePath) && File.Exists(_tempFilePath))
+            {
+                File.Delete(_tempFilePath);
+            }
         }
     }
 }
