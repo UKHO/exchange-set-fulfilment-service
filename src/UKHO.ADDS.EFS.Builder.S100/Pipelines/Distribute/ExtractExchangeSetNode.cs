@@ -22,7 +22,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
                     context.Subject.Job?.Id!,
                     context.Subject.WorkspaceAuthenticationKey,
                     context.Subject.Job?.CorrelationId!,
-                    context.Subject.ExchangeSetOutputDirectory);
+                    context.Subject.ExchangeSetArchiveFolderName);
 
                 if (result.IsFailure(out var error, out var _))
                 {

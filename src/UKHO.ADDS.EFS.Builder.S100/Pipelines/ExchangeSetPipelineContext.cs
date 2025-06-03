@@ -44,6 +44,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
         public string WorkSpaceSpoolSupportFilesPath { get; } = "support_files";
         public string ExchangeSetFileName { get; } = $"S100_ExchangeSet_{DateTime.UtcNow:yyyyMMdd}.zip";
         public string ExchangeSetFilePath { get; set; } = "/usr/local/tomcat/ROOT/xchg";
-        public string ExchangeSetOutputDirectory { get; set; } = "ExchangeSetArchive";
+        public string ExchangeSetArchiveFolderName { get; set; } = "ExchangeSetArchive";
     }
 }
