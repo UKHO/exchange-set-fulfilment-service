@@ -36,7 +36,7 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             // ADDS Mock
             var mockService = builder.AddProject<UKHO_ADDS_Mocks_EFS>(ContainerConfiguration.MockContainerName)
-                .WithExternalHttpEndpoints()
+                //.WithExternalHttpEndpoints()
                 .WithDashboard("Dashboard");
 
             // Key vault
