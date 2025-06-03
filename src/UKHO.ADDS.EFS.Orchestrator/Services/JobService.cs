@@ -52,7 +52,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                     job.Products = s100SalesCatalogueResponse.ResponseBody;
                     job.State = ExchangeSetJobState.InProgress;
                     job.SalesCatalogueTimestamp = scsTimestamp;
-
+                    job.BatchId = timestampEntity?.BatchId;  // this is the batch ID from the timestamp table, which is used to track the previous batchid
                     break;
                 case HttpStatusCode.NotModified:
 
@@ -78,6 +78,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         {
             if (exitCode == BuilderExitCodes.Success)
             {
+                //call fss commit batch
+
+                //call fss expiry endpoint
+
                 var updateTimestampEntity = new ExchangeSetTimestamp()
                 {
                     DataStandard = job.DataStandard,
