@@ -108,7 +108,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         }
 
         [Test]
-        public async Task WhenBatchFilesIsEmpty_ThenSkipsBatchAndReturnsSucceeded()
+        public async Task WhenBatchFilesIsEmpty_ThenReturnsFailed()
         {
             var batch = new BatchDetails(
                 batchId: "b1",
@@ -123,9 +123,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
             );
             _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
             var result = await _testableCreateBatchNode.PerformExecuteAsync(_executionContext);
-            Assert.That(result, Is.EqualTo(NodeResultStatus.Succeeded));
+            Assert.That(result, Is.EqualTo(NodeResultStatus.Failed));
         }
-
+        
         [Test]
         public async Task WhenDownloadFileAsyncSucceeds_ThenReturnsSucceeded()
         {
@@ -140,7 +140,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
                 batchPublishedDate: DateTime.UtcNow,
                 files: new List<BatchDetailsFiles>
                 {
-                    new BatchDetailsFiles("file1.txt")
+                    new BatchDetailsFiles("file1.txt"),
+                    new BatchDetailsFiles("ABC1234.001"),
+                    new BatchDetailsFiles("DEF5678.h5")
                 }
             );
             _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
