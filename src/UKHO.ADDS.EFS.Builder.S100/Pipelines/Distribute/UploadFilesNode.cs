@@ -27,7 +27,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
             var correlationId = context.Subject.Job.CorrelationId;
             var jobId = context.Subject.Job?.Id;
 
-            var fileName = GetExchangeSetFileName();
+            string fileName = context.Subject.ExchangeSetFileName;
             string filePath = Path.Combine(context.Subject.ExchangeSetFilePath, $"{jobId}.zip");
 
             if (!File.Exists(filePath))
@@ -65,8 +65,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
             }
         }
 
-        private static string GetExchangeSetFileName() => $"S100_ExchangeSet_{DateTime.UtcNow:yyyyMMdd}.zip";
-
         private static FileStream GetExchangeSetFileStream(string filePath)
         {
             return new FileStream(
@@ -87,6 +85,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
                 CorrelationId = correlationId,
                 Error = error
             };
+
             _logger.LogAddFileNodeFssAddFileFailed(addFileLogView);
         }
     }
