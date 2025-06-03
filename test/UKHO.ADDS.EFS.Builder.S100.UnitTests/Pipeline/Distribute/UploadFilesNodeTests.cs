@@ -99,7 +99,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
 
             A.CallTo(() => _logger.Log<LoggerMessageState>(
                 LogLevel.Error,
-                A<EventId>.That.Matches(e => e.Name == "AddFileNodeFailed"),
+                A<EventId>.That.Matches(e => e.Name == "UploadFilesNotAvailable"),
                 A<LoggerMessageState>._,
                 null,
                 A<Func<LoggerMessageState, Exception?, string>>._))

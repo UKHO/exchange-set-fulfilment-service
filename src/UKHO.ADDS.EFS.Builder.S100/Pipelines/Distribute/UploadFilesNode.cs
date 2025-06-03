@@ -8,6 +8,9 @@ using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
 {
+    /// <summary>
+    /// Pipeline node responsible for uploading exchange set files to the File Share Service batch.
+    /// </summary>
     internal class UploadFilesNode : ExchangeSetPipelineNode
     {
         private readonly IFileShareReadWriteClient _fileShareReadWriteClient;
@@ -15,11 +18,21 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
 
         private const int FileBufferSize = 81920;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UploadFilesNode"/> class.
+        /// </summary>
+        /// <param name="fileShareReadWriteClient">The file share read/write client.</param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="fileShareReadWriteClient"/> is null.</exception>
         public UploadFilesNode(IFileShareReadWriteClient fileShareReadWriteClient) : base()
         {
             _fileShareReadWriteClient = fileShareReadWriteClient ?? throw new ArgumentNullException(nameof(fileShareReadWriteClient));
         }
 
+        /// <summary>
+        /// Executes the upload operation for the exchange set file.
+        /// </summary>
+        /// <param name="context">The execution context containing pipeline data.</param>
+        /// <returns>The result status of the node execution.</returns>
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
         {
             _logger = context.Subject.LoggerFactory.CreateLogger<UploadFilesNode>();
@@ -32,7 +45,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
 
             if (!File.Exists(filePath))
             {
-                _logger.LogAddFileNodeFailed($"File not found at given path for Job Id: {jobId}");
+                LogUploadFilesNotAvailable(fileName, batchId, correlationId);
                 return NodeResultStatus.Failed;
             }
 
@@ -60,11 +73,16 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
             }
             catch (Exception ex)
             {
-                _logger.LogAddFileNodeFailed(ex.Message);
+                _logger.LogUploadFilesNodeFailed(ex.Message);
                 return NodeResultStatus.Failed;
             }
         }
 
+        /// <summary>
+        /// Opens a file stream for the specified exchange set file path.
+        /// </summary>
+        /// <param name="filePath">The path to the exchange set file.</param>
+        /// <returns>A <see cref="FileStream"/> for reading the file.</returns>
         private static FileStream GetExchangeSetFileStream(string filePath)
         {
             return new FileStream(
@@ -76,6 +94,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
                 FileOptions.Asynchronous | FileOptions.SequentialScan);
         }
 
+        /// <summary>
+        /// Logs an error when adding a file to the batch fails.
+        /// </summary>
+        /// <param name="fileName">The name of the file.</param>
+        /// <param name="batchId">The batch identifier.</param>
+        /// <param name="correlationId">The correlation identifier.</param>
+        /// <param name="error">The error details.</param>
         private void LogAddFileFailure(string fileName, string batchId, string correlationId, IError error)
         {
             var addFileLogView = new AddFileLogView
@@ -86,7 +111,25 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
                 Error = error
             };
 
-            _logger.LogAddFileNodeFssAddFileFailed(addFileLogView);
+            _logger.LogFileShareAddFileToBatchError(addFileLogView);
+        }
+
+        /// <summary>
+        /// Logs a message when the upload file is not available.
+        /// </summary>
+        /// <param name="fileName">The name of the file.</param>
+        /// <param name="batchId">The batch identifier.</param>
+        /// <param name="correlationId">The correlation identifier.</param>
+        private void LogUploadFilesNotAvailable(string fileName, string batchId, string correlationId)
+        {
+            var uploadFilesLogView = new UploadFilesLogView
+            {
+                FileName = fileName,
+                BatchId = batchId,
+                CorrelationId = correlationId
+            };
+
+            _logger.LogUploadFilesNotAvailable(uploadFilesLogView);
         }
     }
 }
