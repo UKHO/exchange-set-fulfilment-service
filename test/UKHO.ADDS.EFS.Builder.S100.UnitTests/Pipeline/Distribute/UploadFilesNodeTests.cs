@@ -42,12 +42,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
                 Job = new ExchangeSetJob { CorrelationId = "TestCorrelationId", Id = "TestJobId" },
                 BatchId = "TestBatchId",
                 ExchangeSetFilePath = Directory.GetParent(tempPath.TrimEnd(Path.DirectorySeparatorChar))!.FullName!,
-                ExchangeSetOutputDirectory = new DirectoryInfo(tempPath.TrimEnd(Path.DirectorySeparatorChar)).Name
+                ExchangeSetArchiveFolderName = new DirectoryInfo(tempPath.TrimEnd(Path.DirectorySeparatorChar)).Name
             };
 
             A.CallTo(() => _loggerFactory.CreateLogger(typeof(UploadFilesNode).FullName!)).Returns(_logger);
 
-            _tempFilePath = Path.Combine(context.ExchangeSetFilePath, context.ExchangeSetOutputDirectory, context.Job.Id + ".zip");
+            _tempFilePath = Path.Combine(context.ExchangeSetFilePath, context.ExchangeSetArchiveFolderName, context.Job.Id + ".zip");
             File.WriteAllText(_tempFilePath, "Temporary test file content.");
             A.CallTo(() => _executionContext.Subject).Returns(context);
         }
