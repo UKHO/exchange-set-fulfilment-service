@@ -11,5 +11,7 @@
         public const string WorkspaceKey = "WORKSPACE_KEY";
 
         public const string OtlpEndpoint = "OTLP_ENDPOINT";
+
+        public const string BatchId = "BATCH_ID";
     }
 }

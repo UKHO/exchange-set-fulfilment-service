@@ -1,4 +1,6 @@
 ﻿using System.Net;
+using UKHO.ADDS.Clients.FileShareService.ReadWrite;
+using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.Clients.SalesCatalogueService;
 using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
@@ -6,6 +8,7 @@ using UKHO.ADDS.EFS.Entities;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Tables;
+using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services
 {
@@ -16,14 +19,16 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         private readonly ExchangeSetJobTable _jobTable;
         private readonly ExchangeSetTimestampTable _timestampTable;
         private readonly ISalesCatalogueClient _salesCatalogueClient;
+        private readonly IFileShareReadWriteClient _fileShareReadWriteClient;
         private readonly ILogger<JobService> _logger;
 
-        public JobService(ExchangeSetJobTable jobTable, ExchangeSetTimestampTable timestampTable, ISalesCatalogueClient salesCatalogueClient, ILogger<JobService> logger)
+        public JobService(ExchangeSetJobTable jobTable, ExchangeSetTimestampTable timestampTable, ISalesCatalogueClient salesCatalogueClient, ILogger<JobService> logger, IFileShareReadWriteClient fileShareReadWriteClient)
         {
             _jobTable = jobTable;
             _timestampTable = timestampTable;
             _salesCatalogueClient = salesCatalogueClient;
             _logger = logger;
+            _fileShareReadWriteClient = fileShareReadWriteClient ?? throw new ArgumentNullException(nameof(fileShareReadWriteClient));
         }
 
         public async Task<ExchangeSetJob> CreateJob(ExchangeSetRequestQueueMessage queueMessage)
@@ -49,10 +54,19 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             {
                 case HttpStatusCode.OK when s100SalesCatalogueResponse.ResponseBody.Any():
 
+                    //Call FSS Create Batch Return batchID
+
+                    var createBatchResponseResult = await CreateBatchAsync(queueMessage);
+
+                    if (createBatchResponseResult.IsSuccess(out var value, out var error))
+                    {
+                        job.BatchId = value.BatchId;
+                    }
+
                     job.Products = s100SalesCatalogueResponse.ResponseBody;
                     job.State = ExchangeSetJobState.InProgress;
                     job.SalesCatalogueTimestamp = scsTimestamp;
-                    job.BatchId = timestampEntity?.BatchId;  // this is the batch ID from the timestamp table, which is used to track the previous batchid
+
                     break;
                 case HttpStatusCode.NotModified:
 
@@ -85,7 +99,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 var updateTimestampEntity = new ExchangeSetTimestamp()
                 {
                     DataStandard = job.DataStandard,
-                    Timestamp = job.SalesCatalogueTimestamp
+                    Timestamp = job.SalesCatalogueTimestamp,
+                    BatchId = job.BatchId,
                 };
 
                 await _timestampTable.UpsertAsync(updateTimestampEntity);
@@ -141,6 +156,29 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             _logger.LogJobCreated(request.CorrelationId, ExchangeSetJobLogView.CreateFromJob(job));
 
             return Task.FromResult(job);
+        }
+
+        private async Task<IResult<IBatchHandle>> CreateBatchAsync(ExchangeSetRequestQueueMessage queueMessage)
+        {
+            var createBatchResponseResult = await _fileShareReadWriteClient.CreateBatchAsync(new BatchModel
+            {
+                BusinessUnit = "ADDS-S100",
+                Acl = new Acl
+                {
+                    ReadUsers = new List<string> { "public" },
+                    ReadGroups = new List<string> { "public" }
+                },
+                Attributes = new List<KeyValuePair<string, string>>
+                {
+                    new("Exchange Set Type", "Base"),
+                    new("Frequency", "DAILY"),
+                    new("Product Type", "S-100"),
+                    new("Media Type", "Zip")
+                },
+                ExpiryDate = null
+            }, queueMessage.CorrelationId);
+
+            return createBatchResponseResult;
         }
     }
 }

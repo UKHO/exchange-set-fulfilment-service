@@ -34,7 +34,8 @@
     <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.1.1" />
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.3" />
-    <PackageReference Include="UKHO.ADDS.Clients.Common" Version="0.0.50512-alpha.3" />
+    <PackageReference Include="UKHO.ADDS.Clients.Common" Version="0.0.50520-alpha.3" />
+    <PackageReference Include="UKHO.ADDS.Clients.FileShareService.ReadWrite" Version="0.0.50520-alpha.3" />
     <PackageReference Include="UKHO.ADDS.Clients.SalesCatalogueService" Version="0.0.50512-alpha.3" />
   </ItemGroup>
 

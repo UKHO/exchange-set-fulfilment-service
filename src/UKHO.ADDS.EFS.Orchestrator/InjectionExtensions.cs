@@ -4,6 +4,7 @@ using Azure.Security.KeyVault.Secrets;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
+using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.SalesCatalogueService;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
@@ -58,6 +59,19 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 var scsEndpoint = secretClient.GetSecret(OrchestratorConfigurationKeys.SalesCatalogueEndpoint)!;
 
                 return factory.CreateClient(scsEndpoint.Value.Value, string.Empty);
+            });
+            
+            builder.Services.AddSingleton<IFileShareReadWriteClientFactory>(provider =>
+                new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
+
+            builder.Services.AddSingleton(provider =>
+            {
+                var factory = provider.GetRequiredService<IFileShareReadWriteClientFactory>();
+                var secretClient = provider.GetRequiredService<SecretClient>();
+
+                var fssEndpoint = secretClient.GetSecret(OrchestratorConfigurationKeys.FileShareEndpoint)!;
+
+                return factory.CreateClient("", string.Empty);
             });
 
             return builder;

@@ -95,7 +95,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
             await _containerService.EnsureImageExistsAsync(ImageName);
 
-            var containerId = await _containerService.CreateContainerAsync(ImageName, containerName, _command, job.Id);
+            var containerId = await _containerService.CreateContainerAsync(ImageName, containerName, _command, job.Id, job.BatchId);
             await _containerService.StartContainerAsync(containerId);
 
             var streamer = _containerService.CreateBuilderLogStreamer();
