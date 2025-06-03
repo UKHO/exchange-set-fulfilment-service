@@ -72,7 +72,7 @@ stages:
           AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
           AZURE_ENV_NAME: $(AZURE_ENV_NAME)
           AZURE_LOCATION: $(AZURE_LOCATION)
-          MSBUILDDEBUGENGINE: '1'
+          MSBUILDDEBUGENGINE: 1
 
     - ${{ else }}:
 
@@ -94,7 +94,7 @@ stages:
       #     AZURE_ENV_NAME: $(AZURE_ENV_NAME)
       #     AZURE_LOCATION: $(AZURE_LOCATION)
       #     AZD_INITIAL_ENVIRONMENT_CONFIG: $(AZD_INITIAL_ENVIRONMENT_CONFIG)
-      #     MSBUILDDEBUGENGINE: '1'
+      #     MSBUILDDEBUGENGINE: 1
 
       - task: AzureCLI@2
         displayName: Provision infrastructure
@@ -114,7 +114,7 @@ stages:
           AZURE_ENV_NAME: $(AZURE_ENV_NAME)
           AZURE_LOCATION: $(AZURE_LOCATION)
           AZD_INITIAL_ENVIRONMENT_CONFIG: $(AZD_INITIAL_ENVIRONMENT_CONFIG)
-          MSBUILDDEBUGENGINE: '1'
+          MSBUILDDEBUGENGINE: 1
 
       - task: AzureCLI@2
         displayName: Deploy application
@@ -133,7 +133,7 @@ stages:
           AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
           AZURE_ENV_NAME: $(AZURE_ENV_NAME)
           AZURE_LOCATION: $(AZURE_LOCATION)
-          MSBUILDDEBUGENGINE: '1'
+          MSBUILDDEBUGENGINE: 1
           #MSBUILDDEBUGPATH: '$(Build.SourcesDirectory)/msbuilddebug'
 
       - task: CopyFiles@2
