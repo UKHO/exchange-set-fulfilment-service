@@ -40,8 +40,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
             {
                 Job = new ExchangeSetJob { CorrelationId = "TestCorrelationId", Id = "TestJobId" },
                 BatchId = "TestBatchId",
-                ExchangeSetFilePath = Path.GetTempPath(),
-                ExchangeSetFileName = "test-job-id.zip"
+                ExchangeSetFilePath = Path.GetTempPath()
             };
 
             A.CallTo(() => _loggerFactory.CreateLogger(typeof(UploadFilesNode).FullName!)).Returns(_logger);
