@@ -77,7 +77,7 @@ stages:
     - ${{ else }}:
 
       # - task: AzureCLI@2
-      #   displayName: Provision infrastructure
+      #   displayName: Infrastructure and deploy
       #   inputs:
       #     azureSubscription: Exchange-Set-Service-Dev-A-008-02
       #     scriptType: bash
