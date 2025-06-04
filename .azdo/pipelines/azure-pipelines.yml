@@ -50,7 +50,7 @@ stages:
 
     - task: UseDotNet@2
       inputs:
-        version: '9.x'
+        version: '9.0.101'
       displayName: Set up .NET 9
 
     - ${{ if eq(parameters.DestroyResources, true) }}:
