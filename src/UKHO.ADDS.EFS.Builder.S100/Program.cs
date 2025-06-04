@@ -1,17 +1,10 @@
 ﻿using Serilog;
-using Serilog.Events;
-using Serilog.Formatting.Json;
-using UKHO.ADDS.Clients.FileShareService.ReadOnly;
-using UKHO.ADDS.Clients.FileShareService.ReadWrite;
-using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Create.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging;
-using UKHO.ADDS.EFS.Builder.S100.Services;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
-using UKHO.ADDS.EFS.Extensions;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
@@ -21,19 +14,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
     {
         private static async Task<int> Main(string[] args)
         {
-            Log.Logger = new LoggerConfiguration()
-                .Enrich.FromLogContext()
-                .WriteTo.Console(new JsonFormatter())
-                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-                .MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Error)
-                .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Error)
-                .MinimumLevel.Override("Microsoft.AspNetCore.Mvc", LogEventLevel.Error)
-                .MinimumLevel.Override("Microsoft.AspNetCore.Routing", LogEventLevel.Warning)
-                .MinimumLevel.Override("Microsoft.AspNetCore.Hosting", LogEventLevel.Warning)
-                .MinimumLevel.Override("Azure.Core", LogEventLevel.Fatal)
-                .MinimumLevel.Override("Azure.Storage.Blobs", LogEventLevel.Fatal)
-                .MinimumLevel.Override("Azure.Storage.Queues", LogEventLevel.Warning)
-                .CreateLogger();
+            InjectionExtensions.ConfigureSerilog();
 
             try
             {
@@ -110,7 +91,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
 
         private static IServiceProvider ConfigureServices()
         {
-            var collection = new ServiceCollection();
+            var services = new ServiceCollection();
 
             var catalinaHomePath = Environment.GetEnvironmentVariable("CATALINA_HOME") ?? string.Empty;
 
@@ -127,63 +108,15 @@ namespace UKHO.ADDS.EFS.Builder.S100
             var appsettingsPath = $"{configPathPrefix}appsettings.json";
             var appsettingsDevPath = $"{configPathPrefix}appsettings.Development.json";
 
-            collection.AddLogging(loggingBuilder =>
-            {
-                // Clear any default providers (optional, depends on your needs)
-                loggingBuilder.ClearProviders();
-
-                // Add Serilog as the only logger
-                loggingBuilder.AddSerilog(dispose: true);
-            });
-
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile(appsettingsPath)
                 .AddJsonFile(appsettingsDevPath, true)
                 .Build();
 
-            var fileShareEndpoint = Environment.GetEnvironmentVariable(BuilderEnvironmentVariables.FileShareEndpoint) ?? configuration["Endpoints:FileShareService"]!;
+            services.AddS100BuilderServices(configuration);
 
-            collection.AddHttpClient();
-
-            collection.AddSingleton<IConfiguration>(x => configuration);
-            collection.AddSingleton<ExchangeSetPipelineContext>();
-            collection.AddSingleton<StartupPipeline>();
-            collection.AddSingleton<AssemblyPipeline>();
-
-            collection.AddSingleton<IFileShareReadWriteClientFactory>(provider =>
-               new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
-
-            collection.AddSingleton(provider =>
-            {
-                var factory = provider.GetRequiredService<IFileShareReadWriteClientFactory>();
-                return factory.CreateClient(fileShareEndpoint.RemoveControlCharacters(), "");
-            });
-
-            collection.AddSingleton<IFileShareReadOnlyClientFactory>(provider =>
-                new FileShareReadOnlyClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
-
-            collection.AddSingleton(provider =>
-            {
-                var factory = provider.GetRequiredService<IFileShareReadOnlyClientFactory>();
-                return factory.CreateClient(fileShareEndpoint.RemoveControlCharacters(), "");
-            });
-
-            collection.AddSingleton<CreationPipeline>();
-            collection.AddSingleton<DistributionPipeline>();
-
-            collection.AddSingleton<INodeStatusWriter, NodeStatusWriter>();
-            collection.AddHttpClient<IToolClient, ToolClient>((serviceProvider, client) =>
-            {
-                var configuration = serviceProvider.GetRequiredService<IConfiguration>();
-                var baseUrl = configuration["Endpoints:IICTool"];
-                if (string.IsNullOrWhiteSpace(baseUrl))
-                    throw new InvalidOperationException("Endpoints:IICTool configuration is missing.");
-                client.BaseAddress = new Uri(baseUrl);
-            });
-
-
-            return collection.BuildServiceProvider();
+            return services.BuildServiceProvider();
         }
     }
 }
