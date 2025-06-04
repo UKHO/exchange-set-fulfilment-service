@@ -58,7 +58,7 @@ stages:
       - task: AzureCLI@2
         displayName: Destroy infrastructure
         inputs:
-          azureSubscription: Aspire-Test
+          azureSubscription: Aspire-Test2
           #azureSubscription: Exchange-Set-Service-Dev-A-008-02
           scriptType: bash
           scriptLocation: inlineScript
@@ -80,7 +80,7 @@ stages:
       # - task: AzureCLI@2
       #   displayName: Infrastructure and deploy
       #   inputs:
-      #     azureSubscription: Aspire-Test
+      #     azureSubscription: Aspire-Test2
       #     #azureSubscription: Exchange-Set-Service-Dev-A-008-02
       #     scriptType: bash
       #     scriptLocation: inlineScript
@@ -101,7 +101,7 @@ stages:
       - task: AzureCLI@2
         displayName: Provision infrastructure
         inputs:
-          azureSubscription: Aspire-Test
+          azureSubscription: Aspire-Test2
           #azureSubscription: Exchange-Set-Service-Dev-A-008-02
           scriptType: bash
           scriptLocation: inlineScript
@@ -122,7 +122,7 @@ stages:
       - task: AzureCLI@2
         displayName: Deploy application
         inputs:
-          azureSubscription: Aspire-Test
+          azureSubscription: Aspire-Test2
           #azureSubscription: Exchange-Set-Service-Dev-A-008-02
           scriptType: bash
           scriptLocation: inlineScript
