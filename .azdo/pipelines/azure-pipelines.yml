@@ -132,8 +132,6 @@ stages:
               azd deploy --no-prompt --debug
           ${{ else }}:
             inlineScript: |
-              MSBUILDDEBUGENGINE=1
-              MSBUILDDEBUGPATH=$(Build.SourcesDirectory)/msbuilddebug
               azd deploy --no-prompt
         env:
           AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
