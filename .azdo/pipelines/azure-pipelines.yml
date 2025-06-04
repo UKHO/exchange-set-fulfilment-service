@@ -73,7 +73,7 @@ stages:
           AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
           AZURE_ENV_NAME: $(AZURE_ENV_NAME)
           AZURE_LOCATION: $(AZURE_LOCATION)
-          MSBUILDDEBUGENGINE: 1
+          #MSBUILDDEBUGENGINE: 1
 
     - ${{ else }}:
 
@@ -117,7 +117,7 @@ stages:
           AZURE_ENV_NAME: $(AZURE_ENV_NAME)
           AZURE_LOCATION: $(AZURE_LOCATION)
           AZD_INITIAL_ENVIRONMENT_CONFIG: $(AZD_INITIAL_ENVIRONMENT_CONFIG)
-          MSBUILDDEBUGENGINE: 1
+          #MSBUILDDEBUGENGINE: 1
 
       - task: AzureCLI@2
         displayName: Deploy application
@@ -132,30 +132,32 @@ stages:
               azd deploy --no-prompt --debug
           ${{ else }}:
             inlineScript: |
+              MSBUILDDEBUGENGINE=1
+              MSBUILDDEBUGPATH=$(Build.SourcesDirectory)/msbuilddebug
               azd deploy --no-prompt
         env:
           AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
           AZURE_ENV_NAME: $(AZURE_ENV_NAME)
           AZURE_LOCATION: $(AZURE_LOCATION)
-          MSBUILDDEBUGENGINE: 1
+          #MSBUILDDEBUGENGINE: 1
           #MSBUILDDEBUGPATH: '$(Build.SourcesDirectory)/msbuilddebug'
 
-      - task: CopyFiles@2
-        displayName: Copy binlogs
-        condition: always()
-        inputs:
-          contents: '**/*.binlog'
-          targetFolder: '$(Build.ArtifactStagingDirectory)/logs'
-
-      - publish: '$(Build.ArtifactStagingDirectory)/logs'
-        condition: always()
-        displayName: Publish MSBuild logs
-        artifact: 'MSBuild $(system.JobId)'
-
-      # - task: PublishPipelineArtifact@1
-      #   displayName: Publish MSBuild log
+      # - task: CopyFiles@2
+      #   displayName: Copy binlogs
       #   condition: always()
       #   inputs:
-      #     targetPath: '$(Build.SourcesDirectory)/msbuilddebug'
-      #     artifact: 'MSBuild $(system.JobId)'
-      #     publishLocation: 'pipeline'
+      #     contents: '**/*.binlog'
+      #     targetFolder: '$(Build.ArtifactStagingDirectory)/logs'
+
+      # - publish: '$(Build.ArtifactStagingDirectory)/logs'
+      #   condition: always()
+      #   displayName: Publish MSBuild logs
+      #   artifact: 'MSBuild $(system.JobId)'
+
+      - task: PublishPipelineArtifact@1
+        displayName: Publish MSBuild log
+        condition: always()
+        inputs:
+          targetPath: '$(Build.SourcesDirectory)/msbuilddebug'
+          artifact: 'MSBuild $(system.JobId)'
+          publishLocation: 'pipeline'
