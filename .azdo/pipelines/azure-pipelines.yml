@@ -14,7 +14,7 @@ trigger:
 pool: Mare Nectaris
 
 variables:
-- group: ESS-Deployment-Variables-DEV
+#- group: ESS-Deployment-Variables-DEV
 - group: EFS-Dev-Test
 
 stages:
