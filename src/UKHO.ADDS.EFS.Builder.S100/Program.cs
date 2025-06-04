@@ -114,6 +114,8 @@ namespace UKHO.ADDS.EFS.Builder.S100
                 .AddJsonFile(appsettingsDevPath, true)
                 .Build();
 
+            services.AddSingleton(configuration);
+
             services.AddS100BuilderServices(configuration);
 
             return services.BuildServiceProvider();
