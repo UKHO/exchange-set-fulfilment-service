@@ -19,6 +19,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
         private const string AuthKey = "Test Auth Key";
         private const string CorrelationId = "Test Correlation Id";
         private const string ExceptionMessage = "Test ExceptionMessage";
+        private const string DestinationPath= "xchg";
 
         [SetUp]
         public void SetUp()
@@ -209,7 +210,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
         {
             var stream = new MemoryStream(Encoding.UTF8.GetBytes("data"));
             SetupHttpResponse(HttpStatusCode.OK, stream: stream);
-            var result = await _toolClient.ExtractExchangeSetAsync(ExchangeSetId, AuthKey, CorrelationId);
+            var result = await _toolClient.ExtractExchangeSetAsync(ExchangeSetId, AuthKey, CorrelationId, DestinationPath);
             Assert.That(result.IsSuccess(out var value, out var error), Is.EqualTo(true));
             Assert.That(value, Is.Not.Null);
         }
@@ -218,7 +219,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
         public async Task WhenExtractExchangeSetAsyncIsCalledWithFailure_ThenReturnsFailure()
         {
             SetupHttpResponse(HttpStatusCode.BadRequest, "{}");
-            var result = await _toolClient.ExtractExchangeSetAsync(ExchangeSetId, AuthKey, CorrelationId);
+            var result = await _toolClient.ExtractExchangeSetAsync(ExchangeSetId, AuthKey, CorrelationId, DestinationPath);
             Assert.That(result.IsFailure(out var value, out var error), Is.EqualTo(true));
             Assert.That(value.Message, Is.EqualTo("Bad request"));
         }
@@ -230,7 +231,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
                 .Where(call => call.Method.Name == "SendAsync")
                 .WithReturnType<Task<HttpResponseMessage>>()
                 .Throws(new Exception(ExceptionMessage));
-            var result = await _toolClient.ExtractExchangeSetAsync(ExchangeSetId, AuthKey, CorrelationId);
+            var result = await _toolClient.ExtractExchangeSetAsync(ExchangeSetId, AuthKey, CorrelationId, DestinationPath);
             Assert.That(result.IsFailure(out var value, out var error), Is.EqualTo(true));
             Assert.That(value.Message, Is.EqualTo(ExceptionMessage));
         }
