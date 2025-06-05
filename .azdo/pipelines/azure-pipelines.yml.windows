@@ -11,8 +11,8 @@ parameters:
 trigger:
 - main
 
-pool: Mare Nectaris
-
+pool: Mare Nubium
+#pool: NautilusBuild
 
 variables:
 #- group: ESS-Deployment-Variables-DEV
@@ -38,9 +38,10 @@ stages:
       displayName: Restore mock submodule
       workingDirectory: '$(Build.SourcesDirectory)'
   
-    - script: |
-        #az upgrade --yes
-        curl -fsSL https://aka.ms/install-azd.sh | bash
+    - powershell: |
+        choco install azd
+        Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
+        refreshenv
         azd version
         azd config set auth.useAzCliAuth "true"
       displayName: Install azd
@@ -50,6 +51,18 @@ stages:
         version: '9.x'
       displayName: Set up .NET 9
 
+    # - powershell: |
+    #     dotnet run --project "$(Build.SourcesDirectory)\src\UKHO.ADDS.EFS.LocalHost\UKHO.ADDS.EFS.LocalHost.csproj" --publisher manifest --output-path "$(Build.ArtifactStagingDirectory)\apphost-manifest.json"
+    #   displayName: Generate manifest
+
+    # - task: PublishPipelineArtifact@1
+    #   displayName: Publish manifest
+    #   condition: always()
+    #   inputs:
+    #     targetPath: '$(Build.ArtifactStagingDirectory)'
+    #     artifact: 'Manifest $(system.JobId)'
+    #     publishLocation: 'pipeline'
+
     - ${{ if eq(parameters.DestroyResources, true) }}:
 
       - task: AzureCLI@2
@@ -57,112 +70,78 @@ stages:
         inputs:
           azureSubscription: Aspire-Test
           #azureSubscription: Exchange-Set-Service-Dev-A-008-02
-          scriptType: pscore
+          scriptType: ps
           scriptLocation: inlineScript
           keepAzSessionActive: true
           ${{ if eq(parameters.AzdDebug, true) }}:
             inlineScript: |
+              Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
+              refreshenv
               azd down --no-prompt --force --purge --debug
           ${{ else }}:
             inlineScript: |
+              Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
+              refreshenv
               azd down --no-prompt --force --purge
         env:
           AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
           AZURE_ENV_NAME: $(AZURE_ENV_NAME)
           AZURE_LOCATION: $(AZURE_LOCATION)
-          #MSBUILDDEBUGENGINE: 1
 
     - ${{ else }}:
-
-      # - task: AzureCLI@2
-      #   displayName: Infrastructure and deploy
-      #   inputs:
-      #     azureSubscription: Aspire-Test
-      #     #azureSubscription: Exchange-Set-Service-Dev-A-008-02
-      #     scriptType: pscore
-      #     scriptLocation: inlineScript
-      #     keepAzSessionActive: true
-      #     ${{ if eq(parameters.AzdDebug, true) }}:
-      #       inlineScript: |
-      #         azd up --no-prompt --debug
-      #     ${{ else }}:
-      #       inlineScript: |
-      #         azd up --no-prompt
-      #   env:
-      #     AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-      #     AZURE_ENV_NAME: $(AZURE_ENV_NAME)
-      #     AZURE_LOCATION: $(AZURE_LOCATION)
-      #     AZD_INITIAL_ENVIRONMENT_CONFIG: $(AZD_INITIAL_ENVIRONMENT_CONFIG)
-      #     MSBUILDDEBUGENGINE: 1
-
-      # - task: AzureCLI@2
-      #   displayName: Generate infra
-      #   inputs:
-      #     azureSubscription: Aspire-Test
-      #     #azureSubscription: Exchange-Set-Service-Dev-A-008-02
-      #     scriptType: pscore
-      #     scriptLocation: inlineScript
-      #     keepAzSessionActive: true
-      #     ${{ if eq(parameters.AzdDebug, true) }}:
-      #       inlineScript: |
-      #         azd init --no-prompt --debug
-      #         azd infra gen --no-prompt --debug
-      #     ${{ else }}:
-      #       inlineScript: |
-      #         azd init --no-prompt
-      #         azd infra gen --no-prompt
-      #   env:
-      #     AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-      #     AZURE_ENV_NAME: $(AZURE_ENV_NAME)
-      #     AZURE_LOCATION: $(AZURE_LOCATION)
 
       - task: AzureCLI@2
         displayName: Provision infrastructure
         inputs:
           azureSubscription: Aspire-Test
           #azureSubscription: Exchange-Set-Service-Dev-A-008-02
-          scriptType: pscore
+          scriptType: ps
           scriptLocation: inlineScript
           keepAzSessionActive: true
           ${{ if eq(parameters.AzdDebug, true) }}:
             inlineScript: |
+              Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
+              refreshenv
               azd provision --no-prompt --debug
           ${{ else }}:
             inlineScript: |
+              Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
+              refreshenv
               azd provision --no-prompt
         env:
           AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
           AZURE_ENV_NAME: $(AZURE_ENV_NAME)
           AZURE_LOCATION: $(AZURE_LOCATION)
           #AZD_INITIAL_ENVIRONMENT_CONFIG: $(AZD_INITIAL_ENVIRONMENT_CONFIG)
-          #MSBUILDDEBUGENGINE: 1
 
       - task: AzureCLI@2
         displayName: Deploy application
         inputs:
           azureSubscription: Aspire-Test
           #azureSubscription: Exchange-Set-Service-Dev-A-008-02
-          scriptType: pscore
+          scriptType: ps
           scriptLocation: inlineScript
           keepAzSessionActive: true
           ${{ if eq(parameters.AzdDebug, true) }}:
             inlineScript: |
+              Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
+              refreshenv
               azd deploy --no-prompt --debug
           ${{ else }}:
             inlineScript: |
+              Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
+              refreshenv
               azd deploy --no-prompt
         env:
           AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
           AZURE_ENV_NAME: $(AZURE_ENV_NAME)
           AZURE_LOCATION: $(AZURE_LOCATION)
-          #MSBUILDDEBUGENGINE: 1
-          #MSBUILDDEBUGPATH: '$(Build.SourcesDirectory)/msbuilddebug'
 
       # - task: CopyFiles@2
-      #   displayName: Copy binlogs
+      #   displayName: Copy json
       #   condition: always()
       #   inputs:
-      #     contents: '**/*.binlog'
+      #     contents: '**/*.json'
       #     targetFolder: '$(Build.ArtifactStagingDirectory)/logs'
 
       # - publish: '$(Build.ArtifactStagingDirectory)/logs'
@@ -170,10 +149,10 @@ stages:
       #   displayName: Publish MSBuild logs
       #   artifact: 'MSBuild $(system.JobId)'
 
-      # - task: PublishPipelineArtifact@1
-      #   displayName: Publish data
-      #   condition: always()
-      #   inputs:
-      #     targetPath: '$(Build.SourcesDirectory)'
-      #     artifact: 'Data $(system.JobId)'
-      #     publishLocation: 'pipeline'
+      - task: PublishPipelineArtifact@1
+        displayName: Publish data
+        condition: always()
+        inputs:
+          targetPath: 'C:\Users\AzDevOps\AppData\Local\Temp'
+          artifact: 'Data $(system.JobId)'
+          publishLocation: 'pipeline'
