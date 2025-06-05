@@ -38,7 +38,7 @@ stages:
       workingDirectory: '$(Build.SourcesDirectory)'
   
     - script: |
-        az upgrade --yes
+        #az upgrade --yes
         curl -fsSL https://aka.ms/install-azd.sh | bash
         azd version
         azd config set auth.useAzCliAuth "true"
@@ -100,6 +100,27 @@ stages:
       #     MSBUILDDEBUGENGINE: 1
 
       - task: AzureCLI@2
+        displayName: Generate infra
+        inputs:
+          azureSubscription: Aspire-Test
+          #azureSubscription: Exchange-Set-Service-Dev-A-008-02
+          scriptType: bash
+          scriptLocation: inlineScript
+          keepAzSessionActive: true
+          ${{ if eq(parameters.AzdDebug, true) }}:
+            inlineScript: |
+              azd init --no-prompt --debug
+              azd infra gen --no-prompt --debug
+          ${{ else }}:
+            inlineScript: |
+              azd init --no-prompt
+              azd infra gen --no-prompt
+        env:
+          AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+          AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+          AZURE_LOCATION: $(AZURE_LOCATION)
+
+      - task: AzureCLI@2
         displayName: Provision infrastructure
         inputs:
           azureSubscription: Aspire-Test
@@ -153,10 +174,10 @@ stages:
       #   displayName: Publish MSBuild logs
       #   artifact: 'MSBuild $(system.JobId)'
 
-      # - task: PublishPipelineArtifact@1
-      #   displayName: Publish MSBuild log
-      #   condition: always()
-      #   inputs:
-      #     targetPath: '$(Build.ArtifactStagingDirectory)'
-      #     artifact: 'MSBuild $(system.JobId)'
-      #     publishLocation: 'pipeline'
+      - task: PublishPipelineArtifact@1
+        displayName: Publish data
+        condition: always()
+        inputs:
+          targetPath: '$(Build.SourcesDirectory)'
+          artifact: 'Data $(system.JobId)'
+          publishLocation: 'pipeline'
