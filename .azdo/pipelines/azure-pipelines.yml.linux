@@ -13,6 +13,7 @@ trigger:
 
 pool: Mare Nectaris
 
+
 variables:
 #- group: ESS-Deployment-Variables-DEV
 - group: EFS-Dev-Test
@@ -43,11 +44,6 @@ stages:
         azd version
         azd config set auth.useAzCliAuth "true"
       displayName: Install azd
-
-    # - task: UseDotNet@2
-    #   inputs:
-    #     version: '8.x'
-    #   displayName: Set up .NET 8
 
     - task: UseDotNet@2
       inputs:

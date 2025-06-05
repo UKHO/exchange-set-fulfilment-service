@@ -11,8 +11,8 @@ parameters:
 trigger:
 - main
 
-pool: Mare Nubium
-#pool: NautilusBuild
+#pool: Mare Nubium
+pool: NautilusBuild
 
 variables:
 #- group: ESS-Deployment-Variables-DEV
@@ -38,13 +38,6 @@ stages:
       displayName: Restore mock submodule
       workingDirectory: '$(Build.SourcesDirectory)'
   
-    - powershell: |
-        choco install azd
-        Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
-        refreshenv
-        azd version
-        azd config set auth.useAzCliAuth "true"
-      displayName: Install azd
 
     - task: UseDotNet@2
       inputs:
@@ -62,85 +55,3 @@ stages:
         targetPath: '$(Build.ArtifactStagingDirectory)'
         artifact: 'Manifest $(system.JobId)'
         publishLocation: 'pipeline'
-
-    - ${{ if eq(parameters.DestroyResources, true) }}:
-
-      - task: AzureCLI@2
-        displayName: Destroy infrastructure
-        inputs:
-          azureSubscription: Aspire-Test
-          #azureSubscription: Exchange-Set-Service-Dev-A-008-02
-          scriptType: ps
-          scriptLocation: inlineScript
-          keepAzSessionActive: true
-          ${{ if eq(parameters.AzdDebug, true) }}:
-            inlineScript: |
-              Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
-              refreshenv
-              azd down --no-prompt --force --purge --debug
-          ${{ else }}:
-            inlineScript: |
-              Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
-              refreshenv
-              azd down --no-prompt --force --purge
-        env:
-          AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-          AZURE_ENV_NAME: $(AZURE_ENV_NAME)
-          AZURE_LOCATION: $(AZURE_LOCATION)
-
-    - ${{ else }}:
-
-      - task: AzureCLI@2
-        displayName: Provision infrastructure
-        inputs:
-          azureSubscription: Aspire-Test
-          #azureSubscription: Exchange-Set-Service-Dev-A-008-02
-          scriptType: ps
-          scriptLocation: inlineScript
-          keepAzSessionActive: true
-          ${{ if eq(parameters.AzdDebug, true) }}:
-            inlineScript: |
-              Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
-              refreshenv
-              azd provision --no-prompt --debug
-          ${{ else }}:
-            inlineScript: |
-              Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
-              refreshenv
-              azd provision --no-prompt
-        env:
-          AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-          AZURE_ENV_NAME: $(AZURE_ENV_NAME)
-          AZURE_LOCATION: $(AZURE_LOCATION)
-          #AZD_INITIAL_ENVIRONMENT_CONFIG: $(AZD_INITIAL_ENVIRONMENT_CONFIG)
-
-      - task: AzureCLI@2
-        displayName: Deploy application
-        inputs:
-          azureSubscription: Aspire-Test
-          #azureSubscription: Exchange-Set-Service-Dev-A-008-02
-          scriptType: ps
-          scriptLocation: inlineScript
-          keepAzSessionActive: true
-          ${{ if eq(parameters.AzdDebug, true) }}:
-            inlineScript: |
-              Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
-              refreshenv
-              azd deploy --no-prompt --debug
-          ${{ else }}:
-            inlineScript: |
-              Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
-              refreshenv
-              azd deploy --no-prompt
-        env:
-          AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-          AZURE_ENV_NAME: $(AZURE_ENV_NAME)
-          AZURE_LOCATION: $(AZURE_LOCATION)
-
-      # - task: PublishPipelineArtifact@1
-      #   displayName: Publish MSBuild log
-      #   condition: always()
-      #   inputs:
-      #     targetPath: '$(Build.SourcesDirectory)/msbuilddebug'
-      #     artifact: 'MSBuild $(system.JobId)'
-      #     publishLocation: 'pipeline'
