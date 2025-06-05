@@ -132,7 +132,7 @@ stages:
               azd deploy --no-prompt --debug
           ${{ else }}:
             inlineScript: |
-              azd deploy --no-prompt --dotnet-parameter "/bl:$(Build.ArtifactStagingDirectory)/msbuild.binlog"
+              azd deploy --no-prompt
         env:
           AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
           AZURE_ENV_NAME: $(AZURE_ENV_NAME)
@@ -152,10 +152,10 @@ stages:
       #   displayName: Publish MSBuild logs
       #   artifact: 'MSBuild $(system.JobId)'
 
-      - task: PublishPipelineArtifact@1
-        displayName: Publish MSBuild log
-        condition: always()
-        inputs:
-          targetPath: '$(Build.ArtifactStagingDirectory)'
-          artifact: 'MSBuild $(system.JobId)'
-          publishLocation: 'pipeline'
+      # - task: PublishPipelineArtifact@1
+      #   displayName: Publish MSBuild log
+      #   condition: always()
+      #   inputs:
+      #     targetPath: '$(Build.ArtifactStagingDirectory)'
+      #     artifact: 'MSBuild $(system.JobId)'
+      #     publishLocation: 'pipeline'
