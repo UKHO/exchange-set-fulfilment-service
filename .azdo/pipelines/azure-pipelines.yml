@@ -61,7 +61,7 @@ stages:
         inputs:
           azureSubscription: Aspire-Test
           #azureSubscription: Exchange-Set-Service-Dev-A-008-02
-          scriptType: bash
+          scriptType: pscore
           scriptLocation: inlineScript
           keepAzSessionActive: true
           ${{ if eq(parameters.AzdDebug, true) }}:
@@ -83,7 +83,7 @@ stages:
       #   inputs:
       #     azureSubscription: Aspire-Test
       #     #azureSubscription: Exchange-Set-Service-Dev-A-008-02
-      #     scriptType: bash
+      #     scriptType: pscore
       #     scriptLocation: inlineScript
       #     keepAzSessionActive: true
       #     ${{ if eq(parameters.AzdDebug, true) }}:
@@ -104,7 +104,7 @@ stages:
       #   inputs:
       #     azureSubscription: Aspire-Test
       #     #azureSubscription: Exchange-Set-Service-Dev-A-008-02
-      #     scriptType: bash
+      #     scriptType: pscore
       #     scriptLocation: inlineScript
       #     keepAzSessionActive: true
       #     ${{ if eq(parameters.AzdDebug, true) }}:
@@ -125,7 +125,7 @@ stages:
         inputs:
           azureSubscription: Aspire-Test
           #azureSubscription: Exchange-Set-Service-Dev-A-008-02
-          scriptType: bash
+          scriptType: pscore
           scriptLocation: inlineScript
           keepAzSessionActive: true
           ${{ if eq(parameters.AzdDebug, true) }}:
@@ -146,7 +146,7 @@ stages:
         inputs:
           azureSubscription: Aspire-Test
           #azureSubscription: Exchange-Set-Service-Dev-A-008-02
-          scriptType: bash
+          scriptType: pscore
           scriptLocation: inlineScript
           keepAzSessionActive: true
           ${{ if eq(parameters.AzdDebug, true) }}:
@@ -174,10 +174,10 @@ stages:
       #   displayName: Publish MSBuild logs
       #   artifact: 'MSBuild $(system.JobId)'
 
-      - task: PublishPipelineArtifact@1
-        displayName: Publish data
-        condition: always()
-        inputs:
-          targetPath: '$(Build.SourcesDirectory)'
-          artifact: 'Data $(system.JobId)'
-          publishLocation: 'pipeline'
+      # - task: PublishPipelineArtifact@1
+      #   displayName: Publish data
+      #   condition: always()
+      #   inputs:
+      #     targetPath: '$(Build.SourcesDirectory)'
+      #     artifact: 'Data $(system.JobId)'
+      #     publishLocation: 'pipeline'
