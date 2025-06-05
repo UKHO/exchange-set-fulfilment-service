@@ -44,14 +44,35 @@ stages:
         refreshenv
         azd version
         azd config set auth.useAzCliAuth "true"
-        cd $(Build.SourcesDirectory)
-        asd init --no-prompt
       displayName: Install azd
 
     - task: UseDotNet@2
       inputs:
         version: '9.x'
       displayName: Set up .NET 9
+
+    - task: AzureCLI@2
+      displayName: Init application
+      inputs:
+        azureSubscription: Aspire-Test
+        #azureSubscription: Exchange-Set-Service-Dev-A-008-02
+        scriptType: ps
+        scriptLocation: inlineScript
+        keepAzSessionActive: true
+        ${{ if eq(parameters.AzdDebug, true) }}:
+          inlineScript: |
+            Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
+            refreshenv
+            azd init --no-prompt --debug
+        ${{ else }}:
+          inlineScript: |
+            Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
+            refreshenv
+            azd init --no-prompt
+      env:
+        AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+        AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+        AZURE_LOCATION: $(AZURE_LOCATION)
 
     - powershell: |
         dotnet run --project "$(Build.SourcesDirectory)\src\UKHO.ADDS.EFS.LocalHost\UKHO.ADDS.EFS.LocalHost.csproj" --publisher manifest --output-path "$(Build.ArtifactStagingDirectory)\apphost-manifest.json"
