@@ -99,26 +99,26 @@ stages:
       #     AZD_INITIAL_ENVIRONMENT_CONFIG: $(AZD_INITIAL_ENVIRONMENT_CONFIG)
       #     MSBUILDDEBUGENGINE: 1
 
-      - task: AzureCLI@2
-        displayName: Generate infra
-        inputs:
-          azureSubscription: Aspire-Test
-          #azureSubscription: Exchange-Set-Service-Dev-A-008-02
-          scriptType: bash
-          scriptLocation: inlineScript
-          keepAzSessionActive: true
-          ${{ if eq(parameters.AzdDebug, true) }}:
-            inlineScript: |
-              azd init --no-prompt --debug
-              azd infra gen --no-prompt --debug
-          ${{ else }}:
-            inlineScript: |
-              azd init --no-prompt
-              azd infra gen --no-prompt
-        env:
-          AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-          AZURE_ENV_NAME: $(AZURE_ENV_NAME)
-          AZURE_LOCATION: $(AZURE_LOCATION)
+      # - task: AzureCLI@2
+      #   displayName: Generate infra
+      #   inputs:
+      #     azureSubscription: Aspire-Test
+      #     #azureSubscription: Exchange-Set-Service-Dev-A-008-02
+      #     scriptType: bash
+      #     scriptLocation: inlineScript
+      #     keepAzSessionActive: true
+      #     ${{ if eq(parameters.AzdDebug, true) }}:
+      #       inlineScript: |
+      #         azd init --no-prompt --debug
+      #         azd infra gen --no-prompt --debug
+      #     ${{ else }}:
+      #       inlineScript: |
+      #         azd init --no-prompt
+      #         azd infra gen --no-prompt
+      #   env:
+      #     AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+      #     AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+      #     AZURE_LOCATION: $(AZURE_LOCATION)
 
       - task: AzureCLI@2
         displayName: Provision infrastructure
