@@ -61,11 +61,13 @@ stages:
         keepAzSessionActive: true
         ${{ if eq(parameters.AzdDebug, true) }}:
           inlineScript: |
+            choco upgrade azd
             Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
             refreshenv
             azd init --no-prompt --debug
         ${{ else }}:
           inlineScript: |
+            choco upgrade azd
             Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
             refreshenv
             azd init --no-prompt
