@@ -38,6 +38,7 @@ stages:
       workingDirectory: '$(Build.SourcesDirectory)'
   
     - script: |
+        az upgrade --yes
         curl -fsSL https://aka.ms/install-azd.sh | bash
         azd version
         azd config set auth.useAzCliAuth "true"
