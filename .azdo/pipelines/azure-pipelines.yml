@@ -51,6 +51,18 @@ stages:
         version: '9.x'
       displayName: Set up .NET 9
 
+    - powershell: |
+        dotnet run --project "$(Build.SourcesDirectory)\src\UKHO.ADDS.EFS.LocalHost\UKHO.ADDS.EFS.LocalHost.csproj" --publisher manifest --output-path "$(Build.ArtifactStagingDirectory)\apphost-manifest.json"
+      displayName: Generate manifest
+
+      - task: PublishPipelineArtifact@1
+        displayName: Publish manifest
+        condition: always()
+        inputs:
+          targetPath: '$(Build.ArtifactStagingDirectory)'
+          artifact: 'Manifest $(system.JobId)'
+          publishLocation: 'pipeline'
+
     - ${{ if eq(parameters.DestroyResources, true) }}:
 
       - task: AzureCLI@2
