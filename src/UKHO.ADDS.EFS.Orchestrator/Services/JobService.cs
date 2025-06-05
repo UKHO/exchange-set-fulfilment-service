@@ -54,27 +54,26 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             {
                 case HttpStatusCode.OK when s100SalesCatalogueResponse.ResponseBody.Any():
 
-                    //Call FSS Create Batch Return batchID
+                //Call FSS Create Batch Return batchID
+                var createBatchResponseResult = await CreateBatchAsync(queueMessage);
 
-                    var createBatchResponseResult = await CreateBatchAsync(queueMessage);
+                if (createBatchResponseResult.IsSuccess(out var value, out var error))
+                {
+                    job.BatchId = value.BatchId;
+                }
 
-                    if (createBatchResponseResult.IsSuccess(out var value, out var error))
-                    {
-                        job.BatchId = value.BatchId;
-                    }
-
-                    job.Products = s100SalesCatalogueResponse.ResponseBody;
-                    job.State = ExchangeSetJobState.InProgress;
-                    job.SalesCatalogueTimestamp = scsTimestamp;
+                job.Products = s100SalesCatalogueResponse.ResponseBody;
+                job.State = ExchangeSetJobState.InProgress;
+                job.SalesCatalogueTimestamp = scsTimestamp;
 
                     break;
                 case HttpStatusCode.NotModified:
 
-                    job.State = ExchangeSetJobState.ScsCatalogueUnchanged;
+                job.State = ExchangeSetJobState.ScsCatalogueUnchanged;
                     break;
                 default:
 
-                    job.State = ExchangeSetJobState.Cancelled;
+                job.State = ExchangeSetJobState.Cancelled;
                     break;
             }
 
@@ -92,20 +91,21 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         {
             if (exitCode == BuilderExitCodes.Success)
             {
-                //call fss commit batch
-
-                //call fss expiry endpoint
-
-                var updateTimestampEntity = new ExchangeSetTimestamp()
+                if (await CommitBatchAsync(job))
                 {
-                    DataStandard = job.DataStandard,
-                    Timestamp = job.SalesCatalogueTimestamp,
-                    BatchId = job.BatchId,
-                };
+                    if (await SetExpiryDateAsync(job))
+                    {
+                        var updateTimestampEntity = new ExchangeSetTimestamp
+                        {
+                            DataStandard = job.DataStandard,
+                            Timestamp = job.SalesCatalogueTimestamp,
+                            BatchId = job.BatchId,
+                        };
 
-                await _timestampTable.UpsertAsync(updateTimestampEntity);
-
-                job.State = ExchangeSetJobState.Succeeded;
+                        await _timestampTable.UpsertAsync(updateTimestampEntity);
+                        job.State = ExchangeSetJobState.Succeeded;
+                    }
+                }
             }
             else
             {
@@ -179,6 +179,52 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             }, queueMessage.CorrelationId);
 
             return createBatchResponseResult;
+        }
+
+        private async Task<bool> CommitBatchAsync(ExchangeSetJob job)
+        {
+            var commitBatchResult = await _fileShareReadWriteClient.CommitBatchAsync(
+                new BatchHandle(job.BatchId), job.CorrelationId, CancellationToken.None);
+
+            if (commitBatchResult.IsFailure(out var commitError, out _))
+            {
+                job.State = ExchangeSetJobState.Failed;
+                return false;
+            }
+
+            return true;
+        }
+
+        private async Task<bool> SetExpiryDateAsync(ExchangeSetJob job)
+        {
+            var previousBatchId = await GetPreviousBatchIdAsync(job);
+
+            if (!string.IsNullOrEmpty(previousBatchId)) ;
+            {
+                var expiryResult = await _fileShareReadWriteClient.SetExpiryDateAsync(
+                    job.BatchId,
+                    new BatchExpiryModel { ExpiryDate = DateTime.UtcNow },
+                    job.CorrelationId,
+                    CancellationToken.None);
+
+                if (expiryResult.IsFailure(out var expiryError, out _))
+                {
+                    job.State = ExchangeSetJobState.Failed;
+                    return false;
+                }
+
+                return true;
+            }
+
+            return true;
+        }
+
+        private async Task<string?> GetPreviousBatchIdAsync(ExchangeSetJob job)
+        {
+            var key = job.DataStandard.ToString().ToLowerInvariant();
+            var result = await _timestampTable.GetAsync(key, key);
+
+            return result.IsSuccess(out var timestampEntity) ? timestampEntity.BatchId : string.Empty;
         }
     }
 }
