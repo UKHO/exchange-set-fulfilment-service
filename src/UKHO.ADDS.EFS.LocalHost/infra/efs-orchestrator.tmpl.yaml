@@ -47,9 +47,9 @@ properties:
           - name: OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY
             value: in_memory
           - name: services__adds-mocks-efs__http__0
-            value: http://adds-mocks-efs.{{ .Env.AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN }}
+            value: http://adds-mocks-efs.internal.{{ .Env.AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN }}
           - name: services__adds-mocks-efs__https__0
-            value: https://adds-mocks-efs.{{ .Env.AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN }}
+            value: https://adds-mocks-efs.internal.{{ .Env.AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN }}
           - name: ConnectionStrings__blobs
             secretRef: connectionstrings--blobs
           - name: ConnectionStrings__efs-keyvault
