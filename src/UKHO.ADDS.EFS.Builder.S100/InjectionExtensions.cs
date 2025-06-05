@@ -16,8 +16,8 @@ namespace UKHO.ADDS.EFS.Builder.S100
         public static IServiceCollection AddS100BuilderServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddLogging(ConfigureLogging);
-            services.AddPipelineServices();
             services.AddHttpClient();
+            services.AddPipelineServices();
             services.AddFileShareServices(configuration);
             services.AddIICToolServices(configuration);
 
