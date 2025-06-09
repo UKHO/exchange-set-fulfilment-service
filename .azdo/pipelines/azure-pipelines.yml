@@ -13,7 +13,6 @@ trigger:
 
 pool: Mare Nectaris
 
-
 variables:
 #- group: ESS-Deployment-Variables-DEV
 - group: EFS-Dev-Test
@@ -155,6 +154,7 @@ stages:
           AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
           AZURE_ENV_NAME: $(AZURE_ENV_NAME)
           AZURE_LOCATION: $(AZURE_LOCATION)
+          AZD_DEBUG_DOTNET_APPHOST_USE_FIXED_MANIFEST: true
           #MSBUILDDEBUGENGINE: 1
           #MSBUILDDEBUGPATH: '$(Build.SourcesDirectory)/msbuilddebug'
 

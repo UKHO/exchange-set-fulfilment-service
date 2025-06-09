@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json.schemastore.org/aspire-8.0.json",
+  "resources": {
+    "storage": {
+      "type": "azure.bicep.v0",
+      "path": "storage.module.bicep"
+    },
+    "queues": {
+      "type": "value.v0",
+      "connectionString": "{storage.outputs.queueEndpoint}"
+    },
+    "tables": {
+      "type": "value.v0",
+      "connectionString": "{storage.outputs.tableEndpoint}"
+    },
+    "blobs": {
+      "type": "value.v0",
+      "connectionString": "{storage.outputs.blobEndpoint}"
+    },
+    "adds-mocks-efs": {
+      "type": "project.v0",
+      "path": "../s/mock/UKHO.ADDS.Mocks.EFS/UKHO.ADDS.Mocks.EFS.csproj",
+      "env": {
+        "OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES": "true",
+        "OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES": "true",
+        "OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY": "in_memory",
+        "ASPNETCORE_FORWARDEDHEADERS_ENABLED": "true",
+        "HTTP_PORTS": "{adds-mocks-efs.bindings.http.targetPort}"
+      },
+      "bindings": {
+        "http": {
+          "scheme": "http",
+          "protocol": "tcp",
+          "transport": "http"
+        },
+        "https": {
+          "scheme": "https",
+          "protocol": "tcp",
+          "transport": "http"
+        }
+      }
+    },
+    "efs-keyvault": {
+      "type": "azure.bicep.v0",
+      "connectionString": "{efs-keyvault.outputs.vaultUri}",
+      "path": "efs-keyvault.module.bicep"
+    },
+    "efs-orchestrator": {
+      "type": "project.v0",
+      "path": "../s/src/UKHO.ADDS.EFS.Orchestrator/UKHO.ADDS.EFS.Orchestrator.csproj",
+      "env": {
+        "OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES": "true",
+        "OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES": "true",
+        "OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY": "in_memory",
+        "ASPNETCORE_FORWARDEDHEADERS_ENABLED": "true",
+        "HTTP_PORTS": "{efs-orchestrator.bindings.http.targetPort}",
+        "ConnectionStrings__queues": "{queues.connectionString}",
+        "ConnectionStrings__tables": "{tables.connectionString}",
+        "ConnectionStrings__blobs": "{blobs.connectionString}",
+        "services__adds-mocks-efs__http__0": "{adds-mocks-efs.bindings.http.url}",
+        "services__adds-mocks-efs__https__0": "{adds-mocks-efs.bindings.https.url}",
+        "ConnectionStrings__efs-keyvault": "{efs-keyvault.connectionString}"
+      },
+      "bindings": {
+        "http": {
+          "scheme": "http",
+          "protocol": "tcp",
+          "transport": "http"
+        },
+        "https": {
+          "scheme": "https",
+          "protocol": "tcp",
+          "transport": "http"
+        }
+      }
+    },
+    "storage-roles": {
+      "type": "azure.bicep.v0",
+      "path": "storage-roles.module.bicep",
+      "params": {
+        "storage_outputs_name": "{storage.outputs.name}",
+        "principalType": "",
+        "principalId": ""
+      }
+    },
+    "efs-keyvault-roles": {
+      "type": "azure.bicep.v0",
+      "path": "efs-keyvault-roles.module.bicep",
+      "params": {
+        "efs_keyvault_outputs_name": "{efs-keyvault.outputs.name}",
+        "principalType": "",
+        "principalId": ""
+      }
+    }
+  }
+}
