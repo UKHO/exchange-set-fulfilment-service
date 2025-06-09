@@ -19,7 +19,7 @@
     },
     "adds-mocks-efs": {
       "type": "project.v0",
-      "path": "../s/mock/UKHO.ADDS.Mocks.EFS/UKHO.ADDS.Mocks.EFS.csproj",
+      "path": "../../../s/mock/UKHO.ADDS.Mocks.EFS/UKHO.ADDS.Mocks.EFS.csproj",
       "env": {
         "OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES": "true",
         "OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES": "true",
@@ -47,7 +47,7 @@
     },
     "efs-orchestrator": {
       "type": "project.v0",
-      "path": "../s/src/UKHO.ADDS.EFS.Orchestrator/UKHO.ADDS.EFS.Orchestrator.csproj",
+      "path": "../../../s/src/UKHO.ADDS.EFS.Orchestrator/UKHO.ADDS.EFS.Orchestrator.csproj",
       "env": {
         "OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES": "true",
         "OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES": "true",
