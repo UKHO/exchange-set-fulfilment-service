@@ -125,7 +125,7 @@ stages:
           keepAzSessionActive: true
           inlineScript: |
             az acr login --name acrxaj2x3kjawory
-            dotnet publish $(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.Orchestrator/UKHO.ADDS.EFS.Orchestrator.csproj -r linux-x64 -c Release /t:PublishContainer -p:ContainerRepository=exchange-set-fulfilment-service/efs-orchestrator-dev -p:ContainerImageTag=azd-deploy-1749467082 -p:ContainerRegistry=acrxaj2x3kjawory --getProperty:GeneratedContainerConfiguration
+            dotnet publish $(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.Orchestrator/UKHO.ADDS.EFS.Orchestrator.csproj -r linux-x64 -c Release /t:PublishContainer -p:ContainerRepository=exchange-set-fulfilment-service/efs-orchestrator-dev -p:ContainerImageTag=azd-deploy-1749467082 -p:ContainerRegistry=acrxaj2x3kjawory.azurecr.io --getProperty:GeneratedContainerConfiguration
         env:
           AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
           AZURE_ENV_NAME: $(AZURE_ENV_NAME)
