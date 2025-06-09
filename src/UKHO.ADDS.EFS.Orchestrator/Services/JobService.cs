@@ -1,4 +1,6 @@
 ﻿using System.Net;
+using UKHO.ADDS.Clients.FileShareService.ReadOnly;
+using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.Clients.SalesCatalogueService;
@@ -93,18 +95,32 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             {
                 if (await CommitBatchAsync(job))
                 {
-                    if (await SetExpiryDateAsync(job))
-                    {
-                        var updateTimestampEntity = new ExchangeSetTimestamp
-                        {
-                            DataStandard = job.DataStandard,
-                            Timestamp = job.SalesCatalogueTimestamp,
-                            BatchId = job.BatchId,
-                        };
+                    // Example usage of GetAllBatchesExceptCurrentAsync
+                    // You need to provide the currentBatchId, correlationId, and a readOnlyClient instance
+                    // Replace the following placeholders with actual values as needed
+                    var currentBatchId = job.BatchId;
+                    var correlationId = job.CorrelationId;
 
-                        await _timestampTable.UpsertAsync(updateTimestampEntity);
-                        job.State = ExchangeSetJobState.Succeeded;
+                    var otherBatches = await GetAllBatchesExceptCurrentAsync(currentBatchId, correlationId, _fileShareReadWriteClient);
+
+                    foreach (var batch in otherBatches)
+                    {
+                        if (!string.IsNullOrEmpty(batch.BatchId))
+                        {
+                            var expiryResult = await _fileShareReadWriteClient.SetExpiryDateAsync(
+                                batch.BatchId,
+                                new BatchExpiryModel { ExpiryDate = DateTime.UtcNow },
+                                job.CorrelationId,
+                                CancellationToken.None);
+
+                            if (expiryResult.IsFailure(out var expiryError, out _))
+                            {
+                               // _logger.LogError($"Failed to set expiry date for batch {batch.BatchId}: {expiryError}");
+                                // Optionally handle the error as needed
+                            }
+                        }
                     }
+                    job.State = ExchangeSetJobState.Succeeded;
                 }
             }
             else
@@ -116,6 +132,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
             _logger.LogJobCompleted(ExchangeSetJobLogView.CreateFromJob(job));
         }
+
 
         private async Task<(S100SalesCatalogueResponse s100SalesCatalogueResponse, DateTime? scsTimestamp)> GetProductJson(DateTime? timestamp, ExchangeSetRequestQueueMessage message)
         {
@@ -195,36 +212,73 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             return true;
         }
 
-        private async Task<bool> SetExpiryDateAsync(ExchangeSetJob job)
+        //private async Task<bool> SetExpiryDateAsync(ExchangeSetJob job)
+        //{
+        //    var previousBatchId = await GetPreviousBatchIdAsync(job);
+
+        //    if (!string.IsNullOrEmpty(previousBatchId)) ;
+        //    {
+        //        var expiryResult = await _fileShareReadWriteClient.SetExpiryDateAsync(
+        //            job.BatchId,
+        //            new BatchExpiryModel { ExpiryDate = DateTime.UtcNow },
+        //            job.CorrelationId,
+        //            CancellationToken.None);
+
+        //        if (expiryResult.IsFailure(out var expiryError, out _))
+        //        {
+        //            job.State = ExchangeSetJobState.Failed;
+        //            return false;
+        //        }
+
+        //        return true;
+        //    }
+
+        //    return true;
+        //}
+
+        //private async Task<string?> GetPreviousBatchIdAsync(ExchangeSetJob job)
+        //{
+        //    var key = job.DataStandard.ToString().ToLowerInvariant();
+        //    var result = await _timestampTable.GetAsync(key, key);
+
+        //    return result.IsSuccess(out var timestampEntity) ? timestampEntity.BatchId : string.Empty;
+        //}
+
+        public async Task<List<BatchDetails>> GetAllBatchesExceptCurrentAsync(
+            string currentBatchId,
+            string correlationId,
+            IFileShareReadOnlyClient readOnlyClient)
         {
-            var previousBatchId = await GetPreviousBatchIdAsync(job);
+            var filter =
+                $"BusinessUnit eq 'ADDS-S100' and " +
+                $"$batch(ProductType) eq 'S-100' and " +
+                $"$batch(BatchId) ne '{currentBatchId}'";
 
-            if (!string.IsNullOrEmpty(previousBatchId)) ;
+            var limit = 100;
+            var start = 0;
+            var allBatches = new List<BatchDetails>();
+
+            while (true)
             {
-                var expiryResult = await _fileShareReadWriteClient.SetExpiryDateAsync(
-                    job.BatchId,
-                    new BatchExpiryModel { ExpiryDate = DateTime.UtcNow },
-                    job.CorrelationId,
-                    CancellationToken.None);
-
-                if (expiryResult.IsFailure(out var expiryError, out _))
+                var searchResult = await readOnlyClient.SearchAsync(filter, limit, start, correlationId);
+                if (!searchResult.IsSuccess(out var value, out var error))
                 {
-                    job.State = ExchangeSetJobState.Failed;
-                    return false;
+                    // Handle error as needed
+                    break;
                 }
 
-                return true;
+                if (value.Entries != null)
+                    allBatches.AddRange(value.Entries);
+
+                var next = value.Links?.Next?.Href;
+                if (string.IsNullOrEmpty(next)) break;
+
+                var queryParams = System.Web.HttpUtility.ParseQueryString(new Uri(next).Query);
+                start = int.TryParse(queryParams["start"], out var s) ? s : start + limit;
             }
 
-            return true;
+            return allBatches;
         }
 
-        private async Task<string?> GetPreviousBatchIdAsync(ExchangeSetJob job)
-        {
-            var key = job.DataStandard.ToString().ToLowerInvariant();
-            var result = await _timestampTable.GetAsync(key, key);
-
-            return result.IsSuccess(out var timestampEntity) ? timestampEntity.BatchId : string.Empty;
-        }
     }
 }

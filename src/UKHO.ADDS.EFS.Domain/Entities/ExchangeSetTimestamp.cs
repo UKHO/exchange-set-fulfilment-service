@@ -7,7 +7,5 @@ namespace UKHO.ADDS.EFS.Entities
         public ExchangeSetDataStandard DataStandard { get; set; } = ExchangeSetDataStandard.S100;
 
         public DateTime? Timestamp { get; set; }
-
-        public string? BatchId { get; set; }
     }
 }
