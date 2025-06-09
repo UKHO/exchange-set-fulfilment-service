@@ -166,7 +166,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 BusinessUnit = BusinessUnit,
                 ProductType = ProductType,
                 Query = searchQuery,
-                Error = string.IsNullOrEmpty(error?.Message) ? string.Empty : error.Message,
+                Error = error
             };
 
             _logger.LogProductSearchNodeFssSearchFailed(batchSearchProductsLogVeiw);

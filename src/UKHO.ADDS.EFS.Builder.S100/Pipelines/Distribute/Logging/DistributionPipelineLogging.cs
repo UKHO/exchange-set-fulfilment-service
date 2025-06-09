@@ -1,4 +1,5 @@
 ﻿using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
+using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute.Logging
 {
@@ -10,6 +11,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute.Logging
         private const int FileShareAddFileToBatchErrorId = BaseEventId + 3;
         private const int ExtractExchangeSetNodeFailedId = BaseEventId + 4;
         private const int UploadFilesNotFoundId = BaseEventId + 5;
+        private const int IICExtractExchangeSetErrorId = BaseEventId + 6;
 
         // The distribution pipeline failed
         public static readonly EventId DistributionPipelineFailed = new(DistributionPipelineFailedId, nameof(DistributionPipelineFailed));
@@ -40,7 +42,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute.Logging
 
         [LoggerMessage(UploadFilesNotFoundId, LogLevel.Error, "UploadFilesNotFound failed: File not found at given path. | {@fileNotFoundLogView}", EventName = nameof(UploadFilesNotFound))]
         public static partial void LogUploadFilesNotFound(this ILogger logger, FileNotFoundLogView fileNotFoundLogView);
+        
+        // The IIC Extract ExchangeSet Failed Log
+        public static readonly EventId IICExtractExchangeSetError = new (IICExtractExchangeSetErrorId, nameof(IICExtractExchangeSetError));
 
+        [LoggerMessage(IICExtractExchangeSetErrorId, LogLevel.Error, "ExtractExchangeSetNode IIC ExtractExchangeSet failed: {@error}", EventName = nameof(IICExtractExchangeSetError))]
+        public static partial void LogIICExtractExchangeSetError(this ILogger logger,IError error);
 
     }
 }

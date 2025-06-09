@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Json;
@@ -11,6 +12,7 @@ using UKHO.ADDS.EFS.Extensions;
 
 namespace UKHO.ADDS.EFS.Builder.S100
 {
+    [ExcludeFromCodeCoverage]
     internal static class InjectionExtensions
     {
         public static IServiceCollection AddS100BuilderServices(this IServiceCollection services, IConfiguration configuration)

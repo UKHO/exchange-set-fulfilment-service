@@ -186,7 +186,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 BatchId = batch.BatchId,
                 FileName = fileName,
                 CorrelationId = correlationId,
-                Error = string.IsNullOrEmpty(error?.Message) ? string.Empty : error.Message
+                Error = error
             };
 
             _logger.LogDownloadFilesNodeFssDownloadFailed(downloadFilesLogView);
