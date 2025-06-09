@@ -123,57 +123,11 @@ stages:
           scriptType: pscore
           scriptLocation: inlineScript
           keepAzSessionActive: true
-          ${{ if eq(parameters.AzdDebug, true) }}:
-            inlineScript: |
-              azd provision --no-prompt --debug
-          ${{ else }}:
-            inlineScript: |
-              azd provision --no-prompt
+          inlineScript: |
+            dotnet publish $(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.Orchestrator/UKHO.ADDS.EFS.Orchestrator.csproj -r linux-x64 -c Release /t:PublishContainer -p:ContainerRepository=exchange-set-fulfilment-service/efs-orchestrator-dev -p:ContainerImageTag=azd-deploy-1749467082 -p:ContainerRegistry=acrxaj2x3kjawory.azurecr.io --getProperty:GeneratedContainerConfiguration
         env:
           AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
           AZURE_ENV_NAME: $(AZURE_ENV_NAME)
           AZURE_LOCATION: $(AZURE_LOCATION)
           #AZD_INITIAL_ENVIRONMENT_CONFIG: $(AZD_INITIAL_ENVIRONMENT_CONFIG)
           #MSBUILDDEBUGENGINE: 1
-
-      - task: AzureCLI@2
-        displayName: Deploy application
-        inputs:
-          azureSubscription: Aspire-Test
-          #azureSubscription: Exchange-Set-Service-Dev-A-008-02
-          scriptType: pscore
-          scriptLocation: inlineScript
-          keepAzSessionActive: true
-          ${{ if eq(parameters.AzdDebug, true) }}:
-            inlineScript: |
-              azd deploy --no-prompt --debug
-          ${{ else }}:
-            inlineScript: |
-              azd deploy --no-prompt
-        env:
-          AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-          AZURE_ENV_NAME: $(AZURE_ENV_NAME)
-          AZURE_LOCATION: $(AZURE_LOCATION)
-          AZD_DEBUG_DOTNET_APPHOST_USE_FIXED_MANIFEST: true
-          #MSBUILDDEBUGENGINE: 1
-          #MSBUILDDEBUGPATH: '$(Build.SourcesDirectory)/msbuilddebug'
-
-      # - task: CopyFiles@2
-      #   displayName: Copy binlogs
-      #   condition: always()
-      #   inputs:
-      #     contents: '**/*.binlog'
-      #     targetFolder: '$(Build.ArtifactStagingDirectory)/logs'
-
-      # - publish: '$(Build.ArtifactStagingDirectory)/logs'
-      #   condition: always()
-      #   displayName: Publish MSBuild logs
-      #   artifact: 'MSBuild $(system.JobId)'
-
-      # - task: PublishPipelineArtifact@1
-      #   displayName: Publish data
-      #   condition: always()
-      #   inputs:
-      #     targetPath: '$(Build.SourcesDirectory)'
-      #     artifact: 'Data $(system.JobId)'
-      #     publishLocation: 'pipeline'
