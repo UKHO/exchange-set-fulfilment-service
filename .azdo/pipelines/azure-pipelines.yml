@@ -124,7 +124,7 @@ stages:
           scriptLocation: inlineScript
           keepAzSessionActive: true
           inlineScript: |
-            dotnet publish $(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.Orchestrator/UKHO.ADDS.EFS.Orchestrator.csproj -r linux-x64 -c Release /t:PublishContainer -p:ContainerRepository=exchange-set-fulfilment-service/efs-orchestrator-dev -p:ContainerImageTag=azd-deploy-1749467082 -p:ContainerRegistry=acrxaj2x3kjawory.azurecr.io --getProperty:GeneratedContainerConfiguration
+            dotnet publish $(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.Orchestrator/UKHO.ADDS.EFS.Orchestrator.csproj -r linux-x64 -c Release /t:PublishContainer -p:ContainerRepository=exchange-set-fulfilment-service/efs-orchestrator-dev -p:ContainerImageTag=azd-deploy-1749467082 -p:ContainerRegistry=acrxaj2x3kjawory --getProperty:GeneratedContainerConfiguration
         env:
           AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
           AZURE_ENV_NAME: $(AZURE_ENV_NAME)
