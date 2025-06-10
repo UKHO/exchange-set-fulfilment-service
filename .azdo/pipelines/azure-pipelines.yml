@@ -51,15 +51,6 @@ stages:
 
     - ${{ if eq(parameters.DestroyResources, true) }}:
 
-      - task: Docker@2
-        displayName: Build and push Docker image
-        inputs:
-          command: buildAndPush
-          containerRegistry: Exchange-Set-Service-Dev-A-008-02
-          repository: $(BuilderAcrName).azurecr.io/efs-builder-s100
-          dockerfile: $(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.Builder.S100/Dockerfile
-          tags: efs-builder-s100
-
       - task: AzureCLI@2
         displayName: Destroy infrastructure
         inputs:
@@ -81,6 +72,15 @@ stages:
           #MSBUILDDEBUGENGINE: 1
 
     - ${{ else }}:
+
+      - task: Docker@2
+        displayName: Build and push Docker image
+        inputs:
+          command: buildAndPush
+          containerRegistry: Exchange-Set-Service-Dev-A-008-02
+          repository: $(BuilderAcrName).azurecr.io/efs-builder-s100
+          dockerfile: $(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.Builder.S100/Dockerfile
+          tags: efs-builder-s100
 
       # - task: AzureCLI@2
       #   displayName: Infrastructure and deploy
