@@ -95,31 +95,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             {
                 if (await CommitBatchAsync(job))
                 {
-                    // Example usage of GetAllBatchesExceptCurrentAsync
-                    // You need to provide the currentBatchId, correlationId, and a readOnlyClient instance
-                    // Replace the following placeholders with actual values as needed
-                    var currentBatchId = job.BatchId;
-                    var correlationId = job.CorrelationId;
-
-                    var otherBatches = await GetAllBatchesExceptCurrentAsync(currentBatchId, correlationId, _fileShareReadWriteClient);
-
-                    foreach (var batch in otherBatches)
-                    {
-                        if (!string.IsNullOrEmpty(batch.BatchId))
-                        {
-                            var expiryResult = await _fileShareReadWriteClient.SetExpiryDateAsync(
-                                batch.BatchId,
-                                new BatchExpiryModel { ExpiryDate = DateTime.UtcNow },
-                                job.CorrelationId,
-                                CancellationToken.None);
-
-                            if (expiryResult.IsFailure(out var expiryError, out _))
-                            {
-                               // _logger.LogError($"Failed to set expiry date for batch {batch.BatchId}: {expiryError}");
-                                // Optionally handle the error as needed
-                            }
-                        }
-                    }
+                    await SetExpiryDateAsync(job);
                     job.State = ExchangeSetJobState.Succeeded;
                 }
             }
@@ -247,6 +223,33 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
             return allBatches;
         }
+        private async Task SetExpiryDateAsync(ExchangeSetJob job)
+        {
+            // Example usage of GetAllBatchesExceptCurrentAsync
+            // You need to provide the currentBatchId, correlationId, and a readOnlyClient instance
+            // Replace the following placeholders with actual values as needed
+            var currentBatchId = job.BatchId;
+            var correlationId = job.CorrelationId;
 
+            var otherBatches = await GetAllBatchesExceptCurrentAsync(currentBatchId, correlationId, _fileShareReadWriteClient);
+
+            foreach (var batch in otherBatches)
+            {
+                if (!string.IsNullOrEmpty(batch.BatchId))
+                {
+                    var expiryResult = await _fileShareReadWriteClient.SetExpiryDateAsync(
+                        batch.BatchId,
+                        new BatchExpiryModel { ExpiryDate = DateTime.UtcNow },
+                        job.CorrelationId,
+                        CancellationToken.None);
+
+                    if (expiryResult.IsFailure(out var expiryError, out _))
+                    {
+                        // _logger.LogError($"Failed to set expiry date for batch {batch.BatchId}: {expiryError}");
+                        // Optionally handle the error as needed
+                    }
+                }
+            }
+        }
     }
 }
