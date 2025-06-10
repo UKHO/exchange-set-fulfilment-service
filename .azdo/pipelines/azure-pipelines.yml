@@ -6,7 +6,7 @@ parameters:
 - name: AzdDebug
   displayName: "Debug azd"
   type: boolean
-  default: true
+  default: false
 
 trigger:
 - main
@@ -100,8 +100,8 @@ stages:
           scriptType: bash
           scriptLocation: inlineScript
           inlineScript: |
-            az storage blob download --account-name $(StorageAccountName) --container-name $(StorageContainerName) --name root2.tar.gz --file $(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.Builder.S100/root2.tar.gz --auth-mode login
-            az storage blob download --account-name $(StorageAccountName) --container-name $(StorageContainerName) --name xchg-2.7.war --file $(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.Builder.S100/xchg-2.7.war --auth-mode login
+            az storage blob download --account-name $StorageAccountName --container-name $StorageContainerName --name root2.tar.gz --file $(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.Builder.S100/root2.tar.gz --auth-mode login
+            az storage blob download --account-name $StorageAccountName --container-name $StorageContainerName --name xchg-2.7.war --file $(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.Builder.S100/xchg-2.7.war --auth-mode login
         env:
           StorageAccountName: $(BuilderFilesSa)
           StorageContainerName: $(BuilderFilesContainer)
