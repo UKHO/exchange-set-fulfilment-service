@@ -100,11 +100,12 @@ stages:
           scriptType: bash
           scriptLocation: inlineScript
           inlineScript: |
-            az storage blob download --account-name $StorageAccountName --container-name $StorageContainerName --name root2.tar.gz --file $(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.Builder.S100/root2.tar.gz --auth-mode login
-            az storage blob download --account-name $StorageAccountName --container-name $StorageContainerName --name xchg-2.7.war --file $(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.Builder.S100/xchg-2.7.war --auth-mode login
+            az storage blob download --container-name $StorageContainerName --name root2.tar.gz --file $(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.Builder.S100/root2.tar.gz --auth-mode key
+            az storage blob download --container-name $StorageContainerName --name xchg-2.7.war --file $(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.Builder.S100/xchg-2.7.war --auth-mode key
         env:
-          StorageAccountName: $(BuilderFilesSa)
+          AZURE_STORAGE_ACCOUNT: $(BuilderFilesSa)
           StorageContainerName: $(BuilderFilesContainer)
+          AZURE_STORAGE_KEY: $(BuilderFilesSaKey)
 
       - task: AzureCLI@2
         displayName: Build and push Docker image to ACR
