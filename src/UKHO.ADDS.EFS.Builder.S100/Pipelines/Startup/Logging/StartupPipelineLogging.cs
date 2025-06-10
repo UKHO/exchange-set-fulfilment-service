@@ -43,7 +43,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging
         // Tomcat message
         public static readonly EventId TomcatMessage = new(TomcatMessageId, nameof(TomcatMessage));
 
-        [LoggerMessage(TomcatMessageId, LogLevel.Debug, "Tomcat: {@message}", EventName = nameof(TomcatMessage))]
+        [LoggerMessage(TomcatMessageId, LogLevel.Information, "Tomcat: {@message}", EventName = nameof(TomcatMessage))]
         public static partial void LogTomcatMessage(this ILogger logger, [LogProperties] TomcatLogView message);
     }
 }
