@@ -97,9 +97,9 @@ stages:
 
             # Push the Docker image
             docker push $ACR_NAME.azurecr.io/efs-builder-s100:${BUILD_TAG}
-          env:
-            ACR_NAME: $(BuilderAcrName)         # Set this variable in your pipeline or variable group
-            BUILD_TAG: $(Build.BuildId)         # Or any tag you prefer
+        env:
+          ACR_NAME: $(BuilderAcrName)         # Set this variable in your pipeline or variable group
+          BUILD_TAG: $(Build.BuildId)         # Or any tag you prefer
 
       # - task: AzureCLI@2
       #   displayName: Infrastructure and deploy
