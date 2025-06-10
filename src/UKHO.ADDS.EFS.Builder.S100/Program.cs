@@ -1,4 +1,5 @@
-﻿using Serilog;
+﻿using System.Diagnostics.CodeAnalysis;
+using Serilog;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Create.Logging;
@@ -10,6 +11,7 @@ using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace UKHO.ADDS.EFS.Builder.S100
 {
+    [ExcludeFromCodeCoverage]
     internal class Program
     {
         private static async Task<int> Main(string[] args)
