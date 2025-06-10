@@ -9,7 +9,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
     {
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
         {
-
             var logger = context.Subject.LoggerFactory.CreateLogger<StartTomcatNode>();
             var catalinaHome = Environment.GetEnvironmentVariable("CATALINA_HOME");
 
@@ -28,7 +27,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
             };
 
             // Tomcat writes logs to stderr
-
             process.OutputDataReceived += (sender, args) => logger.LogTomcatMessage(new TomcatLogView() { TomcatMessage = args.Data! });
             process.ErrorDataReceived += (sender, args) => logger.LogTomcatMessage(new TomcatLogView() { TomcatMessage = args.Data! });
 
@@ -36,27 +34,23 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
 
-            // Wait for Tomcat to respond on port 8080
-            using var httpClient = new HttpClient();
+            // Wait for Tomcat to respond by using the ToolClient's PingAsync method
+            var toolClient = context.Subject.ToolClient;
             var ready = false;
 
-            for (var i = 0; i < 30; i++) // TODO configure this from orchestrator ~30s timeout
+            const int maxRetries = 30; // TODO: consider getting this from configuration
+            const int retryDelayMs = 1000;
+
+            for (var i = 0; i < maxRetries; i++)
             {
-                try
+                var pingResult = await toolClient.PingAsync();
+                if (pingResult.IsSuccess())
                 {
-                    var response = await httpClient.GetAsync("http://localhost:8080/xchg-2.7/v2.7/dev?arg=test&authkey=noauth");
-                    if (response.IsSuccessStatusCode)
-                    {
-                        ready = true;
-                        break;
-                    }
-                }
-                catch
-                {
-                    // Ignore and retry
+                    ready = true;
+                    break;
                 }
 
-                await Task.Delay(1000);
+                await Task.Delay(retryDelayMs);
             }
 
             if (!ready)

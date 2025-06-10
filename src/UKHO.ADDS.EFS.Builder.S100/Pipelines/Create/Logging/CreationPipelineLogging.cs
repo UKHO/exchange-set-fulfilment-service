@@ -1,7 +1,9 @@
-﻿using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
+﻿using System.Diagnostics.CodeAnalysis;
+using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create.Logging
 {
+    [ExcludeFromCodeCoverage]
     internal static partial class CreationPipelineLogging
     {
         private const int BaseEventId = 3000;

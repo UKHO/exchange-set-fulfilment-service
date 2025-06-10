@@ -1,8 +1,10 @@
-﻿using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
+﻿using System.Diagnostics.CodeAnalysis;
+using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
 {
+    [ExcludeFromCodeCoverage]
     internal static partial class AssemblyPipelineLogging
     {
         private const int BaseEventId = 2000;
@@ -32,8 +34,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
         //The Product Search node failed
         public static readonly EventId ProductSearchNodeFailed = new(ProductSearchNodeFailedId, nameof(ProductSearchNodeFailed));
 
-        [LoggerMessage(ProductSearchNodeFailedId, LogLevel.Error, "ProductSearchNode failed: {@errorMessage}", EventName = nameof(ProductSearchNodeFailed))]
-        public static partial void LogProductSearchNodeFailed(this ILogger logger, string errorMessage);
+        [LoggerMessage(ProductSearchNodeFailedId, LogLevel.Error, "ProductSearchNode failed: {@exception}", EventName = nameof(ProductSearchNodeFailed))]
+        public static partial void LogProductSearchNodeFailed(this ILogger logger, Exception exception);
 
         //The Product Search node FSS Search failed
         public static readonly EventId ProductSearchNodeFssSearchFailed = new(ProductSearchNodeFssSearchFailedId, nameof(ProductSearchNodeFssSearchFailed));

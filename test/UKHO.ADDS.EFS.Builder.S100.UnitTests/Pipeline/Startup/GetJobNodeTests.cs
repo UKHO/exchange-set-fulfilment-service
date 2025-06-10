@@ -47,7 +47,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
         [Test]
         public async Task WhenPerformExecuteAsyncWithValidDebugJob_ThenSetsJobAndReturnsSucceeded()
         {
-            // Arrange
             var debugJob = new ExchangeSetJob
             {
                 Id = "debug-id",
@@ -82,12 +81,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
 
             _node = new GetJobNode();
 
-            // Act
             var result = await _node.ExecuteAsync(_context);
 
             Assert.Multiple(() =>
             {
-                // Assert
                 Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
                 Assert.That(_subject.Job, Is.Not.Null);
                 Assert.That(_subject.JobId, Is.EqualTo(_subject.Job.Id));
@@ -99,9 +96,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
         }
 
         [Test]
-        public async Task WhenPerformExecuteAsyncWithNullDebugJob_ThenUsesDefaultValuesAndReturnsSucceede()
+        public async Task WhenPerformExecuteAsyncWithNullDebugJob_ThenUsesDefaultValuesAndReturnsSucceeded()
         {
-            // Arrange
             _configuration = new ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string, string>()!)
                 .Build();
@@ -116,12 +112,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
 
             _node = new GetJobNode();
 
-            // Act
             var result = await _node.ExecuteAsync(_context);
 
             Assert.Multiple(() =>
             {
-                // Assert
                 Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
                 Assert.That(_subject.Job, Is.Not.Null);
                 Assert.That(_subject.JobId, Is.EqualTo(_subject.Job.Id));
@@ -132,7 +126,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
                 Assert.That(_subject.Job.State, Is.EqualTo(ExchangeSetJobState.InProgress));
                 Assert.That(_subject.Job.Products, Is.Not.Null);
             });
-            Assert.That(_subject.Job.Products, Is.Not.Empty);
+            Assert.That(_subject.Job.Products.Count, Is.EqualTo(9));
+            foreach (var product in _subject.Job.Products)
+            {
+                Assert.That(product.ProductName, Is.Not.Empty);
+                Assert.That(product.Status!.StatusName, Is.Not.Empty);
+                Assert.That(product.Status.StatusDate, Is.LessThan(DateTime.UtcNow));
+            }
             A.CallTo(() => _nodeStatusWriter.WriteDebugExchangeSetJob(A<ExchangeSetJob>._, A<string>._)).MustHaveHappened();
         }
 
@@ -161,6 +161,5 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
                 .AddInMemoryCollection(inMemorySettings!)
                 .Build();
         }
-
     }
 }

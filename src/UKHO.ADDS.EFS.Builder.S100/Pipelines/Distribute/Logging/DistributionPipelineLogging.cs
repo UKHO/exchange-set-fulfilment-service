@@ -1,8 +1,10 @@
-﻿using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
+﻿using System.Diagnostics.CodeAnalysis;
+using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute.Logging
 {
+    [ExcludeFromCodeCoverage]
     internal static partial class DistributionPipelineLogging
     {
         private const int BaseEventId = 4000;

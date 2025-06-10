@@ -14,151 +14,116 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
     [TestFixture]
     public class CheckEndpointsNodeTests
     {
-        private CheckEndpointsNode _node;
+        private IHttpClientFactory _fakeHttpClientFactory;
+        private MockHttpMessageHandler _mockHttpMessageHandler;
+        private CheckEndpointsNode _checkEndpointsNode;
         private IExecutionContext<ExchangeSetPipelineContext> _context;
-        private ExchangeSetPipelineContext _pipelineContext;
         private IToolClient _toolClient;
         private INodeStatusWriter _nodeStatusWriter;
         private ILoggerFactory _loggerFactory;
-        private HttpMessageHandler _httpMessageHandler;
 
         [SetUp]
         public void SetUp()
         {
-            // Mock dependencies
             _toolClient = A.Fake<IToolClient>();
             _nodeStatusWriter = A.Fake<INodeStatusWriter>();
             _loggerFactory = A.Fake<ILoggerFactory>();
-            var fakeHttpHandler = new FakeDelegatingHandler
-            {
-                SendAsyncFunc = request =>
-                {
-                    // Mock specific endpoint behavior
-                    if (request.RequestUri.AbsolutePath == "/health")
-                    {
-                        return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
-                    }
+            _fakeHttpClientFactory = A.Fake<IHttpClientFactory>();
+            _mockHttpMessageHandler = new MockHttpMessageHandler();
 
-                    return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound));
-                }
-            };
+            var fakeHttpClient = new HttpClient(_mockHttpMessageHandler);
+            A.CallTo(() => _fakeHttpClientFactory.CreateClient(A<string>._)).Returns(fakeHttpClient);
 
-            var httpClient = new HttpClient(fakeHttpHandler)
-            {
-                BaseAddress = new Uri("http://localhost/")
-            };
-            
+            _context = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
 
             var configuration = A.Fake<Microsoft.Extensions.Configuration.IConfiguration>();
-
-            _pipelineContext = new ExchangeSetPipelineContext(
+            var pipelineContext = new ExchangeSetPipelineContext(
                 configuration,
                 _nodeStatusWriter,
                 _toolClient,
                 _loggerFactory
             )
             {
-                FileShareEndpoint = "http://localhost/",
+                FileShareEndpoint = "https://test-endpoint/",
                 WorkspaceAuthenticationKey = "fake-key"
             };
+            
+            A.CallTo(() => _context.Subject).Returns(pipelineContext);
 
-            _context = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
-            A.CallTo(() => _context.Subject).Returns(_pipelineContext);
-
-            _node = new CheckEndpointsNode();
-        }
-
-        [TearDown]
-        public void OneTimeTearDown()
-        {
-            _loggerFactory?.Dispose();
-        }
-
-        //[Test]
-        //public async Task PerformExecuteAsync_WhenAllChecksPass_ReturnsSucceeded()
-        //{
-        //    // Arrange
-        //    var pingResult = A.Fake<IResult<bool>>();
-        //    var pingSuccess = true;
-        //    A.CallTo(() => pingResult.IsSuccess(out pingSuccess)).Returns(true);
-        //    A.CallTo(() => _toolClient.PingAsync()).Returns(Task.FromResult(pingResult));
-        //    var listResult = A.Fake<IResult<string>>();
-        //    string workspaceSuccess = "Workspace";
-        //    A.CallTo(() => listResult.IsSuccess(out workspaceSuccess)).Returns(false);
-        //    A.CallTo(() => _toolClient.ListWorkspaceAsync(A<string>._)).Returns(Task.FromResult(listResult));
-
-        //    //// Correctly configure the behavior of the HttpMessageHandler's SendAsync method
-        //    //A.CallTo(() => _httpMessageHandler.SendAsync(A<HttpRequestMessage>._, A<CancellationToken>._))
-        //    //    .ReturnsLazily((HttpRequestMessage request, CancellationToken token) =>
-        //    //    {
-        //    //        return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
-        //    //    });
-
-        //    // Act
-        //    var result = await _node.ExecuteAsync(_context);
-
-        //    // Assert
-        //    Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-        //}
-
-        [Test]
-        public async Task WhenPerformExecuteAsyncPingFails_ThenReturnsFailed()
-        {
-            var fakeResult = A.Fake<IResult<bool>>();
-            var pingSuccess = false;
-            A.CallTo(() => fakeResult.IsSuccess(out pingSuccess)).Returns(false);
-            A.CallTo(() => _toolClient.PingAsync()).Returns(Task.FromResult(fakeResult));
-
-            var result = await _node.ExecuteAsync(_context);
-
-            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
+            _checkEndpointsNode = new CheckEndpointsNode(_fakeHttpClientFactory);
         }
 
         [Test]
-        public async Task WhenPerformExecuteAsyncListWorkspaceFails_ThenReturnsFailed()
+        public async Task WhenPerformExecuteAsyncAllEndpointsAreSuccessful_ThenReturnSucceeded()
         {
-            // Arrange
             var pingResult = A.Fake<IResult<bool>>();
             var pingSuccess = true;
             A.CallTo(() => pingResult.IsSuccess(out pingSuccess)).Returns(true);
             A.CallTo(() => _toolClient.PingAsync()).Returns(Task.FromResult(pingResult));
 
             var listResult = A.Fake<IResult<string>>();
-            string workspaceSuccess = null;
+            var workspaceSuccess = "Workspace";
+            A.CallTo(() => listResult.IsSuccess(out workspaceSuccess)).Returns(true);
             A.CallTo(() => _toolClient.ListWorkspaceAsync(A<string>._)).Returns(Task.FromResult(listResult));
 
-            // Act
-            var result = await _node.ExecuteAsync(_context);
+            _mockHttpMessageHandler.SetResponse("https://test-endpoint/health", HttpStatusCode.OK);
 
-            // Assert
-            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
+            var result = await _checkEndpointsNode.ExecuteAsync(_context);
+
+            Assert.That(result.Status,Is.EqualTo(NodeResultStatus.Succeeded));
         }
 
-        //[Test]
-        //public async Task PerformExecuteAsync_WhenCheckEndpointFails_ThrowsException()
-        //{
-        //    // Arrange
-        //    A.CallTo(() => _toolClient.PingAsync())
-        //        .Returns(Task.FromResult(Result<bool>.Success(true)));
+        [Test]
+        public async Task WhenPerformExecuteAsyncPingFails_ThenReturnFailed()
+        {
+            var pingResult = A.Fake<IResult<bool>>();
+            var pingSuccess = false;
+            A.CallTo(() => pingResult.IsSuccess(out pingSuccess)).Returns(false);
+            A.CallTo(() => _toolClient.PingAsync()).Returns(Task.FromResult(pingResult));
 
-        //    A.CallTo(() => _toolClient.ListWorkspaceAsync(A<string>._))
-        //        .Returns(Task.FromResult(Result<string>.Success("Workspace")));
+            var result = await _checkEndpointsNode.ExecuteAsync(_context);
 
-        //    A.CallTo(() => _httpMessageHandler.SendAsync(A<HttpRequestMessage>._, A<CancellationToken>._))
-        //        .Throws<HttpRequestException>();
+            Assert.That(result.Status,Is.EqualTo(NodeResultStatus.Failed));
+        }
 
-        //    // Act & Assert
-        //    Assert.ThrowsAsync<HttpRequestException>(async () => await _node.ExecuteAsync(_context));
-        //}
+        [Test]
+        public async Task WhenPerformExecuteAsyncListWorkspaceFails_ThenReturnFailed()
+        {
+            var listResult = A.Fake<IResult<string>>();
+            var workspaceSuccess = "Workspace";
+            A.CallTo(() => listResult.IsSuccess(out workspaceSuccess)).Returns(false);
+            A.CallTo(() => _toolClient.ListWorkspaceAsync(A<string>._)).Returns(Task.FromResult(listResult));
+
+            var result = await _checkEndpointsNode.ExecuteAsync(_context);
+
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
+        }
+        [TearDown]
+        public void TearDown()
+        {
+            _mockHttpMessageHandler?.Dispose();
+            _loggerFactory?.Dispose();
+
+        }
     }
 
-    public class FakeDelegatingHandler : DelegatingHandler
+    public class MockHttpMessageHandler : HttpMessageHandler
     {
-        public Func<HttpRequestMessage, Task<HttpResponseMessage>> SendAsyncFunc { get; set; }
+        private readonly Dictionary<string, HttpResponseMessage> _responses = new();
+
+        public void SetResponse(string uri, HttpStatusCode statusCode)
+        {
+            _responses[uri] = new HttpResponseMessage(statusCode) { RequestMessage = new HttpRequestMessage(HttpMethod.Get, uri) };
+        }
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            return SendAsyncFunc?.Invoke(request) ?? Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+            if (_responses.TryGetValue(request.RequestUri.ToString(), out var response))
+            {
+                return Task.FromResult(response);
+            }
+
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound));
         }
     }
 }
