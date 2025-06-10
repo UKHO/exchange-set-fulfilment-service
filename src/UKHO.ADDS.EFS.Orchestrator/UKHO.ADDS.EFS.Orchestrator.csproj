@@ -6,12 +6,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
-  <!--<ItemGroup>
+  <ItemGroup>
     <Compile Remove="Services\Tables\**" />
     <Content Remove="Services\Tables\**" />
     <EmbeddedResource Remove="Services\Tables\**" />
     <None Remove="Services\Tables\**" />
-  </ItemGroup>-->
+  </ItemGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="UKHO.ADDS.EFS.Orchestrator.UnitTests" />
