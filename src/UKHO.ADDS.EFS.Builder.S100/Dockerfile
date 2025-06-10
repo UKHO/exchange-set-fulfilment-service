@@ -184,7 +184,6 @@ ARG BUILD_CONFIGURATION=Debug
 WORKDIR /dotnet
 
 # Copy and restore projects
-COPY ["Directory.Build.props", "."]
 COPY ["UKHO.ADDS.EFS.Builder.S100/UKHO.ADDS.EFS.Builder.S100.csproj", "UKHO.ADDS.EFS.Builder.S100/"]
 COPY ["UKHO.ADDS.EFS.Domain/UKHO.ADDS.EFS.Domain.csproj", "UKHO.ADDS.EFS.Domain/"]
 RUN dotnet restore UKHO.ADDS.EFS.Builder.S100/UKHO.ADDS.EFS.Builder.S100.csproj

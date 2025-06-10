@@ -49,16 +49,16 @@ stages:
         version: '9.x'
       displayName: Set up .NET 9
 
-    - task: DotNetCoreCLI@2
-      displayName: NuGet restore for non test projects only
-      inputs:
-        command: restore
-        projects: '**/*.csproj'
-        feedsToUse: config
-        noCache: true
-        nugetConfigPath: '$(Build.SourcesDirectory)/BuildNuget.config'
-        workingDirectory: '$(Build.SourcesDirectory)/src'
-        packagesDirectory: '$(Build.SourcesDirectory)/src/packages'
+    # - task: DotNetCoreCLI@2
+    #   displayName: NuGet restore for non test projects only
+    #   inputs:
+    #     command: restore
+    #     projects: '**/*.csproj'
+    #     feedsToUse: config
+    #     noCache: true
+    #     nugetConfigPath: '$(Build.SourcesDirectory)/BuildNuget.config'
+    #     workingDirectory: '$(Build.SourcesDirectory)/src'
+    #     packagesDirectory: '$(Build.SourcesDirectory)/src/packages'
 
     - ${{ if eq(parameters.DestroyResources, true) }}:
 
