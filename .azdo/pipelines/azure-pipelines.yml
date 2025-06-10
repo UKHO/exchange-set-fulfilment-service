@@ -56,9 +56,9 @@ stages:
         projects: '**/*.csproj'
         feedsToUse: config
         noCache: true
-        nugetConfigPath: '$(Build.SourcesDirectory)\BuildNuget.config'
-        workingDirectory: '$(Build.SourcesDirectory)\src'
-        packagesDirectory: '$(Build.SourcesDirectory)\src\packages'
+        nugetConfigPath: '$(Build.SourcesDirectory)/BuildNuget.config'
+        workingDirectory: '$(Build.SourcesDirectory)/src'
+        packagesDirectory: '$(Build.SourcesDirectory)/src/packages'
 
     - ${{ if eq(parameters.DestroyResources, true) }}:
 
