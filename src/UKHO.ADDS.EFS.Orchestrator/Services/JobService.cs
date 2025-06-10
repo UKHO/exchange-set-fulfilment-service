@@ -212,38 +212,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             return true;
         }
 
-        //private async Task<bool> SetExpiryDateAsync(ExchangeSetJob job)
-        //{
-        //    var previousBatchId = await GetPreviousBatchIdAsync(job);
-
-        //    if (!string.IsNullOrEmpty(previousBatchId)) ;
-        //    {
-        //        var expiryResult = await _fileShareReadWriteClient.SetExpiryDateAsync(
-        //            job.BatchId,
-        //            new BatchExpiryModel { ExpiryDate = DateTime.UtcNow },
-        //            job.CorrelationId,
-        //            CancellationToken.None);
-
-        //        if (expiryResult.IsFailure(out var expiryError, out _))
-        //        {
-        //            job.State = ExchangeSetJobState.Failed;
-        //            return false;
-        //        }
-
-        //        return true;
-        //    }
-
-        //    return true;
-        //}
-
-        //private async Task<string?> GetPreviousBatchIdAsync(ExchangeSetJob job)
-        //{
-        //    var key = job.DataStandard.ToString().ToLowerInvariant();
-        //    var result = await _timestampTable.GetAsync(key, key);
-
-        //    return result.IsSuccess(out var timestampEntity) ? timestampEntity.BatchId : string.Empty;
-        //}
-
         public async Task<List<BatchDetails>> GetAllBatchesExceptCurrentAsync(
             string currentBatchId,
             string correlationId,
