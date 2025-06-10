@@ -38,10 +38,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
         public ExchangeSetJob Job { get; set; }
         public IEnumerable<BatchDetails> BatchDetails { get; set; }
         public string BatchId { get; set; }
-        public string WorkSpaceRootPath { get; set; } = @"/usr/local/tomcat/ROOT";
+        public string WorkSpaceRootPath { get; set; } = "/usr/local/tomcat/ROOT";
         public string WorkSpaceSpoolPath { get; } = "spool";
         public string WorkSpaceSpoolDataSetFilesPath { get; } = "dataSet_files";
         public string WorkSpaceSpoolSupportFilesPath { get; } = "support_files";
-
+        public string ExchangeSetFileName { get; } = $"S100_ExchangeSet_{DateTime.UtcNow:yyyyMMdd}.zip";
+        public string ExchangeSetFilePath { get; set; } = "/usr/local/tomcat/ROOT/xchg";
+        public string ExchangeSetArchiveFolderName { get; set; } = "ExchangeSetArchive";
     }
 }
