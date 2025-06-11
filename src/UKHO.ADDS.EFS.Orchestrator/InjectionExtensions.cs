@@ -74,6 +74,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 return factory.CreateClient(fssEndpointOrchestratorHost.Value.Value, string.Empty);
             });
 
+            builder.Services.AddSingleton<ISalesCatalogueService, SalesCatalogueService>();
             builder.Services.AddSingleton<IFileShareService, FileShareService>();
 
             return builder;

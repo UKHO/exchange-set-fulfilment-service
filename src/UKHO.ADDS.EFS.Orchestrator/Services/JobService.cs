@@ -1,6 +1,5 @@
 ﻿using System.Net;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
-using UKHO.ADDS.Clients.SalesCatalogueService;
 using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Entities;
@@ -16,15 +15,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         private const string ProductType = "s100";
         private readonly ExchangeSetJobTable _jobTable;
         private readonly ExchangeSetTimestampTable _timestampTable;
-        private readonly ISalesCatalogueClient _salesCatalogueClient;
+        private readonly ISalesCatalogueService _salesCatalogueService;
         private readonly IFileShareService _fileShareService;
         private readonly ILogger<JobService> _logger;
 
-        public JobService(ExchangeSetJobTable jobTable, ExchangeSetTimestampTable timestampTable, ISalesCatalogueClient salesCatalogueClient, ILogger<JobService> logger, IFileShareService fileShareService)
+        public JobService(ExchangeSetJobTable jobTable, ExchangeSetTimestampTable timestampTable, ISalesCatalogueService salesCatalogueService, ILogger<JobService> logger, IFileShareService fileShareService)
         {
             _jobTable = jobTable;
             _timestampTable = timestampTable;
-            _salesCatalogueClient = salesCatalogueClient;
+            _salesCatalogueService = salesCatalogueService;
             _logger = logger;
             _fileShareService = fileShareService ?? throw new ArgumentNullException(nameof(fileShareService));
         }
@@ -51,8 +50,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             switch (s100SalesCatalogueResponse.ResponseCode)
             {
                 case HttpStatusCode.OK when s100SalesCatalogueResponse.ResponseBody.Any():
-
-                //Call FSS Create Batch Return batchID
+                    
                 await CreateBatchAsync(queueMessage, job);
 
                 job.Products = s100SalesCatalogueResponse.ResponseBody;
@@ -109,25 +107,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
         private async Task<(S100SalesCatalogueResponse s100SalesCatalogueResponse, DateTime? scsTimestamp)> GetProductJson(DateTime? timestamp, ExchangeSetRequestQueueMessage message)
         {
-            var s100SalesCatalogueResult = await _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(ScsApiVersion, ProductType, timestamp, message.CorrelationId);
+            var s100SalesCatalogueResult = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(ScsApiVersion, ProductType, timestamp,
+                    message);
 
-            if (s100SalesCatalogueResult.IsSuccess(out var s100SalesCatalogueData, out var error))
-            {
-                switch (s100SalesCatalogueData.ResponseCode)
-                {
-                    case HttpStatusCode.OK:
-                        return (s100SalesCatalogueData, s100SalesCatalogueData.LastModified);
-
-                    case HttpStatusCode.NotModified:
-                        return (s100SalesCatalogueData, timestamp);
-                }
-            }
-            else
-            {
-                _logger.LogSalesCatalogueError(error, message);
-            }
-
-            return (new S100SalesCatalogueResponse(), timestamp);
+            return s100SalesCatalogueResult;
         }
 
         private Task<ExchangeSetJob> CreateJobEntity(ExchangeSetRequestQueueMessage request)
