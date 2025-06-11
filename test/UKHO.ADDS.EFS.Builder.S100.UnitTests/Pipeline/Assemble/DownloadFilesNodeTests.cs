@@ -101,8 +101,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
 
         [Test]
         public async Task WhenDownloadFileAsyncExceptionThrown_ThenReturnsFailed()
-        {
-            Exception loggedException = null;
+        {        
             var exceptionMessage = "Download file failed ";
             var batch = new BatchDetails(
                 batchId: "b1",
@@ -123,24 +122,17 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
             A.CallTo(() => _fileShareReadOnlyClient.DownloadFileAsync(A<string>._, A<string>._, A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._))
                 .Throws(new Exception(exceptionMessage));
 
-            A.CallTo(() => _logger.Log<LoggerMessageState>(
-                    LogLevel.Error,
-                    A<EventId>.That.Matches(e => e.Name == "DownloadFilesNodeFailed"),
-                    A<LoggerMessageState>._,
-                    A<Exception>._,
-                    A<Func<LoggerMessageState, Exception?, string>>._))
-                .Invokes((LogLevel level, EventId eventId, LoggerMessageState state, Exception ex, Func<LoggerMessageState, Exception?, string> formatter) =>
-                {
-                    loggedException = ex;
-                });
-
             var result = await _downloadFilesNode.ExecuteAsync(_executionContext);
 
-            Assert.Multiple(() =>
-            {
-                Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
-                Assert.That(loggedException!.Message, Does.Contain(exceptionMessage));
-            });
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
+
+            A.CallTo(() => _logger.Log<LoggerMessageState>(
+                LogLevel.Error,
+                A<EventId>.That.Matches(e => e.Name == "DownloadFilesNodeFailed"),
+                A<LoggerMessageState>._,
+                A<Exception>._,
+                A<Func<LoggerMessageState, Exception?, string>>._))
+            .MustHaveHappenedOnceExactly();
         }
 
         [Test]
@@ -162,7 +154,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
 
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
         }
-        
+
         [Test]
         public async Task WhenDownloadFileAsyncSucceeds_ThenReturnsSucceeded()
         {
@@ -238,6 +230,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
 
             var result = await _downloadFilesNode.ExecuteAsync(_executionContext);
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-        }        
+        }
     }
 }

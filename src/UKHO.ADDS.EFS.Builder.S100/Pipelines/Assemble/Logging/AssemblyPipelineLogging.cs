@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Models;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
 
@@ -35,8 +36,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
         //The Product Search node failed
         public static readonly EventId ProductSearchNodeFailed = new(ProductSearchNodeFailedId, nameof(ProductSearchNodeFailed));
 
-        [LoggerMessage(ProductSearchNodeFailedId, LogLevel.Error, "ProductSearchNode failed: {@exception}", EventName = nameof(ProductSearchNodeFailed))]
-        public static partial void LogProductSearchNodeFailed(this ILogger logger, Exception exception);
+        [LoggerMessage(ProductSearchNodeFailedId, LogLevel.Error, "ProductSearchNode failed: {@exceptionLogView}", EventName = nameof(ProductSearchNodeFailed))]
+        public static partial void LogProductSearchNodeFailed(this ILogger logger, ExceptionLogView exceptionLogView);
 
         //The Product Search node FSS Search failed
         public static readonly EventId ProductSearchNodeFssSearchFailed = new(ProductSearchNodeFssSearchFailedId, nameof(ProductSearchNodeFssSearchFailed));
@@ -47,8 +48,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
         //The Download Files Node failed
         public static readonly EventId DownloadFilesNodeFailed = new(DownloadFilesNodeFailedId, nameof(DownloadFilesNodeFailed));
 
-        [LoggerMessage(DownloadFilesNodeFailedId, LogLevel.Error, "DownloadFilesNode failed: {@exception}", EventName = nameof(DownloadFilesNodeFailed))]
-        public static partial void LogDownloadFilesNodeFailed(this ILogger logger, Exception exception);
+        [LoggerMessage(DownloadFilesNodeFailedId, LogLevel.Error, "DownloadFilesNode failed: {@exceptionLogView}", EventName = nameof(DownloadFilesNodeFailed))]
+        public static partial void LogDownloadFilesNodeFailed(this ILogger logger, ExceptionLogView exceptionLogView);
 
         //The Download Files Node failed
         public static readonly EventId DownloadFilesNodeFssDownloadFailed = new(DownloadFilesNodeFssDownloadFailedId, nameof(DownloadFilesNodeFssDownloadFailed));
