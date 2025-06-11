@@ -101,6 +101,19 @@ namespace UKHO.ADDS.EFS.Builder.S100.Infrastructure
                 );
         }
 
+        // Provides a generic retry policy for IResult<T> where error extraction and status code logic is standardized
+        public static IAsyncPolicy<IResult<T>> GetGenericResultRetryPolicy<T>(ILogger logger)
+        {
+            return GetRetryPolicy<IResult<T>>(
+                logger,
+                r =>
+                {
+                    r.IsFailure(out var error, out var _);
+                    return GetStatusCodeFromError(error);
+                }
+            );
+        }
+
         // Extracted from CreateBatchNode: Gets status code from IError metadata
         public static int? GetStatusCodeFromError(IError error)
         {
