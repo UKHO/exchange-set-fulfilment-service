@@ -1,6 +1,5 @@
 using Polly;
 using UKHO.ADDS.Infrastructure.Results; // Added for IError
-using Microsoft.Extensions.Configuration; // Needed for IConfiguration
 
 namespace UKHO.ADDS.EFS.Builder.S100.Infrastructure
 {
@@ -44,6 +43,27 @@ namespace UKHO.ADDS.EFS.Builder.S100.Infrastructure
             return (maxRetryAttempts, retryDelayMs);
         }
 
+        // Private helper for logging retry attempts
+        private static void LogRetryAttempt(
+            ILogger logger,
+            DateTimeOffset timestamp,
+            int retryAttempt,
+            int maxRetryAttempts,
+            string urlOrType,
+            string statusCode,
+            double delaySeconds)
+        {
+            HttpClientPolicyLogger.LogHttpRetryAttempt(
+                logger,
+                timestamp,
+                retryAttempt,
+                maxRetryAttempts,
+                urlOrType,
+                statusCode,
+                delaySeconds
+            );
+        }
+
         public static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy(ILogger logger)
         {
             var (maxRetryAttempts, retryDelayMs) = GetRetrySettings();
@@ -58,7 +78,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Infrastructure
                     {
                         var statusCode = outcome.Exception != null ? "Exception" : ((int)outcome.Result.StatusCode).ToString();
                         var url = outcome.Exception != null ? "N/A" : outcome.Result.RequestMessage?.RequestUri?.ToString() ?? "N/A";
-                        HttpClientPolicyLogger.LogHttpRetryAttempt(
+                        LogRetryAttempt(
                             logger,
                             DateTimeOffset.UtcNow,
                             retryAttempt,
@@ -88,7 +108,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Infrastructure
                     (outcome, timespan, retryAttempt, context) =>
                     {
                         var statusCode = getStatusCode(outcome.Result);
-                        HttpClientPolicyLogger.LogHttpRetryAttempt(
+                        LogRetryAttempt(
                             logger,
                             DateTimeOffset.UtcNow,
                             retryAttempt,

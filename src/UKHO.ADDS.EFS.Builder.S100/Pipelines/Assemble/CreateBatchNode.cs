@@ -4,7 +4,6 @@ using UKHO.ADDS.EFS.Builder.S100.Infrastructure;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
-using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 {
