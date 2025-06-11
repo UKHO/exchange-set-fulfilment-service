@@ -187,7 +187,8 @@ namespace UKHO.ADDS.EFS.Builder.S100
                 var loggerFactory = provider.GetRequiredService<Microsoft.Extensions.Logging.ILoggerFactory>();
                 var logger = loggerFactory.CreateLogger("Polly.HttpClientRetry");
                 var configuration = provider.GetRequiredService<IConfiguration>();
-                return HttpClientPolicyProvider.GetRetryPolicy(logger, configuration);
+                HttpClientPolicyProvider.SetConfiguration(configuration);
+                return HttpClientPolicyProvider.GetRetryPolicy(logger);
             });
 
             return collection.BuildServiceProvider();

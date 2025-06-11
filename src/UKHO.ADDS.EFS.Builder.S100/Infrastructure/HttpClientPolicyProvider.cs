@@ -1,4 +1,6 @@
 using Polly;
+using UKHO.ADDS.Infrastructure.Results; // Added for IError
+using Microsoft.Extensions.Configuration; // Needed for IConfiguration
 
 namespace UKHO.ADDS.EFS.Builder.S100.Infrastructure
 {
@@ -20,18 +22,31 @@ namespace UKHO.ADDS.EFS.Builder.S100.Infrastructure
         private const int MaxRetryAttempts = 3;
         private const int RetryDelayMs = 10000;
 
-        public static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy(ILogger logger, IConfiguration? configuration = null)
+        // Static configuration instance
+        private static IConfiguration? _configuration;
+        public static void SetConfiguration(IConfiguration configuration)
         {
-            // Read retry settings from configuration if available
+            _configuration = configuration;
+        }
+
+        // Helper to read retry settings from configuration or use defaults
+        private static (int maxRetryAttempts, int retryDelayMs) GetRetrySettings()
+        {
             int maxRetryAttempts = MaxRetryAttempts;
             int retryDelayMs = RetryDelayMs;
-            if (configuration != null)
+            if (_configuration != null)
             {
-                int.TryParse(configuration["HttpRetry:MaxRetryAttempts"], out maxRetryAttempts);
-                int.TryParse(configuration["HttpRetry:RetryDelayMs"], out retryDelayMs);
+                int.TryParse(_configuration["HttpRetry:MaxRetryAttempts"], out maxRetryAttempts);
+                int.TryParse(_configuration["HttpRetry:RetryDelayMs"], out retryDelayMs);
                 if (maxRetryAttempts <= 0) maxRetryAttempts = MaxRetryAttempts;
                 if (retryDelayMs <= 0) retryDelayMs = RetryDelayMs;
             }
+            return (maxRetryAttempts, retryDelayMs);
+        }
+
+        public static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy(ILogger logger)
+        {
+            var (maxRetryAttempts, retryDelayMs) = GetRetrySettings();
 
             return Policy<HttpResponseMessage>
                 .Handle<HttpRequestException>()
@@ -57,17 +72,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Infrastructure
         }
 
         // Generic retry policy for custom result types (e.g., IResult<T>)
-        public static IAsyncPolicy<T> GetRetryPolicy<T>(ILogger logger, Func<T, int?> getStatusCode, IConfiguration? configuration = null)
+        public static IAsyncPolicy<T> GetRetryPolicy<T>(ILogger logger, Func<T, int?> getStatusCode)
         {
-            int maxRetryAttempts = MaxRetryAttempts;
-            int retryDelayMs = RetryDelayMs;
-            if (configuration != null)
-            {
-                int.TryParse(configuration["HttpRetry:MaxRetryAttempts"], out maxRetryAttempts);
-                int.TryParse(configuration["HttpRetry:RetryDelayMs"], out retryDelayMs);
-                if (maxRetryAttempts <= 0) maxRetryAttempts = MaxRetryAttempts;
-                if (retryDelayMs <= 0) retryDelayMs = RetryDelayMs;
-            }
+            var (maxRetryAttempts, retryDelayMs) = GetRetrySettings();
 
             return Policy<T>
                 .HandleResult(r =>
@@ -77,7 +84,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Infrastructure
                 })
                 .WaitAndRetryAsync(
                     maxRetryAttempts,
-                    _ => TimeSpan.FromMilliseconds(RetryDelayMs),
+                    _ => TimeSpan.FromMilliseconds(retryDelayMs),
                     (outcome, timespan, retryAttempt, context) =>
                     {
                         var statusCode = getStatusCode(outcome.Result);
@@ -92,6 +99,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.Infrastructure
                         );
                     }
                 );
+        }
+
+        // Extracted from CreateBatchNode: Gets status code from IError metadata
+        public static int? GetStatusCodeFromError(IError error)
+        {
+            if (error != null && error.Metadata != null && error.Metadata.ContainsKey("StatusCode"))
+                return Convert.ToInt32(error.Metadata["StatusCode"]);
+            return null;
         }
     }
 }
