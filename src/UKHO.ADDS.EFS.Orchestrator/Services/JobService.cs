@@ -51,7 +51,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             {
                 case HttpStatusCode.OK when s100SalesCatalogueResponse.ResponseBody.Any():
                     
-                await CreateBatchAsync(queueMessage, job);
+                await CreateBatchAsync(queueMessage.CorrelationId, job);
+
+                if (job.State == ExchangeSetJobState.Failed)
+                {
+                    break;
+                }
 
                 job.Products = s100SalesCatalogueResponse.ResponseBody;
                 job.State = ExchangeSetJobState.InProgress;
@@ -60,7 +65,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                     break;
                 case HttpStatusCode.NotModified:
 
-                job.State = ExchangeSetJobState.ScsCatalogueUnchanged;
+                job.State = ExchangeSetJobState.Succeeded;
                     break;
                 default:
 
@@ -84,7 +89,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             {
                 if (await CommitBatchAsync(job))
                 {
-                    var batchDetails = await SearchAllCommitBatchesAsync(job);
+                    var batchDetails = await SearchCommittedBatchesExcludingCurrentAsync(job);
 
                     if (batchDetails != null && job.State != ExchangeSetJobState.Failed && batchDetails.Count != 0)
                     {
@@ -103,7 +108,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             await _jobTable.UpdateAsync(job);
             _logger.LogJobCompleted(ExchangeSetJobLogView.CreateFromJob(job));
         }
-
 
         private async Task<(S100SalesCatalogueResponse s100SalesCatalogueResponse, DateTime? scsTimestamp)> GetProductJson(DateTime? timestamp, ExchangeSetRequestQueueMessage message)
         {
@@ -131,9 +135,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             return Task.FromResult(job);
         }
 
-        private async Task CreateBatchAsync(ExchangeSetRequestQueueMessage queueMessage, ExchangeSetJob job)
+        private async Task CreateBatchAsync(string correlationId, ExchangeSetJob job)
         {
-            var createBatchResponseResult = await _fileShareService.CreateBatchAsync(queueMessage);
+            var createBatchResponseResult = await _fileShareService.CreateBatchAsync(correlationId);
             if (createBatchResponseResult.IsSuccess(out var value, out var error))
             {
                 job.BatchId = value.BatchId;
@@ -157,9 +161,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             return true;
         }
 
-        private async Task<List<BatchDetails>?> SearchAllCommitBatchesAsync(ExchangeSetJob job)
+        private async Task<List<BatchDetails>?> SearchCommittedBatchesExcludingCurrentAsync(ExchangeSetJob job)
         {
-            var searchResult = await _fileShareService.SearchAllCommitBatchesAsync(job.BatchId, job.CorrelationId);
+            var searchResult = await _fileShareService.SearchCommittedBatchesExcludingCurrentAsync(job.BatchId, job.CorrelationId);
 
             if (!searchResult.IsSuccess(out var value, out var error))
             {

@@ -57,7 +57,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 {
                     var job = await _jobService.CreateJob(queueMessage);
 
-                    if (job.State is ExchangeSetJobState.ScsCatalogueUnchanged or ExchangeSetJobState.Cancelled)
+                    if (job.State is ExchangeSetJobState.Succeeded or ExchangeSetJobState.Cancelled or ExchangeSetJobState.Failed)
                     {
                         return;
                     }

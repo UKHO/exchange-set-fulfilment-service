@@ -31,7 +31,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
 
             var fileShareEndpoint = GetEnvironmentVariable(BuilderEnvironmentVariables.FileShareEndpoint, context.Subject.Configuration.GetValue<string>("Endpoints:FileShareService")!);
             var buildServiceEndpoint = GetEnvironmentVariable(BuilderEnvironmentVariables.BuildServiceEndpoint, context.Subject.Configuration.GetValue<string>("Endpoints:BuildService")!);
-            var batchId = GetEnvironmentVariable(BuilderEnvironmentVariables.BatchId, "Test");
+            var batchId = GetEnvironmentVariable(BuilderEnvironmentVariables.BatchId, string.Empty);
 
             context.Subject.FileShareEndpoint = fileShareEndpoint;
             context.Subject.BuildServiceEndpoint = buildServiceEndpoint;

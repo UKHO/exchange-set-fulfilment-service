@@ -101,7 +101,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
             Assert.Multiple(() =>
             {
                 Assert.That(result, Is.Not.Null);
-                Assert.That(result.State, Is.EqualTo(ExchangeSetJobState.ScsCatalogueUnchanged));
+                Assert.That(result.State, Is.EqualTo(ExchangeSetJobState.Succeeded));
                 Assert.That(result.Products, Is.Null);
             });
         }

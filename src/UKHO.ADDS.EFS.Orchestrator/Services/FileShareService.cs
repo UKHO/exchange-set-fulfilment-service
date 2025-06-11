@@ -2,7 +2,6 @@
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
-using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services
@@ -10,19 +9,26 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
     public class FileShareService: IFileShareService
     {
         private readonly IFileShareReadWriteClient _fileShareReadWriteClient;
+        private readonly ILogger<FileShareService> _logger;
+        private const string BusinessUnit = "ADDS-S100";
+        private const string ProductType = "S-100";
+        private const string ProductTypeQueryClause = $"$batch(ProductType) eq '{ProductType}' and ";
+        private const int Limit = 100;
+        private const int Start = 0;
 
-        public FileShareService(IFileShareReadWriteClient fileShareReadWriteClient)
+
+        public FileShareService(IFileShareReadWriteClient fileShareReadWriteClient, ILogger<FileShareService> logger)
         {
             _fileShareReadWriteClient = fileShareReadWriteClient ?? throw new ArgumentNullException(nameof(fileShareReadWriteClient));
+            _logger = logger;
         }
 
-        public async Task<IResult<IBatchHandle>> CreateBatchAsync(ExchangeSetRequestQueueMessage queueMessage)
+        public async Task<IResult<IBatchHandle>> CreateBatchAsync(string correlationId)
         {
-            var createBatchResponseResult = await _fileShareReadWriteClient.CreateBatchAsync(GetBatchModel(), queueMessage.CorrelationId);
+            var createBatchResponseResult = await _fileShareReadWriteClient.CreateBatchAsync(GetBatchModel(), correlationId);
 
             if (createBatchResponseResult.IsFailure(out var commitError, out _))
             {
-
             }
 
             return createBatchResponseResult;
@@ -40,17 +46,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             return commitBatchResult;
         }
 
-        public async Task<IResult<BatchSearchResponse>> SearchAllCommitBatchesAsync(string currentBatchId, string correlationId)
+        public async Task<IResult<BatchSearchResponse>> SearchCommittedBatchesExcludingCurrentAsync(string currentBatchId, string correlationId)
         {
-            var filter =
-                $"BusinessUnit eq 'ADDS-S100' and " +
-                $"$batch(ProductType) eq 'S-100' and " +
-                $"$batch(BatchId) ne '{currentBatchId}'";
-
-            var limit = 100;
-            var start = 0;
+            var filter = $"BusinessUnit eq '{BusinessUnit}' and {ProductTypeQueryClause}$batch(BatchId) ne '{currentBatchId}'";
             
-            var searchResult = await _fileShareReadWriteClient.SearchAsync(filter, limit, start, correlationId);
+            var searchResult = await _fileShareReadWriteClient.SearchAsync(filter, Limit, Start, correlationId);
 
             if (searchResult.IsFailure(out var value, out var error))
             {
@@ -62,7 +62,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
         public async Task<IResult<SetExpiryDateResponse>> SetExpiryDateAsync(List<BatchDetails> otherBatches, string correlationId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            IResult<SetExpiryDateResponse> result = null;
+            IResult<SetExpiryDateResponse> lastResult = null;
 
             foreach (var batch in otherBatches)
             {
@@ -78,11 +78,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                     {
                         return expiryResult;
                     }
-                    result = expiryResult;
+
+                    lastResult = expiryResult;
                 }
             }
 
-            return result;
+            return lastResult;
         }
 
         private static BatchModel GetBatchModel()
