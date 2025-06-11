@@ -28,6 +28,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private const int ProductLimit = 4;
         private const int Limit = 100;
         private const int Start = 0;
+        private const string QueryLimit = "limit";
+        private const string QueryStart="start";
+        private const string QueryFilter="$filter";
+
 
         public ProductSearchNode(IFileShareReadOnlyClient fileShareReadOnlyClient) : base()
         {
@@ -39,7 +43,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             try
             {
                 _logger = context.Subject.LoggerFactory.CreateLogger<ProductSearchNode>();
-
                 var products = context.Subject.Job?.Products;
                 if (products == null || products.Count == 0)
                 {
@@ -121,9 +124,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                     if (!string.IsNullOrEmpty(queryString))
                     {
                         var parsedValues = ParseQueryString(queryString);
-                        limit = parsedValues.TryGetValue("limit", out var urlLimit) ? int.Parse(urlLimit) : limit;
-                        start = parsedValues.TryGetValue("start", out var urlStart) ? int.Parse(urlStart) : start;
-                        filter = parsedValues.TryGetValue("$filter", out var urlFilter) ? urlFilter : filter;
+                        limit = parsedValues.TryGetValue(QueryLimit, out var urlLimit) ? int.Parse(urlLimit) : limit;
+                        start = parsedValues.TryGetValue(QueryStart, out var urlStart) ? int.Parse(urlStart) : start;
+                        filter = parsedValues.TryGetValue(QueryFilter, out var urlFilter) ? urlFilter : filter;
                     }
                     else
                     {

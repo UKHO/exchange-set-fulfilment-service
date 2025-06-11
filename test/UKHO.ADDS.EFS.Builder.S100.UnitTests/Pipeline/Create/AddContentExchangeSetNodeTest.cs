@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.IIC.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
+using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Create;
 using UKHO.ADDS.EFS.Entities;
 using UKHO.ADDS.Infrastructure.Pipelines;
@@ -15,22 +16,25 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
     internal class AddContentExchangeSetNodeTest
     {
         private IToolClient _toolClient;
-        private TestableAddContentExchangeSetNode _testableNode;
+        private AddContentExchangeSetNode _addContentExchangeSetNode;
         private IExecutionContext<ExchangeSetPipelineContext> _executionContext;
+        private ILoggerFactory _loggerFactory;
+        private ILogger _logger;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
             _toolClient = A.Fake<IToolClient>();
-            _testableNode = new TestableAddContentExchangeSetNode();
+            _addContentExchangeSetNode = new AddContentExchangeSetNode();
             _executionContext = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
+            _loggerFactory = A.Fake<ILoggerFactory>();
+            _logger = A.Fake<ILogger<AddContentExchangeSetNode>>();
         }
 
         [SetUp]
         public void Setup()
         {
-            var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
-            var exchangeSetPipelineContext = new ExchangeSetPipelineContext(null, null, _toolClient, loggerFactory)
+            var exchangeSetPipelineContext = new ExchangeSetPipelineContext(null, null, _toolClient, _loggerFactory)
             {
                 Job = new ExchangeSetJob { CorrelationId = "TestCorrelationId" },
                 JobId = "TestJobId",
@@ -38,6 +42,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
                 WorkSpaceRootPath = "rootPath"
             };
             A.CallTo(() => _executionContext.Subject).Returns(exchangeSetPipelineContext);
+            A.CallTo(() => _loggerFactory.CreateLogger(typeof(AddContentExchangeSetNode).FullName!)).Returns(_logger);
         }
 
         [Test]
@@ -52,9 +57,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
             A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<string>._, A<string>._, A<string>._))
                 .Returns(Task.FromResult(fakeResult));
 
-            var result = await _testableNode.PerformExecuteAsync(_executionContext);
+            var result = await _addContentExchangeSetNode.ExecuteAsync(_executionContext);
 
-            Assert.That(result, Is.EqualTo(NodeResultStatus.Succeeded));
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
         }
 
         [Test]
@@ -63,17 +68,23 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
             A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<string>._, A<string>._, A<string>._))
                 .Returns(Result.Failure<OperationResponse>("error"));
 
-            var result = await _testableNode.PerformExecuteAsync(_executionContext);
+            var result = await _addContentExchangeSetNode.ExecuteAsync(_executionContext);
 
-            Assert.That(result, Is.EqualTo(NodeResultStatus.Failed));
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
+
+            A.CallTo(() => _logger.Log<LoggerMessageState>(
+                    LogLevel.Error,
+                    A<EventId>.That.Matches(e => e.Name == "AddContentExchangeSetNodeFailed"),
+                    A<LoggerMessageState>._,
+                    A<Exception>._,
+                    A<Func<LoggerMessageState, Exception?, string>>._))
+                .MustHaveHappenedOnceExactly();
         }
 
-        private class TestableAddContentExchangeSetNode : AddContentExchangeSetNode
+        [OneTimeTearDown]
+        public void OneTimeTearDown()
         {
-            public new async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
-            {
-                return await base.PerformExecuteAsync(context);
-            }
+            _loggerFactory?.Dispose();
         }
     }
 }

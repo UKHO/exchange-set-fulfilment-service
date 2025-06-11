@@ -18,6 +18,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
         private const int AddContentExchangeSetNodeFailedId = BaseEventId + 7;
         private const int SignExchangeSetNodeFailedId = BaseEventId + 8;
         private const int AddExchangeSetNodeFailedId = BaseEventId + 9;
+        private const int DownloadFilesNodeNoFilesToProcessErrorId = BaseEventId + 10;
 
         // The assembly pipeline failed
         public static readonly EventId AssemblyPipelineFailed = new(AssemblyPipelineFailedId, nameof(AssemblyPipelineFailed));
@@ -46,8 +47,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
         //The Download Files Node failed
         public static readonly EventId DownloadFilesNodeFailed = new(DownloadFilesNodeFailedId, nameof(DownloadFilesNodeFailed));
 
-        [LoggerMessage(DownloadFilesNodeFailedId, LogLevel.Error, "DownloadFilesNode failed: {@errorMessage}", EventName = nameof(DownloadFilesNodeFailed))]
-        public static partial void LogDownloadFilesNodeFailed(this ILogger logger, string errorMessage);
+        [LoggerMessage(DownloadFilesNodeFailedId, LogLevel.Error, "DownloadFilesNode failed: {@exception}", EventName = nameof(DownloadFilesNodeFailed))]
+        public static partial void LogDownloadFilesNodeFailed(this ILogger logger, Exception exception);
 
         //The Download Files Node failed
         public static readonly EventId DownloadFilesNodeFssDownloadFailed = new(DownloadFilesNodeFssDownloadFailedId, nameof(DownloadFilesNodeFssDownloadFailed));
@@ -72,5 +73,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
 
         [LoggerMessage(AddExchangeSetNodeFailedId, LogLevel.Error, "AddExchangeSetNode failed: {@error}", EventName = nameof(AddExchangeSetNodeFailed))]
         public static partial void LogAddExchangeSetNodeFailed(this ILogger logger, [LogProperties] IError error);
+
+        //The Download Files Node failed
+        public static readonly EventId DownloadFilesNodeNoFilesToProcessError = new(DownloadFilesNodeFailedId, nameof(DownloadFilesNodeFailed));
+
+        [LoggerMessage(DownloadFilesNodeNoFilesToProcessErrorId, LogLevel.Error, "DownloadFilesNode failed: {@errorMessage}", EventName = nameof(DownloadFilesNodeNoFilesToProcessError))]
+        public static partial void LogDownloadFilesNodeNoFilesToProcessError(this ILogger logger, string errorMessage);
     }
 }

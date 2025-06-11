@@ -22,6 +22,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
         private INodeStatusWriter _nodeStatusWriter;
         private IToolClient _toolClient;
         private ILoggerFactory _loggerFactory;
+        private IHttpClientFactory _fakeHttpClientFactory;
+        private MockHttpMessageHandler _mockHttpMessageHandler;
 
         [SetUp]
         public void SetUp()
@@ -30,6 +32,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
             _nodeStatusWriter = A.Fake<INodeStatusWriter>();
             _toolClient = A.Fake<IToolClient>();
             _loggerFactory = A.Fake<ILoggerFactory>();
+            _fakeHttpClientFactory = A.Fake<IHttpClientFactory>();
+            _mockHttpMessageHandler = new MockHttpMessageHandler();
+
+            var fakeHttpClient = new HttpClient(_mockHttpMessageHandler);
+            A.CallTo(() => _fakeHttpClientFactory.CreateClient(A<string>._)).Returns(fakeHttpClient);
 
             _subject = new ExchangeSetPipelineContext(_configuration, _nodeStatusWriter, _toolClient, _loggerFactory)
             {
@@ -41,7 +48,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
             _context = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
             A.CallTo(() => _context.Subject).Returns(_subject);
 
-            _node = new GetJobNode();
+            _node = new GetJobNode(_fakeHttpClientFactory);
         }
 
         [Test]
@@ -79,8 +86,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
             _context = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
             A.CallTo(() => _context.Subject).Returns(_subject);
 
-            _node = new GetJobNode();
-
             var result = await _node.ExecuteAsync(_context);
 
             Assert.Multiple(() =>
@@ -110,8 +115,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
             _context = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
             A.CallTo(() => _context.Subject).Returns(_subject);
 
-            _node = new GetJobNode();
-
             var result = await _node.ExecuteAsync(_context);
 
             Assert.Multiple(() =>
@@ -140,6 +143,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
         public void TearDown()
         {
             _loggerFactory?.Dispose();
+            _mockHttpMessageHandler?.Dispose();
         }
 
         private static IConfiguration GetConfiguration(ExchangeSetJob debugJob)
