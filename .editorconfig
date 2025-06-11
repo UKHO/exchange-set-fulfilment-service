@@ -12,6 +12,12 @@ indent_style = space
 indent_size = 4
 trim_trailing_whitespace = true
 
+[*.bicep]
+insert_final_newline = true
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = true
+
 # Generated code
 [*{_AssemblyInfo.cs,.notsupported.cs,AsmOffsets.cs}]
 generated_code = true

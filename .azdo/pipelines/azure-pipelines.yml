@@ -49,16 +49,16 @@ stages:
         version: '9.x'
       displayName: Set up .NET 9
 
-    # - task: DotNetCoreCLI@2
-    #   displayName: NuGet restore for non test projects only
-    #   inputs:
-    #     command: restore
-    #     projects: '**/*.csproj'
-    #     feedsToUse: config
-    #     noCache: true
-    #     nugetConfigPath: '$(Build.SourcesDirectory)/BuildNuget.config'
-    #     workingDirectory: '$(Build.SourcesDirectory)/src'
-    #     packagesDirectory: '$(Build.SourcesDirectory)/src/packages'
+    - task: DotNetCoreCLI@2
+      displayName: NuGet restore for non test projects only
+      inputs:
+        command: restore
+        projects: '**/*.csproj'
+        feedsToUse: config
+        noCache: true
+        nugetConfigPath: '$(Build.SourcesDirectory)/BuildNuget.config'
+        workingDirectory: '$(Build.SourcesDirectory)/src'
+        packagesDirectory: '$(Build.SourcesDirectory)/src/packages'
 
     - ${{ if eq(parameters.DestroyResources, true) }}:
 
@@ -80,21 +80,50 @@ stages:
           AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
           AZURE_ENV_NAME: $(AZURE_ENV_NAME)
           AZURE_LOCATION: $(AZURE_LOCATION)
-          #MSBUILDDEBUGENGINE: 1
 
     - ${{ else }}:
 
-      # - task: Docker@2
-      #   displayName: Build and push Docker image
-      #   inputs:
-      #     command: buildAndPush
-      #     containerRegistry: Exchange-Set-Service-Dev-A-008-02
-      #     repository: $(BuilderAcrName).azurecr.io/efs-builder-s100
-      #     dockerfile: $(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.Builder.S100/Dockerfile
-      #     tags: efs-builder-s100
+      - task: AzureCLI@2
+        displayName: Provision infrastructure
+        inputs:
+          #azureSubscription: Aspire-Test
+          azureSubscription: Exchange-Set-Service-Dev-A-008-02
+          scriptType: bash
+          scriptLocation: inlineScript
+          keepAzSessionActive: true
+          ${{ if eq(parameters.AzdDebug, true) }}:
+            inlineScript: |
+              azd provision --no-prompt --debug
+          ${{ else }}:
+            inlineScript: |
+              azd provision --no-prompt
+        env:
+          AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+          AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+          AZURE_LOCATION: $(AZURE_LOCATION)
+          #AZD_INITIAL_ENVIRONMENT_CONFIG: $(AZD_INITIAL_ENVIRONMENT_CONFIG)
 
       - task: AzureCLI@2
-        displayName: Download files from Azure Storage
+        displayName: Deploy application
+        inputs:
+          #azureSubscription: Aspire-Test
+          azureSubscription: Exchange-Set-Service-Dev-A-008-02
+          scriptType: bash
+          scriptLocation: inlineScript
+          keepAzSessionActive: true
+          ${{ if eq(parameters.AzdDebug, true) }}:
+            inlineScript: |
+              azd deploy --no-prompt --debug
+          ${{ else }}:
+            inlineScript: |
+              azd deploy --no-prompt
+        env:
+          AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+          AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+          AZURE_LOCATION: $(AZURE_LOCATION)
+
+      - task: AzureCLI@2
+        displayName: Download builder files from Azure
         inputs:
           azureSubscription: Exchange-Set-Service-Dev-A-008-02
           scriptType: bash
@@ -128,108 +157,3 @@ stages:
         env:
           ACR_NAME: $(BuilderAcrName)
           BUILD_TAG: $(Build.BuildId)
-
-      # - task: AzureCLI@2
-      #   displayName: Infrastructure and deploy
-      #   inputs:
-      #     #azureSubscription: Aspire-Test
-      #     azureSubscription: Exchange-Set-Service-Dev-A-008-02
-      #     scriptType: bash
-      #     scriptLocation: inlineScript
-      #     keepAzSessionActive: true
-      #     ${{ if eq(parameters.AzdDebug, true) }}:
-      #       inlineScript: |
-      #         azd up --no-prompt --debug
-      #     ${{ else }}:
-      #       inlineScript: |
-      #         azd up --no-prompt
-      #   env:
-      #     AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-      #     AZURE_ENV_NAME: $(AZURE_ENV_NAME)
-      #     AZURE_LOCATION: $(AZURE_LOCATION)
-      #     AZD_INITIAL_ENVIRONMENT_CONFIG: $(AZD_INITIAL_ENVIRONMENT_CONFIG)
-      #     MSBUILDDEBUGENGINE: 1
-
-      # - task: AzureCLI@2
-      #   displayName: Generate infra
-      #   inputs:
-      #     #azureSubscription: Aspire-Test
-      #     azureSubscription: Exchange-Set-Service-Dev-A-008-02
-      #     scriptType: bash
-      #     scriptLocation: inlineScript
-      #     keepAzSessionActive: true
-      #     ${{ if eq(parameters.AzdDebug, true) }}:
-      #       inlineScript: |
-      #         azd init --no-prompt --debug
-      #         azd infra gen --no-prompt --debug
-      #     ${{ else }}:
-      #       inlineScript: |
-      #         azd init --no-prompt
-      #         azd infra gen --no-prompt
-      #   env:
-      #     AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-      #     AZURE_ENV_NAME: $(AZURE_ENV_NAME)
-      #     AZURE_LOCATION: $(AZURE_LOCATION)
-
-      - task: AzureCLI@2
-        displayName: Provision infrastructure
-        inputs:
-          #azureSubscription: Aspire-Test
-          azureSubscription: Exchange-Set-Service-Dev-A-008-02
-          scriptType: bash
-          scriptLocation: inlineScript
-          keepAzSessionActive: true
-          ${{ if eq(parameters.AzdDebug, true) }}:
-            inlineScript: |
-              azd provision --no-prompt --debug
-          ${{ else }}:
-            inlineScript: |
-              azd provision --no-prompt
-        env:
-          AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-          AZURE_ENV_NAME: $(AZURE_ENV_NAME)
-          AZURE_LOCATION: $(AZURE_LOCATION)
-          #AZD_INITIAL_ENVIRONMENT_CONFIG: $(AZD_INITIAL_ENVIRONMENT_CONFIG)
-          #MSBUILDDEBUGENGINE: 1
-
-      - task: AzureCLI@2
-        displayName: Deploy application
-        inputs:
-          #azureSubscription: Aspire-Test
-          azureSubscription: Exchange-Set-Service-Dev-A-008-02
-          scriptType: bash
-          scriptLocation: inlineScript
-          keepAzSessionActive: true
-          ${{ if eq(parameters.AzdDebug, true) }}:
-            inlineScript: |
-              azd deploy --no-prompt --debug
-          ${{ else }}:
-            inlineScript: |
-              azd deploy --no-prompt
-        env:
-          AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-          AZURE_ENV_NAME: $(AZURE_ENV_NAME)
-          AZURE_LOCATION: $(AZURE_LOCATION)
-          #AZD_DEBUG_DOTNET_APPHOST_USE_FIXED_MANIFEST: true
-          #MSBUILDDEBUGENGINE: 1
-          #MSBUILDDEBUGPATH: '$(Build.SourcesDirectory)/msbuilddebug'
-
-      # - task: CopyFiles@2
-      #   displayName: Copy binlogs
-      #   condition: always()
-      #   inputs:
-      #     contents: '**/*.binlog'
-      #     targetFolder: '$(Build.ArtifactStagingDirectory)/logs'
-
-      # - publish: '$(Build.ArtifactStagingDirectory)/logs'
-      #   condition: always()
-      #   displayName: Publish MSBuild logs
-      #   artifact: 'MSBuild $(system.JobId)'
-
-      # - task: PublishPipelineArtifact@1
-      #   displayName: Publish data
-      #   condition: always()
-      #   inputs:
-      #     targetPath: '$(Build.SourcesDirectory)'
-      #     artifact: 'Data $(system.JobId)'
-      #     publishLocation: 'pipeline'
