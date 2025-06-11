@@ -38,7 +38,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Infrastructure
                 .OrResult(r => RetriableStatusCodes.Contains((int)r.StatusCode))
                 .WaitAndRetryAsync(
                     maxRetryAttempts,
-                    retryAttempt => TimeSpan.FromMilliseconds(retryDelayMs * Math.Pow(2, retryAttempt - 1)),
+                    _ => TimeSpan.FromMilliseconds(retryDelayMs),
                     (outcome, timespan, retryAttempt, context) =>
                     {
                         var statusCode = outcome.Exception != null ? "Exception" : ((int)outcome.Result.StatusCode).ToString();
@@ -77,7 +77,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Infrastructure
                 })
                 .WaitAndRetryAsync(
                     maxRetryAttempts,
-                    retryAttempt => TimeSpan.FromMilliseconds(retryDelayMs * Math.Pow(2, retryAttempt - 1)),
+                    _ => TimeSpan.FromMilliseconds(RetryDelayMs),
                     (outcome, timespan, retryAttempt, context) =>
                     {
                         var statusCode = getStatusCode(outcome.Result);
