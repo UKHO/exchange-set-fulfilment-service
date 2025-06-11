@@ -69,10 +69,12 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 var factory = provider.GetRequiredService<IFileShareReadWriteClientFactory>();
                 var secretClient = provider.GetRequiredService<SecretClient>();
 
-                var fssEndpoint = secretClient.GetSecret(OrchestratorConfigurationKeys.FileShareEndpoint)!;
+                var fssEndpointOrchestratorHost = secretClient.GetSecret(OrchestratorConfigurationKeys.FileShareEndpointOrchestratorHost)!;
 
-                return factory.CreateClient("", string.Empty);
+                return factory.CreateClient(fssEndpointOrchestratorHost.Value.Value, string.Empty);
             });
+
+            builder.Services.AddSingleton<IFileShareService, FileShareService>();
 
             return builder;
         }

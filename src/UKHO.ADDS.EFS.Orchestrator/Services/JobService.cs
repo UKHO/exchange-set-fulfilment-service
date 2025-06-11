@@ -1,8 +1,5 @@
 ﻿using System.Net;
-using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
-using UKHO.ADDS.Clients.FileShareService.ReadWrite;
-using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.Clients.SalesCatalogueService;
 using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
@@ -10,7 +7,6 @@ using UKHO.ADDS.EFS.Entities;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Tables;
-using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services
 {
@@ -21,16 +17,16 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         private readonly ExchangeSetJobTable _jobTable;
         private readonly ExchangeSetTimestampTable _timestampTable;
         private readonly ISalesCatalogueClient _salesCatalogueClient;
-        private readonly IFileShareReadWriteClient _fileShareReadWriteClient;
+        private readonly IFileShareService _fileShareService;
         private readonly ILogger<JobService> _logger;
 
-        public JobService(ExchangeSetJobTable jobTable, ExchangeSetTimestampTable timestampTable, ISalesCatalogueClient salesCatalogueClient, ILogger<JobService> logger, IFileShareReadWriteClient fileShareReadWriteClient)
+        public JobService(ExchangeSetJobTable jobTable, ExchangeSetTimestampTable timestampTable, ISalesCatalogueClient salesCatalogueClient, ILogger<JobService> logger, IFileShareService fileShareService)
         {
             _jobTable = jobTable;
             _timestampTable = timestampTable;
             _salesCatalogueClient = salesCatalogueClient;
             _logger = logger;
-            _fileShareReadWriteClient = fileShareReadWriteClient ?? throw new ArgumentNullException(nameof(fileShareReadWriteClient));
+            _fileShareService = fileShareService ?? throw new ArgumentNullException(nameof(fileShareService));
         }
 
         public async Task<ExchangeSetJob> CreateJob(ExchangeSetRequestQueueMessage queueMessage)
@@ -57,12 +53,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 case HttpStatusCode.OK when s100SalesCatalogueResponse.ResponseBody.Any():
 
                 //Call FSS Create Batch Return batchID
-                var createBatchResponseResult = await CreateBatchAsync(queueMessage);
-
-                if (createBatchResponseResult.IsSuccess(out var value, out var error))
-                {
-                    job.BatchId = value.BatchId;
-                }
+                await CreateBatchAsync(queueMessage, job);
 
                 job.Products = s100SalesCatalogueResponse.ResponseBody;
                 job.State = ExchangeSetJobState.InProgress;
@@ -95,8 +86,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             {
                 if (await CommitBatchAsync(job))
                 {
-                    await SetExpiryDateAsync(job);
-                    job.State = ExchangeSetJobState.Succeeded;
+                    var batchDetails = await SearchAllCommitBatchesAsync(job);
+
+                    if (batchDetails != null && job.State != ExchangeSetJobState.Failed && batchDetails.Count != 0)
+                    {
+                        if (await SetExpiryDateAsync(batchDetails, job))
+                        {
+                            job.State = ExchangeSetJobState.Succeeded;
+                        }
+                    }
                 }
             }
             else
@@ -105,7 +103,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             }
 
             await _jobTable.UpdateAsync(job);
-
             _logger.LogJobCompleted(ExchangeSetJobLogView.CreateFromJob(job));
         }
 
@@ -151,33 +148,22 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             return Task.FromResult(job);
         }
 
-        private async Task<IResult<IBatchHandle>> CreateBatchAsync(ExchangeSetRequestQueueMessage queueMessage)
+        private async Task CreateBatchAsync(ExchangeSetRequestQueueMessage queueMessage, ExchangeSetJob job)
         {
-            var createBatchResponseResult = await _fileShareReadWriteClient.CreateBatchAsync(new BatchModel
+            var createBatchResponseResult = await _fileShareService.CreateBatchAsync(queueMessage);
+            if (createBatchResponseResult.IsSuccess(out var value, out var error))
             {
-                BusinessUnit = "ADDS-S100",
-                Acl = new Acl
-                {
-                    ReadUsers = new List<string> { "public" },
-                    ReadGroups = new List<string> { "public" }
-                },
-                Attributes = new List<KeyValuePair<string, string>>
-                {
-                    new("Exchange Set Type", "Base"),
-                    new("Frequency", "DAILY"),
-                    new("Product Type", "S-100"),
-                    new("Media Type", "Zip")
-                },
-                ExpiryDate = null
-            }, queueMessage.CorrelationId);
-
-            return createBatchResponseResult;
+                job.BatchId = value.BatchId;
+            }
+            else
+            {
+                job.State = ExchangeSetJobState.Failed;
+            }
         }
 
         private async Task<bool> CommitBatchAsync(ExchangeSetJob job)
         {
-            var commitBatchResult = await _fileShareReadWriteClient.CommitBatchAsync(
-                new BatchHandle(job.BatchId), job.CorrelationId, CancellationToken.None);
+            var commitBatchResult = await _fileShareService.CommitBatchAsync(job.BatchId, job.CorrelationId, CancellationToken.None);
 
             if (commitBatchResult.IsFailure(out var commitError, out _))
             {
@@ -188,68 +174,33 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             return true;
         }
 
-        public async Task<List<BatchDetails>> GetAllBatchesExceptCurrentAsync(
-            string currentBatchId,
-            string correlationId,
-            IFileShareReadOnlyClient readOnlyClient)
+        private async Task<List<BatchDetails>?> SearchAllCommitBatchesAsync(ExchangeSetJob job)
         {
-            var filter =
-                $"BusinessUnit eq 'ADDS-S100' and " +
-                $"$batch(ProductType) eq 'S-100' and " +
-                $"$batch(BatchId) ne '{currentBatchId}'";
+            var searchResult = await _fileShareService.SearchAllCommitBatchesAsync(job.BatchId, job.CorrelationId);
 
-            var limit = 100;
-            var start = 0;
-            var allBatches = new List<BatchDetails>();
-
-            while (true)
+            if (!searchResult.IsSuccess(out var value, out var error))
             {
-                var searchResult = await readOnlyClient.SearchAsync(filter, limit, start, correlationId);
-                if (!searchResult.IsSuccess(out var value, out var error))
-                {
-                    // Handle error as needed
-                    break;
-                }
-
-                if (value.Entries != null)
-                    allBatches.AddRange(value.Entries);
-
-                var next = value.Links?.Next?.Href;
-                if (string.IsNullOrEmpty(next)) break;
-
-                var queryParams = System.Web.HttpUtility.ParseQueryString(new Uri(next).Query);
-                start = int.TryParse(queryParams["start"], out var s) ? s : start + limit;
+                job.State = ExchangeSetJobState.Failed;
+            }
+            else if (value?.Entries == null || value.Entries.Count == 0)
+            {
+                job.State = ExchangeSetJobState.Succeeded;
             }
 
-            return allBatches;
+            return value?.Entries;
         }
-        private async Task SetExpiryDateAsync(ExchangeSetJob job)
+
+        private async Task<bool> SetExpiryDateAsync(List<BatchDetails> batchDetails, ExchangeSetJob job)
         {
-            // Example usage of GetAllBatchesExceptCurrentAsync
-            // You need to provide the currentBatchId, correlationId, and a readOnlyClient instance
-            // Replace the following placeholders with actual values as needed
-            var currentBatchId = job.BatchId;
-            var correlationId = job.CorrelationId;
+            var expiryResult = await _fileShareService.SetExpiryDateAsync(batchDetails, job.CorrelationId, CancellationToken.None);
 
-            var otherBatches = await GetAllBatchesExceptCurrentAsync(currentBatchId, correlationId, _fileShareReadWriteClient);
-
-            foreach (var batch in otherBatches)
+            if (expiryResult.IsFailure(out var expiryError, out _))
             {
-                if (!string.IsNullOrEmpty(batch.BatchId))
-                {
-                    var expiryResult = await _fileShareReadWriteClient.SetExpiryDateAsync(
-                        batch.BatchId,
-                        new BatchExpiryModel { ExpiryDate = DateTime.UtcNow },
-                        job.CorrelationId,
-                        CancellationToken.None);
-
-                    if (expiryResult.IsFailure(out var expiryError, out _))
-                    {
-                        // _logger.LogError($"Failed to set expiry date for batch {batch.BatchId}: {expiryError}");
-                        // Optionally handle the error as needed
-                    }
-                }
+                job.State = ExchangeSetJobState.Failed;
+                return false;
             }
+               
+            return true;
         }
     }
 }
