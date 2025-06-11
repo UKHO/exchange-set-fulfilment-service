@@ -45,7 +45,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
             )
             {
                 FileShareEndpoint = "https://test-endpoint/",
-                WorkspaceAuthenticationKey = "fake-key"
+                WorkspaceAuthenticationKey = "Test123"
             };
             
             A.CallTo(() => _context.Subject).Returns(pipelineContext);

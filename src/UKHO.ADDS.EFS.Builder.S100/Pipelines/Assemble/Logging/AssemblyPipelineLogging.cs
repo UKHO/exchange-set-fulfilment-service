@@ -75,7 +75,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
         public static partial void LogAddExchangeSetNodeFailed(this ILogger logger, [LogProperties] IError error);
 
         //The Download Files Node failed
-        public static readonly EventId DownloadFilesNodeNoFilesToProcessError = new(DownloadFilesNodeFailedId, nameof(DownloadFilesNodeFailed));
+        public static readonly EventId DownloadFilesNodeNoFilesToProcessError = new(DownloadFilesNodeNoFilesToProcessErrorId, nameof(DownloadFilesNodeNoFilesToProcessError));
 
         [LoggerMessage(DownloadFilesNodeNoFilesToProcessErrorId, LogLevel.Error, "DownloadFilesNode failed: {@errorMessage}", EventName = nameof(DownloadFilesNodeNoFilesToProcessError))]
         public static partial void LogDownloadFilesNodeNoFilesToProcessError(this ILogger logger, string errorMessage);

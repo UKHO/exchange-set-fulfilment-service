@@ -29,8 +29,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private const int Limit = 100;
         private const int Start = 0;
         private const string QueryLimit = "limit";
-        private const string QueryStart="start";
-        private const string QueryFilter="$filter";
+        private const string QueryStart = "start";
+        private const string QueryFilter = "$filter";
 
 
         public ProductSearchNode(IFileShareReadOnlyClient fileShareReadOnlyClient) : base()
@@ -87,7 +87,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private async Task<List<BatchDetails>> QueryFileShareServiceFilesAsync(List<BatchProductDetail> products, string correlationId)
         {
             var batchDetails = new List<BatchDetails>();
-            
+
             var batchProducts = ChunkProductsByProductLimit(products);
             foreach (var productBatch in batchProducts)
             {
@@ -102,7 +102,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
              string correlationId)
         {
             var batchSearchResponse = new BatchSearchResponse { Entries = new List<BatchDetails>() };
-            
+
             var productQuery = GenerateQueryForFss(products);
             var totalUpdateCount = products.Sum(p => p.UpdateNumbers.ToList().Count);
             var queryCount = 0;
@@ -117,7 +117,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 {
                     if (value.Entries.Count != 0)
                     {
-                        batchSearchResponse.Entries.AddRange(value.Entries);                        
+                        batchSearchResponse.Entries.AddRange(value.Entries);
                     }
 
                     var queryString = value.Links?.Next?.Href;
