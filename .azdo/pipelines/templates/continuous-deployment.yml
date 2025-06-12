@@ -86,12 +86,10 @@ jobs:
               command: restore
               projects: |
                 **/*.csproj
-                !**/*.UnitTests.csproj
-                !**/*.Tests.csproj
+                !**/*Tests.csproj
               feedsToUse: config
               noCache: true
               nugetConfigPath: '$(Build.SourcesDirectory)/BuildNuget.config'
-              packagesDirectory: '$(Build.SourcesDirectory)/packages'
 
           - task: AzureCLI@2
             displayName: Provision infrastructure

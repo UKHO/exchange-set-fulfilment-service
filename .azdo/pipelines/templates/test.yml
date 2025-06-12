@@ -20,23 +20,23 @@ jobs:
     - task: DotNetCoreCLI@2
       displayName: ".Net Core - NuGet restore test projects only"
       inputs:
-        command: "restore"
-        projects: "**/*Tests.csproj"
+        command: restore
+        projects: "**/*.UnitTests.csproj"
         feedsToUse: config
         noCache: true
         nugetConfigPath: '$(Build.SourcesDirectory)\BuildNuget.config'
         workingDirectory: '$(Build.SourcesDirectory)'
-        packagesDirectory: '$(Build.SourcesDirectory)\packagesForTests'
+        restoreDirectory: '$(Build.SourcesDirectory)\packagesForTests'
 
     - task: DotNetCoreCLI@2
       displayName: "Dotnet test - Perform unit tests"
       inputs:
-        command: "test"
-        projects: |
-          **/*.UnitTests.csproj
-        arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)\test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura'
+        command: test
+        projects: "**/*.UnitTests.csproj"
+        arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)\test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura --no-restore'
         publishTestResults: true
-        testRunTitle: "UnitTests"
+        testRunTitle: UnitTests
+        restoreDirectory: '$(Build.SourcesDirectory)\packagesForTests'
 
     - task: PowerShell@2
       displayName: "Generate code coverage report"
@@ -50,37 +50,3 @@ jobs:
       inputs:
         PathtoPublish: "$(Build.ArtifactStagingDirectory)/codecoveragereport"
         ArtifactName: codecoveragereport
-
-# - job: BuildAPI
-#   workspace:
-#     clean: all
-#   displayName: "Dotnet Build API"
-#   steps:
-
-#     - task: UseDotNet@2
-#       displayName: Use .NET SDK $(SdkVersion)
-#       inputs:
-#         packageType: sdk
-#         version: $(SdkVersion)
-
-#     - script: git submodule update --init --recursive
-#       displayName: Restore Github Submodule
-#       workingDirectory: '$(Build.SourcesDirectory)'
-
-#     - task: DotNetCoreCLI@2
-#       displayName: ".Net Core - NuGet restore for non test projects only"
-#       inputs:
-#         command: "restore"
-#         projects: '**/*.csproj'
-#         feedsToUse: config
-#         noCache: true
-#         nugetConfigPath: '$(Build.SourcesDirectory)\BuildNuget.config'
-#         workingDirectory: '$(Build.SourcesDirectory)\src'
-#         packagesDirectory: '$(Build.SourcesDirectory)\src\packages'
-
-#     - task: DotNetCoreCLI@2
-#       displayName: "dotnet build task"
-#       inputs:
-#         command: "build"
-#         projects: '**/*.csproj'
-#         arguments: '--configuration $(BuildConfiguration)'

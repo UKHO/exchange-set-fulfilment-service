@@ -9,10 +9,6 @@ parameters:
     displayName: "Destroy dev environment"
     type: boolean
     default: false
-  - name: AzdDebug
-    displayName: "Debug azd"
-    type: boolean
-    default: false
   - name: SnykOnlyFailIfFixable
     displayName: "Snyk - fail only if an issue has an available fix"
     type: boolean
@@ -122,17 +118,15 @@ stages:
     jobs:
     - template: templates/test.yml
 
-  - ${{ if ne(parameters.SkipDeployment, true) }}:
-
-    - stage: DevDeploy
-      dependsOn:
-      #- VulnerabilityChecks
-      - Test
-      displayName: Dev deploy
-      jobs:
-      - template: templates/continuous-deployment.yml
-        parameters:
-          AzureDevOpsEnvironment: Ess-Dev
-          ShortName: dev
-          DestroyResources: ${{ parameters.DestroyResourcesDev }}
-          AzdDebug: ${{ parameters.AzdDebug }}
+  - stage: DevDeploy
+    dependsOn:
+    - VulnerabilityChecks
+    - Test
+    displayName: Dev deploy
+    condition: eq('${{ parameters.SkipDeployment }}', false)
+    jobs:
+    - template: templates/continuous-deployment.yml
+      parameters:
+        AzureDevOpsEnvironment: Ess-Dev
+        ShortName: dev
+        DestroyResources: ${{ parameters.DestroyResourcesDev }}
