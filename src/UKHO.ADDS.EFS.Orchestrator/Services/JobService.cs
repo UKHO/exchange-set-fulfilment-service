@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using UKHO.ADDS.Clients.SalesCatalogueService;
 using UKHO.ADDS.Clients.SalesCatalogueService.Models;
+using UKHO.ADDS.EFS.Builder.S100.Infrastructure;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Entities;
 using UKHO.ADDS.EFS.Messages;
@@ -100,7 +101,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
         private async Task<(S100SalesCatalogueResponse s100SalesCatalogueResponse, DateTime? scsTimestamp)> GetProductJson(DateTime? timestamp, ExchangeSetRequestQueueMessage message)
         {
-            var s100SalesCatalogueResult = await _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(ScsApiVersion, ProductType, timestamp, message.CorrelationId);
+            var retryPolicy = HttpClientPolicyProvider.GetGenericResultRetryPolicy<S100SalesCatalogueResponse>(_logger);
+            var s100SalesCatalogueResult = await retryPolicy.ExecuteAsync(() =>
+                _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(ScsApiVersion, ProductType, timestamp, message.CorrelationId));
 
             if (s100SalesCatalogueResult.IsSuccess(out var s100SalesCatalogueData, out var error))
             {
