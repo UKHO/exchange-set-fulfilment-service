@@ -1,7 +1,6 @@
 ﻿using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging;
-using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Models;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
@@ -47,13 +46,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             }
             catch (Exception ex)
             {
-                var logView = new ExceptionLogView
-                {
-                    ExceptionType = ex.GetType().Name,
-                    Message = ex.Message,
-                    StackTrace = ex.StackTrace ?? string.Empty,
-                };
-                _logger.LogDownloadFilesNodeFailed(logView);
+                _logger.LogDownloadFilesNodeFailed(ex);
                 return NodeResultStatus.Failed;
             }
         }
@@ -94,7 +87,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             // Return early if no files to process
             if (allFilesToProcess.Count == 0)
             {
-                _logger.LogDownloadFilesNodeNoFilesToProcessError("No files found for processing");                
+                _logger.LogDownloadFilesNodeNoFilesToProcessError("No files found for processing");
                 return NodeResultStatus.Failed;
             }
 

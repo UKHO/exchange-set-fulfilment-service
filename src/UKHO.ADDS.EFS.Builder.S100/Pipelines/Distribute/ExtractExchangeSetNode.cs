@@ -36,7 +36,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
             }
             catch (Exception ex)
             {
-                _logger.LogExtractExchangeSetNodeFailed(ex.Message);
+                _logger.LogExtractExchangeSetNodeFailed(ex);
                 return NodeResultStatus.Failed;
             }
         }

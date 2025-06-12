@@ -27,8 +27,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute.Logging
         // The Add File Node FSS Add File failed
         public static readonly EventId FileShareAddFileToBatchError = new(FileShareAddFileToBatchErrorId, nameof(FileShareAddFileToBatchError));
 
-        [LoggerMessage(AddFileNodeFailedId, LogLevel.Error, "AddFileNode failed: {@errorMessage}", EventName = nameof(AddFileNodeFailed))]
-        public static partial void LogUploadFilesNodeFailed(this ILogger logger, string errorMessage);
+        [LoggerMessage(AddFileNodeFailedId, LogLevel.Error, "AddFileNode failed: {@exception}", EventName = nameof(AddFileNodeFailed))]
+        public static partial void LogUploadFilesNodeFailed(this ILogger logger, Exception exception);
 
         [LoggerMessage(FileShareAddFileToBatchErrorId, LogLevel.Error, "AddFileNode File Share Service AddFileToBatch failed: {@addFileLog}", EventName = nameof(FileShareAddFileToBatchError))]
         public static partial void LogFileShareAddFileToBatchError(this ILogger logger, AddFileLogView addFileLog);
@@ -36,20 +36,20 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute.Logging
         // The Extract ExchangeSet Node failed
         public static readonly EventId ExtractExchangeSetNodeFailed = new(ExtractExchangeSetNodeFailedId, nameof(ExtractExchangeSetNodeFailed));
 
-        [LoggerMessage(ExtractExchangeSetNodeFailedId, LogLevel.Error, "ExtractExchangeSetNode failed: {@errorMessage}", EventName = nameof(ExtractExchangeSetNodeFailed))]
-        public static partial void LogExtractExchangeSetNodeFailed(this ILogger logger, string errorMessage);
+        [LoggerMessage(ExtractExchangeSetNodeFailedId, LogLevel.Error, "ExtractExchangeSetNode failed: {@exception}", EventName = nameof(ExtractExchangeSetNodeFailed))]
+        public static partial void LogExtractExchangeSetNodeFailed(this ILogger logger, Exception exception);
 
         // The Upload Files Not Available
         public static readonly EventId UploadFilesNotFound = new(UploadFilesNotFoundId, nameof(UploadFilesNotFound));
 
         [LoggerMessage(UploadFilesNotFoundId, LogLevel.Error, "UploadFilesNotFound failed: File not found at given path. | {@fileNotFoundLogView}", EventName = nameof(UploadFilesNotFound))]
         public static partial void LogUploadFilesNotFound(this ILogger logger, FileNotFoundLogView fileNotFoundLogView);
-        
+
         // The IIC Extract ExchangeSet Failed Log
-        public static readonly EventId IICExtractExchangeSetError = new (IICExtractExchangeSetErrorId, nameof(IICExtractExchangeSetError));
+        public static readonly EventId IICExtractExchangeSetError = new(IICExtractExchangeSetErrorId, nameof(IICExtractExchangeSetError));
 
         [LoggerMessage(IICExtractExchangeSetErrorId, LogLevel.Error, "ExtractExchangeSetNode IIC ExtractExchangeSet failed: {@error}", EventName = nameof(IICExtractExchangeSetError))]
-        public static partial void LogIICExtractExchangeSetError(this ILogger logger,IError error);
+        public static partial void LogIICExtractExchangeSetError(this ILogger logger, IError error);
 
     }
 }

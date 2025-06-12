@@ -73,7 +73,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
             }
             catch (Exception ex)
             {
-                _logger.LogUploadFilesNodeFailed(ex.Message);
+                _logger.LogUploadFilesNodeFailed(ex);
                 return NodeResultStatus.Failed;
             }
         }

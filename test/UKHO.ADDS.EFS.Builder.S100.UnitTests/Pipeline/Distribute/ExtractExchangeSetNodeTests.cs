@@ -95,7 +95,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
                     LogLevel.Error,
                     A<EventId>.That.Matches(e => e.Name == "IICExtractExchangeSetError"),
                     A<LoggerMessageState>._,
-                    null,
+                    A<Exception>._,
                     A<Func<LoggerMessageState, Exception?, string>>._))
                 .MustHaveHappenedOnceExactly();
         }
@@ -109,24 +109,17 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
             A.CallTo(() => _executionContext.Subject.ToolClient.ExtractExchangeSetAsync(A<string>._, A<string>._, A<string>._, A<string>._))
                 .Throws(new Exception(exceptionMessage));
 
+            var result = await _extractExchangeSetNode.ExecuteAsync(_executionContext);
+
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
+
             A.CallTo(() => _logger.Log<LoggerMessageState>(
                     LogLevel.Error,
                     A<EventId>.That.Matches(e => e.Name == "ExtractExchangeSetNodeFailed"),
                     A<LoggerMessageState>._,
-                    null,
+                    A<Exception>._,
                     A<Func<LoggerMessageState, Exception?, string>>._))
-                .Invokes((LogLevel level, EventId eventId, LoggerMessageState state, Exception ex, Func<LoggerMessageState, Exception?, string> formatter) =>
-                {
-                    loggedMessage = formatter(state, ex);
-                });
-
-            var result = await _extractExchangeSetNode.ExecuteAsync(_executionContext);
-
-            Assert.Multiple(() =>
-            {
-                Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
-                Assert.That(loggedMessage, Does.Contain(exceptionMessage));
-            });
+                .MustHaveHappenedOnceExactly();
         }
     }
 }

@@ -79,13 +79,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             }
             catch (Exception ex)
             {
-                var logView = new ExceptionLogView
-                {
-                    ExceptionType = ex.GetType().Name,
-                    Message = ex.Message,
-                    StackTrace = ex.StackTrace ?? string.Empty,
-                };
-                _logger.LogProductSearchNodeFailed(logView);
+                _logger.LogProductSearchNodeFailed(ex);
                 return NodeResultStatus.Failed;
             }
         }
