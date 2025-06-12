@@ -39,7 +39,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
             var ready = false;
 
             const int maxRetries = 30; // TODO: consider getting this from configuration
-            const int retryDelayMs = 1000;
+            const int retryDelayInMilliseconds = 1000;
 
             for (var i = 0; i < maxRetries; i++)
             {
@@ -50,7 +50,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
                     break;
                 }
 
-                await Task.Delay(retryDelayMs);
+                await Task.Delay(retryDelayInMilliseconds);
             }
 
             if (!ready)

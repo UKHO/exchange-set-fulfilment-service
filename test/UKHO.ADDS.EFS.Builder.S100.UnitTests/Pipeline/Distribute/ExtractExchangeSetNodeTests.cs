@@ -67,14 +67,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
             var result = await _extractExchangeSetNode.ExecuteAsync(_executionContext);
 
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-            //TODO: will check for failing log message later
-            //A.CallTo(() => _logger.Log<LoggerMessageState>(
-            //        LogLevel.Error,
-            //        A<EventId>.That.Matches(e => e.Name == "IICExtractExchangeSetError"),
-            //        A<LoggerMessageState>._,
-            //        null,
-            //        A<Func<LoggerMessageState, Exception?, string>>._))
-            //    .MustNotHaveHappened();
+            //TODO: check for failing log message later
         }
 
         [Test]
