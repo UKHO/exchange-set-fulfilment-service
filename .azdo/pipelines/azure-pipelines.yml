@@ -128,6 +128,7 @@ stages:
           azureSubscription: Exchange-Set-Service-Dev-A-008-02
           scriptType: bash
           scriptLocation: inlineScript
+          keepAzSessionActive: true
           inlineScript: |
             az storage blob download --container-name $StorageContainerName --name root2.tar.gz --file $(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.Builder.S100/root2.tar.gz --auth-mode key
             az storage blob download --container-name $StorageContainerName --name xchg-2.7.war --file $(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.Builder.S100/xchg-2.7.war --auth-mode key
@@ -143,6 +144,7 @@ stages:
           azureSubscription: Exchange-Set-Service-Dev-A-008-02
           scriptType: bash
           scriptLocation: inlineScript
+          keepAzSessionActive: true
           inlineScript: |
             echo "Logging in to Azure Container Registry..."
             az acr login --name $ACR_NAME
