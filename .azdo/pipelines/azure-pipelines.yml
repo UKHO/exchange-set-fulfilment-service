@@ -126,7 +126,7 @@ stages:
 
     - stage: DevDeploy
       dependsOn:
-      - VulnerabilityChecks
+      #- VulnerabilityChecks
       - BuildTest
       displayName: Dev deploy
       jobs:

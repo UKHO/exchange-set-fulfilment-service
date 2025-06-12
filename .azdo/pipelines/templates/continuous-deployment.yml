@@ -23,6 +23,8 @@ jobs:
     clean: all
   variables:
   - template: var/${{ lower(parameters.ShortName) }}-deploy.yml
+  - name: Containers.BuildOnStartup
+    value: false
   strategy:
     runOnce:
       deploy:
@@ -44,6 +46,14 @@ jobs:
           inputs:
             version: '9.x'
           displayName: Set up .NET 9
+
+        - task: FileTransform@2
+          displayName: Turn off builder in host
+          inputs:
+            folderPath: '$(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.LocalHost'
+            xmlTransformationRules: ''
+            enableXmlTransform: false
+            jsonTargetFiles: '**/appsettings.json'
 
         - ${{ if eq(parameters.DestroyResources, true) }}:
 
@@ -71,7 +81,9 @@ jobs:
             displayName: NuGet restore for non test projects only
             inputs:
               command: restore
-              projects: '**/*.csproj'
+              projects: |
+                **/*.csproj
+                !**/*.UnitTests.csproj
               feedsToUse: config
               noCache: true
               nugetConfigPath: '$(Build.SourcesDirectory)/BuildNuget.config'
