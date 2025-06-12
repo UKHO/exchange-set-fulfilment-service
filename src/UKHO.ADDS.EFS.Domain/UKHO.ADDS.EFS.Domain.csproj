@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Polly" Version="8.6.0" />
     <PackageReference Include="Serilog" Version="4.2.0" />
     <PackageReference Include="UKHO.ADDS.Clients.FileShareService.ReadOnly" Version="0.0.50506-alpha.1" />
     <PackageReference Include="UKHO.ADDS.Clients.SalesCatalogueService" Version="0.0.50415-alpha.1" />

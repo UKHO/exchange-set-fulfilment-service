@@ -1,13 +1,7 @@
-﻿using System;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
+﻿using System.Net;
 using FakeItEasy;
 using Microsoft.Extensions.Logging;
-using NUnit.Framework;
-using Polly;
-using UKHO.ADDS.EFS.Builder.S100.Infrastructure;
+using UKHO.ADDS.EFS.Domain.RetryPolicy;
 
 namespace UKHO.ADDS.EFS.Builder.S100.UnitTests
 {

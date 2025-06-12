@@ -1,7 +1,9 @@
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Polly;
 using UKHO.ADDS.Infrastructure.Results; // Added for IError
 
-namespace UKHO.ADDS.EFS.Builder.S100.Infrastructure
+namespace UKHO.ADDS.EFS.Domain.RetryPolicy
 {
     /// <summary>
     /// Provides Polly retry policies for HttpClient and custom result types to handle transient errors.
