@@ -5,6 +5,14 @@ parameters:
 # Used to generate job names and, in lower case, to select the correct var/x-deploy.yml variable file.
 - name: ShortName
   type: string
+# Destroy resources, rather than deploying them.
+- name: DestroyResources
+  type: boolean
+  default: false
+# If true, azd commands will be run with the --debug flag.
+- name: AzdDebug
+  type: boolean
+  default: false
 
 jobs:
 - deployment: ${{ parameters.ShortName }}DeployApp
@@ -37,12 +45,109 @@ jobs:
             version: '9.x'
           displayName: Set up .NET 9
 
-        - task: DotNetCoreCLI@2
-          displayName: NuGet restore for non test projects only
-          inputs:
-            command: restore
-            projects: '**/*.csproj'
-            feedsToUse: config
-            noCache: true
-            nugetConfigPath: '$(Build.SourcesDirectory)/BuildNuget.config'
-            packagesDirectory: '$(Build.SourcesDirectory)/src/packages'
+        - ${{ if eq(parameters.DestroyResources, true) }}:
+
+          - task: AzureCLI@2
+            displayName: Destroy infrastructure
+            inputs:
+              azureSubscription: ${{ variables.AzureSubscription }}
+              scriptType: bash
+              scriptLocation: inlineScript
+              keepAzSessionActive: true
+              ${{ if eq(parameters.AzdDebug, true) }}:
+                inlineScript: |
+                  azd down --no-prompt --force --purge --debug
+              ${{ else }}:
+                inlineScript: |
+                  azd down --no-prompt --force --purge
+            env:
+              AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+              AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+              AZURE_LOCATION: $(AZURE_LOCATION)
+
+        - ${{ else }}:
+
+          - task: DotNetCoreCLI@2
+            displayName: NuGet restore for non test projects only
+            inputs:
+              command: restore
+              projects: '**/*.csproj'
+              feedsToUse: config
+              noCache: true
+              nugetConfigPath: '$(Build.SourcesDirectory)/BuildNuget.config'
+              packagesDirectory: '$(Build.SourcesDirectory)/packages'
+
+          - task: AzureCLI@2
+            displayName: Provision infrastructure
+            inputs:
+              azureSubscription: ${{ variables.AzureSubscription }}
+              scriptType: bash
+              scriptLocation: inlineScript
+              keepAzSessionActive: true
+              ${{ if eq(parameters.AzdDebug, true) }}:
+                inlineScript: |
+                  azd provision --no-prompt --debug
+              ${{ else }}:
+                inlineScript: |
+                  azd provision --no-prompt
+            env:
+              AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+              AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+              AZURE_LOCATION: $(AZURE_LOCATION)
+              #AZD_INITIAL_ENVIRONMENT_CONFIG: $(AZD_INITIAL_ENVIRONMENT_CONFIG)
+
+          - task: AzureCLI@2
+            displayName: Deploy application
+            inputs:
+              azureSubscription: ${{ variables.AzureSubscription }}
+              scriptType: bash
+              scriptLocation: inlineScript
+              keepAzSessionActive: true
+              ${{ if eq(parameters.AzdDebug, true) }}:
+                inlineScript: |
+                  azd deploy --no-prompt --debug
+              ${{ else }}:
+                inlineScript: |
+                  azd deploy --no-prompt
+            env:
+              AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+              AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+              AZURE_LOCATION: $(AZURE_LOCATION)
+
+          - task: AzureCLI@2
+            displayName: Download builder files from Azure
+            inputs:
+              azureSubscription: ${{ variables.AzureSubscription }}
+              scriptType: bash
+              scriptLocation: inlineScript
+              keepAzSessionActive: true
+              inlineScript: |
+                az storage blob download --container-name $StorageContainerName --name root2.tar.gz --file $(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.Builder.S100/root2.tar.gz --auth-mode key
+                az storage blob download --container-name $StorageContainerName --name xchg-2.7.war --file $(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.Builder.S100/xchg-2.7.war --auth-mode key
+            env:
+              AZURE_STORAGE_ACCOUNT: $(BuilderFilesSa)
+              StorageContainerName: $(BuilderFilesContainer)
+              AZURE_STORAGE_KEY: $(BuilderFilesSaKey)
+
+          - task: AzureCLI@2
+            displayName: Build and push Docker image to ACR
+            inputs:
+              azureSubscription: ${{ variables.AzureSubscription }}
+              scriptType: bash
+              scriptLocation: inlineScript
+              keepAzSessionActive: true
+              inlineScript: |
+                echo "Logging in to Azure Container Registry..."
+                az acr login --name $ACR_NAME
+
+                echo "Changing directory..."
+                cd $(Build.SourcesDirectory)/src
+
+                echo "Building Docker image..."
+                docker build -t $ACR_NAME.azurecr.io/exchange-set-fulfilment-service/efs-builder-s100:${BUILD_TAG} -f UKHO.ADDS.EFS.Builder.S100/Dockerfile .
+
+                echo "Pushing Docker image to Azure Container Registry..."
+                docker push $ACR_NAME.azurecr.io/exchange-set-fulfilment-service/efs-builder-s100:${BUILD_TAG}
+            env:
+              ACR_NAME: $(BuilderAcrName)
+              BUILD_TAG: $(Build.BuildId)

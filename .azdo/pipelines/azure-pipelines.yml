@@ -21,6 +21,10 @@ parameters:
     displayName: "Snyk - don't fail if issues found"
     type: boolean
     default: false
+  - name: SkipDeployment
+    displayName: "Skip deployment (temporary until dev deployment works)"
+    type: boolean
+    default: false
 
 trigger:
   - main
@@ -118,13 +122,17 @@ stages:
     jobs:
     - template: templates/build-test-publish.yml
 
-  - stage: DevDeploy
-    dependsOn:
-    - VulnerabilityChecks
-    - BuildTest
-    displayName: Dev deploy
-    jobs:
-    - template: templates/continuous-deployment.yml
-      parameters:
-        AzureDevOpsEnvironment: Ess-Dev
-        ShortName: dev
+  - ${{ if ne(parameters.SkipDeployment, true) }}:
+
+    - stage: DevDeploy
+      dependsOn:
+      - VulnerabilityChecks
+      - BuildTest
+      displayName: Dev deploy
+      jobs:
+      - template: templates/continuous-deployment.yml
+        parameters:
+          AzureDevOpsEnvironment: Ess-Dev
+          ShortName: dev
+          DestroyResources: ${{ parameters.DestroyResourcesDev }}
+          AzdDebug: ${{ parameters.AzdDebug }}
