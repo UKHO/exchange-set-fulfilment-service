@@ -177,8 +177,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         private Task<IResult<CommitBatchResponse>> CommitBatchAsync(string batchId, string correlationId, CancellationToken cancellationToken = default) =>
             _fileShareService.CommitBatchAsync(batchId, correlationId, cancellationToken);
 
-        private Task<IResult<BatchSearchResponse>> SearchCommittedBatchesExcludingCurrentAsync(string batchId, string correlationId) =>
-            _fileShareService.SearchCommittedBatchesExcludingCurrentAsync(batchId, correlationId);
+        private Task<IResult<BatchSearchResponse>> SearchCommittedBatchesExcludingCurrentAsync(string batchId, string correlationId, CancellationToken cancellationToken = default) =>
+            _fileShareService.SearchCommittedBatchesExcludingCurrentAsync(batchId, correlationId, cancellationToken);
 
         private Task<IResult<SetExpiryDateResponse>> SetExpiryDateAsync(List<BatchDetails> batchDetails, string correlationId, CancellationToken cancellationToken = default) =>
             _fileShareService.SetExpiryDateAsync(batchDetails, correlationId, cancellationToken);

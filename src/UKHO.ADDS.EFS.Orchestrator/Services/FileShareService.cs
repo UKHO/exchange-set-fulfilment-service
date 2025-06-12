@@ -23,9 +23,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             _logger = logger;
         }
 
-        public async Task<IResult<IBatchHandle>> CreateBatchAsync(string correlationId)
+        public async Task<IResult<IBatchHandle>> CreateBatchAsync(string correlationId, CancellationToken cancellationToken)
         {
-            var createBatchResponseResult = await _fileShareReadWriteClient.CreateBatchAsync(GetBatchModel(), correlationId);
+            var createBatchResponseResult = await _fileShareReadWriteClient.CreateBatchAsync(GetBatchModel(), correlationId, cancellationToken);
 
             if (createBatchResponseResult.IsFailure(out var commitError, out _))
             {
@@ -36,7 +36,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
         public async Task<IResult<CommitBatchResponse>> CommitBatchAsync(string batchId, string correlationId, CancellationToken cancellationToken)
         {
-            var commitBatchResult = await _fileShareReadWriteClient.CommitBatchAsync(new BatchHandle(batchId), correlationId, CancellationToken.None);
+            var commitBatchResult = await _fileShareReadWriteClient.CommitBatchAsync(new BatchHandle(batchId), correlationId, cancellationToken);
 
             if (commitBatchResult.IsFailure(out var commitError, out _))
             {
@@ -46,11 +46,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             return commitBatchResult;
         }
 
-        public async Task<IResult<BatchSearchResponse>> SearchCommittedBatchesExcludingCurrentAsync(string currentBatchId, string correlationId)
+        public async Task<IResult<BatchSearchResponse>> SearchCommittedBatchesExcludingCurrentAsync(string currentBatchId, string correlationId, CancellationToken cancellationToken)
         {
             var filter = $"BusinessUnit eq '{BusinessUnit}' and {ProductTypeQueryClause}$batch(BatchId) ne '{currentBatchId}'";
             
-            var searchResult = await _fileShareReadWriteClient.SearchAsync(filter, Limit, Start, correlationId);
+            var searchResult = await _fileShareReadWriteClient.SearchAsync(filter, Limit, Start, correlationId, cancellationToken);
 
             if (searchResult.IsFailure(out var value, out var error))
             {
@@ -60,7 +60,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             return searchResult;
         }
 
-        public async Task<IResult<SetExpiryDateResponse>> SetExpiryDateAsync(List<BatchDetails> otherBatches, string correlationId, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IResult<SetExpiryDateResponse>> SetExpiryDateAsync(List<BatchDetails> otherBatches, string correlationId, CancellationToken cancellationToken)
         {
             IResult<SetExpiryDateResponse> lastResult = null;
 
@@ -72,7 +72,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                         batch.BatchId,
                         new BatchExpiryModel { ExpiryDate = DateTime.UtcNow },
                         correlationId,
-                        CancellationToken.None);
+                        cancellationToken);
 
                     if (expiryResult.IsFailure(out var expiryError, out _))
                     {
