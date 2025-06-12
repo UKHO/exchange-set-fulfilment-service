@@ -1,5 +1,7 @@
 ﻿using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
+using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
+using UKHO.ADDS.EFS.Builder.S100.Infrastructure;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute.Logging;
 using UKHO.ADDS.EFS.Constants;
 using UKHO.ADDS.Infrastructure.Pipelines;
@@ -54,14 +56,16 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
                 await using var fileStream = CreateExchangeSetFileStream(filePath);
 
                 var batchHandle = new BatchHandle(batchId);
-                var addFileResult = await _fileShareReadWriteClient.AddFileToBatchAsync(
-                    batchHandle,
-                    fileStream,
-                    fileName,
-                    ApiHeaderKeys.ContentTypeOctetStream,
-                    correlationId,
-                    CancellationToken.None
-                );
+                var retryPolicy = HttpClientPolicyProvider.GetGenericResultRetryPolicy<AddFileToBatchResponse>(_logger);
+                var addFileResult = await retryPolicy.ExecuteAsync(() =>
+                    _fileShareReadWriteClient.AddFileToBatchAsync(
+                        batchHandle,
+                        fileStream,
+                        fileName,
+                        ApiHeaderKeys.ContentTypeOctetStream,
+                        correlationId,
+                        CancellationToken.None
+                    ));
 
                 if (!addFileResult.IsSuccess(out _, out var error))
                 {
