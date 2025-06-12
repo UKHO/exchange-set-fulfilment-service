@@ -62,24 +62,24 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WaitFor(keyVault)
                 .WithScalar("API Browser");
 
-            orchestratorService.WithEnvironment(async c =>
-            {
-                var addsMockEndpoint = mockService.GetEndpoint("http");
-                var fssEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = "host.docker.internal", Path = "fss/" };
+            //orchestratorService.WithEnvironment(async c =>
+            //{
+            //    var addsMockEndpoint = mockService.GetEndpoint("http");
+            //    var fssEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = "host.docker.internal", Path = "fss/" };
 
-                var scsEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.Host, Path = "scs/" };
+            //    var scsEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.Host, Path = "scs/" };
 
-                var orchestratorEndpoint = orchestratorService.GetEndpoint("http").Url;
+            //    var orchestratorEndpoint = orchestratorService.GetEndpoint("http").Url;
 
-                var workspaceKey = "D89D11D265B19CA5C2BE97A7FCB1EF21";
+            //    var workspaceKey = "D89D11D265B19CA5C2BE97A7FCB1EF21";
 
-                var secretClient = c.ExecutionContext.ServiceProvider.GetRequiredService<SecretClient>();
+            //    var secretClient = c.ExecutionContext.ServiceProvider.GetRequiredService<SecretClient>();
 
-                await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.FileShareEndpoint, fssEndpoint.Uri.ToString());
-                await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.SalesCatalogueEndpoint, scsEndpoint.Uri.ToString());
-                await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.OrchestratorServiceEndpoint, orchestratorEndpoint);
-                await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.WorkspaceKey, workspaceKey);
-            });
+            //    await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.FileShareEndpoint, fssEndpoint.Uri.ToString());
+            //    await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.SalesCatalogueEndpoint, scsEndpoint.Uri.ToString());
+            //    await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.OrchestratorServiceEndpoint, orchestratorEndpoint);
+            //    await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.WorkspaceKey, workspaceKey);
+            //});
 
             // Fixed endpoint
             var keyVaultUri = "https://localhost:4997";
