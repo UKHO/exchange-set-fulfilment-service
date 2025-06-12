@@ -5,6 +5,14 @@ parameters:
     displayName: "Disable Stryker"
     type: boolean
     default: false
+  - name: DestroyResourcesDev
+    displayName: "Destroy dev environment"
+    type: boolean
+    default: false
+  - name: AzdDebug
+    displayName: "Debug azd"
+    type: boolean
+    default: false
   - name: SnykOnlyFailIfFixable
     displayName: "Snyk - fail only if an issue has an available fix"
     type: boolean
@@ -38,6 +46,8 @@ variables:
     value: "9.0.x"
   - name: WindowsPool
     value: "Mare Nubium"
+  - name: LinuxPool
+    value: "Mare Nectaris"
   - name: snykAbzuOrganizationId
     value: aeb7543b-8394-457c-8334-a31493d8910d
 
@@ -107,3 +117,14 @@ stages:
     dependsOn: []
     jobs:
     - template: templates/build-test-publish.yml
+
+  - stage: DevDeploy
+    dependsOn:
+    - VulnerabilityChecks
+    - BuildTest
+    displayName: Dev deploy
+    jobs:
+    - template: templates/continuous-deployment.yml
+      parameters:
+        AzureDevOpsEnvironment: Ess-Dev
+        ShortName: dev

@@ -1,0 +1,4 @@
+variables:
+- group: EFS-Dev-Test
+- name: AzureSubscription
+  value: Exchange-Set-Service-Dev-A-008-02

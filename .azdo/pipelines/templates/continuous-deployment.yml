@@ -1,0 +1,48 @@
+parameters:
+# The name of the environment to be used in Azure DevOps.
+- name: AzureDevOpsEnvironment
+  type: string
+# Used to generate job names and, in lower case, to select the correct var/x-deploy.yml variable file.
+- name: ShortName
+  type: string
+
+jobs:
+- deployment: ${{ parameters.ShortName }}DeployApp
+  displayName: "${{ upper(parameters.ShortName) }} - app deploy"
+  environment: ${{ parameters.AzureDevOpsEnvironment }}
+  pool: $(LinuxPool)
+  workspace:
+    clean: all
+  variables:
+  - template: var/${{ lower(parameters.ShortName) }}-deploy.yml
+  strategy:
+    runOnce:
+      deploy:
+        steps:
+        - checkout: self
+          clean: true
+
+        - script: git submodule update --init --recursive
+          displayName: Restore mock submodule
+          workingDirectory: '$(Build.SourcesDirectory)'
+  
+        - script: |
+            curl -fsSL https://aka.ms/install-azd.sh | bash
+            azd version
+            azd config set auth.useAzCliAuth "true"
+          displayName: Install azd
+
+        - task: UseDotNet@2
+          inputs:
+            version: '9.x'
+          displayName: Set up .NET 9
+
+        - task: DotNetCoreCLI@2
+          displayName: NuGet restore for non test projects only
+          inputs:
+            command: restore
+            projects: '**/*.csproj'
+            feedsToUse: config
+            noCache: true
+            nugetConfigPath: '$(Build.SourcesDirectory)/BuildNuget.config'
+            packagesDirectory: '$(Build.SourcesDirectory)/src/packages'
