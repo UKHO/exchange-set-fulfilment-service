@@ -43,7 +43,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Infrastructure
             return (maxRetryAttempts, retryDelayMs);
         }
 
-        // Private helper for logging retry attempts
+        // Private helper for logging retry attempts (structured)
         private static void LogRetryAttempt(
             ILogger logger,
             DateTimeOffset timestamp,
@@ -53,8 +53,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Infrastructure
             string statusCode,
             double delaySeconds)
         {
-            HttpClientPolicyLogger.LogHttpRetryAttempt(
-                logger,
+            logger.LogHttpRetryAttempt(
                 timestamp,
                 retryAttempt,
                 maxRetryAttempts,
