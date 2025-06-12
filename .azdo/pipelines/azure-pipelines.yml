@@ -5,9 +5,12 @@ parameters:
     displayName: "Disable Stryker"
     type: boolean
     default: false
-
-  - name: DisableSnyk
-    displayName: "Disable Snyk"
+  - name: SnykOnlyFailIfFixable
+    displayName: "Snyk - fail only if an issue has an available fix"
+    type: boolean
+    default: false
+  - name: SnykPassOnIssues
+    displayName: "Snyk - don't fail if issues found"
     type: boolean
     default: false
 
@@ -41,14 +44,16 @@ variables:
 stages:
   - stage: VulnerabilityChecks
     displayName: "Snyk Checks"
-    condition: eq('${{ parameters.DisableSnyk }}', false)    
     dependsOn: []
     jobs:
     - template: templates/vulnerability-checks.yml
+      parameters:
+        SnykOnlyFailIfFixable: ${{ parameters.SnykOnlyFailIfFixable }}
+        SnykPassOnIssues: ${{ parameters.SnykPassOnIssues }}
 
   - stage: Stryker_Mutator
     displayName: "Stryker Mutator"
-    condition: eq('${{ parameters.DisableStryker }}', false)  
+    condition: eq('${{ parameters.DisableStryker }}', false)
     dependsOn: []
     jobs:
     - job: Stryker
