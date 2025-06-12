@@ -32,6 +32,8 @@ jobs:
         - checkout: self
           clean: true
 
+        - download: none
+
         - script: git submodule update --init --recursive
           displayName: Restore mock submodule
           workingDirectory: '$(Build.SourcesDirectory)'
@@ -43,9 +45,10 @@ jobs:
           displayName: Install azd
 
         - task: UseDotNet@2
+          displayName: Use .NET SDK $(SdkVersion)
           inputs:
-            version: '9.x'
-          displayName: Set up .NET 9
+            packageType: sdk
+            version: $(SdkVersion)
 
         - task: FileTransform@2
           displayName: Turn off builder in host
@@ -84,6 +87,7 @@ jobs:
               projects: |
                 **/*.csproj
                 !**/*.UnitTests.csproj
+                !**/*.Tests.csproj
               feedsToUse: config
               noCache: true
               nugetConfigPath: '$(Build.SourcesDirectory)/BuildNuget.config'

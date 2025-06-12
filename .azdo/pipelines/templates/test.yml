@@ -4,6 +4,13 @@ jobs:
     clean: all
   displayName: "Dotnet Test and Publish Code Coverage"
   steps:
+    - checkout: self
+      clean: true
+
+    - script: git submodule update --init --recursive
+      displayName: Restore mock submodule
+      workingDirectory: '$(Build.SourcesDirectory)'
+
     - task: UseDotNet@2
       displayName: Use .NET SDK $(SdkVersion)
       inputs:
