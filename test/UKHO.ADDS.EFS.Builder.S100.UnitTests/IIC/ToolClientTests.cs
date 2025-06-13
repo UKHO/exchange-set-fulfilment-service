@@ -13,19 +13,21 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
         private HttpClient _httpClient;
         private ToolClient _toolClient;
         private HttpMessageHandler _httpMessageHandler;
+        private UriCapturingHandler _handler;
 
         private const string ResourceLocation = "Test Resource Location";
         private const string ExchangeSetId = "Test ExchangeSet Id";
         private const string AuthKey = "Test Auth Key";
         private const string CorrelationId = "Test Correlation Id";
         private const string ExceptionMessage = "Test ExceptionMessage";
-        private const string DestinationPath= "xchg";
+        private const string DestinationPath = "xchg";
 
         [SetUp]
         public void SetUp()
         {
             _httpMessageHandler = A.Fake<HttpMessageHandler>();
-            _httpClient = new HttpClient(_httpMessageHandler)
+            _handler = new UriCapturingHandler(_httpMessageHandler);
+            _httpClient = new HttpClient(_handler)
             {
                 BaseAddress = new Uri("http://localhost")
             };
@@ -33,10 +35,19 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
         }
 
         [Test]
-        public async Task WhenPingAsyncIsCalled_ThenSuccessStatusCodeEnsured()
+        public async Task WhenPingAsyncIsCalled_ThenSuccessStatusCodeEnsuredAndNotThrowingException()
         {
             SetupHttpResponse(HttpStatusCode.OK);
             Assert.That(async () => await _toolClient.PingAsync(), Throws.Nothing);
+            Assert.That(_handler.LastRequestUri!.ToString(), Is.EqualTo("http://localhost/xchg-2.7/v2.7/dev?arg=test&authkey=noauth"));
+        }
+
+        [Test]
+        public async Task WhenPingAsyncIsCalled_ThenSuccessStatusCodeEnsured()
+        {
+            SetupHttpResponse(HttpStatusCode.OK);
+            var result = await _toolClient.PingAsync();
+            Assert.That(result.IsSuccess(out var value, out var error), Is.EqualTo(true));
         }
 
         [Test]
@@ -55,6 +66,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
             var result = await _toolClient.AddExchangeSetAsync(ExchangeSetId, AuthKey, CorrelationId);
             Assert.That(result.IsSuccess(out var value, out var error), Is.EqualTo(true));
             Assert.That(value.Code, Is.EqualTo(200));
+            Assert.That(_handler.LastRequestUri!.ToString(), Is.EqualTo($"http://localhost/xchg-2.7/v2.7/addExchangeSet/working9/{ExchangeSetId}?authkey={AuthKey}"));
         }
 
         [Test]
@@ -86,6 +98,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
             var result = await _toolClient.AddContentAsync(ResourceLocation, ExchangeSetId, AuthKey, CorrelationId);
             Assert.That(result.IsSuccess(out var value, out var error), Is.EqualTo(true));
             Assert.That(value.Code, Is.EqualTo(200));
+            Assert.That(_handler.LastRequestUri!.ToString(), Is.EqualTo($"http://localhost/xchg-2.7/v2.7/addContent/working9/{ExchangeSetId}?authkey={AuthKey}&resourceLocation={ResourceLocation}"));
         }
 
         [Test]
@@ -134,6 +147,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
             var result = await _toolClient.AddContentAsync(ResourceLocation, ExchangeSetId, AuthKey, CorrelationId);
             Assert.That(result.IsSuccess(out var value, out var error), Is.EqualTo(true));
             Assert.That(value.Code, Is.EqualTo(200));
+            Assert.That(_handler.LastRequestUri!.ToString(), Is.EqualTo($"http://localhost/xchg-2.7/v2.7/addContent/working9/{ExchangeSetId}?authkey={AuthKey}&resourceLocation={ResourceLocation}"));
             Directory.Delete(subDir, true);
         }
 
@@ -181,6 +195,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
             Assert.That(value.Certificate, Is.EqualTo("cert"));
             Assert.That(value.SigningKey, Is.EqualTo("key"));
             Assert.That(value.Status, Is.EqualTo("ok"));
+            Assert.That(_handler.LastRequestUri!.ToString(), Is.EqualTo($"http://localhost/xchg-2.7/v2.7/signExchangeSet/working9/{ExchangeSetId}?authkey={AuthKey}"));
         }
 
         [Test]
@@ -213,6 +228,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
             var result = await _toolClient.ExtractExchangeSetAsync(ExchangeSetId, AuthKey, CorrelationId, DestinationPath);
             Assert.That(result.IsSuccess(out var value, out var error), Is.EqualTo(true));
             Assert.That(value, Is.Not.Null);
+            Assert.That(_handler.LastRequestUri!.ToString(), Is.EqualTo($"http://localhost/xchg-2.7/v2.7/extractExchangeSet/working9/{ExchangeSetId}?authkey={AuthKey}&destination={DestinationPath}"));
         }
 
         [Test]
@@ -243,6 +259,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
             var result = await _toolClient.ListWorkspaceAsync(AuthKey);
             Assert.That(result.IsSuccess(out var value, out var error));
             Assert.That(value, Is.EqualTo("workspace-list"));
+            Assert.That(_handler.LastRequestUri!.ToString(), Is.EqualTo($"http://localhost/xchg-2.7/v2.7/listWorkspace?authkey={AuthKey}"));
         }
 
         [Test]
@@ -284,6 +301,23 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
         {
             _httpClient.Dispose();
             _httpMessageHandler.Dispose();
+            _handler?.Dispose();
+        }
+    }
+
+    public class UriCapturingHandler : DelegatingHandler
+    {
+        public Uri? LastRequestUri { get; private set; }
+        public HttpMethod? LastMethod { get; private set; }
+
+        public UriCapturingHandler() : base(new HttpClientHandler()) { } // Default constructor, though we'll use the one below for tests
+        public UriCapturingHandler(HttpMessageHandler innerHandler) : base(innerHandler) { }
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            LastRequestUri = request.RequestUri;
+            LastMethod = request.Method;
+            return await base.SendAsync(request, cancellationToken);
         }
     }
 }

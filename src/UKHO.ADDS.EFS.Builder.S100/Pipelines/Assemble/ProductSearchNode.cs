@@ -29,6 +29,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private const int ProductLimit = 4;
         private const int Limit = 100;
         private const int Start = 0;
+        private const string QueryLimit = "limit";
+        private const string QueryStart = "start";
+        private const string QueryFilter = "$filter";
+
 
         public ProductSearchNode(IFileShareReadOnlyClient fileShareReadOnlyClient) : base()
         {
@@ -40,7 +44,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             try
             {
                 _logger = context.Subject.LoggerFactory.CreateLogger<ProductSearchNode>();
-
                 var products = context.Subject.Job?.Products;
                 if (products == null || products.Count == 0)
                 {
@@ -77,7 +80,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             }
             catch (Exception ex)
             {
-                _logger.LogProductSearchNodeFailed(ex.Message);
+                _logger.LogProductSearchNodeFailed(ex);
                 return NodeResultStatus.Failed;
             }
         }
@@ -85,10 +88,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private async Task<List<BatchDetails>> QueryFileShareServiceFilesAsync(List<BatchProductDetail> products, string correlationId)
         {
             var batchDetails = new List<BatchDetails>();
-            if (products == null || products.Count == 0)
-            {
-                return batchDetails;
-            }
 
             var batchProducts = ChunkProductsByProductLimit(products);
             foreach (var productBatch in batchProducts)
@@ -104,10 +103,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
              string correlationId)
         {
             var batchSearchResponse = new BatchSearchResponse { Entries = new List<BatchDetails>() };
-            if (products == null || products.Count == 0)
-            {
-                return batchSearchResponse;
-            }
 
             var productQuery = GenerateQueryForFss(products);
             var totalUpdateCount = products.Sum(p => p.UpdateNumbers.ToList().Count);
@@ -125,16 +120,16 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 {
                     if (value.Entries.Count != 0)
                     {
-                        batchSearchResponse.Entries.AddRange(value.Entries);                        
+                        batchSearchResponse.Entries.AddRange(value.Entries);
                     }
 
                     var queryString = value.Links?.Next?.Href;
                     if (!string.IsNullOrEmpty(queryString))
                     {
                         var parsedValues = ParseQueryString(queryString);
-                        limit = parsedValues.TryGetValue("limit", out var urlLimit) ? int.Parse(urlLimit) : limit;
-                        start = parsedValues.TryGetValue("start", out var urlStart) ? int.Parse(urlStart) : start;
-                        filter = parsedValues.TryGetValue("$filter", out var urlFilter) ? urlFilter : filter;
+                        limit = parsedValues.TryGetValue(QueryLimit, out var urlLimit) ? int.Parse(urlLimit) : limit;
+                        start = parsedValues.TryGetValue(QueryStart, out var urlStart) ? int.Parse(urlStart) : start;
+                        filter = parsedValues.TryGetValue(QueryFilter, out var urlFilter) ? urlFilter : filter;
                     }
                     else
                     {
@@ -162,20 +157,20 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 Limit = limit,
                 Start = start
             };
-            var batchSearchProductsLogVeiw = new BatchProductSearchLog
+            var batchSearchProductsLogView = new BatchProductSearchLog
             {
                 BatchProducts = products,
                 CorrelationId = correlationId,
                 BusinessUnit = BusinessUnit,
                 ProductType = ProductType,
                 Query = searchQuery,
-                Error = string.IsNullOrEmpty(error?.Message) ? string.Empty : error.Message,
+                Error = error
             };
 
-            _logger.LogProductSearchNodeFssSearchFailed(batchSearchProductsLogVeiw);
+            _logger.LogProductSearchNodeFssSearchFailed(batchSearchProductsLogView);
         }
 
-        private IEnumerable<List<BatchProductDetail>> ChunkProductsByProductLimit(IEnumerable<BatchProductDetail> products)
+        private static IEnumerable<List<BatchProductDetail>> ChunkProductsByProductLimit(IEnumerable<BatchProductDetail> products)
         {
             return SplitList((ChunkProductsByUpdateNumberLimit(products)), ProductLimit);
         }
@@ -188,14 +183,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             }
         }
 
-        private string GenerateQueryForFss(List<BatchProductDetail> products)
+        private static string GenerateQueryForFss(List<BatchProductDetail> products)
         {
             var queryBuilder = new StringBuilder();
-
-            if (products == null || products.Count == 0)
-            {
-                return string.Empty;
-            }
 
             queryBuilder.Append('(');
             for (var i = 0; i < products.Count; i++)
@@ -229,7 +219,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                     }))];
         }
 
-        static Dictionary<string, string> ParseQueryString(string queryString)
+        private static Dictionary<string, string> ParseQueryString(string queryString)
         {
             var queryIndex = queryString.IndexOf('?');
             var queryPart = queryIndex >= 0 ? queryString.Substring(queryIndex + 1) : queryString;

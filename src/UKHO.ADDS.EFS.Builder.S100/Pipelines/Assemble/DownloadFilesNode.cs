@@ -47,7 +47,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             }
             catch (Exception ex)
             {
-                _logger.LogDownloadFilesNodeFailed(ex.ToString());
+                _logger.LogDownloadFilesNodeFailed(ex);
                 return NodeResultStatus.Failed;
             }
         }
@@ -88,7 +88,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             // Return early if no files to process
             if (allFilesToProcess.Count == 0)
             {
-                _logger.LogDownloadFilesNodeFailed($"No files to process for CorrelationId: {correlationId}");
+                _logger.LogDownloadFilesNodeNoFilesToProcessError("No files found for processing");
                 return NodeResultStatus.Failed;
             }
 
@@ -189,7 +189,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 BatchId = batch.BatchId,
                 FileName = fileName,
                 CorrelationId = correlationId,
-                Error = string.IsNullOrEmpty(error?.Message) ? string.Empty : error.Message
+                Error = error
             };
 
             _logger.LogDownloadFilesNodeFssDownloadFailed(downloadFilesLogView);

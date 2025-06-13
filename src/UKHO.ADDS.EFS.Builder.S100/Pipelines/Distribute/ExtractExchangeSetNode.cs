@@ -26,7 +26,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
 
                 if (result.IsFailure(out var error, out var _))
                 {
-                    _logger.LogExtractExchangeSetNodeFailed(error?.Message ?? "Unknown error");
+                    _logger.LogIICExtractExchangeSetError(error);
                     return NodeResultStatus.Failed;
                 }
                 else
@@ -36,7 +36,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
             }
             catch (Exception ex)
             {
-                _logger.LogExtractExchangeSetNodeFailed(ex.Message);
+                _logger.LogExtractExchangeSetNodeFailed(ex);
                 return NodeResultStatus.Failed;
             }
         }

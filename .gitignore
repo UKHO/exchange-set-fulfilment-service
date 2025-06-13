@@ -386,3 +386,5 @@ terraform_output.json
 # Ignore VS Code ionide extension temp folder
 /.ionide/
 
+# azd
+.azure

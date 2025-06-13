@@ -13,11 +13,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.ADDS.EFS.Orchestrator"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "@builder-containers", "@builder-containers", "{28CCD968-0171-429E-A2AA-0ECCA9B1CB81}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "@build", "@build", "{8D6AAC93-7538-4E8A-85F2-6301A05AFB6D}"
-	ProjectSection(SolutionItems) = preProject
-		src\Directory.Build.props = src\Directory.Build.props
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.ADDS.EFS.Builder.S100", "src\UKHO.ADDS.EFS.Builder.S100\UKHO.ADDS.EFS.Builder.S100.csproj", "{3B3D8EFA-3B64-48DD-8EBD-70F9F91B7AF1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "@domain", "@domain", "{6264E1B0-3C74-4455-A8EE-7CFF445F37BA}"

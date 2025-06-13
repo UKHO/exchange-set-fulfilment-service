@@ -5,6 +5,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
 {
     internal class CheckEndpointsNode : ExchangeSetPipelineNode
     {
+        private readonly IHttpClientFactory _clientFactory;
+
+        public CheckEndpointsNode(IHttpClientFactory clientFactory)
+        {
+            _clientFactory = clientFactory ?? throw new ArgumentNullException(nameof(clientFactory));
+        }
+
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
         {
             if (!(await context.Subject.ToolClient.PingAsync()).IsSuccess(out _))
@@ -22,9 +29,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
             return NodeResultStatus.Succeeded;
         }
 
-        private static async Task CheckEndpointAsync(string baseAddress, string path)
+        private async Task CheckEndpointAsync(string baseAddress, string path)
         {
-            using var client = new HttpClient { BaseAddress = new Uri(baseAddress) };
+            var client = _clientFactory.CreateClient();
+            client.BaseAddress = new Uri(baseAddress);
+
             using var response = await client.GetAsync(path);
             response.EnsureSuccessStatusCode();
         }

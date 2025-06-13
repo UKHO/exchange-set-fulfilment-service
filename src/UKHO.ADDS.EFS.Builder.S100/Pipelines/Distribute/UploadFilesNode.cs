@@ -69,7 +69,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
 
                 if (!addFileResult.IsSuccess(out _, out var error))
                 {
-                    LogAddFileToBatchError(fileName, batchId, correlationId, error);
+                    LogAddFileToBatchError(fileName, batchId, error);
                     return NodeResultStatus.Failed;
                 }
 
@@ -77,7 +77,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
             }
             catch (Exception ex)
             {
-                _logger.LogUploadFilesNodeFailed(ex.Message);
+                _logger.LogUploadFilesNodeFailed(ex);
                 return NodeResultStatus.Failed;
             }
         }
@@ -103,15 +103,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
         /// </summary>
         /// <param name="fileName">The name of the file.</param>
         /// <param name="batchId">The batch identifier.</param>
-        /// <param name="correlationId">The correlation identifier.</param>
         /// <param name="error">The error details.</param>
-        private void LogAddFileToBatchError(string fileName, string batchId, string correlationId, IError error)
+        private void LogAddFileToBatchError(string fileName, string batchId, IError error)
         {
             var addFileLogView = new AddFileLogView
             {
-                FileName = fileName,
                 BatchId = batchId,
-                CorrelationId = correlationId,
+                FileName = fileName,
                 Error = error
             };
 
