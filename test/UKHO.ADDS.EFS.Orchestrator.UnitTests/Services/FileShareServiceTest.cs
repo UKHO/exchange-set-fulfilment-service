@@ -1,0 +1,277 @@
+﻿using FakeItEasy;
+using Microsoft.Extensions.Logging;
+using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
+using UKHO.ADDS.Clients.FileShareService.ReadWrite;
+using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
+using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
+using UKHO.ADDS.EFS.Messages;
+using UKHO.ADDS.EFS.Orchestrator.Services;
+using UKHO.ADDS.Infrastructure.Results;
+
+namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
+{
+    [TestFixture]
+    internal class FileShareServiceTest
+    {
+        private IFileShareReadWriteClient _fakeFileShareReadWriteClient;
+        private FileShareService _fileShareService;
+        private ILogger<FileShareService> _logger;
+        private const string CorrelationId = "TestCorrelationId";
+        private const string BatchId = "TestBatchId";
+
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
+        {
+            _fakeFileShareReadWriteClient = A.Fake<IFileShareReadWriteClient>();
+            _logger = A.Fake<ILogger<FileShareService>>();
+            _fileShareService = new FileShareService(_fakeFileShareReadWriteClient, _logger);
+        }
+
+        [Test]
+        
+        public void WhenConstructorIsCalledWithNullLogger_ThenThrowsArgumentNullException()
+        {
+            var mockClient = A.Fake<IFileShareReadWriteClient>();
+
+            Assert.Throws<ArgumentNullException>(() => new FileShareService(mockClient, null));
+        }
+        
+        [Test]
+        public async Task When_CreateBatchAsyncIsCalled_ThenReturnsResultFromClient()
+        {
+            var queueMessage = new ExchangeSetRequestQueueMessage
+            {
+                CorrelationId = "corr-1",
+                DataStandard = ExchangeSetDataStandard.S100,
+                Products = "prod"
+            };
+            var expectedResult = A.Fake<IResult<IBatchHandle>>();
+
+            A.CallTo(() => _fakeFileShareReadWriteClient.CreateBatchAsync(A<BatchModel>._, queueMessage.CorrelationId, CancellationToken.None))
+                .Returns(Task.FromResult(expectedResult));
+
+            var result = await _fileShareService.CreateBatchAsync(queueMessage.CorrelationId, CancellationToken.None);
+
+            A.CallTo(() => _fakeFileShareReadWriteClient.CreateBatchAsync(A<BatchModel>._, queueMessage.CorrelationId, CancellationToken.None)).MustHaveHappenedOnceExactly();
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.SameAs(expectedResult));
+                Assert.That(result, Is.EqualTo(expectedResult));
+            });
+        }
+
+        [Test]
+        public async Task When_CommitBatchAsyncIsCalled_ThenReturnsResultFromClient()
+        {
+            var expectedResult = A.Fake<IResult<CommitBatchResponse>>();
+            A.CallTo(() => _fakeFileShareReadWriteClient.CommitBatchAsync(A<BatchHandle>._, CorrelationId, CancellationToken.None))
+                .Returns(Task.FromResult(expectedResult));
+
+            var result = await _fileShareService.CommitBatchAsync(BatchId, CorrelationId, CancellationToken.None);
+
+            A.CallTo(() => _fakeFileShareReadWriteClient.CommitBatchAsync(A<BatchHandle>.That.Matches(b => b.BatchId == BatchId), CorrelationId, CancellationToken.None)).MustHaveHappenedOnceExactly();
+            Assert.That(result, Is.SameAs(expectedResult));
+
+        }
+
+        [Test]
+        public async Task WhenSearchCommittedBatchesExcludingCurrentAsyncIsCalled_ThenReturnsResultFromClient()
+        {
+            var expectedResult = A.Fake<IResult<BatchSearchResponse>>();
+            var expectedFilter = $"BusinessUnit eq 'ADDS-S100' and $batch(ProductType) eq 'S-100' and $batch(BatchId) ne '{BatchId}'";
+
+            A.CallTo(() => _fakeFileShareReadWriteClient.SearchAsync(expectedFilter, 100, 0, CorrelationId, CancellationToken.None))
+                .Returns(Task.FromResult(expectedResult));
+
+            var result = await _fileShareService.SearchCommittedBatchesExcludingCurrentAsync(BatchId, CorrelationId, CancellationToken.None);
+
+            A.CallTo(() => _fakeFileShareReadWriteClient.SearchAsync(expectedFilter, 100, 0, CorrelationId, CancellationToken.None)).MustHaveHappenedOnceExactly();
+
+            Assert.That(result, Is.SameAs(expectedResult));
+        }
+
+        [Test]
+        public async Task When_SetExpiryDateAsyncIsCalledWithValidBatches_ThenCallsSetExpiryDateAsyncForEachBatch()
+        {
+            var batches = CreateBatchDetailsList();
+            var expectedResult = A.Fake<IResult<SetExpiryDateResponse>>();
+            A.CallTo(() => _fakeFileShareReadWriteClient.SetExpiryDateAsync(A<string>._, A<BatchExpiryModel>._, CorrelationId, CancellationToken.None))
+                .Returns(Task.FromResult(expectedResult));
+
+            var result = await _fileShareService.SetExpiryDateAsync(batches, CorrelationId, CancellationToken.None);
+
+            A.CallTo(() => _fakeFileShareReadWriteClient.SetExpiryDateAsync("Batch1", A<BatchExpiryModel>._, CorrelationId, CancellationToken.None)).MustHaveHappenedOnceExactly();
+            A.CallTo(() => _fakeFileShareReadWriteClient.SetExpiryDateAsync("Batch2", A<BatchExpiryModel>._, CorrelationId, CancellationToken.None)).MustHaveHappenedOnceExactly();
+
+            Assert.That(result, Is.SameAs(expectedResult));
+        }
+
+        [Test]
+        public async Task When_SetExpiryDateAsyncIsCalledWithEmptyList_ThenDoesNotCallSetExpiryDateAsync_AndReturnsSuccess()
+        {
+            var batches = new List<BatchDetails>();
+
+            var result = await _fileShareService.SetExpiryDateAsync(batches, CorrelationId, CancellationToken.None);
+
+            A.CallTo(() => _fakeFileShareReadWriteClient.SetExpiryDateAsync(A<string>._, A<BatchExpiryModel>._, CorrelationId, CancellationToken.None)).MustNotHaveHappened();
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.IsSuccess(out var _, out var _), Is.True);
+        }
+
+
+        [Test]
+        public async Task WhenCreateBatchAsyncFails_ThenIsFailureIsCalled()
+        {
+            var fakeResult = A.Fake<IResult<IBatchHandle>>();
+            IError expectedError = A.Fake<IError>();
+            IBatchHandle dummyHandle = null;
+
+            A.CallTo(() => fakeResult.IsFailure(out expectedError, out dummyHandle))
+                .Returns(true);
+
+            A.CallTo(() => _fakeFileShareReadWriteClient.CreateBatchAsync(A<BatchModel>._, CorrelationId, CancellationToken.None))
+                .Returns(Task.FromResult(fakeResult));
+
+            var result = await _fileShareService.CreateBatchAsync(CorrelationId, CancellationToken.None);
+
+            IError outError;
+            var isFailureCalled = result.IsFailure(out outError, out _);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(isFailureCalled, Is.True);
+                Assert.That(outError, Is.EqualTo(expectedError));
+            });
+        }
+
+        [Test]
+        public async Task WhenCommitBatchAsyncIsFailure_ThenIsFailureIsCalled()
+        {
+            var fakeResult = A.Fake<IResult<CommitBatchResponse>>();
+            IError expectedError = A.Fake<IError>();
+            CommitBatchResponse dummyResponse = null;
+
+            A.CallTo(() => fakeResult.IsFailure(out expectedError, out dummyResponse))
+                .Returns(true);
+
+            A.CallTo(() => _fakeFileShareReadWriteClient.CommitBatchAsync(A<BatchHandle>._, CorrelationId, CancellationToken.None))
+                .Returns(Task.FromResult(fakeResult));
+
+            var result = await _fileShareService.CommitBatchAsync(BatchId, CorrelationId, CancellationToken.None);
+
+            IError outError;
+            var isFailureCalled = result.IsFailure(out outError, out _);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(isFailureCalled, Is.True);
+                Assert.That(outError, Is.EqualTo(expectedError));
+            });
+        }
+
+        [Test]
+        public async Task WhenSearchCommittedBatchesExcludingCurrentAsyncIsFailure_ThenIsFailureIsCalled_AndLogsError()
+        {
+            var expectedFilter = $"BusinessUnit eq 'ADDS-S100' and $batch(ProductType) eq 'S-100' and $batch(BatchId) ne '{BatchId}'";
+            var fakeResult = A.Fake<IResult<BatchSearchResponse>>();
+            IError expectedError = A.Fake<IError>();
+            BatchSearchResponse dummyResponse = null;
+            
+            A.CallTo(() => fakeResult.IsFailure(out expectedError, out dummyResponse))
+                .Returns(true);
+
+            A.CallTo(() => _fakeFileShareReadWriteClient.SearchAsync(expectedFilter, 100, 0, CorrelationId, CancellationToken.None))
+                .Returns(Task.FromResult(fakeResult));
+
+            var result = await _fileShareService.SearchCommittedBatchesExcludingCurrentAsync(BatchId, CorrelationId, CancellationToken.None);
+
+            IError outError;
+            var isFailureCalled = result.IsFailure(out outError, out _);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(isFailureCalled, Is.True);
+                Assert.That(outError, Is.EqualTo(expectedError));
+            });
+
+            A.CallTo(() => _logger.Log(A<LogLevel>._, A<EventId>._, A<LoggerMessageState>._, A<Exception>._, A<Func<LoggerMessageState, Exception?, string>>._)).MustHaveHappened();
+        }
+
+        [Test]
+
+        public async Task WhenCreateBatchAsyncFailsAndFileShareServiceError_ThenLogsError()
+        {
+            var fakeResult = A.Fake<IResult<IBatchHandle>>();
+            var fakeError = A.Fake<IError>();
+            IBatchHandle dummyHandle = null;
+
+            A.CallTo(() => fakeResult.IsFailure(out fakeError, out dummyHandle)).Returns(true);
+            A.CallTo(() => _fakeFileShareReadWriteClient.CreateBatchAsync(A<BatchModel>._, CorrelationId, CancellationToken.None))
+                .Returns(Task.FromResult(fakeResult));
+
+            await _fileShareService.CreateBatchAsync(CorrelationId, CancellationToken.None);
+
+            A.CallTo(() => _logger.Log(A<LogLevel>._, A<EventId>._, A<LoggerMessageState>._, A<Exception>._,A<Func<LoggerMessageState, Exception?, string>>._)).MustHaveHappened();
+        }
+
+        [Test]
+        public async Task When_CommitBatchAsyncIsFailure_ThenLogsError()
+        {
+            var fakeResult = A.Fake<IResult<CommitBatchResponse>>();
+            var fakeError = A.Fake<IError>();
+            CommitBatchResponse dummyResponse = null;
+
+            A.CallTo(() => fakeResult.IsFailure(out fakeError, out dummyResponse)).Returns(true);
+            A.CallTo(() => _fakeFileShareReadWriteClient.CommitBatchAsync(A<BatchHandle>._, CorrelationId, CancellationToken.None))
+                .Returns(Task.FromResult(fakeResult));
+
+            await _fileShareService.CommitBatchAsync(BatchId, CorrelationId, CancellationToken.None);
+
+            A.CallTo(() => _logger.Log(A<LogLevel>._, A<EventId>._, A<LoggerMessageState>._, A<Exception>._, A<Func<LoggerMessageState, Exception?, string>>._)).MustHaveHappened();
+        }
+
+        [Test]
+        public async Task WhenSearchCommittedBatchesExcludingCurrentAsyncIsFailure_ThenLogsError()
+        {
+            var fakeResult = A.Fake<IResult<BatchSearchResponse>>();
+            var fakeError = A.Fake<IError>();
+            BatchSearchResponse dummyResponse = null;
+
+            A.CallTo(() => fakeResult.IsFailure(out fakeError, out dummyResponse)).Returns(true);
+            A.CallTo(() => _fakeFileShareReadWriteClient.SearchAsync(A<string>._, 100, 0, CorrelationId))
+                .Returns(Task.FromResult(fakeResult));
+
+            await _fileShareService.SearchCommittedBatchesExcludingCurrentAsync(BatchId, CorrelationId, CancellationToken.None);
+
+            A.CallTo(() => _logger.Log(A<LogLevel>._, A<EventId>._, A<LoggerMessageState>._, A<Exception>._,A<Func<LoggerMessageState, Exception?, string>>._)).MustHaveHappened();
+        }
+
+        [Test]
+        public async Task WhenSetExpiryDateAsyncFails_ThenLogsErrorAndReturnsFailure()
+        {
+            var batches = CreateBatchDetailsList();
+            var fakeResult = A.Fake<IResult<SetExpiryDateResponse>>();
+            var fakeError = A.Fake<IError>();
+            SetExpiryDateResponse dummyResponse = null;
+
+            A.CallTo(() => fakeResult.IsFailure(out fakeError, out dummyResponse)).Returns(true);
+
+            A.CallTo(() => _fakeFileShareReadWriteClient.SetExpiryDateAsync("Batch1", A<BatchExpiryModel>._, CorrelationId, CancellationToken.None))
+                .Returns(Task.FromResult(fakeResult));
+
+            var result = await _fileShareService.SetExpiryDateAsync(batches, CorrelationId, CancellationToken.None);
+
+            A.CallTo(() => _logger.Log(A<LogLevel>._, A<EventId>._, A<LoggerMessageState>._, A<Exception>._,A<Func<LoggerMessageState, Exception?, string>>._)).MustHaveHappened();
+            Assert.That(result, Is.SameAs(fakeResult));
+        }
+
+        private List<BatchDetails> CreateBatchDetailsList()
+        {
+            return new List<BatchDetails>
+            {
+                new() { BatchId = "Batch1" },
+                new() { BatchId = "Batch2" }
+            };
+        }
+    }
+}
