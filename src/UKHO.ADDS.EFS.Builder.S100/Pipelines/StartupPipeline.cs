@@ -5,14 +5,20 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
 {
     internal class StartupPipeline : IBuilderPipeline<ExchangeSetPipelineContext>
     {
+        private readonly IHttpClientFactory _clientFactory;
+
+        public StartupPipeline(IHttpClientFactory clientFactory)
+        {
+            _clientFactory = clientFactory ?? throw new ArgumentNullException(nameof(clientFactory));
+        }
         public async Task<NodeResult> ExecutePipeline(ExchangeSetPipelineContext context)
         {
             var pipeline = new PipelineNode<ExchangeSetPipelineContext>();
 
             pipeline.AddChild(new ReadConfigurationNode());
             pipeline.AddChild(new StartTomcatNode());
-            pipeline.AddChild(new CheckEndpointsNode());
-            pipeline.AddChild(new GetJobNode());
+            pipeline.AddChild(new CheckEndpointsNode(_clientFactory));
+            pipeline.AddChild(new GetJobNode(_clientFactory));
 
             var result = await pipeline.ExecuteAsync(context);
 

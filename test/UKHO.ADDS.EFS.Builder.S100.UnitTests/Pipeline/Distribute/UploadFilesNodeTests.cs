@@ -149,9 +149,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
                     LogLevel.Error,
                     A<EventId>.That.Matches(e => e.Name == "AddFileNodeFailed"),
                     A<LoggerMessageState>._,
-                    null,
+                    A<Exception>._,
                     A<Func<LoggerMessageState, Exception?, string>>._))
-                .MustHaveHappened();
+                .MustHaveHappenedOnceExactly();
         }
 
         [OneTimeTearDown]

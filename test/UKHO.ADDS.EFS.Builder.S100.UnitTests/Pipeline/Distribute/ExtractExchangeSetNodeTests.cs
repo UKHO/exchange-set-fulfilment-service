@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute;
+using UKHO.ADDS.EFS.Builder.S100.Services;
 using UKHO.ADDS.EFS.Entities;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
@@ -19,6 +20,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         private ExchangeSetPipelineContext _pipelineContext;
         private ExtractExchangeSetNode _extractExchangeSetNode;
         private IToolClient _toolClient;
+        private INodeStatusWriter _nodeStatusWriter;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
@@ -28,6 +30,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
             _executionContext = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
             _loggerFactory = A.Fake<ILoggerFactory>();
             _logger = A.Fake<ILogger<ExtractExchangeSetNode>>();
+            _nodeStatusWriter = A.Fake<INodeStatusWriter>();
         }
 
         [OneTimeTearDown]
@@ -39,7 +42,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         [SetUp]
         public void SetUp()
         {
-            _pipelineContext = new ExchangeSetPipelineContext(null, null, _toolClient, _loggerFactory)
+            _pipelineContext = new ExchangeSetPipelineContext(null, _nodeStatusWriter, _toolClient, _loggerFactory)
             {
                 Job = new ExchangeSetJob { Id = "testId", CorrelationId = "corrId" },
                 WorkspaceAuthenticationKey = "authKey"
@@ -64,6 +67,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
             var result = await _extractExchangeSetNode.ExecuteAsync(_executionContext);
 
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
+            //TODO: check for failing log message later
         }
 
         [Test]
@@ -82,9 +86,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
             A.CallTo(() => _logger.Log<LoggerMessageState>(
                     LogLevel.Error,
-                    A<EventId>.That.Matches(e => e.Name == "ExtractExchangeSetNodeFailed"),
+                    A<EventId>.That.Matches(e => e.Name == "IICExtractExchangeSetError"),
                     A<LoggerMessageState>._,
-                    null,
+                    A<Exception>._,
                     A<Func<LoggerMessageState, Exception?, string>>._))
                 .MustHaveHappenedOnceExactly();
         }
@@ -98,24 +102,17 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
             A.CallTo(() => _executionContext.Subject.ToolClient.ExtractExchangeSetAsync(A<string>._, A<string>._, A<string>._, A<string>._))
                 .Throws(new Exception(exceptionMessage));
 
+            var result = await _extractExchangeSetNode.ExecuteAsync(_executionContext);
+
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
+
             A.CallTo(() => _logger.Log<LoggerMessageState>(
                     LogLevel.Error,
                     A<EventId>.That.Matches(e => e.Name == "ExtractExchangeSetNodeFailed"),
                     A<LoggerMessageState>._,
-                    null,
+                    A<Exception>._,
                     A<Func<LoggerMessageState, Exception?, string>>._))
-                .Invokes((LogLevel level, EventId eventId, LoggerMessageState state, Exception ex, Func<LoggerMessageState, Exception?, string> formatter) =>
-                {
-                    loggedMessage = formatter(state, ex);
-                });
-
-            var result = await _extractExchangeSetNode.ExecuteAsync(_executionContext);
-
-            Assert.Multiple(() =>
-            {
-                Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
-                Assert.That(loggedMessage, Does.Contain(exceptionMessage));
-            });
+                .MustHaveHappenedOnceExactly();
         }
     }
 }

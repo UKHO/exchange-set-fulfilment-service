@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
+﻿using System.Diagnostics.CodeAnalysis;
+using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.Services;
 using UKHO.ADDS.EFS.Entities;
@@ -7,6 +8,7 @@ using UKHO.ADDS.EFS.Entities;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
 {
+    [ExcludeFromCodeCoverage]
     internal class ExchangeSetPipelineContext
     {
         private readonly IConfiguration _configuration;
