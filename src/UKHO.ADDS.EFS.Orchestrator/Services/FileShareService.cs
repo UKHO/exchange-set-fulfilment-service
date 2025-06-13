@@ -19,7 +19,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         private const string ProductTypeQueryClause = $"$batch(ProductType) eq '{ProductType}' and ";
         private const int Limit = 100;
         private const int Start = 0;
-
+        private const string SetExpiryDate = "SetExpiryDate";
+        private const string CommitBatch = "CommitBatch";
+        private const string CreateBatch = "CreateBatch";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FileShareService"/> class.
@@ -37,18 +39,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         /// Creates a new batch in the File Share Service.
         /// </summary>
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
-        /// <param name="cancellationToken"></param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result containing the batch handle on success or error information on failure.</returns>
         public async Task<IResult<IBatchHandle>> CreateBatchAsync(string correlationId, CancellationToken cancellationToken)
         {
             var createBatchResponseResult = await _fileShareReadWriteClient.CreateBatchAsync(GetBatchModel(), correlationId, cancellationToken);
-
-            if (createBatchResponseResult.IsFailure(out var createBatch, out _))
+            
+            if (createBatchResponseResult.IsFailure(out var error, out _))
             {
-                if (createBatchResponseResult.IsFailure(out var error, out _))
-                {
-                    LogFileShareServiceError(null, null, "CreateBatch", error, correlationId);
-                }
+                LogFileShareServiceError(jobId: correlationId, endPoint: CreateBatch, error: error, correlationId: correlationId);
             }
 
             return createBatchResponseResult;
@@ -67,7 +66,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
             if (commitBatchResult.IsFailure(out var commitError, out _))
             {
-                LogFileShareServiceError(batchId, null, "CommitBatch", commitError, correlationId);
+                LogFileShareServiceError(jobId: correlationId, endPoint: CommitBatch, error: commitError, correlationId: correlationId, batchId: batchId);
             }
 
             return commitBatchResult;
@@ -78,16 +77,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         /// </summary>
         /// <param name="currentBatchId">The current batch identifier to exclude from results.</param>
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result containing the batch search response on success or error information on failure.</returns>
         public async Task<IResult<BatchSearchResponse>> SearchCommittedBatchesExcludingCurrentAsync(string currentBatchId, string correlationId, CancellationToken cancellationToken)
         {
             var filter = $"BusinessUnit eq '{BusinessUnit}' and {ProductTypeQueryClause}$batch(BatchId) ne '{currentBatchId}'";
 
-            var searchResult = await _fileShareReadWriteClient.SearchAsync(filter, Limit, Start, correlationId);
+            var searchResult = await _fileShareReadWriteClient.SearchAsync(filter, Limit, Start, correlationId, cancellationToken);
 
             if (searchResult.IsFailure(out var error, out _))
             {
-                LogSearchCommittedBatchesError(correlationId, filter, Limit, Start, error);
+                LogSearchCommittedBatchesError(batchId: currentBatchId, correlationId: correlationId, filter: filter, Limit, Start, error: error);
             }
 
             return searchResult;
@@ -121,7 +121,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
                 if (expiryResult.IsFailure(out var expiryError, out _))
                 {
-                    LogFileShareServiceError(batch.BatchId, null, "SetExpiryDate", expiryError, correlationId);
+                    LogFileShareServiceError(jobId: correlationId, endPoint: SetExpiryDate, error: expiryError, correlationId: correlationId, batchId: batch.BatchId);
                     return expiryResult;
                 }
 
@@ -156,7 +156,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             };
         }
 
-        private void LogFileShareServiceError(string batchId, string jobId, string endPoint, IError error, string correlationId)
+        private void LogFileShareServiceError(string jobId, string endPoint, IError error, string correlationId, string batchId = "")
         {
             var fileShareServiceLogView = new FileShareServiceLogView
             {
@@ -170,7 +170,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             _logger.LogFileShareError(fileShareServiceLogView);
         }
 
-        private void LogSearchCommittedBatchesError(string correlationId, string filter, int limit, int start, IError error)
+        private void LogSearchCommittedBatchesError(string batchId, string correlationId, string filter, int limit, int start, IError error)
         {
             var searchQuery = new SearchQuery
             {
@@ -180,6 +180,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             };
             var searchCommittedBatchesLogView = new SearchCommittedBatchesLog
             {
+                BatchId = batchId,
                 CorrelationId = correlationId,
                 BusinessUnit = BusinessUnit,
                 ProductType = ProductType,
