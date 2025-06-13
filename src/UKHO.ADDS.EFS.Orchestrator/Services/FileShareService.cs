@@ -2,10 +2,14 @@
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
+using UKHO.ADDS.EFS.Orchestrator.Logging;
 using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services
 {
+    /// <summary>
+    /// Service for managing file share operations with the File Share Service.
+    /// </summary>
     public class FileShareService: IFileShareService
     {
         private readonly IFileShareReadWriteClient _fileShareReadWriteClient;
@@ -17,75 +21,120 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         private const int Start = 0;
 
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FileShareService"/> class.
+        /// </summary>
+        /// <param name="fileShareReadWriteClient">The file share read-write client.</param>
+        /// <param name="logger">The logger.</param>
+        /// <exception cref="ArgumentNullException">Thrown when fileShareReadWriteClient or logger is null.</exception>
         public FileShareService(IFileShareReadWriteClient fileShareReadWriteClient, ILogger<FileShareService> logger)
         {
             _fileShareReadWriteClient = fileShareReadWriteClient ?? throw new ArgumentNullException(nameof(fileShareReadWriteClient));
-            _logger = logger;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
+        /// <summary>
+        /// Creates a new batch in the File Share Service.
+        /// </summary>
+        /// <param name="correlationId">The correlation identifier for tracking the request.</param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>A result containing the batch handle on success or error information on failure.</returns>
         public async Task<IResult<IBatchHandle>> CreateBatchAsync(string correlationId, CancellationToken cancellationToken)
         {
             var createBatchResponseResult = await _fileShareReadWriteClient.CreateBatchAsync(GetBatchModel(), correlationId, cancellationToken);
 
-            if (createBatchResponseResult.IsFailure(out var commitError, out _))
+            if (createBatchResponseResult.IsFailure(out var createBatch, out _))
             {
+                if (createBatchResponseResult.IsFailure(out var error, out _))
+                {
+                    LogFileShareServiceError(null, null, "CreateBatch", error, correlationId);
+                }
             }
 
             return createBatchResponseResult;
         }
 
+        /// <summary>
+        /// Commits a batch to the File Share Service.
+        /// </summary>
+        /// <param name="batchId">The batch identifier to commit.</param>
+        /// <param name="correlationId">The correlation identifier for tracking the request.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A result containing the commit batch response on success or error information on failure.</returns>
         public async Task<IResult<CommitBatchResponse>> CommitBatchAsync(string batchId, string correlationId, CancellationToken cancellationToken)
         {
             var commitBatchResult = await _fileShareReadWriteClient.CommitBatchAsync(new BatchHandle(batchId), correlationId, cancellationToken);
 
             if (commitBatchResult.IsFailure(out var commitError, out _))
             {
-
+                LogFileShareServiceError(batchId, null, "CommitBatch", commitError, correlationId);
             }
 
             return commitBatchResult;
         }
 
+        /// <summary>
+        /// Searches for committed batches in the File Share Service, excluding the current batch.
+        /// </summary>
+        /// <param name="currentBatchId">The current batch identifier to exclude from results.</param>
+        /// <param name="correlationId">The correlation identifier for tracking the request.</param>
+        /// <returns>A result containing the batch search response on success or error information on failure.</returns>
         public async Task<IResult<BatchSearchResponse>> SearchCommittedBatchesExcludingCurrentAsync(string currentBatchId, string correlationId, CancellationToken cancellationToken)
         {
             var filter = $"BusinessUnit eq '{BusinessUnit}' and {ProductTypeQueryClause}$batch(BatchId) ne '{currentBatchId}'";
-            
-            var searchResult = await _fileShareReadWriteClient.SearchAsync(filter, Limit, Start, correlationId, cancellationToken);
 
-            if (searchResult.IsFailure(out var value, out var error))
+            var searchResult = await _fileShareReadWriteClient.SearchAsync(filter, Limit, Start, correlationId);
+
+            if (searchResult.IsFailure(out var error, out _))
             {
-                
+                LogSearchCommittedBatchesError(correlationId, filter, Limit, Start, error);
             }
 
             return searchResult;
         }
 
+        /// <summary>
+        /// Sets the expiry date for multiple batches in the File Share Service.
+        /// </summary>
+        /// <param name="otherBatches">The list of batch details to set expiry dates for.</param>
+        /// <param name="correlationId">The correlation identifier for tracking the request.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>
+        /// A result containing the last set expiry date response on success or error information on failure.
+        /// If no valid batches are found, returns a success result with an empty response.
+        /// </returns>
         public async Task<IResult<SetExpiryDateResponse>> SetExpiryDateAsync(List<BatchDetails> otherBatches, string correlationId, CancellationToken cancellationToken)
         {
-            IResult<SetExpiryDateResponse> lastResult = null;
+            // Filter valid batches before processing
+            var validBatches = otherBatches.Where(b => !string.IsNullOrEmpty(b.BatchId)).ToList();
 
-            foreach (var batch in otherBatches)
+            if (validBatches.Count == 0)
             {
-                if (!string.IsNullOrEmpty(batch.BatchId))
-                {
-                    var expiryResult = await _fileShareReadWriteClient.SetExpiryDateAsync(
-                        batch.BatchId,
-                        new BatchExpiryModel { ExpiryDate = DateTime.UtcNow },
-                        correlationId,
-                        cancellationToken);
-
-                    if (expiryResult.IsFailure(out var expiryError, out _))
-                    {
-                        return expiryResult;
-                    }
-
-                    lastResult = expiryResult;
-                }
+                return Result.Success(new SetExpiryDateResponse());
             }
 
-            return lastResult;
+            IResult<SetExpiryDateResponse>? lastResult = null;
+
+            foreach (var batch in validBatches)
+            {
+                var expiryResult = await _fileShareReadWriteClient.SetExpiryDateAsync(batch.BatchId, new BatchExpiryModel { ExpiryDate = DateTime.UtcNow }, correlationId, cancellationToken);
+
+                if (expiryResult.IsFailure(out var expiryError, out _))
+                {
+                    LogFileShareServiceError(batch.BatchId, null, "SetExpiryDate", expiryError, correlationId);
+                    return expiryResult;
+                }
+
+                lastResult = expiryResult;
+            }
+
+            return lastResult ?? Result.Success(new SetExpiryDateResponse());
         }
 
+        /// <summary>
+        /// Creates a batch model with predefined settings for S-100 product type.
+        /// </summary>
+        /// <returns>A configured batch model with appropriate access control and attributes.</returns>
         private static BatchModel GetBatchModel()
         {
             return new BatchModel
@@ -105,6 +154,40 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 },
                 ExpiryDate = null
             };
+        }
+
+        private void LogFileShareServiceError(string batchId, string jobId, string endPoint, IError error, string correlationId)
+        {
+            var fileShareServiceLogView = new FileShareServiceLogView
+            {
+                BatchId = batchId,
+                JobId = jobId,
+                EndPoint = endPoint,
+                CorrelationId = correlationId,
+                Error = error
+            };
+
+            _logger.LogFileShareError(fileShareServiceLogView);
+        }
+
+        private void LogSearchCommittedBatchesError(string correlationId, string filter, int limit, int start, IError error)
+        {
+            var searchQuery = new SearchQuery
+            {
+                Filter = filter,
+                Limit = limit,
+                Start = start
+            };
+            var searchCommittedBatchesLogView = new SearchCommittedBatchesLog
+            {
+                CorrelationId = correlationId,
+                BusinessUnit = BusinessUnit,
+                ProductType = ProductType,
+                Query = searchQuery,
+                Error = error,
+            };
+
+            _logger.LogFileShareSearchCommittedBatchesError(searchCommittedBatchesLogView);
         }
     }
 }
