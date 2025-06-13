@@ -18,6 +18,8 @@ namespace UKHO.ADDS.EFS.Entities
 
         public ExchangeSetDataStandard DataStandard { get; set; }
 
+        public string BatchId { get; set; }
+
         public string CorrelationId { get; set; }
     }
 }

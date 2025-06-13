@@ -56,7 +56,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 }));
         }
 
-        public async Task<string> CreateContainerAsync(string image, string name, string[] command, string id)
+        public async Task<string> CreateContainerAsync(string image, string name, string[] command, string id, string batchId)
         {
             var response = await DockerClient.Containers.CreateContainerAsync(new CreateContainerParameters
             {
@@ -72,7 +72,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                     $"{BuilderEnvironmentVariables.FileShareEndpoint}={_fileShareEndpoint}",
                     $"{BuilderEnvironmentVariables.BuildServiceEndpoint}={_builderServiceContainerEndpoint}",
                     $"{BuilderEnvironmentVariables.OtlpEndpoint}={_otlpContainerEndpoint}",
-                    $"{BuilderEnvironmentVariables.WorkspaceKey}={_workspaceAuthenticationKey}"
+                    $"{BuilderEnvironmentVariables.WorkspaceKey}={_workspaceAuthenticationKey}",
+                    $"{BuilderEnvironmentVariables.BatchId}={batchId}",
                 },
                 Healthcheck = new HealthConfig
                 {

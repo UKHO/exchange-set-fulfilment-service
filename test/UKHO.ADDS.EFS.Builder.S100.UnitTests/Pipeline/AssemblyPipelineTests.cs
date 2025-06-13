@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
-using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
@@ -18,7 +17,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
     public class AssemblyPipelineTests
     {
         private IFileShareReadOnlyClient _fakeReadOnlyClient;
-        private IFileShareReadWriteClient _fakeReadWriteClient;
         private ILoggerFactory _loggerFactory;
         private ILogger _logger;
         private IExecutionContext<ExchangeSetPipelineContext> _executionContext;
@@ -30,7 +28,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
         public void OneTimeSetUp()
         {
             _fakeReadOnlyClient = A.Fake<IFileShareReadOnlyClient>();
-            _fakeReadWriteClient = A.Fake<IFileShareReadWriteClient>();
             _loggerFactory = A.Fake<ILoggerFactory>();
             _logger = A.Fake<ILogger<AssemblyPipeline>>();
             _executionContext = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
@@ -55,13 +52,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
         }
 
         [Test]
-        public void WhenReadWriteAndReadOnlyClientNull_ThenThrowsArgumentNullException()
+        public void WhenReadOnlyClientNull_ThenThrowsArgumentNullException()
         {
             Assert.Throws<ArgumentNullException>(() =>
-                new AssemblyPipeline(null, _fakeReadWriteClient));
-
-            Assert.Throws<ArgumentNullException>(() =>
-                new AssemblyPipeline(_fakeReadOnlyClient, null));
+                new AssemblyPipeline(null));
         }
 
         [Test]
@@ -69,10 +63,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
         {
             var batchHandle = A.Fake<IBatchHandle>();
             A.CallTo(() => batchHandle.BatchId).Returns("ValidBatchId");
-            A.CallTo(() => _fakeReadWriteClient.CreateBatchAsync(A<BatchModel>._, A<string>._, A<CancellationToken>._))
-                .Returns(Result.Success(batchHandle));
-
-
             A.CallTo(() => _fakeReadOnlyClient.SearchAsync(A<string>._, A<int?>._, A<int?>._, A<string>._))
                 .Returns(Result.Success(new BatchSearchResponse { Entries = GetBatchDetails() }));
 
@@ -84,22 +74,18 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
             A.CallTo(() => _fakeReadOnlyClient.DownloadFileAsync(A<string>._, A<string>._, A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._))
                 .Returns(Task.FromResult(fakeResult));
 
-            var pipeline = new AssemblyPipeline(_fakeReadOnlyClient, _fakeReadWriteClient);
+            var pipeline = new AssemblyPipeline(_fakeReadOnlyClient);
 
             var result = await pipeline.ExecutePipeline(_pipelineContext);
 
             Assert.That(result, Is.Not.Null);
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
 
-            A.CallTo(() => _fakeReadWriteClient.CreateBatchAsync(A<BatchModel>._, A<string>._, A<CancellationToken>._))
-                .MustHaveHappened();
-
             A.CallTo(() => _fakeReadOnlyClient.SearchAsync(A<string>._, A<int?>._, A<int?>._, A<string>._))
                 .MustHaveHappened();
 
             A.CallTo(() => _fakeReadOnlyClient.DownloadFileAsync(A<string>._, A<string>._, A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._))
                 .MustHaveHappened();
-
         }
 
         [Test]
@@ -109,7 +95,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
 
             var ex = new InvalidOperationException("Test exception");
 
-            var throwingPipeline = new ThrowingAssemblyPipeline(_fakeReadOnlyClient, _fakeReadWriteClient, ex);
+            var throwingPipeline = new ThrowingAssemblyPipeline(_fakeReadOnlyClient, ex);
 
             Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
@@ -162,15 +148,15 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
                 }
                 ];
         }
+
         private class ThrowingAssemblyPipeline : AssemblyPipeline
         {
             private readonly Exception _exceptionToThrow;
 
             public ThrowingAssemblyPipeline(
                 IFileShareReadOnlyClient readOnlyClient,
-                IFileShareReadWriteClient readWriteClient,
                 Exception exceptionToThrow)
-                : base(readOnlyClient, readWriteClient)
+                : base(readOnlyClient)
             {
                 _exceptionToThrow = exceptionToThrow;
             }

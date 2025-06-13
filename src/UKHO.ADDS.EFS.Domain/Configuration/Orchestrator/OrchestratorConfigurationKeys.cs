@@ -4,6 +4,8 @@
     {
         public const string FileShareEndpoint = "FileShareEndpoint";
 
+        public const string FileShareEndpointOrchestratorHost = "FileShareEndpointOrchestratorHost";
+
         public const string OrchestratorServiceEndpoint = "BuildServiceEndpoint";
 
         public const string SalesCatalogueEndpoint = "SalesCatalogueEndpoint";

@@ -8,6 +8,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
     internal class ReadConfigurationNode : ExchangeSetPipelineNode
     {
         private const string DebugJobId = "DebugJobId";
+        private const string DebugBatchId = "DebugBatchId";
 
         protected override Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
         {
@@ -31,10 +32,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
 
             var fileShareEndpoint = GetEnvironmentVariable(BuilderEnvironmentVariables.FileShareEndpoint, context.Subject.Configuration.GetValue<string>("Endpoints:FileShareService")!);
             var buildServiceEndpoint = GetEnvironmentVariable(BuilderEnvironmentVariables.BuildServiceEndpoint, context.Subject.Configuration.GetValue<string>("Endpoints:BuildService")!);
+            var batchId = GetEnvironmentVariable(BuilderEnvironmentVariables.BatchId, DebugBatchId);
 
             context.Subject.FileShareEndpoint = fileShareEndpoint;
             context.Subject.BuildServiceEndpoint = buildServiceEndpoint;
             context.Subject.WorkspaceAuthenticationKey = workspaceAuthenticationKey;
+            context.Subject.BatchId = batchId;
 
             var configurationLogView = new ConfigurationLogView()
             {

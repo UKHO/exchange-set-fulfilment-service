@@ -37,6 +37,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Logging
         private const int LogForwardParseFailedId = BaseEventId + 17;
         private const int LogForwardParseNullId = BaseEventId + 18;
 
+        private const int SalesCatalogueUnexpectedStatusCodeId = BaseEventId + 19;
+        private const int SearchCommittedBatchesFailedId = BaseEventId + 20;
+        private const int FileShareServiceOperationFailedId = BaseEventId + 21;
+
         // An unhandled HTTP error has occurred
         public static readonly EventId UnhandledHttpError = new(UnhandledHttpErrorId, nameof(UnhandledHttpError));
 
@@ -98,6 +102,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Logging
 
         [LoggerMessage(SalesCatalogueErrorId, LogLevel.Error, "Sales Catalogue error: {@error} {@message}", EventName = nameof(SalesCatalogueError))]
         public static partial void LogSalesCatalogueError(this ILogger logger, [LogProperties] IError error, [LogProperties] ExchangeSetRequestQueueMessage message);
+
+        // SCS has returned an Unexpected status Code
+        public static readonly EventId SalesCatalogueUnexpectedstatusCode = new(SalesCatalogueUnexpectedStatusCodeId, nameof(SalesCatalogueUnexpectedstatusCode));
+
+        [LoggerMessage(SalesCatalogueUnexpectedStatusCodeId, LogLevel.Error, "Sales Catalogue Unexpected Status Code: {@salesCatalogueLog}", EventName = nameof(SalesCatalogueUnexpectedstatusCode))]
+        public static partial void LogUnexpectedSalesCatalogueStatusCode(this ILogger logger, SalesCatalogueServiceLog salesCatalogueLog);
 
 
         // The container execution failed
@@ -161,6 +171,18 @@ namespace UKHO.ADDS.EFS.Orchestrator.Logging
 
         [LoggerMessage(LogForwardParseNullId, LogLevel.Error, "Log forwarding parse failure: {@line}", EventName = nameof(LogForwardParseNull))]
         public static partial void LogForwarderParseNull(this ILogger logger, string line);
+
+        // File Share Service operation failed
+        public static readonly EventId FileShareServiceOperationFailed = new(FileShareServiceOperationFailedId, nameof(FileShareServiceOperationFailed));
+
+        [LoggerMessage(FileShareServiceOperationFailedId, LogLevel.Error, "File Share Service operation failed: {@fileShareServiceLog}", EventName = nameof(FileShareServiceOperationFailed))]
+        public static partial void LogFileShareError(this ILogger logger, [LogProperties] FileShareServiceLogView fileShareServiceLog);
+
+        // Search committed batches failed
+        public static readonly EventId SearchCommittedBatchesFailed = new(SearchCommittedBatchesFailedId, nameof(SearchCommittedBatchesFailed));
+
+        [LoggerMessage(SearchCommittedBatchesFailedId, LogLevel.Error, "Search committed batches failed: {@searchCommittedBatchesLogView}", EventName = nameof(SearchCommittedBatchesFailed))]
+        public static partial void LogFileShareSearchCommittedBatchesError(this ILogger logger, [LogProperties] SearchCommittedBatchesLog searchCommittedBatchesLogView);
     }
 }
 
