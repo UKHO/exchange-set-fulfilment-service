@@ -9,7 +9,7 @@ using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
 
-namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
+namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
 {
     [TestFixture]
     internal class CreationPipelineTest
@@ -66,6 +66,15 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
 
             Assert.That(result, Is.Not.Null);
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
+
+            A.CallTo(() => _toolClient.AddExchangeSetAsync(A<string>._, A<string>._, A<string>._))
+                .MustHaveHappened();
+
+            A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<string>._, A<string>._, A<string>._))
+               .MustHaveHappened();
+
+            A.CallTo(() => _toolClient.SignExchangeSetAsync(A<string>._, A<string>._, A<string>._))
+                .MustHaveHappened();
         }
 
         [Test]

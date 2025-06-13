@@ -13,6 +13,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
         private readonly HttpClient _httpClient;
         private const string WorkSpaceId = "working9";
         private const string ApiVersion = "2.7";
+        private const string ApplicationName = "IICToolAPI";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ToolClient"/> class.
@@ -92,7 +93,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
             {
                 var path = BuildApiPath("extractExchangeSet", exchangeSetId, authKey, null, destination);
                 var response = await _httpClient.GetAsync(path);
-                return await response.CreateResultAsync<Stream>("IICToolAPI", correlationId);
+                return await response.CreateResultAsync<Stream>(ApplicationName, correlationId);
             }
             catch (Exception ex)
             {
@@ -153,7 +154,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
                 }
                 else
                 {
-                    var errorMetadata = await response.CreateErrorMetadata("IICToolAPI", correlationId);
+                    var errorMetadata = await response.CreateErrorMetadata(ApplicationName, correlationId);
                     return Result.Failure<T>(ErrorFactory.CreateError(response.StatusCode, errorMetadata));
                 }
             }

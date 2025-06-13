@@ -17,28 +17,32 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
     public class SignExchangeSetNodeTests
     {
         private IToolClient _toolClient;
-        private TestableSignExchangeSetNode _testableSignExchangeSetNode;
+        private SignExchangeSetNode _signExchangeSetNode;
         private IExecutionContext<ExchangeSetPipelineContext> _executionContext;
+        private ILoggerFactory _loggerFactory;
+        private ILogger _logger;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
             _toolClient = A.Fake<IToolClient>();
-            _testableSignExchangeSetNode = new TestableSignExchangeSetNode();
+            _signExchangeSetNode = new SignExchangeSetNode();
             _executionContext = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
+            _loggerFactory = A.Fake<ILoggerFactory>();
+            _logger = A.Fake<ILogger<SignExchangeSetNode>>();
         }
 
         [SetUp]
         public void SetUp()
         {
-            var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
-            var exchangeSetPipelineContext = new ExchangeSetPipelineContext(null, null, _toolClient, loggerFactory)
+            var exchangeSetPipelineContext = new ExchangeSetPipelineContext(null, null, _toolClient, _loggerFactory)
             {
                 Job = new ExchangeSetJob { CorrelationId = "TestCorrelationId" },
                 JobId = "TestJobId",
                 WorkspaceAuthenticationKey = "Test123"
             };
             A.CallTo(() => _executionContext.Subject).Returns(exchangeSetPipelineContext);
+            A.CallTo(() => _loggerFactory.CreateLogger(typeof(SignExchangeSetNode).FullName!)).Returns(_logger);
         }
 
         [Test]
@@ -47,10 +51,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
             var signingResponse = new SigningResponse { Certificate = "cert", SigningKey = "key", Status = "ok" };
             var result = Result.Success(signingResponse);
             A.CallTo(() => _toolClient.SignExchangeSetAsync("TestJobId", "Test123", "TestCorrelationId")).Returns(Task.FromResult<IResult<SigningResponse>>(result));
+            A.CallTo(() => _loggerFactory.CreateLogger(typeof(SignExchangeSetNode).FullName!)).Returns(_logger);
 
-            var status = await _testableSignExchangeSetNode.PerformExecuteAsync(_executionContext);
+            var nodeResult = await _signExchangeSetNode.ExecuteAsync(_executionContext);
 
-            Assert.That(status, Is.EqualTo(NodeResultStatus.Succeeded));
+            Assert.That(nodeResult.Status, Is.EqualTo(NodeResultStatus.Succeeded));
         }
 
         [Test]
@@ -59,34 +64,26 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
             var error = ErrorFactory.CreateError(HttpStatusCode.BadRequest);
             var result = Result.Failure<SigningResponse>(error);
             A.CallTo(() => _toolClient.SignExchangeSetAsync("TestJobId", "Test123", "TestCorrelationId")).Returns(Task.FromResult<IResult<SigningResponse>>(result));
+            A.CallTo(() => _loggerFactory.CreateLogger(typeof(SignExchangeSetNode).FullName!)).Returns(_logger);
 
-            var status = await _testableSignExchangeSetNode.PerformExecuteAsync(_executionContext);
+            var nodeResult = await _signExchangeSetNode.ExecuteAsync(_executionContext);
 
-            Assert.That(status, Is.EqualTo(NodeResultStatus.Failed));
+            Assert.That(nodeResult.Status, Is.EqualTo(NodeResultStatus.Failed));
+            A.CallTo(() => _logger.Log<LoggerMessageState>(
+                    LogLevel.Error,
+                    A<EventId>.That.Matches(e => e.Name == "SignExchangeSetNodeFailed"),
+                    A<LoggerMessageState>._,
+                    A<Exception>._,
+                    A<Func<LoggerMessageState, Exception?, string>>._))
+                .MustHaveHappenedOnceExactly();
         }
 
-        [Test]
-        public Task WhenContextSubjectLoggerFactoryIsNull_ThenThrowsNullReferenceException()
+        
+
+        [OneTimeTearDown]
+        public void OneTimeTearDown()
         {
-            var pipelineContext = new ExchangeSetPipelineContext(A.Fake<Microsoft.Extensions.Configuration.IConfiguration>(), A.Fake<INodeStatusWriter>(), _toolClient, null)
-            {
-                JobId = "TestJobId",
-                WorkspaceAuthenticationKey = "Test123"
-            };
-
-            var context = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
-            A.CallTo(() => context.Subject).Returns(pipelineContext);
-
-            Assert.That(async () => await _testableSignExchangeSetNode.PerformExecuteAsync(context), Throws.Exception);
-            return Task.CompletedTask;
-        }
-
-        private class TestableSignExchangeSetNode : SignExchangeSetNode
-        {
-            public new async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
-            {
-                return await base.PerformExecuteAsync(context);
-            }
+            _loggerFactory?.Dispose();
         }
     }
 }
