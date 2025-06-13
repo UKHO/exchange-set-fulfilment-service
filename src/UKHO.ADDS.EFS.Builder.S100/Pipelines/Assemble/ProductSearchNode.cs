@@ -110,7 +110,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             var filter = $"BusinessUnit eq '{BusinessUnit}' and {ProductTypeQueryClause}{productQuery}";
             var limit = Limit;
             var start = Start;
-            var retryPolicy = HttpClientPolicyProvider.GetGenericResultRetryPolicy<BatchSearchResponse>(_logger);
+            var retryPolicy = HttpClientPolicyProvider.GetGenericResultRetryPolicy<BatchSearchResponse>(_logger, "SearchAsync");
             do
             {
                 queryCount++;

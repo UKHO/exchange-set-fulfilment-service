@@ -56,7 +56,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
                 await using var fileStream = CreateExchangeSetFileStream(filePath);
 
                 var batchHandle = new BatchHandle(batchId);
-                var retryPolicy = HttpClientPolicyProvider.GetGenericResultRetryPolicy<AddFileToBatchResponse>(_logger);
+                var retryPolicy = HttpClientPolicyProvider.GetGenericResultRetryPolicy<AddFileToBatchResponse>(_logger, "AddFileToBatchAsync");
                 var addFileResult = await retryPolicy.ExecuteAsync(() =>
                     _fileShareReadWriteClient.AddFileToBatchAsync(
                         batchHandle,

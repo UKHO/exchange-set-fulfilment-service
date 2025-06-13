@@ -22,7 +22,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             var logger = context.Subject.LoggerFactory.CreateLogger<CreateBatchNode>();
 
             // Use the generic retry policy from HttpClientPolicyProvider (moved logic)
-            var retryPolicy = HttpClientPolicyProvider.GetGenericResultRetryPolicy<IBatchHandle>(logger);
+            var retryPolicy = HttpClientPolicyProvider.GetGenericResultRetryPolicy<IBatchHandle>(logger, "CreateBatchAsync");
 
             var result = await retryPolicy.ExecuteAsync(async () =>
                 await _fileShareReadWriteClient.CreateBatchAsync(GetBatchModel(), context.Subject.Job.CorrelationId));

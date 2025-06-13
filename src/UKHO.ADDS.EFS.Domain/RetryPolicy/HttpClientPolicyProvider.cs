@@ -93,7 +93,7 @@ namespace UKHO.ADDS.EFS.Domain.RetryPolicy
         }
 
         // Generic retry policy for custom result types (e.g., IResult<T>)
-        public static IAsyncPolicy<T> GetRetryPolicy<T>(ILogger logger, Func<T, int?> getStatusCode)
+        public static IAsyncPolicy<T> GetRetryPolicy<T>(ILogger logger, Func<T, int?> getStatusCode, string methodName)
         {
             var (maxRetryAttempts, retryDelayMs) = GetRetrySettings();
 
@@ -114,7 +114,7 @@ namespace UKHO.ADDS.EFS.Domain.RetryPolicy
                             DateTimeOffset.UtcNow,
                             retryAttempt,
                             maxRetryAttempts,
-                            typeof(T).Name,
+                            methodName,
                             statusCode?.ToString() ?? "N/A",
                             timespan.TotalSeconds
                         );
@@ -123,7 +123,7 @@ namespace UKHO.ADDS.EFS.Domain.RetryPolicy
         }
 
         // Provides a generic retry policy for IResult<T> where error extraction and status code logic is standardized
-        public static IAsyncPolicy<IResult<T>> GetGenericResultRetryPolicy<T>(ILogger logger)
+        public static IAsyncPolicy<IResult<T>> GetGenericResultRetryPolicy<T>(ILogger logger, string methodName)
         {
             return GetRetryPolicy<IResult<T>>(
                 logger,
@@ -132,7 +132,7 @@ namespace UKHO.ADDS.EFS.Domain.RetryPolicy
                     r.IsFailure(out var error, out var _);
                     return GetStatusCodeFromError(error);
                 }
-            );
+            , methodName);
         }
 
         // Extracted from CreateBatchNode: Gets status code from IError metadata

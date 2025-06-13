@@ -7,7 +7,6 @@ using UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
-using UKHO.ADDS.EFS.Domain.RetryPolicy;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace UKHO.ADDS.EFS.Builder.S100
@@ -121,51 +120,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
 
             services.AddS100BuilderServices(configuration);
 
-            collection.AddSingleton<IConfiguration>(x => configuration);
-            collection.AddSingleton<ExchangeSetPipelineContext>();
-            collection.AddSingleton<StartupPipeline>();
-            collection.AddSingleton<AssemblyPipeline>();
-
-            collection.AddSingleton<IFileShareReadWriteClientFactory>(provider =>
-               new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
-
-            collection.AddSingleton(provider =>
-            {
-                var factory = provider.GetRequiredService<IFileShareReadWriteClientFactory>();
-                return factory.CreateClient(fileShareEndpoint.RemoveControlCharacters(), "");
-            });
-
-            collection.AddSingleton<IFileShareReadOnlyClientFactory>(provider =>
-                new FileShareReadOnlyClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
-
-            collection.AddSingleton(provider =>
-            {
-                var factory = provider.GetRequiredService<IFileShareReadOnlyClientFactory>();
-                return factory.CreateClient(fileShareEndpoint.RemoveControlCharacters(), "");
-            });
-
-            collection.AddSingleton<CreationPipeline>();
-            collection.AddSingleton<DistributionPipeline>();
-
-            collection.AddSingleton<INodeStatusWriter, NodeStatusWriter>();
-            collection.AddHttpClient<IToolClient, ToolClient>((serviceProvider, client) =>
-            {
-                var configuration = serviceProvider.GetRequiredService<IConfiguration>();
-                var baseUrl = configuration["Endpoints:IICTool"];
-                if (string.IsNullOrWhiteSpace(baseUrl))
-                    throw new InvalidOperationException("Endpoints:IICTool configuration is missing.");
-                client.BaseAddress = new Uri(baseUrl);
-            })
-            .AddPolicyHandler((provider, request) =>
-            {
-                var loggerFactory = provider.GetRequiredService<Microsoft.Extensions.Logging.ILoggerFactory>();
-                var logger = loggerFactory.CreateLogger("Polly.HttpClientRetry");
-                var configuration = provider.GetRequiredService<IConfiguration>();
-                HttpClientPolicyProvider.SetConfiguration(configuration);
-                return HttpClientPolicyProvider.GetRetryPolicy(logger);
-            });
-
-            return collection.BuildServiceProvider();
+            return services.BuildServiceProvider();
         }
     }
 }

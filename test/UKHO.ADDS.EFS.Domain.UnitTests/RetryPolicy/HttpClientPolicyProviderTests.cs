@@ -1,11 +1,7 @@
 using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
 using FakeItEasy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using NUnit.Framework;
-using Polly;
 using UKHO.ADDS.EFS.Domain.RetryPolicy;
 using UKHO.ADDS.Infrastructure.Results;
 
@@ -16,6 +12,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Infrastructure
     {
         private ILogger _logger;
         private IConfiguration _configuration;
+        private const string METHOD_NAME = "TestMethod";
 
         [SetUp]
         public void SetUp()
@@ -142,7 +139,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Infrastructure
         public async Task WhenGetRetryPolicyTWithRetriableStatusCode_ThenRetries()
         {
             int callCount = 0;
-            var policy = HttpClientPolicyProvider.GetRetryPolicy<string>(_logger, s => 503);
+            var policy = HttpClientPolicyProvider.GetRetryPolicy<string>(_logger, s => 503, METHOD_NAME);
             await policy.ExecuteAsync(() =>
             {
                 callCount++;
@@ -155,7 +152,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Infrastructure
         public async Task WhenGetRetryPolicyTWithNonRetriableStatusCode_ThenDoesNotRetry()
         {
             int callCount = 0;
-            var policy = HttpClientPolicyProvider.GetRetryPolicy<string>(_logger, s => 400);
+            var policy = HttpClientPolicyProvider.GetRetryPolicy<string>(_logger, s => 400, METHOD_NAME);
             await policy.ExecuteAsync(() =>
             {
                 callCount++;
@@ -163,47 +160,5 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Infrastructure
             });
             Assert.That(callCount, Is.EqualTo(1));
         }
-
-        //[Test]
-        //public async Task WhenGetGenericResultRetryPolicyWithRetriableError_ThenRetries()
-        //{
-        //    int callCount = 0;
-        //    var fakeResult = A.Fake<IResult<string>>();
-        //    A.CallTo(() => fakeResult.IsFailure(out A<IError>._, out A<string>._)).WithAnyArguments().Invokes((out IError error, out string value) =>
-        //    {
-        //        error = A.Fake<IError>();
-        //        var dict = new System.Collections.Generic.Dictionary<string, object> { { "StatusCode", 503 } };
-        //        A.CallTo(() => error.Metadata).Returns(dict);
-        //        value = null;
-        //    }).Returns(true);
-        //    var policy = HttpClientPolicyProvider.GetGenericResultRetryPolicy<string>(_logger);
-        //    await policy.ExecuteAsync(() =>
-        //    {
-        //        callCount++;
-        //        return Task.FromResult(fakeResult);
-        //    });
-        //    Assert.That(callCount, Is.EqualTo(4));
-        //}
-
-        //[Test]
-        //public async Task WhenGetGenericResultRetryPolicyWithNonRetriableError_ThenDoesNotRetry()
-        //{
-        //    int callCount = 0;
-        //    var fakeResult = A.Fake<IResult<string>>();
-        //    A.CallTo(() => fakeResult.IsFailure(out A<IError>._, out A<string>._)).WithAnyArguments().Invokes((out IError error, out string value) =>
-        //    {
-        //        error = A.Fake<IError>();
-        //        var dict = new System.Collections.Generic.Dictionary<string, object> { { "StatusCode", 400 } };
-        //        A.CallTo(() => error.Metadata).Returns(dict);
-        //        value = null;
-        //    }).Returns(true);
-        //    var policy = HttpClientPolicyProvider.GetGenericResultRetryPolicy<string>(_logger);
-        //    await policy.ExecuteAsync(() =>
-        //    {
-        //        callCount++;
-        //        return Task.FromResult(fakeResult);
-        //    });
-        //    Assert.That(callCount, Is.EqualTo(1));
-        //}
     }
 }

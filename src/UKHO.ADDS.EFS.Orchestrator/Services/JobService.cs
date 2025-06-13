@@ -101,7 +101,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
         private async Task<(S100SalesCatalogueResponse s100SalesCatalogueResponse, DateTime? scsTimestamp)> GetProductJson(DateTime? timestamp, ExchangeSetRequestQueueMessage message)
         {
-            var retryPolicy = HttpClientPolicyProvider.GetGenericResultRetryPolicy<S100SalesCatalogueResponse>(_logger);
+            var retryPolicy = HttpClientPolicyProvider.GetGenericResultRetryPolicy<S100SalesCatalogueResponse>(_logger, "GetS100ProductsFromSpecificDateAsync");
             var s100SalesCatalogueResult = await retryPolicy.ExecuteAsync(() =>
                 _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(ScsApiVersion, ProductType, timestamp, message.CorrelationId));
 

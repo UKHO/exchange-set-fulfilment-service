@@ -103,7 +103,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             }
 
             // Now download all files (all directories are guaranteed to exist)
-            var retryPolicy = HttpClientPolicyProvider.GetGenericResultRetryPolicy<Stream>(_logger);
+            var retryPolicy = HttpClientPolicyProvider.GetGenericResultRetryPolicy<Stream>(_logger, "GetDirectoryPathForFile");
             foreach (var item in allFilesToProcess)
             {
                 var directoryPath = GetDirectoryPathForFile(workSpaceRootPath, item.FileName, workSpaceSpoolDataSetFilesPath, workSpaceSpoolSupportFilesPath);
