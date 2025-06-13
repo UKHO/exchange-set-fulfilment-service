@@ -1,0 +1,8 @@
+{
+    "Storage": {
+        "ConnectionString": "DefaultEndpointsProtocol=https;",
+        "ExchangeSetContainerName": "exchangesetjob",
+        "NodeStatusTable": "ExchangeSetBuilderNodeStatus",
+        "OrchestratorApiEndpoint": "https://localhost:51627/requests"
+    }
+}
