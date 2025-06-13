@@ -15,6 +15,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
             var logger = context.Subject.LoggerFactory.CreateLogger<ReadConfigurationNode>();
 
             var jobId = GetEnvironmentVariable(BuilderEnvironmentVariables.JobId, DebugJobId);
+            var batchId = GetEnvironmentVariable(BuilderEnvironmentVariables.BatchId, DebugBatchId);
             var workspaceAuthenticationKey = GetEnvironmentVariable(BuilderEnvironmentVariables.WorkspaceKey, "D89D11D265B19CA5C2BE97A7FCB1EF21");
 
             if (jobId.Equals(DebugJobId, StringComparison.InvariantCultureIgnoreCase))
@@ -23,25 +24,28 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
 
                 context.Subject.IsDebugSession = true;
                 context.Subject.JobId = Guid.NewGuid().ToString("N");
+                context.Subject.BatchId = Guid.NewGuid().ToString("N");
             }
             else
             {
                 context.Subject.IsDebugSession = false;
                 context.Subject.JobId = jobId;
+                context.Subject.BatchId = batchId;
             }
 
             var fileShareEndpoint = GetEnvironmentVariable(BuilderEnvironmentVariables.FileShareEndpoint, context.Subject.Configuration.GetValue<string>("Endpoints:FileShareService")!);
             var buildServiceEndpoint = GetEnvironmentVariable(BuilderEnvironmentVariables.BuildServiceEndpoint, context.Subject.Configuration.GetValue<string>("Endpoints:BuildService")!);
-            var batchId = GetEnvironmentVariable(BuilderEnvironmentVariables.BatchId, DebugBatchId);
+
 
             context.Subject.FileShareEndpoint = fileShareEndpoint;
             context.Subject.BuildServiceEndpoint = buildServiceEndpoint;
             context.Subject.WorkspaceAuthenticationKey = workspaceAuthenticationKey;
-            context.Subject.BatchId = batchId;
+
 
             var configurationLogView = new ConfigurationLogView()
             {
-                JobId = jobId,
+                JobId = context.Subject.JobId,
+                BatchId = context.Subject.BatchId,
                 FileShareEndpoint = fileShareEndpoint,
                 BuildServiceEndpoint = buildServiceEndpoint,
                 WorkspaceAuthenticationKey = workspaceAuthenticationKey,

@@ -27,6 +27,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
                 var debugJob = debugJobConfig ?? new ExchangeSetJob()
                 {
                     Id = context.Subject.JobId,
+                    BatchId = context.Subject.BatchId,
                     DataStandard = ExchangeSetDataStandard.S100,
                     Timestamp = DateTime.UtcNow,
                     SalesCatalogueTimestamp = DateTime.UtcNow,

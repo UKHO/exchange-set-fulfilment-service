@@ -69,7 +69,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 var factory = provider.GetRequiredService<IFileShareReadWriteClientFactory>();
                 var secretClient = provider.GetRequiredService<SecretClient>();
 
-                var fssEndpointOrchestratorHost = secretClient.GetSecret(OrchestratorConfigurationKeys.FileShareEndpointOrchestratorHost)!;
+                var fssEndpointOrchestratorHost = secretClient.GetSecret(OrchestratorConfigurationKeys.FileShareOrchestratorEndpoint)!;
 
                 return factory.CreateClient(fssEndpointOrchestratorHost.Value.Value, string.Empty);
             });

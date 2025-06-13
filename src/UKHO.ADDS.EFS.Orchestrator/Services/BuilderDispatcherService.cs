@@ -17,7 +17,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
         private readonly Channel<ExchangeSetRequestQueueMessage> _channel;
         private readonly JobService _jobService;
-        
+
         private readonly string[] _command = ["sh", "-c", "echo Starting; sleep 5; echo Healthy now; sleep 5; echo Exiting..."];
 
         private readonly SemaphoreSlim _concurrencyLimiter;
@@ -34,7 +34,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             _loggerFactory = loggerFactory;
             _logger = loggerFactory.CreateLogger<BuilderDispatcherService>();
 
-            var fileShareEndpointSecret = secretClient.GetSecret(OrchestratorConfigurationKeys.FileShareEndpoint)!;
+            var fileShareEndpointSecret = secretClient.GetSecret(OrchestratorConfigurationKeys.FileShareBuilderEndpoint)!;
             var builderServiceEndpointSecret = secretClient.GetSecret(OrchestratorConfigurationKeys.OrchestratorServiceEndpoint)!;
             var workspaceAuthenticationKeySecret = secretClient.GetSecret(OrchestratorConfigurationKeys.WorkspaceKey)!;
 

@@ -62,8 +62,8 @@ namespace UKHO.ADDS.EFS.LocalHost
             orchestratorService.WithEnvironment(async c =>
             {
                 var addsMockEndpoint = mockService.GetEndpoint("http");
-                var fssEndpointBuilderHost = new UriBuilder(addsMockEndpoint.Url) { Host = "host.docker.internal", Path = "fss/" };
-                var fssEndpointOrchestratorHost = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.Host, Path = "fss/" };
+                var fssBuilderEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = "host.docker.internal", Path = "fss/" };
+                var fssOrchestratorEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.Host, Path = "fss/" };
                 var scsEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.Host, Path = "scs/" };
 
                 var orchestratorEndpoint = orchestratorService.GetEndpoint("http").Url;
@@ -72,8 +72,8 @@ namespace UKHO.ADDS.EFS.LocalHost
 
                 var secretClient = c.ExecutionContext.ServiceProvider.GetRequiredService<SecretClient>();
 
-                await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.FileShareEndpoint, fssEndpointBuilderHost.Uri.ToString());
-                await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.FileShareEndpointOrchestratorHost, fssEndpointOrchestratorHost.Uri.ToString());
+                await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.FileShareBuilderEndpoint, fssBuilderEndpoint.Uri.ToString());
+                await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.FileShareOrchestratorEndpoint, fssOrchestratorEndpoint.Uri.ToString());
                 await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.SalesCatalogueEndpoint, scsEndpoint.Uri.ToString());
                 await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.OrchestratorServiceEndpoint, orchestratorEndpoint);
                 await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.WorkspaceKey, workspaceKey);

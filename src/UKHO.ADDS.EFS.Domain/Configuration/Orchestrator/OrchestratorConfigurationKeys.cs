@@ -2,9 +2,9 @@
 {
     public static class OrchestratorConfigurationKeys
     {
-        public const string FileShareEndpoint = "FileShareEndpoint";
+        public const string FileShareBuilderEndpoint = "FileShareBuilderEndpoint";
 
-        public const string FileShareEndpointOrchestratorHost = "FileShareEndpointOrchestratorHost";
+        public const string FileShareOrchestratorEndpoint = "FileShareOrchestratorEndpoint";
 
         public const string OrchestratorServiceEndpoint = "BuildServiceEndpoint";
 
