@@ -2,7 +2,7 @@ jobs:
 - job: UnitTestsAndCodeCoverage
   workspace:
     clean: all
-  displayName: "Dotnet Test and Publish Code Coverage"
+  displayName: Unit tests and code coverage
   steps:
     - checkout: self
       clean: true

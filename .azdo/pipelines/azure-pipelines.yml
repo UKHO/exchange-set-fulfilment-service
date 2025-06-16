@@ -20,7 +20,7 @@ parameters:
   - name: SkipDeployment
     displayName: "Skip deployment (temporary until dev deployment works)"
     type: boolean
-    default: false
+    default: true
 
 trigger:
   - main
