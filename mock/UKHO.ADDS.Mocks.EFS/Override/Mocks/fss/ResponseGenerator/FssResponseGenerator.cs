@@ -33,21 +33,6 @@ namespace UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss.ResponseGenerator
 
                 var batchDetails = BatchQueryParser.ParseBatchQuery("$filter=" + filter);
 
-                if (!string.IsNullOrEmpty(batchDetails.BusinessUnit) && !string.IsNullOrEmpty(batchDetails.ProductType) && batchDetails.Products.Count == 0)
-                {
-                    // Only keep the first product/updateNumber combination
-                    {
-                        var product = new Product()
-                        {
-                            EditionNumber = 1,
-                            ProductName = "101GB00479ABCDEFG",
-                            UpdateNumbers = new List<int> { 0 }
-                        };
-                        batchDetails.Products = new List<Product> { product };
-
-                    }
-                }
-
                 UpdateResponseTemplate(jsonTemplate!, batchDetails);
                 return Results.Ok(jsonTemplate);
             }
@@ -61,7 +46,7 @@ namespace UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss.ResponseGenerator
         {
             var entries = new JsonArray();
 
-            if (!string.IsNullOrEmpty(filterDetails.BusinessUnit) && !string.IsNullOrEmpty(filterDetails.ProductType))
+            if (!string.IsNullOrEmpty(filterDetails.BusinessUnit) && !string.IsNullOrEmpty(filterDetails.ProductType) && filterDetails.Products.Count == 0)
             {
                 // Special case for empty products
                 var batchId = Guid.NewGuid().ToString();
@@ -73,7 +58,7 @@ namespace UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss.ResponseGenerator
                     ["attributes"] = new JsonArray { CreateAttribute("ProductType", filterDetails.ProductType), CreateAttribute("Media Type", "Zip") },
                     ["businessUnit"] = filterDetails.BusinessUnit,
                     ["batchPublishedDate"] = DateTime.UtcNow.AddDays(-1).ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
-                    ["expiryDate"] = "", // Empty expiryDate
+                    ["expiryDate"] = null, // Empty expiryDate
                     ["isAllFilesZipAvailable"] = true,
                     ["files"] = CreateFilesArray("", batchId, "", true) // Pass true to indicate empty products case
                 });
