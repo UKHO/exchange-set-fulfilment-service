@@ -2,7 +2,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Polly;
 using UKHO.ADDS.Infrastructure.Results;
-using System.Collections.Generic;
 
 namespace UKHO.ADDS.EFS.Domain.RetryPolicy
 {
