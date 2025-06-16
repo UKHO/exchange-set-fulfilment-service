@@ -50,8 +50,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
 
         private void MockSalesCatalogueClientResponse(IResult<S100SalesCatalogueResponse> response)
         {
-            A.CallTo(() => _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(
-                    A<string>.Ignored, A<string>.Ignored, A<DateTime?>.Ignored, A<ExchangeSetRequestQueueMessage>.Ignored))
+            A.CallTo(() => _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(A<DateTime?>.Ignored, A<ExchangeSetRequestQueueMessage>.Ignored))
                 .Returns(Task.FromResult<(S100SalesCatalogueResponse, DateTime?)>((response.IsSuccess(out var value) ? value : null, DateTime.UtcNow)));
         }
 
