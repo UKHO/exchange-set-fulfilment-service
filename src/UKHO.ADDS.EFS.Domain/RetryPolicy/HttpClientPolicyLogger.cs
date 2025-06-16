@@ -10,7 +10,7 @@ namespace UKHO.ADDS.EFS.Domain.RetryPolicy
         [LoggerMessage(
             EventId = HttpRetryAttemptEventId,
             Level = LogLevel.Warning,
-            Message = "[{Timestamp}] Attempt {RetryAttempt}/{MaxRetryAttempts} for [{methodName}] failed with {StatusCode}. Retrying in {DelaySeconds}s...",
+            Message = "[{Timestamp}] Retry request for [{methodName}] with delay {delaySeconds}ms and retry attempt {RetryAttempt}/{MaxRetryAttempts} as previous request was responded with {StatusCode}.",
             EventName = nameof(HttpRetryAttempt))]
         public static partial void LogHttpRetryAttempt(
             this ILogger logger,
