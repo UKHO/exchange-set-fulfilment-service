@@ -5,8 +5,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 {
     public interface ISalesCatalogueService
     {
-        Task<(S100SalesCatalogueResponse s100SalesCatalogueData, DateTime? LastModified)> GetS100ProductsFromSpecificDateAsync(string apiVersion,
-                string productType,
+        Task<(S100SalesCatalogueResponse s100SalesCatalogueData, DateTime? LastModified)> GetS100ProductsFromSpecificDateAsync(
                 DateTime? sinceDateTime,
                 ExchangeSetRequestQueueMessage correlationId);
     }

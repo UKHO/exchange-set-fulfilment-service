@@ -2,7 +2,6 @@
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
-using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Entities;
 using UKHO.ADDS.EFS.Messages;
@@ -14,8 +13,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 {
     internal class JobService
     {
-        private const string ScsApiVersion = "v2";
-        private const string ProductType = "s100";
         private readonly ExchangeSetJobTable _jobTable;
         private readonly ExchangeSetTimestampTable _timestampTable;
         private readonly ISalesCatalogueService _salesCatalogueService;
@@ -48,15 +45,30 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 timestamp = timestampEntity.Timestamp;
             }
 
-            var (s100SalesCatalogueResponse, scsTimestamp) = await GetProductJson(timestamp, queueMessage);
+            // Retrieve S100 products from the Sales Catalogue based on the timestamp
+            await GetS100ProductsFromSpecificDateAsync(queueMessage, timestamp, job);
 
-            switch (s100SalesCatalogueResponse.ResponseCode)
+            // Create a batch for the job
+            await ProcessCreateBatchAsync(queueMessage.CorrelationId, job);
+            
+            await _jobTable.CreateIfNotExistsAsync();
+            await _jobTable.AddAsync(job);
+
+            _logger.LogJobUpdated(ExchangeSetJobLogView.CreateFromJob(job));
+
+            return job;
+        }
+
+        private async Task GetS100ProductsFromSpecificDateAsync(ExchangeSetRequestQueueMessage queueMessage, DateTime? timestamp, ExchangeSetJob job)
+        {
+            var result = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(timestamp, queueMessage);
+
+            switch (result.s100SalesCatalogueData.ResponseCode)
             {
-                case HttpStatusCode.OK when s100SalesCatalogueResponse.ResponseBody.Any():
+                case HttpStatusCode.OK when result.s100SalesCatalogueData.ResponseBody.Any():
                     // Products were successfully retrieved
-                    job.Products = s100SalesCatalogueResponse.ResponseBody;
-                    job.State = ExchangeSetJobState.InProgress;
-                    job.SalesCatalogueTimestamp = scsTimestamp;
+                    job.Products = result.s100SalesCatalogueData.ResponseBody;
+                    job.SalesCatalogueTimestamp = result.LastModified;
                     break;
 
                 case HttpStatusCode.NotModified:
@@ -69,26 +81,21 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                     job.State = ExchangeSetJobState.Cancelled;
                     break;
             }
+        }
 
-            // Create a batch for the job
-            var createBatchResponseResult = await CreateBatchAsync(queueMessage.CorrelationId);
+        private async Task ProcessCreateBatchAsync(string correlationId, ExchangeSetJob job)
+        {
+            var createBatchResponseResult = await CreateBatchAsync(correlationId);
 
             if (createBatchResponseResult.IsSuccess(out var batchHandle, out _))
             {
                 job.BatchId = batchHandle.BatchId;
+                job.State = ExchangeSetJobState.InProgress;
             }
             else
             {
                 job.State = ExchangeSetJobState.Failed;
             }
-
-            job.SalesCatalogueTimestamp = scsTimestamp;
-            await _jobTable.CreateIfNotExistsAsync();
-            await _jobTable.AddAsync(job);
-
-            _logger.LogJobUpdated(ExchangeSetJobLogView.CreateFromJob(job));
-
-            return job;
         }
 
         public async Task BuilderContainerCompletedAsync(long exitCode, ExchangeSetJob job)
@@ -158,17 +165,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         {
             await _jobTable.UpdateAsync(job);
             _logger.LogJobCompleted(ExchangeSetJobLogView.CreateFromJob(job));
-        }
-
-        private async Task<(S100SalesCatalogueResponse ProductResponse, DateTime? SalesTimestamp)> GetProductJson(DateTime? timestamp, ExchangeSetRequestQueueMessage message)
-        {
-            var result = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(
-                apiVersion: ScsApiVersion,
-                productType: ProductType,
-                sinceDateTime: timestamp,
-                correlationId: message);
-
-            return (result.s100SalesCatalogueData, result.LastModified);
         }
 
         private Task<IResult<IBatchHandle>> CreateBatchAsync(string correlationId, CancellationToken cancellationToken = default) =>

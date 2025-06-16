@@ -47,7 +47,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             
             if (createBatchResponseResult.IsFailure(out var error, out _))
             {
-                LogFileShareServiceError(jobId: correlationId, endPoint: CreateBatch, error: error, correlationId: correlationId);
+                LogFileShareServiceError(correlationId, CreateBatch, error, correlationId);
             }
 
             return createBatchResponseResult;
@@ -66,7 +66,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
             if (commitBatchResult.IsFailure(out var commitError, out _))
             {
-                LogFileShareServiceError(jobId: correlationId, endPoint: CommitBatch, error: commitError, correlationId: correlationId, batchId: batchId);
+                LogFileShareServiceError(correlationId, CommitBatch, commitError, correlationId, batchId);
             }
 
             return commitBatchResult;
@@ -87,7 +87,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
             if (searchResult.IsFailure(out var error, out _))
             {
-                LogSearchCommittedBatchesError(batchId: currentBatchId, correlationId: correlationId, filter: filter, Limit, Start, error: error);
+                LogSearchCommittedBatchesError(currentBatchId, correlationId, filter, Limit, Start, error);
             }
 
             return searchResult;
@@ -121,7 +121,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
                 if (expiryResult.IsFailure(out var expiryError, out _))
                 {
-                    LogFileShareServiceError(jobId: correlationId, endPoint: SetExpiryDate, error: expiryError, correlationId: correlationId, batchId: batch.BatchId);
+                    LogFileShareServiceError(correlationId, SetExpiryDate, expiryError, correlationId, batch.BatchId);
                     return expiryResult;
                 }
 

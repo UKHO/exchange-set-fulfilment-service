@@ -13,6 +13,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
     {
         private readonly ISalesCatalogueClient _salesCatalogueClient;
         private readonly ILogger<SalesCatalogueService> _logger;
+        private const string ScsApiVersion = "v2";
+        private const string ProductType = "s100";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SalesCatalogueService"/> class.
@@ -41,13 +43,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         /// The method returns an empty response with the original sinceDateTime when an error occurs or when
         /// an unexpected HTTP status code is returned from the API.
         /// </remarks>
-        public async Task<(S100SalesCatalogueResponse s100SalesCatalogueData, DateTime? LastModified)> GetS100ProductsFromSpecificDateAsync(string apiVersion,
-                string productType,
+        public async Task<(S100SalesCatalogueResponse s100SalesCatalogueData, DateTime? LastModified)> GetS100ProductsFromSpecificDateAsync(
                 DateTime? sinceDateTime,
                 ExchangeSetRequestQueueMessage message)
         {
             // Call the Sales Catalogue API to retrieve product information
-            var s100SalesCatalogueResult = await _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(apiVersion, productType, sinceDateTime, message.CorrelationId);
+            var s100SalesCatalogueResult = await _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(ScsApiVersion, ProductType, sinceDateTime, message.CorrelationId);
 
             // Check if the API call was successful
             if (s100SalesCatalogueResult.IsSuccess(out var s100SalesCatalogueData, out var error))
