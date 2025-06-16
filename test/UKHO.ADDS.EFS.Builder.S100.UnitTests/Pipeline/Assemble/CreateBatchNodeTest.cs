@@ -102,6 +102,22 @@ internal class CreateBatchNodeTest
     }
 
     [Test]
+    public async Task WhenCreateBatchAsyncFailsWithRetriableStatusCode_ThenRetriesExpectedNumberOfTimes()
+    {
+        int callCount = 0;
+        A.CallTo(() => _fileShareReadWriteClient.CreateBatchAsync(A<BatchModel>._, A<string>._, A<CancellationToken>._))
+            .ReturnsLazily(() =>
+            {
+                callCount++;
+                return Result.Failure<IBatchHandle>(new Error("Retriable error", new Dictionary<string, object> { { "StatusCode", 503 } }));
+            });
+
+        await _testableCreateBatchNode.PerformExecuteAsync(_executionContext);
+
+        Assert.That(callCount, Is.EqualTo(4), "Should retry 3 times plus the initial call (total 4)");
+    }
+
+    [Test]
     public void WhenFileShareReadWriteClientIsNull_ThrowsArgumentNullException()
     {
         Assert.Throws<ArgumentNullException>(() => new CreateBatchNode(null));
