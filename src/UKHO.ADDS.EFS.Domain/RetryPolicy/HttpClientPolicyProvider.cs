@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Polly;
-using UKHO.ADDS.Infrastructure.Results; // Added for IError
+using UKHO.ADDS.Infrastructure.Results;
 using System.Collections.Generic;
 
 namespace UKHO.ADDS.EFS.Domain.RetryPolicy
@@ -24,8 +24,17 @@ namespace UKHO.ADDS.EFS.Domain.RetryPolicy
         private const int RetryDelayMs = 10000;
 
         private static IConfiguration? _configuration;
+
+        /// <summary>
+        /// Sets the static configuration instance for reading retry settings.
+        /// </summary>
+        /// <param name="configuration">The configuration instance to use.</param>
         public static void SetConfiguration(IConfiguration configuration) => _configuration = configuration;
 
+        /// <summary>
+        /// Gets the retry settings (max attempts and delay) from configuration or defaults.
+        /// </summary>
+        /// <returns>A tuple containing max retry attempts and retry delay in milliseconds.</returns>
         private static (int maxRetryAttempts, int retryDelayMs) GetRetrySettings()
         {
             int maxRetryAttempts = MaxRetryAttempts;
@@ -40,6 +49,16 @@ namespace UKHO.ADDS.EFS.Domain.RetryPolicy
             return (maxRetryAttempts, retryDelayMs);
         }
 
+        /// <summary>
+        /// Logs a retry attempt using the provided logger and retry details.
+        /// </summary>
+        /// <param name="logger">The logger instance.</param>
+        /// <param name="timestamp">The timestamp of the retry attempt.</param>
+        /// <param name="retryAttempt">The current retry attempt number.</param>
+        /// <param name="maxRetryAttempts">The maximum number of retry attempts.</param>
+        /// <param name="urlOrType">The URL or method/type being retried.</param>
+        /// <param name="statusCode">The status code or error information.</param>
+        /// <param name="delaySeconds">The delay before the next retry, in seconds.</param>
         private static void LogRetryAttempt(
             ILogger logger,
             DateTimeOffset timestamp,
@@ -50,6 +69,11 @@ namespace UKHO.ADDS.EFS.Domain.RetryPolicy
             double delaySeconds)
             => logger.LogHttpRetryAttempt(timestamp, retryAttempt, maxRetryAttempts, urlOrType, statusCode, delaySeconds);
 
+        /// <summary>
+        /// Gets a Polly async retry policy for HttpClient that retries on transient errors and retriable status codes.
+        /// </summary>
+        /// <param name="logger">The logger instance for logging retry attempts.</param>
+        /// <returns>An IAsyncPolicy for HttpResponseMessage with exponential backoff.</returns>
         public static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy(ILogger logger)
         {
             var (maxRetryAttempts, retryDelayMs) = GetRetrySettings();
@@ -82,6 +106,14 @@ namespace UKHO.ADDS.EFS.Domain.RetryPolicy
                 );
         }
 
+        /// <summary>
+        /// Gets a Polly async retry policy for custom result types, using a status code selector and method name for logging.
+        /// </summary>
+        /// <typeparam name="T">The result type.</typeparam>
+        /// <param name="logger">The logger instance for logging retry attempts.</param>
+        /// <param name="getStatusCode">A function to extract the status code from the result.</param>
+        /// <param name="methodName">The method or operation name for logging.</param>
+        /// <returns>An IAsyncPolicy for the specified result type with exponential backoff.</returns>
         public static IAsyncPolicy<T> GetRetryPolicy<T>(ILogger logger, Func<T, int?> getStatusCode, string methodName)
         {
             var (maxRetryAttempts, retryDelayMs) = GetRetrySettings();
@@ -111,6 +143,13 @@ namespace UKHO.ADDS.EFS.Domain.RetryPolicy
                 );
         }
 
+        /// <summary>
+        /// Gets a Polly async retry policy for IResult<T> types, extracting status code from error metadata.
+        /// </summary>
+        /// <typeparam name="T">The result type.</typeparam>
+        /// <param name="logger">The logger instance for logging retry attempts.</param>
+        /// <param name="methodName">The method or operation name for logging.</param>
+        /// <returns>An IAsyncPolicy for IResult<T> with exponential backoff.</returns>
         public static IAsyncPolicy<IResult<T>> GetGenericResultRetryPolicy<T>(ILogger logger, string methodName) =>
             GetRetryPolicy<IResult<T>>(
                 logger,
@@ -121,6 +160,11 @@ namespace UKHO.ADDS.EFS.Domain.RetryPolicy
                 },
                 methodName);
 
+        /// <summary>
+        /// Extracts the status code from an IError's metadata, if present.
+        /// </summary>
+        /// <param name="error">The error object.</param>
+        /// <returns>The status code if found; otherwise, null.</returns>
         public static int? GetStatusCodeFromError(IError error) =>
             error?.Metadata != null && error.Metadata.ContainsKey("StatusCode")
                 ? Convert.ToInt32(error.Metadata["StatusCode"])
