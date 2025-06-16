@@ -1,5 +1,6 @@
 @echo off
-:: This will remove any generated files for Aspire.
+title Regenerate
+:: This will regenerate files for deployment (infra, and so on).
 
 set scriptdir=%~dp0
 if not [%scriptdir:~-1%]==[\] set scriptdir=%scriptdir%\
@@ -14,5 +15,6 @@ if exist "%scriptdir%.azure" rmdir /s /q "%scriptdir%.azure"
 azd init
 azd infra gen
 
+title Regenerate - done
 pause
 exit /b 0
