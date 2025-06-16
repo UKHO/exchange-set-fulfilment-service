@@ -61,7 +61,7 @@ namespace UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss.ResponseGenerator
         {
             var entries = new JsonArray();
 
-            if (!string.IsNullOrEmpty(filterDetails.BusinessUnit) && !string.IsNullOrEmpty(filterDetails.ProductType) && filterDetails.Products.Count == 0)
+            if (!string.IsNullOrEmpty(filterDetails.BusinessUnit) && !string.IsNullOrEmpty(filterDetails.ProductType))
             {
                 // Special case for empty products
                 var batchId = Guid.NewGuid().ToString();
