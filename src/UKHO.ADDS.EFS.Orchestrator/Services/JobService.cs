@@ -104,11 +104,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 case HttpStatusCode.NotModified:
                     // No new data since the specified timestamp
                     job.State = ExchangeSetJobState.Cancelled;
+                    job.SalesCatalogueTimestamp = timestamp;
                     break;
 
                 default:
                     // Any other response code (error cases)
                     job.State = ExchangeSetJobState.Cancelled;
+                    job.SalesCatalogueTimestamp = timestamp;
                     break;
             }
         }
@@ -162,6 +164,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
         private async Task CompleteJobAsync(ExchangeSetJob job)
         {
+            if (job.State == ExchangeSetJobState.Succeeded)
+            {
+                var updateTimestampEntity = new ExchangeSetTimestamp()
+                {
+                    DataStandard = job.DataStandard,
+                    Timestamp = job.SalesCatalogueTimestamp
+                };
+
+                await _timestampTable.UpsertAsync(updateTimestampEntity);
+            }
+
             await _jobTable.UpdateAsync(job);
             _logger.LogJobCompleted(ExchangeSetJobLogView.CreateFromJob(job));
         }
