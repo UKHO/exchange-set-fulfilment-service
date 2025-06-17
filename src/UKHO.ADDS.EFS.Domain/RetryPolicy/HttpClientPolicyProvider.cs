@@ -10,7 +10,7 @@ namespace UKHO.ADDS.EFS.Domain.RetryPolicy
     /// </summary>
     public static class HttpClientPolicyProvider
     {
-        private static readonly HashSet<int> RetriableStatusCodes = new()
+        private static readonly HashSet<int> _retryStatusCodes = new()
         {
             408, // Request Timeout
             429, // Too Many Requests
@@ -20,7 +20,7 @@ namespace UKHO.ADDS.EFS.Domain.RetryPolicy
         };
 
         private const int MaxRetryAttempts = 3;
-        private const int RetryDelayMs = 10000;
+        private const int RetryDelayInMilliseconds = 10000;
 
         private static IConfiguration? _configuration;
 
@@ -34,18 +34,18 @@ namespace UKHO.ADDS.EFS.Domain.RetryPolicy
         /// Gets the retry settings (max attempts and delay) from configuration or defaults.
         /// </summary>
         /// <returns>A tuple containing max retry attempts and retry delay in milliseconds.</returns>
-        private static (int maxRetryAttempts, int retryDelayMs) GetRetrySettings()
+        private static (int maxRetryAttempts, int retryDelayInMilliseconds) GetRetrySettings()
         {
             int maxRetryAttempts = MaxRetryAttempts;
-            int retryDelayMs = RetryDelayMs;
+            int retryDelayInMilliseconds = RetryDelayInMilliseconds;
             if (_configuration != null)
             {
                 if (!int.TryParse(_configuration["HttpRetry:MaxRetryAttempts"], out maxRetryAttempts) || maxRetryAttempts <= 0)
                     maxRetryAttempts = MaxRetryAttempts;
-                if (!int.TryParse(_configuration["HttpRetry:RetryDelayMs"], out retryDelayMs) || retryDelayMs <= 0)
-                    retryDelayMs = RetryDelayMs;
+                if (!int.TryParse(_configuration["HttpRetry:RetryDelayInMilliseconds"], out retryDelayInMilliseconds) || retryDelayInMilliseconds <= 0)
+                    retryDelayInMilliseconds = RetryDelayInMilliseconds;
             }
-            return (maxRetryAttempts, retryDelayMs);
+            return (maxRetryAttempts, retryDelayInMilliseconds);
         }
 
         /// <summary>
@@ -75,21 +75,21 @@ namespace UKHO.ADDS.EFS.Domain.RetryPolicy
         /// <returns>An IAsyncPolicy for HttpResponseMessage with exponential backoff.</returns>
         public static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy(ILogger logger)
         {
-            var (maxRetryAttempts, retryDelayMs) = GetRetrySettings();
+            var (maxRetryAttempts, retryDelayInMilliseconds) = GetRetrySettings();
 
             return Policy<HttpResponseMessage>
                 .Handle<HttpRequestException>()
-                .OrResult(r => RetriableStatusCodes.Contains((int)r.StatusCode))
+                .OrResult(r => _retryStatusCodes.Contains((int)r.StatusCode))
                 .WaitAndRetryAsync(
                     maxRetryAttempts,
-                    retryAttempt => TimeSpan.FromMilliseconds(Math.Pow(2, retryAttempt - 1) * retryDelayMs),
-                    (outcome, timespan, retryAttempt, context) =>
+                    retryAttempt => TimeSpan.FromMilliseconds(Math.Pow(2, retryAttempt - 1) * retryDelayInMilliseconds),
+                    (outcome, timespan, retryAttempt, _) =>
                     {
                         int? statusCodeInt = outcome.Result != null ? (int)outcome.Result.StatusCode : null;
                         string statusCode = statusCodeInt?.ToString() ?? outcome.Exception?.StackTrace ?? "Unknown";
                         string url = outcome.Result?.RequestMessage?.RequestUri?.ToString() ?? "N/A";
 
-                        if (statusCodeInt.HasValue && RetriableStatusCodes.Contains(statusCodeInt.Value))
+                        if (statusCodeInt.HasValue && _retryStatusCodes.Contains(statusCodeInt.Value))
                         {
                             LogRetryAttempt(
                                 logger,
@@ -115,18 +115,18 @@ namespace UKHO.ADDS.EFS.Domain.RetryPolicy
         /// <returns>An IAsyncPolicy for the specified result type with exponential backoff.</returns>
         public static IAsyncPolicy<T> GetRetryPolicy<T>(ILogger logger, Func<T, int?> getStatusCode, string methodName)
         {
-            var (maxRetryAttempts, retryDelayMs) = GetRetrySettings();
+            var (maxRetryAttempts, retryDelayInMilliseconds) = GetRetrySettings();
 
             return Policy<T>
                 .HandleResult(r =>
                 {
                     var statusCode = getStatusCode(r);
-                    return statusCode.HasValue && RetriableStatusCodes.Contains(statusCode.Value);
+                    return statusCode.HasValue && _retryStatusCodes.Contains(statusCode.Value);
                 })
                 .WaitAndRetryAsync(
                     maxRetryAttempts,
-                    retryAttempt => TimeSpan.FromMilliseconds(Math.Pow(2, retryAttempt - 1) * retryDelayMs),
-                    (outcome, timespan, retryAttempt, context) =>
+                    retryAttempt => TimeSpan.FromMilliseconds(Math.Pow(2, retryAttempt - 1) * retryDelayInMilliseconds),
+                    (outcome, timespan, retryAttempt, _) =>
                     {
                         var statusCode = getStatusCode(outcome.Result);
                         LogRetryAttempt(
@@ -154,7 +154,7 @@ namespace UKHO.ADDS.EFS.Domain.RetryPolicy
                 logger,
                 r =>
                 {
-                    r.IsFailure(out var error, out var _);
+                    r.IsFailure(out var error, out _);
                     return GetStatusCodeFromError(error);
                 },
                 methodName);

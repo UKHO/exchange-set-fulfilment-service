@@ -129,7 +129,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Infrastructure
         public void WhenGetRetrySettingsWithConfiguration_ThenReturnsConfiguredValues()
         {
             A.CallTo(() => _configuration["HttpRetry:MaxRetryAttempts"]).Returns("5");
-            A.CallTo(() => _configuration["HttpRetry:RetryDelayMs"]).Returns("1234");
+            A.CallTo(() => _configuration["HttpRetry:RetryDelayInMilliseconds"]).Returns("1234");
             HttpClientPolicyProvider.SetConfiguration(_configuration);
             var settings = typeof(HttpClientPolicyProvider).GetMethod("GetRetrySettings", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).Invoke(null, null);
             Assert.That(settings.ToString(), Does.Contain("5").And.Contain("1234"));
