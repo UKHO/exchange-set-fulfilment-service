@@ -35,22 +35,23 @@ namespace UKHO.ADDS.EFS.RetryPolicy
         /// Gets the retry settings (max attempts and delay) from configuration or defaults.
         /// </summary>
         /// <returns>A tuple containing max retry attempts and retry delay in milliseconds.</returns>
-        private static (int maxRetryAttempts, int retryDelayInMilliseconds) LoadRetrySettings()
+        private static (int maxRetryAttempts, int retryDelayMs) LoadRetrySettings()
         {
-            int maxRetryAttempts = _configuration?.GetValue("HttpRetry:MaxRetryAttempts", MaxRetryAttempts) ?? MaxRetryAttempts;
-            int retryDelayInMilliseconds = _configuration?.GetValue("HttpRetry:RetryDelayInMilliseconds", RetryDelayInMilliseconds) ?? RetryDelayInMilliseconds;
-
-            if (maxRetryAttempts <= 0)
+            int maxRetryAttempts = MaxRetryAttempts;
+            int retryDelayMs = RetryDelayInMilliseconds;
+            if (_configuration != null)
             {
-                maxRetryAttempts = MaxRetryAttempts;
-            }
+                if (!int.TryParse(_configuration["HttpRetry:MaxRetryAttempts"], out maxRetryAttempts) || maxRetryAttempts <= 0)
+                {
+                    maxRetryAttempts = MaxRetryAttempts;
+                }
 
-            if (retryDelayInMilliseconds <= 0)
-            {
-                retryDelayInMilliseconds = RetryDelayInMilliseconds;
+                if (!int.TryParse(_configuration["HttpRetry:RetryDelayInMilliseconds"], out retryDelayMs) || retryDelayMs <= 0)
+                {
+                    retryDelayMs = RetryDelayInMilliseconds;
+                }
             }
-
-            return (maxRetryAttempts, retryDelayInMilliseconds);
+            return (maxRetryAttempts, retryDelayMs);
         }
 
         /// <summary>
@@ -64,14 +65,14 @@ namespace UKHO.ADDS.EFS.RetryPolicy
         /// <param name="statusCode">The status code or error information.</param>
         /// <param name="delaySeconds">The delay before the next retry, in seconds.</param>
         private static void LogRetryAttempt(
-            ILogger logger,
-            DateTimeOffset timestamp,
-            int retryAttempt,
-            int maxRetryAttempts,
-            string urlOrType,
-            string statusCode,
-            double delaySeconds)
-            => logger.LogHttpRetryAttempt(timestamp, retryAttempt, maxRetryAttempts, urlOrType, statusCode, delaySeconds);
+                    ILogger logger,
+                    DateTimeOffset timestamp,
+                    int retryAttempt,
+                    int maxRetryAttempts,
+                    string urlOrType,
+                    string statusCode,
+                    double delaySeconds)
+                    => logger.LogHttpRetryAttempt(timestamp, retryAttempt, maxRetryAttempts, urlOrType, statusCode, delaySeconds);
 
         /// <summary>
         /// Gets a Polly async retry policy for HttpClient that retries on transient errors and retriable status codes.
