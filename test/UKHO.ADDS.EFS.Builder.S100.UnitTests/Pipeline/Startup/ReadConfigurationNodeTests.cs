@@ -60,6 +60,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
             Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.WorkspaceKey, "TestWorkspaceKey");
             Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.FileShareEndpoint, "https://env-fileshare");
             Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.BuildServiceEndpoint, "https://env-buildservice");
+            Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.BatchId, "TestBatchId");
 
             var result = await _node.ExecuteAsync(_context);
 
@@ -68,6 +69,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
             Assert.That(_subject.WorkspaceAuthenticationKey, Is.EqualTo("TestWorkspaceKey"));
             Assert.That(_subject.FileShareEndpoint, Is.EqualTo("https://env-fileshare"));
             Assert.That(_subject.BuildServiceEndpoint, Is.EqualTo("https://env-buildservice"));
+            Assert.That(_subject.BatchId, Is.EqualTo("TestBatchId"));
             Assert.That(_subject.IsDebugSession, Is.False);
 
             // Clean up
@@ -75,6 +77,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
             Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.WorkspaceKey, null);
             Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.FileShareEndpoint, null);
             Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.BuildServiceEndpoint, null);
+            Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.BatchId, null);
         }
 
         [Test]
@@ -86,6 +89,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
             Assert.That(_subject.JobId, Is.Not.Null.And.Not.Empty);
             Assert.That(_subject.FileShareEndpoint, Is.EqualTo("https://default-fileshare"));
             Assert.That(_subject.BuildServiceEndpoint, Is.EqualTo("https://default-buildservice"));
+            Assert.That(_subject.BatchId, Is.Not.Null.And.Not.Empty);
         }
 
         [Test]

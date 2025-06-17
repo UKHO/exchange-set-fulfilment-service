@@ -12,12 +12,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         private readonly string _otlpContainerEndpoint;
         private readonly ILogger<BuilderContainerService> _logger;
         private readonly string _workspaceAuthenticationKey;
-        private readonly string _fileShareEndpoint;
+        private readonly string _fileShareBuilderEndpoint;
 
-        public BuilderContainerService(string workspaceAuthenticationKey, string fileShareEndpoint, string builderServiceContainerEndpoint, string otlpContainerEndpoint, ILoggerFactory loggerFactory)
+        public BuilderContainerService(string workspaceAuthenticationKey, string fileShareBuilderEndpoint, string builderServiceContainerEndpoint, string otlpContainerEndpoint, ILoggerFactory loggerFactory)
         {
             _workspaceAuthenticationKey = workspaceAuthenticationKey;
-            _fileShareEndpoint = fileShareEndpoint;
+            _fileShareBuilderEndpoint = fileShareBuilderEndpoint;
             _builderServiceContainerEndpoint = builderServiceContainerEndpoint;
             _otlpContainerEndpoint = otlpContainerEndpoint;
 
@@ -56,7 +56,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 }));
         }
 
-        public async Task<string> CreateContainerAsync(string image, string name, string[] command, string id)
+        public async Task<string> CreateContainerAsync(string image, string name, string[] command, string id, string batchId)
         {
             var response = await DockerClient.Containers.CreateContainerAsync(new CreateContainerParameters
             {
@@ -69,10 +69,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 Env = new List<string>
                 {
                     $"{BuilderEnvironmentVariables.JobId}={id}",
-                    $"{BuilderEnvironmentVariables.FileShareEndpoint}={_fileShareEndpoint}",
+                    $"{BuilderEnvironmentVariables.FileShareEndpoint}={_fileShareBuilderEndpoint}",
                     $"{BuilderEnvironmentVariables.BuildServiceEndpoint}={_builderServiceContainerEndpoint}",
                     $"{BuilderEnvironmentVariables.OtlpEndpoint}={_otlpContainerEndpoint}",
-                    $"{BuilderEnvironmentVariables.WorkspaceKey}={_workspaceAuthenticationKey}"
+                    $"{BuilderEnvironmentVariables.WorkspaceKey}={_workspaceAuthenticationKey}",
+                    $"{BuilderEnvironmentVariables.BatchId}={batchId}",
                 },
                 Healthcheck = new HealthConfig
                 {
