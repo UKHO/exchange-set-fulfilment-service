@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using UKHO.ADDS.Clients.SalesCatalogueService;
 using UKHO.ADDS.Clients.SalesCatalogueService.Models;
+using UKHO.ADDS.EFS.Domain.RetryPolicy;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Logging;
 
@@ -47,8 +48,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 DateTime? sinceDateTime,
                 ExchangeSetRequestQueueMessage message)
         {
-            // Call the Sales Catalogue API to retrieve product information
-            var s100SalesCatalogueResult = await _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(ScsApiVersion, ProductType, sinceDateTime, message.CorrelationId);
+            var retryPolicy = HttpClientPolicyProvider.GetGenericResultRetryPolicy<S100SalesCatalogueResponse>(_logger, nameof(GetS100ProductsFromSpecificDateAsync));
+            var s100SalesCatalogueResult = await retryPolicy.ExecuteAsync(() =>
+                _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(ScsApiVersion, ProductType, sinceDateTime, message.CorrelationId));
 
             // Check if the API call was successful
             if (s100SalesCatalogueResult.IsSuccess(out var s100SalesCatalogueData, out var error))
