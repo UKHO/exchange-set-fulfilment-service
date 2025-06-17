@@ -283,7 +283,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         }
 
         [Test]
-        public async Task WhenSearchAllCommitBatchesReturnsNoEntries_ThenJobStateIsSucceeded()
+        public async Task WhenSearchAllCommittedBatchesReturnsNoEntries_ThenJobStateIsSucceeded()
         {
             var job = CreateTestJob();
 

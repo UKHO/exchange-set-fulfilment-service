@@ -111,7 +111,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         }
 
         [Test]
-        public async Task WhenSetExpiryDateAsyncIsCalledWithEmptyList_ThenDoesNotCallSetExpiryDateAsync_AndReturnsSuccess()
+        public async Task WhenSetExpiryDateAsyncIsCalledWithEmptyList_ThenDoesNotCallSetExpiryDateAsyncAndReturnsSuccess()
         {
             var batches = new List<BatchDetails>();
 
@@ -179,7 +179,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         }
 
         [Test]
-        public async Task WhenSearchCommittedBatchesExcludingCurrentAsyncIsFailure_ThenIsFailureIsCalled_AndLogsError()
+        public async Task WhenSearchCommittedBatchesExcludingCurrentAsyncIsFailure_ThenIsFailureIsCalledAndLogsError()
         {
             var expectedFilter = $"BusinessUnit eq 'ADDS-S100' and $batch(ProductType) eq 'S-100' and $batch(BatchId) ne '{BatchId}'";
             var fakeResult = A.Fake<IResult<BatchSearchResponse>>();
