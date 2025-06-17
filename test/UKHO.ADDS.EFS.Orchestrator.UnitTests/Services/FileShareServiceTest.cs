@@ -94,7 +94,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         public async Task WhenSetExpiryDateAsyncIsCalledWithValidBatches_ThenCallsSetExpiryDateAsyncForEachBatch()
         {
             var batches = CreateBatchDetailsList();
+
             var expectedResult = A.Fake<IResult<SetExpiryDateResponse>>();
+
+            Fake.ClearRecordedCalls(_fakeFileShareReadWriteClient);
+
             A.CallTo(() => _fakeFileShareReadWriteClient.SetExpiryDateAsync(A<string>._, A<BatchExpiryModel>._, CorrelationId, CancellationToken.None))
                 .Returns(Task.FromResult(expectedResult));
 
@@ -110,6 +114,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         public async Task WhenSetExpiryDateAsyncIsCalledWithEmptyList_ThenDoesNotCallSetExpiryDateAsync_AndReturnsSuccess()
         {
             var batches = new List<BatchDetails>();
+
+            Fake.ClearRecordedCalls(_fakeFileShareReadWriteClient);
 
             var result = await _fileShareService.SetExpiryDateAsync(batches, CorrelationId, CancellationToken.None);
 
