@@ -17,7 +17,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
         private readonly Channel<ExchangeSetRequestQueueMessage> _channel;
         private readonly JobService _jobService;
-        
+
         private readonly string[] _command = ["sh", "-c", "echo Starting; sleep 5; echo Healthy now; sleep 5; echo Exiting..."];
 
         private readonly SemaphoreSlim _concurrencyLimiter;
@@ -34,7 +34,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             _loggerFactory = loggerFactory;
             _logger = loggerFactory.CreateLogger<BuilderDispatcherService>();
 
-            var fileShareEndpointSecret = secretClient.GetSecret(OrchestratorConfigurationKeys.FileShareEndpoint)!;
+            var fileShareEndpointSecret = secretClient.GetSecret(OrchestratorConfigurationKeys.FileShareBuilderEndpoint)!;
             var builderServiceEndpointSecret = secretClient.GetSecret(OrchestratorConfigurationKeys.OrchestratorServiceEndpoint)!;
             var workspaceAuthenticationKeySecret = secretClient.GetSecret(OrchestratorConfigurationKeys.WorkspaceKey)!;
 
@@ -57,7 +57,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 {
                     var job = await _jobService.CreateJob(queueMessage);
 
-                    if (job.State is ExchangeSetJobState.ScsCatalogueUnchanged or ExchangeSetJobState.Cancelled)
+                    if (job.State != ExchangeSetJobState.InProgress)
                     {
                         return;
                     }
@@ -95,7 +95,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
             await _containerService.EnsureImageExistsAsync(ImageName);
 
-            var containerId = await _containerService.CreateContainerAsync(ImageName, containerName, _command, job.Id);
+            var containerId = await _containerService.CreateContainerAsync(ImageName, containerName, _command, job.Id, job.BatchId);
             await _containerService.StartContainerAsync(containerId);
 
             var streamer = _containerService.CreateBuilderLogStreamer();

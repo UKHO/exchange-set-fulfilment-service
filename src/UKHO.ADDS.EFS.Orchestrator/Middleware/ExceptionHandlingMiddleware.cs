@@ -39,7 +39,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Middleware
             httpContext.Response.ContentType = ApiHeaderKeys.ContentType;
             httpContext.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
-            var errorMessage = string.Format(message, messageArgs);
+            var errorMessage = messageArgs.Length > 0 ? string.Format(message, messageArgs) : message;
 
             _logger.LogUnhandledHttpError(errorMessage, exception);
 
