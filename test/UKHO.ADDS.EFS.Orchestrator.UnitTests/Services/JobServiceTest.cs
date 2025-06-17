@@ -48,10 +48,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
             );
         }
 
-        private void MockSalesCatalogueClientResponse(IResult<S100SalesCatalogueResponse> response)
+        private void MockSalesCatalogueClientResponse(IResult<S100SalesCatalogueResponse> response, DateTime lastModified)
         {
             A.CallTo(() => _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(A<DateTime?>.Ignored, A<ExchangeSetRequestQueueMessage>.Ignored))
-                .Returns(Task.FromResult<(S100SalesCatalogueResponse, DateTime?)>((response.IsSuccess(out var value) ? value : null, DateTime.UtcNow)));
+                .Returns(Task.FromResult<(S100SalesCatalogueResponse, DateTime?)>((response.IsSuccess(out var value) ? value : null, lastModified)));
         }
 
         [Test]
@@ -65,6 +65,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         public async Task WhenCreateJobIsCalledWithProductsAreReturned_ThenJobStateShouldBeInProgress()
         {
             var request = CreateQueueMessage();
+            var lastModified = DateTime.UtcNow;
             var successResponse = Result.Success(new S100SalesCatalogueResponse
             {
                 ResponseCode = HttpStatusCode.OK,
@@ -83,7 +84,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
             var batchHandle = A.Fake<IBatchHandle>();
 
             MockTableClientQuery();
-            MockSalesCatalogueClientResponse(successResponse);
+            MockSalesCatalogueClientResponse(successResponse, lastModified);
 
             A.CallTo(() => _fileShareService.CreateBatchAsync(A<string>.Ignored, A<CancellationToken>.Ignored))
                 .WithAnyArguments()
@@ -96,6 +97,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
                 Assert.That(result, Is.Not.Null);
                 Assert.That(result.State, Is.EqualTo(ExchangeSetJobState.InProgress));
                 Assert.That(result.Products.Count, Is.EqualTo(2));
+                Assert.That(result.SalesCatalogueTimestamp, Is.EqualTo(lastModified));
             });
         }
 
@@ -103,6 +105,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         public async Task WhenCreateJobIsCalledWithNotModified_ThenJobIsCancelledAndBatchIdSet()
         {
             var request = CreateQueueMessage();
+            var lastModified = DateTime.UtcNow;
             var successResponse = Result.Success(new S100SalesCatalogueResponse
             {
                 ResponseCode = HttpStatusCode.NotModified,
@@ -111,7 +114,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
             var batchHandle = A.Fake<IBatchHandle>();
 
             MockTableClientQuery();
-            MockSalesCatalogueClientResponse(successResponse);
+            MockSalesCatalogueClientResponse(successResponse, lastModified);
 
             A.CallTo(() => _fileShareService.CreateBatchAsync(A<string>.Ignored, A<CancellationToken>.Ignored))
                 .Returns(Task.FromResult<IResult<IBatchHandle>>(Result.Success(batchHandle)));
@@ -124,6 +127,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
                 Assert.That(result, Is.Not.Null);
                 Assert.That(result.State, Is.EqualTo(ExchangeSetJobState.Cancelled));
                 Assert.That(result.Products, Is.Null);
+                Assert.That(result.SalesCatalogueTimestamp, Is.EqualTo(lastModified));
             });
         }
 
@@ -131,6 +135,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         public async Task WhenCreateJobIsCalledWithNoProductsAreReturned_ThenSetsJobStateToCancelled()
         {
             var request = CreateQueueMessage();
+            var lastModified = DateTime.UtcNow;
             var successResponse = Result.Success(new S100SalesCatalogueResponse
             {
                 ResponseCode = HttpStatusCode.BadRequest,
@@ -139,7 +144,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
             var batchHandle = A.Fake<IBatchHandle>();
 
             MockTableClientQuery();
-            MockSalesCatalogueClientResponse(successResponse);
+            MockSalesCatalogueClientResponse(successResponse, lastModified);
 
             A.CallTo(() => _fileShareService.CreateBatchAsync(A<string>.Ignored, A<CancellationToken>.Ignored))
                 .Returns(Task.FromResult<IResult<IBatchHandle>>(Result.Success(batchHandle)));
@@ -152,6 +157,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
                 Assert.That(result, Is.Not.Null);
                 Assert.That(result.State, Is.EqualTo(ExchangeSetJobState.Cancelled));
                 Assert.That(result.Products, Is.Null);
+                Assert.That(result.SalesCatalogueTimestamp, Is.Not.EqualTo(lastModified));
             });
         }
 
@@ -159,6 +165,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         public async Task WhenCreateJobIsCalledAndCreateBatchFails_ThenJobStateIsFailed()
         {
             var request = CreateQueueMessage();
+            var lastModified = DateTime.UtcNow;
             var successResponse = Result.Success(new S100SalesCatalogueResponse
             {
                 ResponseCode = HttpStatusCode.OK,
@@ -169,7 +176,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
             });
 
             MockTableClientQuery();
-            MockSalesCatalogueClientResponse(successResponse);
+            MockSalesCatalogueClientResponse(successResponse, lastModified);
 
             A.CallTo(() => _fileShareService.CreateBatchAsync(A<string>.Ignored, A<CancellationToken>.Ignored))
                 .Returns(Task.FromResult<IResult<IBatchHandle>>(Result.Failure<IBatchHandle>("error")));
@@ -177,6 +184,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
             var result = await _jobService.CreateJob(request);
 
             Assert.That(result.State, Is.EqualTo(ExchangeSetJobState.Failed));
+            Assert.That(result.SalesCatalogueTimestamp, Is.EqualTo(lastModified));
         }
 
         [Test]
