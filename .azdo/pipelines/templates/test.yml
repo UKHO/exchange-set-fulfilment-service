@@ -1,0 +1,52 @@
+jobs:
+- job: UnitTestsAndCodeCoverage
+  workspace:
+    clean: all
+  displayName: Unit tests and code coverage
+  steps:
+    - checkout: self
+      clean: true
+
+    - script: git submodule update --init --recursive
+      displayName: Restore mock submodule
+      workingDirectory: '$(Build.SourcesDirectory)'
+
+    - task: UseDotNet@2
+      displayName: Use .NET SDK $(SdkVersion)
+      inputs:
+        packageType: sdk
+        version: $(SdkVersion)
+
+    - task: DotNetCoreCLI@2
+      displayName: ".Net Core - NuGet restore test projects only"
+      inputs:
+        command: restore
+        projects: "**/*.UnitTests.csproj"
+        feedsToUse: config
+        noCache: true
+        nugetConfigPath: '$(Build.SourcesDirectory)\BuildNuget.config'
+        workingDirectory: '$(Build.SourcesDirectory)'
+        restoreDirectory: '$(Build.SourcesDirectory)\packagesForTests'
+
+    - task: DotNetCoreCLI@2
+      displayName: "Dotnet test - Perform unit tests"
+      inputs:
+        command: test
+        projects: "**/*.UnitTests.csproj"
+        arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)\test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura --no-restore'
+        publishTestResults: true
+        testRunTitle: UnitTests
+        restoreDirectory: '$(Build.SourcesDirectory)\packagesForTests'
+
+    - task: PowerShell@2
+      displayName: "Generate code coverage report"
+      inputs:
+        targetType: filePath
+        filePath: '$(Build.SourcesDirectory)\.azdo\pipelines\powershell\CodeCoverageReport.ps1'
+        arguments: '-source "$(Build.SourcesDirectory)" -reportFolder "$(Build.ArtifactStagingDirectory)"'
+
+    - task: PublishBuildArtifacts@1
+      displayName: "Publish Code coverage"
+      inputs:
+        PathtoPublish: "$(Build.ArtifactStagingDirectory)/codecoveragereport"
+        ArtifactName: codecoveragereport
