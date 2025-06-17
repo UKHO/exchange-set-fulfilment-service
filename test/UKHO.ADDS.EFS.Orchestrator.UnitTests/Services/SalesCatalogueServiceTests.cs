@@ -1,11 +1,9 @@
 ﻿using System.Net;
 using FakeItEasy;
 using Microsoft.Extensions.Logging;
-using NUnit.Framework;
 using UKHO.ADDS.Clients.SalesCatalogueService;
 using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Messages;
-using UKHO.ADDS.EFS.Orchestrator.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Services;
 using UKHO.ADDS.Infrastructure.Results;
 
@@ -52,7 +50,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tests.Services
                 .Returns(Task.FromResult(successResult));
             A.CallTo(() => successResult.IsSuccess(out expectedResponse, out error)).Returns(true);
 
-            var (data, lastModified) = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync("v1", "type", null, _exchangeSetRequestQueueMessage);
+            var (data, lastModified) = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(null, _exchangeSetRequestQueueMessage);
 
             Assert.Multiple(() =>
             {
@@ -81,7 +79,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tests.Services
                 .Returns(Task.FromResult(successResult));
             A.CallTo(() => successResult.IsSuccess(out expectedResponse, out error)).Returns(true);
 
-            var (data, lastModified) = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync("v1", "type", sinceDateTime, _exchangeSetRequestQueueMessage);
+            var (data, lastModified) = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(sinceDateTime, _exchangeSetRequestQueueMessage);
 
             Assert.Multiple(() =>
             {
@@ -101,7 +99,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tests.Services
                     A<string>.Ignored, A<string>.Ignored, A<DateTime?>.Ignored, A<string>.Ignored))
                 .Returns(Task.FromResult(failResult));
 
-            var (data, lastModified) = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync("v1", "type", null, _exchangeSetRequestQueueMessage);
+            var (data, lastModified) = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(null, _exchangeSetRequestQueueMessage);
 
             A.CallTo(() => _logger.Log(A<LogLevel>._, A<EventId>._, A<LoggerMessageState>._, A<Exception>._, A<Func<LoggerMessageState, Exception?, string>>._)).MustHaveHappened();
 
@@ -128,7 +126,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tests.Services
                     A<string>.Ignored, A<string>.Ignored, null, A<string>.Ignored))
                 .Returns(Task.FromResult(successResult));
 
-            var (data, lastModified) = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync("v1", "type", null, _exchangeSetRequestQueueMessage);
+            var (data, lastModified) = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(null, _exchangeSetRequestQueueMessage);
 
             Assert.Multiple(() =>
             {
@@ -154,7 +152,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tests.Services
                     A<string>.Ignored, A<string>.Ignored, A<DateTime?>.Ignored, A<string>.Ignored))
                 .Returns(Task.FromResult(successResult));
 
-            var (data, lastModified) = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync("v1", "type", null, _exchangeSetRequestQueueMessage);
+            var (data, lastModified) = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(null, _exchangeSetRequestQueueMessage);
 
             A.CallTo(() => _logger.Log(A<LogLevel>._, A<EventId>._, A<LoggerMessageState>._, A<Exception>._, A<Func<LoggerMessageState, Exception?, string>>._)).MustHaveHappened();
 
@@ -175,7 +173,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tests.Services
             A.CallTo(() => failResult.IsSuccess(out outResponse!, out error)).Returns(false);
             A.CallTo(() => _fakeSalesCatalogueClient.GetS100ProductsFromSpecificDateAsync(A<string>.Ignored, A<string>.Ignored, A<DateTime?>.Ignored, A<string>.Ignored)).Returns(Task.FromResult(failResult));
 
-            var (data, lastModified) = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync("v1", "type", null, _exchangeSetRequestQueueMessage);
+            var (data, lastModified) = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(null, _exchangeSetRequestQueueMessage);
 
             A.CallTo(() => _logger.Log( A<LogLevel>._, A<EventId>._,A<LoggerMessageState>._, A<Exception>._, A<Func<LoggerMessageState, Exception?, string>>._)).MustHaveHappened();
 

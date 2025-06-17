@@ -70,11 +70,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                         return (new S100SalesCatalogueResponse(), sinceDateTime);
                 }
             }
-            else
-            {
-                // API call failed, log the error using the extension method from OrchestratorLogs
-                _logger.LogSalesCatalogueError(error, message);
-            }
+
+            // API call failed, log the error using the extension method from OrchestratorLogs
+            _logger.LogSalesCatalogueError(error, message);
 
             // Return an empty response with the original timestamp in case of failure
             return (new S100SalesCatalogueResponse(), sinceDateTime);

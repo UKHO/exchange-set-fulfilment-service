@@ -59,7 +59,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
             services.AddSingleton(provider =>
             {
                 var factory = provider.GetRequiredService<IFileShareReadWriteClientFactory>();
-                return factory.CreateClient(fileShareEndpoint.RemoveControlCharacters(), "");
+                return factory.CreateClient(fileShareEndpoint.RemoveControlCharacters(), string.Empty);
             });
 
             // Read-Only Client
@@ -69,7 +69,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
             services.AddSingleton(provider =>
             {
                 var factory = provider.GetRequiredService<IFileShareReadOnlyClientFactory>();
-                return factory.CreateClient(fileShareEndpoint.RemoveControlCharacters(), "");
+                return factory.CreateClient(fileShareEndpoint.RemoveControlCharacters(), string.Empty);
             });
 
             return services;
