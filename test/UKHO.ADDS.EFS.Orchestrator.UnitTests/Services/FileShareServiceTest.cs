@@ -120,8 +120,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
             var result = await _fileShareService.SetExpiryDateAsync(batches, CorrelationId, CancellationToken.None);
 
             A.CallTo(() => _fakeFileShareReadWriteClient.SetExpiryDateAsync(A<string>._, A<BatchExpiryModel>._, CorrelationId, CancellationToken.None)).MustNotHaveHappened();
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.IsSuccess(out var _, out var _), Is.True);
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.Not.Null);
+                Assert.That(result.IsSuccess(out var _, out var _), Is.True);
+            });
         }
 
 
