@@ -36,15 +36,19 @@ namespace UKHO.ADDS.EFS.Domain.RetryPolicy
         /// <returns>A tuple containing max retry attempts and retry delay in milliseconds.</returns>
         private static (int maxRetryAttempts, int retryDelayInMilliseconds) GetRetrySettings()
         {
-            int maxRetryAttempts = MaxRetryAttempts;
-            int retryDelayInMilliseconds = RetryDelayInMilliseconds;
-            if (_configuration != null)
+            int maxRetryAttempts = _configuration?.GetValue("HttpRetry:MaxRetryAttempts", MaxRetryAttempts) ?? MaxRetryAttempts;
+            int retryDelayInMilliseconds = _configuration?.GetValue("HttpRetry:RetryDelayInMilliseconds", RetryDelayInMilliseconds) ?? RetryDelayInMilliseconds;
+
+            if (maxRetryAttempts <= 0)
             {
-                if (!int.TryParse(_configuration["HttpRetry:MaxRetryAttempts"], out maxRetryAttempts) || maxRetryAttempts <= 0)
-                    maxRetryAttempts = MaxRetryAttempts;
-                if (!int.TryParse(_configuration["HttpRetry:RetryDelayInMilliseconds"], out retryDelayInMilliseconds) || retryDelayInMilliseconds <= 0)
-                    retryDelayInMilliseconds = RetryDelayInMilliseconds;
+                maxRetryAttempts = MaxRetryAttempts;
             }
+
+            if (retryDelayInMilliseconds <= 0)
+            {
+                retryDelayInMilliseconds = RetryDelayInMilliseconds;
+            }
+
             return (maxRetryAttempts, retryDelayInMilliseconds);
         }
 
