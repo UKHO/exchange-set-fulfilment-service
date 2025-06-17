@@ -104,7 +104,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 case HttpStatusCode.NotModified:
                     // No new data since the specified timestamp
                     job.State = ExchangeSetJobState.Cancelled;
-                    job.SalesCatalogueTimestamp = timestamp;
+                    job.SalesCatalogueTimestamp = result.LastModified;
                     break;
 
                 default:
