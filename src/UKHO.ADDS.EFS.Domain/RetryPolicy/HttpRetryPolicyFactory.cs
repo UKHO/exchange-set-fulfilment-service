@@ -1,14 +1,15 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Polly;
+using UKHO.ADDS.EFS.Domain.RetryPolicy;
 using UKHO.ADDS.Infrastructure.Results;
 
-namespace UKHO.ADDS.EFS.Domain.RetryPolicy
+namespace UKHO.ADDS.EFS.RetryPolicy
 {
     /// <summary>
     /// Provides Polly retry policies for HttpClient and custom result types to handle transient errors.
     /// </summary>
-    public static class HttpClientPolicyProvider
+    public static class HttpRetryPolicyFactory
     {
         private static readonly HashSet<int> _retryStatusCodes = new()
         {
@@ -34,7 +35,7 @@ namespace UKHO.ADDS.EFS.Domain.RetryPolicy
         /// Gets the retry settings (max attempts and delay) from configuration or defaults.
         /// </summary>
         /// <returns>A tuple containing max retry attempts and retry delay in milliseconds.</returns>
-        private static (int maxRetryAttempts, int retryDelayInMilliseconds) GetRetrySettings()
+        private static (int maxRetryAttempts, int retryDelayInMilliseconds) LoadRetrySettings()
         {
             int maxRetryAttempts = _configuration?.GetValue("HttpRetry:MaxRetryAttempts", MaxRetryAttempts) ?? MaxRetryAttempts;
             int retryDelayInMilliseconds = _configuration?.GetValue("HttpRetry:RetryDelayInMilliseconds", RetryDelayInMilliseconds) ?? RetryDelayInMilliseconds;
@@ -79,7 +80,7 @@ namespace UKHO.ADDS.EFS.Domain.RetryPolicy
         /// <returns>An IAsyncPolicy for HttpResponseMessage with exponential backoff.</returns>
         public static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy(ILogger logger)
         {
-            var (maxRetryAttempts, retryDelayInMilliseconds) = GetRetrySettings();
+            var (maxRetryAttempts, retryDelayInMilliseconds) = LoadRetrySettings();
 
             return Policy<HttpResponseMessage>
                 .Handle<HttpRequestException>()
@@ -119,7 +120,7 @@ namespace UKHO.ADDS.EFS.Domain.RetryPolicy
         /// <returns>An IAsyncPolicy for the specified result type with exponential backoff.</returns>
         public static IAsyncPolicy<T> GetRetryPolicy<T>(ILogger logger, Func<T, int?> getStatusCode, string methodName)
         {
-            var (maxRetryAttempts, retryDelayInMilliseconds) = GetRetrySettings();
+            var (maxRetryAttempts, retryDelayInMilliseconds) = LoadRetrySettings();
 
             return Policy<T>
                 .HandleResult(r =>
@@ -159,7 +160,7 @@ namespace UKHO.ADDS.EFS.Domain.RetryPolicy
                 r =>
                 {
                     r.IsFailure(out var error, out _);
-                    return GetStatusCodeFromError(error);
+                    return ExtractStatusCodeFromError(error);
                 },
                 methodName);
 
@@ -168,7 +169,7 @@ namespace UKHO.ADDS.EFS.Domain.RetryPolicy
         /// </summary>
         /// <param name="error">The error object.</param>
         /// <returns>The status code if found; otherwise, null.</returns>
-        public static int? GetStatusCodeFromError(IError error) =>
+        public static int? ExtractStatusCodeFromError(IError error) =>
             error?.Metadata != null && error.Metadata.ContainsKey("StatusCode")
                 ? Convert.ToInt32(error.Metadata["StatusCode"])
                 : null;

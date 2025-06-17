@@ -1,9 +1,9 @@
 ﻿using System.Net;
 using UKHO.ADDS.Clients.SalesCatalogueService;
 using UKHO.ADDS.Clients.SalesCatalogueService.Models;
-using UKHO.ADDS.EFS.Domain.RetryPolicy;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Logging;
+using UKHO.ADDS.EFS.RetryPolicy;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services
 {
@@ -48,7 +48,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 DateTime? sinceDateTime,
                 ExchangeSetRequestQueueMessage message)
         {
-            var retryPolicy = HttpClientPolicyProvider.GetGenericResultRetryPolicy<S100SalesCatalogueResponse>(_logger, nameof(GetS100ProductsFromSpecificDateAsync));
+            var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<S100SalesCatalogueResponse>(_logger, nameof(GetS100ProductsFromSpecificDateAsync));
             var s100SalesCatalogueResult = await retryPolicy.ExecuteAsync(() =>
                 _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(ScsApiVersion, ProductType, sinceDateTime, message.CorrelationId));
 

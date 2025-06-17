@@ -8,8 +8,8 @@ using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Services;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
-using UKHO.ADDS.EFS.Domain.RetryPolicy;
 using UKHO.ADDS.EFS.Extensions;
+using UKHO.ADDS.EFS.RetryPolicy;
 
 namespace UKHO.ADDS.EFS.Builder.S100
 {
@@ -91,8 +91,8 @@ namespace UKHO.ADDS.EFS.Builder.S100
                  var loggerFactory = provider.GetRequiredService<Microsoft.Extensions.Logging.ILoggerFactory>();
                  var logger = loggerFactory.CreateLogger("Polly.HttpClientRetry");
                  var configuration = provider.GetRequiredService<IConfiguration>();
-                 HttpClientPolicyProvider.SetConfiguration(configuration);
-                 return HttpClientPolicyProvider.GetRetryPolicy(logger);
+                 HttpRetryPolicyFactory.SetConfiguration(configuration);
+                 return HttpRetryPolicyFactory.GetRetryPolicy(logger);
              });
 
             return services;
