@@ -37,7 +37,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         }
         
         [Test]
-        public async Task When_CreateBatchAsyncIsCalled_ThenReturnsResultFromClient()
+        public async Task WhenCreateBatchAsyncIsCalled_ThenReturnsResultFromClient()
         {
             var queueMessage = new ExchangeSetRequestQueueMessage
             {
@@ -61,7 +61,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         }
 
         [Test]
-        public async Task When_CommitBatchAsyncIsCalled_ThenReturnsResultFromClient()
+        public async Task WhenCommitBatchAsyncIsCalled_ThenReturnsResultFromClient()
         {
             var expectedResult = A.Fake<IResult<CommitBatchResponse>>();
             A.CallTo(() => _fakeFileShareReadWriteClient.CommitBatchAsync(A<BatchHandle>._, CorrelationId, CancellationToken.None))
@@ -91,7 +91,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         }
 
         [Test]
-        public async Task When_SetExpiryDateAsyncIsCalledWithValidBatches_ThenCallsSetExpiryDateAsyncForEachBatch()
+        public async Task WhenSetExpiryDateAsyncIsCalledWithValidBatches_ThenCallsSetExpiryDateAsyncForEachBatch()
         {
             var batches = CreateBatchDetailsList();
             var expectedResult = A.Fake<IResult<SetExpiryDateResponse>>();
@@ -107,7 +107,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         }
 
         [Test]
-        public async Task When_SetExpiryDateAsyncIsCalledWithEmptyList_ThenDoesNotCallSetExpiryDateAsync_AndReturnsSuccess()
+        public async Task WhenSetExpiryDateAsyncIsCalledWithEmptyList_ThenDoesNotCallSetExpiryDateAsync_AndReturnsSuccess()
         {
             var batches = new List<BatchDetails>();
 
@@ -215,7 +215,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         }
 
         [Test]
-        public async Task When_CommitBatchAsyncIsFailure_ThenLogsError()
+        public async Task WhenCommitBatchAsyncIsFailure_ThenLogsError()
         {
             var fakeResult = A.Fake<IResult<CommitBatchResponse>>();
             var fakeError = A.Fake<IError>();

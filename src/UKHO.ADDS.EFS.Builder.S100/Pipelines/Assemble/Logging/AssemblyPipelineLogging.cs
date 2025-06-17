@@ -10,24 +10,17 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
         private const int BaseEventId = 2000;
 
         private const int AssemblyPipelineFailedId = BaseEventId + 1;
-        private const int CreateBatchNodeFailedId = BaseEventId + 2;
-        private const int ProductSearchNodeFailedId = BaseEventId + 3;
-        private const int ProductSearchNodeFssSearchFailedId = BaseEventId + 4;
-        private const int DownloadFilesNodeFailedId = BaseEventId + 5;
-        private const int DownloadFilesNodeFssDownloadFailedId = BaseEventId + 6;
-        private const int DownloadFilesNodeNoFilesToProcessErrorId = BaseEventId + 10;
+        private const int ProductSearchNodeFailedId = BaseEventId + 2;
+        private const int ProductSearchNodeFssSearchFailedId = BaseEventId + 3;
+        private const int DownloadFilesNodeFailedId = BaseEventId + 4;
+        private const int DownloadFilesNodeFssDownloadFailedId = BaseEventId + 5;
+        private const int DownloadFilesNodeNoFilesToProcessErrorId = BaseEventId + 6;
 
         // The assembly pipeline failed
         public static readonly EventId AssemblyPipelineFailed = new(AssemblyPipelineFailedId, nameof(AssemblyPipelineFailed));
 
         [LoggerMessage(AssemblyPipelineFailedId, LogLevel.Error, "Assembly pipeline failed: {@result}", EventName = nameof(AssemblyPipelineFailed))]
         public static partial void LogAssemblyPipelineFailed(this ILogger logger, [LogProperties] NodeResult result);
-
-        // The Create Batch Node Failed
-        public static readonly EventId CreateBatchNodeFailed = new(CreateBatchNodeFailedId, nameof(CreateBatchNodeFailed));
-
-        [LoggerMessage(CreateBatchNodeFailedId, LogLevel.Error, "CreateBatchNode failed: {@error}", EventName = nameof(CreateBatchNodeFailed))]
-        public static partial void LogCreateBatchNodeFailed(this ILogger logger, [LogProperties] IError error);
 
         //The Product Search node failed
         public static readonly EventId ProductSearchNodeFailed = new(ProductSearchNodeFailedId, nameof(ProductSearchNodeFailed));

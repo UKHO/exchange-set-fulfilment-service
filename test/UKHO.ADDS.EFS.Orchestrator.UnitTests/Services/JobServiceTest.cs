@@ -55,7 +55,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         }
 
         [Test]
-        public void WhenFileShareServiceIsNullThenThrowsArgumentNullException()
+        public void WhenFileShareServiceIsNull_ThenThrowsArgumentNullException()
         {
             Assert.That(() => new JobService(_jobTable, _timestampTable, _salesCatalogueService, _logger, null),
                 Throws.TypeOf<ArgumentNullException>());

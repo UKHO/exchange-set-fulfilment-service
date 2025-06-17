@@ -104,9 +104,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Logging
         public static partial void LogSalesCatalogueError(this ILogger logger, [LogProperties] IError error, [LogProperties] ExchangeSetRequestQueueMessage message);
 
         // SCS has returned an Unexpected status Code
-        public static readonly EventId SalesCatalogueUnexpectedstatusCode = new(SalesCatalogueUnexpectedStatusCodeId, nameof(SalesCatalogueUnexpectedstatusCode));
+        public static readonly EventId SalesCatalogueUnexpectedStatusCode = new(SalesCatalogueUnexpectedStatusCodeId, nameof(SalesCatalogueUnexpectedStatusCode));
 
-        [LoggerMessage(SalesCatalogueUnexpectedStatusCodeId, LogLevel.Error, "Sales Catalogue Unexpected Status Code: {@salesCatalogueLog}", EventName = nameof(SalesCatalogueUnexpectedstatusCode))]
+        [LoggerMessage(SalesCatalogueUnexpectedStatusCodeId, LogLevel.Error, "Sales Catalogue Unexpected Status Code: {@salesCatalogueLog}", EventName = nameof(SalesCatalogueUnexpectedStatusCode))]
         public static partial void LogUnexpectedSalesCatalogueStatusCode(this ILogger logger, SalesCatalogueServiceLog salesCatalogueLog);
 
 

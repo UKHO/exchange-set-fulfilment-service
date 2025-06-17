@@ -113,7 +113,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 return Result.Success(new SetExpiryDateResponse());
             }
 
-            IResult<SetExpiryDateResponse>? lastResult = null;
+            IResult<SetExpiryDateResponse> lastResult = Result.Success(new SetExpiryDateResponse());
 
             foreach (var batch in validBatches)
             {
@@ -128,7 +128,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 lastResult = expiryResult;
             }
 
-            return lastResult ?? Result.Success(new SetExpiryDateResponse());
+            return lastResult;
         }
 
         /// <summary>
