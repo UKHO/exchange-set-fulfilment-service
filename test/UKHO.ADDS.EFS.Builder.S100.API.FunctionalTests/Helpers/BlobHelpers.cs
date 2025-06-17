@@ -36,6 +36,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Helpers  {
             var blobClient = GetBlobClient(blobName);
             await blobClient.DownloadToAsync(destinationFilePath);
         }
+        public async Task AssertBlobStateAndCorrelationIdAsync(string expectedState, string expectedCorrelationId)
+        {
+            var blobName = $"{_containerName}/{expectedCorrelationId}/{expectedCorrelationId}";
+            var jsonDoc = await DownloadBlobAsJsonAsync(blobName);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(jsonDoc.RootElement.GetProperty("state").GetString(), Is.EqualTo(expectedState), $"The 'state' property is not '{expectedState}'.");
+                Assert.That(jsonDoc.RootElement.GetProperty("correlationId").GetString(), Is.EqualTo(expectedCorrelationId), "The 'correlationId' property does not match the expected value.");
+            });
+        }
     }  
 
 }

@@ -78,9 +78,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Helpers
         {
             var tableHelpers = new AzureTableHelpers();
             var allRowsEntities = await tableHelpers.GetAllEntitiesAsync(partitionKey);
-
-            // Use a HashSet for fast lookup of expected node names
-            //var expectedNodes = new HashSet<string>(builderNodeNames, StringComparer.OrdinalIgnoreCase);
+                        
             int succeededCount = 0;
 
             foreach (var rowEntity in allRowsEntities)

@@ -5,10 +5,8 @@ using UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Helpers;
 namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.API
 {
     public class OrchestratorAPITests
-    {         
-        
-        private const string ContainerName = "exchangesetjob";
-
+    {        
+       
         [Test]
         public async Task PostRequests_WithValidBodyAndHeader_ReturnsSuccess()
         {
@@ -30,29 +28,19 @@ namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.API
             await ExchangeSetHelper.verifyAllBuilderNodesSucceeded(correlationId);
 
             //Connect to Azure Blob Storage and check the blob content
-            var blobHelpers = new BlobHelpers();
+            var blobHelpers = new BlobHelpers();          
 
-            var blobName = $"{ContainerName}/{correlationId}/{correlationId}";
+            // New single call for download and assertion
+            await blobHelpers.AssertBlobStateAndCorrelationIdAsync("succeeded", correlationId);
+                      
+            var sourceZipPath = "./TestData/exchangeSet-25Products.zip";           
 
-            // To get as JsonDocument:
-            var jsonDoc = await blobHelpers.DownloadBlobAsJsonAsync(blobName);
-                       
-            // Assert on jsonDoc.RootElement as needed
-            Assert.That(jsonDoc.RootElement.GetProperty("state").GetString(), Is.EqualTo("succeeded"), "The 'state' property is not 'succeeded'.");
-            Assert.That(jsonDoc.RootElement.GetProperty("correlationId").GetString(), Is.EqualTo(correlationId), "The 'correlationId' property does not match the expected value.");
+            //Download Exchange Set, call to the Admin API for downloading the exchange set
+            var exchangeSetDownloadPath = await _exchangeSetDownloadAPIFacade.DownloadExchangeSetAsZipAsync(correlationId);
 
-            var sourceZipPath = @"D:\\toCompare\\source.zip";
-            var targetZipPath = @"D:\\toCompare\\target.zip";
-
-            //Download Exchange Set
-
-            // Give a call to the Admin API for downloading the exchange set
-            await _exchangeSetDownloadAPIFacade.DownloadExchangeSetAsZipAsync(targetZipPath, "FSS", "S100_ExchangeSet_20250613.zip");
-
-            // Compare the folder and file structures of the source and target zip files          
-
+            // Compare the folder and file structures of the source and target zip files
             var fileHelpers = new FileHelpers();
-            fileHelpers.CompareZipFolderAndFileStructures(sourceZipPath, targetZipPath);
+            fileHelpers.CompareZipFolderAndFileStructures(sourceZipPath, exchangeSetDownloadPath);
             
         }        
 
