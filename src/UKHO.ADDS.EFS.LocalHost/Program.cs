@@ -28,19 +28,21 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             var buildOnStartup = builder.Configuration.GetValue<bool>("Containers:BuildOnStartup");
 
-            // Container apps environment
-            var acaEnv = builder.AddAzureContainerAppEnvironment(ContainerConfiguration.AcaEnvironmentName);
-            acaEnv.ConfigureInfrastructure(config =>
-            {
-                var resources = config.GetProvisionableResources();
-                var containerEnvironment = resources.OfType<ContainerAppManagedEnvironment>().First();
-                containerEnvironment.VnetConfiguration = new ContainerAppVnetConfiguration
-                {
-                    InfrastructureSubnetId = ""
-                };
+            //var subnetId = builder.AddParameter("subnetId");
 
-                containerEnvironment.Tags.Add("ExampleKey", "Example value");
-            });
+            // Container apps environment
+            //var acaEnv = builder.AddAzureContainerAppEnvironment(ContainerConfiguration.AcaEnvironmentName);
+            //acaEnv.ConfigureInfrastructure(config =>
+            //{
+            //    var resources = config.GetProvisionableResources();
+            //    var containerEnvironment = resources.OfType<ContainerAppManagedEnvironment>().First();
+            //    containerEnvironment.VnetConfiguration = new ContainerAppVnetConfiguration
+            //    {
+            //        InfrastructureSubnetId = ""
+            //    };
+
+            //    containerEnvironment.Tags.Add("ExampleKey", "Example value");
+            //});
 
             // Storage configuration
             var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e => { e.WithDataVolume(); });
@@ -62,6 +64,7 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             // Orchestrator
             var orchestratorService = builder.AddProject<UKHO_ADDS_EFS_Orchestrator>(ContainerConfiguration.OrchestratorContainerName)
+                //.WithEnvironment("SUBNET_ID", subnetId)
                 .WithReference(storageQueue)
                 .WaitFor(storageQueue)
                 .WithReference(storageTable)
