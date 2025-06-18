@@ -9,5 +9,7 @@
         public const string MockContainerName = "adds-mocks-efs";
 
         public const string KeyVaultContainerName = "efs-keyvault";
+
+        public const string AcaEnvironmentName = "efs-cae";
     }
 }
