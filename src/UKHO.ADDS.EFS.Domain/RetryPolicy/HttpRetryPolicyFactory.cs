@@ -37,7 +37,7 @@ namespace UKHO.ADDS.EFS.RetryPolicy
         private static (int maxRetryAttempts, int retryDelayMs) LoadRetrySettings()
         {
             int maxRetryAttempts = MaxRetryAttempts;
-            int retryDelayMs = RetryDelayInMilliseconds;
+            int retryDelayInMilliseconds = RetryDelayInMilliseconds;
             if (_configuration != null)
             {
                 if (!int.TryParse(_configuration["HttpRetry:MaxRetryAttempts"], out maxRetryAttempts) || maxRetryAttempts <= 0)
@@ -45,12 +45,12 @@ namespace UKHO.ADDS.EFS.RetryPolicy
                     maxRetryAttempts = MaxRetryAttempts;
                 }
 
-                if (!int.TryParse(_configuration["HttpRetry:RetryDelayInMilliseconds"], out retryDelayMs) || retryDelayMs <= 0)
+                if (!int.TryParse(_configuration["HttpRetry:RetryDelayInMilliseconds"], out retryDelayInMilliseconds) || retryDelayInMilliseconds <= 0)
                 {
-                    retryDelayMs = RetryDelayInMilliseconds;
+                    retryDelayInMilliseconds = RetryDelayInMilliseconds;
                 }
             }
-            return (maxRetryAttempts, retryDelayMs);
+            return (maxRetryAttempts, retryDelayInMilliseconds);
         }
 
         /// <summary>
