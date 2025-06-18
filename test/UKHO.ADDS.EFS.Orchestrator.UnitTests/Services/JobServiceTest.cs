@@ -28,6 +28,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         private IFileShareService _fileShareService;
         private ILogger<JobService> _logger;
         private TableClient _fakeTableClient;
+        private static readonly DateTime _lastModified = DateTime.Parse("2023-01-01T00:00:00Z");
 
         [OneTimeSetUp]
         public void SetUp()
@@ -51,7 +52,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         private void MockSalesCatalogueClientResponse(IResult<S100SalesCatalogueResponse> response)
         {
             A.CallTo(() => _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(A<DateTime?>.Ignored, A<ExchangeSetRequestQueueMessage>.Ignored))
-                .Returns(Task.FromResult<(S100SalesCatalogueResponse, DateTime?)>((response.IsSuccess(out var value) ? value : null, DateTime.UtcNow)));
+                .Returns(Task.FromResult<(S100SalesCatalogueResponse, DateTime?)>((response.IsSuccess(out var value) ? value : null, _lastModified)));
         }
 
         [Test]
@@ -96,6 +97,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
                 Assert.That(result, Is.Not.Null);
                 Assert.That(result.State, Is.EqualTo(ExchangeSetJobState.InProgress));
                 Assert.That(result.Products.Count, Is.EqualTo(2));
+                Assert.That(result.SalesCatalogueTimestamp, Is.EqualTo(_lastModified));
             });
         }
 
@@ -124,6 +126,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
                 Assert.That(result, Is.Not.Null);
                 Assert.That(result.State, Is.EqualTo(ExchangeSetJobState.Cancelled));
                 Assert.That(result.Products, Is.Null);
+                Assert.That(result.SalesCatalogueTimestamp, Is.EqualTo(_lastModified));
             });
         }
 
@@ -152,6 +155,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
                 Assert.That(result, Is.Not.Null);
                 Assert.That(result.State, Is.EqualTo(ExchangeSetJobState.Cancelled));
                 Assert.That(result.Products, Is.Null);
+                Assert.That(result.SalesCatalogueTimestamp, Is.Not.EqualTo(_lastModified));
             });
         }
 
@@ -177,6 +181,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
             var result = await _jobService.CreateJob(request);
 
             Assert.That(result.State, Is.EqualTo(ExchangeSetJobState.Failed));
+            Assert.That(result.SalesCatalogueTimestamp, Is.EqualTo(_lastModified));
         }
 
         [Test]
