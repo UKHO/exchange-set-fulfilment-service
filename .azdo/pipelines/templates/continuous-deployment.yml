@@ -92,6 +92,24 @@ jobs:
               nugetConfigPath: '$(Build.SourcesDirectory)/BuildNuget.config'
 
           - task: AzureCLI@2
+            displayName: Package application
+            inputs:
+              azureSubscription: ${{ variables.AzureSubscription }}
+              scriptType: bash
+              scriptLocation: inlineScript
+              keepAzSessionActive: true
+              ${{ if eq(parameters.AzdDebug, true) }}:
+                inlineScript: |
+                  azd package --no-prompt --debug
+              ${{ else }}:
+                inlineScript: |
+                  azd package --no-prompt
+            env:
+              AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+              AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+              AZURE_LOCATION: $(AZURE_LOCATION)
+
+          - task: AzureCLI@2
             displayName: Provision infrastructure
             inputs:
               azureSubscription: ${{ variables.AzureSubscription }}

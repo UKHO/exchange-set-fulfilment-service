@@ -27,6 +27,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());
 
             var buildOnStartup = builder.Configuration.GetValue<bool>("Containers:BuildOnStartup");
+            var deployMock = builder.Configuration.GetValue<bool>("Containers:DeployMock");
 
             //var subnetId = builder.AddParameter("subnetId");
 
@@ -52,8 +53,10 @@ namespace UKHO.ADDS.EFS.LocalHost
             var storageBlob = storage.AddBlobs(StorageConfiguration.BlobsName);
 
             // ADDS Mock
-            var mockService = builder.AddProject<UKHO_ADDS_Mocks_EFS>(ContainerConfiguration.MockContainerName)
-                .WithDashboard("Dashboard");
+            var mockService = deployMock
+                ? builder.AddProject<UKHO_ADDS_Mocks_EFS>(ContainerConfiguration.MockContainerName)
+                    .WithDashboard("Dashboard")
+                : null;
 
             // Key vault
             var keyVault = builder.AddAzureKeyVaultEmulator(ContainerConfiguration.KeyVaultContainerName,
@@ -70,16 +73,21 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WithReference(storageTable)
                 .WaitFor(storageTable)
                 .WithReference(storageBlob)
-                .WaitFor(storageBlob)
-                .WithReference(mockService)
-                .WaitFor(mockService)
+                .WaitFor(storageBlob);
+
+            if (deployMock)
+            {
+                orchestratorService = orchestratorService.WithReference(mockService!).WaitFor(mockService!);
+            }
+
+            orchestratorService = orchestratorService
                 .WithReference(keyVault)
                 .WaitFor(keyVault)
                 .WithScalar("API Browser");
 
             //orchestratorService.WithEnvironment(async c =>
             //{
-            //    var addsMockEndpoint = mockService.GetEndpoint("http");
+            //    var addsMockEndpoint = mockService!.GetEndpoint("http");
             //    var fssBuilderEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = "host.docker.internal", Path = "fss/" };
             //    var fssOrchestratorEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.Host, Path = "fss/" };
             //    var scsEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.Host, Path = "scs/" };
