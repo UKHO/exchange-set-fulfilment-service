@@ -9,6 +9,7 @@ using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Services;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Extensions;
+using UKHO.ADDS.EFS.RetryPolicy;
 
 namespace UKHO.ADDS.EFS.Builder.S100
 {
@@ -83,7 +84,16 @@ namespace UKHO.ADDS.EFS.Builder.S100
                 if (string.IsNullOrWhiteSpace(baseUrl))
                     throw new InvalidOperationException("Endpoints:IICTool configuration is missing.");
                 client.BaseAddress = new Uri(baseUrl);
-            });
+            })
+
+            .AddPolicyHandler((provider, request) =>
+             {
+                 var loggerFactory = provider.GetRequiredService<Microsoft.Extensions.Logging.ILoggerFactory>();
+                 var logger = loggerFactory.CreateLogger("Polly.HttpClientRetry");
+                 var configuration = provider.GetRequiredService<IConfiguration>();
+                 HttpRetryPolicyFactory.SetConfiguration(configuration);
+                 return HttpRetryPolicyFactory.GetRetryPolicy(logger);
+             });
 
             return services;
         }

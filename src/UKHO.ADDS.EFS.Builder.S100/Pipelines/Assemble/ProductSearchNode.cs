@@ -5,6 +5,7 @@ using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Models;
 using UKHO.ADDS.EFS.Exceptions;
+using UKHO.ADDS.EFS.RetryPolicy;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
@@ -109,10 +110,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             var filter = $"BusinessUnit eq '{BusinessUnit}' and {ProductTypeQueryClause}{productQuery}";
             var limit = Limit;
             var start = Start;
+            var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<BatchSearchResponse>(_logger, "SearchAsync");
             do
             {
                 queryCount++;
-                var result = await _fileShareReadOnlyClient.SearchAsync(filter, limit, start, correlationId);
+                var result = await retryPolicy.ExecuteAsync(() =>
+                    _fileShareReadOnlyClient.SearchAsync(filter, limit, start, correlationId));
                 if (result.IsSuccess(out var value, out var error))
                 {
                     if (value.Entries.Count != 0)

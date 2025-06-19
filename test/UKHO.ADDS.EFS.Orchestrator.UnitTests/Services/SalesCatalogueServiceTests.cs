@@ -175,12 +175,53 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tests.Services
 
             var (data, lastModified) = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(null, _exchangeSetRequestQueueMessage);
 
-            A.CallTo(() => _logger.Log( A<LogLevel>._, A<EventId>._,A<LoggerMessageState>._, A<Exception>._, A<Func<LoggerMessageState, Exception?, string>>._)).MustHaveHappened();
+            A.CallTo(() => _logger.Log(A<LogLevel>._, A<EventId>._, A<LoggerMessageState>._, A<Exception>._, A<Func<LoggerMessageState, Exception?, string>>._)).MustHaveHappened();
 
             Assert.Multiple(() =>
             {
                 Assert.That(data, Is.Not.Null);
                 Assert.That(lastModified, Is.Null);
+            });
+        }
+
+        [Test]
+        public async Task WhenTransientFailureOccurs_RetryPolicyRetriesExpectedNumberOfTimes()
+        {
+            var expectedResponse = new S100SalesCatalogueResponse
+            {
+                ResponseCode = HttpStatusCode.OK,
+                LastModified = DateTime.UtcNow
+            };
+
+            int callCount = 0;
+            var retriableError = new UKHO.ADDS.Infrastructure.Results.Error(
+                "Retriable error",
+                new Dictionary<string, object> { { "StatusCode", 503 } }
+            );
+
+            var successResult = A.Fake<IResult<S100SalesCatalogueResponse>>();
+            IError? successError = null;
+            A.CallTo(() => successResult.IsSuccess(out expectedResponse, out successError)).Returns(true);
+
+            A.CallTo(() => _fakeSalesCatalogueClient.GetS100ProductsFromSpecificDateAsync(
+                A<string>.Ignored, A<string>.Ignored, A<DateTime?>.Ignored, A<string>.Ignored))
+                .ReturnsLazily(() =>
+                {
+                    callCount++;
+                    if (callCount < 4)
+                    {
+                        return (IResult<S100SalesCatalogueResponse>)UKHO.ADDS.Infrastructure.Results.Result.Failure<S100SalesCatalogueResponse>(retriableError);
+                    }
+                    return successResult;
+                });
+
+            var (data, lastModified) = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(null, _exchangeSetRequestQueueMessage);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(callCount, Is.EqualTo(4), "Should retry 3 times plus the initial call (total 4)");
+                Assert.That(data.ResponseCode, Is.EqualTo(expectedResponse.ResponseCode));
+                Assert.That(lastModified, Is.EqualTo(expectedResponse.LastModified));
             });
         }
     }

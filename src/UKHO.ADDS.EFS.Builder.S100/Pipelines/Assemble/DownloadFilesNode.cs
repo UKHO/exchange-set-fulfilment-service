@@ -1,6 +1,7 @@
 ﻿using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging;
+using UKHO.ADDS.EFS.RetryPolicy;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
@@ -102,6 +103,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             }
 
             // Now download all files (all directories are guaranteed to exist)
+            var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<Stream>(_logger, "GetDirectoryPathForFile");
             foreach (var item in allFilesToProcess)
             {
                 var directoryPath = GetDirectoryPathForFile(workSpaceRootPath, item.FileName, workSpaceSpoolDataSetFilesPath, workSpaceSpoolSupportFilesPath);
@@ -109,8 +111,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
                 await using var outputFileStream = new FileStream(downloadPath, FileMode.Create, FileAccess.Write);
 
-                var streamResult = await _fileShareReadOnlyClient.DownloadFileAsync(
-                    item.Batch.BatchId, item.FileName, outputFileStream, correlationId, FileSizeInBytes);
+                var streamResult = await retryPolicy.ExecuteAsync(() =>
+                    _fileShareReadOnlyClient.DownloadFileAsync(
+                        item.Batch.BatchId, item.FileName, outputFileStream, correlationId, FileSizeInBytes));
 
                 if (streamResult.IsFailure(out var error, out var value))
                 {
