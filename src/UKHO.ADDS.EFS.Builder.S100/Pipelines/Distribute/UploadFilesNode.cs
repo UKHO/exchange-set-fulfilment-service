@@ -1,7 +1,9 @@
 ﻿using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
+using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute.Logging;
 using UKHO.ADDS.EFS.Constants;
+using UKHO.ADDS.EFS.RetryPolicy;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
@@ -54,18 +56,20 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
                 await using var fileStream = CreateExchangeSetFileStream(filePath);
 
                 var batchHandle = new BatchHandle(batchId);
-                var addFileResult = await _fileShareReadWriteClient.AddFileToBatchAsync(
-                    batchHandle,
-                    fileStream,
-                    fileName,
-                    ApiHeaderKeys.ContentTypeOctetStream,
-                    correlationId,
-                    CancellationToken.None
-                );
+                var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<AddFileToBatchResponse>(_logger, "AddFileToBatchAsync");
+                var addFileResult = await retryPolicy.ExecuteAsync(() =>
+                    _fileShareReadWriteClient.AddFileToBatchAsync(
+                        batchHandle,
+                        fileStream,
+                        fileName,
+                        ApiHeaderKeys.ContentTypeOctetStream,
+                        correlationId,
+                        CancellationToken.None
+                    ));
 
                 if (!addFileResult.IsSuccess(out _, out var error))
                 {
-                    LogAddFileToBatchError(fileName, batchId, correlationId, error);
+                    LogAddFileToBatchError(fileName, batchId, error);
                     return NodeResultStatus.Failed;
                 }
 
@@ -73,7 +77,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
             }
             catch (Exception ex)
             {
-                _logger.LogUploadFilesNodeFailed(ex.Message);
+                _logger.LogUploadFilesNodeFailed(ex);
                 return NodeResultStatus.Failed;
             }
         }
@@ -99,15 +103,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
         /// </summary>
         /// <param name="fileName">The name of the file.</param>
         /// <param name="batchId">The batch identifier.</param>
-        /// <param name="correlationId">The correlation identifier.</param>
         /// <param name="error">The error details.</param>
-        private void LogAddFileToBatchError(string fileName, string batchId, string correlationId, IError error)
+        private void LogAddFileToBatchError(string fileName, string batchId, IError error)
         {
             var addFileLogView = new AddFileLogView
             {
-                FileName = fileName,
                 BatchId = batchId,
-                CorrelationId = correlationId,
+                FileName = fileName,
                 Error = error
             };
 

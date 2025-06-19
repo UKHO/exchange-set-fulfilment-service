@@ -1,5 +1,5 @@
 ﻿using UKHO.ADDS.EFS.Builder.S100.IIC;
-using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging;
+using UKHO.ADDS.EFS.Builder.S100.Pipelines.Create.Logging;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 

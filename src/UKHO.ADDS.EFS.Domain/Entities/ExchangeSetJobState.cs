@@ -6,7 +6,6 @@
         Failed = 1,
         Created = 2,
         InProgress = 3,
-        Cancelled = 4,
-        ScsCatalogueUnchanged = 5
+        Cancelled = 4
     }
 }

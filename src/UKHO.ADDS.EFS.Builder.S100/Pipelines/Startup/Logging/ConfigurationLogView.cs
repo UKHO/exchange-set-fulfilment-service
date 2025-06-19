@@ -4,6 +4,7 @@
     {
 
         public required string JobId { get; init; }
+        public required string BatchId { get; init; }
         public required string FileShareEndpoint { get; init; }
         public required string BuildServiceEndpoint { get; init; }
 

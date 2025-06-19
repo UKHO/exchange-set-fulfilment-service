@@ -32,6 +32,7 @@ namespace UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss.ResponseGenerator
                 }
 
                 var batchDetails = BatchQueryParser.ParseBatchQuery("$filter=" + filter);
+
                 UpdateResponseTemplate(jsonTemplate!, batchDetails);
                 return Results.Ok(jsonTemplate);
             }
@@ -41,29 +42,49 @@ namespace UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss.ResponseGenerator
             }
         }
 
-
         private static void UpdateResponseTemplate(JsonObject jsonTemplate, FSSSearchFilterDetails filterDetails)
         {
             var entries = new JsonArray();
 
-            foreach (var product in filterDetails.Products)
+            if (!string.IsNullOrEmpty(filterDetails.BusinessUnit) && !string.IsNullOrEmpty(filterDetails.ProductType) && filterDetails.Products.Count == 0)
             {
-                product.UpdateNumbers?.ForEach(updateNumber =>
+                // Special case for empty products
+                var batchId = Guid.NewGuid().ToString();
+                entries.Add(new JsonObject
                 {
-                    var batchId = Guid.NewGuid().ToString();
-                    entries.Add(new JsonObject
-                    {
-                        ["batchId"] = batchId,
-                        ["status"] = "Committed",
-                        ["allFilesZipSize"] = null,
-                        ["attributes"] = new JsonArray { CreateAttribute("ProductName", product.ProductName), CreateAttribute("EditionNumber", product.EditionNumber.ToString()), CreateAttribute("UpdateNumber", updateNumber.ToString()), CreateAttribute("ProductType", filterDetails.ProductType) },
-                        ["businessUnit"] = filterDetails.BusinessUnit,
-                        ["batchPublishedDate"] = DateTime.UtcNow.AddMonths(-2).ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
-                        ["expiryDate"] = DateTime.UtcNow.AddMonths(2).ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
-                        ["isAllFilesZipAvailable"] = true,
-                        ["files"] = CreateFilesArray(product.ProductName, batchId, updateNumber.ToString())
-                    });
+                    ["batchId"] = batchId,
+                    ["status"] = "Committed",
+                    ["allFilesZipSize"] = null,
+                    ["attributes"] = new JsonArray { CreateAttribute("ProductType", filterDetails.ProductType), CreateAttribute("Media Type", "Zip") },
+                    ["businessUnit"] = filterDetails.BusinessUnit,
+                    ["batchPublishedDate"] = DateTime.UtcNow.AddDays(-1).ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+                    ["expiryDate"] = null, // Empty expiryDate
+                    ["isAllFilesZipAvailable"] = true,
+                    ["files"] = CreateFilesArray("", batchId, "", true) // Pass true to indicate empty products case
                 });
+            }
+
+            else
+            {
+                foreach (var product in filterDetails.Products)
+                {
+                    product.UpdateNumbers?.ForEach(updateNumber =>
+                    {
+                        var batchId = Guid.NewGuid().ToString();
+                        entries.Add(new JsonObject
+                        {
+                            ["batchId"] = batchId,
+                            ["status"] = "Committed",
+                            ["allFilesZipSize"] = null,
+                            ["attributes"] = new JsonArray { CreateAttribute("ProductName", product.ProductName), CreateAttribute("EditionNumber", product.EditionNumber.ToString()), CreateAttribute("UpdateNumber", updateNumber.ToString()), CreateAttribute("ProductType", filterDetails.ProductType) },
+                            ["businessUnit"] = filterDetails.BusinessUnit,
+                            ["batchPublishedDate"] = DateTime.UtcNow.AddMonths(-2).ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+                            ["expiryDate"] = DateTime.UtcNow.AddMonths(2).ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+                            ["isAllFilesZipAvailable"] = true,
+                            ["files"] = CreateFilesArray(product.ProductName, batchId, updateNumber.ToString(), false)
+                        });
+                    });
+                }
             }
 
             jsonTemplate["count"] = entries.Count;
@@ -73,11 +94,11 @@ namespace UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss.ResponseGenerator
         }
 
         private static JsonObject CreateAttribute(string attr, object value) =>
-            new() { ["key"] = attr, ["value"] = JsonValue.Create(value) };      
+            new() { ["key"] = attr, ["value"] = JsonValue.Create(value) };
 
         private static JsonArray CreateFiles(string productName, string batchId, IEnumerable<string> extensions)
         {
-            var array = new JsonArray();           
+            var array = new JsonArray();
             foreach (var ext in extensions)
             {
                 int fileSize = _random.Next(800, 2000); // Random file size between 800 and 2000
@@ -86,14 +107,24 @@ namespace UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss.ResponseGenerator
             return array;
         }
 
-        private static JsonArray CreateFilesArray(string productName, string batchId, string updateNo)
-        {           
+        private static JsonArray CreateFilesArray(string productName, string batchId, string updateNo, bool isEmptyProducts = false)
+        {
+            if (isEmptyProducts)
+            {
+                // Special case for empty products - include S_100ExchangeSet.zip
+                var array = new JsonArray();
+                var fileSize = _random.Next(800, 2000);
+                array.Add(CreateFileObject("S_100ExchangeSet", ".zip", fileSize, batchId));
+                return array;
+            }
+            
+            // Existing logic for non-empty products
             IEnumerable<string> extensions = productName switch
             {
-                var name when name.StartsWith(((int)ProductIdentifiers.s101).ToString()) => new[] { $".{updateNo.PadLeft(3, '0')}", ".TXT", ".TIF", ".TIFF", ".HTM", ".XML", ".IMG"},
-                var name when name.StartsWith(((int)ProductIdentifiers.s102).ToString()) => new[] { ".h5"},
-                var name when name.StartsWith(((int)ProductIdentifiers.s104).ToString()) => new[] { ".h5", ".XML"},
-                var name when name.StartsWith(((int)ProductIdentifiers.s111).ToString()) => new[] { ".h5", ".XML"}               
+                var name when name.StartsWith(((int)ProductIdentifiers.s101).ToString()) => new[] { $".{updateNo.PadLeft(3, '0')}", ".TXT", ".TIF", ".TIFF", ".HTM", ".XML", ".IMG" },
+                var name when name.StartsWith(((int)ProductIdentifiers.s102).ToString()) => new[] { ".h5" },
+                var name when name.StartsWith(((int)ProductIdentifiers.s104).ToString()) => new[] { ".h5", ".XML" },
+                var name when name.StartsWith(((int)ProductIdentifiers.s111).ToString()) => new[] { ".h5", ".XML" }
             };
 
             return CreateFiles(productName, batchId, extensions);

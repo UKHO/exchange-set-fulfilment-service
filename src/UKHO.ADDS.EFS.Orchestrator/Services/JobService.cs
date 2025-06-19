@@ -1,6 +1,4 @@
 ﻿using System.Net;
-using UKHO.ADDS.Clients.SalesCatalogueService;
-using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Entities;
 using UKHO.ADDS.EFS.Messages;
@@ -11,19 +9,19 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 {
     internal class JobService
     {
-        private const string ScsApiVersion = "v2";
-        private const string ProductType = "s100";
         private readonly ExchangeSetJobTable _jobTable;
         private readonly ExchangeSetTimestampTable _timestampTable;
-        private readonly ISalesCatalogueClient _salesCatalogueClient;
+        private readonly ISalesCatalogueService _salesCatalogueService;
+        private readonly IFileShareService _fileShareService;
         private readonly ILogger<JobService> _logger;
 
-        public JobService(ExchangeSetJobTable jobTable, ExchangeSetTimestampTable timestampTable, ISalesCatalogueClient salesCatalogueClient, ILogger<JobService> logger)
+        public JobService(ExchangeSetJobTable jobTable, ExchangeSetTimestampTable timestampTable, ISalesCatalogueService salesCatalogueService, ILogger<JobService> logger, IFileShareService fileShareService)
         {
             _jobTable = jobTable;
             _timestampTable = timestampTable;
-            _salesCatalogueClient = salesCatalogueClient;
+            _salesCatalogueService = salesCatalogueService ?? throw new ArgumentNullException(nameof(salesCatalogueService));
             _logger = logger;
+            _fileShareService = fileShareService ?? throw new ArgumentNullException(nameof(fileShareService));
         }
 
         public async Task<ExchangeSetJob> CreateJob(ExchangeSetRequestQueueMessage queueMessage)
@@ -43,28 +41,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 timestamp = timestampEntity.Timestamp;
             }
 
-            var (s100SalesCatalogueResponse, scsTimestamp) = await GetProductJson(timestamp, queueMessage);
+            // Retrieve S100 products from the Sales Catalogue based on the timestamp
+            await GetS100ProductsFromSpecificDateAsync(queueMessage, timestamp, job);
 
-            switch (s100SalesCatalogueResponse.ResponseCode)
+            // Create a batch for the job if it hasn't been cancelled
+            if (job.State != ExchangeSetJobState.Cancelled)
             {
-                case HttpStatusCode.OK when s100SalesCatalogueResponse.ResponseBody.Any():
-
-                    job.Products = s100SalesCatalogueResponse.ResponseBody;
-                    job.State = ExchangeSetJobState.InProgress;
-                    job.SalesCatalogueTimestamp = scsTimestamp;
-
-                    break;
-                case HttpStatusCode.NotModified:
-
-                    job.State = ExchangeSetJobState.ScsCatalogueUnchanged;
-                    break;
-                default:
-
-                    job.State = ExchangeSetJobState.Cancelled;
-                    break;
+                await ProcessCreateBatchAsync(queueMessage.CorrelationId, job);
             }
-
-            job.SalesCatalogueTimestamp = scsTimestamp;
 
             await _jobTable.CreateIfNotExistsAsync();
             await _jobTable.AddAsync(job);
@@ -76,49 +60,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
         public async Task BuilderContainerCompletedAsync(long exitCode, ExchangeSetJob job)
         {
-            if (exitCode == BuilderExitCodes.Success)
-            {
-                var updateTimestampEntity = new ExchangeSetTimestamp()
-                {
-                    DataStandard = job.DataStandard,
-                    Timestamp = job.SalesCatalogueTimestamp
-                };
-
-                await _timestampTable.UpsertAsync(updateTimestampEntity);
-
-                job.State = ExchangeSetJobState.Succeeded;
-            }
-            else
+            if (exitCode != BuilderExitCodes.Success)
             {
                 job.State = ExchangeSetJobState.Failed;
+                await CompleteJobAsync(job);
+                return;
             }
 
-            await _jobTable.UpdateAsync(job);
-
-            _logger.LogJobCompleted(ExchangeSetJobLogView.CreateFromJob(job));
-        }
-
-        private async Task<(S100SalesCatalogueResponse s100SalesCatalogueResponse, DateTime? scsTimestamp)> GetProductJson(DateTime? timestamp, ExchangeSetRequestQueueMessage message)
-        {
-            var s100SalesCatalogueResult = await _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(ScsApiVersion, ProductType, timestamp, message.CorrelationId);
-
-            if (s100SalesCatalogueResult.IsSuccess(out var s100SalesCatalogueData, out var error))
-            {
-                switch (s100SalesCatalogueData.ResponseCode)
-                {
-                    case HttpStatusCode.OK:
-                        return (s100SalesCatalogueData, s100SalesCatalogueData.LastModified);
-
-                    case HttpStatusCode.NotModified:
-                        return (s100SalesCatalogueData, timestamp);
-                }
-            }
-            else
-            {
-                _logger.LogSalesCatalogueError(error, message);
-            }
-
-            return (new S100SalesCatalogueResponse(), timestamp);
+            await ProcessSuccessfulBuildAsync(job);
+            await CompleteJobAsync(job);
         }
 
         private Task<ExchangeSetJob> CreateJobEntity(ExchangeSetRequestQueueMessage request)
@@ -137,6 +87,96 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             _logger.LogJobCreated(request.CorrelationId, ExchangeSetJobLogView.CreateFromJob(job));
 
             return Task.FromResult(job);
+        }
+
+        private async Task GetS100ProductsFromSpecificDateAsync(ExchangeSetRequestQueueMessage queueMessage, DateTime? timestamp, ExchangeSetJob job)
+        {
+            var result = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(timestamp, queueMessage);
+
+            switch (result.s100SalesCatalogueData.ResponseCode)
+            {
+                case HttpStatusCode.OK when result.s100SalesCatalogueData.ResponseBody.Any():
+                    // Products were successfully retrieved
+                    job.Products = result.s100SalesCatalogueData.ResponseBody;
+                    job.SalesCatalogueTimestamp = result.LastModified;
+                    break;
+
+                case HttpStatusCode.NotModified:
+                    // No new data since the specified timestamp
+                    job.State = ExchangeSetJobState.Cancelled;
+                    job.SalesCatalogueTimestamp = result.LastModified;
+                    break;
+
+                default:
+                    // Any other response code (error cases)
+                    job.State = ExchangeSetJobState.Cancelled;
+                    job.SalesCatalogueTimestamp = timestamp;
+                    break;
+            }
+        }
+
+        private async Task ProcessCreateBatchAsync(string correlationId, ExchangeSetJob job)
+        {
+            var createBatchResponseResult = await _fileShareService.CreateBatchAsync(correlationId, CancellationToken.None);
+
+            if (createBatchResponseResult.IsSuccess(out var batchHandle, out _))
+            {
+                job.BatchId = batchHandle.BatchId;
+                job.State = ExchangeSetJobState.InProgress;
+            }
+            else
+            {
+                job.State = ExchangeSetJobState.Failed;
+            }
+        }
+
+        private async Task ProcessSuccessfulBuildAsync(ExchangeSetJob job)
+        {
+            // Try to commit the batch
+            var commitBatchResult = await _fileShareService.CommitBatchAsync(job.BatchId, job.CorrelationId, CancellationToken.None);
+            if (!commitBatchResult.IsSuccess(out _, out _))
+            {
+                job.State = ExchangeSetJobState.Failed;
+                return;
+            }
+
+            // Search for other committed batches
+            var searchResult = await _fileShareService.SearchCommittedBatchesExcludingCurrentAsync(job.BatchId, job.CorrelationId, CancellationToken.None);
+            if (!searchResult.IsSuccess(out var searchResponse, out _))
+            {
+                job.State = ExchangeSetJobState.Failed;
+                return;
+            }
+
+            // No previous batches found, mark as succeeded
+            if (searchResponse?.Entries == null || searchResponse.Entries.Count == 0)
+            {
+                job.State = ExchangeSetJobState.Succeeded;
+                return;
+            }
+
+            // Try to set expiry date on previous batches
+            var expiryResult = await _fileShareService.SetExpiryDateAsync(searchResponse.Entries, job.CorrelationId, CancellationToken.None);
+            job.State = expiryResult.IsSuccess(out _, out _)
+                ? ExchangeSetJobState.Succeeded
+                : ExchangeSetJobState.Failed;
+        }
+
+        private async Task CompleteJobAsync(ExchangeSetJob job)
+        {
+            if (job.State == ExchangeSetJobState.Succeeded)
+            {
+                var updateTimestampEntity = new ExchangeSetTimestamp()
+                {
+                    DataStandard = job.DataStandard,
+                    Timestamp = job.SalesCatalogueTimestamp
+                };
+
+                await _timestampTable.UpsertAsync(updateTimestampEntity);
+            }
+
+            await _jobTable.UpdateAsync(job);
+            _logger.LogJobCompleted(ExchangeSetJobLogView.CreateFromJob(job));
         }
     }
 }

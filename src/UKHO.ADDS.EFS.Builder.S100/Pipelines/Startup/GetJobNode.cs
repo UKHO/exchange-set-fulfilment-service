@@ -10,6 +10,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
 {
     internal class GetJobNode : ExchangeSetPipelineNode
     {
+        private readonly IHttpClientFactory _clientFactory;
+
+        public GetJobNode(IHttpClientFactory clientFactory)
+        {
+            _clientFactory = clientFactory ?? throw new ArgumentNullException(nameof(clientFactory));
+        }
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
         {
             if (context.Subject.IsDebugSession)
@@ -21,6 +27,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
                 var debugJob = debugJobConfig ?? new ExchangeSetJob()
                 {
                     Id = context.Subject.JobId,
+                    BatchId = context.Subject.BatchId,
                     DataStandard = ExchangeSetDataStandard.S100,
                     Timestamp = DateTime.UtcNow,
                     SalesCatalogueTimestamp = DateTime.UtcNow,
@@ -145,9 +152,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
 
             return NodeResultStatus.Succeeded;
         }
-        private static async Task GetJobAsync(string baseAddress, string path, ExchangeSetPipelineContext context)
+        private async Task GetJobAsync(string baseAddress, string path, ExchangeSetPipelineContext context)
         {
-            using var client = new HttpClient();
+            var client = _clientFactory.CreateClient();
             client.BaseAddress = new Uri(baseAddress);
 
             using var response = await client.GetAsync(path);

@@ -4,9 +4,11 @@ using Azure.Security.KeyVault.Secrets;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
+using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.SalesCatalogueService;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
+using UKHO.ADDS.EFS.Extensions;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Services;
@@ -55,10 +57,26 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 var factory = provider.GetRequiredService<ISalesCatalogueClientFactory>();
                 var secretClient = provider.GetRequiredService<SecretClient>();
 
-                var scsEndpoint = secretClient.GetSecret(OrchestratorConfigurationKeys.SalesCatalogueEndpoint)!;
+                var scsEndpoint = secretClient.GetSecret(OrchestratorConfigurationKeys.SalesCatalogueEndpoint).Value!;
 
-                return factory.CreateClient(scsEndpoint.Value.Value, string.Empty);
+                return factory.CreateClient(scsEndpoint.Value.RemoveControlCharacters(), string.Empty);
             });
+            
+            builder.Services.AddSingleton<IFileShareReadWriteClientFactory>(provider =>
+                new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
+
+            builder.Services.AddSingleton(provider =>
+            {
+                var factory = provider.GetRequiredService<IFileShareReadWriteClientFactory>();
+                var secretClient = provider.GetRequiredService<SecretClient>();
+
+                var fssEndpointOrchestratorHost = secretClient.GetSecret(OrchestratorConfigurationKeys.FileShareOrchestratorEndpoint).Value!;
+
+                return factory.CreateClient(fssEndpointOrchestratorHost.Value.RemoveControlCharacters(), string.Empty);
+            });
+
+            builder.Services.AddSingleton<ISalesCatalogueService, SalesCatalogueService>();
+            builder.Services.AddSingleton<IFileShareService, FileShareService>();
 
             return builder;
         }

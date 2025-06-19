@@ -8,6 +8,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Logging
     internal class ExchangeSetJobLogView
     {
         public string Id { get; set; }
+        public string BatchId { get; set; }
 
         public DateTime Timestamp { get; set; }
 
@@ -24,6 +25,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Logging
             return new ExchangeSetJobLogView()
             {
                 Id = job.Id,
+                BatchId = job.BatchId,
                 Timestamp = job.Timestamp,
                 SalesCatalogueTimestamp = job.SalesCatalogueTimestamp,
                 State = job.State,
