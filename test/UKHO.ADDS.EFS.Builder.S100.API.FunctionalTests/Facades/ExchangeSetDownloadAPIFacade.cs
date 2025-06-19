@@ -20,7 +20,7 @@
 
             await using var zipStream = await zipResponse.Content.ReadAsStreamAsync();
 
-            var destinationFilePath = Path.Combine(Path.GetTempPath(), "temp", $"{exchangeSetName}_{correlationID}.zip");
+            var destinationFilePath = Path.Combine(Path.GetFullPath(@"..\..\..\"), "out", $"{exchangeSetName}_{correlationID}.zip");
 
             await using var fileStream = new FileStream(destinationFilePath, FileMode.Create, FileAccess.Write, FileShare.None);
             await zipStream.CopyToAsync(fileStream);

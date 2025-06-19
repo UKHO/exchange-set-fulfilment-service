@@ -28,12 +28,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.API
             await ExchangeSetHelper.verifyAllBuilderNodesSucceeded(correlationId);
 
             //Connect to Azure Blob Storage and check the blob content
-            var blobHelpers = new BlobHelpers();          
-
-            // New single call for download and assertion
+            var blobHelpers = new BlobHelpers();  
+                    
             await blobHelpers.AssertBlobStateAndCorrelationIdAsync("succeeded", correlationId);
                       
-            var sourceZipPath = "./TestData/exchangeSet-25Products.zip";           
+            var sourceZipPath = Path.GetFullPath(@"..\..\..\") + "/TestData/exchangeSet-25Products.zip";           
 
             //Download Exchange Set, call to the Admin API for downloading the exchange set
             var exchangeSetDownloadPath = await _exchangeSetDownloadAPIFacade.DownloadExchangeSetAsZipAsync(correlationId);
@@ -42,7 +41,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.API
             var fileHelpers = new FileHelpers();
             fileHelpers.CompareZipFolderAndFileStructures(sourceZipPath, exchangeSetDownloadPath);
             
-        }        
-
+        }
     }
 }
