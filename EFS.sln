@@ -37,6 +37,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.ADDS.Mocks.Client", "m
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.ADDS.EFS.Domain.UnitTests", "test\UKHO.ADDS.EFS.Domain.UnitTests\UKHO.ADDS.EFS.Domain.UnitTests.csproj", "{4E72C947-B9DE-6884-DFB0-97F7D0D5C1C4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests", "test\UKHO.ADDS.EFS.Builder.S100.API.FunctionalTests\UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.csproj", "{B4C053B1-3EEF-C534-8DE8-FD253E93BEDF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -91,6 +93,10 @@ Global
 		{4E72C947-B9DE-6884-DFB0-97F7D0D5C1C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4E72C947-B9DE-6884-DFB0-97F7D0D5C1C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4E72C947-B9DE-6884-DFB0-97F7D0D5C1C4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4C053B1-3EEF-C534-8DE8-FD253E93BEDF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4C053B1-3EEF-C534-8DE8-FD253E93BEDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4C053B1-3EEF-C534-8DE8-FD253E93BEDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4C053B1-3EEF-C534-8DE8-FD253E93BEDF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -107,6 +113,7 @@ Global
 		{4BCD3265-9E01-4C63-AD51-EBF66FCC84F8} = {B1B5085C-0DFC-41B3-BD97-FBA5AC6CDD9C}
 		{D5824B04-54C0-4F20-9AE8-FBCD2A54CFCE} = {B1B5085C-0DFC-41B3-BD97-FBA5AC6CDD9C}
 		{4E72C947-B9DE-6884-DFB0-97F7D0D5C1C4} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{B4C053B1-3EEF-C534-8DE8-FD253E93BEDF} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7F0CD4AD-9CFF-412C-AFA2-6A353CA3A42B}

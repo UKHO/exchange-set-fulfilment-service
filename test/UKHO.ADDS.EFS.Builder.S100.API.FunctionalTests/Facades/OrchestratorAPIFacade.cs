@@ -1,10 +1,16 @@
 ﻿using System.Net.Http.Json;
+using UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Support;
 
 namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Facades
 {
     public class OrchestratorAPIFacade
-    {
-        private readonly string OrchestratorApiEndpoint = "https://localhost:51627/requests";       
+    {        
+        private readonly string _orchestratorApiEndpoint;
+        public OrchestratorAPIFacade()
+        {
+            TestConfiguration testConfiguration = new TestConfiguration();
+            _orchestratorApiEndpoint = testConfiguration.OrchestratorApiEndpointName;            
+        }              
 
         public async Task<HttpResponseMessage> RequestOrchestrator(string correlationID, string productsList)
         {           
@@ -14,11 +20,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Facades
             // Arrange  
             var request = new
             {
-                dataStandard = "s100", // S100  
+                dataStandard = "s100",
                 products = productsList
             };
 
-            var httpRequest = new HttpRequestMessage(HttpMethod.Post, OrchestratorApiEndpoint)
+            var httpRequest = new HttpRequestMessage(HttpMethod.Post, _orchestratorApiEndpoint)
             {
                 Content = JsonContent.Create(request)
             };

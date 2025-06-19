@@ -4,7 +4,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Helpers
 {
     public class FileHelpers
     {
-        // Add this method to your FileHelpers class
+        // Enhanced: Reports exact non-matching folders and files
         public void CompareZipFolderAndFileStructures(string sourceZipPath, string targetZipPath)
         {
             var sourceExtractPath = Path.Combine(Path.GetTempPath(), "source_" + Guid.NewGuid());
@@ -34,11 +34,25 @@ namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Helpers
                     .Select(f => Path.GetRelativePath(targetExtractPath, f))
                     .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-                // Assert: Folder structure matches
-               Assert.That(targetFolders.SetEquals(sourceFolders), Is.True, "Folder structures do not match.");
+                // Find non-matching folders
+                var foldersOnlyInSource = sourceFolders.Except(targetFolders).ToList();
+                var foldersOnlyInTarget = targetFolders.Except(sourceFolders).ToList();
 
-                // Assert: File names and structure match
-                Assert.That(targetFiles.SetEquals(sourceFiles), Is.True, "File structures do not match.");
+                // Find non-matching files
+                var filesOnlyInSource = sourceFiles.Except(targetFiles).ToList();
+                var filesOnlyInTarget = targetFiles.Except(sourceFiles).ToList();
+
+                // Assert: Folder structure matches, with details
+                Assert.That(foldersOnlyInSource.Count == 0 && foldersOnlyInTarget.Count == 0,
+                    $"Folder structures do not match.\n" +
+                    (foldersOnlyInSource.Count > 0 ? $"Folders only in source: {string.Join(", ", foldersOnlyInSource)}\n" : "") +
+                    (foldersOnlyInTarget.Count > 0 ? $"Folders only in target: {string.Join(", ", foldersOnlyInTarget)}\n" : ""));
+
+                // Assert: File names and structure match, with details
+                Assert.That(filesOnlyInSource.Count == 0 && filesOnlyInTarget.Count == 0,
+                    $"File structures do not match.\n" +
+                    (filesOnlyInSource.Count > 0 ? $"Files only in source: {string.Join(", ", filesOnlyInSource)}\n" : "") +
+                    (filesOnlyInTarget.Count > 0 ? $"Files only in target: {string.Join(", ", filesOnlyInTarget)}\n" : ""));
             }
             finally
             {
