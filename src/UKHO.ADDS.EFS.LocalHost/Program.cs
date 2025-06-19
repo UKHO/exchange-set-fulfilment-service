@@ -1,3 +1,6 @@
+using Aspire.Hosting.Azure;
+using Azure.Core;
+using Azure.Provisioning;
 using Azure.Provisioning.AppContainers;
 using Azure.Security.KeyVault.Secrets;
 using AzureKeyVaultEmulator.Aspire.Client;
@@ -27,23 +30,27 @@ namespace UKHO.ADDS.EFS.LocalHost
             builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());
 
             var buildOnStartup = builder.Configuration.GetValue<bool>("Containers:BuildOnStartup");
-            var deployMock = builder.Configuration.GetValue<bool>("Containers:DeployMock");
-
-            //var subnetId = builder.AddParameter("subnetId");
+            var subnetId = builder.AddParameter("SubnetId");
 
             // Container apps environment
-            //var acaEnv = builder.AddAzureContainerAppEnvironment(ContainerConfiguration.AcaEnvironmentName);
-            //acaEnv.ConfigureInfrastructure(config =>
-            //{
-            //    var resources = config.GetProvisionableResources();
-            //    var containerEnvironment = resources.OfType<ContainerAppManagedEnvironment>().First();
-            //    containerEnvironment.VnetConfiguration = new ContainerAppVnetConfiguration
-            //    {
-            //        InfrastructureSubnetId = ""
-            //    };
-
-            //    containerEnvironment.Tags.Add("ExampleKey", "Example value");
-            //});
+            var acaEnv = builder.AddAzureContainerAppEnvironment(ContainerConfiguration.AcaEnvironmentName);
+            acaEnv.ConfigureInfrastructure(config =>
+            {
+                var resources = config.GetProvisionableResources();
+                var containerEnvironment = resources.OfType<ContainerAppManagedEnvironment>().First();
+                containerEnvironment.WorkloadProfiles.Clear();
+                //containerEnvironment.WorkloadProfiles.Add(new ContainerAppWorkloadProfile
+                //{
+                //    Name = "Consumption",
+                //    WorkloadProfileType = "Consumption"
+                //});
+                containerEnvironment.VnetConfiguration = new ContainerAppVnetConfiguration
+                {
+                    InfrastructureSubnetId = new BicepValue<ResourceIdentifier>(subnetId.Resource.Value),
+                    IsInternal = true
+                };
+                containerEnvironment.Tags.Add("ExampleKey", "Example value");
+            });
 
             // Storage configuration
             var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e => { e.WithDataVolume(); });
@@ -53,10 +60,8 @@ namespace UKHO.ADDS.EFS.LocalHost
             var storageBlob = storage.AddBlobs(StorageConfiguration.BlobsName);
 
             // ADDS Mock
-            var mockService = deployMock
-                ? builder.AddProject<UKHO_ADDS_Mocks_EFS>(ContainerConfiguration.MockContainerName)
-                    .WithDashboard("Dashboard")
-                : null;
+            var mockService = builder.AddProject<UKHO_ADDS_Mocks_EFS>(ContainerConfiguration.MockContainerName)
+                .WithDashboard("Dashboard");
 
             // Key vault
             var keyVault = builder.AddAzureKeyVaultEmulator(ContainerConfiguration.KeyVaultContainerName,
@@ -67,27 +72,21 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             // Orchestrator
             var orchestratorService = builder.AddProject<UKHO_ADDS_EFS_Orchestrator>(ContainerConfiguration.OrchestratorContainerName)
-                //.WithEnvironment("SUBNET_ID", subnetId)
                 .WithReference(storageQueue)
                 .WaitFor(storageQueue)
                 .WithReference(storageTable)
                 .WaitFor(storageTable)
                 .WithReference(storageBlob)
-                .WaitFor(storageBlob);
-
-            if (deployMock)
-            {
-                orchestratorService = orchestratorService.WithReference(mockService!).WaitFor(mockService!);
-            }
-
-            orchestratorService = orchestratorService
+                .WaitFor(storageBlob)
+                .WithReference(mockService)
+                .WaitFor(mockService)
                 .WithReference(keyVault)
                 .WaitFor(keyVault)
                 .WithScalar("API Browser");
 
             //orchestratorService.WithEnvironment(async c =>
             //{
-            //    var addsMockEndpoint = mockService!.GetEndpoint("http");
+            //    var addsMockEndpoint = mockService.GetEndpoint("http");
             //    var fssBuilderEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = "host.docker.internal", Path = "fss/" };
             //    var fssOrchestratorEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.Host, Path = "fss/" };
             //    var scsEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.Host, Path = "scs/" };
