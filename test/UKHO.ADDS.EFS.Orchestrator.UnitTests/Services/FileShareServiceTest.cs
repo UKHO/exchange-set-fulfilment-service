@@ -21,7 +21,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         private const string BatchId = "TestBatchId";
 
         [SetUp]
-        public void OneTimeSetUp()
+        public void SetUp()
         {
             _fakeFileShareReadWriteClient = A.Fake<IFileShareReadWriteClient>();
             _logger = A.Fake<ILogger<FileShareService>>();
