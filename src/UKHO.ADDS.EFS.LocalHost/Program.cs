@@ -14,6 +14,7 @@ using Serilog;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.LocalHost.Extensions;
+using Aspire.Hosting.ApplicationModel;
 
 namespace UKHO.ADDS.EFS.LocalHost
 {
@@ -72,8 +73,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             var storageTable = storage.AddTables(StorageConfiguration.TablesName);
             var storageBlob = storage.AddBlobs(StorageConfiguration.BlobsName);
 
-            //builder.AddContainer(ContainerConfiguration.S100BuilderContainerName, "myimage")
-            //    .WithDockerfile("path/to/context");
+            builder.AddDockerfile(ContainerConfiguration.S100BuilderContainerName, "..", "UKHO.ADDS.EFS.Builder.S100/Dockerfile").WithExplicitStart();
 
             // ADDS Mock
             var mockService = builder.AddProject<UKHO_ADDS_Mocks_EFS>(ContainerConfiguration.MockContainerName)

@@ -164,25 +164,25 @@ jobs:
               StorageContainerName: $(BuilderFilesContainer)
               AZURE_STORAGE_KEY: $(BuilderFilesSaKey)
 
-          - task: AzureCLI@2
-            displayName: Build and push Docker image to ACR
-            inputs:
-              azureSubscription: ${{ variables.AzureSubscription }}
-              scriptType: bash
-              scriptLocation: inlineScript
-              keepAzSessionActive: true
-              inlineScript: |
-                echo "Logging in to Azure Container Registry..."
-                az acr login --name $ACR_NAME
+          # - task: AzureCLI@2
+          #   displayName: Build and push Docker image to ACR
+          #   inputs:
+          #     azureSubscription: ${{ variables.AzureSubscription }}
+          #     scriptType: bash
+          #     scriptLocation: inlineScript
+          #     keepAzSessionActive: true
+          #     inlineScript: |
+          #       echo "Logging in to Azure Container Registry..."
+          #       az acr login --name $ACR_NAME
 
-                echo "Changing directory..."
-                cd $(Build.SourcesDirectory)/src
+          #       echo "Changing directory..."
+          #       cd $(Build.SourcesDirectory)/src
 
-                echo "Building Docker image..."
-                docker build -t $ACR_NAME.azurecr.io/exchange-set-fulfilment-service/efs-builder-s100:${BUILD_TAG} -f UKHO.ADDS.EFS.Builder.S100/Dockerfile .
+          #       echo "Building Docker image..."
+          #       docker build -t $ACR_NAME.azurecr.io/exchange-set-fulfilment-service/efs-builder-s100:${BUILD_TAG} -f UKHO.ADDS.EFS.Builder.S100/Dockerfile .
 
-                echo "Pushing Docker image to Azure Container Registry..."
-                docker push $ACR_NAME.azurecr.io/exchange-set-fulfilment-service/efs-builder-s100:${BUILD_TAG}
-            env:
-              ACR_NAME: $(BuilderAcrName)
-              BUILD_TAG: $(Build.BuildId)
+          #       echo "Pushing Docker image to Azure Container Registry..."
+          #       docker push $ACR_NAME.azurecr.io/exchange-set-fulfilment-service/efs-builder-s100:${BUILD_TAG}
+          #   env:
+          #     ACR_NAME: $(BuilderAcrName)
+          #     BUILD_TAG: $(Build.BuildId)
