@@ -5,8 +5,17 @@
       "principalId": {
         "value": "${AZURE_PRINCIPAL_ID}"
       },
-      "SubnetId": {
-        "value": "${AZURE_SUBNET_ID}"
+      "subnetName": {
+        "value": "${AZURE_SUBNET_NAME}"
+      },
+      "subnetResourceGroup": {
+        "value": "${AZURE_SUBNET_RESOURCE_GROUP}"
+      },
+      "subnetSubscription": {
+        "value": "${AZURE_SUBNET_SUBSCRIPTION}"
+      },
+      "subnetVnet": {
+        "value": "${AZURE_SUBNET_VNET}"
       },
       "environmentName": {
         "value": "${AZURE_ENV_NAME}"

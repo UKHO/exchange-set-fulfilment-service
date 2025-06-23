@@ -2,6 +2,7 @@ using Aspire.Hosting.Azure;
 using Azure.Core;
 using Azure.Provisioning;
 using Azure.Provisioning.AppContainers;
+using Azure.Provisioning.Storage;
 using Azure.Security.KeyVault.Secrets;
 using AzureKeyVaultEmulator.Aspire.Client;
 using AzureKeyVaultEmulator.Aspire.Hosting;
@@ -30,7 +31,13 @@ namespace UKHO.ADDS.EFS.LocalHost
             builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());
 
             var buildOnStartup = builder.Configuration.GetValue<bool>("Containers:BuildOnStartup");
-            var subnetId = builder.AddParameter("SubnetId");
+
+            // Create id for existing subnet
+            var subnetSubscription = builder.AddParameter("subnetSubscription").Resource.Value;
+            var subnetResourceGroup = builder.AddParameter("subnetResourceGroup").Resource.Value;
+            var subnetVnet = builder.AddParameter("subnetVnet").Resource.Value;
+            var subnetName = builder.AddParameter("subnetName").Resource.Value;
+            var subnetId = new ResourceIdentifier($"/subscriptions/{subnetSubscription}/resourceGroups/{subnetResourceGroup}/providers/Microsoft.Network/virtualNetworks/{subnetVnet}/subnets/{subnetName}");
 
             // Container apps environment
             var acaEnv = builder.AddAzureContainerAppEnvironment(ContainerConfiguration.AcaEnvironmentName);
@@ -46,17 +53,27 @@ namespace UKHO.ADDS.EFS.LocalHost
                 //});
                 containerEnvironment.VnetConfiguration = new ContainerAppVnetConfiguration
                 {
-                    InfrastructureSubnetId = new BicepValue<ResourceIdentifier>(subnetId.Resource.Value),
+                    InfrastructureSubnetId = subnetId,
                     IsInternal = true
                 };
+                containerEnvironment.Tags.Add("hidden-title", "EFS CAE");
             });
 
             // Storage configuration
             var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e => { e.WithDataVolume(); });
+            storage.ConfigureInfrastructure(config =>
+            {
+                var resources = config.GetProvisionableResources();
+                var storageAccount = resources.OfType<StorageAccount>().First();
+                storageAccount.Tags.Add("hidden-title", "EFS Storage");
+            });
 
             var storageQueue = storage.AddQueues(StorageConfiguration.QueuesName);
             var storageTable = storage.AddTables(StorageConfiguration.TablesName);
             var storageBlob = storage.AddBlobs(StorageConfiguration.BlobsName);
+
+            //builder.AddContainer(ContainerConfiguration.S100BuilderContainerName, "myimage")
+            //    .WithDockerfile("path/to/context");
 
             // ADDS Mock
             var mockService = builder.AddProject<UKHO_ADDS_Mocks_EFS>(ContainerConfiguration.MockContainerName)

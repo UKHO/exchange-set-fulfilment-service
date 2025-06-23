@@ -12,7 +12,10 @@ param location string
 @description('Id of the user or app to assign application roles')
 param principalId string = ''
 
-param SubnetId string
+param subnetName string
+param subnetResourceGroup string
+param subnetSubscription string
+param subnetVnet string
 
 var tags = {
   'azd-env-name': environmentName
