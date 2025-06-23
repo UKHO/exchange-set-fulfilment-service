@@ -103,8 +103,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 await Task.WhenAll(downloadTasks);
                 return NodeResultStatus.Succeeded;
             }
-            catch
+            catch (Exception ex) 
             {
+                _logger.LogDownloadFilesNodeFailed(ex);
                 return NodeResultStatus.Failed;
             }
         }
@@ -159,9 +160,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                     var downloadPath = Path.Combine(directoryPath, item.FileName);
 
                     await using var outputFileStream = new FileStream(downloadPath, FileMode.Create, FileAccess.Write);
+                    var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<Stream>(_logger, "GetDirectoryPathForFile");
 
-                    var streamResult = await _fileShareReadOnlyClient.DownloadFileAsync(
-                        item.Batch.BatchId, item.FileName, outputFileStream, correlationId, FileSizeInBytes);
+                    var streamResult = await retryPolicy.ExecuteAsync(() =>
+                        _fileShareReadOnlyClient.DownloadFileAsync(
+                            item.Batch.BatchId, item.FileName, outputFileStream, correlationId, FileSizeInBytes));
+
 
                     if (streamResult.IsFailure(out var error, out var value))
                     {
