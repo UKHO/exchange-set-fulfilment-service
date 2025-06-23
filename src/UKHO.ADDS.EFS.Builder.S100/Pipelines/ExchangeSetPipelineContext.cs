@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using HandlebarsDotNet;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.Services;
@@ -15,6 +16,25 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
         private readonly INodeStatusWriter _nodeStatusWriter;
         private readonly IToolClient _toolClient;
         private readonly ILoggerFactory _loggerFactory;
+
+        // Templates for exchange set filenames
+        private const string LowerEnvironmentTemplate = "V01X01_{{JobId}}.zip";
+        private const string HigherEnvironmentTemplate = "V01X01.zip";
+
+        // Environment names that are considered lower environments
+        private static readonly string[] LowerEnvironments = { "Development", "Dev" };
+
+        // Compiled Handlebars templates for better performance
+        private static readonly HandlebarsTemplate<object, object> _lowerEnvTemplate;
+        private static readonly HandlebarsTemplate<object, object> _higherEnvTemplate;
+
+        // Static constructor to compile the templates
+        static ExchangeSetPipelineContext()
+        {
+            // Register and compile templates
+            _lowerEnvTemplate = Handlebars.Compile(LowerEnvironmentTemplate);
+            _higherEnvTemplate = Handlebars.Compile(HigherEnvironmentTemplate);
+        }
 
         public ExchangeSetPipelineContext(IConfiguration configuration, INodeStatusWriter nodeStatusWriter, IToolClient toolClient, ILoggerFactory loggerFactory)
         {
@@ -44,8 +64,36 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
         public string WorkSpaceSpoolPath { get; } = "spool";
         public string WorkSpaceSpoolDataSetFilesPath { get; } = "dataSet_files";
         public string WorkSpaceSpoolSupportFilesPath { get; } = "support_files";
-        public string ExchangeSetFileName { get; } = $"S100_ExchangeSet_{DateTime.UtcNow:yyyyMMdd}.zip";
+        public string ExchangeSetFileName => GetExchangeSetFileName();
         public string ExchangeSetFilePath { get; set; } = "/usr/local/tomcat/ROOT/xchg";
         public string ExchangeSetArchiveFolderName { get; set; } = "ExchangeSetArchive";
+
+        /// <summary>
+        /// Gets the exchange set file name based on the current environment.
+        /// </summary>
+        /// <returns>The appropriate file name for the current environment using Handlebars templates.</returns>
+        private string GetExchangeSetFileName()
+        {
+            // Get the current environment name
+            var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+
+            // Create template data object
+            var templateData = new { JobId };
+
+            // Check if the current environment is a lower environment
+            var isLowerEnvironment = LowerEnvironments.Contains(environmentName, StringComparer.OrdinalIgnoreCase);
+
+            // Apply the appropriate template based on environment
+            if (isLowerEnvironment && !string.IsNullOrEmpty(JobId))
+            {
+                // In lower environments, use template with JobId to ensure unique filenames
+                return _lowerEnvTemplate(templateData);
+            }
+            else
+            {
+                // In higher environments (vNext IAT, vNext E2E, IAT, Production), use the standard template
+                return _higherEnvTemplate(templateData);
+            }
+        }
     }
 }
