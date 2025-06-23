@@ -67,49 +67,95 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 .Select(g => g.OrderByDescending(x => x.Batch.BatchPublishedDate).First().Batch);
         }
 
-        private async Task<NodeResultStatus> DownloadLatestBatchFilesAsync(IEnumerable<BatchDetails> latestBatches, string workSpaceRootPath, string correlationId, string workSpaceSpoolDataSetFilesPath, string workSpaceSpoolSupportFilesPath)
+        private async Task<NodeResultStatus> DownloadLatestBatchFilesAsync(
+            IEnumerable<BatchDetails> latestBatches,
+            string workSpaceRootPath,
+            string correlationId,
+            string workSpaceSpoolDataSetFilesPath,
+            string workSpaceSpoolSupportFilesPath)
         {
-            // Track directories we've already created
             var createdDirectories = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-            // Ensure main directory exists
             CreateDirectoryIfNotExists(workSpaceRootPath, createdDirectories);
 
-            // Flatten batch and file structure into a single enumeration
-            var allFilesToProcess = latestBatches
-                .Where(batch => batch.Files.Any())
-                .SelectMany(batch => batch.Files.Select(file => new
-                {
-                    Batch = batch,
-                    FileName = file.Filename
-                }))
-                .ToList();
-
-            // Return early if no files to process
+            var allFilesToProcess = GetAllFilesToProcess(latestBatches);
             if (allFilesToProcess.Count == 0)
             {
                 _logger.LogDownloadFilesNodeNoFilesToProcessError("No files found for processing");
                 return NodeResultStatus.Failed;
             }
 
-            // First, determine and create all required directories
+            CreateRequiredDirectories(
+                allFilesToProcess,
+                workSpaceRootPath,
+                workSpaceSpoolDataSetFilesPath,
+                workSpaceSpoolSupportFilesPath,
+                createdDirectories);
+
+            var downloadTasks = CreateDownloadTasks(
+                allFilesToProcess,
+                workSpaceRootPath,
+                workSpaceSpoolDataSetFilesPath,
+                workSpaceSpoolSupportFilesPath,
+                correlationId);
+
+            try
+            {
+                await Task.WhenAll(downloadTasks);
+                return NodeResultStatus.Succeeded;
+            }
+            catch
+            {
+                return NodeResultStatus.Failed;
+            }
+        }
+
+        private List<(BatchDetails Batch, string FileName)> GetAllFilesToProcess(IEnumerable<BatchDetails> latestBatches)
+        {
+            return latestBatches
+                .Where(batch => batch.Files.Any())
+                .SelectMany(batch => batch.Files.Select(file => (batch, file.Filename)))
+                .ToList();
+        }
+
+        private void CreateRequiredDirectories(
+            List<(BatchDetails Batch, string FileName)> allFilesToProcess,
+            string workSpaceRootPath,
+            string workSpaceSpoolDataSetFilesPath,
+            string workSpaceSpoolSupportFilesPath,
+            HashSet<string> createdDirectories)
+        {
             var fileDirectoryPaths = allFilesToProcess
-                .Select(item => GetDirectoryPathForFile(workSpaceRootPath, item.FileName, workSpaceSpoolDataSetFilesPath, workSpaceSpoolSupportFilesPath))
+                .Select(item => GetDirectoryPathForFile(
+                    workSpaceRootPath,
+                    item.FileName,
+                    workSpaceSpoolDataSetFilesPath,
+                    workSpaceSpoolSupportFilesPath))
                 .Distinct();
 
             foreach (var directoryPath in fileDirectoryPaths)
             {
                 CreateDirectoryIfNotExists(directoryPath, createdDirectories);
             }
+        }
 
-            // Now download all files (all directories are guaranteed to exist)
-            var semaphore = new SemaphoreSlim(4); // Limit to 4 concurrent downloads (tune as needed)
-            var downloadTasks = allFilesToProcess.Select(async item =>
+        private IEnumerable<Task> CreateDownloadTasks(
+            List<(BatchDetails Batch, string FileName)> allFilesToProcess,
+            string workSpaceRootPath,
+            string workSpaceSpoolDataSetFilesPath,
+            string workSpaceSpoolSupportFilesPath,
+            string correlationId)
+        {
+            var semaphore = new SemaphoreSlim(4); // Limit to 4 concurrent downloads
+            return allFilesToProcess.Select(async item =>
             {
                 await semaphore.WaitAsync();
                 try
                 {
-                    var directoryPath = GetDirectoryPathForFile(workSpaceRootPath, item.FileName, workSpaceSpoolDataSetFilesPath, workSpaceSpoolSupportFilesPath);
+                    var directoryPath = GetDirectoryPathForFile(
+                        workSpaceRootPath,
+                        item.FileName,
+                        workSpaceSpoolDataSetFilesPath,
+                        workSpaceSpoolSupportFilesPath);
                     var downloadPath = Path.Combine(directoryPath, item.FileName);
 
                     await using var outputFileStream = new FileStream(downloadPath, FileMode.Create, FileAccess.Write);
@@ -128,16 +174,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                     semaphore.Release();
                 }
             });
-
-            try
-            {
-                await Task.WhenAll(downloadTasks);
-                return NodeResultStatus.Succeeded;
-            }
-            catch
-            {
-                return NodeResultStatus.Failed;
-            }
         }
 
         private static void CreateDirectoryIfNotExists(string downloadPath, HashSet<string>? createdDirectories = null)
