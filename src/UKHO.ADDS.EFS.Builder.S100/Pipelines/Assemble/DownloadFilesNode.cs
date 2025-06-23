@@ -103,26 +103,41 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             }
 
             // Now download all files (all directories are guaranteed to exist)
-            var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<Stream>(_logger, "GetDirectoryPathForFile");
-            foreach (var item in allFilesToProcess)
+            var semaphore = new SemaphoreSlim(4); // Limit to 4 concurrent downloads (tune as needed)
+            var downloadTasks = allFilesToProcess.Select(async item =>
             {
-                var directoryPath = GetDirectoryPathForFile(workSpaceRootPath, item.FileName, workSpaceSpoolDataSetFilesPath, workSpaceSpoolSupportFilesPath);
-                var downloadPath = Path.Combine(directoryPath, item.FileName);
-
-                await using var outputFileStream = new FileStream(downloadPath, FileMode.Create, FileAccess.Write);
-
-                var streamResult = await retryPolicy.ExecuteAsync(() =>
-                    _fileShareReadOnlyClient.DownloadFileAsync(
-                        item.Batch.BatchId, item.FileName, outputFileStream, correlationId, FileSizeInBytes));
-
-                if (streamResult.IsFailure(out var error, out var value))
+                await semaphore.WaitAsync();
+                try
                 {
-                    LogFssDownloadFailed(item.Batch, item.FileName, error, correlationId);
-                    return NodeResultStatus.Failed;
-                }
-            }
+                    var directoryPath = GetDirectoryPathForFile(workSpaceRootPath, item.FileName, workSpaceSpoolDataSetFilesPath, workSpaceSpoolSupportFilesPath);
+                    var downloadPath = Path.Combine(directoryPath, item.FileName);
 
-            return NodeResultStatus.Succeeded;
+                    await using var outputFileStream = new FileStream(downloadPath, FileMode.Create, FileAccess.Write);
+
+                    var streamResult = await _fileShareReadOnlyClient.DownloadFileAsync(
+                        item.Batch.BatchId, item.FileName, outputFileStream, correlationId, FileSizeInBytes);
+
+                    if (streamResult.IsFailure(out var error, out var value))
+                    {
+                        LogFssDownloadFailed(item.Batch, item.FileName, error, correlationId);
+                        throw new Exception($"Failed to download {item.FileName}");
+                    }
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
+            });
+
+            try
+            {
+                await Task.WhenAll(downloadTasks);
+                return NodeResultStatus.Succeeded;
+            }
+            catch
+            {
+                return NodeResultStatus.Failed;
+            }
         }
 
         private static void CreateDirectoryIfNotExists(string downloadPath, HashSet<string>? createdDirectories = null)
