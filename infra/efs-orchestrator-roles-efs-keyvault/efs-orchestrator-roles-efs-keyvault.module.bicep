@@ -3,8 +3,6 @@ param location string = resourceGroup().location
 
 param efs_keyvault_outputs_name string
 
-param principalType string
-
 param principalId string
 
 resource efs_keyvault 'Microsoft.KeyVault/vaults@2023-07-01' existing = {
@@ -16,7 +14,7 @@ resource efs_keyvault_KeyVaultSecretsUser 'Microsoft.Authorization/roleAssignmen
   properties: {
     principalId: principalId
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6')
-    principalType: principalType
+    principalType: 'ServicePrincipal'
   }
   scope: efs_keyvault
 }

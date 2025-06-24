@@ -1,3 +1,8 @@
+using Aspire.Hosting.Azure;
+using Azure.Core;
+using Azure.Provisioning;
+using Azure.Provisioning.AppContainers;
+using Azure.Provisioning.Storage;
 using Azure.Security.KeyVault.Secrets;
 using AzureKeyVaultEmulator.Aspire.Client;
 using AzureKeyVaultEmulator.Aspire.Hosting;
@@ -9,6 +14,7 @@ using Serilog;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.LocalHost.Extensions;
+using Aspire.Hosting.ApplicationModel;
 
 namespace UKHO.ADDS.EFS.LocalHost
 {
@@ -27,12 +33,59 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             var buildOnStartup = builder.Configuration.GetValue<bool>("Containers:BuildOnStartup");
 
+            // Create id for existing subnet
+            var subnetSubscription = builder.AddParameter("subnetSubscription").Resource.Value;
+            var subnetResourceGroup = builder.AddParameter("subnetResourceGroup").Resource.Value;
+            var subnetVnet = builder.AddParameter("subnetVnet").Resource.Value;
+            var subnetName = builder.AddParameter("subnetName").Resource.Value;
+            var subnetId = new ResourceIdentifier($"/subscriptions/{subnetSubscription}/resourceGroups/{subnetResourceGroup}/providers/Microsoft.Network/virtualNetworks/{subnetVnet}/subnets/{subnetName}");
+
+            // Container apps environment
+            var acaEnv = builder.AddAzureContainerAppEnvironment(ContainerConfiguration.AcaEnvironmentName);
+            acaEnv.ConfigureInfrastructure(config =>
+            {
+                var resources = config.GetProvisionableResources();
+                var containerEnvironment = resources.OfType<ContainerAppManagedEnvironment>().First();
+                //containerEnvironment.WorkloadProfiles.Clear();
+                //containerEnvironment.WorkloadProfiles.Add(new ContainerAppWorkloadProfile
+                //{
+                //    Name = "Consumption",
+                //    WorkloadProfileType = "Consumption"
+                //});
+                containerEnvironment.VnetConfiguration = new ContainerAppVnetConfiguration
+                {
+                    InfrastructureSubnetId = subnetId,
+                    IsInternal = true
+                };
+                containerEnvironment.Tags.Add("hidden-title", "EFS CAE");
+            });
+
             // Storage configuration
             var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e => { e.WithDataVolume(); });
+            storage.ConfigureInfrastructure(config =>
+            {
+                var resources = config.GetProvisionableResources();
+                var storageAccount = resources.OfType<StorageAccount>().First();
+                storageAccount.Tags.Add("hidden-title", "EFS Storage");
+            });
 
             var storageQueue = storage.AddQueues(StorageConfiguration.QueuesName);
             var storageTable = storage.AddTables(StorageConfiguration.TablesName);
             var storageBlob = storage.AddBlobs(StorageConfiguration.BlobsName);
+
+            //builder.AddDockerfile(ContainerConfiguration.S100BuilderContainerName, "..", "UKHO.ADDS.EFS.Builder.S100/Dockerfile")
+            //    .PublishAsAzureContainerApp((x, y) =>
+            //    {
+            //        y.Template.Scale.MinReplicas = 0;
+            //        y.Template.Scale.MaxReplicas = 1000;
+            //        y.Configuration.Ingress = new ContainerAppIngressConfiguration
+            //        {
+            //            External = false,
+            //            TargetPort = 8080,
+            //            Transport = new BicepValue<ContainerAppIngressTransportMethod>("http")
+            //        };
+            //    })
+            //    .WithExternalHttpEndpoints();
 
             // ADDS Mock
             var mockService = builder.AddProject<UKHO_ADDS_Mocks_EFS>(ContainerConfiguration.MockContainerName)
@@ -59,25 +112,25 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WaitFor(keyVault)
                 .WithScalar("API Browser");
 
-            orchestratorService.WithEnvironment(async c =>
-            {
-                var addsMockEndpoint = mockService.GetEndpoint("http");
-                var fssBuilderEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = "host.docker.internal", Path = "fss/" };
-                var fssOrchestratorEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.Host, Path = "fss/" };
-                var scsEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.Host, Path = "scs/" };
+            //orchestratorService.WithEnvironment(async c =>
+            //{
+            //    var addsMockEndpoint = mockService.GetEndpoint("http");
+            //    var fssBuilderEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = "host.docker.internal", Path = "fss/" };
+            //    var fssOrchestratorEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.Host, Path = "fss/" };
+            //    var scsEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.Host, Path = "scs/" };
 
-                var orchestratorEndpoint = orchestratorService.GetEndpoint("http").Url;
+            //    var orchestratorEndpoint = orchestratorService.GetEndpoint("http").Url;
 
-                var workspaceKey = "D89D11D265B19CA5C2BE97A7FCB1EF21";
+            //    var workspaceKey = "D89D11D265B19CA5C2BE97A7FCB1EF21";
 
-                var secretClient = c.ExecutionContext.ServiceProvider.GetRequiredService<SecretClient>();
+            //    var secretClient = c.ExecutionContext.ServiceProvider.GetRequiredService<SecretClient>();
 
-                await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.FileShareBuilderEndpoint, fssBuilderEndpoint.Uri.ToString());
-                await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.FileShareOrchestratorEndpoint, fssOrchestratorEndpoint.Uri.ToString());
-                await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.SalesCatalogueEndpoint, scsEndpoint.Uri.ToString());
-                await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.OrchestratorServiceEndpoint, orchestratorEndpoint);
-                await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.WorkspaceKey, workspaceKey);
-            });
+            //    await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.FileShareBuilderEndpoint, fssBuilderEndpoint.Uri.ToString());
+            //    await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.FileShareOrchestratorEndpoint, fssOrchestratorEndpoint.Uri.ToString());
+            //    await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.SalesCatalogueEndpoint, scsEndpoint.Uri.ToString());
+            //    await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.OrchestratorServiceEndpoint, orchestratorEndpoint);
+            //    await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.WorkspaceKey, workspaceKey);
+            //});
 
             // Fixed endpoint
             var keyVaultUri = "https://localhost:4997";
