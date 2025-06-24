@@ -73,19 +73,19 @@ namespace UKHO.ADDS.EFS.LocalHost
             var storageTable = storage.AddTables(StorageConfiguration.TablesName);
             var storageBlob = storage.AddBlobs(StorageConfiguration.BlobsName);
 
-            builder.AddDockerfile(ContainerConfiguration.S100BuilderContainerName, "..", "UKHO.ADDS.EFS.Builder.S100/Dockerfile")
-                .PublishAsAzureContainerApp((x, y) =>
-                {
-                    y.Template.Scale.MinReplicas = 0;
-                    y.Template.Scale.MaxReplicas = 1000;
-                    y.Configuration.Ingress = new ContainerAppIngressConfiguration
-                    {
-                        External = false,
-                        TargetPort = 8080,
-                        Transport = new BicepValue<ContainerAppIngressTransportMethod>("http")
-                    };
-                })
-                .WithExternalHttpEndpoints();
+            //builder.AddDockerfile(ContainerConfiguration.S100BuilderContainerName, "..", "UKHO.ADDS.EFS.Builder.S100/Dockerfile")
+            //    .PublishAsAzureContainerApp((x, y) =>
+            //    {
+            //        y.Template.Scale.MinReplicas = 0;
+            //        y.Template.Scale.MaxReplicas = 1000;
+            //        y.Configuration.Ingress = new ContainerAppIngressConfiguration
+            //        {
+            //            External = false,
+            //            TargetPort = 8080,
+            //            Transport = new BicepValue<ContainerAppIngressTransportMethod>("http")
+            //        };
+            //    })
+            //    .WithExternalHttpEndpoints();
 
             // ADDS Mock
             var mockService = builder.AddProject<UKHO_ADDS_Mocks_EFS>(ContainerConfiguration.MockContainerName)
