@@ -17,6 +17,11 @@ resource efs_builder_s100 'Microsoft.App/containerApps@2024-03-01' = {
   properties: {
     configuration: {
       activeRevisionsMode: 'Single'
+      ingress: {
+        external: false
+        targetPort: 8080
+        transport: 'http'
+      }
       registries: [
         {
           server: efs_cae_outputs_azure_container_registry_endpoint
@@ -33,7 +38,8 @@ resource efs_builder_s100 'Microsoft.App/containerApps@2024-03-01' = {
         }
       ]
       scale: {
-        minReplicas: 1
+        minReplicas: 0
+        maxReplicas: 1000
       }
     }
   }
