@@ -174,6 +174,35 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
             Assert.That(callCount, Is.EqualTo(4), "Should retry 3 times plus the initial call (total 4)");
         }
 
+        [Test]
+        public async Task DownloadFilesNode_AllowsParallelDownloads()
+        {
+            // Arrange
+            var fileCount = 50;
+            var batch = CreateBatchDetails(fileNames: Enumerable.Range(1, fileCount).Select(i => $"file{i}.txt").ToArray());
+            _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
+
+            var fakeResult = A.Fake<IResult<Stream>>();
+            IError outError = null;
+            Stream outStream = new MemoryStream();
+            A.CallTo(() => fakeResult.IsFailure(out outError, out outStream)).Returns(false);
+
+            // Simulate delay for each download to test parallelism
+            A.CallTo(() => _fileShareReadOnlyClient.DownloadFileAsync(A<string>._, A<string>._, A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._))
+                .ReturnsLazily(async () => { await Task.Delay(500); return fakeResult; });
+
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+            var result = await _downloadFilesNode.ExecuteAsync(_executionContext);
+
+            stopwatch.Stop();
+
+            // Assert
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
+            // With all downloads running in parallel, should take less than filecount *500 ms =25 seconds | 25/4 (parallel download) nearly 6 seconds
+            Assert.That(stopwatch.Elapsed.TotalSeconds, Is.LessThan(12), "Should complete quickly as all downloads are parallel");
+        }
+
         private static BatchDetails CreateBatchDetails(string batchId = "b1", string[]? fileNames = null, List<BatchDetailsAttributes>? attributes = null)
         {
             return new BatchDetails(

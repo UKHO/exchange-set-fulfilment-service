@@ -25,6 +25,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private const int NumericPartStartIndex = 1;  // Skip the period
         private const int MinNumericValue = 000;
         private const int MaxNumericValue = 999;
+        private const int MaxConcurrentDownloads = 4;  // Limit to 4 concurrent downloads
 
         public DownloadFilesNode(IFileShareReadOnlyClient fileShareReadOnlyClient)
         {
@@ -146,7 +147,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             string workSpaceSpoolSupportFilesPath,
             string correlationId)
         {
-            var semaphore = new SemaphoreSlim(4); // Limit to 4 concurrent downloads
+            var semaphore = new SemaphoreSlim(MaxConcurrentDownloads);
             return allFilesToProcess.Select(async item =>
             {
                 await semaphore.WaitAsync();
