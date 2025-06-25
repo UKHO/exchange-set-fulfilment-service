@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Nodes;
+using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.scs.ResponseGenerator
 {
@@ -48,7 +49,8 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.scs.ResponseGenerator
             {
                 if (requestBody.TrimStart().StartsWith("["))
                 {
-                    var productsArray = JsonSerializer.Deserialize<JsonElement>(requestBody);
+                    var productsArray = JsonCodec.Decode<JsonElement>(requestBody);
+
                     if (productsArray.ValueKind != JsonValueKind.Array)
                     {
                         return Results.BadRequest("Request body must be a JSON array of product names.");
