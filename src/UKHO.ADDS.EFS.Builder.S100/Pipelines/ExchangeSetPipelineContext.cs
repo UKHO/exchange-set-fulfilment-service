@@ -80,20 +80,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
             // Create template data object
             var templateData = new { JobId };
 
-            // Check if the current environment is a lower environment
+            // Determine if we're in a lower environment and have a valid JobId
             var isLowerEnvironment = LowerEnvironments.Contains(environmentName, StringComparer.OrdinalIgnoreCase);
+            var hasValidJobId = !string.IsNullOrEmpty(JobId);
 
-            // Apply the appropriate template based on environment
-            if (isLowerEnvironment && !string.IsNullOrEmpty(JobId))
-            {
-                // In lower environments, use template with JobId to ensure unique filenames
-                return _lowerEnvTemplate(templateData);
-            }
-            else
-            {
-                // In higher environments (vNext IAT, vNext E2E, IAT, Production), use the standard template
-                return _higherEnvTemplate(templateData);
-            }
+            // Select the appropriate template based on environment and JobId
+            return (isLowerEnvironment && hasValidJobId) ? _lowerEnvTemplate(templateData) : _higherEnvTemplate(templateData);
         }
     }
 }
