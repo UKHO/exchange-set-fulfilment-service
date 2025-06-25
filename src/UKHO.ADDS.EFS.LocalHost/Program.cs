@@ -49,7 +49,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             {
                 var resources = config.GetProvisionableResources();
                 var containerEnvironment = resources.OfType<ContainerAppManagedEnvironment>().First();
-                containerEnvironment.WorkloadProfiles.Clear();
+                //containerEnvironment.WorkloadProfiles.Clear();
                 //containerEnvironment.WorkloadProfiles.Add(new ContainerAppWorkloadProfile
                 //{
                 //    Name = "Consumption",

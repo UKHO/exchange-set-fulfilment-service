@@ -64,6 +64,12 @@ resource efs_cae 'Microsoft.App/managedEnvironments@2024-03-01' = {
       internal: true
       infrastructureSubnetId: '/subscriptions/${subnetSubscription}/resourceGroups/${subnetResourceGroup}/providers/Microsoft.Network/virtualNetworks/${subnetVnet}/subnets/${subnetName}'
     }
+    workloadProfiles: [
+      {
+        name: 'consumption'
+        workloadProfileType: 'Consumption'
+      }
+    ]
   }
   tags: tags
 }
