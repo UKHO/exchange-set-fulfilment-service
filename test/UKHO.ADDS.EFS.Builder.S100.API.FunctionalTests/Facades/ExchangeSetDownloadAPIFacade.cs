@@ -38,7 +38,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Facades
             await using var zipStream = await zipResponse.Content.ReadAsStreamAsync();
 
             var projectDirectory = AppContext.BaseDirectory;
-            var destinationFilePath = Path.Combine(projectDirectory, "out", $"{exchangeSetName}_{correlationID}.zip");
+            var destinationFilePath = Path.Combine(TestConfiguration.ProjectDirectory, "out", $"{exchangeSetName}_{correlationID}.zip");
 
             // Ensure the directory exists
             var destinationDirectory = Path.GetDirectoryName(destinationFilePath);
