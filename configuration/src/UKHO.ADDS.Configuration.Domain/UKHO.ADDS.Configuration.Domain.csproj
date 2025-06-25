@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>UKHO.ADDS.Configuration</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="UKHO.ADDS.Configuration" />
+    <InternalsVisibleTo Include="UKHO.ADDS.Configuration.Aspire" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Azure.Data.Tables" Version="9.3.1" />
+    <PackageReference Include="Aspire.Azure.Storage.Queues" Version="9.3.1" />
+    <PackageReference Include="Aspire.Azure.Storage.Blobs" Version="9.3.1" />
+    <PackageReference Include="AzureKeyVaultEmulator.Client" Version="2.3.0" />
+
+  </ItemGroup>
+
+</Project>

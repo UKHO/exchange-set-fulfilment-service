@@ -57,9 +57,12 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 var factory = provider.GetRequiredService<ISalesCatalogueClientFactory>();
                 var secretClient = provider.GetRequiredService<SecretClient>();
 
-                var scsEndpoint = secretClient.GetSecret(OrchestratorConfigurationKeys.SalesCatalogueEndpoint).Value!;
+                // TODO Replace with configuration
 
-                return factory.CreateClient(scsEndpoint.Value.RemoveControlCharacters(), string.Empty);
+                var scsEndpoint = "blah";//secretClient.GetSecret(OrchestratorConfigurationKeys.SalesCatalogueEndpoint).Value!;
+
+                //return factory.CreateClient(scsEndpoint.Value.RemoveControlCharacters(), string.Empty);
+                return factory.CreateClient("http://localhost", string.Empty);
             });
             
             builder.Services.AddSingleton<IFileShareReadWriteClientFactory>(provider =>
@@ -70,9 +73,12 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 var factory = provider.GetRequiredService<IFileShareReadWriteClientFactory>();
                 var secretClient = provider.GetRequiredService<SecretClient>();
 
-                var fssEndpointOrchestratorHost = secretClient.GetSecret(OrchestratorConfigurationKeys.FileShareOrchestratorEndpoint).Value!;
+                // TODO Replace with configuration
 
-                return factory.CreateClient(fssEndpointOrchestratorHost.Value.RemoveControlCharacters(), string.Empty);
+                //var fssEndpointOrchestratorHost = secretClient.GetSecret(OrchestratorConfigurationKeys.FileShareOrchestratorEndpoint).Value!;
+
+                //return factory.CreateClient(fssEndpointOrchestratorHost.Value.RemoveControlCharacters(), string.Empty);
+                return factory.CreateClient("http://localhost", string.Empty);
             });
 
             builder.Services.AddSingleton<ISalesCatalogueService, SalesCatalogueService>();

@@ -34,19 +34,21 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             _loggerFactory = loggerFactory;
             _logger = loggerFactory.CreateLogger<BuilderDispatcherService>();
 
-            var fileShareEndpointSecret = secretClient.GetSecret(OrchestratorConfigurationKeys.FileShareBuilderEndpoint)!;
-            var builderServiceEndpointSecret = secretClient.GetSecret(OrchestratorConfigurationKeys.OrchestratorServiceEndpoint)!;
-            var workspaceAuthenticationKeySecret = secretClient.GetSecret(OrchestratorConfigurationKeys.WorkspaceKey)!;
+            // TODO Replace with configuration
 
-            var builderServiceContainerEndpoint = new UriBuilder(builderServiceEndpointSecret.Value.Value) { Host = "host.docker.internal" }.ToString();
+            //var fileShareEndpointSecret = secretClient.GetSecret(OrchestratorConfigurationKeys.FileShareBuilderEndpoint)!;
+            //var builderServiceEndpointSecret = secretClient.GetSecret(OrchestratorConfigurationKeys.OrchestratorServiceEndpoint)!;
+            //var workspaceAuthenticationKeySecret = secretClient.GetSecret(OrchestratorConfigurationKeys.WorkspaceKey)!;
 
-            var otlpEndpoint = configuration[GlobalEnvironmentVariables.OtlpEndpoint]!;
-            var otlpContainerEndpoint = new UriBuilder(otlpEndpoint) { Host = "host.docker.internal" }.ToString();
+            //var builderServiceContainerEndpoint = new UriBuilder(builderServiceEndpointSecret.Value.Value) { Host = "host.docker.internal" }.ToString();
 
-            var maxConcurrentBuilders = configuration.GetValue<int>("Builders:MaximumConcurrentBuilders");
-            _concurrencyLimiter = new SemaphoreSlim(maxConcurrentBuilders, maxConcurrentBuilders);
+            //var otlpEndpoint = configuration[GlobalEnvironmentVariables.OtlpEndpoint]!;
+            //var otlpContainerEndpoint = new UriBuilder(otlpEndpoint) { Host = "host.docker.internal" }.ToString();
 
-            _containerService = new BuilderContainerService(workspaceAuthenticationKeySecret.Value.Value, fileShareEndpointSecret.Value.Value, builderServiceContainerEndpoint, otlpContainerEndpoint, loggerFactory);
+            //var maxConcurrentBuilders = configuration.GetValue<int>("Builders:MaximumConcurrentBuilders");
+            //_concurrencyLimiter = new SemaphoreSlim(maxConcurrentBuilders, maxConcurrentBuilders);
+
+            //_containerService = new BuilderContainerService(workspaceAuthenticationKeySecret.Value.Value, fileShareEndpointSecret.Value.Value, builderServiceContainerEndpoint, otlpContainerEndpoint, loggerFactory);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)

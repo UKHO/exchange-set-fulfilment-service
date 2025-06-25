@@ -6,6 +6,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Projects;
 using Serilog;
+using UKHO.ADDS.Configuration.Aspire;
+using UKHO.ADDS.Configuration.Schema;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.LocalHost.Extensions;
@@ -38,6 +40,9 @@ namespace UKHO.ADDS.EFS.LocalHost
             var mockService = builder.AddProject<UKHO_ADDS_Mocks_EFS>(ContainerConfiguration.MockContainerName)
                 .WithDashboard("Dashboard");
 
+            // Configuration
+            var configurationService = builder.AddConfiguration("config.json");
+
             // Key vault
             var keyVault = builder.AddAzureKeyVaultEmulator(ContainerConfiguration.KeyVaultContainerName,
                 new KeyVaultEmulatorOptions
@@ -47,6 +52,7 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             // Orchestrator
             var orchestratorService = builder.AddProject<UKHO_ADDS_EFS_Orchestrator>(ContainerConfiguration.OrchestratorContainerName)
+                .WithConfiguration(configurationService)
                 .WithReference(storageQueue)
                 .WaitFor(storageQueue)
                 .WithReference(storageTable)
