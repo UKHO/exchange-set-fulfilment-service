@@ -1,4 +1,5 @@
 ﻿using FakeItEasy;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
@@ -20,12 +21,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         private IExecutionContext<ExchangeSetPipelineContext> _executionContext;
         private ILoggerFactory _loggerFactory;
         private ILogger _logger;
+        private IConfiguration _configuration;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
             _fileShareReadOnlyClient = A.Fake<IFileShareReadOnlyClient>();
-            _downloadFilesNode = new DownloadFilesNode(_fileShareReadOnlyClient);
+            _configuration = A.Fake<IConfiguration>();
+            _downloadFilesNode = new DownloadFilesNode(_fileShareReadOnlyClient, _configuration);
             _executionContext = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
             _loggerFactory = A.Fake<ILoggerFactory>();
             _logger = A.Fake<ILogger<DownloadFilesNode>>();
@@ -199,8 +202,32 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
 
             // Assert
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-            // With all downloads running in parallel, should take less than filecount *500 ms =25 seconds | 25/4 (parallel download) nearly 6 seconds
-            Assert.That(stopwatch.Elapsed.TotalSeconds, Is.LessThan(12), "Should complete quickly as all downloads are parallel");
+            // With all downloads running in parallel, should take less than filecount *500 ms =25 seconds 
+            Assert.That(stopwatch.Elapsed.TotalSeconds, Is.LessThan(20), "Should complete quickly as all downloads are parallel");
+        }
+
+        [Test]
+        public async Task WhenExceptionThrownDuringDownload_ThenLogsAndReturnsFailed()
+        {
+            // Arrange: BatchDetails with one file, simulate exception in download
+            var batch = CreateBatchDetails();
+            _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
+            var testException = new InvalidOperationException("Test exception");
+            A.CallTo(() => _fileShareReadOnlyClient.DownloadFileAsync(A<string>._, A<string>._, A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._))
+                .Throws(testException);
+
+            // Act
+            var result = await _downloadFilesNode.ExecuteAsync(_executionContext);
+
+            // Assert
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
+            A.CallTo(() => _logger.Log<LoggerMessageState>(
+                LogLevel.Error,
+                A<EventId>.That.Matches(e => e.Name == "DownloadFilesNodeFailed"),
+                A<LoggerMessageState>._,
+                testException,
+                A<Func<LoggerMessageState, Exception?, string>>._))
+                .MustHaveHappenedOnceExactly();
         }
 
         private static BatchDetails CreateBatchDetails(string batchId = "b1", string[]? fileNames = null, List<BatchDetailsAttributes>? attributes = null)

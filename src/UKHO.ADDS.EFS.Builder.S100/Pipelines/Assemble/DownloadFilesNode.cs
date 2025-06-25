@@ -11,6 +11,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
     internal class DownloadFilesNode : ExchangeSetPipelineNode
     {
         private readonly IFileShareReadOnlyClient _fileShareReadOnlyClient;
+        private readonly IConfiguration _configuration;
         private ILogger _logger;
 
         private const long FileSizeInBytes = 10485760;
@@ -25,11 +26,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private const int NumericPartStartIndex = 1;  // Skip the period
         private const int MinNumericValue = 000;
         private const int MaxNumericValue = 999;
-        private const int MaxConcurrentDownloads = 4;  // Limit to 4 concurrent downloads
+        private int MaxConcurrentDownloads => int.TryParse(_configuration["ConcurrentDownloadLimitCount"], out var value) ? value : 4;
 
-        public DownloadFilesNode(IFileShareReadOnlyClient fileShareReadOnlyClient)
+        public DownloadFilesNode(IFileShareReadOnlyClient fileShareReadOnlyClient, IConfiguration configuration)
         {
             _fileShareReadOnlyClient = fileShareReadOnlyClient ?? throw new ArgumentNullException(nameof(fileShareReadOnlyClient));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)

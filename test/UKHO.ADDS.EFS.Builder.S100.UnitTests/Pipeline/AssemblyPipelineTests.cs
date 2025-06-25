@@ -1,5 +1,6 @@
 ﻿using FakeItEasy;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
@@ -22,7 +23,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
         private IExecutionContext<ExchangeSetPipelineContext> _executionContext;
         private ExchangeSetPipelineContext _pipelineContext;
         private INodeStatusWriter _nodeStatusWriter;
-
+        private IConfiguration _fakeConfiguration;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
@@ -32,13 +33,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
             _logger = A.Fake<ILogger<AssemblyPipeline>>();
             _executionContext = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
             _nodeStatusWriter = A.Fake<INodeStatusWriter>();
-
+            _fakeConfiguration = A.Fake<IConfiguration>();
         }
 
         [SetUp]
         public void SetUp()
         {
-            _pipelineContext = new ExchangeSetPipelineContext(null, _nodeStatusWriter, null, _loggerFactory)
+            _pipelineContext = new ExchangeSetPipelineContext(_fakeConfiguration, _nodeStatusWriter, null, _loggerFactory)
             {
                 Job = new ExchangeSetJob
                 {
@@ -55,7 +56,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
         public void WhenReadOnlyClientNull_ThenThrowsArgumentNullException()
         {
             Assert.Throws<ArgumentNullException>(() =>
-                new AssemblyPipeline(null));
+                new AssemblyPipeline(null, _fakeConfiguration));
+        }
+
+        [Test]
+        public void WhenConfigurationNull_ThenThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() =>
+                new AssemblyPipeline(_fakeReadOnlyClient, null));
         }
 
         [Test]
@@ -74,7 +82,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
             A.CallTo(() => _fakeReadOnlyClient.DownloadFileAsync(A<string>._, A<string>._, A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._))
                 .Returns(Task.FromResult(fakeResult));
 
-            var pipeline = new AssemblyPipeline(_fakeReadOnlyClient);
+            var pipeline = new AssemblyPipeline(_fakeReadOnlyClient, _fakeConfiguration);
 
             var result = await pipeline.ExecutePipeline(_pipelineContext);
 
@@ -95,7 +103,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
 
             var ex = new InvalidOperationException("Test exception");
 
-            var throwingPipeline = new ThrowingAssemblyPipeline(_fakeReadOnlyClient, ex);
+            var throwingPipeline = new ThrowingAssemblyPipeline(_fakeReadOnlyClient, _fakeConfiguration, ex);
 
             Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
@@ -155,8 +163,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
 
             public ThrowingAssemblyPipeline(
                 IFileShareReadOnlyClient readOnlyClient,
+                IConfiguration configuration,
                 Exception exceptionToThrow)
-                : base(readOnlyClient)
+                : base(readOnlyClient, configuration)
             {
                 _exceptionToThrow = exceptionToThrow;
             }

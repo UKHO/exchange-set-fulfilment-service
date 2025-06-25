@@ -7,10 +7,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
     internal class AssemblyPipeline : IBuilderPipeline<ExchangeSetPipelineContext>
     {
         private readonly IFileShareReadOnlyClient _fileShareReadOnlyClient;
+        private readonly IConfiguration _configuration;
 
-        public AssemblyPipeline(IFileShareReadOnlyClient fileShareReadOnlyClient)
+        public AssemblyPipeline(IFileShareReadOnlyClient fileShareReadOnlyClient, IConfiguration configuration)
         {
             _fileShareReadOnlyClient = fileShareReadOnlyClient ?? throw new ArgumentNullException(nameof(fileShareReadOnlyClient));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         public async Task<NodeResult> ExecutePipeline(ExchangeSetPipelineContext context)
@@ -18,7 +20,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
             var pipeline = new PipelineNode<ExchangeSetPipelineContext>();
             
             pipeline.AddChild(new ProductSearchNode(_fileShareReadOnlyClient));
-            pipeline.AddChild(new DownloadFilesNode(_fileShareReadOnlyClient));
+            pipeline.AddChild(new DownloadFilesNode(_fileShareReadOnlyClient,_configuration));
 
             var result = await pipeline.ExecuteAsync(context);
 
