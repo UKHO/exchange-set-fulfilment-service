@@ -1,8 +1,6 @@
 @description('The location for the resource(s) to be deployed.')
 param location string = resourceGroup().location
 
-//param efs_cae_outputs_azure_container_apps_environment_default_domain string
-
 param efs_cae_outputs_azure_container_apps_environment_id string
 
 param efs_cae_outputs_azure_container_registry_endpoint string
