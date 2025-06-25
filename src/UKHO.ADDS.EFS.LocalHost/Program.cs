@@ -1,8 +1,8 @@
-using Aspire.Hosting.Azure;
 using Azure.Core;
 using Azure.Provisioning;
 using Azure.Provisioning.AppContainers;
 using Azure.Provisioning.Storage;
+using Azure.ResourceManager.Network;
 using Azure.Security.KeyVault.Secrets;
 using AzureKeyVaultEmulator.Aspire.Client;
 using AzureKeyVaultEmulator.Aspire.Hosting;
@@ -14,7 +14,6 @@ using Serilog;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.LocalHost.Extensions;
-using Aspire.Hosting.ApplicationModel;
 
 namespace UKHO.ADDS.EFS.LocalHost
 {
@@ -34,19 +33,23 @@ namespace UKHO.ADDS.EFS.LocalHost
             var buildOnStartup = builder.Configuration.GetValue<bool>("Containers:BuildOnStartup");
 
             // Create id for existing subnet
-            var subnetSubscription = builder.AddParameter("subnetSubscription").Resource.Value;
-            var subnetResourceGroup = builder.AddParameter("subnetResourceGroup").Resource.Value;
-            var subnetVnet = builder.AddParameter("subnetVnet").Resource.Value;
-            var subnetName = builder.AddParameter("subnetName").Resource.Value;
-            var subnetId = new ResourceIdentifier($"/subscriptions/{subnetSubscription}/resourceGroups/{subnetResourceGroup}/providers/Microsoft.Network/virtualNetworks/{subnetVnet}/subnets/{subnetName}");
+            var subnetSubscription = builder.AddParameter("subnetSubscription");
+            var subnetResourceGroup = builder.AddParameter("subnetResourceGroup");
+            var subnetVnet = builder.AddParameter("subnetVnet");
+            var subnetName = builder.AddParameter("subnetName");
+            var subnetId = SubnetResource.CreateResourceIdentifier("${subnetSubscription}", "${subnetResourceGroup}", "${subnetVnet}", "${subnetName}");
 
             // Container apps environment
-            var acaEnv = builder.AddAzureContainerAppEnvironment(ContainerConfiguration.AcaEnvironmentName);
+            var acaEnv = builder.AddAzureContainerAppEnvironment(ContainerConfiguration.AcaEnvironmentName)
+                .WithParameter("subnetSubscription", subnetSubscription)
+                .WithParameter("subnetResourceGroup", subnetResourceGroup)
+                .WithParameter("subnetVnet", subnetVnet)
+                .WithParameter("subnetName", subnetName);
             acaEnv.ConfigureInfrastructure(config =>
             {
                 var resources = config.GetProvisionableResources();
                 var containerEnvironment = resources.OfType<ContainerAppManagedEnvironment>().First();
-                //containerEnvironment.WorkloadProfiles.Clear();
+                containerEnvironment.WorkloadProfiles.Clear();
                 //containerEnvironment.WorkloadProfiles.Add(new ContainerAppWorkloadProfile
                 //{
                 //    Name = "Consumption",
@@ -54,7 +57,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                 //});
                 containerEnvironment.VnetConfiguration = new ContainerAppVnetConfiguration
                 {
-                    InfrastructureSubnetId = subnetId,
+                    InfrastructureSubnetId = new BicepValue<ResourceIdentifier>(subnetId),
                     IsInternal = true
                 };
                 containerEnvironment.Tags.Add("hidden-title", "EFS CAE");
@@ -84,6 +87,15 @@ namespace UKHO.ADDS.EFS.LocalHost
             //            TargetPort = 8080,
             //            Transport = new BicepValue<ContainerAppIngressTransportMethod>("http")
             //        };
+            //        y.Template.Scale.Rules.Add(new ContainerAppScaleRule
+            //        {
+            //            Name = "queue-rule",
+            //            AzureQueue = new ContainerAppQueueScaleRule
+            //            {
+            //                QueueName = StorageConfiguration.RequestQueueName,
+            //                QueueLength = 1
+            //            }
+            //        });
             //    })
             //    .WithExternalHttpEndpoints();
 

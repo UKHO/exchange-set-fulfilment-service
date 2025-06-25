@@ -32,6 +32,10 @@ module efs_cae 'efs-cae/efs-cae.module.bicep' = {
   scope: rg
   params: {
     location: location
+    subnetName: subnetName
+    subnetResourceGroup: subnetResourceGroup
+    subnetSubscription: subnetSubscription
+    subnetVnet: subnetVnet
     userPrincipalId: principalId
   }
 }

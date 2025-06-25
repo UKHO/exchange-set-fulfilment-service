@@ -5,6 +5,14 @@ param userPrincipalId string
 
 param tags object = { }
 
+param subnetSubscription string
+
+param subnetResourceGroup string
+
+param subnetVnet string
+
+param subnetName string
+
 resource efs_cae_mi 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: take('efs_cae_mi-${uniqueString(resourceGroup().id)}', 128)
   location: location
@@ -54,14 +62,8 @@ resource efs_cae 'Microsoft.App/managedEnvironments@2024-03-01' = {
     }
     vnetConfiguration: {
       internal: true
-      infrastructureSubnetId: '/subscriptions/ac1ac25d-6c09-4d38-bbae-ffc1cd3c5ebf/resourceGroups/network-rg/providers/Microsoft.Network/virtualNetworks/hb-vnet/subnets/efs-aca'
+      infrastructureSubnetId: '/subscriptions/\${subnetSubscription}/resourceGroups/\${subnetResourceGroup}/providers/Microsoft.Network/virtualNetworks/\${subnetVnet}/subnets/\${subnetName}'
     }
-    workloadProfiles: [
-      {
-        name: 'consumption'
-        workloadProfileType: 'Consumption'
-      }
-    ]
   }
   tags: tags
 }
