@@ -150,6 +150,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             string correlationId)
         {
             var semaphore = new SemaphoreSlim(MaxConcurrentDownloads);
+            var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<Stream>(_logger, "GetDirectoryPathForFile");
+
             return allFilesToProcess.Select(async item =>
             {
                 await semaphore.WaitAsync();
@@ -163,7 +165,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                     var downloadPath = Path.Combine(directoryPath, item.FileName);
 
                     await using var outputFileStream = new FileStream(downloadPath, FileMode.Create, FileAccess.Write);
-                    var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<Stream>(_logger, "GetDirectoryPathForFile");
 
                     var streamResult = await retryPolicy.ExecuteAsync(() =>
                         _fileShareReadOnlyClient.DownloadFileAsync(
