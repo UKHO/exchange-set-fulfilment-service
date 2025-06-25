@@ -3,8 +3,8 @@ using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
 using UKHO.ADDS.EFS.Orchestrator.Logging;
-using UKHO.ADDS.Infrastructure.Results;
 using UKHO.ADDS.EFS.RetryPolicy;
+using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services
 {
@@ -111,7 +111,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         /// </returns>
         public async Task<IResult<SetExpiryDateResponse>> SetExpiryDateAsync(List<BatchDetails> otherBatches, string correlationId, CancellationToken cancellationToken)
         {
-            // Filter valid batches before processing
             var validBatches = otherBatches.Where(b => !string.IsNullOrEmpty(b.BatchId)).ToList();
 
             if (validBatches.Count == 0)
@@ -121,9 +120,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
             IResult<SetExpiryDateResponse> lastResult = Result.Success(new SetExpiryDateResponse());
 
+            var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<SetExpiryDateResponse>(_logger, nameof(SetExpiryDateAsync));
+
             foreach (var batch in validBatches)
             {
-                var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<SetExpiryDateResponse>(_logger, nameof(SetExpiryDateAsync));
                 var expiryResult = await retryPolicy.ExecuteAsync(() =>
                     _fileShareReadWriteClient.SetExpiryDateAsync(batch.BatchId, new BatchExpiryModel { ExpiryDate = DateTime.UtcNow }, correlationId, cancellationToken));
 
