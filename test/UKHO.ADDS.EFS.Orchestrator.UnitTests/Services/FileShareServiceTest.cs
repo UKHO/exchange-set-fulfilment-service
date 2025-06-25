@@ -1,4 +1,5 @@
 ﻿using FakeItEasy;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
@@ -6,6 +7,7 @@ using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Services;
+using UKHO.ADDS.EFS.RetryPolicy;
 using UKHO.ADDS.Infrastructure.Results;
 using Error = UKHO.ADDS.Infrastructure.Results.Error;
 
@@ -17,17 +19,25 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         private IFileShareReadWriteClient _fakeFileShareReadWriteClient;
         private FileShareService _fileShareService;
         private ILogger<FileShareService> _logger;
+        private IConfiguration _configuration;
+
         private const string CorrelationId = "TestCorrelationId";
         private const string BatchId = "TestBatchId";
+        private const int TestRetryDelayMs = 2000;
 
         [SetUp]
         public void SetUp()
         {
             _fakeFileShareReadWriteClient = A.Fake<IFileShareReadWriteClient>();
             _logger = A.Fake<ILogger<FileShareService>>();
+            _configuration = A.Fake<IConfiguration>();
+
+            A.CallTo(() => _configuration["HttpRetry:RetryDelayInMilliseconds"]).Returns(TestRetryDelayMs.ToString());
+            HttpRetryPolicyFactory.SetConfiguration(_configuration);
+            
             _fileShareService = new FileShareService(_fakeFileShareReadWriteClient, _logger);
         }
-
+        
         [Test]
         public void WhenConstructorIsCalledWithNullLogger_ThenThrowsArgumentNullException()
         {
@@ -276,6 +286,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         public async Task WhenCreateBatchAsyncFailsWithRetriableStatusCode_ThenRetriesExpectedNumberOfTimes()
         {
             int callCount = 0;
+            var startTime = DateTime.UtcNow;
+            
             A.CallTo(() => _fakeFileShareReadWriteClient.CreateBatchAsync(A<BatchModel>._, CorrelationId, CancellationToken.None))
                 .ReturnsLazily(() =>
                 {
@@ -286,11 +298,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
                 });
 
             var result = await _fileShareService.CreateBatchAsync(CorrelationId, CancellationToken.None);
+            var elapsedMilliseconds = (DateTime.UtcNow - startTime).TotalMilliseconds;
 
             Assert.Multiple(() =>
                 {
                     Assert.That(callCount, Is.EqualTo(4), "Should retry 3 times plus the initial call (total 4)");
                     Assert.That(result.IsFailure(out _, out _), Is.True);
+                    Assert.That(elapsedMilliseconds, Is.GreaterThan(TestRetryDelayMs), 
+                        $"Retry delay should reflect TestRetryDelayMs of {TestRetryDelayMs}ms");
                 });
         }
 
@@ -298,6 +313,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         public async Task WhenCreateBatchAsyncFailsWithNonRetriableStatusCode_ThenDoesNotRetry()
         {
             int callCount = 0;
+            var startTime = DateTime.UtcNow;
+            
             A.CallTo(() => _fakeFileShareReadWriteClient.CreateBatchAsync(A<BatchModel>._, CorrelationId, CancellationToken.None))
                 .ReturnsLazily(() =>
                 {
@@ -308,11 +325,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
                 });
 
             var result = await _fileShareService.CreateBatchAsync(CorrelationId, CancellationToken.None);
+            var elapsedMilliseconds = (DateTime.UtcNow - startTime).TotalMilliseconds;
 
             Assert.Multiple(() =>
                 {
                     Assert.That(callCount, Is.EqualTo(1), "Should not retry for non-retriable status codes");
                     Assert.That(result.IsFailure(out _, out _), Is.True);
+                    Assert.That(elapsedMilliseconds, Is.LessThan(TestRetryDelayMs), 
+                        "Non-retryable errors should complete quickly without delay");
                 });
         }
 
@@ -320,6 +340,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         public async Task WhenCommitBatchAsyncFailsWithRetriableStatusCode_ThenRetriesExpectedNumberOfTimes()
         {
             int callCount = 0;
+            var startTime = DateTime.UtcNow;
+            
             A.CallTo(() => _fakeFileShareReadWriteClient.CommitBatchAsync(A<BatchHandle>._, CorrelationId, CancellationToken.None))
                 .ReturnsLazily(() =>
                 {
@@ -330,11 +352,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
                 });
 
             var result = await _fileShareService.CommitBatchAsync(BatchId, CorrelationId, CancellationToken.None);
+            var elapsedMilliseconds = (DateTime.UtcNow - startTime).TotalMilliseconds;
 
             Assert.Multiple(() =>
                 {
                     Assert.That(callCount, Is.EqualTo(4), "Should retry 3 times plus the initial call (total 4)");
                     Assert.That(result.IsFailure(out _, out _), Is.True);
+                    Assert.That(elapsedMilliseconds, Is.GreaterThan(TestRetryDelayMs), 
+                        $"Retry delay should reflect TestRetryDelayMs of {TestRetryDelayMs}ms");
                 });
         }
 
@@ -342,6 +367,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         public async Task WhenSearchCommittedBatchesExcludingCurrentAsyncFailsWithRetriableStatusCode_ThenRetriesExpectedNumberOfTimes()
         {
             int callCount = 0;
+            var startTime = DateTime.UtcNow;
+            
             A.CallTo(() => _fakeFileShareReadWriteClient.SearchAsync(A<string>._, A<int>._, A<int>._, CorrelationId, CancellationToken.None))
                 .ReturnsLazily(() =>
                 {
@@ -352,11 +379,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
                 });
 
             var result = await _fileShareService.SearchCommittedBatchesExcludingCurrentAsync(BatchId, CorrelationId, CancellationToken.None);
+            var elapsedMilliseconds = (DateTime.UtcNow - startTime).TotalMilliseconds;
 
             Assert.Multiple(() =>
                 {
                     Assert.That(callCount, Is.EqualTo(4), "Should retry 3 times plus the initial call (total 4)");
                     Assert.That(result.IsFailure(out _, out _), Is.True);
+                    Assert.That(elapsedMilliseconds, Is.GreaterThan(TestRetryDelayMs), 
+                        $"Retry delay should reflect TestRetryDelayMs of {TestRetryDelayMs}ms");
                 });
         }
 
@@ -364,7 +394,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         public async Task WhenSetExpiryDateAsyncFailsWithRetriableStatusCode_ThenRetriesExpectedNumberOfTimes()
         {
             int callCount = 0;
+            var startTime = DateTime.UtcNow;
             var batches = CreateBatchDetailsList();
+            
             A.CallTo(() => _fakeFileShareReadWriteClient.SetExpiryDateAsync(A<string>._, A<BatchExpiryModel>._, CorrelationId, CancellationToken.None))
                 .ReturnsLazily(() =>
                 {
@@ -375,11 +407,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
                 });
 
             var result = await _fileShareService.SetExpiryDateAsync(batches, CorrelationId, CancellationToken.None);
+            var elapsedMilliseconds = (DateTime.UtcNow - startTime).TotalMilliseconds;
 
             Assert.Multiple(() =>
                 {
                     Assert.That(callCount, Is.EqualTo(4), "Should retry 3 times plus the initial call (total 4)");
                     Assert.That(result.IsFailure(out _, out _), Is.True);
+                    Assert.That(elapsedMilliseconds, Is.GreaterThan(TestRetryDelayMs), 
+                        $"Retry delay should reflect TestRetryDelayMs of {TestRetryDelayMs}ms");
                 });
         }
 
@@ -388,6 +423,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         {
             int callCount1 = 0;
             int callCount2 = 0;
+            var startTime = DateTime.UtcNow;
             var batches = CreateBatchDetailsList();
 
             A.CallTo(() => _fakeFileShareReadWriteClient.SetExpiryDateAsync("Batch1", A<BatchExpiryModel>._, CorrelationId, CancellationToken.None))
@@ -409,12 +445,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
                 });
 
             var result = await _fileShareService.SetExpiryDateAsync(batches, CorrelationId, CancellationToken.None);
+            var elapsedMilliseconds = (DateTime.UtcNow - startTime).TotalMilliseconds;
 
             Assert.Multiple(() =>
             {
                 Assert.That(callCount1, Is.EqualTo(1), "First batch should succeed without retries");
                 Assert.That(callCount2, Is.EqualTo(4), "Second batch should retry 3 times plus the initial call (total 4)");
                 Assert.That(result.IsFailure(out _, out _), Is.True);
+                Assert.That(elapsedMilliseconds, Is.GreaterThan(TestRetryDelayMs), 
+                    $"Retry delay should reflect TestRetryDelayMs of {TestRetryDelayMs}ms");
             });
         }
 
@@ -425,6 +464,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
                 new() { BatchId = "Batch1" },
                 new() { BatchId = "Batch2" }
             };
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            HttpRetryPolicyFactory.SetConfiguration(null);
         }
     }
 }

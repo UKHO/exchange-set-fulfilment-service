@@ -1,4 +1,5 @@
 ﻿using FakeItEasy;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
@@ -20,7 +21,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         private IExecutionContext<ExchangeSetPipelineContext> _executionContext;
         private ILoggerFactory _loggerFactory;
         private ILogger _logger;
+        private IConfiguration _configuration;
         private string _tempFilePath;
+
+        private const int TestRetryDelayMs = 2000;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
@@ -35,6 +39,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         [SetUp]
         public void SetUp()
         {
+            _configuration = A.Fake<IConfiguration>();
+            A.CallTo(() => _configuration["HttpRetry:RetryDelayInMilliseconds"]).Returns(TestRetryDelayMs.ToString());
+            UKHO.ADDS.EFS.RetryPolicy.HttpRetryPolicyFactory.SetConfiguration(_configuration);
+
             string tempPath = Path.GetTempPath();
             var context = new ExchangeSetPipelineContext(null, null, null, _loggerFactory)
             {
@@ -189,6 +197,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         [TearDown]
         public void TearDown()
         {
+            UKHO.ADDS.EFS.RetryPolicy.HttpRetryPolicyFactory.SetConfiguration(null);
+
             if (!string.IsNullOrEmpty(_tempFilePath) && File.Exists(_tempFilePath))
             {
                 File.Delete(_tempFilePath);

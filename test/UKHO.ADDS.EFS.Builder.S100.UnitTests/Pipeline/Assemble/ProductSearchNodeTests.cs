@@ -1,4 +1,5 @@
 ﻿using FakeItEasy;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
@@ -21,6 +22,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         private ProductSearchNode _productSearchNode;
         private ILoggerFactory _loggerFactory;
         private ILogger _logger;
+        private IConfiguration _configuration;
+
+        private const int TestRetryDelayMs = 2000;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
@@ -51,6 +55,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
             A.CallTo(() => _executionContext.Subject).Returns(exchangeSetPipelineContext);
             A.CallTo(() => _loggerFactory.CreateLogger(typeof(ProductSearchNode).FullName!)).Returns(_logger);
 
+            _configuration = A.Fake<IConfiguration>();
+            A.CallTo(() => _configuration["HttpRetry:RetryDelayInMilliseconds"]).Returns(TestRetryDelayMs.ToString());
+            UKHO.ADDS.EFS.RetryPolicy.HttpRetryPolicyFactory.SetConfiguration(_configuration);
         }
 
         [Test]
@@ -203,6 +210,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         public void OneTimeTearDown()
         {
             _loggerFactory?.Dispose();
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            UKHO.ADDS.EFS.RetryPolicy.HttpRetryPolicyFactory.SetConfiguration(null);
         }
     }
 }

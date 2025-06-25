@@ -12,6 +12,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Infrastructure
     {
         private ILogger _logger;
         private IConfiguration _configuration;
+
         private const string METHOD_NAME = "TestMethod";
 
         [SetUp]
@@ -19,9 +20,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Infrastructure
         {
             _logger = A.Fake<ILogger>();
             _configuration = A.Fake<IConfiguration>();
-            HttpRetryPolicyFactory.SetConfiguration(null);
+            A.CallTo(() => _configuration["HttpRetry:RetryDelayInMilliseconds"]).Returns("2000");
+            HttpRetryPolicyFactory.SetConfiguration(_configuration);
         }
-
+        
         [Test]
         public async Task WhenHttpRequestExceptionThrown_ThenRetriesExpectedNumberOfTimes()
         {
@@ -159,6 +161,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Infrastructure
                 return Task.FromResult("test");
             });
             Assert.That(callCount, Is.EqualTo(1));
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            HttpRetryPolicyFactory.SetConfiguration(null);
         }
     }
 }
