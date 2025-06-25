@@ -107,29 +107,39 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.scs.ResponseGenerator
         {
             var editionNumber = _random.Next(1, 15);
             var fileSize = _random.Next(2000, 15000);
+            var baseDate = DateTime.UtcNow;
 
-            // Always include base update (0)
             var updateNumbersArray = new JsonArray { 0 };
             var datesArray = new JsonArray
+            {
+                new JsonObject
                 {
-                    new JsonObject
-                    {
-                        ["issueDate"] = DateTime.UtcNow.ToString("o"),
-                        ["updateApplicationDate"] = DateTime.UtcNow.ToString("o"),
-                        ["updateNumber"] = 0
-                    }
-                };
+                    ["issueDate"] = baseDate.ToString("o"),
+                    ["updateApplicationDate"] = baseDate.ToString("o"), 
+                    ["updateNumber"] = 0
+                }
+            };
 
             if (productName.StartsWith("101"))
             {
-                var updateCount = _random.Next(0, 5);
+                var currentDate = baseDate.AddDays(5);
 
-                for (var i = 1; i <= updateCount; i++)
+                updateNumbersArray.Add(1);
+                datesArray.Add(new JsonObject
+                {
+                    ["issueDate"] = currentDate.ToString("o"),
+                    ["updateNumber"] = 1
+                });
+
+                var additionalUpdateCount = _random.Next(0, 4);
+
+                for (var i = 2; i <= 1 + additionalUpdateCount; i++)
                 {
                     updateNumbersArray.Add(i);
+                    currentDate = currentDate.AddDays(5);
                     datesArray.Add(new JsonObject
                     {
-                        ["issueDate"] = DateTime.UtcNow.AddDays(-30 + i * 10).ToString("o"),
+                        ["issueDate"] = currentDate.ToString("o"),
                         ["updateNumber"] = i
                     });
                 }
