@@ -22,7 +22,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         private ILoggerFactory _loggerFactory;
         private ILogger _logger;
         private IConfiguration _configuration;
-        private const int TestRetryDelayMs = 2000;
+        private const int TestRetryDelayMs = 500;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()

@@ -20,7 +20,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Infrastructure
         {
             _logger = A.Fake<ILogger>();
             _configuration = A.Fake<IConfiguration>();
-            A.CallTo(() => _configuration["HttpRetry:RetryDelayInMilliseconds"]).Returns("2000");
+            A.CallTo(() => _configuration["HttpRetry:RetryDelayInMilliseconds"]).Returns("500");
             HttpRetryPolicyFactory.SetConfiguration(_configuration);
         }
         
