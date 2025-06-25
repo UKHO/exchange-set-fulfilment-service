@@ -12,6 +12,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
     {
         private readonly IFileShareReadOnlyClient _fileShareReadOnlyClient;
         private readonly IConfiguration _configuration;
+        private readonly int _maxConcurrentDownloads;
         private ILogger _logger;
 
         private const long FileSizeInBytes = 10485760;
@@ -26,12 +27,16 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private const int NumericPartStartIndex = 1;  // Skip the period
         private const int MinNumericValue = 000;
         private const int MaxNumericValue = 999;
-        private int MaxConcurrentDownloads => int.TryParse(_configuration["ConcurrentDownloadLimitCount"], out var value) ? value : 4;
+        private int MaxConcurrentDownloads => _maxConcurrentDownloads;
 
         public DownloadFilesNode(IFileShareReadOnlyClient fileShareReadOnlyClient, IConfiguration configuration)
         {
             _fileShareReadOnlyClient = fileShareReadOnlyClient ?? throw new ArgumentNullException(nameof(fileShareReadOnlyClient));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            if (!int.TryParse(_configuration["ConcurrentDownloadLimitCount"], out _maxConcurrentDownloads))
+            {
+                _maxConcurrentDownloads = 4;
+            }
         }
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
@@ -150,7 +155,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             string correlationId)
         {
             var semaphore = new SemaphoreSlim(MaxConcurrentDownloads);
-            var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<Stream>(_logger, "GetDirectoryPathForFile");
+            var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<Stream>(_logger, "DownloadFile");
 
             return allFilesToProcess.Select(async item =>
             {
