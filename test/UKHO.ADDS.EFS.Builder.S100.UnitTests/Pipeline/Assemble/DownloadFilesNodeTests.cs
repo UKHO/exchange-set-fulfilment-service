@@ -181,14 +181,17 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         public async Task DownloadFilesNode_AllowsParallelDownloads()
         {
             // Arrange
-            var fileCount = 50;
-            var batch = CreateBatchDetails(fileNames: Enumerable.Range(1, fileCount).Select(i => $"file{i}.txt").ToArray());
+            const int FILE_COUNT = 50;
+            const int CONCURRENCY_LIMIT = 4;
+
+            var batch = CreateBatchDetails(fileNames: Enumerable.Range(1, FILE_COUNT).Select(i => $"file{i}.txt").ToArray());
             _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
 
             var fakeResult = A.Fake<IResult<Stream>>();
             IError outError = null;
             Stream outStream = new MemoryStream();
             A.CallTo(() => fakeResult.IsFailure(out outError, out outStream)).Returns(false);
+            A.CallTo(() => _configuration["ConcurrentDownloadLimitCount"]).Returns(CONCURRENCY_LIMIT.ToString());
 
             // Simulate delay for each download to test parallelism
             A.CallTo(() => _fileShareReadOnlyClient.DownloadFileAsync(A<string>._, A<string>._, A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._))
@@ -200,10 +203,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
 
             stopwatch.Stop();
 
+            var expectedMaxDuration = (FILE_COUNT / CONCURRENCY_LIMIT) * 0.5 + 5; // added 5 seconds buffer
+
             // Assert
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-            // With all downloads running in parallel, should take less than filecount *500 ms =25 seconds 
-            Assert.That(stopwatch.Elapsed.TotalSeconds, Is.LessThan(20), "Should complete quickly as all downloads are parallel");
+            Assert.That(stopwatch.Elapsed.TotalSeconds, Is.LessThan(expectedMaxDuration), "Should complete quickly as all downloads are parallel");
         }
 
         [Test]
