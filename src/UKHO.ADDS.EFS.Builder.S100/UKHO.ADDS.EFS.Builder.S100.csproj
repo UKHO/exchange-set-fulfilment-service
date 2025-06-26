@@ -34,7 +34,7 @@
     <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.1.1" />
     <PackageReference Include="UKHO.ADDS.Clients.Common" Version="0.0.50625-alpha.3" />
     <PackageReference Include="UKHO.ADDS.Clients.FileShareService.ReadOnly" Version="0.0.50625-alpha.3" />
-    <PackageReference Include="UKHO.ADDS.Clients.FileShareService.ReadWrite" Version="0.0.50520-alpha.3" />
+    <PackageReference Include="UKHO.ADDS.Clients.FileShareService.ReadWrite" Version="0.0.50625-alpha.3" />
   </ItemGroup>
 
   <!--<ItemGroup>
