@@ -4,19 +4,8 @@ using UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Support;
 namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Helpers  {
     public class AzureTableHelpers
     {
-        private readonly TableClient _tableClient;
-        private readonly string _connectionString;
-        private readonly string _nodeStatusTable;
 
-        public AzureTableHelpers()
-        {
-            TestConfiguration testConfiguration = new TestConfiguration();
-            _connectionString = testConfiguration.AzureStorageConnectionString;
-            _nodeStatusTable = testConfiguration.NodeStatusTable;
-            _tableClient = new TableClient(_connectionString, _nodeStatusTable);
-        }
-
-        public async Task<List<TableEntity>> GetAllEntitiesAsync()
+        public async Task<List<TableEntity>> GetAllEntitiesAsync(TableClient _tableClient)
         {
             var entities = new List<TableEntity>();
             await foreach (var entity in _tableClient.QueryAsync<TableEntity>())
@@ -26,10 +15,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Helpers  {
             return entities;
         }
 
-        public async Task<List<TableEntity>> GetAllEntitiesAsync(string partitionKey)
+        public async Task<List<TableEntity>> GetAllEntitiesAsync(TableClient _tableClient, string partitionKey)
         {
             var entities = new List<TableEntity>();
-            string filter = $"PartitionKey eq '{partitionKey}'"; // Corrected filter syntax
+            string filter = $"PartitionKey eq '{partitionKey}'";
             await foreach (var entity in _tableClient.QueryAsync<TableEntity>(filter))
             {
                 entities.Add(entity);
@@ -37,14 +26,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Helpers  {
             return entities;
         }
 
-        public async Task<bool> WaitForEntityCountAsync(string partitionKey, int expectedCount, int timeoutSeconds = 60, int pollIntervalMs = 1000)
+        public async Task<bool> WaitForEntityCountAsync(TableClient _tableClient, string partitionKey, int expectedCount, int timeoutSeconds = 60, int pollIntervalMs = 1000)
         {
             var timeout = TimeSpan.FromSeconds(timeoutSeconds);
             var start = DateTime.UtcNow;
 
             while (DateTime.UtcNow - start < timeout)
             {
-                var entities = await GetAllEntitiesAsync(partitionKey);
+                var entities = await GetAllEntitiesAsync(_tableClient, partitionKey);
                 if (entities.Count >= expectedCount)
                     return true;
 
