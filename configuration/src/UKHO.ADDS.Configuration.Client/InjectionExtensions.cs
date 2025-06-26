@@ -11,8 +11,10 @@ namespace UKHO.ADDS.Configuration.Client
         {
             services.AddHttpClient(WellKnownConfigurationName.ConfigurationServiceName, (sp, client) =>
             {
+                var configurationKey = $"services:{WellKnownConfigurationName.ConfigurationServiceName}:https:0";
+
                 var configuration = sp.GetRequiredService<IConfiguration>();
-                var baseUri = configuration[$"{WellKnownConfigurationName.ConfigurationServiceName:serviceUri}"]!;
+                var baseUri = configuration[configurationKey]!;
 
                 client.BaseAddress = new Uri(baseUri);
             });

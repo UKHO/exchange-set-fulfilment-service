@@ -97,8 +97,8 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                 try
                 {
-                    //var client = app.Services.GetRequiredService<ConfigurationClient>();
-                    //await client.GetConfigurationAsync("UKHO.ADDS.EFS.Orchestrator");
+                    var client = app.Services.GetRequiredService<ConfigurationClient>();
+                    var results = await client.GetConfigurationAsync("UKHO.ADDS.EFS.Orchestrator");
                 }
                 catch (Exception ex)
                 {
