@@ -55,8 +55,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddSingleton(provider =>
             {
                 var factory = provider.GetRequiredService<ISalesCatalogueClientFactory>();
-                var secretClient = provider.GetRequiredService<SecretClient>();
-
+                
                 // TODO Replace with configuration
 
                 var scsEndpoint = "blah";//secretClient.GetSecret(OrchestratorConfigurationKeys.SalesCatalogueEndpoint).Value!;
@@ -71,8 +70,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddSingleton(provider =>
             {
                 var factory = provider.GetRequiredService<IFileShareReadWriteClientFactory>();
-                var secretClient = provider.GetRequiredService<SecretClient>();
-
+                
                 // TODO Replace with configuration
 
                 //var fssEndpointOrchestratorHost = secretClient.GetSecret(OrchestratorConfigurationKeys.FileShareOrchestratorEndpoint).Value!;

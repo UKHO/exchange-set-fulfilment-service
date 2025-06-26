@@ -1,6 +1,4 @@
 ﻿using System.Threading.Channels;
-using Azure.Security.KeyVault.Secrets;
-using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Entities;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Logging;
@@ -26,7 +24,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         // TODO Figure out how best to control this timeout
         private readonly TimeSpan _containerTimeout = TimeSpan.FromMinutes(5);
 
-        public BuilderDispatcherService(Channel<ExchangeSetRequestQueueMessage> channel, JobService jobService, SecretClient secretClient, IConfiguration configuration, ILoggerFactory loggerFactory)
+        public BuilderDispatcherService(Channel<ExchangeSetRequestQueueMessage> channel, JobService jobService, IConfiguration configuration, ILoggerFactory loggerFactory)
         {
             _channel = channel;
             _jobService = jobService;

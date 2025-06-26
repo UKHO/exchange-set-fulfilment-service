@@ -53,20 +53,22 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                 var vaultEndpoint = builder.Configuration.GetConnectionString(ContainerConfiguration.KeyVaultContainerName) ?? string.Empty;
 
-                if (builder.Environment.IsDevelopment())
-                {
-                    builder.Services.AddAzureKeyVaultEmulator(vaultEndpoint, true, certificates: false, keys: true);
-                }
-                else
-                {
-                    builder.Services.AddAzureClients(client =>
-                    {
-                        var vaultUri = new Uri(vaultEndpoint);
+                // TODO Remove
 
-                        client.AddSecretClient(vaultUri);
-                        client.AddKeyClient(vaultUri);
-                    });
-                }
+                //if (builder.Environment.IsDevelopment())
+                //{
+                //    builder.Services.AddAzureKeyVaultEmulator(vaultEndpoint, true, certificates: false, keys: true);
+                //}
+                //else
+                //{
+                //    builder.Services.AddAzureClients(client =>
+                //    {
+                //        var vaultUri = new Uri(vaultEndpoint);
+
+                //        client.AddSecretClient(vaultUri);
+                //        client.AddKeyClient(vaultUri);
+                //    });
+                //}
 
                 var app = builder.Build();
 

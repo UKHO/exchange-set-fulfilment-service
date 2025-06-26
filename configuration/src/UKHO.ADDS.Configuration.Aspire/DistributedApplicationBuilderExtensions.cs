@@ -1,5 +1,5 @@
 ﻿using AzureKeyVaultEmulator.Aspire.Hosting;
-using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Hosting;
 using Projects;
 using UKHO.ADDS.Configuration.Schema;
 
@@ -14,6 +14,18 @@ namespace UKHO.ADDS.Configuration.Aspire
             var storageTable = storage.AddTables(WellKnownConfigurationName.ConfigurationServiceTableStorageName);
             var keyVault = builder.AddAzureKeyVaultEmulator(WellKnownConfigurationName.ConfigurationServiceKeyVaultName, new KeyVaultEmulatorOptions { Persist = false });
 
+            var configFilePath = Path.GetFullPath(configJsonPath);
+
+            IResourceBuilder<ProjectResource> seederService = null!;
+
+            if (builder.Environment.IsDevelopment())
+            {
+                // Only add the seeder service in local development environment
+                seederService = builder.AddProject<ConfigurationSeeder>(WellKnownConfigurationName.ConfigurationSeederName)
+                    .WithReference(storageTable)
+                    .WithEnvironment(WellKnownConfigurationName.ConfigurationFilePath, configFilePath);
+            }
+
             var configurationService = builder.AddProject<UKHO_ADDS_Configuration>(WellKnownConfigurationName.ConfigurationServiceName)
                 .WithReference(storageTable)
                 .WaitFor(storageTable)
@@ -21,8 +33,11 @@ namespace UKHO.ADDS.Configuration.Aspire
                 .WaitFor(keyVault)
                 .WithEnvironment(WellKnownConfigurationName.AddsEnvironmentName, AddsEnvironment.Local.Value);
 
-            var configFilePath = Path.GetFullPath(configJsonPath);
-            configurationService.WithEnvironment(WellKnownConfigurationName.ConfigurationFilePath, configFilePath);
+            if (seederService != null)
+            {
+                // Make sure the seeder runs before the configuration service starts
+                configurationService.WithReference(seederService).WaitFor(seederService);
+            }
 
             return configurationService;
         }

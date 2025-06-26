@@ -1,7 +1,11 @@
 
 using AzureKeyVaultEmulator.Aspire.Client;
 using Microsoft.Extensions.Azure;
+using Radzen;
+using UKHO.ADDS.Configuration.Dashboard;
+using UKHO.ADDS.Configuration.Dashboard.Services;
 using UKHO.ADDS.Configuration.Schema;
+using UKHO.ADDS.Configuration.Services;
 
 namespace UKHO.ADDS.Configuration
 {
@@ -34,16 +38,25 @@ namespace UKHO.ADDS.Configuration
                 });
             }
 
+            builder.Services.AddSingleton<ConfigurationService>();
             builder.Services.AddSingleton<ConfigurationWriter>();
+            builder.Services.AddSingleton<ConfigurationReader>();
+
+            builder.WebHost.UseStaticWebAssets();
+
+            builder.Services.AddRazorPages();
+            builder.Services.AddRazorComponents().AddInteractiveServerComponents();
+
+            builder.Services.AddRadzenComponents();
+            builder.Services.AddRadzenQueryStringThemeService();
+
+            builder.Services.AddScoped<DashboardPageService>();
+            builder.Services.AddSingleton<DashboardService>();
+            builder.Services.AddLocalization();
 
             var app = builder.Build();
 
             var addsEnvironment = AddsEnvironment.Parse(app.Configuration[WellKnownConfigurationName.AddsEnvironmentName]!);
-
-            if (AddsEnvironment.Local.Equals(addsEnvironment))
-            {
-                await RunImportAsync(app, addsEnvironment);
-            }
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -55,35 +68,31 @@ namespace UKHO.ADDS.Configuration
 
             app.UseAuthorization();
 
-            var summaries = new[]
-            {
-                "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-            };
+            app.UseStaticFiles();
+            app.UseRouting();
+            app.UseAntiforgery();
 
-            app.MapGet("/weatherforecast", (HttpContext httpContext) =>
-            {
-                var forecast = Enumerable.Range(1, 5).Select(index =>
-                    new WeatherForecast
-                    {
-                        Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                        TemperatureC = Random.Shared.Next(-20, 55),
-                        Summary = summaries[Random.Shared.Next(summaries.Length)]
-                    })
-                    .ToArray();
-                return forecast;
-            })
-            .WithName("GetWeatherForecast");
+            app.MapRazorPages();
+            app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
-            app.Run();
-        }
+            var configurationService = app.Services.GetRequiredService<ConfigurationService>();
+            await configurationService.InitialiseAsync(addsEnvironment);
 
-        private static async Task RunImportAsync(WebApplication app, AddsEnvironment environment)
-        {
-            var configFilePath = app.Configuration[WellKnownConfigurationName.ConfigurationFilePath]!;
-            var json = await File.ReadAllTextAsync(configFilePath);
+            //app.MapGet("/weatherforecast", (HttpContext httpContext) =>
+            //{
+            //    var forecast = Enumerable.Range(1, 5).Select(index =>
+            //        new WeatherForecast
+            //        {
+            //            Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
+            //            TemperatureC = Random.Shared.Next(-20, 55),
+            //            Summary = summaries[Random.Shared.Next(summaries.Length)]
+            //        })
+            //        .ToArray();
+            //    return forecast;
+            //})
+            //.WithName("GetWeatherForecast");
 
-            var configWriter = app.Services.GetRequiredService<ConfigurationWriter>();
-            await configWriter.WriteConfigurationAsync(environment, json);
+            await app.RunAsync();
         }
     }
 }

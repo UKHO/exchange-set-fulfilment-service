@@ -2,9 +2,8 @@
 
 namespace UKHO.ADDS.Configuration.Schema
 {
-    public class ConfigurationWriter
+    internal class ConfigurationWriter
     {
-        private const string TableName = "configurations";
         private readonly TableServiceClient _tableServiceClient;
 
         public ConfigurationWriter(TableServiceClient tableServiceClient) => _tableServiceClient = tableServiceClient;
@@ -20,7 +19,7 @@ namespace UKHO.ADDS.Configuration.Schema
                 throw new InvalidOperationException($"Environment '{env}' not found in the configuration.");
             }
 
-            var tableClient = _tableServiceClient.GetTableClient(TableName);
+            var tableClient = _tableServiceClient.GetTableClient(WellKnownConfigurationName.ConfigurationServiceTableName);
             await tableClient.CreateIfNotExistsAsync();
 
             var existingEntities = new Dictionary<(string partitionKey, string rowKey), TableEntity>();
@@ -39,13 +38,7 @@ namespace UKHO.ADDS.Configuration.Schema
                 {
                     var rowKey = propertyPath;
 
-                    var entity = new TableEntity(partitionKey, rowKey)
-                    {
-                        ["Value"] = prop.JsonValue?.ToString() ?? string.Empty,
-                        ["Type"] = prop.Type ?? string.Empty,
-                        ["Required"] = prop.Required,
-                        ["Secret"] = prop.Secret
-                    };
+                    var entity = new TableEntity(partitionKey, rowKey) { ["Value"] = prop.JsonValue?.ToString() ?? string.Empty, ["Type"] = prop.Type ?? string.Empty, ["Required"] = prop.Required, ["Secret"] = prop.Secret };
 
                     desiredEntities[(partitionKey, rowKey)] = entity;
                 }

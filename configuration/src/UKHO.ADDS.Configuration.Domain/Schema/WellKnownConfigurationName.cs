@@ -8,10 +8,14 @@
 
         public const string ConfigurationServiceName = "adds-configuration";
 
+        public const string ConfigurationSeederName = "adds-configuration-seeder";
+
         public const string ConfigurationServiceKeyVaultName = "adds-configuration-kv";
 
         public const string ConfigurationServiceStorageName = "adds-configuration-was";
 
         public const string ConfigurationServiceTableStorageName = "adds-configuration-was-ts";
+
+        public const string ConfigurationServiceTableName = "configurations";
     }
 }

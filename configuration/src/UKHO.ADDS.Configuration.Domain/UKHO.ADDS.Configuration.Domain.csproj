@@ -10,6 +10,8 @@
   <ItemGroup>
     <InternalsVisibleTo Include="UKHO.ADDS.Configuration" />
     <InternalsVisibleTo Include="UKHO.ADDS.Configuration.Aspire" />
+    <InternalsVisibleTo Include="UKHO.ADDS.Configuration.Client" />
+    <InternalsVisibleTo Include="ConfigurationSeeder" />
   </ItemGroup>
 
   <ItemGroup>

@@ -2,7 +2,7 @@
 
 namespace UKHO.ADDS.Configuration.Schema
 {
-    public static class ConfigurationParser
+    internal static class ConfigurationParser
     {
         public static List<EnvironmentConfiguration> Parse(string json)
         {

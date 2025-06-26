@@ -43,13 +43,6 @@ namespace UKHO.ADDS.EFS.LocalHost
             // Configuration
             var configurationService = builder.AddConfiguration("config.json");
 
-            // Key vault
-            var keyVault = builder.AddAzureKeyVaultEmulator(ContainerConfiguration.KeyVaultContainerName,
-                new KeyVaultEmulatorOptions
-                {
-                    Persist = false
-                });
-
             // Orchestrator
             var orchestratorService = builder.AddProject<UKHO_ADDS_EFS_Orchestrator>(ContainerConfiguration.OrchestratorContainerName)
                 .WithConfiguration(configurationService)
@@ -61,28 +54,28 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WaitFor(storageBlob)
                 .WithReference(mockService)
                 .WaitFor(mockService)
-                .WithReference(keyVault)
-                .WaitFor(keyVault)
                 .WithScalar("API Browser");
 
             orchestratorService.WithEnvironment(async c =>
             {
-                var addsMockEndpoint = mockService.GetEndpoint("http");
-                var fssBuilderEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = "host.docker.internal", Path = "fss/" };
-                var fssOrchestratorEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.Host, Path = "fss/" };
-                var scsEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.Host, Path = "scs/" };
+                // TODO Remove
 
-                var orchestratorEndpoint = orchestratorService.GetEndpoint("http").Url;
+                //var addsMockEndpoint = mockService.GetEndpoint("http");
+                //var fssBuilderEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = "host.docker.internal", Path = "fss/" };
+                //var fssOrchestratorEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.Host, Path = "fss/" };
+                //var scsEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.Host, Path = "scs/" };
 
-                var workspaceKey = "D89D11D265B19CA5C2BE97A7FCB1EF21";
+                //var orchestratorEndpoint = orchestratorService.GetEndpoint("http").Url;
 
-                var secretClient = c.ExecutionContext.ServiceProvider.GetRequiredService<SecretClient>();
+                //var workspaceKey = "D89D11D265B19CA5C2BE97A7FCB1EF21";
 
-                await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.FileShareBuilderEndpoint, fssBuilderEndpoint.Uri.ToString());
-                await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.FileShareOrchestratorEndpoint, fssOrchestratorEndpoint.Uri.ToString());
-                await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.SalesCatalogueEndpoint, scsEndpoint.Uri.ToString());
-                await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.OrchestratorServiceEndpoint, orchestratorEndpoint);
-                await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.WorkspaceKey, workspaceKey);
+                //var secretClient = c.ExecutionContext.ServiceProvider.GetRequiredService<SecretClient>();
+
+                //await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.FileShareBuilderEndpoint, fssBuilderEndpoint.Uri.ToString());
+                //await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.FileShareOrchestratorEndpoint, fssOrchestratorEndpoint.Uri.ToString());
+                //await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.SalesCatalogueEndpoint, scsEndpoint.Uri.ToString());
+                //await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.OrchestratorServiceEndpoint, orchestratorEndpoint);
+                //await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.WorkspaceKey, workspaceKey);
             });
 
             // Fixed endpoint

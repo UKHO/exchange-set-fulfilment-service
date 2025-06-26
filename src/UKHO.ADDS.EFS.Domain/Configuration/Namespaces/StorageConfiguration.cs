@@ -2,14 +2,14 @@
 {
     public static class StorageConfiguration
     {
-        public const string StorageName = "storage";
+        public const string StorageName = "efs-storage";
 
-        public const string QueuesName = "queues";
+        public const string QueuesName = "efs-queues";
 
-        public const string TablesName = "tables";
+        public const string TablesName = "efs-tables";
 
-        public const string BlobsName = "blobs";
+        public const string BlobsName = "efs-blobs";
 
-        public const string RequestQueueName = "request-queue";
+        public const string RequestQueueName = "orchestrator-request-queue";
     }
 }

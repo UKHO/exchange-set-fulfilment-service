@@ -2,7 +2,7 @@
 
 namespace UKHO.ADDS.Configuration
 {
-    public sealed class FlattenedProperty
+    internal sealed class FlattenedProperty
     {
         public required JsonNode? JsonValue { get; init; }
         public string? Type { get; init; }
