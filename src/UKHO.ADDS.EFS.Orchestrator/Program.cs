@@ -4,6 +4,7 @@ using Microsoft.Extensions.Azure;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
+using UKHO.ADDS.Configuration.Client;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Orchestrator.Api;
@@ -14,7 +15,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
     [ExcludeFromCodeCoverage]
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task<int> Main(string[] args)
         {
             Log.Logger = new LoggerConfiguration()
                 .WriteTo.Console()
@@ -47,6 +48,8 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     .MinimumLevel.Override("Azure.Storage.Queues", LogEventLevel.Warning));
 
                 builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());
+
+                builder.Services.AddConfigurationClient();
 
                 builder.AddServiceDefaults()
                     .AddOrchestratorServices();
@@ -92,7 +95,16 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 app.RegisterStatusApi(loggerFactory);
                 app.RegisterRequestsApi(loggerFactory);
 
-                app.Run();
+                try
+                {
+                    //var client = app.Services.GetRequiredService<ConfigurationClient>();
+                    //await client.GetConfigurationAsync("UKHO.ADDS.EFS.Orchestrator");
+                }
+                catch (Exception ex)
+                {
+                }
+
+                await app.RunAsync();
             }
             catch (Exception ex)
             {
@@ -102,8 +114,10 @@ namespace UKHO.ADDS.EFS.Orchestrator
             }
             finally
             {
-                Log.CloseAndFlush();
+                await Log.CloseAndFlushAsync();
             }
+
+            return 0;
         }
     }
 }
