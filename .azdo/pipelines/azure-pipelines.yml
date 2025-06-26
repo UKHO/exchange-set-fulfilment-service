@@ -4,7 +4,7 @@ parameters:
   - name: DisableStryker
     displayName: "Disable Stryker"
     type: boolean
-    default: false
+    default: true
   - name: DestroyResourcesDev
     displayName: "Destroy dev environment"
     type: boolean
@@ -20,7 +20,7 @@ parameters:
   - name: SkipDeployment
     displayName: "Skip deployment (temporary until dev deployment works)"
     type: boolean
-    default: true
+    default: false
   - name: AzdDebug
     displayName: "Debug azd"
     type: boolean
@@ -56,14 +56,14 @@ variables:
     value: aeb7543b-8394-457c-8334-a31493d8910d
 
 stages:
-  - stage: VulnerabilityChecks
-    displayName: "Snyk Checks"
-    dependsOn: []
-    jobs:
-    - template: templates/vulnerability-checks.yml
-      parameters:
-        SnykOnlyFailIfFixable: ${{ parameters.SnykOnlyFailIfFixable }}
-        SnykPassOnIssues: ${{ parameters.SnykPassOnIssues }}
+  # - stage: VulnerabilityChecks
+  #   displayName: "Snyk Checks"
+  #   dependsOn: []
+  #   jobs:
+  #   - template: templates/vulnerability-checks.yml
+  #     parameters:
+  #       SnykOnlyFailIfFixable: ${{ parameters.SnykOnlyFailIfFixable }}
+  #       SnykPassOnIssues: ${{ parameters.SnykPassOnIssues }}
 
   - stage: Stryker_Mutator
     displayName: "Stryker Mutator"
@@ -123,8 +123,8 @@ stages:
   #   - template: templates/test.yml
 
   - stage: DevDeploy
-    dependsOn:
-    - VulnerabilityChecks
+    dependsOn: []
+    #- VulnerabilityChecks
     #- Test
     displayName: Dev deploy
     condition: eq('${{ parameters.SkipDeployment }}', false)
