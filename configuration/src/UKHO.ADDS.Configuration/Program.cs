@@ -2,6 +2,7 @@
 using AzureKeyVaultEmulator.Aspire.Client;
 using Microsoft.Extensions.Azure;
 using Radzen;
+using Scalar.AspNetCore;
 using UKHO.ADDS.Configuration.Dashboard;
 using UKHO.ADDS.Configuration.Dashboard.Services;
 using UKHO.ADDS.Configuration.Schema;
@@ -15,6 +16,7 @@ namespace UKHO.ADDS.Configuration
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.AddServiceDefaults();
             builder.Services.AddAuthorization();
 
             builder.Services.AddOpenApi();
@@ -62,6 +64,7 @@ namespace UKHO.ADDS.Configuration
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi();
+                app.MapScalarApiReference(_ => _.Servers = []); // Stop OpenAPI specifying the wrong port in the generated OpenAPI doc
             }
 
             app.UseHttpsRedirection();
@@ -78,19 +81,11 @@ namespace UKHO.ADDS.Configuration
             var configurationService = app.Services.GetRequiredService<ConfigurationService>();
             await configurationService.InitialiseAsync(addsEnvironment);
 
-            //app.MapGet("/weatherforecast", (HttpContext httpContext) =>
-            //{
-            //    var forecast = Enumerable.Range(1, 5).Select(index =>
-            //        new WeatherForecast
-            //        {
-            //            Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            //            TemperatureC = Random.Shared.Next(-20, 55),
-            //            Summary = summaries[Random.Shared.Next(summaries.Length)]
-            //        })
-            //        .ToArray();
-            //    return forecast;
-            //})
-            //.WithName("GetWeatherForecast");
+            app.MapGet("/configuration", (HttpContext httpContext, ConfigurationService configurationService) =>
+            {
+                return configurationService.Configuration;
+            })
+            .WithName("GetConfiguration");
 
             await app.RunAsync();
         }

@@ -1,6 +1,7 @@
 ﻿using AzureKeyVaultEmulator.Aspire.Hosting;
 using Microsoft.Extensions.Hosting;
 using Projects;
+using UKHO.ADDS.Configuration.Aspire.Extensions;
 using UKHO.ADDS.Configuration.Schema;
 
 namespace UKHO.ADDS.Configuration.Aspire
@@ -31,6 +32,8 @@ namespace UKHO.ADDS.Configuration.Aspire
                 .WaitFor(storageTable)
                 .WithReference(keyVault)
                 .WaitFor(keyVault)
+                .WithScalar("API Browser")
+                .WithDashboard("Configuration Dashboard")
                 .WithEnvironment(WellKnownConfigurationName.AddsEnvironmentName, AddsEnvironment.Local.Value);
 
             if (seederService != null)
