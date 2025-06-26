@@ -4,11 +4,14 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using Azure.Core;
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
+using UKHO.ADDS.EFS.Messages;
+using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
 {
@@ -24,6 +27,12 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
             var mockEndpoint = config[$"services:{ContainerConfiguration.MockContainerName}:http:0"] ?? string.Empty;
             var fssBuilderEndpoint = new UriBuilder(mockEndpoint) { Host = "host.docker.internal", Path = "fss/" };
             _fileShareBuilderEndpoint = fssBuilderEndpoint.Uri.ToString();
+
+            _workspaceAuthenticationKey = config["WorkspaceKey"] ?? string.Empty;
+
+            var test = new BuilderRequestQueueMessage { BatchId = "test", JobId = "test", StorageAddress = "test", CorrelationId = "12345671898" };
+            var data =JsonCodec.Encode(test);
+
             DockerClient = new DockerClientConfiguration(GetDockerEndpoint()).CreateClient();
         }
 

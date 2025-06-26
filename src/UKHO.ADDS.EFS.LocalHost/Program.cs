@@ -52,6 +52,10 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WaitFor(storageQueue)
                 .WithReference(mockService)
                 .WaitFor(mockService)
+                .WithEnvironment(c =>
+                {
+                    c.EnvironmentVariables.Add("WorkspaceKey", "D89D11D265B19CA5C2BE97A7FCB1EF21");
+                })
                 .WithReference(storageBlob)
                 .WaitFor(storageBlob);
                 
