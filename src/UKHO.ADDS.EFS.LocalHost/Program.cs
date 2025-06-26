@@ -52,12 +52,6 @@ namespace UKHO.ADDS.EFS.LocalHost
             {
                 var resources = config.GetProvisionableResources();
                 var containerEnvironment = resources.OfType<ContainerAppManagedEnvironment>().First();
-                //containerEnvironment.WorkloadProfiles.Clear();
-                //containerEnvironment.WorkloadProfiles.Add(new ContainerAppWorkloadProfile
-                //{
-                //    Name = "Consumption",
-                //    WorkloadProfileType = "Consumption"
-                //});
                 containerEnvironment.VnetConfiguration = new ContainerAppVnetConfiguration
                 {
                     InfrastructureSubnetId = new BicepValue<ResourceIdentifier>(subnetId),
@@ -73,6 +67,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                 var resources = config.GetProvisionableResources();
                 var storageAccount = resources.OfType<StorageAccount>().First();
                 storageAccount.Tags.Add("hidden-title", "EFS Storage");
+                storageAccount.AllowSharedKeyAccess = true;
             });
 
             var storageQueue = storage.AddQueues(StorageConfiguration.QueuesName);
