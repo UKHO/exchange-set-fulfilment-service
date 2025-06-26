@@ -41,7 +41,10 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WithDashboard("Dashboard");
 
             // Configuration
-            var configurationService = builder.AddConfiguration("config.json");
+            var configurationService = builder.AddConfiguration("configuration.json", () =>
+            {
+                return new[] { ("mock", mockService)};
+            });
 
             // Orchestrator
             var orchestratorService = builder.AddProject<UKHO_ADDS_EFS_Orchestrator>(ContainerConfiguration.OrchestratorContainerName)
@@ -60,7 +63,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             {
                 // TODO Remove
 
-                //var addsMockEndpoint = mockService.GetEndpoint("http");
+                var addsMockEndpoint = mockService.GetEndpoint("http");
                 //var fssBuilderEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = "host.docker.internal", Path = "fss/" };
                 //var fssOrchestratorEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.Host, Path = "fss/" };
                 //var scsEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.Host, Path = "scs/" };

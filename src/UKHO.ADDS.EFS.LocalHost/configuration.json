@@ -1,0 +1,125 @@
+{
+    "local": {
+        "UKHO.ADDS.EFS.Orchestrator": {
+            "Logging": {
+                "LogLevel": {
+                    "Default": "Information",
+                    "Microsoft.AspNetCore": "Warning",
+                    "Aspire.Hosting.Dcp": "Warning"
+                }
+            },
+            "Containers": {
+                "RegistryUrl": "{{mock}}",
+                "RegistryToken": "this-is-a-security-token",
+                "OptionalServer": null,
+                "Tags": [ "One", "Two", "Three" ],
+                "Parameters": {
+                    "Parameter1": "Value1",
+                    "Parameter2": 55,
+                    "Parameter3": 3.14159,
+                    "Parameter4": true,
+                    "Parameter5": "2020-07-30T18:00:00.000Z",
+                    "Parameter6": "https://someurl",
+                    "Parameter7": "00:30:00",
+                    "Parameter8": "d2719cfc-1b6b-4b87-9a43-57c3e97c7bd6",
+                    "Parameter9": [ "Item1", "Item2" ]
+                }
+            }
+        }
+    },
+    "dev": {
+        "UKHO.ADDS.EFS.Orchestrator": {
+            "Logging": {
+                "LogLevel": {
+                    "Default": "Information",
+                    "Microsoft.AspNetCore": "Warning",
+                    "Aspire.Hosting.Dcp": "Warning"
+                }
+            },
+            "Containers": {
+                "RegistryUrl": "https://someplace/dev",
+                "RegistryToken": "registry-token-key",
+                "OptionalServer": null,
+                "Tags": [ "One", "Two", "Three" ],
+                "Parameters": {
+                    "Parameter1": "Value1",
+                    "Parameter2": 55,
+                    "Parameter3": 3.14159,
+                    "Parameter4": true,
+                    "Parameter5": "2020-07-30T18:00:00.000Z",
+                    "Parameter6": "https://someurl",
+                    "Parameter7": "00:30:00",
+                    "Parameter8": "d2719cfc-1b6b-4b87-9a43-57c3e97c7bd6",
+                    "Parameter9": [ "Item1", "Item2" ]
+                }
+            }
+        }
+    },
+    "vnext-iat": {
+        "UKHO.ADDS.EFS.Orchestrator": {
+            "Logging": {
+                "LogLevel": {
+                    "Default": "Information",
+                    "Microsoft.AspNetCore": "Warning",
+                    "Aspire.Hosting.Dcp": "Warning"
+                }
+            },
+            "Containers": {
+                "RegistryUrl": "https://someplace/vniat",
+                "RegistryToken": "registry-token-key",
+                "OptionalServer": null,
+                "Tags": [ "One", "Two", "Three" ],
+                "Parameters": {
+                    "Parameter1": "Value1",
+                    "Parameter2": 55,
+                    "Parameter3": 3.14159,
+                    "Parameter4": true,
+                    "Parameter5": "2020-07-30T18:00:00.000Z",
+                    "Parameter6": "https://someurl",
+                    "Parameter7": "00:30:00",
+                    "Parameter8": "d2719cfc-1b6b-4b87-9a43-57c3e97c7bd6",
+                    "Parameter9": [ "Item1", "Item2" ]
+                }
+            }
+        }
+    },
+    "_schema": {
+        "UKHO.ADDS.EFS.Orchestrator": {
+            "Containers:RegistryToken": {
+                "type": "string",
+                "required": true,
+                "secret": true
+            },
+            "Containers:Parameters:Parameter1": {
+                "type": "string",
+                "required": true
+            },
+            "Containers:Parameters:Parameter2": {
+                "type": "int",
+                "required": true
+            },
+            "Containers:Parameters:Parameter3": {
+                "type": "double"
+            },
+            "Containers:Parameters:Parameter4": {
+                "type": "bool"
+            },
+            "Containers:Parameters:Parameter5": {
+                "type": "datetime"
+            },
+            "Containers:Parameters:Parameter6": {
+                "type": "url",
+                "secret": true
+            },
+            "Containers:Parameters:Parameter7": {
+                "type": "timespan"
+            },
+            "Containers:Parameters:Parameter8": {
+                "type": "string"
+            },
+            "Containers:Parameters:Parameter9": {
+                "type": "array:string"
+            }
+        }
+    }
+}
