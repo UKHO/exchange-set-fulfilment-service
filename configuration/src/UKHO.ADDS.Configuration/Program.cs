@@ -40,9 +40,13 @@ namespace UKHO.ADDS.Configuration
                 });
             }
 
-            builder.Services.AddSingleton<ConfigurationService>();
+            builder.Services.AddGrpc();
+
+            builder.Services.AddSingleton<ConfigurationStore>();
             builder.Services.AddSingleton<ConfigurationWriter>();
             builder.Services.AddSingleton<ConfigurationReader>();
+
+            builder.Services.AddSingleton<ConfigurationService>();
 
             builder.WebHost.UseStaticWebAssets();
 
@@ -78,14 +82,16 @@ namespace UKHO.ADDS.Configuration
             app.MapRazorPages();
             app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
-            var configurationService = app.Services.GetRequiredService<ConfigurationService>();
+            var configurationService = app.Services.GetRequiredService<ConfigurationStore>();
             await configurationService.InitialiseAsync(addsEnvironment);
 
-            app.MapGet("/configuration", (HttpContext httpContext, ConfigurationService configurationService) =>
+            app.MapGet("/configuration", (HttpContext httpContext, ConfigurationStore configurationService) =>
             {
                 return configurationService.Configuration;
             })
             .WithName("GetConfiguration");
+
+            app.MapGrpcService<ConfigurationService>();
 
             await app.RunAsync();
         }

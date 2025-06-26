@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.31.1" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.71.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.72.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.5" />
     <PackageReference Include="Aspire.Azure.Data.Tables" Version="9.3.1" />
     <PackageReference Include="AzureKeyVaultEmulator.Client" Version="2.3.0" />
@@ -81,6 +87,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\UKHO.ADDS.Configuration.Domain\UKHO.ADDS.Configuration.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="..\..\protocol\configuration.proto" GrpcServices="Server">
+      <Link>Protocol\configuration.proto</Link>
+    </Protobuf>
   </ItemGroup>
 
 </Project>

@@ -34,6 +34,7 @@ namespace UKHO.ADDS.Configuration.Aspire
                 .WaitFor(keyVault)
                 .WithScalar("API Browser")
                 .WithDashboard("Configuration Dashboard")
+                
                 .WithEnvironment(WellKnownConfigurationName.AddsEnvironmentName, AddsEnvironment.Local.Value);
 
             if (seederService != null)

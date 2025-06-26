@@ -1,32 +1,36 @@
 ﻿using System.Collections.ObjectModel;
-using UKHO.ADDS.Configuration.Schema;
+using Grpc.Core;
+using UKHO.ADDS.Configuration.Grpc;
 
 namespace UKHO.ADDS.Configuration.Services
 {
-    internal class ConfigurationService
+    internal class ConfigurationService : Grpc.ConfigurationService.ConfigurationServiceBase
     {
-        private readonly ConfigurationReader _reader;
         private readonly ObservableCollection<StoredServiceConfiguration> _configuration;
-        private AddsEnvironment? _environment;
 
-        public ConfigurationService(ConfigurationReader reader)
+        public ConfigurationService(ConfigurationStore service)
         {
-            _reader = reader;
-            _configuration = [];
+            _configuration = service.Configuration;
         }
 
-        public ObservableCollection<StoredServiceConfiguration> Configuration => _configuration;
-
-        public async Task InitialiseAsync(AddsEnvironment environment)
+        public override Task<ServiceConfigurationResponse> GetConfiguration(ServiceConfigurationRequest request, ServerCallContext context)
         {
-            _environment = environment;
-            var configuration = await _reader.ReadConfigurationAsync(environment);
+            var response = new ServiceConfigurationResponse();
 
-            _configuration.Clear();
-            foreach (var serviceConfiguration in configuration)
+            var service = _configuration.FirstOrDefault(svc =>
+                string.Equals(svc.ServiceName, request.ServiceName, StringComparison.OrdinalIgnoreCase));
+
+            if (service != null)
             {
-                _configuration.Add(serviceConfiguration);
+                response.Properties.AddRange(
+                    service.Properties.Values.Select(p => new Property
+                    {
+                        Path = p.Path,
+                        Value = p.Value ?? string.Empty
+                    }));
             }
+
+            return Task.FromResult(response);
         }
     }
 }
