@@ -6,8 +6,6 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.scs.ResponseGenerator
 {
     public class ScsResponseGenerator
     {
-        private static readonly Random _random = new Random();
-
         public static IResult ProvideProductNamesResponse(HttpRequest requestMessage)
         {
             try
@@ -105,8 +103,9 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.scs.ResponseGenerator
 
         private static JsonObject GenerateProductJson(string productName)
         {
-            var editionNumber = _random.Next(1, 15);
-            var fileSize = _random.Next(2000, 15000);
+            var random = Random.Shared;
+            var editionNumber = random.Next(1, 15);
+            var fileSize = random.Next(2000, 15000);
             var baseDate = DateTime.UtcNow;
 
             var updateNumbersArray = new JsonArray { 0 };
@@ -131,7 +130,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.scs.ResponseGenerator
                     ["updateNumber"] = 1
                 });
 
-                var additionalUpdateCount = _random.Next(0, 4);
+                var additionalUpdateCount = random.Next(0, 4);
 
                 for (var i = 2; i <= 1 + additionalUpdateCount; i++)
                 {
@@ -153,7 +152,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.scs.ResponseGenerator
                 ["dates"] = datesArray,
             };
 
-            if (_random.Next(0, 10) < 3)
+            if (random.Next(0, 10) < 3)
             {
                 var updateNumber = 0;
                 if (updateNumbersArray.Count > 0)
