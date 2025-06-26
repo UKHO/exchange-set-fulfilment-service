@@ -48,7 +48,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                 builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());
 
-                builder.AddServiceDefaults()
+                builder.AddServiceDefaults(enableStandardResilience: false)
                     .AddOrchestratorServices();
 
                 var vaultEndpoint = builder.Configuration.GetConnectionString(ContainerConfiguration.KeyVaultContainerName) ?? string.Empty;
