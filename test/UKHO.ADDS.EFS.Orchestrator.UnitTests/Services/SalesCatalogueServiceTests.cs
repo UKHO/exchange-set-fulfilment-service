@@ -19,7 +19,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tests.Services
         private ExchangeSetRequestQueueMessage _exchangeSetRequestQueueMessage;
         private IConfiguration _configuration;
 
-        private const int TestRetryDelayMs = 500;
+        private const int RetryDelayInMilliseconds = 500;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
@@ -39,7 +39,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tests.Services
         public void SetUp()
         {
             _configuration = A.Fake<IConfiguration>();
-            A.CallTo(() => _configuration["HttpRetry:RetryDelayInMilliseconds"]).Returns(TestRetryDelayMs.ToString());
+            A.CallTo(() => _configuration["HttpRetry:RetryDelayInMilliseconds"]).Returns(RetryDelayInMilliseconds.ToString());
             UKHO.ADDS.EFS.RetryPolicy.HttpRetryPolicyFactory.SetConfiguration(_configuration);
         }
         

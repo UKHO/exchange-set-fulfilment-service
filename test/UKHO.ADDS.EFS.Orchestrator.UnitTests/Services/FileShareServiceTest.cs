@@ -23,7 +23,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
 
         private const string CorrelationId = "TestCorrelationId";
         private const string BatchId = "TestBatchId";
-        private const int TestRetryDelayMs = 500;
+        private const int RetryDelayInMilliseconds = 500;
 
         [SetUp]
         public void SetUp()
@@ -32,7 +32,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
             _logger = A.Fake<ILogger<FileShareService>>();
             _configuration = A.Fake<IConfiguration>();
 
-            A.CallTo(() => _configuration["HttpRetry:RetryDelayInMilliseconds"]).Returns(TestRetryDelayMs.ToString());
+            A.CallTo(() => _configuration["HttpRetry:RetryDelayInMilliseconds"]).Returns(RetryDelayInMilliseconds.ToString());
             HttpRetryPolicyFactory.SetConfiguration(_configuration);
             
             _fileShareService = new FileShareService(_fakeFileShareReadWriteClient, _logger);
@@ -304,8 +304,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
                 {
                     Assert.That(callCount, Is.EqualTo(4), "Should retry 3 times plus the initial call (total 4)");
                     Assert.That(result.IsFailure(out _, out _), Is.True);
-                    Assert.That(elapsedMilliseconds, Is.GreaterThan(TestRetryDelayMs), 
-                        $"Retry delay should reflect TestRetryDelayMs of {TestRetryDelayMs}ms");
+                    Assert.That(elapsedMilliseconds, Is.GreaterThan(RetryDelayInMilliseconds), 
+                        $"Retry delay should reflect TestRetryDelayMs of {RetryDelayInMilliseconds}ms");
                 });
         }
 
@@ -331,7 +331,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
                 {
                     Assert.That(callCount, Is.EqualTo(1), "Should not retry for non-retriable status codes");
                     Assert.That(result.IsFailure(out _, out _), Is.True);
-                    Assert.That(elapsedMilliseconds, Is.LessThan(TestRetryDelayMs), 
+                    Assert.That(elapsedMilliseconds, Is.LessThan(RetryDelayInMilliseconds), 
                         "Non-retryable errors should complete quickly without delay");
                 });
         }
@@ -358,8 +358,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
                 {
                     Assert.That(callCount, Is.EqualTo(4), "Should retry 3 times plus the initial call (total 4)");
                     Assert.That(result.IsFailure(out _, out _), Is.True);
-                    Assert.That(elapsedMilliseconds, Is.GreaterThan(TestRetryDelayMs), 
-                        $"Retry delay should reflect TestRetryDelayMs of {TestRetryDelayMs}ms");
+                    Assert.That(elapsedMilliseconds, Is.GreaterThan(RetryDelayInMilliseconds), 
+                        $"Retry delay should reflect TestRetryDelayMs of {RetryDelayInMilliseconds}ms");
                 });
         }
 
@@ -385,8 +385,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
                 {
                     Assert.That(callCount, Is.EqualTo(4), "Should retry 3 times plus the initial call (total 4)");
                     Assert.That(result.IsFailure(out _, out _), Is.True);
-                    Assert.That(elapsedMilliseconds, Is.GreaterThan(TestRetryDelayMs), 
-                        $"Retry delay should reflect TestRetryDelayMs of {TestRetryDelayMs}ms");
+                    Assert.That(elapsedMilliseconds, Is.GreaterThan(RetryDelayInMilliseconds), 
+                        $"Retry delay should reflect TestRetryDelayMs of {RetryDelayInMilliseconds}ms");
                 });
         }
 
@@ -413,8 +413,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
                 {
                     Assert.That(callCount, Is.EqualTo(4), "Should retry 3 times plus the initial call (total 4)");
                     Assert.That(result.IsFailure(out _, out _), Is.True);
-                    Assert.That(elapsedMilliseconds, Is.GreaterThan(TestRetryDelayMs), 
-                        $"Retry delay should reflect TestRetryDelayMs of {TestRetryDelayMs}ms");
+                    Assert.That(elapsedMilliseconds, Is.GreaterThan(RetryDelayInMilliseconds), 
+                        $"Retry delay should reflect TestRetryDelayMs of {RetryDelayInMilliseconds}ms");
                 });
         }
 
@@ -452,8 +452,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
                 Assert.That(callCount1, Is.EqualTo(1), "First batch should succeed without retries");
                 Assert.That(callCount2, Is.EqualTo(4), "Second batch should retry 3 times plus the initial call (total 4)");
                 Assert.That(result.IsFailure(out _, out _), Is.True);
-                Assert.That(elapsedMilliseconds, Is.GreaterThan(TestRetryDelayMs), 
-                    $"Retry delay should reflect TestRetryDelayMs of {TestRetryDelayMs}ms");
+                Assert.That(elapsedMilliseconds, Is.GreaterThan(RetryDelayInMilliseconds), 
+                    $"Retry delay should reflect TestRetryDelayMs of {RetryDelayInMilliseconds}ms");
             });
         }
 

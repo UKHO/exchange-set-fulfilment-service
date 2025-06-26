@@ -24,7 +24,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         private IConfiguration _configuration;
         private string _tempFilePath;
 
-        private const int TestRetryDelayMs = 500;
+        private const int RetryDelayInMilliseconds = 500;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
@@ -40,7 +40,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         public void SetUp()
         {
             _configuration = A.Fake<IConfiguration>();
-            A.CallTo(() => _configuration["HttpRetry:RetryDelayInMilliseconds"]).Returns(TestRetryDelayMs.ToString());
+            A.CallTo(() => _configuration["HttpRetry:RetryDelayInMilliseconds"]).Returns(RetryDelayInMilliseconds.ToString());
             UKHO.ADDS.EFS.RetryPolicy.HttpRetryPolicyFactory.SetConfiguration(_configuration);
 
             string tempPath = Path.GetTempPath();
