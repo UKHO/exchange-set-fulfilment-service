@@ -7,12 +7,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
     {
         private const string DefaultJobId = "TEST123";
 
-        [OneTimeSetUp]
-        public void OneTimeSetUp()
-        {
-            Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        }
-
         [SetUp]
         public void Setup()
         {
