@@ -1,9 +1,11 @@
+using Aspire.Hosting;
 using Azure.Security.KeyVault.Secrets;
 using AzureKeyVaultEmulator.Aspire.Client;
 using AzureKeyVaultEmulator.Aspire.Hosting;
 using CliWrap;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Projects;
 using Serilog;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
@@ -34,9 +36,27 @@ namespace UKHO.ADDS.EFS.LocalHost
             var storageTable = storage.AddTables(StorageConfiguration.TablesName);
             var storageBlob = storage.AddBlobs(StorageConfiguration.BlobsName);
 
+
             // ADDS Mock
             var mockService = builder.AddProject<UKHO_ADDS_Mocks_EFS>(ContainerConfiguration.MockContainerName)
+                .WithExternalHttpEndpoints()
                 .WithDashboard("Dashboard");
+
+
+
+            // Build Request Monitor
+            if (builder.Environment.IsDevelopment())
+            {
+                builder.AddProject<UKHO_ADDS_EFS_BuildRequestMonitor>("request-monitor")  //ContainerConfiguration.BuildRequestMonitorName
+                .WithReference(storageQueue)
+                .WaitFor(storageQueue)
+                .WithReference(mockService)
+                .WaitFor(mockService)
+                .WithReference(storageBlob)
+                .WaitFor(storageBlob);
+                
+            }
+
 
             // Key vault
             var keyVault = builder.AddAzureKeyVaultEmulator(ContainerConfiguration.KeyVaultContainerName,

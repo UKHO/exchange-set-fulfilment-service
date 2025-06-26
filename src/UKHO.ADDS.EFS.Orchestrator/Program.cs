@@ -28,6 +28,9 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                 var builder = WebApplication.CreateBuilder(args);
 
+                //Rhz: Add request queue
+                builder.AddAzureQueueClient(StorageConfiguration.QueuesName);
+
                 var oltpEndpoint = builder.Configuration[GlobalEnvironmentVariables.OtlpEndpoint]!;
 
                 builder.Services.AddSerilog((services, lc) => lc
