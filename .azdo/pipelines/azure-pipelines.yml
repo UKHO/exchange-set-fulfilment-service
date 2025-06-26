@@ -21,6 +21,10 @@ parameters:
     displayName: "Skip deployment (temporary until dev deployment works)"
     type: boolean
     default: true
+  - name: AzdDebug
+    displayName: "Debug azd"
+    type: boolean
+    default: false
 
 trigger:
   - main
@@ -130,3 +134,4 @@ stages:
         AzureDevOpsEnvironment: Ess-Dev
         ShortName: dev
         DestroyResources: ${{ parameters.DestroyResourcesDev }}
+        AzdDebug: ${{ parameters.AzdDebug }}
