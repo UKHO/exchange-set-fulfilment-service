@@ -1,33 +1,18 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using UKHO.ADDS.Configuration.Grpc;
 using UKHO.ADDS.Configuration.Schema;
 
 namespace UKHO.ADDS.Configuration.Client
 {
     public static class InjectionExtensions
     {
-        public static IServiceCollection AddConfigurationClient(this IServiceCollection services)
+        public static IConfigurationBuilder AddConfigurationService(this IConfigurationBuilder builder, string serviceName)
         {
-            services.AddHttpClient(WellKnownConfigurationName.ConfigurationServiceName, (sp, client) =>
-            {
-                var configurationKey = $"services:{WellKnownConfigurationName.ConfigurationServiceName}:https:0";
+            var configurationKey = $"services__{WellKnownConfigurationName.ConfigurationServiceName}__https__0";
+            var baseUri = Environment.GetEnvironmentVariable(configurationKey)!;
 
-                var configuration = sp.GetRequiredService<IConfiguration>();
-                var baseUri = configuration[configurationKey]!;
+            builder.Add(new AddsConfigurationSource(baseUri, serviceName));
 
-                client.BaseAddress = new Uri(baseUri);
-            });
-
-            services.AddSingleton<ConfigurationClient>(sp =>
-            {
-                var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
-                var httpClient = httpClientFactory.CreateClient(WellKnownConfigurationName.ConfigurationServiceName);
-
-                return new ConfigurationClient(httpClient);
-            });
-
-            return services;
+            return builder;
         }
     }
 }

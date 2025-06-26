@@ -1,11 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
-using AzureKeyVaultEmulator.Aspire.Client;
-using Microsoft.Extensions.Azure;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
 using UKHO.ADDS.Configuration.Client;
-using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Orchestrator.Api;
 using UKHO.ADDS.EFS.Orchestrator.Middleware;
@@ -47,31 +44,10 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     .MinimumLevel.Override("Azure.Storage.Blobs", LogEventLevel.Fatal)
                     .MinimumLevel.Override("Azure.Storage.Queues", LogEventLevel.Warning));
 
-                builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());
-
-                builder.Services.AddConfigurationClient();
+                builder.Configuration.AddConfigurationService("UKHO.ADDS.EFS.Orchestrator");
 
                 builder.AddServiceDefaults()
                     .AddOrchestratorServices();
-
-                var vaultEndpoint = builder.Configuration.GetConnectionString(ContainerConfiguration.KeyVaultContainerName) ?? string.Empty;
-
-                // TODO Remove
-
-                //if (builder.Environment.IsDevelopment())
-                //{
-                //    builder.Services.AddAzureKeyVaultEmulator(vaultEndpoint, true, certificates: false, keys: true);
-                //}
-                //else
-                //{
-                //    builder.Services.AddAzureClients(client =>
-                //    {
-                //        var vaultUri = new Uri(vaultEndpoint);
-
-                //        client.AddSecretClient(vaultUri);
-                //        client.AddKeyClient(vaultUri);
-                //    });
-                //}
 
                 var app = builder.Build();
 
@@ -94,15 +70,6 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 app.RegisterJobsApi(loggerFactory);
                 app.RegisterStatusApi(loggerFactory);
                 app.RegisterRequestsApi(loggerFactory);
-
-                try
-                {
-                    var client = app.Services.GetRequiredService<ConfigurationClient>();
-                    var results = await client.GetConfigurationAsync("UKHO.ADDS.EFS.Orchestrator");
-                }
-                catch (Exception ex)
-                {
-                }
 
                 await app.RunAsync();
             }

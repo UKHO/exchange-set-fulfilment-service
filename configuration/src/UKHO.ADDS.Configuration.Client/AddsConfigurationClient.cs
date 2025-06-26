@@ -3,11 +3,11 @@ using UKHO.ADDS.Configuration.Grpc;
 
 namespace UKHO.ADDS.Configuration.Client
 {
-    public class ConfigurationClient
+    internal class AddsConfigurationClient
     {
         private readonly ConfigurationService.ConfigurationServiceClient _client;
 
-        public ConfigurationClient(HttpClient httpClient)
+        public AddsConfigurationClient(HttpClient httpClient)
         {
             var channel = GrpcChannel.ForAddress(httpClient.BaseAddress!, new GrpcChannelOptions
             {

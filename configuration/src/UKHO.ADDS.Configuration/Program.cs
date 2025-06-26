@@ -91,7 +91,16 @@ namespace UKHO.ADDS.Configuration
             })
             .WithName("GetConfiguration");
 
-            app.MapGrpcService<ConfigurationService>();
+            app.MapWhen(context => context.Request.ContentType?.StartsWith("application/grpc") == true, grpcApp =>
+            {
+                grpcApp.UseRouting();
+                grpcApp.UseEndpoints(endpoints =>
+                {
+                    endpoints.MapGrpcService<ConfigurationService>();
+                });
+            });
+
+            //app.MapGrpcService<ConfigurationService>();
 
             await app.RunAsync();
         }
