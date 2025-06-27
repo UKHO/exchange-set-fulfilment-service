@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-UKHO.ADDS.EFS.BuildRequestMonitor-120f6c95-2bca-40cc-98bb-eb6545c63bea</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="aspire.azure.storage.queues" Version="9.3.1" />
+    <PackageReference Include="Docker.DotNet" Version="3.125.15" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.6" />
+    <PackageReference Include="CliWrap" Version="3.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\UKHO.ADDS.EFS.Domain\UKHO.ADDS.EFS.Domain.csproj" />
+    <ProjectReference Include="..\UKHO.ADDS.EFS.Orchestrator\UKHO.ADDS.EFS.Orchestrator.csproj" />
+  </ItemGroup>
+</Project>

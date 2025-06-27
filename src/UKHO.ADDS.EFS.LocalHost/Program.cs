@@ -1,5 +1,9 @@
+using System.Runtime.InteropServices;
 using CliWrap;
+using Docker.DotNet;
+using Docker.DotNet.Models;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Projects;
 using Serilog;
 using UKHO.ADDS.Configuration.Aspire;
@@ -21,8 +25,6 @@ namespace UKHO.ADDS.EFS.LocalHost
             var builder = DistributedApplication.CreateBuilder(args);
             builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());
 
-            var buildOnStartup = builder.Configuration.GetValue<bool>("Containers:BuildOnStartup");
-
             // Storage configuration
             var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e => { e.WithDataVolume(); });
 
@@ -34,6 +36,25 @@ namespace UKHO.ADDS.EFS.LocalHost
             var mockService = builder.AddProject<UKHO_ADDS_Mocks_EFS>(ContainerConfiguration.MockContainerName)
                 .WithDashboard("Dashboard")
                 .WithExternalHttpEndpoints();
+
+            // Build Request Monitor
+            IResourceBuilder<ProjectResource>? requestMonitor = null;
+
+            if (builder.Environment.IsDevelopment())
+            {
+                requestMonitor = builder.AddProject<UKHO_ADDS_EFS_BuildRequestMonitor>("request-monitor")  //ContainerConfiguration.BuildRequestMonitorName
+                    .WithReference(storageQueue)
+                    .WaitFor(storageQueue)
+                    .WithReference(mockService)
+                    .WaitFor(mockService)
+                    .WithEnvironment(c =>
+                    {
+                        c.EnvironmentVariables.Add("WorkspaceKey", "D89D11D265B19CA5C2BE97A7FCB1EF21");
+                    })
+                    .WithReference(storageBlob)
+                    .WaitFor(storageBlob);
+
+            }
 
             // Orchestrator
             var orchestratorService = builder.AddProject<UKHO_ADDS_EFS_Orchestrator>(ContainerConfiguration.OrchestratorContainerName)
@@ -47,6 +68,11 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WaitFor(mockService)
                 .WithExternalHttpEndpoints()
                 .WithScalar("API Browser");
+
+            if (builder.Environment.IsDevelopment())
+            {
+                orchestratorService.WaitFor(requestMonitor!);
+            }
 
             // Configuration
             var configurationService = builder.AddConfiguration(@"..\..\config\configuration.json", tb =>
@@ -62,10 +88,7 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             orchestratorService.WithConfiguration(configurationService);
 
-            if (buildOnStartup)
-            {
-                await CreateS100BuilderContainerImage();
-            }
+            await CreateBuilderContainerImages();
 
             var application = builder.Build();
 
@@ -74,8 +97,31 @@ namespace UKHO.ADDS.EFS.LocalHost
             return 0;
         }
 
-        private static async Task CreateS100BuilderContainerImage()
+        private const string ImageName = "efs-builder-s100";
+        private const string Tag = "latest";
+
+        private static async Task CreateBuilderContainerImages()
         {
+            // Check to see if we need to build any images
+
+            // S-100
+            var reference = $"{ImageName}:{Tag}";
+
+            var dockerClient = new DockerClientConfiguration(GetDockerEndpoint()).CreateClient();
+
+            var images = await dockerClient.Images.ListImagesAsync(new ImagesListParameters
+            {
+                Filters = new Dictionary<string, IDictionary<string, bool>> { ["reference"] = new Dictionary<string, bool> { [reference] = true } }
+            });
+
+            foreach (var response in images)
+            {
+                if (response.RepoTags.Any(x => x.Contains(reference)))
+                {
+                    return;
+                }
+            }
+
             Log.Information("Creating S-100 builder container image...");
 
             var localHostDirectory = Directory.GetCurrentDirectory();
@@ -102,5 +148,8 @@ namespace UKHO.ADDS.EFS.LocalHost
                 throw new Exception("Failed to create S-100 builder container image");
             }
         }
+        private static Uri GetDockerEndpoint() => RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? new Uri("npipe://./pipe/docker_engine")
+            : new Uri("unix:///var/run/docker.sock");
     }
 }

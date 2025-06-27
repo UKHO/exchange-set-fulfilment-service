@@ -21,12 +21,14 @@
     <PackageReference Include="Aspire.Hosting.AppHost" Version="9.3.1" />
     <PackageReference Include="Aspire.Hosting.Azure.Storage" Version="9.3.1" />
     <PackageReference Include="CliWrap" Version="3.8.2" />
+    <PackageReference Include="Docker.DotNet" Version="3.125.15" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\config\repo\src\UKHO.ADDS.Configuration.Aspire\UKHO.ADDS.Configuration.Aspire.csproj"  IsAspireProjectResource="false"/>
+    <ProjectReference Include="..\..\config\repo\src\UKHO.ADDS.Configuration.Aspire\UKHO.ADDS.Configuration.Aspire.csproj" IsAspireProjectResource="false" />
     <ProjectReference Include="..\..\mock\UKHO.ADDS.Mocks.EFS\UKHO.ADDS.Mocks.EFS.csproj" />
+    <ProjectReference Include="..\UKHO.ADDS.EFS.BuildRequestMonitor\UKHO.ADDS.EFS.BuildRequestMonitor.csproj" />
     <ProjectReference Include="..\UKHO.ADDS.EFS.Domain\UKHO.ADDS.EFS.Domain.csproj" IsAspireProjectResource="false" />
     <ProjectReference Include="..\UKHO.ADDS.EFS.Orchestrator\UKHO.ADDS.EFS.Orchestrator.csproj" />
   </ItemGroup>

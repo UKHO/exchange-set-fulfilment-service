@@ -1,8 +1,11 @@
 ﻿using System.Threading.Channels;
+using Azure.Storage.Queues;
+using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Entities;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Logging;
+using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services
 {
@@ -13,6 +16,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
         private readonly ILogger<BuilderDispatcherService> _logger;
         private readonly ILoggerFactory _loggerFactory;
+
+        private readonly QueueServiceClient _requestQueueClient;
 
         private readonly Channel<ExchangeSetRequestQueueMessage> _channel;
         private readonly JobService _jobService;
@@ -25,10 +30,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         // TODO Figure out how best to control this timeout
         private readonly TimeSpan _containerTimeout = TimeSpan.FromMinutes(5);
 
-        public BuilderDispatcherService(Channel<ExchangeSetRequestQueueMessage> channel, JobService jobService, IConfiguration configuration, ILoggerFactory loggerFactory)
+        public BuilderDispatcherService(Channel<ExchangeSetRequestQueueMessage> channel, JobService jobService, IConfiguration configuration, ILoggerFactory loggerFactory, QueueServiceClient qClient)
         {
             _channel = channel;
             _jobService = jobService;
+            _requestQueueClient = qClient;
 
             _loggerFactory = loggerFactory;
             _logger = loggerFactory.CreateLogger<BuilderDispatcherService>();
@@ -48,6 +54,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            var requestQueue = _requestQueueClient.GetQueueClient(StorageConfiguration.S100RequestsQueueName);
+
             await foreach (var queueMessage in _channel.Reader.ReadAllAsync(stoppingToken))
             {
                 try
@@ -65,7 +73,16 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                     {
                         try
                         {
-                            await ExecuteBuilder(job, stoppingToken);
+                            //await ExecuteBuilder(job, stoppingToken);
+                            var builderQueueMessage = new BuilderRequestQueueMessage
+                            {
+                                JobId = job.Id,
+                                StorageAddress = "Unknown",
+                                BatchId = job.BatchId,
+                                CorrelationId = job.CorrelationId
+                            };
+                            var buildermessageJson = JsonCodec.Encode(builderQueueMessage);
+                            await requestQueue.SendMessageAsync(buildermessageJson, stoppingToken);
                         }
                         catch (Exception ex)
                         {

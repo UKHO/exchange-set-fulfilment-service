@@ -35,7 +35,7 @@
         "UKHO.ADDS.EFS.Orchestrator": {
             "Logging": {
                 "LogLevel": {
-                    "Default": "Information",
+                    "Default": "Information", 
                     "Microsoft.AspNetCore": "Warning",
                     "Aspire.Hosting.Dcp": "Warning"
                 }
