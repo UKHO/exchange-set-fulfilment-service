@@ -48,7 +48,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
             A.CallTo(() => _fakeTableClient.CreateIfNotExistsAsync(A<CancellationToken>.Ignored))
                 .Returns(Task.FromResult<Response<TableItem>>(null!));
 
-            var result = await _exchangeSetTimestampTable.CreateIfNotExistsAsync();
+            var result = await _exchangeSetTimestampTable.CreateIfNotExistsAsync(CancellationToken.None);
 
             Assert.That(result.IsSuccess, Is.True);
         }
@@ -59,7 +59,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
             A.CallTo(() => _fakeTableClient.CreateIfNotExistsAsync(A<CancellationToken>.Ignored))
                 .Throws(new Exception("Test exception"));
 
-            var result = await _exchangeSetTimestampTable.CreateIfNotExistsAsync();
+            var result = await _exchangeSetTimestampTable.CreateIfNotExistsAsync(CancellationToken.None);
 
             Assert.Multiple(() =>
             {

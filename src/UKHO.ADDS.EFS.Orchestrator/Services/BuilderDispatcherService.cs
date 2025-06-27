@@ -54,7 +54,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var requestQueue = _requestQueueClient.GetQueueClient(StorageConfiguration.S100RequestsQueueName);
+            var requestQueue = _requestQueueClient.GetQueueClient(StorageConfiguration.S100BuildRequestQueueName);
 
             await foreach (var queueMessage in _channel.Reader.ReadAllAsync(stoppingToken))
             {

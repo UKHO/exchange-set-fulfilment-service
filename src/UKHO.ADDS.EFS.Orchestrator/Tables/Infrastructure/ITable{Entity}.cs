@@ -6,8 +6,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
     {
         string Name { get; }
 
-        Task<Result> CreateIfNotExistsAsync();
-
         Task<Result> AddAsync(TEntity entity);
 
         Task<Result<TEntity>> GetAsync(string partitionKey, string rowKey);

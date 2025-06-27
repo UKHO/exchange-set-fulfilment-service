@@ -25,7 +25,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                     var messageJson = JsonCodec.Encode(queueMessage);
 
-                    var queueClient = queueServiceClient.GetQueueClient(StorageConfiguration.RequestQueueName);
+                    var queueClient = queueServiceClient.GetQueueClient(StorageConfiguration.JobRequestQueueName);
                     await queueClient.SendMessageAsync(messageJson);
 
                     logger.LogPostedExchangeSetQueueMessage(queueMessage);

@@ -1,0 +1,35 @@
+﻿using Azure.Storage.Queues;
+using UKHO.ADDS.EFS.Configuration.Namespaces;
+using UKHO.ADDS.EFS.Orchestrator.Tables;
+
+namespace UKHO.ADDS.EFS.Orchestrator.Services2.Storage
+{
+    internal class StorageInitializerService
+    {
+        private readonly QueueServiceClient _queueClient;
+        private readonly ExchangeSetJobTable _jobTable;
+        private readonly ExchangeSetTimestampTable _timestampTable;
+
+        public StorageInitializerService(QueueServiceClient queueClient, ExchangeSetJobTable jobTable, ExchangeSetTimestampTable timestampTable)
+        {
+            _queueClient = queueClient;
+            _jobTable = jobTable;
+            _timestampTable = timestampTable;
+        }
+
+        public async Task InitializeStorageAsync(CancellationToken stoppingToken)
+        {
+            var jobRequestQueue = _queueClient.GetQueueClient(StorageConfiguration.JobRequestQueueName);
+            await jobRequestQueue.CreateIfNotExistsAsync(cancellationToken: stoppingToken);
+
+            var s100BuildRequestQueue = _queueClient.GetQueueClient(StorageConfiguration.S100BuildRequestQueueName);
+            await s100BuildRequestQueue.CreateIfNotExistsAsync(cancellationToken: stoppingToken);
+
+            var s100BuildResponseQueue = _queueClient.GetQueueClient(StorageConfiguration.S100BuildResponseQueueName);
+            await s100BuildResponseQueue.CreateIfNotExistsAsync(cancellationToken: stoppingToken);
+
+            await _jobTable.CreateIfNotExistsAsync(stoppingToken);
+            await _timestampTable.CreateIfNotExistsAsync(stoppingToken);
+        }
+    }
+}

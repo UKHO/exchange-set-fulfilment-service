@@ -34,8 +34,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
 
             try
             {
-                await CreateIfNotExistsAsync();
-
                 var blobClient = _blobClient.GetBlobContainerClient(Name)
                     .GetBlobClient($"{partitionKey}/{rowKey}");
 
@@ -59,8 +57,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
 
             try
             {
-                await CreateIfNotExistsAsync();
-
                 var blobClient = _blobClient.GetBlobContainerClient(Name)
                     .GetBlobClient($"{partitionKey}/{rowKey}");
 
@@ -91,8 +87,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
 
             try
             {
-                await CreateIfNotExistsAsync();
-
                 var blobClient = _blobClient.GetBlobContainerClient(Name)
                     .GetBlobClient($"{partitionKey}/{rowKey}");
 
@@ -114,8 +108,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
 
             try
             {
-                await CreateIfNotExistsAsync();
-
                 var blobClient = _blobClient.GetBlobContainerClient(Name)
                     .GetBlobClient($"{partitionKey}/{rowKey}");
 
@@ -146,8 +138,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
 
             try
             {
-                await CreateIfNotExistsAsync();
-
                 var containerClient = _blobClient.GetBlobContainerClient(Name);
                 var blobs = containerClient.GetBlobsByHierarchyAsync(prefix: partitionKey);
 
@@ -179,8 +169,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
         {
             try
             {
-                await CreateIfNotExistsAsync();
-
                 var containerClient = _blobClient.GetBlobContainerClient(Name);
                 var blobs = containerClient.GetBlobsByHierarchyAsync();
 
@@ -215,8 +203,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
 
             try
             {
-                await CreateIfNotExistsAsync();
-
                 var blobClient = _blobClient.GetBlobContainerClient(Name)
                     .GetBlobClient($"{partitionKey}/{rowKey}");
 
@@ -240,8 +226,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
 
             try
             {
-                await CreateIfNotExistsAsync();
-
                 var containerClient = _blobClient.GetBlobContainerClient(Name);
                 await foreach (var blobItem in containerClient.GetBlobsByHierarchyAsync(prefix: partitionKey))
                 {
@@ -258,12 +242,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
             }
         }
 
-        public async Task<Result> CreateIfNotExistsAsync()
+        public async Task<Result> CreateIfNotExistsAsync(CancellationToken stoppingToken)
         {
             try
             {
                 var containerClient = _blobClient.GetBlobContainerClient(Name);
-                await containerClient.CreateIfNotExistsAsync();
+                await containerClient.CreateIfNotExistsAsync(cancellationToken:stoppingToken);
 
                 return Result.Success();
             }

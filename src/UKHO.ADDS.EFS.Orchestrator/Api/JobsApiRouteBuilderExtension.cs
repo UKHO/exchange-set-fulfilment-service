@@ -35,7 +35,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             // Used by the builder in a debug session to send a debug job (created by the builder for testing) to the orchestrator
             jobsEndpoint.MapPost("/debug/", async (ExchangeSetJob job, ExchangeSetJobTable table) =>
             {
-                await table.CreateIfNotExistsAsync();
                 await table.AddAsync(job);
             });
 #endif

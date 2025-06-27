@@ -1,17 +1,16 @@
 ﻿using System.Text.Json;
 using System.Threading.Channels;
-using Azure.Security.KeyVault.Secrets;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.SalesCatalogueService;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
-using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Extensions;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Services;
+using UKHO.ADDS.EFS.Orchestrator.Services2.Storage;
 using UKHO.ADDS.EFS.Orchestrator.Tables;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
@@ -37,7 +36,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             builder.Services.ConfigureOpenApi();
 
-            var queueChannelSize = configuration.GetValue<int>("QueuePolling:ChannelSize");
+            var queueChannelSize = configuration.GetValue<int>("JobRequestQueue:ChannelSize");
 
             builder.Services.AddSingleton(Channel.CreateBounded<ExchangeSetRequestQueueMessage>(new BoundedChannelOptions(queueChannelSize) { FullMode = BoundedChannelFullMode.Wait }));
 
@@ -49,8 +48,11 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddSingleton<ExchangeSetTimestampTable>();
             builder.Services.AddSingleton<ExchangeSetBuilderNodeStatusTable>();
 
-            builder.Services.AddSingleton<ISalesCatalogueClientFactory>(provider =>
-                new SalesCatalogueClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
+
+            builder.Services.AddTransient<StorageInitializerService>();
+
+
+            builder.Services.AddSingleton<ISalesCatalogueClientFactory>(provider => new SalesCatalogueClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
 
             builder.Services.AddSingleton(provider =>
             {
@@ -60,8 +62,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 return factory.CreateClient(scsEndpoint.RemoveControlCharacters(), string.Empty);
             });
             
-            builder.Services.AddSingleton<IFileShareReadWriteClientFactory>(provider =>
-                new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
+            builder.Services.AddSingleton<IFileShareReadWriteClientFactory>(provider => new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
 
             builder.Services.AddSingleton(provider =>
             {

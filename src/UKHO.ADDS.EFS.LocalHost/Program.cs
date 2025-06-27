@@ -33,7 +33,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             var storageBlob = storage.AddBlobs(StorageConfiguration.BlobsName);
 
             // ADDS Mock
-            var mockService = builder.AddProject<UKHO_ADDS_Mocks_EFS>(ContainerConfiguration.MockContainerName)
+            var mockService = builder.AddProject<UKHO_ADDS_Mocks_EFS>(ProcessNames.MockService)
                 .WithDashboard("Dashboard")
                 .WithExternalHttpEndpoints();
 
@@ -42,7 +42,7 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             if (builder.Environment.IsDevelopment())
             {
-                requestMonitor = builder.AddProject<UKHO_ADDS_EFS_BuildRequestMonitor>("request-monitor")  //ContainerConfiguration.BuildRequestMonitorName
+                requestMonitor = builder.AddProject<UKHO_ADDS_EFS_BuildRequestMonitor>(ProcessNames.RequestMonitorService)
                     .WithReference(storageQueue)
                     .WaitFor(storageQueue)
                     .WithReference(mockService)
@@ -57,7 +57,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             }
 
             // Orchestrator
-            var orchestratorService = builder.AddProject<UKHO_ADDS_EFS_Orchestrator>(ContainerConfiguration.OrchestratorContainerName)
+            var orchestratorService = builder.AddProject<UKHO_ADDS_EFS_Orchestrator>(ProcessNames.OrchestratorService)
                 .WithReference(storageQueue)
                 .WaitFor(storageQueue)
                 .WithReference(storageTable)
@@ -127,7 +127,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             var localHostDirectory = Directory.GetCurrentDirectory();
             var srcDirectory = Directory.GetParent(localHostDirectory)?.FullName!;
 
-            const string arguments = $"build -t {ContainerConfiguration.S100BuilderContainerName} -f ./UKHO.ADDS.EFS.Builder.S100/Dockerfile .";
+            const string arguments = $"build -t {ProcessNames.S100Builder} -f ./UKHO.ADDS.EFS.Builder.S100/Dockerfile .";
 
             // 'docker' writes everything to stderr...
 
@@ -141,7 +141,7 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             if (result.IsSuccess)
             {
-                Log.Information($"{ContainerConfiguration.S100BuilderContainerName} built ok");
+                Log.Information($"{ProcessNames.S100Builder} built ok");
             }
             else
             {

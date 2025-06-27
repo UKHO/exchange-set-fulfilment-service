@@ -23,11 +23,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
 
         public string Name { get; }
 
-        public async Task<Result> CreateIfNotExistsAsync()
+        public async Task<Result> CreateIfNotExistsAsync(CancellationToken stoppingToken)
         {
             try
             {
-                await _tableClient.CreateIfNotExistsAsync();
+                await _tableClient.CreateIfNotExistsAsync(cancellationToken: stoppingToken);
                 return Result.Success();
             }
             catch (Exception ex)

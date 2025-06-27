@@ -15,7 +15,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             {
                 try
                 {
-                    await table.CreateIfNotExistsAsync();
                     await table.AddAsync(status);
                 }
                 catch (Exception e)

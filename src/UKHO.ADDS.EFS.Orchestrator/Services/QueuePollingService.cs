@@ -21,16 +21,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         {
             _channel = channel;
             _logger = logger;
-            _queueClient = queueServiceClient.GetQueueClient(StorageConfiguration.RequestQueueName);
+            _queueClient = queueServiceClient.GetQueueClient(StorageConfiguration.JobRequestQueueName);
 
-            _pollingIntervalSeconds = configuration.GetValue<int>("QueuePolling:PollingIntervalSeconds");
-            _queueBatchSize = configuration.GetValue<int>("QueuePolling:BatchSize");
+            _pollingIntervalSeconds = configuration.GetValue<int>("JobRequestQueue:PollingIntervalSeconds");
+            _queueBatchSize = configuration.GetValue<int>("JobRequestQueue:BatchSize");
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            await _queueClient.CreateIfNotExistsAsync(cancellationToken: stoppingToken);
-
             while (!stoppingToken.IsCancellationRequested)
             {
                 try

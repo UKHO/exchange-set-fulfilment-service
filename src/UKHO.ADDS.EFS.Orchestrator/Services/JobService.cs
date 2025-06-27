@@ -30,8 +30,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
             var timestampKey = job.DataStandard.ToString().ToLowerInvariant();
 
-            await _timestampTable.CreateIfNotExistsAsync();
-
             var timestampResult = await _timestampTable.GetAsync(timestampKey, timestampKey);
 
             DateTime? timestamp = DateTime.MinValue;
@@ -50,7 +48,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 await ProcessCreateBatchAsync(queueMessage.CorrelationId, job);
             }
 
-            await _jobTable.CreateIfNotExistsAsync();
             await _jobTable.AddAsync(job);
 
             _logger.LogJobUpdated(ExchangeSetJobLogView.CreateFromJob(job));

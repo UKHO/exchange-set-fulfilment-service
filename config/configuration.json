@@ -14,10 +14,10 @@
             },
             "AllowedHosts": "*",
             "BuilderContainerTag": "latest",
-            "QueuePolling": {
-                "BatchSize": 10,
-                "ChannelSize": 20,
-                "PollingIntervalSeconds": 5
+            "JobRequestQueue": {
+                "BatchSize": 1,
+                "PollingIntervalSeconds": 1,
+                "ChannelSize": 10
             },
             "Builders": {
                 "MaximumConcurrentBuilders": 5
@@ -35,7 +35,7 @@
         "UKHO.ADDS.EFS.Orchestrator": {
             "Logging": {
                 "LogLevel": {
-                    "Default": "Information", 
+                    "Default": "Information",
                     "Microsoft.AspNetCore": "Warning",
                     "Aspire.Hosting.Dcp": "Warning"
                 }
@@ -46,10 +46,10 @@
             },
             "AllowedHosts": "*",
             "BuilderContainerTag": "latest",
-            "QueuePolling": {
-                "BatchSize": 10,
-                "ChannelSize": 20,
-                "PollingIntervalSeconds": 5
+            "JobRequestQueue": {
+                "BatchSize": 1,
+                "PollingIntervalSeconds": 1,
+                "ChannelSize": 10
             },
             "Builders": {
                 "MaximumConcurrentBuilders": 5
@@ -77,10 +77,10 @@
             },
             "AllowedHosts": "*",
             "BuilderContainerTag": "latest",
-            "QueuePolling": {
-                "BatchSize": 10,
-                "ChannelSize": 20,
-                "PollingIntervalSeconds": 5
+            "JobRequestQueue": {
+                "BatchSize": 1,
+                "PollingIntervalSeconds": 1,
+                "ChannelSize": 10
             },
             "Builders": {
                 "MaximumConcurrentBuilders": 5
@@ -108,10 +108,10 @@
             },
             "AllowedHosts": "*",
             "BuilderContainerTag": "latest",
-            "QueuePolling": {
-                "BatchSize": 10,
-                "ChannelSize": 20,
-                "PollingIntervalSeconds": 5
+            "JobRequestQueue": {
+                "BatchSize": 1,
+                "PollingIntervalSeconds": 1,
+                "ChannelSize": 10
             },
             "Builders": {
                 "MaximumConcurrentBuilders": 5

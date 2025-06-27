@@ -255,7 +255,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
                         eTag: ETag.All),
             A.Fake<Response>())));
 
-            var result = await _exchangeSetJobTable.CreateIfNotExistsAsync();
+            var result = await _exchangeSetJobTable.CreateIfNotExistsAsync(CancellationToken.None);
 
             Assert.That(result.IsSuccess, Is.True);
         }
@@ -270,7 +270,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
                     A<CancellationToken>.Ignored))
                 .Throws(new Exception("Error"));
 
-            var result = await _exchangeSetJobTable.CreateIfNotExistsAsync();
+            var result = await _exchangeSetJobTable.CreateIfNotExistsAsync(CancellationToken.None);
 
             Assert.That(result.IsSuccess, Is.False);
         }
