@@ -8,17 +8,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 {
     public class BuilderContainerService
     {
-        private readonly string _builderServiceContainerEndpoint;
+        private readonly string _orchestratorEndpoint;
         private readonly string _otlpContainerEndpoint;
         private readonly ILogger<BuilderContainerService> _logger;
         private readonly string _workspaceAuthenticationKey;
         private readonly string _fileShareBuilderEndpoint;
 
-        public BuilderContainerService(string workspaceAuthenticationKey, string fileShareBuilderEndpoint, string builderServiceContainerEndpoint, string otlpContainerEndpoint, ILoggerFactory loggerFactory)
+        public BuilderContainerService(string workspaceAuthenticationKey, string fileShareBuilderEndpoint, string orchestratorEndpoint, string otlpContainerEndpoint, ILoggerFactory loggerFactory)
         {
             _workspaceAuthenticationKey = workspaceAuthenticationKey;
             _fileShareBuilderEndpoint = fileShareBuilderEndpoint;
-            _builderServiceContainerEndpoint = builderServiceContainerEndpoint;
+            _orchestratorEndpoint = orchestratorEndpoint;
             _otlpContainerEndpoint = otlpContainerEndpoint;
 
             _logger = loggerFactory.CreateLogger<BuilderContainerService>();
@@ -70,7 +70,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 {
                     $"{BuilderEnvironmentVariables.JobId}={id}",
                     $"{BuilderEnvironmentVariables.FileShareEndpoint}={_fileShareBuilderEndpoint}",
-                    $"{BuilderEnvironmentVariables.BuildServiceEndpoint}={_builderServiceContainerEndpoint}",
+                    $"{BuilderEnvironmentVariables.BuildServiceEndpoint}={_orchestratorEndpoint}",
                     $"{BuilderEnvironmentVariables.OtlpEndpoint}={_otlpContainerEndpoint}",
                     $"{BuilderEnvironmentVariables.WorkspaceKey}={_workspaceAuthenticationKey}",
                     $"{BuilderEnvironmentVariables.BatchId}={batchId}",
