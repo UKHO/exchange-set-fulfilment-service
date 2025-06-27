@@ -1,6 +1,4 @@
-﻿using NUnit.Framework;
-using System.Collections.Generic;
-using System.Net;
+﻿using System.Net;
 using UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Facades;
 using UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Helpers;
 using UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Support;

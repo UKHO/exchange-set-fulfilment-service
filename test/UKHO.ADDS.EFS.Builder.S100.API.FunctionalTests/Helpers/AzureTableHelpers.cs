@@ -1,5 +1,4 @@
 ﻿using Azure.Data.Tables;
-using UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Support;
 
 namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Helpers  {
     public class AzureTableHelpers
