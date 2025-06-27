@@ -3,15 +3,12 @@ using Azure.Provisioning;
 using Azure.Provisioning.AppContainers;
 using Azure.Provisioning.Storage;
 using Azure.ResourceManager.Network;
-using Azure.Security.KeyVault.Secrets;
 using CliWrap;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Projects;
 using Serilog;
 using UKHO.ADDS.Configuration.Aspire;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
-using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.LocalHost.Extensions;
 
 namespace UKHO.ADDS.EFS.LocalHost

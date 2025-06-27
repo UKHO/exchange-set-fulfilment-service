@@ -4,7 +4,6 @@ param efs_cae_outputs_azure_container_apps_environment_default_domain = '{{ .Env
 param efs_cae_outputs_azure_container_apps_environment_id = '{{ .Env.EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_ID }}'
 param efs_cae_outputs_azure_container_registry_endpoint = '{{ .Env.EFS_CAE_AZURE_CONTAINER_REGISTRY_ENDPOINT }}'
 param efs_cae_outputs_azure_container_registry_managed_identity_id = '{{ .Env.EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID }}'
-param efs_keyvault_outputs_vaulturi = '{{ .Env.EFS_KEYVAULT_VAULTURI }}'
 param efs_orchestrator_containerimage = '{{ .Image }}'
 param efs_orchestrator_containerport = '{{ targetPortOrDefault 8080 }}'
 param efs_orchestrator_identity_outputs_clientid = '{{ .Env.EFS_ORCHESTRATOR_IDENTITY_CLIENTID }}'

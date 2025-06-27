@@ -1,0 +1,12 @@
+using './adds-configuration.module.bicep'
+
+param adds_configuration_containerimage = '{{ .Image }}'
+param adds_configuration_containerport = '{{ targetPortOrDefault 8080 }}'
+param adds_configuration_identity_outputs_clientid = '{{ .Env.ADDS_CONFIGURATION_IDENTITY_CLIENTID }}'
+param adds_configuration_identity_outputs_id = '{{ .Env.ADDS_CONFIGURATION_IDENTITY_ID }}'
+param adds_configuration_kv_outputs_vaulturi = '{{ .Env.ADDS_CONFIGURATION_KV_VAULTURI }}'
+param adds_configuration_was_outputs_tableendpoint = '{{ .Env.ADDS_CONFIGURATION_WAS_TABLEENDPOINT }}'
+param efs_cae_outputs_azure_container_apps_environment_default_domain = '{{ .Env.EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN }}'
+param efs_cae_outputs_azure_container_apps_environment_id = '{{ .Env.EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_ID }}'
+param efs_cae_outputs_azure_container_registry_endpoint = '{{ .Env.EFS_CAE_AZURE_CONTAINER_REGISTRY_ENDPOINT }}'
+param efs_cae_outputs_azure_container_registry_managed_identity_id = '{{ .Env.EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID }}'
