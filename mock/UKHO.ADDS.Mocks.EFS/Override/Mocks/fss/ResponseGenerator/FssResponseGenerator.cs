@@ -27,6 +27,8 @@ namespace UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss.ResponseGenerator
             {
                 var jsonTemplate = JsonNode.Parse(_template)?.AsObject();
                 var filter = requestMessage.Query["$filter"].FirstOrDefault();
+
+                // Parse the response template and extract the $filter query parameter from the request
                 if (string.IsNullOrEmpty(filter))
                 {
                     return CreateBadRequestResponse(requestMessage, "Missing or invalid $filter parameter.");
