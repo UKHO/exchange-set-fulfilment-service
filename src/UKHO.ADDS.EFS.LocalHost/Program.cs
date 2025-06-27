@@ -1,11 +1,10 @@
 using Azure.Security.KeyVault.Secrets;
-using AzureKeyVaultEmulator.Aspire.Client;
-using AzureKeyVaultEmulator.Aspire.Hosting;
 using CliWrap;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Projects;
 using Serilog;
+using UKHO.ADDS.Configuration.Aspire;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.LocalHost.Extensions;
@@ -38,13 +37,6 @@ namespace UKHO.ADDS.EFS.LocalHost
             var mockService = builder.AddProject<UKHO_ADDS_Mocks_EFS>(ContainerConfiguration.MockContainerName)
                 .WithDashboard("Dashboard");
 
-            // Key vault
-            var keyVault = builder.AddAzureKeyVaultEmulator(ContainerConfiguration.KeyVaultContainerName,
-                new KeyVaultEmulatorOptions
-                {
-                    Persist = false
-                });
-
             // Orchestrator
             var orchestratorService = builder.AddProject<UKHO_ADDS_EFS_Orchestrator>(ContainerConfiguration.OrchestratorContainerName)
                 .WithReference(storageQueue)
@@ -55,36 +47,20 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WaitFor(storageBlob)
                 .WithReference(mockService)
                 .WaitFor(mockService)
-                .WithReference(keyVault)
-                .WaitFor(keyVault)
                 .WithScalar("API Browser");
 
-            orchestratorService.WithEnvironment(async c =>
+            // Configuration
+            var configurationService = builder.AddConfiguration(@"..\..\config\configuration.json", tb =>
             {
-                var addsMockEndpoint = mockService.GetEndpoint("http");
-                var fssBuilderEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = "host.docker.internal", Path = "fss/" };
-                var fssOrchestratorEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.Host, Path = "fss/" };
-                var scsEndpoint = new UriBuilder(addsMockEndpoint.Url) { Host = addsMockEndpoint.Host, Path = "scs/" };
+                tb.AddEndpoint("mockfss", mockService, false, null, "fss");
+                tb.AddEndpoint("mockscs", mockService, false, null, "scs");
 
-                var orchestratorEndpoint = orchestratorService.GetEndpoint("http").Url;
+                tb.AddEndpoint("buildermockfss", mockService, false, "host.docker.internal", "fss");
 
-                var workspaceKey = "D89D11D265B19CA5C2BE97A7FCB1EF21";
-
-                var secretClient = c.ExecutionContext.ServiceProvider.GetRequiredService<SecretClient>();
-
-                await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.FileShareBuilderEndpoint, fssBuilderEndpoint.Uri.ToString());
-                await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.FileShareOrchestratorEndpoint, fssOrchestratorEndpoint.Uri.ToString());
-                await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.SalesCatalogueEndpoint, scsEndpoint.Uri.ToString());
-                await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.OrchestratorServiceEndpoint, orchestratorEndpoint);
-                await secretClient.SetSecretAsync(OrchestratorConfigurationKeys.WorkspaceKey, workspaceKey);
+                tb.AddEndpoint("builderorchestrator", orchestratorService, false, "host.docker.internal", null);
             });
 
-            // Fixed endpoint
-            var keyVaultUri = "https://localhost:4997";
-
-            builder.Services.AddAzureKeyVaultEmulator(keyVaultUri, secrets: true, keys: true, certificates: false);
-
-            builder.Services.AddHttpClient();
+            orchestratorService.WithConfiguration(configurationService);
 
             if (buildOnStartup)
             {
