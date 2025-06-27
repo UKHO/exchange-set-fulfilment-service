@@ -97,7 +97,7 @@ stages:
             workingDirectory: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Orchestrator.UnitTests'
             targetType: 'inline'
             pwsh: true
-            script: $(Agent.BuildDirectory)/tools/dotnet-stryker --test-project $(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Orchestrator.UnitTests/UKHO.ADDS.EFS.Orchestrator.UnitTests.csproj
+            script: $(Agent.BuildDirectory)/tools/dotnet-stryker --test-project $(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Orchestrator.UnitTests/UKHO.ADDS.EFS.Orchestrator.UnitTests.csproj --project UKHO.ADDS.EFS.Orchestrator.csproj
 
         - task: PublishMutationReport@0
           displayName: 'Publish Strkyer Mutator Report'
@@ -111,7 +111,7 @@ stages:
             workingDirectory: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Builder.S100.UnitTests'
             targetType: 'inline'
             pwsh: true
-            script: $(Agent.BuildDirectory)/tools/dotnet-stryker --test-project $(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Builder.S100.UnitTests/UKHO.ADDS.EFS.Builder.S100.UnitTests.csproj
+            script: $(Agent.BuildDirectory)/tools/dotnet-stryker --test-project $(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Builder.S100.UnitTests/UKHO.ADDS.EFS.Builder.S100.UnitTests.csproj --project UKHO.ADDS.EFS.Builder.S100.csproj
 
         - task: PublishMutationReport@0
           displayName: 'Publish Strkyer Mutator Report'
