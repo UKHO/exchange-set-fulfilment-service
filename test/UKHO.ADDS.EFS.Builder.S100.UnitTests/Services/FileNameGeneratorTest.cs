@@ -1,6 +1,6 @@
-﻿using UKHO.ADDS.EFS.Builder.S100.Pipelines;
+﻿using UKHO.ADDS.EFS.Builder.S100.Services;
 
-namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
+namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Services
 {
     [TestFixture]
     internal class FileNameGeneratorTest

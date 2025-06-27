@@ -1,6 +1,6 @@
 ﻿using HandlebarsDotNet;
 
-namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
+namespace UKHO.ADDS.EFS.Builder.S100.Services
 {
     internal class FileNameGenerator
     {
