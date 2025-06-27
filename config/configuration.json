@@ -1,0 +1,150 @@
+{
+    "local": {
+        "UKHO.ADDS.EFS.Orchestrator": {
+            "Logging": {
+                "LogLevel": {
+                    "Default": "Information",
+                    "Microsoft.AspNetCore": "Warning",
+                    "Aspire.Hosting.Dcp": "Warning"
+                }
+            },
+            "Endpoints": {
+                "FileShare": "{{mockfss}}",
+                "SalesCatalogue": "{{mockscs}}"
+            },
+            "AllowedHosts": "*",
+            "BuilderContainerTag": "latest",
+            "QueuePolling": {
+                "BatchSize": 10,
+                "ChannelSize": 20,
+                "PollingIntervalSeconds": 5
+            },
+            "Builders": {
+                "MaximumConcurrentBuilders": 5
+            }
+        },
+        "UKHO.ADDS.EFS.Builder.S100": {
+            "Endpoints": {
+                "BuilderFileShare": "{{buildermockfss}}",
+                "BuilderOrchestrator": "{{builderorchestrator}}"
+            },
+            "WorkspaceKey": "D89D11D265B19CA5C2BE97A7FCB1EF21"
+        }
+    },
+    "dev": {
+        "UKHO.ADDS.EFS.Orchestrator": {
+            "Logging": {
+                "LogLevel": {
+                    "Default": "Information",
+                    "Microsoft.AspNetCore": "Warning",
+                    "Aspire.Hosting.Dcp": "Warning"
+                }
+            },
+            "Endpoints": {
+                "FileShare": "https://dev.filesharemock",
+                "SalesCatalogue": "https://dev.scsmock"
+            },
+            "AllowedHosts": "*",
+            "BuilderContainerTag": "latest",
+            "QueuePolling": {
+                "BatchSize": 10,
+                "ChannelSize": 20,
+                "PollingIntervalSeconds": 5
+            },
+            "Builders": {
+                "MaximumConcurrentBuilders": 5
+            }
+        },
+        "UKHO.ADDS.EFS.Builder.S100": {
+            "Endpoints": {
+                "BuilderFileShare": "https://dev.filesharemock"
+            },
+            "WorkspaceKey": "workspace-key-secret-name"
+        }
+    },
+    "vnext-iat": {
+        "UKHO.ADDS.EFS.Orchestrator": {
+            "Logging": {
+                "LogLevel": {
+                    "Default": "Information",
+                    "Microsoft.AspNetCore": "Warning",
+                    "Aspire.Hosting.Dcp": "Warning"
+                }
+            },
+            "Endpoints": {
+                "FileShare": "https://vniat.filesharemock",
+                "SalesCatalogue": "https://vniat.scsmock"
+            },
+            "AllowedHosts": "*",
+            "BuilderContainerTag": "latest",
+            "QueuePolling": {
+                "BatchSize": 10,
+                "ChannelSize": 20,
+                "PollingIntervalSeconds": 5
+            },
+            "Builders": {
+                "MaximumConcurrentBuilders": 5
+            }
+        },
+        "UKHO.ADDS.EFS.Builder.S100": {
+            "Endpoints": {
+                "BuilderFileShare": "https://vniat.filesharemock"
+            },
+            "WorkspaceKey": "workspace-key-secret-name"
+        }
+    },
+    "vnext-e2e": {
+        "UKHO.ADDS.EFS.Orchestrator": {
+            "Logging": {
+                "LogLevel": {
+                    "Default": "Information",
+                    "Microsoft.AspNetCore": "Warning",
+                    "Aspire.Hosting.Dcp": "Warning"
+                }
+            },
+            "Endpoints": {
+                "FileShare": "https://vne2e.filesharemock",
+                "SalesCatalogue": "https://vne2e.scsmock"
+            },
+            "AllowedHosts": "*",
+            "BuilderContainerTag": "latest",
+            "QueuePolling": {
+                "BatchSize": 10,
+                "ChannelSize": 20,
+                "PollingIntervalSeconds": 5
+            },
+            "Builders": {
+                "MaximumConcurrentBuilders": 5
+            }
+        },
+        "UKHO.ADDS.EFS.Builder.S100": {
+            "Endpoints": {
+                "BuilderFileShare": "https://vne2e.filesharemock"
+            },
+            "WorkspaceKey": "workspace-key-secret-name"
+        }
+    },
+    "_schema": {
+        "UKHO.ADDS.EFS.Orchestrator": {
+            "Endpoints:FileShare": {
+                "type": "url",
+                "required": true
+            },
+            "Endpoints:SalesCatalogue": {
+                "type": "url",
+                "required": true
+            }
+        },
+        "UKHO.ADDS.EFS.Builder.S100": {
+            "Endpoints:BuilderFileShare": {
+                "type": "url",
+                "required": true
+            },
+            "WorkspaceKey": {
+                "type": "string",
+                "required": true,
+                "secret": true
+            }
+        }
+    }
+}

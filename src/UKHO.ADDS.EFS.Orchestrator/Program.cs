@@ -4,6 +4,7 @@ using Microsoft.Extensions.Azure;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
+using UKHO.ADDS.Configuration.Client;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Orchestrator.Api;
@@ -46,27 +47,10 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     .MinimumLevel.Override("Azure.Storage.Blobs", LogEventLevel.Fatal)
                     .MinimumLevel.Override("Azure.Storage.Queues", LogEventLevel.Warning));
 
-                builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());
+                builder.Configuration.AddConfigurationService("UKHO.ADDS.EFS.Orchestrator", "UKHO.ADDS.EFS.Builder.S100");
 
                 builder.AddServiceDefaults()
                     .AddOrchestratorServices();
-
-                var vaultEndpoint = builder.Configuration.GetConnectionString(ContainerConfiguration.KeyVaultContainerName) ?? string.Empty;
-
-                if (builder.Environment.IsDevelopment())
-                {
-                    builder.Services.AddAzureKeyVaultEmulator(vaultEndpoint, true, certificates: false, keys: true);
-                }
-                else
-                {
-                    builder.Services.AddAzureClients(client =>
-                    {
-                        var vaultUri = new Uri(vaultEndpoint);
-
-                        client.AddSecretClient(vaultUri);
-                        client.AddKeyClient(vaultUri);
-                    });
-                }
 
                 var app = builder.Build();
 
