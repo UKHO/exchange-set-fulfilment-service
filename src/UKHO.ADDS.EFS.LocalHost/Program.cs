@@ -35,7 +35,8 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             // ADDS Mock
             var mockService = builder.AddProject<UKHO_ADDS_Mocks_EFS>(ContainerConfiguration.MockContainerName)
-                .WithDashboard("Dashboard");
+                .WithDashboard("Dashboard")
+                .WithExternalHttpEndpoints();
 
             // Orchestrator
             var orchestratorService = builder.AddProject<UKHO_ADDS_EFS_Orchestrator>(ContainerConfiguration.OrchestratorContainerName)
@@ -47,6 +48,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WaitFor(storageBlob)
                 .WithReference(mockService)
                 .WaitFor(mockService)
+                .WithExternalHttpEndpoints()
                 .WithScalar("API Browser");
 
             // Configuration
@@ -58,7 +60,8 @@ namespace UKHO.ADDS.EFS.LocalHost
                 tb.AddEndpoint("buildermockfss", mockService, false, "host.docker.internal", "fss");
 
                 tb.AddEndpoint("builderorchestrator", orchestratorService, false, "host.docker.internal", null);
-            });
+            })
+            .WithExternalHttpEndpoints();
 
             orchestratorService.WithConfiguration(configurationService);
 
