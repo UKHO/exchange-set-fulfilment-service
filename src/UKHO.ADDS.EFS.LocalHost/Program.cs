@@ -112,7 +112,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WithScalar("API Browser");
 
             // Configuration
-            var configurationService = builder.AddConfiguration(@"..\..\config\configuration.json", tb =>
+            var configurationService = builder.AddConfiguration(@"../../config/configuration.json", tb =>
             {
                 tb.AddEndpoint("mockfss", mockService, false, null, "fss");
                 tb.AddEndpoint("mockscs", mockService, false, null, "scs");
