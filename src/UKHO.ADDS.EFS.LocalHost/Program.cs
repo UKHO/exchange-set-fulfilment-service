@@ -1,3 +1,8 @@
+using Azure.Core;
+using Azure.Provisioning;
+using Azure.Provisioning.AppContainers;
+using Azure.Provisioning.Storage;
+using Azure.ResourceManager.Network;
 using Azure.Security.KeyVault.Secrets;
 using CliWrap;
 using Microsoft.Extensions.Configuration;
@@ -11,6 +16,9 @@ using UKHO.ADDS.EFS.LocalHost.Extensions;
 
 namespace UKHO.ADDS.EFS.LocalHost
 {
+    /// <summary>
+    /// Defines the resources required by Aspire. If there are changes and the infrastructure IaC needs to be regenerated then please see Regenerating infra.md.
+    /// </summary>
     internal class Program
     {
         private static async Task<int> Main(string[] args)
@@ -26,12 +34,67 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             var buildOnStartup = builder.Configuration.GetValue<bool>("Containers:BuildOnStartup");
 
+            // Create id for existing subnet
+            var subnetSubscription = builder.AddParameter("subnetSubscription");
+            var subnetResourceGroup = builder.AddParameter("subnetResourceGroup");
+            var subnetVnet = builder.AddParameter("subnetVnet");
+            var subnetName = builder.AddParameter("subnetName");
+            var subnetId = SubnetResource.CreateResourceIdentifier("${subnetSubscription}", "${subnetResourceGroup}", "${subnetVnet}", "${subnetName}");
+
+            // Container apps environment
+            var acaEnv = builder.AddAzureContainerAppEnvironment(ContainerConfiguration.AcaEnvironmentName)
+                .WithParameter("subnetSubscription", subnetSubscription)
+                .WithParameter("subnetResourceGroup", subnetResourceGroup)
+                .WithParameter("subnetVnet", subnetVnet)
+                .WithParameter("subnetName", subnetName);
+            acaEnv.ConfigureInfrastructure(config =>
+            {
+                var resources = config.GetProvisionableResources();
+                var containerEnvironment = resources.OfType<ContainerAppManagedEnvironment>().First();
+                containerEnvironment.VnetConfiguration = new ContainerAppVnetConfiguration
+                {
+                    InfrastructureSubnetId = new BicepValue<ResourceIdentifier>(subnetId),
+                    IsInternal = true
+                };
+                containerEnvironment.Tags.Add("hidden-title", "EFS CAE");
+            });
+
             // Storage configuration
             var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e => { e.WithDataVolume(); });
+            storage.ConfigureInfrastructure(config =>
+            {
+                var resources = config.GetProvisionableResources();
+                var storageAccount = resources.OfType<StorageAccount>().First();
+                storageAccount.Tags.Add("hidden-title", "EFS Storage");
+                storageAccount.AllowSharedKeyAccess = true;
+            });
 
             var storageQueue = storage.AddQueues(StorageConfiguration.QueuesName);
             var storageTable = storage.AddTables(StorageConfiguration.TablesName);
             var storageBlob = storage.AddBlobs(StorageConfiguration.BlobsName);
+
+            //builder.AddDockerfile(ContainerConfiguration.S100BuilderContainerName, "..", "UKHO.ADDS.EFS.Builder.S100/Dockerfile")
+            //    .PublishAsAzureContainerApp((x, y) =>
+            //    {
+            //        y.Template.Scale.MinReplicas = 0;
+            //        y.Template.Scale.MaxReplicas = 1000;
+            //        y.Configuration.Ingress = new ContainerAppIngressConfiguration
+            //        {
+            //            External = false,
+            //            TargetPort = 8080,
+            //            Transport = new BicepValue<ContainerAppIngressTransportMethod>("http")
+            //        };
+            //        y.Template.Scale.Rules.Add(new ContainerAppScaleRule
+            //        {
+            //            Name = "queue-rule",
+            //            AzureQueue = new ContainerAppQueueScaleRule
+            //            {
+            //                QueueName = StorageConfiguration.RequestQueueName,
+            //                QueueLength = 1
+            //            }
+            //        });
+            //    })
+            //    .WithExternalHttpEndpoints();
 
             // ADDS Mock
             var mockService = builder.AddProject<UKHO_ADDS_Mocks_EFS>(ContainerConfiguration.MockContainerName)
