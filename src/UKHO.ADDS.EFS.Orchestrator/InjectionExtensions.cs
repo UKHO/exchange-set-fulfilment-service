@@ -55,11 +55,9 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddSingleton(provider =>
             {
                 var factory = provider.GetRequiredService<ISalesCatalogueClientFactory>();
-                var secretClient = provider.GetRequiredService<SecretClient>();
+                var scsEndpoint = configuration["Endpoints:SalesCatalogue"]!;
 
-                var scsEndpoint = secretClient.GetSecret(OrchestratorConfigurationKeys.SalesCatalogueEndpoint).Value!;
-
-                return factory.CreateClient(scsEndpoint.Value.RemoveControlCharacters(), string.Empty);
+                return factory.CreateClient(scsEndpoint.RemoveControlCharacters(), string.Empty);
             });
             
             builder.Services.AddSingleton<IFileShareReadWriteClientFactory>(provider =>
@@ -68,11 +66,9 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddSingleton(provider =>
             {
                 var factory = provider.GetRequiredService<IFileShareReadWriteClientFactory>();
-                var secretClient = provider.GetRequiredService<SecretClient>();
+                var fssEndpoint = configuration["Endpoints:FileShare"]!; 
 
-                var fssEndpointOrchestratorHost = secretClient.GetSecret(OrchestratorConfigurationKeys.FileShareOrchestratorEndpoint).Value!;
-
-                return factory.CreateClient(fssEndpointOrchestratorHost.Value.RemoveControlCharacters(), string.Empty);
+                return factory.CreateClient(fssEndpoint.RemoveControlCharacters(), string.Empty);
             });
 
             builder.Services.AddSingleton<ISalesCatalogueService, SalesCatalogueService>();

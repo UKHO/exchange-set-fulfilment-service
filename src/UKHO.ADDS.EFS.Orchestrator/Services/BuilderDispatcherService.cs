@@ -1,5 +1,4 @@
 ﻿using System.Threading.Channels;
-using Azure.Security.KeyVault.Secrets;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Entities;
 using UKHO.ADDS.EFS.Messages;
@@ -26,7 +25,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         // TODO Figure out how best to control this timeout
         private readonly TimeSpan _containerTimeout = TimeSpan.FromMinutes(5);
 
-        public BuilderDispatcherService(Channel<ExchangeSetRequestQueueMessage> channel, JobService jobService, SecretClient secretClient, IConfiguration configuration, ILoggerFactory loggerFactory)
+        public BuilderDispatcherService(Channel<ExchangeSetRequestQueueMessage> channel, JobService jobService, IConfiguration configuration, ILoggerFactory loggerFactory)
         {
             _channel = channel;
             _jobService = jobService;
@@ -34,11 +33,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             _loggerFactory = loggerFactory;
             _logger = loggerFactory.CreateLogger<BuilderDispatcherService>();
 
-            var fileShareEndpointSecret = secretClient.GetSecret(OrchestratorConfigurationKeys.FileShareBuilderEndpoint)!;
-            var builderServiceEndpointSecret = secretClient.GetSecret(OrchestratorConfigurationKeys.OrchestratorServiceEndpoint)!;
-            var workspaceAuthenticationKeySecret = secretClient.GetSecret(OrchestratorConfigurationKeys.WorkspaceKey)!;
-
-            var builderServiceContainerEndpoint = new UriBuilder(builderServiceEndpointSecret.Value.Value) { Host = "host.docker.internal" }.ToString();
+            var builderFileShareEndpoint = configuration["Endpoints:BuilderFileShare"]!;
+            var builderOrchestratorEndpoint = configuration["Endpoints:BuilderOrchestrator"]!;
+            var workspaceAuthenticationKeySecret = configuration["WorkspaceKey"]!;
 
             var otlpEndpoint = configuration[GlobalEnvironmentVariables.OtlpEndpoint]!;
             var otlpContainerEndpoint = new UriBuilder(otlpEndpoint) { Host = "host.docker.internal" }.ToString();
@@ -46,7 +43,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             var maxConcurrentBuilders = configuration.GetValue<int>("Builders:MaximumConcurrentBuilders");
             _concurrencyLimiter = new SemaphoreSlim(maxConcurrentBuilders, maxConcurrentBuilders);
 
-            _containerService = new BuilderContainerService(workspaceAuthenticationKeySecret.Value.Value, fileShareEndpointSecret.Value.Value, builderServiceContainerEndpoint, otlpContainerEndpoint, loggerFactory);
+            _containerService = new BuilderContainerService(workspaceAuthenticationKeySecret, builderFileShareEndpoint, builderOrchestratorEndpoint, otlpContainerEndpoint, loggerFactory);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
