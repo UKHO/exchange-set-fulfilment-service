@@ -112,6 +112,10 @@ jobs:
               AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
               AZURE_ENV_NAME: $(AZURE_ENV_NAME)
               AZURE_LOCATION: $(AZURE_LOCATION)
+              AZURE_SUBNET_NAME: $(AZURE_SUBNET_NAME)
+              AZURE_SUBNET_RESOURCE_GROUP: $(AZURE_SUBNET_RESOURCE_GROUP)
+              AZURE_SUBNET_SUBSCRIPTION: $(AZURE_SUBSCRIPTION_ID)
+              AZURE_SUBNET_VNET: $(AZURE_SUBNET_VNET)
 
           - task: AzureCLI@2
             displayName: Provision infrastructure
@@ -152,6 +156,10 @@ jobs:
               AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
               AZURE_ENV_NAME: $(AZURE_ENV_NAME)
               AZURE_LOCATION: $(AZURE_LOCATION)
+              AZURE_SUBNET_NAME: $(AZURE_SUBNET_NAME)
+              AZURE_SUBNET_RESOURCE_GROUP: $(AZURE_SUBNET_RESOURCE_GROUP)
+              AZURE_SUBNET_SUBSCRIPTION: $(AZURE_SUBSCRIPTION_ID)
+              AZURE_SUBNET_VNET: $(AZURE_SUBNET_VNET)
 
           - task: AzureCLI@2
             displayName: Download builder files from Azure
