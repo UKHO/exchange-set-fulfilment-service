@@ -3,7 +3,7 @@ using Azure;
 using Azure.Data.Tables;
 using Azure.Data.Tables.Models;
 using FakeItEasy;
-using UKHO.ADDS.EFS.Entities;
+using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Tables;
 using UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure;

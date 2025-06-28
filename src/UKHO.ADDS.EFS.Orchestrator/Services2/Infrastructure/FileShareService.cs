@@ -2,7 +2,8 @@
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
-using UKHO.ADDS.EFS.Orchestrator.Logging;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.NewViews;
 using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services2.Infrastructure
@@ -10,7 +11,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services2.Infrastructure
     /// <summary>
     /// Service for managing file share operations with the File Share Service.
     /// </summary>
-    internal class FileShareService: IFileShareService
+    internal class FileShareService
     {
         private readonly IFileShareReadWriteClient _fileShareReadWriteClient;
         private readonly ILogger<FileShareService> _logger;
@@ -178,6 +179,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services2.Infrastructure
                 Limit = limit,
                 Start = start
             };
+
             var searchCommittedBatchesLogView = new SearchCommittedBatchesLog
             {
                 BatchId = batchId,

@@ -7,7 +7,7 @@ using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute;
 using UKHO.ADDS.EFS.Builder.S100.Services;
-using UKHO.ADDS.EFS.Entities;
+using UKHO.ADDS.EFS.Jobs.S100;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
@@ -43,7 +43,7 @@ public class DistributionPipelineTests
         _distributionPipeline = new DistributionPipeline(_fileShareReadWriteClient);
         _pipelineContext = new ExchangeSetPipelineContext(null, _nodeStatusWriter, _toolClient, _loggerFactory)
         {
-            Job = new ExchangeSetJob { Id = "testId", CorrelationId = "corrId" },
+            Job = new S100ExchangeSetJob { Id = "testId", CorrelationId = "corrId" },
             WorkspaceAuthenticationKey = "authKey",
             ExchangeSetFilePath = Directory.GetParent(tempPath.TrimEnd(Path.DirectorySeparatorChar))!.FullName!,
             ExchangeSetArchiveFolderName = new DirectoryInfo(tempPath.TrimEnd(Path.DirectorySeparatorChar)).Name

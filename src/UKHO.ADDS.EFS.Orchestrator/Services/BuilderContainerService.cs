@@ -2,7 +2,7 @@
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
-using UKHO.ADDS.EFS.Orchestrator.Logging;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services
 {

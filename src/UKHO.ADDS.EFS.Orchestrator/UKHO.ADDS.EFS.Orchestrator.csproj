@@ -14,6 +14,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Services2\Infrastructure\IFileShareService.cs" />
+    <Compile Remove="Services2\Infrastructure\ISalesCatalogueService.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <InternalsVisibleTo Include="UKHO.ADDS.EFS.Orchestrator.UnitTests" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
   </ItemGroup>

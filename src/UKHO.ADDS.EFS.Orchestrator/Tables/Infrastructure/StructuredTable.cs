@@ -1,5 +1,4 @@
 ﻿using Azure.Data.Tables;
-using Serilog;
 using UKHO.ADDS.Infrastructure.Results;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
@@ -11,12 +10,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
         private readonly Func<TEntity, string> _rowKeySelector;
         private readonly TableClient _tableClient;
 
-        protected StructuredTable(TableServiceClient tableServiceClient, Func<TEntity, string> partitionKeySelector, Func<TEntity, string> rowKeySelector)
+        protected StructuredTable(string name, TableServiceClient tableServiceClient, Func<TEntity, string> partitionKeySelector, Func<TEntity, string> rowKeySelector)
         {
             _partitionKeySelector = partitionKeySelector ?? throw new ArgumentNullException(nameof(partitionKeySelector));
             _rowKeySelector = rowKeySelector ?? throw new ArgumentNullException(nameof(rowKeySelector));
 
-            Name = SanitizeTableName(typeof(TEntity).Name);
+            Name = name;
 
             _tableClient = tableServiceClient.GetTableClient(Name);
         }
@@ -200,12 +199,5 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
         }
 
         private static string SanitizeKey(string key) => key.Replace(" ", "_").Replace("/", "_").Replace("\\", "_");
-
-        private static string SanitizeTableName(string tableName) =>
-            tableName
-                .Replace("<", "_")
-                .Replace(">", "_")
-                .Replace(",", "_")
-                .Replace(" ", "_");
     }
 }

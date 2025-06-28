@@ -6,7 +6,8 @@ using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup;
 using UKHO.ADDS.EFS.Builder.S100.Services;
-using UKHO.ADDS.EFS.Entities;
+using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.Jobs.S100;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
@@ -54,7 +55,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
         [Test]
         public async Task WhenPerformExecuteAsyncWithValidDebugJob_ThenSetsJobAndReturnsSucceeded()
         {
-            var debugJob = new ExchangeSetJob
+            var debugJob = new S100ExchangeSetJob
             {
                 Id = "debug-id",
                 DataStandard = ExchangeSetDataStandard.S100,
@@ -146,7 +147,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
             _mockHttpMessageHandler?.Dispose();
         }
 
-        private static IConfiguration GetConfiguration(ExchangeSetJob debugJob)
+        private static IConfiguration GetConfiguration(S100ExchangeSetJob debugJob)
         {
             var inMemorySettings = new Dictionary<string, string>
             {

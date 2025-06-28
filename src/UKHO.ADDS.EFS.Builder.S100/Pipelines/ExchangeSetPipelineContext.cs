@@ -2,7 +2,7 @@
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.Services;
-using UKHO.ADDS.EFS.Entities;
+using UKHO.ADDS.EFS.Jobs.S100;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
@@ -37,7 +37,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
         public string FileShareEndpoint { get; set; }
         public string BuildServiceEndpoint { get; set; }
         public string WorkspaceAuthenticationKey { get; set; }
-        public ExchangeSetJob Job { get; set; }
+        public S100ExchangeSetJob Job { get; set; }
         public IEnumerable<BatchDetails> BatchDetails { get; set; }
         public string BatchId { get; set; }
         public string WorkSpaceRootPath { get; set; } = "/usr/local/tomcat/ROOT";

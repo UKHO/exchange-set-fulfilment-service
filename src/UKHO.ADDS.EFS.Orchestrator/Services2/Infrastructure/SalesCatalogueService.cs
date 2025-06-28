@@ -1,8 +1,9 @@
 ﻿using System.Net;
 using UKHO.ADDS.Clients.SalesCatalogueService;
 using UKHO.ADDS.Clients.SalesCatalogueService.Models;
-using UKHO.ADDS.EFS.Messages;
-using UKHO.ADDS.EFS.Orchestrator.Logging;
+using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.NewViews;
 using UKHO.ADDS.EFS.RetryPolicy;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services2.Infrastructure
@@ -10,7 +11,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services2.Infrastructure
     /// <summary>
     /// Service responsible for retrieving product information from the Sales Catalogue.
     /// </summary>
-    internal class SalesCatalogueService : ISalesCatalogueService
+    internal class SalesCatalogueService 
     {
         private readonly ISalesCatalogueClient _salesCatalogueClient;
         private readonly ILogger<SalesCatalogueService> _logger;
@@ -31,10 +32,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services2.Infrastructure
         /// <summary>
         /// Retrieves S100 products that have been modified since a specific date.
         /// </summary>
-        /// <param name="apiVersion">The version of the Sales Catalogue API to use.</param>
-        /// <param name="productType">The type of products to retrieve.</param>
         /// <param name="sinceDateTime">Optional date and time to filter products that have changed since this time.</param>
-        /// <param name="message">The exchange set request message containing correlation ID and other metadata.</param>
+        /// <param name="job">The exchange set request message containing correlation ID and other metadata.</param>
         /// <returns>
         /// A tuple containing:
         /// - s100SalesCatalogueData: The response from the Sales Catalogue API.
@@ -44,13 +43,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services2.Infrastructure
         /// The method returns an empty response with the original sinceDateTime when an error occurs or when
         /// an unexpected HTTP status code is returned from the API.
         /// </remarks>
-        public async Task<(S100SalesCatalogueResponse s100SalesCatalogueData, DateTime? LastModified)> GetS100ProductsFromSpecificDateAsync(
-                DateTime? sinceDateTime,
-                ExchangeSetRequestQueueMessage message)
+        public async Task<(S100SalesCatalogueResponse s100SalesCatalogueData, DateTime? LastModified)> GetS100ProductsFromSpecificDateAsync(DateTime? sinceDateTime, ExchangeSetJob job)
         {
             var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<S100SalesCatalogueResponse>(_logger, nameof(GetS100ProductsFromSpecificDateAsync));
             var s100SalesCatalogueResult = await retryPolicy.ExecuteAsync(() =>
-                _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(ScsApiVersion, ProductType, sinceDateTime, message.CorrelationId));
+                _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(ScsApiVersion, ProductType, sinceDateTime, job.CorrelationId));
 
             // Check if the API call was successful
             if (s100SalesCatalogueResult.IsSuccess(out var s100SalesCatalogueData, out var error))
@@ -68,28 +65,16 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services2.Infrastructure
 
                     default:
                         // Unexpected status code, log a warning and return an empty response
-                        LogSalesCatalogueUnexpectedStatusCode(s100SalesCatalogueData.ResponseCode, message.CorrelationId, message);
+                        _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, s100SalesCatalogueData.ResponseCode));
                         return (new S100SalesCatalogueResponse(), sinceDateTime);
                 }
             }
 
-            // API call failed, log the error using the extension method from OrchestratorLogs
-            _logger.LogSalesCatalogueError(error, message);
+            // API call failed, log the error 
+            _logger.LogSalesCatalogueApiError(error, SalesCatalogApiErrorLogView.Create(job));
 
             // Return an empty response with the original timestamp in case of failure
             return (new S100SalesCatalogueResponse(), sinceDateTime);
-        }
-        
-        private void LogSalesCatalogueUnexpectedStatusCode(HttpStatusCode responseCode, string correlationId, ExchangeSetRequestQueueMessage message)
-        {
-            var salesCatalogueLogView = new SalesCatalogueServiceLog
-            {
-                ResponseCode = responseCode,
-                CorrelationId = correlationId,
-                Message = message,
-            };
-
-            _logger.LogUnexpectedSalesCatalogueStatusCode(salesCatalogueLogView);
         }
     }
 }

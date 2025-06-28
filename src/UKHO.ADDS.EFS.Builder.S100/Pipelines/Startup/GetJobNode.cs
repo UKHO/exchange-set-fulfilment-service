@@ -1,6 +1,7 @@
 ﻿using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging;
-using UKHO.ADDS.EFS.Entities;
+using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.Jobs.S100;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
@@ -21,10 +22,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
             if (context.Subject.IsDebugSession)
             {
                 // Read DebugJob section from appsettings.development.json
-                var debugJobConfig = context.Subject.Configuration.GetSection("DebugJob").Get<ExchangeSetJob>();
+                var debugJobConfig = context.Subject.Configuration.GetSection("DebugJob").Get<S100ExchangeSetJob>();
 
                 // If DebugJob is null, use default values
-                var debugJob = debugJobConfig ?? new ExchangeSetJob()
+                var debugJob = debugJobConfig ?? new S100ExchangeSetJob()
                 {
                     Id = context.Subject.JobId,
                     BatchId = context.Subject.BatchId,
@@ -162,14 +163,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
             response.EnsureSuccessStatusCode();
 
             var jobJson = await response.Content.ReadAsStringAsync();
-            var job = JsonCodec.Decode<ExchangeSetJob>(jobJson)!;
+            var job = JsonCodec.Decode<S100ExchangeSetJob>(jobJson)!;
 
             context.Job = job;
 
             var logger = context.LoggerFactory.CreateLogger<GetJobNode>();
             logger.LogJobRetrieved(ExchangeSetJobLogView.CreateFromJob(job));
         }
-
-
     }
 }

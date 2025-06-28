@@ -2,9 +2,9 @@
 using Azure.Storage.Queues;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
-using UKHO.ADDS.EFS.Entities;
+using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Messages;
-using UKHO.ADDS.EFS.Orchestrator.Logging;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services
@@ -86,7 +86,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogContainerExecutionFailed(ExchangeSetJobLogView.CreateFromJob(job), ex);
+                            //_logger.LogContainerExecutionFailed(ExchangeSetJobLogView.Create(job), ex);
                         }
 
                         finally
@@ -140,7 +140,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
             catch (TimeoutException)
             {
-                _logger.LogContainerTimeout(containerId, ExchangeSetJobLogView.CreateFromJob(job));
+                //_logger.LogContainerTimeout(containerId, ExchangeSetJobLogView.CreateFromJob(job));
                 await _containerService.StopContainerAsync(containerId, stoppingToken);
             }
 

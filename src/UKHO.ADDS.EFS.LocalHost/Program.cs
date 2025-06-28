@@ -81,8 +81,6 @@ namespace UKHO.ADDS.EFS.LocalHost
                 tb.AddEndpoint("mockscs", mockService, false, null, "scs");
 
                 tb.AddEndpoint("buildermockfss", mockService, false, "host.docker.internal", "fss");
-
-                tb.AddEndpoint("builderorchestrator", orchestratorService, false, "host.docker.internal", null);
             })
             .WithExternalHttpEndpoints();
 

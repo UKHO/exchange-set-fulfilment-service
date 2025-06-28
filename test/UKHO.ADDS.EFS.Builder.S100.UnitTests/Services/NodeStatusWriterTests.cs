@@ -1,7 +1,8 @@
 ﻿using System.Net;
 using FakeItEasy;
 using UKHO.ADDS.EFS.Builder.S100.Services;
-using UKHO.ADDS.EFS.Entities;
+using UKHO.ADDS.EFS.Builds;
+using UKHO.ADDS.EFS.Jobs.S100;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
 namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Services
@@ -43,7 +44,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Services
         [Test]
         public async Task WhenWriteDebugExchangeSetJobIsCalled_ThenItShouldSendPostRequest()
         {
-            var exchangeSetJob = new ExchangeSetJob { Id = Guid.NewGuid().ToString() };
+            var exchangeSetJob = new S100ExchangeSetJob { Id = Guid.NewGuid().ToString() };
             var expectedUri = new Uri(new Uri(BuildServiceEndpoint), $"/jobs/debug/{exchangeSetJob.Id}");
 
             _fakeHttpMessageHandler.SetResponse(expectedUri, HttpMethod.Post, new HttpResponseMessage(HttpStatusCode.OK));

@@ -4,7 +4,7 @@ using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.IIC.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Services;
-using UKHO.ADDS.EFS.Entities;
+using UKHO.ADDS.EFS.Jobs.S100;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
@@ -34,7 +34,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
             var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
             var exchangeSetPipelineContext = new ExchangeSetPipelineContext(null, _nodeStatusWriter, _toolClient, loggerFactory)
             {
-                Job = new ExchangeSetJob { CorrelationId = "TestCorrelationId" },
+                Job = new S100ExchangeSetJob { CorrelationId = "TestCorrelationId" },
                 JobId = "TestJobId",
                 WorkspaceAuthenticationKey = "Test123"
             };
@@ -90,7 +90,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
         {
             _context.Subject.JobId = jobId;
             _context.Subject.WorkspaceAuthenticationKey = authKey;
-            _context.Subject.Job = new ExchangeSetJob { CorrelationId = correlationId };
+            _context.Subject.Job = new S100ExchangeSetJob { CorrelationId = correlationId };
             var result = await _creationPipeline.ExecutePipeline(_context.Subject);
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
         }

@@ -11,16 +11,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure
 
         private readonly Func<TEntity, string> _partitionKeySelector;
         private readonly Func<TEntity, string> _rowKeySelector;
-        private readonly ILogger<BlobTable<TEntity>> _logger;
 
-        protected BlobTable(BlobServiceClient blobServiceClient, Func<TEntity, string> partitionKeySelector, Func<TEntity, string> rowKeySelector, ILogger<BlobTable<TEntity>> logger)
+        protected BlobTable(string name, BlobServiceClient blobServiceClient, Func<TEntity, string> partitionKeySelector, Func<TEntity, string> rowKeySelector)
         {
             _partitionKeySelector = partitionKeySelector ?? throw new ArgumentNullException(nameof(partitionKeySelector));
             _rowKeySelector = rowKeySelector ?? throw new ArgumentNullException(nameof(rowKeySelector));
-            _logger = logger;
             _blobClient = blobServiceClient;
 
-            Name = SanitizeContainerName(typeof(TEntity).Name);
+            Name = name;
         }
 
         public string Name { get; }

@@ -24,9 +24,12 @@
             }
         },
         "UKHO.ADDS.EFS.Builder.S100": {
+            "ConnectionStrings": {
+                "S100QueueConnection": "dev-connection",
+                "S100BlobConnection": "blob-connection"
+            },
             "Endpoints": {
-                "BuilderFileShare": "{{buildermockfss}}",
-                "BuilderOrchestrator": "{{builderorchestrator}}"
+                "BuilderFileShare": "{{buildermockfss}}"
             },
             "WorkspaceKey": "D89D11D265B19CA5C2BE97A7FCB1EF21"
         }
@@ -56,8 +59,12 @@
             }
         },
         "UKHO.ADDS.EFS.Builder.S100": {
+            "ConnectionStrings": {
+                "S100QueueConnection": "dev-connection",
+                "S100BlobConnection": "blob-connection"
+            },
             "Endpoints": {
-                "BuilderFileShare": "https://dev.filesharemock"
+                "BuilderFileShare": "{{buildermockfss}}"
             },
             "WorkspaceKey": "workspace-key-secret-name"
         }
@@ -87,8 +94,12 @@
             }
         },
         "UKHO.ADDS.EFS.Builder.S100": {
+            "ConnectionStrings": {
+                "S100QueueConnection": "dev-connection",
+                "S100BlobConnection": "blob-connection"
+            },
             "Endpoints": {
-                "BuilderFileShare": "https://vniat.filesharemock"
+                "BuilderFileShare": "{{buildermockfss}}"
             },
             "WorkspaceKey": "workspace-key-secret-name"
         }
@@ -118,8 +129,12 @@
             }
         },
         "UKHO.ADDS.EFS.Builder.S100": {
+            "ConnectionStrings": {
+                "S100QueueConnection": "dev-connection",
+                "S100BlobConnection": "blob-connection"
+            },
             "Endpoints": {
-                "BuilderFileShare": "https://vne2e.filesharemock"
+                "BuilderFileShare": "{{buildermockfss}}"
             },
             "WorkspaceKey": "workspace-key-secret-name"
         }

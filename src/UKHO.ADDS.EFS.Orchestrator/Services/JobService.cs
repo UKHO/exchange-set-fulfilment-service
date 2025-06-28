@@ -1,21 +1,24 @@
-﻿using System.Net;
-using UKHO.ADDS.EFS.Configuration.Orchestrator;
-using UKHO.ADDS.EFS.Entities;
+﻿using UKHO.ADDS.EFS.Configuration.Orchestrator;
+using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.Jobs.S100;
 using UKHO.ADDS.EFS.Messages;
-using UKHO.ADDS.EFS.Orchestrator.Logging;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.NewViews;
+using UKHO.ADDS.EFS.Orchestrator.Services2.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Tables;
+using UKHO.ADDS.EFS.Orchestrator.Tables.S100;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services
 {
     internal class JobService
     {
-        private readonly ExchangeSetJobTable _jobTable;
+        private readonly S100ExchangeSetJobTable _jobTable;
         private readonly ExchangeSetTimestampTable _timestampTable;
-        private readonly ISalesCatalogueService _salesCatalogueService;
-        private readonly IFileShareService _fileShareService;
+        private readonly SalesCatalogueService _salesCatalogueService;
+        private readonly FileShareService _fileShareService;
         private readonly ILogger<JobService> _logger;
 
-        public JobService(ExchangeSetJobTable jobTable, ExchangeSetTimestampTable timestampTable, ISalesCatalogueService salesCatalogueService, ILogger<JobService> logger, IFileShareService fileShareService)
+        public JobService(S100ExchangeSetJobTable jobTable, ExchangeSetTimestampTable timestampTable, SalesCatalogueService salesCatalogueService, ILogger<JobService> logger, FileShareService fileShareService)
         {
             _jobTable = jobTable;
             _timestampTable = timestampTable;
@@ -50,7 +53,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
             await _jobTable.AddAsync(job);
 
-            _logger.LogJobUpdated(ExchangeSetJobLogView.CreateFromJob(job));
+            //_logger.LogJobUpdated(ExchangeSetJobLogView.CreateFromJob(job));
 
             return job;
         }
@@ -68,11 +71,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
             await CompleteJobAsync(job);
         }
 
-        private Task<ExchangeSetJob> CreateJobEntity(ExchangeSetRequestQueueMessage request)
+        private Task<S100ExchangeSetJob> CreateJobEntity(ExchangeSetRequestQueueMessage request)
         {
             var id = request.CorrelationId;
 
-            var job = new ExchangeSetJob()
+            var job = new S100ExchangeSetJob()
             {
                 Id = id,
                 DataStandard = request.DataStandard,
@@ -81,35 +84,35 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 CorrelationId = request.CorrelationId
             };
 
-            _logger.LogJobCreated(request.CorrelationId, ExchangeSetJobLogView.CreateFromJob(job));
+            _logger.LogJobCreated(request.CorrelationId, ExchangeSetJobLogView.Create(job));
 
             return Task.FromResult(job);
         }
 
-        private async Task GetS100ProductsFromSpecificDateAsync(ExchangeSetRequestQueueMessage queueMessage, DateTime? timestamp, ExchangeSetJob job)
+        private async Task GetS100ProductsFromSpecificDateAsync(ExchangeSetRequestQueueMessage queueMessage, DateTime? timestamp, S100ExchangeSetJob job)
         {
-            var result = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(timestamp, queueMessage);
+            //var result = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(timestamp, queueMessage);
 
-            switch (result.s100SalesCatalogueData.ResponseCode)
-            {
-                case HttpStatusCode.OK when result.s100SalesCatalogueData.ResponseBody.Any():
-                    // Products were successfully retrieved
-                    job.Products = result.s100SalesCatalogueData.ResponseBody;
-                    job.SalesCatalogueTimestamp = result.LastModified;
-                    break;
+            //switch (result.s100SalesCatalogueData.ResponseCode)
+            //{
+            //    case HttpStatusCode.OK when result.s100SalesCatalogueData.ResponseBody.Any():
+            //        // Products were successfully retrieved
+            //        job.Products = result.s100SalesCatalogueData.ResponseBody;
+            //        job.SalesCatalogueTimestamp = result.LastModified;
+            //        break;
 
-                case HttpStatusCode.NotModified:
-                    // No new data since the specified timestamp
-                    job.State = ExchangeSetJobState.Cancelled;
-                    job.SalesCatalogueTimestamp = result.LastModified;
-                    break;
+            //    case HttpStatusCode.NotModified:
+            //        // No new data since the specified timestamp
+            //        job.State = ExchangeSetJobState.Cancelled;
+            //        job.SalesCatalogueTimestamp = result.LastModified;
+            //        break;
 
-                default:
-                    // Any other response code (error cases)
-                    job.State = ExchangeSetJobState.Cancelled;
-                    job.SalesCatalogueTimestamp = timestamp;
-                    break;
-            }
+            //    default:
+            //        // Any other response code (error cases)
+            //        job.State = ExchangeSetJobState.Cancelled;
+            //        job.SalesCatalogueTimestamp = timestamp;
+            //        break;
+            //}
         }
 
         private async Task ProcessCreateBatchAsync(string correlationId, ExchangeSetJob job)
@@ -172,8 +175,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
                 await _timestampTable.UpsertAsync(updateTimestampEntity);
             }
 
-            await _jobTable.UpdateAsync(job);
-            _logger.LogJobCompleted(ExchangeSetJobLogView.CreateFromJob(job));
+            //await _jobTable.UpdateAsync(job);
+            //_logger.LogJobCompleted(ExchangeSetJobLogView.CreateFromJob(job));
         }
     }
 }

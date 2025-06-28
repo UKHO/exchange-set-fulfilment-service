@@ -10,10 +10,16 @@
 
         public const string BlobsName = "efs-blobs";
 
-        public const string JobRequestQueueName = "job-request";
+        // NB: Lowercase concatenated names are used to ensure compatibility and consistency across Azure storage
 
-        public const string S100BuildRequestQueueName = "s100-build-request";
+        public const string JobRequestQueueName = "jobrequest";
 
-        public const string S100BuildResponseQueueName = "s100-build-response";
+        public const string S100BuildRequestQueueName = "s100buildrequest";
+
+        public const string S100BuildResponseQueueName = "s100buildresponse";
+
+        public const string S100JobContainer = "s100job";
+
+        public const string ExchangeSetTimestampTable = "exchangesettimestamp";
     }
 }

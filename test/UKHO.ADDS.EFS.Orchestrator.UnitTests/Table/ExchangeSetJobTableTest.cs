@@ -5,22 +5,23 @@ using Azure.Storage.Blobs.Models;
 using FakeItEasy;
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.Clients.SalesCatalogueService.Models;
-using UKHO.ADDS.EFS.Entities;
+using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.Jobs.S100;
 using UKHO.ADDS.EFS.Messages;
-using UKHO.ADDS.EFS.Orchestrator.Tables;
 using UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure;
+using UKHO.ADDS.EFS.Orchestrator.Tables.S100;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
 {
     public class ExchangeSetJobTableTest
     {
-        private ExchangeSetJobTable _exchangeSetJobTable;
+        private S100ExchangeSetJobTable _exchangeSetJobTable;
         private BlobServiceClient _fakeBlobServiceClient;
         private BlobContainerClient _fakeBlobContainerClient;
         private BlobClient _fakeBlobClient;
-        private ExchangeSetJob _testEntity;
-        private ILogger<BlobTable<ExchangeSetJob>> _fakeLogger;
+        private S100ExchangeSetJob _testEntity;
+        private ILogger<BlobTable<S100ExchangeSetJob>> _fakeLogger;
         private const string PartitionKey = "validPartitionKey";
         private const string RowKey = "validRowKey";
 
@@ -30,20 +31,19 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
             _fakeBlobServiceClient = A.Fake<BlobServiceClient>();
             _fakeBlobContainerClient = A.Fake<BlobContainerClient>();
             _fakeBlobClient = A.Fake<BlobClient>();
-            _fakeLogger = A.Fake<ILogger<BlobTable<ExchangeSetJob>>>();
 
             A.CallTo(() => _fakeBlobServiceClient.GetBlobContainerClient(A<string>.Ignored))
                 .Returns(_fakeBlobContainerClient);
             A.CallTo(() => _fakeBlobContainerClient.GetBlobClient(A<string>.Ignored))
                 .Returns(_fakeBlobClient);
 
-            _exchangeSetJobTable = new ExchangeSetJobTable(_fakeBlobServiceClient, _fakeLogger);
+            _exchangeSetJobTable = new S100ExchangeSetJobTable(_fakeBlobServiceClient);
         }
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
-            _testEntity = new ExchangeSetJob
+            _testEntity = new S100ExchangeSetJob
             {
                 Id = "test-id",
                 Products =

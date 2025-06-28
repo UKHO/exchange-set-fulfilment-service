@@ -6,7 +6,7 @@ using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Services;
-using UKHO.ADDS.EFS.Entities;
+using UKHO.ADDS.EFS.Jobs.S100;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
@@ -40,7 +40,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
         {
             _pipelineContext = new ExchangeSetPipelineContext(null, _nodeStatusWriter, null, _loggerFactory)
             {
-                Job = new ExchangeSetJob
+                Job = new S100ExchangeSetJob
                 {
                     CorrelationId = "TestCorrelationId",
                     Products = GetProducts()

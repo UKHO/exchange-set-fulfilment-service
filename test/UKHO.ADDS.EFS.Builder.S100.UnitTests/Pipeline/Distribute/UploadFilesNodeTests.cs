@@ -5,7 +5,7 @@ using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute;
-using UKHO.ADDS.EFS.Entities;
+using UKHO.ADDS.EFS.Jobs.S100;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
@@ -38,7 +38,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
             string tempPath = Path.GetTempPath();
             var context = new ExchangeSetPipelineContext(null, null, null, _loggerFactory)
             {
-                Job = new ExchangeSetJob { CorrelationId = "TestCorrelationId", Id = "TestJobId" },
+                Job = new S100ExchangeSetJob { CorrelationId = "TestCorrelationId", Id = "TestJobId" },
                 BatchId = "TestBatchId",
                 ExchangeSetFilePath = Directory.GetParent(tempPath.TrimEnd(Path.DirectorySeparatorChar))!.FullName!,
                 ExchangeSetArchiveFolderName = new DirectoryInfo(tempPath.TrimEnd(Path.DirectorySeparatorChar)).Name
