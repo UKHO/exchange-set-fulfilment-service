@@ -8,6 +8,6 @@
 
         public const string MockService = "adds-mocks-efs";
 
-        public const string RequestMonitorService = "efs-request-monitor";
+        public const string RequestMonitorService = "efs-local-request-monitor";
     }
 }

@@ -25,38 +25,61 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Monitors
             var s100BuildRequestQueue = _queueClient.GetQueueClient(StorageConfiguration.S100BuildRequestQueueName);
             await s100BuildRequestQueue.CreateIfNotExistsAsync(cancellationToken: stoppingToken);
 
+            // Ensure we have mopped up any messages from the last run
+            await s100BuildRequestQueue.ClearMessagesAsync(cancellationToken: stoppingToken);
+
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
                 {
-                    var messages = await s100BuildRequestQueue.ReceiveMessagesAsync(maxMessages: 10, visibilityTimeout: TimeSpan.FromMinutes(5), cancellationToken: stoppingToken);
-                    foreach (var message in messages.Value)
+                    var peekedMessages  = await s100BuildRequestQueue.PeekMessagesAsync(maxMessages: 10, cancellationToken: stoppingToken);
+
+                    if (peekedMessages.Value.Length == 0)
                     {
-                        var request = JsonCodec.Decode<BuildRequest>(message.MessageText)!;
+                        await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken); 
+                        continue;
+                    }
 
-                        switch (request.DataStandard)
+                    foreach (var message in peekedMessages.Value)
+                    {
+                        try
                         {
-                            case ExchangeSetDataStandard.S100:
-                                _logger.LogInformation("Received S100 build request for JobId: {JobId}, BatchId: {BatchId}", request.JobId, request.BatchId);
+                            var request = JsonCodec.Decode<BuildRequest>(message.MessageText)!;
 
-                                await _processor.ProcessRequestAsync(request, cancellationToken: stoppingToken);
-                                break;
-                            default:
-                                _logger.LogWarning("Received unsupported data standard: {DataStandard} for JobId: {JobId}, BatchId: {BatchId}", request.DataStandard, request.JobId, request.BatchId);
+                            switch (request.DataStandard)
+                            {
+                                case ExchangeSetDataStandard.S100:
+                                    _logger.LogInformation("Received S100 build request for JobId: {JobId}, BatchId: {BatchId}", request.JobId, request.BatchId);
 
-                                await s100BuildRequestQueue.DeleteMessageAsync(message.MessageId, message.PopReceipt, cancellationToken: stoppingToken);
-                                break;
+                                    await _processor.ProcessRequestAsync(request, cancellationToken: stoppingToken);
+                                    break;
+                                default:
+                                    _logger.LogWarning("Received unsupported data standard: {DataStandard} for JobId: {JobId}, BatchId: {BatchId}", request.DataStandard, request.JobId, request.BatchId);
+
+                                    await DeleteMessage(s100BuildRequestQueue);
+                                    break;
+                            }
                         }
+                        catch (Exception e)
+                        {
+                            _logger.LogError(e, $"An error occurred while processing the message {message.MessageText}");
 
-                        // We do not delete the message here, as it will be handled by the builder that processes the request
+                            // Message is malformed in some way, so delete it
+                            await DeleteMessage(s100BuildRequestQueue);
+                        }
                     }
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "An error occurred while processing messages from the queue.");
                 }
-                await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken); // Wait before checking for new messages
             }
+        }
+
+        private async Task DeleteMessage(QueueClient client)
+        {
+            var received = await client.ReceiveMessageAsync();
+            await client.DeleteMessageAsync(received.Value.MessageId, received.Value.PopReceipt);
         }
     }
 }

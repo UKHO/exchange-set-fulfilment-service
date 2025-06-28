@@ -8,9 +8,9 @@ namespace UKHO.ADDS.EFS.Builds
 
         public required string BatchId { get; init; }
 
-        public required ExchangeSetDataStandard DataStandard { get; init; }
-
         public required string FileShareServiceUri { get; init; }
+
+        public required ExchangeSetDataStandard DataStandard { get; init; }
 
         public required string WorkspaceKey { get; init; }
     }

@@ -16,9 +16,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Builders.S100
         public override async Task SendBuildRequestAsync(ExchangeSetJob job, CancellationToken stoppingToken)
         {
             var requestQueueName = StorageConfiguration.S100BuildRequestQueueName;
-            var responseQueueName = StorageConfiguration.S100BuildResponseQueueName;
-            var blobContainerName = "need to sort table name so is a const";
-
             var queueClient = QueueServiceClient.GetQueueClient(requestQueueName);
 
             var request = new BuildRequest
@@ -26,8 +23,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Builders.S100
                 JobId = job.Id,
                 BatchId = job.BatchId,
                 DataStandard = job.DataStandard,
-                FileShareServiceUri = Configuration["Endpoints:BuilderFileShare"]!,
-                WorkspaceKey = Configuration["WorkspaceKey"]!
+                FileShareServiceUri = Configuration["Endpoints:S100BuilderFileShare"]!,
+                WorkspaceKey = Configuration["IICWorkspaceKey"]!
             };
 
             var messageJson = JsonCodec.Encode(request);

@@ -49,17 +49,16 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure
             builder.Services.AddSingleton(Channel.CreateBounded<ExchangeSetRequestQueueMessage>(new BoundedChannelOptions(queueChannelSize) { FullMode = BoundedChannelFullMode.Wait }));
 
             builder.Services.AddHostedService<JobRequestQueueMonitor>();
-            builder.Services.AddHostedService<S100BuildResponseMonitor>();
-
             builder.Services.AddHostedService<JobRequestQueueDispatcher>();
 
-            builder.Services.AddHostedService<BuilderDispatcherService>();
+            builder.Services.AddHostedService<S100BuildResponseMonitor>();
+
+            //builder.Services.AddHostedService<BuilderDispatcherService>();
             builder.Services.AddSingleton<JobService>();
 
             builder.Services.AddSingleton<S100ExchangeSetJobTable>();
             builder.Services.AddSingleton<ExchangeSetTimestampTable>();
             builder.Services.AddSingleton<ExchangeSetBuilderNodeStatusTable>();
-
 
             builder.Services.AddTransient<ExchangeSetJobFactory>();
 
@@ -68,7 +67,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure
             builder.Services.AddTransient<S100BuildResponseProcessor>();
 
             builder.Services.AddTransient<StorageInitializerService>();
-
 
             builder.Services.AddSingleton<ISalesCatalogueClientFactory>(provider => new SalesCatalogueClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
 

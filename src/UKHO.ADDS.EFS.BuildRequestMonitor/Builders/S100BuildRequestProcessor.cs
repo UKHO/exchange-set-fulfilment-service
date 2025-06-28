@@ -13,7 +13,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
 
         private readonly BuilderContainerService _containerService;
 
-        public S100BuildRequestProcessor(BuilderContainerService bcs) => _containerService = bcs ?? throw new ArgumentNullException(nameof(bcs), "BuilderContainerService cannot be null");
+        public S100BuildRequestProcessor(BuilderContainerService bcs) => _containerService = bcs;
 
         // This service will handle the processing of requests
         // It will monitor the request queue and process each request accordingly
@@ -26,8 +26,8 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
                 env.AddsEnvironment = AddsEnvironment.Local.Value;
                 env.RequestQueueName = StorageConfiguration.S100BuildRequestQueueName;
                 env.ResponseQueueName = StorageConfiguration.S100BuildResponseQueueName;
-                env.QueueConnectionString = "devaccount1";
-                env.BlobConnectionString = "devaccount1";
+                env.QueueConnectionString = "not-used-local";
+                env.BlobConnectionString = "not-used-local";
                 env.BlobContainerName = StorageConfiguration.S100JobContainer;
             });
 

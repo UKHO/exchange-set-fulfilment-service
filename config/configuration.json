@@ -9,8 +9,8 @@
                 }
             },
             "Endpoints": {
-                "FileShare": "{{mockfss}}",
-                "SalesCatalogue": "{{mockscs}}"
+                "FileShare": "{{mockfss}}", // Local dynamic fss mock address from aspire
+                "SalesCatalogue": "{{mockscs}}" // Local dynamic scs mock address from aspire
             },
             "AllowedHosts": "*",
             "BuilderContainerTag": "latest",
@@ -24,14 +24,10 @@
             }
         },
         "UKHO.ADDS.EFS.Builder.S100": {
-            "ConnectionStrings": {
-                "S100QueueConnection": "dev-connection",
-                "S100BlobConnection": "blob-connection"
-            },
             "Endpoints": {
-                "BuilderFileShare": "{{buildermockfss}}"
+                "S100BuilderFileShare": "{{buildermockfss}}" // Local dynamic fss mock address from aspire with host adjusted for docker 
             },
-            "WorkspaceKey": "D89D11D265B19CA5C2BE97A7FCB1EF21"
+            "IICWorkspaceKey": "D89D11D265B19CA5C2BE97A7FCB1EF21" // Secret has literal value in local environment only
         }
     },
     "dev": {
@@ -59,14 +55,10 @@
             }
         },
         "UKHO.ADDS.EFS.Builder.S100": {
-            "ConnectionStrings": {
-                "S100QueueConnection": "dev-connection",
-                "S100BlobConnection": "blob-connection"
-            },
             "Endpoints": {
-                "BuilderFileShare": "{{buildermockfss}}"
+                "S100BuilderFileShare": "{{buildermockfss}}"
             },
-            "WorkspaceKey": "workspace-key-secret-name"
+            "IICWorkspaceKey": "workspace-key-secret-name"
         }
     },
     "vnext-iat": {
@@ -94,14 +86,10 @@
             }
         },
         "UKHO.ADDS.EFS.Builder.S100": {
-            "ConnectionStrings": {
-                "S100QueueConnection": "dev-connection",
-                "S100BlobConnection": "blob-connection"
-            },
             "Endpoints": {
-                "BuilderFileShare": "{{buildermockfss}}"
+                "S100BuilderFileShare": "{{buildermockfss}}"
             },
-            "WorkspaceKey": "workspace-key-secret-name"
+            "IICWorkspaceKey": "workspace-key-secret-name"
         }
     },
     "vnext-e2e": {
@@ -129,14 +117,10 @@
             }
         },
         "UKHO.ADDS.EFS.Builder.S100": {
-            "ConnectionStrings": {
-                "S100QueueConnection": "dev-connection",
-                "S100BlobConnection": "blob-connection"
-            },
             "Endpoints": {
-                "BuilderFileShare": "{{buildermockfss}}"
+                "S100BuilderFileShare": "{{buildermockfss}}"
             },
-            "WorkspaceKey": "workspace-key-secret-name"
+            "IICWorkspaceKey": "workspace-key-secret-name"
         }
     },
     "_schema": {
@@ -151,11 +135,11 @@
             }
         },
         "UKHO.ADDS.EFS.Builder.S100": {
-            "Endpoints:BuilderFileShare": {
+            "Endpoints:S100BuilderFileShare": {
                 "type": "url",
                 "required": true
             },
-            "WorkspaceKey": {
+            "IICWorkspaceKey": {
                 "type": "string",
                 "required": true,
                 "secret": true

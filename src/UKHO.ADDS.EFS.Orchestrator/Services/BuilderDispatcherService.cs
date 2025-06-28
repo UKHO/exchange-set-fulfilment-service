@@ -69,31 +69,31 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
                     await _concurrencyLimiter.WaitAsync(stoppingToken);
 
-                    _ = Task.Run(async () =>
-                    {
-                        try
-                        {
-                            //await ExecuteBuilder(job, stoppingToken);
-                            var builderQueueMessage = new BuilderRequestQueueMessage
-                            {
-                                JobId = job.Id,
-                                StorageAddress = "Unknown",
-                                BatchId = job.BatchId,
-                                CorrelationId = job.CorrelationId
-                            };
-                            var buildermessageJson = JsonCodec.Encode(builderQueueMessage);
-                            await requestQueue.SendMessageAsync(buildermessageJson, stoppingToken);
-                        }
-                        catch (Exception ex)
-                        {
-                            //_logger.LogContainerExecutionFailed(ExchangeSetJobLogView.Create(job), ex);
-                        }
+                    //_ = Task.Run(async () =>
+                    //{
+                    //    try
+                    //    {
+                    //        //await ExecuteBuilder(job, stoppingToken);
+                    //        var builderQueueMessage = new BuilderRequestQueueMessage
+                    //        {
+                    //            JobId = job.Id,
+                    //            StorageAddress = "Unknown",
+                    //            BatchId = job.BatchId,
+                    //            CorrelationId = job.CorrelationId
+                    //        };
+                    //        var buildermessageJson = JsonCodec.Encode(builderQueueMessage);
+                    //        await requestQueue.SendMessageAsync(buildermessageJson, stoppingToken);
+                    //    }
+                    //    catch (Exception ex)
+                    //    {
+                    //        //_logger.LogContainerExecutionFailed(ExchangeSetJobLogView.Create(job), ex);
+                    //    }
 
-                        finally
-                        {
-                            _concurrencyLimiter.Release();
-                        }
-                    }, stoppingToken);
+                    //    finally
+                    //    {
+                    //        _concurrencyLimiter.Release();
+                    //    }
+                    //}, stoppingToken);
                 }
                 catch (Exception ex)
                 {
