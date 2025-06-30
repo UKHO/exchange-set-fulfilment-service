@@ -12,7 +12,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
     {
         private readonly HttpClient _httpClient;
         private const string WorkSpaceId = "working9";
-        private const string ApiVersion = "2.7";
+        private const string ApiVersion = "7.2";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ToolClient"/> class.

@@ -9,7 +9,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
     {
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
         {
-
             var logger = context.Subject.LoggerFactory.CreateLogger<StartTomcatNode>();
             var catalinaHome = Environment.GetEnvironmentVariable("CATALINA_HOME");
 
@@ -28,7 +27,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
             };
 
             // Tomcat writes logs to stderr
-
             process.OutputDataReceived += (sender, args) => logger.LogTomcatMessage(new TomcatLogView() { TomcatMessage = args.Data! });
             process.ErrorDataReceived += (sender, args) => logger.LogTomcatMessage(new TomcatLogView() { TomcatMessage = args.Data! });
 
@@ -36,16 +34,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
 
-            // Wait for Tomcat to respond on port 8080
-            using var httpClient = new HttpClient();
             var ready = false;
 
             for (var i = 0; i < 30; i++) // TODO configure this from orchestrator ~30s timeout
             {
                 try
                 {
-                    var response = await httpClient.GetAsync("http://localhost:8080/xchg-7.2/v7.2/dev?arg=test&authkey=D89D11D265B19CA5C2BE97A7FCB1EF21");
-                    if (response.IsSuccessStatusCode)
+                    var result = await context.Subject.ToolClient.ListWorkspaceAsync(context.Subject.WorkspaceAuthenticationKey);
+                    if (result.IsSuccess(out var response) && !string.IsNullOrEmpty(response))
                     {
                         ready = true;
                         break;
