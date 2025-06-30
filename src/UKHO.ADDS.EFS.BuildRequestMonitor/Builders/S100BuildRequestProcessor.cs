@@ -25,6 +25,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
         {
             var containerName = $"{ContainerName}{request.JobId}";
 
+            // Set the environment variables for the container - in production, these are set from the Azure environment (via the pipeline)
             var containerId = await _containerService.CreateContainerAsync(ImageName, containerName, _command, request.JobId, request.BatchId, env =>
             {
                 env.AddsEnvironment = AddsEnvironment.Local.Value;
