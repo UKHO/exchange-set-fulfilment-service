@@ -9,8 +9,8 @@
                 }
             },
             "Endpoints": {
-                "FileShare": "{{mockfss}}", // Local dynamic fss mock address from aspire
-                "SalesCatalogue": "{{mockscs}}" // Local dynamic scs mock address from aspire
+                "FileShare": "{{mockfss}}", // Local dynamic fss mock address from aspire, set in LocalHost
+                "SalesCatalogue": "{{mockscs}}" // Local dynamic scs mock address from aspire, set in LocalHost
             },
             "AllowedHosts": "*",
             "BuilderContainerTag": "latest",
@@ -25,7 +25,7 @@
         },
         "UKHO.ADDS.EFS.Builder.S100": {
             "Endpoints": {
-                "S100BuilderFileShare": "{{buildermockfss}}" // Local dynamic fss mock address from aspire with host adjusted for docker 
+                "S100BuilderFileShare": "{{buildermockfss}}" // Local dynamic fss mock address from aspire with host adjusted for docker, set in LocalHost
             },
             "IICWorkspaceKey": "D89D11D265B19CA5C2BE97A7FCB1EF21", // Secret has literal value in local environment only
             "ExchangeSetNameTemplate": "V01X01_[jobid]" // Template for naming an exchange set: options are jobid, date
@@ -57,7 +57,7 @@
         },
         "UKHO.ADDS.EFS.Builder.S100": {
             "Endpoints": {
-                "S100BuilderFileShare": "https://dev.addsmock.filesharemock"
+                "S100BuilderFileShare": "https://dev.addsmock.filesharemock" // Still using mock, but deployed (fixed address)
             },
             "IICWorkspaceKey": "workspace-key-secret-name",
             "ExchangeSetNameTemplate": "V01X01_[jobid]"
@@ -73,7 +73,7 @@
                 }
             },
             "Endpoints": {
-                "FileShare": "https://vniat.fileshare",
+                "FileShare": "https://vniat.fileshare", // Real file share, sales catalogue etc
                 "SalesCatalogue": "https://vniat.scs"
             },
             "AllowedHosts": "*",
