@@ -6,12 +6,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Services
     internal class FileNameGeneratorTest
     {
         private const string DefaultJobId = "TEST123";
-        private string? _originalEnvironment;
+        private string? _environment;
 
         [SetUp]
         public void Setup()
         {
-            _originalEnvironment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            _environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
         }
 
         [Test]

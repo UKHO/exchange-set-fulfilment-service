@@ -4,17 +4,17 @@ namespace UKHO.ADDS.EFS.Builder.S100.Services
 {
     internal class FileNameGenerator
     {
-        private const string VersionPrefix = "V01X01";
-        private const string LowerEnvironmentTemplate = VersionPrefix + "_{{JobId}}.zip";
-        private const string HigherEnvironmentTemplate = $"{VersionPrefix}.zip";
+        private const string ExchangeSetFileNamePrefix = "V01X01";
+        private const string LowerEnvironmentTemplate = ExchangeSetFileNamePrefix + "_{{JobId}}.zip";
+        private const string HigherEnvironmentTemplate = $"{ExchangeSetFileNamePrefix}.zip";
         private static readonly string[] _lowerEnvironments = ["Local", "Development", "Dev"];
-        private static readonly HandlebarsTemplate<object, object> _lowerEnvTemplate;
-        private static readonly HandlebarsTemplate<object, object> _higherEnvTemplate;
+        private static readonly HandlebarsTemplate<object, object> _lowerEnvironmentTemplate;
+        private static readonly HandlebarsTemplate<object, object> _higherEnvironmentTemplate;
 
         static FileNameGenerator()
         {
-            _lowerEnvTemplate = Handlebars.Compile(LowerEnvironmentTemplate);
-            _higherEnvTemplate = Handlebars.Compile(HigherEnvironmentTemplate);
+            _lowerEnvironmentTemplate = Handlebars.Compile(LowerEnvironmentTemplate);
+            _higherEnvironmentTemplate = Handlebars.Compile(HigherEnvironmentTemplate);
         }
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Services
             var hasValidJobId = !string.IsNullOrEmpty(jobId);
 
             // Use the lower environment template if in a lower environment and jobId is valid; otherwise, use the higher environment template.
-            return (isLowerEnvironment && hasValidJobId) ? _lowerEnvTemplate(templateData) : _higherEnvTemplate(templateData);
+            return (isLowerEnvironment && hasValidJobId) ? _lowerEnvironmentTemplate(templateData) : _higherEnvironmentTemplate(templateData);
         }
     }
 }
