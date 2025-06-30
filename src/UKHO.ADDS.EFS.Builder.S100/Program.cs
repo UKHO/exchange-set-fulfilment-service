@@ -19,6 +19,9 @@ namespace UKHO.ADDS.EFS.Builder.S100
     {
         private static async Task<int> Main(string[] args)
         {
+            await Task.Delay(10000);
+            return 0;
+
             InjectionExtensions.ConfigureSerilog();
 
             try
