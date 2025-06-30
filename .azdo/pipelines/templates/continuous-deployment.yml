@@ -148,10 +148,10 @@ jobs:
               keepAzSessionActive: true
               ${{ if eq(parameters.AzdDebug, true) }}:
                 inlineScript: |
-                  azd deploy --no-prompt --debug
+                  azd deploy adds-configuration --no-prompt --debug
               ${{ else }}:
                 inlineScript: |
-                  azd deploy --no-prompt
+                  azd deploy adds-configuration --no-prompt
             env:
               AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
               AZURE_ENV_NAME: $(AZURE_ENV_NAME)
