@@ -1,4 +1,5 @@
 ﻿using FakeItEasy;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
@@ -20,6 +21,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         private IExecutionContext<ExchangeSetPipelineContext> _executionContext;
         private ILoggerFactory _loggerFactory;
         private ILogger _logger;
+        private IConfiguration _configuration;
+
+        private const int RetryDelayInMilliseconds = 500;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
@@ -34,6 +38,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [SetUp]
         public void SetUp()
         {
+            _configuration = A.Fake<IConfiguration>();
+            A.CallTo(() => _configuration["HttpRetry:RetryDelayInMilliseconds"]).Returns(RetryDelayInMilliseconds.ToString());
+            UKHO.ADDS.EFS.RetryPolicy.HttpRetryPolicyFactory.SetConfiguration(_configuration);
+
             var exchangeSetPipelineContext = new ExchangeSetPipelineContext(null, null, null, _loggerFactory)
             {
                 WorkSpaceRootPath = Path.GetTempPath(),
@@ -50,12 +58,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
 
             A.CallTo(() => _executionContext.Subject).Returns(exchangeSetPipelineContext);
             A.CallTo(() => _loggerFactory.CreateLogger(typeof(DownloadFilesNode).FullName!)).Returns(_logger);
-        }
-
-        [OneTimeTearDown]
-        public void OneTimeTearDown()
-        {
-            _loggerFactory?.Dispose();
         }
 
         [Test]
@@ -88,7 +90,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
 
         [Test]
         public async Task WhenDownloadFileAsyncExceptionThrown_ThenReturnsFailed()
-        {        
+        {
             var exceptionMessage = "Download file failed ";
             var batch = CreateBatchDetails();
             _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
@@ -187,6 +189,18 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
                 batchPublishedDate: DateTime.UtcNow,
                 files: fileNames?.Select(f => new BatchDetailsFiles(f)).ToList() ?? new List<BatchDetailsFiles> { new BatchDetailsFiles("file1.txt") }
             );
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            UKHO.ADDS.EFS.RetryPolicy.HttpRetryPolicyFactory.SetConfiguration(null);
+        }
+
+        [OneTimeTearDown]
+        public void OneTimeTearDown()
+        {
+            _loggerFactory?.Dispose();
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using FakeItEasy;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
@@ -21,6 +22,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         private ProductSearchNode _productSearchNode;
         private ILoggerFactory _loggerFactory;
         private ILogger _logger;
+        private IConfiguration _configuration;
+
+        private const int RetryDelayInMilliseconds = 500;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
@@ -51,6 +55,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
             A.CallTo(() => _executionContext.Subject).Returns(exchangeSetPipelineContext);
             A.CallTo(() => _loggerFactory.CreateLogger(typeof(ProductSearchNode).FullName!)).Returns(_logger);
 
+            _configuration = A.Fake<IConfiguration>();
+            A.CallTo(() => _configuration["HttpRetry:RetryDelayInMilliseconds"]).Returns(RetryDelayInMilliseconds.ToString());
+            UKHO.ADDS.EFS.RetryPolicy.HttpRetryPolicyFactory.SetConfiguration(_configuration);
         }
 
         [Test]
@@ -61,7 +68,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
 
         [Test]
         public async Task WhenPerformExecuteAsyncCalledWithValidProducts_ThenReturnSucceeded()
-        { 
+        {
             var batchDetails = new List<BatchDetails>
             {
                 new() { BatchId = "TestBatchId1" }
@@ -97,11 +104,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
 
         [Test]
         public async Task WhenPerformExecuteAsyncIsCalledAndSearchFails_ThenReturnFailed()
-        {           
+        {
             var error = new Error { Message = "Search failed" };
             A.CallTo(() => _fileShareReadOnlyClientFake.SearchAsync(A<string>._, A<int?>._, A<int?>._, A<string>._))
                 .Returns(Result.Failure<BatchSearchResponse>(error));
-         
+
             var result = await _productSearchNode.ExecuteAsync(_executionContext);
 
             Assert.Multiple(() =>
@@ -195,7 +202,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
                     A<Exception>._,
                     A<Func<LoggerMessageState, Exception?, string>>._))
                 .MustHaveHappenedOnceExactly();
-            
+
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
         }
 
@@ -203,6 +210,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         public void OneTimeTearDown()
         {
             _loggerFactory?.Dispose();
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            UKHO.ADDS.EFS.RetryPolicy.HttpRetryPolicyFactory.SetConfiguration(null);
         }
     }
 }

@@ -3,6 +3,7 @@ using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
 using UKHO.ADDS.EFS.Orchestrator.Logging;
+using UKHO.ADDS.EFS.RetryPolicy;
 using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services
@@ -10,7 +11,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
     /// <summary>
     /// Service for managing file share operations with the File Share Service.
     /// </summary>
-    public class FileShareService: IFileShareService
+    public class FileShareService : IFileShareService
     {
         private readonly IFileShareReadWriteClient _fileShareReadWriteClient;
         private readonly ILogger<FileShareService> _logger;
@@ -43,8 +44,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         /// <returns>A result containing the batch handle on success or error information on failure.</returns>
         public async Task<IResult<IBatchHandle>> CreateBatchAsync(string correlationId, CancellationToken cancellationToken)
         {
-            var createBatchResponseResult = await _fileShareReadWriteClient.CreateBatchAsync(GetBatchModel(), correlationId, cancellationToken);
-            
+            var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<IBatchHandle>(_logger, nameof(CreateBatchAsync));
+            var createBatchResponseResult = await retryPolicy.ExecuteAsync(() =>
+                _fileShareReadWriteClient.CreateBatchAsync(GetBatchModel(), correlationId, cancellationToken));
+
             if (createBatchResponseResult.IsFailure(out var error, out _))
             {
                 LogFileShareServiceError(correlationId, CreateBatch, error, correlationId);
@@ -62,7 +65,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         /// <returns>A result containing the commit batch response on success or error information on failure.</returns>
         public async Task<IResult<CommitBatchResponse>> CommitBatchAsync(string batchId, string correlationId, CancellationToken cancellationToken)
         {
-            var commitBatchResult = await _fileShareReadWriteClient.CommitBatchAsync(new BatchHandle(batchId), correlationId, cancellationToken);
+            var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<CommitBatchResponse>(_logger, nameof(CommitBatchAsync));
+            var commitBatchResult = await retryPolicy.ExecuteAsync(() =>
+                _fileShareReadWriteClient.CommitBatchAsync(new BatchHandle(batchId), correlationId, cancellationToken));
 
             if (commitBatchResult.IsFailure(out var commitError, out _))
             {
@@ -82,8 +87,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         public async Task<IResult<BatchSearchResponse>> SearchCommittedBatchesExcludingCurrentAsync(string currentBatchId, string correlationId, CancellationToken cancellationToken)
         {
             var filter = $"BusinessUnit eq '{BusinessUnit}' and {ProductTypeQueryClause}$batch(BatchId) ne '{currentBatchId}'";
-
-            var searchResult = await _fileShareReadWriteClient.SearchAsync(filter, Limit, Start, correlationId, cancellationToken);
+            var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<BatchSearchResponse>(_logger, nameof(SearchCommittedBatchesExcludingCurrentAsync));
+            var searchResult = await retryPolicy.ExecuteAsync(() =>
+                _fileShareReadWriteClient.SearchAsync(filter, Limit, Start, correlationId, cancellationToken));
 
             if (searchResult.IsFailure(out var error, out _))
             {
@@ -105,7 +111,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
         /// </returns>
         public async Task<IResult<SetExpiryDateResponse>> SetExpiryDateAsync(List<BatchDetails> otherBatches, string correlationId, CancellationToken cancellationToken)
         {
-            // Filter valid batches before processing
             var validBatches = otherBatches.Where(b => !string.IsNullOrEmpty(b.BatchId)).ToList();
 
             if (validBatches.Count == 0)
@@ -115,9 +120,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
             IResult<SetExpiryDateResponse> lastResult = Result.Success(new SetExpiryDateResponse());
 
+            var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<SetExpiryDateResponse>(_logger, nameof(SetExpiryDateAsync));
+
             foreach (var batch in validBatches)
             {
-                var expiryResult = await _fileShareReadWriteClient.SetExpiryDateAsync(batch.BatchId, new BatchExpiryModel { ExpiryDate = DateTime.UtcNow }, correlationId, cancellationToken);
+                var expiryResult = await retryPolicy.ExecuteAsync(() =>
+                    _fileShareReadWriteClient.SetExpiryDateAsync(batch.BatchId, new BatchExpiryModel { ExpiryDate = DateTime.UtcNow }, correlationId, cancellationToken));
 
                 if (expiryResult.IsFailure(out var expiryError, out _))
                 {
