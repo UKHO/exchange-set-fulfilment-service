@@ -175,7 +175,6 @@ jobs:
                 export CONTAINER_PORT=8080
                 RESOURCE_GROUP="rg-$(AZURE_ENV_NAME)"
                 export $(azd env get-values)
-                env
 
                 echo "Logging in to Azure Container Registry..."
                 az acr login --name $ACR_NAME
@@ -186,7 +185,7 @@ jobs:
                 echo "Deploying app..."
                 cp "$(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.LocalHost/infra/adds-configuration/adds-configuration.tmpl.bicepparam" "$(Build.SourcesDirectory)/infra/adds-configuration/adds-configuration.tmpl.bicepparam"
                 cd "$(Build.SourcesDirectory)/infra/adds-configuration"
-                az deployment group create --name adds-configuration-$DeploymentNumber --resource-group $RESOURCE_GROUP --parameters adds-configuration.tmpl.bicepparam
+                az deployment group create --name adds-configuration-$DeploymentNumber --resource-group $RESOURCE_GROUP --parameters adds-configuration.tmpl.bicepparam --debug
             env:
               ACR_NAME: $(BuilderAcrName)
               AZURE_ENV_NAME: $(AZURE_ENV_NAME)
