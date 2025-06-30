@@ -35,6 +35,9 @@
     <PackageReference Include="UKHO.ADDS.Clients.FileShareService.ReadWrite" Version="0.0.50520-alpha.3" />
     <PackageReference Include="UKHO.ADDS.Clients.Common" Version="0.0.50520-alpha.3" />
     <PackageReference Include="UKHO.ADDS.Clients.FileShareService.ReadOnly" Version="0.0.50520-alpha.3" />
+    <PackageReference Include="Aspire.Azure.Data.Tables" Version="9.3.1" />
+    <PackageReference Include="Aspire.Azure.Storage.Queues" Version="9.3.1" />
+    <PackageReference Include="Aspire.Azure.Storage.Blobs" Version="9.3.1" />
   </ItemGroup>
 
   <!--<ItemGroup>
@@ -52,6 +55,12 @@
   <ItemGroup>
     <ProjectReference Include="..\UKHO.ADDS.EFS.Domain\UKHO.ADDS.EFS.Domain.csproj" />
     <ProjectReference Include="..\UKHO.ADDS.EFS.Analyzers\UKHO.ADDS.EFS.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="ports.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

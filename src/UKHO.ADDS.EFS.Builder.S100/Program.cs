@@ -1,10 +1,12 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Nodes;
 using Serilog;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Create.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging;
+using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
@@ -95,25 +97,8 @@ namespace UKHO.ADDS.EFS.Builder.S100
         {
             var services = new ServiceCollection();
 
-            var catalinaHomePath = Environment.GetEnvironmentVariable("CATALINA_HOME") ?? string.Empty;
-
-            var currentDirectory = Directory.GetCurrentDirectory();
-            var appContextDirectory = AppContext.BaseDirectory;
-
-            var configPathPrefix = string.Empty;
-
-            if (currentDirectory.TrimEnd('/').Equals(catalinaHomePath.TrimEnd('/'), StringComparison.InvariantCultureIgnoreCase))
-            {
-                configPathPrefix = appContextDirectory;
-            }
-
-            var appsettingsPath = $"{configPathPrefix}appsettings.json";
-            var appsettingsDevPath = $"{configPathPrefix}appsettings.Development.json";
-
             var configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile(appsettingsPath)
-                .AddJsonFile(appsettingsDevPath, true)
+                .AddS100BuilderConfiguration()
                 .Build();
 
             services.AddSingleton<IConfiguration>(x => configuration);

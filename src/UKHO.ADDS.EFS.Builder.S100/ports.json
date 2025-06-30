@@ -1,0 +1,4 @@
+﻿{
+    "QueuePort": 12345,
+    "BlobPort": 12346
+}

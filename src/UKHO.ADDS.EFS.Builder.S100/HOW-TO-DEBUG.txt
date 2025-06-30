@@ -1,0 +1,13 @@
+﻿Follow these steps to debug the container:
+
+1) Start UKHO.ADDS.EFS.LocalHost (Start without Debugging)
+2) Wait for the Orchestrator to start
+3) From the Aspire dashboard, stop the efs-local-request-monitor process
+
+4) Click on the efs-orchestrator process, and browse to the 'Environment variables' section
+5) Find the entry for 'ConnectionStrings__queues'. View the value by clicking the 'eye' button, and make a note of the port number. Do the same for 'ConnectionStrings__blobs'.
+6) Open the file 'ports.json' in the UKHO.ADDS.EFS.Builder.S100 project. Adjust the values here to match.
+
+7) From the Orchestrator API browser, create a request using the POST /requests endpoint (or place a build request in the s100buildrequest queue using Azure Storage Explorer)
+8) Set the UKHO.ADDS.EFS.Builder.S100 project as the startup project in Visual Studio
+9) Run the project in Debug mode (F5)

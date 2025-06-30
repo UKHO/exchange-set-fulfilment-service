@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Nodes;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Json;
@@ -7,6 +8,7 @@ using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Services;
+using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Extensions;
 using UKHO.ADDS.EFS.RetryPolicy;
@@ -16,6 +18,64 @@ namespace UKHO.ADDS.EFS.Builder.S100
     [ExcludeFromCodeCoverage]
     internal static class InjectionExtensions
     {
+        public static void ConfigureSerilog()
+        {
+            Log.Logger = new LoggerConfiguration()
+                .Enrich.FromLogContext()
+                .WriteTo.Console(new JsonFormatter())
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                .MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Error)
+                .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Error)
+                .MinimumLevel.Override("Microsoft.AspNetCore.Mvc", LogEventLevel.Error)
+                .MinimumLevel.Override("Microsoft.AspNetCore.Routing", LogEventLevel.Warning)
+                .MinimumLevel.Override("Microsoft.AspNetCore.Hosting", LogEventLevel.Warning)
+                .MinimumLevel.Override("Azure.Core", LogEventLevel.Fatal)
+                .MinimumLevel.Override("Azure.Storage.Blobs", LogEventLevel.Fatal)
+                .MinimumLevel.Override("Azure.Storage.Queues", LogEventLevel.Warning)
+                .CreateLogger();
+        }
+
+        public static IConfigurationBuilder AddS100BuilderConfiguration(this IConfigurationBuilder configurationBuilder)
+        {
+            // Do we have an ADDS Environment set? If not, we are being run manually from Visual Studio. This would normally be set by
+            // either Azure or the local BuildRequestMonitor
+            var addsEnvironment = Environment.GetEnvironmentVariable(BuilderEnvironmentVariables.AddsEnvironment);
+
+            var isManualRun = string.IsNullOrWhiteSpace(addsEnvironment);
+
+            if (isManualRun)
+            {
+                Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.AddsEnvironment, "local");
+                Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.RequestQueueName, StorageConfiguration.S100BuildRequestQueueName);
+                Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.ResponseQueueName, StorageConfiguration.S100BuildResponseQueueName);
+                Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.BlobContainerName, StorageConfiguration.S100JobContainer);
+
+                // Paths are different when running in debug under VS
+                var catalinaHomePath = Environment.GetEnvironmentVariable("CATALINA_HOME") ?? string.Empty;
+                var currentDirectory = Directory.GetCurrentDirectory();
+                var appContextDirectory = AppContext.BaseDirectory;
+
+                var pathPrefix = string.Empty;
+
+                if (currentDirectory.TrimEnd('/').Equals(catalinaHomePath.TrimEnd('/'), StringComparison.InvariantCultureIgnoreCase))
+                {
+                    pathPrefix = appContextDirectory;
+                }
+
+                var portsPath = $"{pathPrefix}ports.json";
+                var portsJson = File.ReadAllText(portsPath);
+
+                var ports = GetPorts(portsJson);
+
+                Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.QueueConnectionString, $"http://host.docker.internal:{ports.QueuePort}/devstoreaccount1");
+                Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.BlobConnectionString, $"http://host.docker.internal:{ports.BlobPort}/devstoreaccount1");
+            }
+
+            configurationBuilder.AddEnvironmentVariables();
+
+            return configurationBuilder;
+        }
+
         public static IServiceCollection AddS100BuilderServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddLogging(ConfigureLogging);
@@ -98,21 +158,31 @@ namespace UKHO.ADDS.EFS.Builder.S100
             return services;
         }
 
-        public static void ConfigureSerilog()
+        private static (int QueuePort, int BlobPort) GetPorts(string json)
         {
-            Log.Logger = new LoggerConfiguration()
-                .Enrich.FromLogContext()
-                .WriteTo.Console(new JsonFormatter())
-                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-                .MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Error)
-                .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Error)
-                .MinimumLevel.Override("Microsoft.AspNetCore.Mvc", LogEventLevel.Error)
-                .MinimumLevel.Override("Microsoft.AspNetCore.Routing", LogEventLevel.Warning)
-                .MinimumLevel.Override("Microsoft.AspNetCore.Hosting", LogEventLevel.Warning)
-                .MinimumLevel.Override("Azure.Core", LogEventLevel.Fatal)
-                .MinimumLevel.Override("Azure.Storage.Blobs", LogEventLevel.Fatal)
-                .MinimumLevel.Override("Azure.Storage.Queues", LogEventLevel.Warning)
-                .CreateLogger();
+            var rootNode = JsonNode.Parse(json);
+            if (rootNode == null)
+            {
+                throw new ArgumentException("Invalid JSON: root node is null");
+            }
+
+            var queuePortNode = rootNode["QueuePort"];
+            var blobPortNode = rootNode["BlobPort"];
+
+            if (queuePortNode == null)
+            {
+                throw new ArgumentException("JSON does not contain 'QueuePort'");
+            }
+
+            if (blobPortNode == null)
+            {
+                throw new ArgumentException("JSON does not contain 'BlobPort'");
+            }
+
+            var queuePort = queuePortNode.GetValue<int>();
+            var blobPort = blobPortNode.GetValue<int>();
+
+            return (queuePort, blobPort);
         }
     }
 }
