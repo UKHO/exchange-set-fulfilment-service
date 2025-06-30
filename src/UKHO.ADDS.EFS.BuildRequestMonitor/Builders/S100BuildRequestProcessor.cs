@@ -15,8 +15,12 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
 
         public S100BuildRequestProcessor(BuilderContainerService bcs) => _containerService = bcs;
 
-        // This service will handle the processing of requests
-        // It will monitor the request queue and process each request accordingly
+        /// <summary>
+        ///     Sets the container environment and starts the container for processing the S100 build request
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task ProcessRequestAsync(BuildRequest request, CancellationToken cancellationToken)
         {
             var containerName = $"{ContainerName}{request.JobId}";
@@ -26,7 +30,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
                 env.AddsEnvironment = AddsEnvironment.Local.Value;
                 env.RequestQueueName = StorageConfiguration.S100BuildRequestQueueName;
                 env.ResponseQueueName = StorageConfiguration.S100BuildResponseQueueName;
-                env.QueueConnectionString = "not-used-local";
+                env.QueueConnectionString = "not-used-local"; // Running locally, the container uses the URL-based method for connection to Azurite, so the connection strings are not used
                 env.BlobConnectionString = "not-used-local";
                 env.BlobContainerName = StorageConfiguration.S100JobContainer;
             });
