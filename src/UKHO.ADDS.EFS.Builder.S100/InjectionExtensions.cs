@@ -80,6 +80,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
         {
             services.AddLogging(ConfigureLogging);
             services.AddHttpClient();
+            services.AddStorageClients(configuration);
             services.AddPipelineServices();
             services.AddFileShareServices(configuration);
             services.AddIICToolServices(configuration);
@@ -94,6 +95,11 @@ namespace UKHO.ADDS.EFS.Builder.S100
 
             // Add Serilog as the only logger
             loggingBuilder.AddSerilog(dispose: true);
+        }
+
+        private static void AddStorageClients(this IServiceCollection services, IConfiguration configuration)
+        {
+
         }
 
         private static IServiceCollection AddPipelineServices(this IServiceCollection services)
