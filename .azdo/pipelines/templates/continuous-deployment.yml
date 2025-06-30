@@ -171,9 +171,10 @@ jobs:
               inlineScript: |
                 echo "Setting variables..."
                 DeploymentNumber=$EPOCHSECONDS
-                CONTAINER_IMAGE="$ACR_NAME.azurecr.io/exchange-set-fulfilment-service/adds-configuration-dev:azd-deploy-$DeploymentNumber"
-                CONTAINER_PORT=8080
+                export CONTAINER_IMAGE="$ACR_NAME.azurecr.io/exchange-set-fulfilment-service/adds-configuration-dev:azd-deploy-$DeploymentNumber"
+                export CONTAINER_PORT=8080
                 RESOURCE_GROUP="rg-$(AZURE_ENV_NAME)"
+                azd env get-values
 
                 echo "Logging in to Azure Container Registry..."
                 az acr login --name $ACR_NAME
