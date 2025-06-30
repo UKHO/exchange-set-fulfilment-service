@@ -28,7 +28,7 @@
                 "S100BuilderFileShare": "{{buildermockfss}}" // Local dynamic fss mock address from aspire with host adjusted for docker 
             },
             "IICWorkspaceKey": "D89D11D265B19CA5C2BE97A7FCB1EF21", // Secret has literal value in local environment only
-            "ExchangeSetNameTemplate": "ExchangeSet_[jobid]" // Template for naming an exchange set: options are jobid, ...
+            "ExchangeSetNameTemplate": "V01X01_[jobid]" // Template for naming an exchange set: options are jobid, date
         }
     },
     "dev": {
@@ -57,10 +57,10 @@
         },
         "UKHO.ADDS.EFS.Builder.S100": {
             "Endpoints": {
-                "S100BuilderFileShare": "{{buildermockfss}}"
+                "S100BuilderFileShare": "https://dev.addsmock.filesharemock"
             },
-            "IICWorkspaceKey": "workspace-key-secret-name", 
-            "ExchangeSetNameTemplate": "ExchangeSet_[jobid]" 
+            "IICWorkspaceKey": "workspace-key-secret-name",
+            "ExchangeSetNameTemplate": "V01X01_[jobid]"
         }
     },
     "vnext-iat": {
@@ -73,8 +73,8 @@
                 }
             },
             "Endpoints": {
-                "FileShare": "https://vniat.filesharemock",
-                "SalesCatalogue": "https://vniat.scsmock"
+                "FileShare": "https://vniat.fileshare",
+                "SalesCatalogue": "https://vniat.scs"
             },
             "AllowedHosts": "*",
             "BuilderContainerTag": "latest",
@@ -89,10 +89,10 @@
         },
         "UKHO.ADDS.EFS.Builder.S100": {
             "Endpoints": {
-                "S100BuilderFileShare": "{{buildermockfss}}"
+                "S100BuilderFileShare": "https://vniat.fileshare"
             },
             "IICWorkspaceKey": "workspace-key-secret-name",
-            "ExchangeSetNameTemplate": "ExchangeSet_[jobid]"
+            "ExchangeSetNameTemplate": "ExchangeSet_[date]"
         }
     },
     "vnext-e2e": {
@@ -105,8 +105,8 @@
                 }
             },
             "Endpoints": {
-                "FileShare": "https://vne2e.filesharemock",
-                "SalesCatalogue": "https://vne2e.scsmock"
+                "FileShare": "https://vne2e.fileshare",
+                "SalesCatalogue": "https://vne2e.scs"
             },
             "AllowedHosts": "*",
             "BuilderContainerTag": "latest",
@@ -121,10 +121,10 @@
         },
         "UKHO.ADDS.EFS.Builder.S100": {
             "Endpoints": {
-                "S100BuilderFileShare": "{{buildermockfss}}"
+                "S100BuilderFileShare": "https://vniat.fileshare"
             },
             "IICWorkspaceKey": "workspace-key-secret-name",
-            "ExchangeSetNameTemplate": "ExchangeSet_[jobid]"
+            "ExchangeSetNameTemplate": "ExchangeSet_[date]"
         }
     },
     "_schema": {
