@@ -139,27 +139,55 @@ jobs:
               AZURE_SUBNET_SUBSCRIPTION: $(AZURE_SUBSCRIPTION_ID)
               AZURE_SUBNET_VNET: $(AZURE_SUBNET_VNET)
 
+          # - task: AzureCLI@2
+          #   displayName: Deploy application
+          #   inputs:
+          #     azureSubscription: ${{ variables.AzureSubscription }}
+          #     scriptType: bash
+          #     scriptLocation: inlineScript
+          #     keepAzSessionActive: true
+          #     ${{ if eq(parameters.AzdDebug, true) }}:
+          #       inlineScript: |
+          #         azd deploy adds-configuration --no-prompt --debug
+          #     ${{ else }}:
+          #       inlineScript: |
+          #         azd deploy adds-configuration --no-prompt
+          #   env:
+          #     AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+          #     AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+          #     AZURE_LOCATION: $(AZURE_LOCATION)
+          #     AZURE_SUBNET_NAME: $(AZURE_SUBNET_NAME)
+          #     AZURE_SUBNET_RESOURCE_GROUP: $(AZURE_SUBNET_RESOURCE_GROUP)
+          #     AZURE_SUBNET_SUBSCRIPTION: $(AZURE_SUBSCRIPTION_ID)
+          #     AZURE_SUBNET_VNET: $(AZURE_SUBNET_VNET)
+
           - task: AzureCLI@2
-            displayName: Deploy application
+            displayName: Deploy adds-configuration
             inputs:
               azureSubscription: ${{ variables.AzureSubscription }}
               scriptType: bash
               scriptLocation: inlineScript
               keepAzSessionActive: true
-              ${{ if eq(parameters.AzdDebug, true) }}:
-                inlineScript: |
-                  azd deploy adds-configuration --no-prompt --debug
-              ${{ else }}:
-                inlineScript: |
-                  azd deploy adds-configuration --no-prompt
+              inlineScript: |
+                echo "Setting variables..."
+                DeploymentNumber=$EPOCHSECONDS
+                CONTAINER_IMAGE="$ACR_NAME.azurecr.io/exchange-set-fulfilment-service/adds-configuration-dev:azd-deploy-$DeploymentNumber"
+                CONTAINER_PORT=8080
+                RESOURCE_GROUP="rg-$(AZURE_ENV_NAME)"
+
+                echo "Logging in to Azure Container Registry..."
+                az acr login --name $ACR_NAME
+
+                echo "Publishing image..."
+                dotnet publish "$(Build.SourcesDirectory)/config/repo/src/UKHO.ADDS.Configuration/UKHO.ADDS.Configuration.csproj" -r linux-x64 -c Release /t:PublishContainer -p:ContainerRepository=exchange-set-fulfilment-service/adds-configuration-dev -p:ContainerImageTag=azd-deploy-$DeploymentNumber -p:ContainerRegistry=$ACR_NAME.azurecr.io --getProperty:GeneratedContainerConfiguration
+
+                echo "Deploying app..."
+                cp "$(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.LocalHost/infra/adds-configuration/adds-configuration.tmpl.bicepparam" "$(Build.SourcesDirectory)/infra/adds-configuration/adds-configuration.tmpl.bicepparam"
+                cd "$(Build.SourcesDirectory)/infra/adds-configuration"
+                az deployment group create --name adds-configuration-$DeploymentNumber --resource-group $RESOURCE_GROUP --parameters adds-configuration.tmpl.bicepparam
             env:
-              AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+              ACR_NAME: $(BuilderAcrName)
               AZURE_ENV_NAME: $(AZURE_ENV_NAME)
-              AZURE_LOCATION: $(AZURE_LOCATION)
-              AZURE_SUBNET_NAME: $(AZURE_SUBNET_NAME)
-              AZURE_SUBNET_RESOURCE_GROUP: $(AZURE_SUBNET_RESOURCE_GROUP)
-              AZURE_SUBNET_SUBSCRIPTION: $(AZURE_SUBSCRIPTION_ID)
-              AZURE_SUBNET_VNET: $(AZURE_SUBNET_VNET)
 
           - task: AzureCLI@2
             displayName: Download builder files from Azure
