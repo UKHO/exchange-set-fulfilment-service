@@ -5,7 +5,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Services
     internal class FileNameGenerator
     {
         private const string VersionPrefix = "V01X01";
-        private const string LowerEnvironmentTemplate = $"{VersionPrefix}_{{JobId}}.zip";
+        private const string LowerEnvironmentTemplate = VersionPrefix + "_{{JobId}}.zip";
         private const string HigherEnvironmentTemplate = $"{VersionPrefix}.zip";
         private static readonly string[] _lowerEnvironments = ["Local", "Development", "Dev"];
         private static readonly HandlebarsTemplate<object, object> _lowerEnvTemplate;

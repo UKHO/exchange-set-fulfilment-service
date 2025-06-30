@@ -6,11 +6,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Services
     internal class FileNameGeneratorTest
     {
         private const string DefaultJobId = "TEST123";
+        private string? _originalEnvironment;
 
         [SetUp]
         public void Setup()
         {
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
+            _originalEnvironment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
         }
 
         [Test]
@@ -58,6 +59,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Services
         [Test]
         public void WhenGetExchangeSetFileNameCalledWithoutEnvironment_ThenDefaultsToDevelopment()
         {
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
+
             var result = FileNameGenerator.GetExchangeSetFileName(DefaultJobId);
 
             Assert.That(result, Is.EqualTo("V01X01_TEST123.zip"));
