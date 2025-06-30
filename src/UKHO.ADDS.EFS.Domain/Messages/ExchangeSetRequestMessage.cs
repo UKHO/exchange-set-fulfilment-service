@@ -5,6 +5,8 @@
     /// </summary>
     public class ExchangeSetRequestMessage
     {
+        public required int Version { get; init; } = 1;
+
         public ExchangeSetDataStandard DataStandard { get; set; }
 
         public required string Products { get; set; }

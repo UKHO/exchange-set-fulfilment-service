@@ -42,6 +42,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         {
             var queueMessage = new ExchangeSetRequestQueueMessage
             {
+                Version = 1,
+                Timestamp = DateTime.UtcNow,
+
                 CorrelationId = "corr-1",
                 DataStandard = ExchangeSetDataStandard.S100,
                 Products = "prod"

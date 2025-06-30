@@ -5,11 +5,15 @@
     /// </summary>
     public class ExchangeSetRequestQueueMessage
     {
-        public ExchangeSetDataStandard DataStandard { get; set; }
+        public required int Version { get; init; }
 
-        public required string Products { get; set; }
+        public required DateTime Timestamp { get; init; }
 
-        public required string CorrelationId { get; set; }
+        public required ExchangeSetDataStandard DataStandard { get; init; }
+
+        public required string Products { get; init; }
+
+        public required string CorrelationId { get; init; }
 
     }
 }

@@ -27,7 +27,8 @@
             "Endpoints": {
                 "S100BuilderFileShare": "{{buildermockfss}}" // Local dynamic fss mock address from aspire with host adjusted for docker 
             },
-            "IICWorkspaceKey": "D89D11D265B19CA5C2BE97A7FCB1EF21" // Secret has literal value in local environment only
+            "IICWorkspaceKey": "D89D11D265B19CA5C2BE97A7FCB1EF21", // Secret has literal value in local environment only
+            "ExchangeSetNameTemplate": "ExchangeSet_[jobid]" // Template for naming an exchange set: options are jobid, ...
         }
     },
     "dev": {
@@ -58,7 +59,8 @@
             "Endpoints": {
                 "S100BuilderFileShare": "{{buildermockfss}}"
             },
-            "IICWorkspaceKey": "workspace-key-secret-name"
+            "IICWorkspaceKey": "workspace-key-secret-name", 
+            "ExchangeSetNameTemplate": "ExchangeSet_[jobid]" 
         }
     },
     "vnext-iat": {
@@ -89,7 +91,8 @@
             "Endpoints": {
                 "S100BuilderFileShare": "{{buildermockfss}}"
             },
-            "IICWorkspaceKey": "workspace-key-secret-name"
+            "IICWorkspaceKey": "workspace-key-secret-name",
+            "ExchangeSetNameTemplate": "ExchangeSet_[jobid]"
         }
     },
     "vnext-e2e": {
@@ -120,7 +123,8 @@
             "Endpoints": {
                 "S100BuilderFileShare": "{{buildermockfss}}"
             },
-            "IICWorkspaceKey": "workspace-key-secret-name"
+            "IICWorkspaceKey": "workspace-key-secret-name",
+            "ExchangeSetNameTemplate": "ExchangeSet_[jobid]"
         }
     },
     "_schema": {

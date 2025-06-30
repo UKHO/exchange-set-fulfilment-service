@@ -21,7 +21,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Api
                 {
                     var correlationId = httpContext.GetCorrelationId();
 
-                    var queueMessage = new ExchangeSetRequestQueueMessage { DataStandard = message.DataStandard, Products = message.Products, CorrelationId = correlationId };
+                    var queueMessage = new ExchangeSetRequestQueueMessage
+                    {
+                        Version = message.Version,
+                        Timestamp = DateTime.UtcNow,
+
+                        DataStandard = message.DataStandard,
+                        Products = message.Products,
+                        CorrelationId = correlationId
+                    };
 
                     var messageJson = JsonCodec.Encode(queueMessage);
 
