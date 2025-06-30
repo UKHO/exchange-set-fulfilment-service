@@ -4,9 +4,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Services
 {
     internal class FileNameGenerator
     {
-        private const string ExchangeSetFileNamePrefix = "V01X01";
-        private const string LowerEnvironmentTemplate = ExchangeSetFileNamePrefix + "_{{JobId}}.zip";
-        private const string HigherEnvironmentTemplate = $"{ExchangeSetFileNamePrefix}.zip";
+        private const string FileName = "V01X01";
+        private const string LowerEnvironmentTemplate = FileName + "_{{JobId}}.zip";
+        private const string HigherEnvironmentTemplate = $"{FileName}.zip";
         private static readonly string[] _lowerEnvironments = ["Local", "Development", "Dev"];
         private static readonly HandlebarsTemplate<object, object> _lowerEnvironmentTemplate;
         private static readonly HandlebarsTemplate<object, object> _higherEnvironmentTemplate;
