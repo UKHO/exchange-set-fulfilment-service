@@ -24,7 +24,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         private IConfiguration _configuration;
         private string _tempFilePath;
 
-        private const int RetryDelayInMilliseconds = 500;
+        private const int RetryDelayInMilliseconds = 100;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()

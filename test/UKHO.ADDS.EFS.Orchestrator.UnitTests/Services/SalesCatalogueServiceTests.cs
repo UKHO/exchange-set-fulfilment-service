@@ -19,7 +19,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tests.Services
         private ExchangeSetRequestQueueMessage _exchangeSetRequestQueueMessage;
         private IConfiguration _configuration;
 
-        private const int RetryDelayInMilliseconds = 500;
+        private const int RetryDelayInMilliseconds = 100;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()

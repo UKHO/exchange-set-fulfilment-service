@@ -23,7 +23,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
 
         private const string CorrelationId = "TestCorrelationId";
         private const string BatchId = "TestBatchId";
-        private const int RetryDelayInMilliseconds = 500;
+        private const int RetryDelayInMilliseconds = 100;
 
         [SetUp]
         public void SetUp()
