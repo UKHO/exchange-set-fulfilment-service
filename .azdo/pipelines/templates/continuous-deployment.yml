@@ -176,6 +176,11 @@ jobs:
                 RESOURCE_GROUP="rg-$(AZURE_ENV_NAME)"
                 export $(azd env get-values)
 
+                echo "Current environment variables:"
+                echo "---------------------------------------------------------------"
+                env
+                echo "---------------------------------------------------------------"
+
                 echo "Logging in to Azure Container Registry..."
                 az acr login --name $ACR_NAME
 
