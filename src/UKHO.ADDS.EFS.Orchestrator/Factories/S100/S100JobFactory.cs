@@ -47,7 +47,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Factories.S100
             }
 
             await _jobTable.AddAsync(job);
-            await _statusTable.AddAsync(new BuildStatus() { DataStandard = job.DataStandard, ExitCode = BuilderExitCode.NotRun, JobId = job.Id});
+            await _statusTable.AddAsync(new BuildStatus() { DataStandard = job.DataStandard, ExitCode = BuilderExitCode.NotRun, JobId = job.Id, StartTimestamp = DateTime.UtcNow});
 
             _logger.LogJobUpdated(ExchangeSetJobLogView.Create(job));
 

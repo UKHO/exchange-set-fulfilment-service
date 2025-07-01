@@ -6,8 +6,6 @@ namespace UKHO.ADDS.EFS.Builds
 {
     public class BuildNodeStatus
     {
-        public string JobId { get; set; }
-
         public string Sequence { get; set; }
 
         public string NodeId { get; set; }

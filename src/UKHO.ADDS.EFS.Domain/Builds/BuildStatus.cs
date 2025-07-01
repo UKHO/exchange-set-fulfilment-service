@@ -7,10 +7,15 @@ namespace UKHO.ADDS.EFS.Builds
     {
         public required string JobId { get; init; }
 
+        public DateTime StartTimestamp { get; set; }
+
+        public DateTime? EndTimestamp { get; set; }
+
         public required ExchangeSetDataStandard DataStandard { get; init; }
 
         public BuilderExitCode ExitCode { get; set; }
 
-        public IEnumerable<BuildNodeStatus> Nodes { get; set; } = Enumerable.Empty<BuildNodeStatus>();
+        // TODO IEnumerable - configure serialization
+        public List<BuildNodeStatus> Nodes { get; set; } = [];
     }
 }

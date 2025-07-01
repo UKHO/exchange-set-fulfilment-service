@@ -104,9 +104,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Logging
         /// <returns>The determined log level.</returns>
         private LogLevel DetermineLogLevel(Dictionary<string, object> parsedLog, LogLevel defaultLevel)
         {
-            if (parsedLog.TryGetValue("Level", out var levelValue) &&
-                levelValue is JsonElement levelElement &&
-                levelElement.ValueKind == JsonValueKind.String)
+            if (parsedLog.TryGetValue("Level", out var levelValue) && levelValue is JsonElement { ValueKind: JsonValueKind.String } levelElement)
             {
                 var levelString = levelElement.GetString();
                 if (!string.IsNullOrEmpty(levelString))

@@ -13,18 +13,19 @@
                 "SalesCatalogue": "{{mockscs}}" // Local dynamic scs mock address from aspire, set in LocalHost
             },
             "AllowedHosts": "*",
-            "BuilderContainerTag": "latest",
-            "JobRequestQueue": {
-                "BatchSize": 1,
-                "PollingIntervalSeconds": 1,
-                "ChannelSize": 10
-            },
-            "S100ResponseQueue": {
-                "BatchSize": 1,
-                "PollingIntervalSeconds": 1
-            },
             "Builders": {
-                "MaximumConcurrentBuilders": 5
+                "LogReplayLevel" : "Information" // Log level for replaying builder logs
+            },
+            "Queues": {
+                "JobRequestQueue": {
+                    "BatchSize": 1,
+                    "PollingIntervalSeconds": 1,
+                    "ChannelSize": 10
+                },
+                "S100ResponseQueue": {
+                    "BatchSize": 1,
+                    "PollingIntervalSeconds": 1
+                }
             }
         },
         "UKHO.ADDS.EFS.Builder.S100": {
@@ -51,18 +52,19 @@
                 "SalesCatalogue": "https://dev.scsmock"
             },
             "AllowedHosts": "*",
-            "BuilderContainerTag": "latest",
-            "JobRequestQueue": {
-                "BatchSize": 1,
-                "PollingIntervalSeconds": 1,
-                "ChannelSize": 10
-            },
-            "S100ResponseQueue": {
-                "BatchSize": 1,
-                "PollingIntervalSeconds": 1
-            },
             "Builders": {
-                "MaximumConcurrentBuilders": 5
+                "LogReplayLevel": "Information" // Log level for replaying builder logs
+            },
+            "Queues": {
+                "JobRequestQueue": {
+                    "BatchSize": 1,
+                    "PollingIntervalSeconds": 1,
+                    "ChannelSize": 10
+                },
+                "S100ResponseQueue": {
+                    "BatchSize": 1,
+                    "PollingIntervalSeconds": 1
+                }
             }
         },
         "UKHO.ADDS.EFS.Builder.S100": {
@@ -84,18 +86,19 @@
                 "SalesCatalogue": "https://vniat.scs"
             },
             "AllowedHosts": "*",
-            "BuilderContainerTag": "latest",
-            "JobRequestQueue": {
-                "BatchSize": 1,
-                "PollingIntervalSeconds": 1,
-                "ChannelSize": 10
-            },
-            "S100ResponseQueue": {
-                "BatchSize": 1,
-                "PollingIntervalSeconds": 1
-            },
             "Builders": {
-                "MaximumConcurrentBuilders": 5
+                "LogReplayLevel": "Information" // Log level for replaying builder logs
+            },
+            "Queues": {
+                "JobRequestQueue": {
+                    "BatchSize": 1,
+                    "PollingIntervalSeconds": 1,
+                    "ChannelSize": 10
+                },
+                "S100ResponseQueue": {
+                    "BatchSize": 1,
+                    "PollingIntervalSeconds": 1
+                }
             }
         },
         "UKHO.ADDS.EFS.Builder.S100": {
@@ -117,18 +120,19 @@
                 "SalesCatalogue": "https://vne2e.scs"
             },
             "AllowedHosts": "*",
-            "BuilderContainerTag": "latest",
-            "JobRequestQueue": {
-                "BatchSize": 1,
-                "PollingIntervalSeconds": 1,
-                "ChannelSize": 10
-            },
-            "S100ResponseQueue": {
-                "BatchSize": 1,
-                "PollingIntervalSeconds": 1
-            },
             "Builders": {
-                "MaximumConcurrentBuilders": 5
+                "LogReplayLevel": "Information" // Log level for replaying builder logs
+            },
+            "Queues": {
+                "JobRequestQueue": {
+                    "BatchSize": 1,
+                    "PollingIntervalSeconds": 1,
+                    "ChannelSize": 10
+                },
+                "S100ResponseQueue": {
+                    "BatchSize": 1,
+                    "PollingIntervalSeconds": 1
+                }
             }
         },
         "UKHO.ADDS.EFS.Builder.S100": {

@@ -25,8 +25,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Monitors
 
             _queueClient = queueServiceClient.GetQueueClient(StorageConfiguration.JobRequestQueueName);
 
-            _pollingIntervalSeconds = configuration.GetValue<int>("JobRequestQueue:PollingIntervalSeconds");
-            _queueBatchSize = configuration.GetValue<int>("JobRequestQueue:BatchSize");
+            _pollingIntervalSeconds = configuration.GetValue<int>("Queues:JobRequestQueue:PollingIntervalSeconds");
+            _queueBatchSize = configuration.GetValue<int>("Queues:JobRequestQueue:BatchSize");
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)

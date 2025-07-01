@@ -1,54 +1,38 @@
 ﻿using System.Text.Json;
-using UKHO.ADDS.EFS.Jobs;
+using Microsoft.Extensions.Logging;
+using Serilog.Events;
+using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
+using EnvironmentVariableTarget = System.EnvironmentVariableTarget;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 {
-    internal class LogForwarder
+    internal class BuilderLogForwarder
     {
-        private readonly ILogger _logger;
-        private readonly ExchangeSetJob _job;
-        private readonly string _containerName;
+        private readonly ILoggerFactory _loggerFactory;
+        private readonly LogLevel _replayLevel;
+        
 
-        private readonly JsonObjectAggregator _aggregator;
-
-        /// <summary>
-        /// Initializes a new instance of the LogForwarder class with the specified logger, job, and container name.
-        /// </summary>
-        /// <param name="logger">The logger to use for forwarding logs.</param>
-        /// <param name="job">The job associated with the logs.</param>
-        /// <param name="containerName">The name of the container/server for log enrichment.</param>
-        public LogForwarder(ILogger logger, ExchangeSetJob job, string containerName)
+        public BuilderLogForwarder(IConfiguration configuration, ILoggerFactory loggerFactory)
         {
-            _logger = logger;
-            _job = job;
-            _containerName = containerName;
-
-            _aggregator = new JsonObjectAggregator();
+            _loggerFactory = loggerFactory;
+            _replayLevel = configuration.GetValue("Builders:LogReplayLevel", LogLevel.Information);
         }
 
-        /// <summary>
-        /// Processes an incoming log line, aggregates it if necessary, and forwards completed log entries for structured logging.
-        /// </summary>
-        /// <param name="logLevel">The default log level to use if not specified in the log line.</param>
-        /// <param name="logLine">The log line to process and forward.</param>
-        public void ForwardLog(LogLevel logLevel, string logLine)
+        public void ForwardLogs(IEnumerable<string> messages, ExchangeSetDataStandard dataStandard, string jobId)
         {
-            foreach (var completedLine in _aggregator.Append(logLine.AsSpan()))
+            var builderName = $"Builder-{dataStandard}-{jobId}";
+            var logger = _loggerFactory.CreateLogger(builderName);
+
+            foreach (var log in messages)
             {
-                WriteLog(logLevel, completedLine);
-                _aggregator.Reset();
+                WriteLog(log, logger, builderName);
             }
         }
 
-        /// <summary>
-        /// Parses a log line, enriches it with job and container information, determines the log level, and writes it using structured logging.
-        /// </summary>
-        /// <param name="logLevel">The default log level to use if not specified in the log line.</param>
-        /// <param name="logLine">The log line to parse and write.</param>
-        private void WriteLog(LogLevel logLevel, string logLine)
+        private void WriteLog(string log, ILogger logger, string builderName)
         {
-            if (string.IsNullOrWhiteSpace(logLine))
+            if (string.IsNullOrWhiteSpace(log))
             {
                 return;
             }
@@ -57,24 +41,21 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 
             try
             {
-                parsedLog = JsonCodec.Decode<Dictionary<string, object>>(logLine);
+                parsedLog = JsonCodec.Decode<Dictionary<string, object>>(log);
             }
             catch (JsonException ex)
             {
-                _logger.LogForwarderParseFailure(logLine, ex);
                 return;
             }
 
             if (parsedLog is null)
             {
-                _logger.LogForwarderParseNull(logLine);
                 return;
             }
 
             var mergedLog = new Dictionary<string, object>(parsedLog)
             {
-                ["server.name"] = _containerName,
-                ["job.id"] = _job.Id
+                ["server.name"] = builderName
             };
 
             var logMessage = "(no message template)";
@@ -91,13 +72,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
                 logMessage = fallbackMessageElement.GetString() ?? "(no message)";
             }
 
-            var effectiveLogLevel = DetermineLogLevel(parsedLog, logLevel);
+            var effectiveLogLevel = DetermineLogLevel(parsedLog, _replayLevel);
 
             // Flatten the dictionary into structured log properties
-            using (_logger.BeginScope(mergedLog))
+            using (logger.BeginScope(mergedLog))
             {
 #pragma warning disable LOG001
-                _logger.Log(effectiveLogLevel, $"Job {_job.Id}: {logMessage}");
+                logger.Log(effectiveLogLevel, $"{builderName}: {logMessage}");
 #pragma warning restore LOG001
             }
         }
@@ -108,11 +89,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         /// <param name="parsedLog">The parsed log entry as a dictionary.</param>
         /// <param name="defaultLevel">The default log level to use if not found in the log entry.</param>
         /// <returns>The determined log level.</returns>
-        private LogLevel DetermineLogLevel(Dictionary<string, object> parsedLog, LogLevel defaultLevel)
+        private static LogLevel DetermineLogLevel(Dictionary<string, object> parsedLog, LogLevel defaultLevel)
         {
-            if (parsedLog.TryGetValue("Level", out var levelValue) &&
-                levelValue is JsonElement levelElement &&
-                levelElement.ValueKind == JsonValueKind.String)
+            if (parsedLog.TryGetValue("Level", out var levelValue) && levelValue is JsonElement { ValueKind: JsonValueKind.String } levelElement)
             {
                 var levelString = levelElement.GetString();
                 if (!string.IsNullOrEmpty(levelString))

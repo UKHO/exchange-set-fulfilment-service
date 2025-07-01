@@ -1,9 +1,7 @@
-﻿using System.Threading.Channels;
-using Azure.Storage.Queues;
+﻿using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
 using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
-using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Builders.S100;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Tables;
@@ -28,8 +26,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Monitors.S100
 
             _queueClient = queueServiceClient.GetQueueClient(StorageConfiguration.S100BuildResponseQueueName);
 
-            _pollingIntervalSeconds = configuration.GetValue<int>("S100ResponseQueue:PollingIntervalSeconds");
-            _queueBatchSize = configuration.GetValue<int>("S100ResponseQueue:BatchSize");
+            _pollingIntervalSeconds = configuration.GetValue<int>("Queues:S100ResponseQueue:PollingIntervalSeconds");
+            _queueBatchSize = configuration.GetValue<int>("Queues:S100ResponseQueue:BatchSize");
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)

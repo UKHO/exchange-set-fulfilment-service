@@ -13,6 +13,7 @@ using UKHO.ADDS.EFS.Orchestrator.Builders.S100;
 using UKHO.ADDS.EFS.Orchestrator.Factories;
 using UKHO.ADDS.EFS.Orchestrator.Factories.S100;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Api.Metadata;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Monitors;
 using UKHO.ADDS.EFS.Orchestrator.Monitors.S100;
 using UKHO.ADDS.EFS.Orchestrator.Services;
@@ -44,7 +45,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure
 
             builder.Services.ConfigureOpenApi();
 
-            var queueChannelSize = configuration.GetValue<int>("JobRequestQueue:ChannelSize");
+            var queueChannelSize = configuration.GetValue<int>("Queues:JobRequestQueue:ChannelSize");
 
             builder.Services.AddSingleton(Channel.CreateBounded<ExchangeSetRequestQueueMessage>(new BoundedChannelOptions(queueChannelSize) { FullMode = BoundedChannelFullMode.Wait }));
 
@@ -66,6 +67,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure
             builder.Services.AddTransient<S100BuildRequestProcessor>();
             builder.Services.AddTransient<S100BuildResponseProcessor>();
 
+            builder.Services.AddTransient<BuilderLogForwarder>();
             builder.Services.AddTransient<StorageInitializerService>();
 
             builder.Services.AddSingleton<ISalesCatalogueClientFactory>(provider => new SalesCatalogueClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
