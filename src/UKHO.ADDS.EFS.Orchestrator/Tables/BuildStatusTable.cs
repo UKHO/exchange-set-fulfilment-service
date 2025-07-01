@@ -5,9 +5,9 @@ using UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Tables
 {
-    internal class ExchangeSetBuildStatusTable : StructuredTable<BuildStatus>
+    internal class BuildStatusTable : StructuredTable<BuildStatus>
     {
-        public ExchangeSetBuildStatusTable(TableServiceClient tableServiceClient)
+        public BuildStatusTable(TableServiceClient tableServiceClient)
             : base(StorageConfiguration.ExchangeSetBuildStatusTable, tableServiceClient, x => x.JobId, x => x.JobId)
         {
         }

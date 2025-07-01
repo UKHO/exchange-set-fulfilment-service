@@ -25,7 +25,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Api
                 return Results.NotFound();
             });
 
-            jobsEndpoint.MapGet("/{jobId}/status", async (string jobId, ExchangeSetBuildStatusTable table) =>
+            jobsEndpoint.MapGet("/{jobId}/status", async (string jobId, BuildStatusTable table) =>
             {
                 var statusResult = await table.GetAsync(jobId, jobId);
 

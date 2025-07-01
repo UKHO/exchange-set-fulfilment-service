@@ -2,22 +2,27 @@
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Builders;
+using UKHO.ADDS.EFS.BuildRequestMonitor.Logging;
+using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
+using UKHO.ADDS.EFS.Orchestrator.Logging;
 
 namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
 {
     internal class BuilderContainerService
     {
+        private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger<BuilderContainerService> _logger;
         private readonly DockerClient _dockerClient;
 
         public BuilderContainerService(ILoggerFactory loggerFactory)
         {
-            _logger = loggerFactory.CreateLogger<BuilderContainerService>();
+            _loggerFactory = loggerFactory;
+            _logger = _loggerFactory.CreateLogger<BuilderContainerService>();
             _dockerClient = new DockerClientConfiguration(GetDockerEndpoint()).CreateClient();
         }
 
-        public async Task<string> CreateContainerAsync(string image, string name, string[] command, string id, string batchId, Action<BuilderEnvironment> setEnvironmentFunc)
+        public async Task<string> CreateContainerAsync(string image, string name, string[] command, BuildRequest request, Action<BuilderEnvironment> setEnvironmentFunc)
         {
             var environment = new BuilderEnvironment();
             setEnvironmentFunc?.Invoke(environment);
@@ -25,7 +30,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
             var response = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters
             {
                 Image = image,
-                Name = name,
+                Name = name + Guid.NewGuid().ToString("N"),
                 Cmd = command,
                 AttachStdout = true,
                 AttachStderr = true,
@@ -62,6 +67,25 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
             {
                 throw new Exception("Failed to start container");
             }
+
+            var streamer = new BuilderLogStreamer(_dockerClient);
+
+            var forwarder = new LogForwarder(_loggerFactory.CreateLogger(containerId), containerId);
+
+            var logTask = streamer.StreamLogsAsync(
+                containerId,
+#pragma warning disable LOG001
+                line =>
+                {
+                    forwarder.ForwardLog(LogLevel.Information, line);
+                },
+                line =>
+                {
+                    forwarder.ForwardLog(LogLevel.Error, line);
+                },
+#pragma warning restore LOG001
+                CancellationToken.None
+            );
         }
 
         public async Task StopContainerAsync(string containerId, CancellationToken stoppingToken) => await _dockerClient.Containers.StopContainerAsync(containerId, new ContainerStopParameters(), stoppingToken);

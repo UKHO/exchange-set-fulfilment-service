@@ -16,12 +16,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
         {
             if (!(await context.Subject.ToolClient.PingAsync()).IsSuccess(out _))
             {
-                return NodeResultStatus.Failed;
+                throw new InvalidOperationException("IIC Ping failed");
             }
 
             if (!(await context.Subject.ToolClient.ListWorkspaceAsync(context.Subject.WorkspaceAuthenticationKey)).IsSuccess(out _))
             {
-                return NodeResultStatus.Failed;
+                throw new InvalidOperationException("IIC ListWorkspaces");
             }
 
             await CheckEndpointAsync(context.Subject.FileShareEndpoint, "health");

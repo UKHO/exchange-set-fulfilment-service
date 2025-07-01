@@ -37,6 +37,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Api
                     await queueClient.SendMessageAsync(messageJson);
 
                     logger.LogPostedExchangeSetQueueMessage(queueMessage);
+
+                    return Results.Json(new { JobId = correlationId });
                 }
                 catch (Exception e)
                 {

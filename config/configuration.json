@@ -19,6 +19,10 @@
                 "PollingIntervalSeconds": 1,
                 "ChannelSize": 10
             },
+            "S100ResponseQueue": {
+                "BatchSize": 1,
+                "PollingIntervalSeconds": 1
+            },
             "Builders": {
                 "MaximumConcurrentBuilders": 5
             }
@@ -53,6 +57,10 @@
                 "PollingIntervalSeconds": 1,
                 "ChannelSize": 10
             },
+            "S100ResponseQueue": {
+                "BatchSize": 1,
+                "PollingIntervalSeconds": 1
+            },
             "Builders": {
                 "MaximumConcurrentBuilders": 5
             }
@@ -82,6 +90,10 @@
                 "PollingIntervalSeconds": 1,
                 "ChannelSize": 10
             },
+            "S100ResponseQueue": {
+                "BatchSize": 1,
+                "PollingIntervalSeconds": 1
+            },
             "Builders": {
                 "MaximumConcurrentBuilders": 5
             }
@@ -110,6 +122,10 @@
                 "BatchSize": 1,
                 "PollingIntervalSeconds": 1,
                 "ChannelSize": 10
+            },
+            "S100ResponseQueue": {
+                "BatchSize": 1,
+                "PollingIntervalSeconds": 1
             },
             "Builders": {
                 "MaximumConcurrentBuilders": 5

@@ -2,27 +2,22 @@
 {
     public class BuildSummary
     {
-        private readonly List<BuildNodeStatus> _statuses;
-        readonly List<string> _logMessages;
+        public string JobId { get; set; }
 
-        public BuildSummary()
-        {
-            _statuses = [];
-            _logMessages = [];
-        }
-
-        public IEnumerable<BuildNodeStatus> Statuses => _statuses;
-
-        public IEnumerable<string> LogMessages => _logMessages;
+        public List<BuildNodeStatus>? Statuses { get; set; }
+        
+        public List<string>? LogMessages {get; set; }
 
         public void AddStatus(BuildNodeStatus status)
         {
-            _statuses.Add(status);
+            Statuses ??= [];
+            Statuses.Add(status);
         }
 
         public void SetLogMessages(IEnumerable<string> logLines)
         {
-            _logMessages.AddRange(logLines);
+            LogMessages ??= [];
+            LogMessages.AddRange(logLines);
         }
     }
 }

@@ -1,9 +1,5 @@
 ﻿using System.Text;
-using UKHO.ADDS.Clients.SalesCatalogueService.Models;
-using UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging;
-using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Jobs.S100;
-using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
@@ -23,7 +19,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
             var job = JsonCodec.Decode<S100ExchangeSetJob>(blobJson)!;
 
             context.Subject.Job = job;
-
             return NodeResultStatus.Succeeded;
         }
     }

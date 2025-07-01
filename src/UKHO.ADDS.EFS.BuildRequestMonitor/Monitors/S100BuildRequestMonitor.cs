@@ -13,11 +13,15 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Monitors
         private readonly QueueServiceClient _queueClient;
         private readonly S100BuildRequestProcessor _processor;
 
+        private readonly List<string> _processedJobs;
+
         public S100BuildRequestMonitor(ILogger<S100BuildRequestMonitor> logger, QueueServiceClient qClient, S100BuildRequestProcessor processor)
         {
             _logger = logger;
             _queueClient = qClient;
             _processor = processor;
+
+            _processedJobs = [];
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -45,6 +49,13 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Monitors
                         try
                         {
                             var request = JsonCodec.Decode<BuildRequest>(message.MessageText)!;
+
+                            if (_processedJobs.Contains(request.JobId))
+                            {
+                                continue;
+                            }
+
+                            _processedJobs.Add(request.JobId);
 
                             switch (request.DataStandard)
                             {

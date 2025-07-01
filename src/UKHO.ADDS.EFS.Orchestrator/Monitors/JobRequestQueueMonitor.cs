@@ -45,7 +45,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Monitors
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogQueueServiceMessageReadFailed(ex);
+                    _logger.LogQueueServiceMessageReadFailed(nameof(JobRequestQueueMonitor), ex);
 
                     // TODO: Dead letter, remove...
                 }

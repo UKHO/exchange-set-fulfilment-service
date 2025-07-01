@@ -17,12 +17,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Factories.S100
         private readonly S100BuildRequestProcessor _buildRequestProcessor;
         private readonly ExchangeSetTimestampTable _timestampTable;
         private readonly S100ExchangeSetJobTable _jobTable;
-        private readonly ExchangeSetBuildStatusTable _statusTable;
+        private readonly BuildStatusTable _statusTable;
         private readonly SalesCatalogueService _salesCatalogueClient;
         private readonly FileShareService _fileShareClient;
         private readonly ILogger<S100JobFactory> _logger;
 
-        public S100JobFactory(S100BuildRequestProcessor buildRequestProcessor, ExchangeSetTimestampTable timestampTable, S100ExchangeSetJobTable jobTable, ExchangeSetBuildStatusTable statusTable, SalesCatalogueService salesCatalogueClient, FileShareService fileShareClient, ILogger<S100JobFactory> logger)
+        public S100JobFactory(S100BuildRequestProcessor buildRequestProcessor, ExchangeSetTimestampTable timestampTable, S100ExchangeSetJobTable jobTable, BuildStatusTable statusTable, SalesCatalogueService salesCatalogueClient, FileShareService fileShareClient, ILogger<S100JobFactory> logger)
         {
             _buildRequestProcessor = buildRequestProcessor;
             _timestampTable = timestampTable;

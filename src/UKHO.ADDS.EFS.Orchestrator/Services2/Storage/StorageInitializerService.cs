@@ -10,9 +10,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services2.Storage
         private readonly QueueServiceClient _queueClient;
         private readonly S100ExchangeSetJobTable _jobTable;
         private readonly ExchangeSetTimestampTable _timestampTable;
-        private readonly ExchangeSetBuildStatusTable _buildStatusTable;
+        private readonly BuildStatusTable _buildStatusTable;
 
-        public StorageInitializerService(QueueServiceClient queueClient, S100ExchangeSetJobTable jobTable, ExchangeSetTimestampTable timestampTable, ExchangeSetBuildStatusTable buildStatusTable)
+        public StorageInitializerService(QueueServiceClient queueClient, S100ExchangeSetJobTable jobTable, ExchangeSetTimestampTable timestampTable, BuildStatusTable buildStatusTable)
         {
             _queueClient = queueClient;
             _jobTable = jobTable;

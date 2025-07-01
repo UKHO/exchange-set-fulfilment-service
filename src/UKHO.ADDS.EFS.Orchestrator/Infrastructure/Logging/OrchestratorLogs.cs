@@ -156,8 +156,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         // The Queue service failed to read a message
         public static readonly EventId QueueServiceMessageReadFailed = new(ContainerTimeoutId, nameof(QueueServiceMessageReadFailed));
 
-        [LoggerMessage(QueueServiceMessageReadFailedId, LogLevel.Error, "Queue service failed to read message", EventName = nameof(QueueServiceMessageReadFailed))]
-        public static partial void LogQueueServiceMessageReadFailed(this ILogger logger, Exception exception);
+        [LoggerMessage(QueueServiceMessageReadFailedId, LogLevel.Error, "Queue monitor {@queueMonitor} failed to read message", EventName = nameof(QueueServiceMessageReadFailed))]
+        public static partial void LogQueueServiceMessageReadFailed(this ILogger logger, string queueMonitor, Exception exception);
 
 
         // The log forwarder failed to parse a message

@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging;
+﻿using Serilog;
+using UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging;
 using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.Infrastructure.Pipelines;
@@ -11,38 +12,56 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
     {
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
         {
-            var logger = context.Subject.LoggerFactory.CreateLogger<ReadConfigurationNode>();
-            var configuration = context.Subject.Configuration;
-
-            var requestQueue = context.Subject.QueueClientFactory.CreateRequestQueueClient(context.Subject.Configuration);
-            var requestMessage = await requestQueue.ReceiveMessageAsync();
-
-            var request = JsonCodec.Decode<BuildRequest>(requestMessage.Value.MessageText)!;
-
-            // TODO Decide on retry strategy for queues and move this as necessary
-            await requestQueue.DeleteMessageAsync(requestMessage.Value.MessageId, requestMessage.Value.PopReceipt);
-
-            context.Subject.JobId = request.JobId;
-            context.Subject.BatchId = request.BatchId;
-            context.Subject.WorkspaceAuthenticationKey = request.WorkspaceKey;
-            context.Subject.ExchangeSetNameTemplate = request.ExchangeSetNameTemplate;
-
-            var fileShareEndpoint = configuration[BuilderEnvironmentVariables.FileShareEndpoint] ?? configuration["DebugEndpoints:FileShareService"]!;
-
-            context.Subject.FileShareEndpoint = fileShareEndpoint;
-
-            var configurationLogView = new ConfigurationLogView()
+            try
             {
-                JobId = context.Subject.JobId,
-                BatchId = context.Subject.BatchId,
-                FileShareEndpoint = fileShareEndpoint,
-                WorkspaceAuthenticationKey = context.Subject.WorkspaceAuthenticationKey,
-                ExchangeSetNameTemplate = context.Subject.ExchangeSetNameTemplate,
-            };
+                var logger = context.Subject.LoggerFactory.CreateLogger<ReadConfigurationNode>();
+                var configuration = context.Subject.Configuration;
 
-            logger.LogStartupConfiguration(configurationLogView);
+                foreach (var configEntry in configuration.AsEnumerable())
+                {
+#pragma warning disable LOG001
+                    logger.LogInformation($"Configuration: {configEntry.Key} = {configEntry.Value}");
+#pragma warning restore LOG001
+                }
 
-            return NodeResultStatus.Succeeded;
+                var requestQueue = context.Subject.QueueClientFactory.CreateRequestQueueClient(context.Subject.Configuration);
+                var requestMessage = await requestQueue.ReceiveMessageAsync();
+
+                var request = JsonCodec.Decode<BuildRequest>(requestMessage.Value.MessageText)!;
+
+                // TODO Decide on retry strategy for queues and move this as necessary
+                await requestQueue.DeleteMessageAsync(requestMessage.Value.MessageId, requestMessage.Value.PopReceipt);
+
+                context.Subject.JobId = request.JobId;
+                context.Subject.Summary.JobId = request.JobId;
+                context.Subject.BatchId = request.BatchId;
+                context.Subject.WorkspaceAuthenticationKey = request.WorkspaceKey;
+                context.Subject.ExchangeSetNameTemplate = request.ExchangeSetNameTemplate;
+
+                var fileShareEndpoint = configuration[BuilderEnvironmentVariables.FileShareEndpoint] ?? configuration["DebugEndpoints:FileShareService"]!;
+
+                context.Subject.FileShareEndpoint = fileShareEndpoint;
+
+                var configurationLogView = new ConfigurationLogView()
+                {
+                    JobId = context.Subject.JobId,
+                    BatchId = context.Subject.BatchId,
+                    FileShareEndpoint = fileShareEndpoint,
+                    WorkspaceAuthenticationKey = context.Subject.WorkspaceAuthenticationKey,
+                    ExchangeSetNameTemplate = context.Subject.ExchangeSetNameTemplate,
+                };
+
+                logger.LogStartupConfiguration(configurationLogView);
+
+                return NodeResultStatus.Succeeded;
+            }
+            catch (Exception ex)
+            {
+#pragma warning disable LOG001
+                Log.Error(ex, $"config read failed with error: {ex.Message}");
+#pragma warning restore LOG001
+                return NodeResultStatus.Failed;
+            }
         }
     }
 }

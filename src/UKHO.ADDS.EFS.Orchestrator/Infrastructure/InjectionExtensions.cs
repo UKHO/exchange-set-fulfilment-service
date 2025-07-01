@@ -57,7 +57,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure
 
             builder.Services.AddSingleton<S100ExchangeSetJobTable>();
             builder.Services.AddSingleton<ExchangeSetTimestampTable>();
-            builder.Services.AddSingleton<ExchangeSetBuildStatusTable>();
+            builder.Services.AddSingleton<BuildStatusTable>();
+            builder.Services.AddSingleton<BuildSummaryTable>();
 
             builder.Services.AddTransient<ExchangeSetJobFactory>();
 
