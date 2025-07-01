@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.Infrastructure.Pipelines;
+﻿using Serilog;
+using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
@@ -14,6 +15,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
         {
+#pragma warning disable LOG001
+            Log.Information($"FS ENDPOINT IS {context.Subject.FileShareEndpoint}");
+#pragma warning restore LOG001
+
             if (!(await context.Subject.ToolClient.PingAsync()).IsSuccess(out _))
             {
                 throw new InvalidOperationException("IIC Ping failed");

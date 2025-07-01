@@ -27,10 +27,10 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Monitors
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             var s100BuildRequestQueue = _queueClient.GetQueueClient(StorageConfiguration.S100BuildRequestQueueName);
-            await s100BuildRequestQueue.CreateIfNotExistsAsync(cancellationToken: stoppingToken);
+            var s100BuildResponseQueue = _queueClient.GetQueueClient(StorageConfiguration.S100BuildResponseQueueName);
 
-            // Ensure we have mopped up any messages from the last run
-            await s100BuildRequestQueue.ClearMessagesAsync(cancellationToken: stoppingToken);
+            await ConfigureQueue(s100BuildRequestQueue, stoppingToken);
+            await ConfigureQueue(s100BuildResponseQueue, stoppingToken);
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -85,6 +85,14 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Monitors
                     _logger.LogError(ex, "An error occurred while processing messages from the queue.");
                 }
             }
+        }
+
+        private async Task ConfigureQueue(QueueClient client, CancellationToken stoppingToken)
+        {
+            await client.CreateIfNotExistsAsync(cancellationToken: stoppingToken);
+
+            // Ensure we have mopped up any messages from the last run
+            await client.ClearMessagesAsync(cancellationToken: stoppingToken);
         }
 
         private async Task DeleteMessage(QueueClient client)
