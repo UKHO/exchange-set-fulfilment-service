@@ -174,7 +174,12 @@ jobs:
                 export CONTAINER_IMAGE="$ACR_NAME.azurecr.io/exchange-set-fulfilment-service/adds-configuration-dev:azd-deploy-$DeploymentNumber"
                 export CONTAINER_PORT=8080
                 RESOURCE_GROUP="rg-$(AZURE_ENV_NAME)"
-                source <(azd env get-values)
+                while IFS='=' read -r key value; do
+                    value=$(echo "$value" | sed 's/^"//' | sed 's/"$//')
+                    export "$key=$value"
+                done <<EOF
+                $(azd env get-values)
+                EOF
 
                 echo "Current environment variables:"
                 echo "---------------------------------------------------------------"
