@@ -22,5 +22,9 @@
         public const string BlobConnectionString = "BLOB_CONNECTION_STRING";
 
         public const string AddsEnvironment = "ADDS_ENVIRONMENT";
+
+        public const string MaxRetryAttempts = "MAX_RETRY_ATTEMPTS";
+
+        public const string RetryDelayMilliseconds = "RETRY_DELAY_MS";
     }
 }

@@ -11,7 +11,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Api
             var logger = loggerFactory.CreateLogger("StatusApi");
             var statusEndpoint = routeBuilder.MapGroup("/status");
 
-            statusEndpoint.MapPost("/", async (ExchangeSetBuilderNodeStatus status, ExchangeSetBuilderNodeStatusTable table) =>
+            statusEndpoint.MapPost("/", async (BuildNodeStatus status, ExchangeSetBuilderNodeStatusTable table) =>
             {
                 try
                 {

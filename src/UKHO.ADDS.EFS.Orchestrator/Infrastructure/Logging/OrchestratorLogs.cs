@@ -67,7 +67,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         public static readonly EventId PostedStatusUpdateFromBuilderFailed = new(PostedStatusUpdateFromBuilderFailedId, nameof(PostedStatusUpdateFromBuilderFailed));
 
         [LoggerMessage(PostedStatusUpdateFromBuilderFailedId, LogLevel.Error, "Posted status update from builder failed: {@message}", EventName = nameof(PostedStatusUpdateFromBuilderFailed))]
-        public static partial void LogPostedStatusUpdateFromBuilderFailed(this ILogger logger, [LogProperties] ExchangeSetBuilderNodeStatus message, Exception exception);
+        public static partial void LogPostedStatusUpdateFromBuilderFailed(this ILogger logger, [LogProperties] BuildNodeStatus message, Exception exception);
 
 
         // A request for the job from a builder container has failed

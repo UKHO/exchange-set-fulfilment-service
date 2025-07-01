@@ -17,7 +17,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
         private IExecutionContext<ExchangeSetPipelineContext> _context;
         private ExchangeSetPipelineContext _subject;
         private IConfiguration _configuration;
-        private INodeStatusWriter _nodeStatusWriter;
         private IToolClient _toolClient;
         private ILoggerFactory _loggerFactory;
 
@@ -35,11 +34,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
                 .AddInMemoryCollection(inMemorySettings)
                 .Build();
 
-            _nodeStatusWriter = A.Fake<INodeStatusWriter>();
             _toolClient = A.Fake<IToolClient>();
             _loggerFactory = LoggerFactory.Create(builder => builder.AddDebug());
 
-            _subject = new ExchangeSetPipelineContext(_configuration, _nodeStatusWriter, _toolClient, _loggerFactory);
+            _subject = new ExchangeSetPipelineContext(_configuration, _toolClient, null, null, _loggerFactory);
             _context = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
             A.CallTo(() => _context.Subject).Returns(_subject);
         }
@@ -68,9 +66,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
             Assert.That(_subject.JobId, Is.EqualTo("TestJobId"));
             Assert.That(_subject.WorkspaceAuthenticationKey, Is.EqualTo("TestWorkspaceKey"));
             Assert.That(_subject.FileShareEndpoint, Is.EqualTo("https://env-fileshare"));
-            Assert.That(_subject.BuildServiceEndpoint, Is.EqualTo("https://env-buildservice"));
             Assert.That(_subject.BatchId, Is.EqualTo("TestBatchId"));
-            Assert.That(_subject.IsDebugSession, Is.False);
 
             // Clean up
             Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.JobId, null);
@@ -88,7 +84,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
             Assert.That(_subject.JobId, Is.Not.Null.And.Not.Empty);
             Assert.That(_subject.FileShareEndpoint, Is.EqualTo("https://default-fileshare"));
-            Assert.That(_subject.BuildServiceEndpoint, Is.EqualTo("https://default-buildservice"));
             Assert.That(_subject.BatchId, Is.Not.Null.And.Not.Empty);
         }
 
@@ -100,7 +95,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
             var result = await _node.ExecuteAsync(_context);
 
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-            Assert.That(_subject.IsDebugSession, Is.True);
             Assert.That(_subject.JobId, Is.Not.Null.And.Not.Empty);
             Assert.That(Guid.TryParse(_subject.JobId, out _), Is.True);
 

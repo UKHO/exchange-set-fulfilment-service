@@ -21,7 +21,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
         private ILogger _logger;
         private IExecutionContext<ExchangeSetPipelineContext> _executionContext;
         private ExchangeSetPipelineContext _pipelineContext;
-        private INodeStatusWriter _nodeStatusWriter;
 
 
         [OneTimeSetUp]
@@ -31,14 +30,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
             _loggerFactory = A.Fake<ILoggerFactory>();
             _logger = A.Fake<ILogger<AssemblyPipeline>>();
             _executionContext = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
-            _nodeStatusWriter = A.Fake<INodeStatusWriter>();
 
         }
 
         [SetUp]
         public void SetUp()
         {
-            _pipelineContext = new ExchangeSetPipelineContext(null, _nodeStatusWriter, null, _loggerFactory)
+            _pipelineContext = new ExchangeSetPipelineContext(null, null, null, null, _loggerFactory)
             {
                 Job = new S100ExchangeSetJob
                 {

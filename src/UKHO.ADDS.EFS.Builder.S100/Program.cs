@@ -1,15 +1,15 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Text.Json.Nodes;
+using System.Text;
 using Serilog;
-using UKHO.ADDS.EFS.Builder.S100.Factories;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Create.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging;
-using UKHO.ADDS.EFS.Configuration.Namespaces;
+using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
+using UKHO.ADDS.Infrastructure.Serialization.Json;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace UKHO.ADDS.EFS.Builder.S100
@@ -19,17 +19,20 @@ namespace UKHO.ADDS.EFS.Builder.S100
     {
         private static async Task<int> Main(string[] args)
         {
-            await Task.Delay(10000);
-            return 0;
+            var sink = InjectionExtensions.ConfigureSerilog();
+            var exitCode = BuilderExitCode.Success;
 
-            InjectionExtensions.ConfigureSerilog();
+            ExchangeSetPipelineContext? pipelineContext = null;
+            IConfiguration? configuration = null;
 
             try
             {
                 var provider = ConfigureServices();
 
-                var pipelineContext = provider.GetRequiredService<ExchangeSetPipelineContext>();
+                pipelineContext = provider.GetRequiredService<ExchangeSetPipelineContext>();
                 var startupPipeline = provider.GetRequiredService<StartupPipeline>();
+
+                configuration = provider.GetRequiredService<IConfiguration>();
 
                 var startupResult = await startupPipeline.ExecutePipeline(pipelineContext);
 
@@ -38,56 +41,82 @@ namespace UKHO.ADDS.EFS.Builder.S100
                     var logger = GetLogger<StartupPipeline>(provider);
                     logger.LogStartupPipelineFailed(startupResult);
 
-                    return BuilderExitCodes.Failed;
+                    exitCode = BuilderExitCode.Failed;
                 }
 
-                var assemblyPipeline = provider.GetRequiredService<AssemblyPipeline>();
-                var assemblyResult = await assemblyPipeline.ExecutePipeline(pipelineContext);
-
-                if (assemblyResult.Status != NodeResultStatus.Succeeded)
+                if (exitCode == BuilderExitCode.Success)
                 {
-                    var logger = GetLogger<AssemblyPipeline>(provider);
-                    logger.LogAssemblyPipelineFailed(assemblyResult);
+                    var assemblyPipeline = provider.GetRequiredService<AssemblyPipeline>();
+                    var assemblyResult = await assemblyPipeline.ExecutePipeline(pipelineContext);
 
-                    return BuilderExitCodes.Failed;
+                    if (assemblyResult.Status != NodeResultStatus.Succeeded)
+                    {
+                        var logger = GetLogger<AssemblyPipeline>(provider);
+                        logger.LogAssemblyPipelineFailed(assemblyResult);
+
+                        exitCode = BuilderExitCode.Failed;
+                    }
                 }
 
-                var creationPipeline = provider.GetRequiredService<CreationPipeline>();
-                var creationResult = await creationPipeline.ExecutePipeline(pipelineContext);
-
-                if (creationResult.Status != NodeResultStatus.Succeeded)
+                if (exitCode == BuilderExitCode.Success)
                 {
-                    var logger = GetLogger<CreationPipeline>(provider);
-                    logger.LogCreationPipelineFailed(creationResult);
+                    var creationPipeline = provider.GetRequiredService<CreationPipeline>();
+                    var creationResult = await creationPipeline.ExecutePipeline(pipelineContext);
 
-                    return BuilderExitCodes.Failed;
+                    if (creationResult.Status != NodeResultStatus.Succeeded)
+                    {
+                        var logger = GetLogger<CreationPipeline>(provider);
+                        logger.LogCreationPipelineFailed(creationResult);
+
+                        exitCode = BuilderExitCode.Failed;
+                    }
                 }
 
-                var distributionPipeline = provider.GetRequiredService<DistributionPipeline>();
-                var distributionResult = await distributionPipeline.ExecutePipeline(pipelineContext);
-
-                if (distributionResult.Status != NodeResultStatus.Succeeded)
+                if (exitCode == BuilderExitCode.Success)
                 {
-                    // TODO If the upload stage fails, we should retry?
+                    var distributionPipeline = provider.GetRequiredService<DistributionPipeline>();
+                    var distributionResult = await distributionPipeline.ExecutePipeline(pipelineContext);
 
-                    var logger = GetLogger<DistributionPipeline>(provider);
-                    logger.LogDistributionPipelineFailed(distributionResult);
+                    if (distributionResult.Status != NodeResultStatus.Succeeded)
+                    {
+                        // TODO If the upload stage fails, we should retry?
 
-                    return BuilderExitCodes.Failed;
+                        var logger = GetLogger<DistributionPipeline>(provider);
+                        logger.LogDistributionPipelineFailed(distributionResult);
+
+                        exitCode = BuilderExitCode.Failed;
+                    }
                 }
 
-                return BuilderExitCodes.Success;
+                return exitCode;
             }
             catch (Exception ex)
             {
 #pragma warning disable LOG001
                 Log.Fatal(ex, $"An unhandled exception occurred during execution : {ex.Message}");
 #pragma warning restore LOG001
-                return BuilderExitCodes.Failed;
+                return BuilderExitCode.Failed;
             }
+
             finally
             {
                 await Log.CloseAndFlushAsync();
+
+                if (pipelineContext != null && configuration != null)
+                {
+                    pipelineContext.Summary.SetLogMessages(sink.GetLogLines());
+
+                    var queueClient = pipelineContext.QueueClientFactory.CreateResponseQueueClient(configuration);
+                    var blobClient = pipelineContext.BlobClientFactory.CreateBlobClient(configuration, $"{pipelineContext.JobId}/{pipelineContext.JobId}-summary");
+
+                    using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(JsonCodec.Encode(pipelineContext.Summary))))
+                    {
+                        await blobClient.UploadAsync(stream, overwrite: true);
+                    }
+
+                    var response = new BuildResponse() { JobId = pipelineContext.JobId, ExitCode = exitCode};
+                    await queueClient.SendMessageAsync(JsonCodec.Encode(response));
+                }
             }
         }
 

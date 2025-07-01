@@ -12,8 +12,13 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
         private readonly string[] _command = ["sh", "-c", "echo Starting; sleep 5; echo Healthy now; sleep 5; echo Exiting..."];
 
         private readonly BuilderContainerService _containerService;
+        private readonly IConfiguration _configuration;
 
-        public S100BuildRequestProcessor(BuilderContainerService bcs) => _containerService = bcs;
+        public S100BuildRequestProcessor(BuilderContainerService bcs, IConfiguration configuration)
+        {
+            _containerService = bcs;
+            _configuration = configuration;
+        }
 
         /// <summary>
         ///     Sets the container environment and starts the container for processing the S100 build request
@@ -33,7 +38,10 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
                 env.ResponseQueueName = StorageConfiguration.S100BuildResponseQueueName;
                 env.QueueConnectionString = "not-used-local"; // Running locally, the container uses the URL-based method for connection to Azurite, so the connection strings are not used
                 env.BlobConnectionString = "not-used-local";
+                env.FileShareEndpoint = _configuration["Endpoints:S100BuilderFileShare"]!;
                 env.BlobContainerName = StorageConfiguration.S100JobContainer;
+                env.MaxRetryAttempts = int.Parse(_configuration["MaxRetries"]!); 
+                env.RetryDelayMilliseconds = int.Parse(_configuration["RetryDelayMilliseconds"]!); 
             });
 
             await _containerService.StartContainerAsync(containerId);

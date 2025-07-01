@@ -60,7 +60,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
         public async Task BuilderContainerCompletedAsync(long exitCode, ExchangeSetJob job)
         {
-            if (exitCode != BuilderExitCodes.Success)
+            if (exitCode != BuilderExitCode.Success)
             {
                 job.State = ExchangeSetJobState.Failed;
                 await CompleteJobAsync(job);

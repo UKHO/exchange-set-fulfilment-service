@@ -4,7 +4,7 @@
 
 namespace UKHO.ADDS.EFS.Builds
 {
-    public class ExchangeSetBuilderNodeStatus
+    public class BuildNodeStatus
     {
         public string JobId { get; set; }
 
@@ -15,5 +15,7 @@ namespace UKHO.ADDS.EFS.Builds
         public NodeResultStatus Status { get; set; }
 
         public string ErrorMessage { get; set; }
+
+        public double ElapsedMilliseconds { get; set; }
     }
 }

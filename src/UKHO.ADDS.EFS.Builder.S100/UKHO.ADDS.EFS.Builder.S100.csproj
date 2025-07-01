@@ -9,13 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Logging\**" />
-    <Content Remove="Logging\**" />
-    <EmbeddedResource Remove="Logging\**" />
-    <None Remove="Logging\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <InternalsVisibleTo Include="UKHO.ADDS.EFS.Builder.S100.UnitTests" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
@@ -58,7 +51,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Update="ports.json">
+    <Content Update="debug.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

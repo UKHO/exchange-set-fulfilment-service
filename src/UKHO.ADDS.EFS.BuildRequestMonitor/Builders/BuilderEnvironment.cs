@@ -13,5 +13,10 @@
         public string BlobConnectionString { get; set; }
 
         public string AddsEnvironment { get; set; }
+
+        public int MaxRetryAttempts { get; set; }
+
+        public int RetryDelayMilliseconds { get; set; }
+        public string FileShareEndpoint { get; set; }
     }
 }

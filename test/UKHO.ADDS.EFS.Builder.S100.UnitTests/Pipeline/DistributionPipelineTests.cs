@@ -22,7 +22,6 @@ public class DistributionPipelineTests
     private IToolClient _toolClient;
     private ILoggerFactory _loggerFactory;
     private ILogger _logger;
-    private INodeStatusWriter _nodeStatusWriter;
     private string _tempFilePath;
 
     [OneTimeSetUp]
@@ -32,7 +31,6 @@ public class DistributionPipelineTests
         _executionContext = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
         _loggerFactory = A.Fake<ILoggerFactory>();
         _logger = A.Fake<ILogger<ExtractExchangeSetNode>>();
-        _nodeStatusWriter = A.Fake<INodeStatusWriter>();
     }
 
     [SetUp]
@@ -41,7 +39,7 @@ public class DistributionPipelineTests
         var tempPath = Path.GetTempPath();
         _fileShareReadWriteClient = A.Fake<IFileShareReadWriteClient>();
         _distributionPipeline = new DistributionPipeline(_fileShareReadWriteClient);
-        _pipelineContext = new ExchangeSetPipelineContext(null, _nodeStatusWriter, _toolClient, _loggerFactory)
+        _pipelineContext = new ExchangeSetPipelineContext(null, _toolClient, null, null, _loggerFactory)
         {
             Job = new S100ExchangeSetJob { Id = "testId", CorrelationId = "corrId" },
             WorkspaceAuthenticationKey = "authKey",

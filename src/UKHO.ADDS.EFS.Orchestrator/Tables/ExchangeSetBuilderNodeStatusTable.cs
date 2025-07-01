@@ -4,7 +4,7 @@ using UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Tables
 {
-    internal class ExchangeSetBuilderNodeStatusTable : StructuredTable<ExchangeSetBuilderNodeStatus>
+    internal class ExchangeSetBuilderNodeStatusTable : StructuredTable<BuildNodeStatus>
     {
         public ExchangeSetBuilderNodeStatusTable(TableServiceClient tableServiceClient)
             : base("node-status-to-be-deleted", tableServiceClient, x => x.JobId, x => x.Sequence)

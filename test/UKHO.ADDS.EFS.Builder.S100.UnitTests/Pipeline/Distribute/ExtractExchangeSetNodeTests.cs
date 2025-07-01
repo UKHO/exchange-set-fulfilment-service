@@ -20,7 +20,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         private ExchangeSetPipelineContext _pipelineContext;
         private ExtractExchangeSetNode _extractExchangeSetNode;
         private IToolClient _toolClient;
-        private INodeStatusWriter _nodeStatusWriter;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
@@ -30,7 +29,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
             _executionContext = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
             _loggerFactory = A.Fake<ILoggerFactory>();
             _logger = A.Fake<ILogger<ExtractExchangeSetNode>>();
-            _nodeStatusWriter = A.Fake<INodeStatusWriter>();
         }
 
         [OneTimeTearDown]
@@ -42,7 +40,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         [SetUp]
         public void SetUp()
         {
-            _pipelineContext = new ExchangeSetPipelineContext(null, _nodeStatusWriter, _toolClient, _loggerFactory)
+            _pipelineContext = new ExchangeSetPipelineContext(null, _toolClient, null, null, _loggerFactory)
             {
                 Job = new S100ExchangeSetJob { Id = "testId", CorrelationId = "corrId" },
                 WorkspaceAuthenticationKey = "authKey"

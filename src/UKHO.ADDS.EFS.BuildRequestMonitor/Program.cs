@@ -1,5 +1,6 @@
 using Serilog;
 using Serilog.Events;
+using UKHO.ADDS.Configuration.Client;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Builders;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Monitors;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Services;
@@ -25,6 +26,8 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor
                 .CreateLogger();
 
             var builder = Host.CreateApplicationBuilder(args);
+
+            builder.Configuration.AddConfigurationService("UKHO.ADDS.EFS.Builder.S100");
 
             builder.Logging.ClearProviders();
             builder.Logging.AddSerilog(Log.Logger, dispose: true);

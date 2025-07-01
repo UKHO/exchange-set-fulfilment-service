@@ -1,6 +1,6 @@
 ﻿namespace UKHO.ADDS.EFS.Configuration.Orchestrator
 {
-    public static class BuilderExitCodes
+    public static class BuilderExitCode
     {
         public const int Success = 0;
 

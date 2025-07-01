@@ -28,7 +28,9 @@
                 "S100BuilderFileShare": "{{buildermockfss}}" // Local dynamic fss mock address from aspire with host adjusted for docker, set in LocalHost
             },
             "IICWorkspaceKey": "D89D11D265B19CA5C2BE97A7FCB1EF21", // Secret has literal value in local environment only
-            "ExchangeSetNameTemplate": "V01X01_[jobid]" // Template for naming an exchange set: options are jobid, date
+            "ExchangeSetNameTemplate": "V01X01_[jobid].zip", // Template for naming an exchange set: options are jobid, date
+            "MaxRetries": 3, // Azure ENV var when deployed
+            "RetryDelayMilliseconds": 10000 // Azure ENV var when deployed
         }
     },
     "dev": {
@@ -56,11 +58,8 @@
             }
         },
         "UKHO.ADDS.EFS.Builder.S100": {
-            "Endpoints": {
-                "S100BuilderFileShare": "https://dev.addsmock.filesharemock" // Still using mock, but deployed (fixed address)
-            },
             "IICWorkspaceKey": "workspace-key-secret-name",
-            "ExchangeSetNameTemplate": "V01X01_[jobid]"
+            "ExchangeSetNameTemplate": "V01X01_[jobid].zip"
         }
     },
     "vnext-iat": {
@@ -88,11 +87,8 @@
             }
         },
         "UKHO.ADDS.EFS.Builder.S100": {
-            "Endpoints": {
-                "S100BuilderFileShare": "https://vniat.fileshare"
-            },
             "IICWorkspaceKey": "workspace-key-secret-name",
-            "ExchangeSetNameTemplate": "ExchangeSet_[date]"
+            "ExchangeSetNameTemplate": "ExchangeSet_[date].zip"
         }
     },
     "vnext-e2e": {
@@ -120,11 +116,8 @@
             }
         },
         "UKHO.ADDS.EFS.Builder.S100": {
-            "Endpoints": {
-                "S100BuilderFileShare": "https://vniat.fileshare"
-            },
             "IICWorkspaceKey": "workspace-key-secret-name",
-            "ExchangeSetNameTemplate": "ExchangeSet_[date]"
+            "ExchangeSetNameTemplate": "ExchangeSet_[date].zip"
         }
     },
     "_schema": {
@@ -139,10 +132,6 @@
             }
         },
         "UKHO.ADDS.EFS.Builder.S100": {
-            "Endpoints:S100BuilderFileShare": {
-                "type": "url",
-                "required": true
-            },
             "IICWorkspaceKey": {
                 "type": "string",
                 "required": true,

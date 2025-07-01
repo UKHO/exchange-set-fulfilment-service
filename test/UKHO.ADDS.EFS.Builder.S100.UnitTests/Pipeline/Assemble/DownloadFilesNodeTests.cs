@@ -35,7 +35,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [SetUp]
         public void SetUp()
         {
-            var exchangeSetPipelineContext = new ExchangeSetPipelineContext(null, null, null, _loggerFactory)
+            var exchangeSetPipelineContext = new ExchangeSetPipelineContext(null,  null, null, null, _loggerFactory)
             {
                 WorkSpaceRootPath = Path.GetTempPath(),
                 Job = new S100ExchangeSetJob

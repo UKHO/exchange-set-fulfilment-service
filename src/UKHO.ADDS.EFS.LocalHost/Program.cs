@@ -86,6 +86,11 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             orchestratorService.WithConfiguration(configurationService);
 
+            if (builder.Environment.IsDevelopment())
+            {
+                requestMonitor!.WithConfiguration(configurationService);
+            }
+
             await CreateBuilderContainerImages();
 
             var application = builder.Build();

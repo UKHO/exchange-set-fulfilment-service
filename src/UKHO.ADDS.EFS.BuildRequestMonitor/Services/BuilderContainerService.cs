@@ -37,7 +37,9 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
                     $"{BuilderEnvironmentVariables.QueueConnectionString}={environment.QueueConnectionString}",
                     $"{BuilderEnvironmentVariables.BlobConnectionString}={environment.BlobConnectionString}",
                     $"{BuilderEnvironmentVariables.BlobContainerName}={environment.BlobContainerName}",
-                    $"{BuilderEnvironmentVariables.AddsEnvironment}={environment.AddsEnvironment}"
+                    $"{BuilderEnvironmentVariables.AddsEnvironment}={environment.AddsEnvironment}",
+                    $"{BuilderEnvironmentVariables.MaxRetryAttempts}={environment.MaxRetryAttempts}",
+                    $"{BuilderEnvironmentVariables.RetryDelayMilliseconds}={environment.RetryDelayMilliseconds}",
                 },
                 Healthcheck = new HealthConfig
                 {

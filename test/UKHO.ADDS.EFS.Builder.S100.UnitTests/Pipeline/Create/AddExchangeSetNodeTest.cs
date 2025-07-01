@@ -33,7 +33,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         [SetUp]
         public void Setup()
         {
-            var exchangeSetPipelineContext = new ExchangeSetPipelineContext(null, null, _toolClient, _loggerFactory)
+            var exchangeSetPipelineContext = new ExchangeSetPipelineContext(null, _toolClient, null, null, _loggerFactory)
             {
                 Job = new S100ExchangeSetJob { CorrelationId = "TestCorrelationId" },
                 JobId = "TestJobId",

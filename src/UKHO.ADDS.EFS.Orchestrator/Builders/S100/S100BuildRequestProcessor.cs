@@ -27,7 +27,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Builders.S100
                 JobId = job.Id,
                 BatchId = job.BatchId,
                 DataStandard = job.DataStandard,
-                FileShareServiceUri = Configuration["Endpoints:S100BuilderFileShare"]!,
                 WorkspaceKey = Configuration["IICWorkspaceKey"]!,
                 ExchangeSetNameTemplate = Configuration["ExchangeSetNameTemplate"]!
             };

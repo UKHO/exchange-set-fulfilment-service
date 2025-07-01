@@ -1,76 +1,46 @@
 ﻿using UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging;
+using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
+using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
 {
     internal class ReadConfigurationNode : ExchangeSetPipelineNode
     {
-        private const string DebugJobId = "DebugJobId";
-        private const string DebugBatchId = "DebugBatchId";
-
-        protected override Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
+        protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
         {
             var logger = context.Subject.LoggerFactory.CreateLogger<ReadConfigurationNode>();
+            var configuration = context.Subject.Configuration;
 
-            var jobId = GetEnvironmentVariable(BuilderEnvironmentVariables.JobId, DebugJobId);
-            var batchId = GetEnvironmentVariable(BuilderEnvironmentVariables.BatchId, DebugBatchId);
-            var workspaceAuthenticationKey = GetEnvironmentVariable(BuilderEnvironmentVariables.WorkspaceKey, "D89D11D265B19CA5C2BE97A7FCB1EF21");
+            var requestQueue = context.Subject.QueueClientFactory.CreateRequestQueueClient(context.Subject.Configuration);
+            var requestMessage = await requestQueue.ReceiveMessageAsync();
 
-            if (jobId.Equals(DebugJobId, StringComparison.InvariantCultureIgnoreCase))
-            {
-                logger.LogDebugJobWarning();
+            var request = JsonCodec.Decode<BuildRequest>(requestMessage.Value.MessageText)!;
 
-                context.Subject.IsDebugSession = true;
-                context.Subject.JobId = Guid.NewGuid().ToString("N");
-                context.Subject.BatchId = Guid.NewGuid().ToString("N");
-            }
-            else
-            {
-                context.Subject.IsDebugSession = false;
-                context.Subject.JobId = jobId;
-                context.Subject.BatchId = batchId;
-            }
+            // TODO Decide on retry strategy for queues and move this as necessary
+            await requestQueue.DeleteMessageAsync(requestMessage.Value.MessageId, requestMessage.Value.PopReceipt);
 
-            var fileShareEndpoint = GetEnvironmentVariable(BuilderEnvironmentVariables.FileShareEndpoint, context.Subject.Configuration.GetValue<string>("Endpoints:FileShareService")!);
-            var buildServiceEndpoint = GetEnvironmentVariable(BuilderEnvironmentVariables.BuildServiceEndpoint, context.Subject.Configuration.GetValue<string>("Endpoints:BuildService")!);
+            context.Subject.JobId = request.JobId;
+            context.Subject.BatchId = request.BatchId;
+            context.Subject.WorkspaceAuthenticationKey = request.WorkspaceKey;
 
+            var fileShareEndpoint = configuration[BuilderEnvironmentVariables.FileShareEndpoint] ?? configuration["DebugEndpoints:FileShareService"]!;
 
             context.Subject.FileShareEndpoint = fileShareEndpoint;
-            context.Subject.BuildServiceEndpoint = buildServiceEndpoint;
-            context.Subject.WorkspaceAuthenticationKey = workspaceAuthenticationKey;
-
 
             var configurationLogView = new ConfigurationLogView()
             {
                 JobId = context.Subject.JobId,
                 BatchId = context.Subject.BatchId,
                 FileShareEndpoint = fileShareEndpoint,
-                BuildServiceEndpoint = buildServiceEndpoint,
-                WorkspaceAuthenticationKey = workspaceAuthenticationKey,
+                WorkspaceAuthenticationKey = context.Subject.WorkspaceAuthenticationKey,
             };
 
             logger.LogStartupConfiguration(configurationLogView);
 
-            return Task.FromResult(NodeResultStatus.Succeeded);
-        }
-
-        private static string GetEnvironmentVariable(string variable, string overrideValue)
-        {
-            var value = Environment.GetEnvironmentVariable(variable);
-
-            if (!string.IsNullOrEmpty(value))
-            {
-                return value;
-            }
-
-            if (string.IsNullOrEmpty(overrideValue))
-            {
-                throw new InvalidOperationException($"{variable} is not set");
-            }
-
-            return overrideValue;
+            return NodeResultStatus.Succeeded;
         }
     }
 }
