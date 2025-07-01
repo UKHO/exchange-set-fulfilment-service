@@ -53,12 +53,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure
 
             builder.Services.AddHostedService<S100BuildResponseMonitor>();
 
-            //builder.Services.AddHostedService<BuilderDispatcherService>();
-            builder.Services.AddSingleton<JobService>();
+            //builder.Services.AddSingleton<JobService>();
 
             builder.Services.AddSingleton<S100ExchangeSetJobTable>();
             builder.Services.AddSingleton<ExchangeSetTimestampTable>();
-            builder.Services.AddSingleton<ExchangeSetBuilderNodeStatusTable>();
+            builder.Services.AddSingleton<ExchangeSetBuildStatusTable>();
 
             builder.Services.AddTransient<ExchangeSetJobFactory>();
 

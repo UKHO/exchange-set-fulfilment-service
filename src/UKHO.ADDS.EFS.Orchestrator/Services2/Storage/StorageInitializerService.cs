@@ -10,12 +10,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services2.Storage
         private readonly QueueServiceClient _queueClient;
         private readonly S100ExchangeSetJobTable _jobTable;
         private readonly ExchangeSetTimestampTable _timestampTable;
+        private readonly ExchangeSetBuildStatusTable _buildStatusTable;
 
-        public StorageInitializerService(QueueServiceClient queueClient, S100ExchangeSetJobTable jobTable, ExchangeSetTimestampTable timestampTable)
+        public StorageInitializerService(QueueServiceClient queueClient, S100ExchangeSetJobTable jobTable, ExchangeSetTimestampTable timestampTable, ExchangeSetBuildStatusTable buildStatusTable)
         {
             _queueClient = queueClient;
             _jobTable = jobTable;
             _timestampTable = timestampTable;
+            _buildStatusTable = buildStatusTable;
         }
 
         public async Task InitializeStorageAsync(CancellationToken stoppingToken)
@@ -33,6 +35,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services2.Storage
 
                 await _jobTable.CreateIfNotExistsAsync(stoppingToken);
                 await _timestampTable.CreateIfNotExistsAsync(stoppingToken);
+                await _buildStatusTable.CreateIfNotExistsAsync(stoppingToken);
             }
             catch (Exception ex)
             {

@@ -1,13 +1,14 @@
 ﻿using Azure.Data.Tables;
 using UKHO.ADDS.EFS.Builds;
+using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Tables
 {
-    internal class ExchangeSetBuilderNodeStatusTable : StructuredTable<BuildNodeStatus>
+    internal class ExchangeSetBuildStatusTable : StructuredTable<BuildStatus>
     {
-        public ExchangeSetBuilderNodeStatusTable(TableServiceClient tableServiceClient)
-            : base("node-status-to-be-deleted", tableServiceClient, x => x.JobId, x => x.Sequence)
+        public ExchangeSetBuildStatusTable(TableServiceClient tableServiceClient)
+            : base(StorageConfiguration.ExchangeSetBuildStatusTable, tableServiceClient, x => x.JobId, x => x.JobId)
         {
         }
     }

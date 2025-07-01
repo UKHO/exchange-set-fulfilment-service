@@ -21,5 +21,7 @@
         public const string S100JobContainer = "s100job";
 
         public const string ExchangeSetTimestampTable = "exchangesettimestamp";
+
+        public const string ExchangeSetBuildStatusTable = "exchangesetbuildstatus";
     }
 }

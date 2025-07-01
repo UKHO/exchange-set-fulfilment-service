@@ -1,4 +1,6 @@
 ﻿using System.Net;
+using UKHO.ADDS.EFS.Builds;
+using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Jobs.S100;
 using UKHO.ADDS.EFS.Orchestrator.Builders.S100;
@@ -15,15 +17,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.Factories.S100
         private readonly S100BuildRequestProcessor _buildRequestProcessor;
         private readonly ExchangeSetTimestampTable _timestampTable;
         private readonly S100ExchangeSetJobTable _jobTable;
+        private readonly ExchangeSetBuildStatusTable _statusTable;
         private readonly SalesCatalogueService _salesCatalogueClient;
         private readonly FileShareService _fileShareClient;
         private readonly ILogger<S100JobFactory> _logger;
 
-        public S100JobFactory(S100BuildRequestProcessor buildRequestProcessor, ExchangeSetTimestampTable timestampTable, S100ExchangeSetJobTable jobTable, SalesCatalogueService salesCatalogueClient, FileShareService fileShareClient, ILogger<S100JobFactory> logger)
+        public S100JobFactory(S100BuildRequestProcessor buildRequestProcessor, ExchangeSetTimestampTable timestampTable, S100ExchangeSetJobTable jobTable, ExchangeSetBuildStatusTable statusTable, SalesCatalogueService salesCatalogueClient, FileShareService fileShareClient, ILogger<S100JobFactory> logger)
         {
             _buildRequestProcessor = buildRequestProcessor;
             _timestampTable = timestampTable;
             _jobTable = jobTable;
+            _statusTable = statusTable;
             _salesCatalogueClient = salesCatalogueClient;
             _fileShareClient = fileShareClient;
             _logger = logger;
@@ -43,6 +47,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Factories.S100
             }
 
             await _jobTable.AddAsync(job);
+            await _statusTable.AddAsync(new BuildStatus() { DataStandard = job.DataStandard, ExitCode = BuilderExitCode.NotRun, JobId = job.Id});
 
             _logger.LogJobUpdated(ExchangeSetJobLogView.Create(job));
 

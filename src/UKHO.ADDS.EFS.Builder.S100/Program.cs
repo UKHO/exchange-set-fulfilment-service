@@ -79,8 +79,6 @@ namespace UKHO.ADDS.EFS.Builder.S100
 
                     if (distributionResult.Status != NodeResultStatus.Succeeded)
                     {
-                        // TODO If the upload stage fails, we should retry?
-
                         var logger = GetLogger<DistributionPipeline>(provider);
                         logger.LogDistributionPipelineFailed(distributionResult);
 
@@ -88,14 +86,14 @@ namespace UKHO.ADDS.EFS.Builder.S100
                     }
                 }
 
-                return exitCode;
+                return (int)exitCode;
             }
             catch (Exception ex)
             {
 #pragma warning disable LOG001
                 Log.Fatal(ex, $"An unhandled exception occurred during execution : {ex.Message}");
 #pragma warning restore LOG001
-                return BuilderExitCode.Failed;
+                return (int)BuilderExitCode.Failed;
             }
 
             finally

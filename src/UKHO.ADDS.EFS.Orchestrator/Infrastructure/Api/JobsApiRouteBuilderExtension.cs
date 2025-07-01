@@ -1,5 +1,5 @@
-﻿using UKHO.ADDS.EFS.Jobs;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
+﻿using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
+using UKHO.ADDS.EFS.Orchestrator.Tables;
 using UKHO.ADDS.EFS.Orchestrator.Tables.S100;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Api
@@ -10,12 +10,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Api
         {
             var logger = loggerFactory.CreateLogger("JobsApi");
             var jobsEndpoint = routeBuilder.MapGroup("/jobs");
-
-            jobsEndpoint.MapGet("/", async (S100ExchangeSetJobTable table) =>
-            {
-                var requests = await table.ListAsync();
-                return Results.Ok(requests);
-            });
 
             jobsEndpoint.MapGet("/{jobId}", async (string jobId, S100ExchangeSetJobTable table) =>
             {
@@ -31,13 +25,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Api
                 return Results.NotFound();
             });
 
-#if DEBUG
-            //// Used by the builder in a debug session to send a debug job (created by the builder for testing) to the orchestrator
-            //jobsEndpoint.MapPost("/debug/", async (ExchangeSetJob job, S100ExchangeSetJobTable table) =>
-            //{
-            //    await table.AddAsync(job);
-            //});
-#endif
+            jobsEndpoint.MapGet("/{jobId}/status", async (string jobId, ExchangeSetBuildStatusTable table) =>
+            {
+                var statusResult = await table.GetAsync(jobId, jobId);
+
+                if (statusResult.IsSuccess(out var status))
+                {
+                    return Results.Ok(status);
+                }
+
+                return Results.NotFound();
+            });
         }
     }
 }
