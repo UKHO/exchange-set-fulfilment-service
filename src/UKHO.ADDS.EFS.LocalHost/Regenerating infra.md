@@ -5,3 +5,18 @@ The Bicep files used for deployment were initially created by running `azd infra
 If we need to regenerate from scratch again then you can run the `azd regenerate.cmd` script in the repo root. Afterwards the following updates need to be done:
 
 1. `efs-cae.module.bicep` Ensure that the `$` symbols are not escaped for the `infrastructureSubnetId` value.
+2. `adds-configuration.tmpl.bicepparam` Update to read environment variables directly:
+    ```
+    using './adds-configuration.module.bicep'
+
+    param adds_configuration_containerimage = readEnvironmentVariable('CONTAINER_IMAGE_CONFIG')
+    param adds_configuration_containerport = readEnvironmentVariable('CONTAINER_PORT')
+    param adds_configuration_identity_outputs_clientid = readEnvironmentVariable('ADDS_CONFIGURATION_IDENTITY_CLIENTID')
+    param adds_configuration_identity_outputs_id = readEnvironmentVariable('ADDS_CONFIGURATION_IDENTITY_ID')
+    param adds_configuration_kv_outputs_vaulturi = readEnvironmentVariable('ADDS_CONFIGURATION_KV_VAULTURI')
+    param adds_configuration_was_outputs_tableendpoint = readEnvironmentVariable('ADDS_CONFIGURATION_WAS_TABLEENDPOINT')
+    param efs_cae_outputs_azure_container_apps_environment_default_domain = readEnvironmentVariable('EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN')
+    param efs_cae_outputs_azure_container_apps_environment_id = readEnvironmentVariable('EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_ID')
+    param efs_cae_outputs_azure_container_registry_endpoint = readEnvironmentVariable('EFS_CAE_AZURE_CONTAINER_REGISTRY_ENDPOINT')
+    param efs_cae_outputs_azure_container_registry_managed_identity_id = readEnvironmentVariable('EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID')
+    ```
