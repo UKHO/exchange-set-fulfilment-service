@@ -25,6 +25,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
             context.Subject.JobId = request.JobId;
             context.Subject.BatchId = request.BatchId;
             context.Subject.WorkspaceAuthenticationKey = request.WorkspaceKey;
+            context.Subject.ExchangeSetNameTemplate = request.ExchangeSetNameTemplate;
 
             var fileShareEndpoint = configuration[BuilderEnvironmentVariables.FileShareEndpoint] ?? configuration["DebugEndpoints:FileShareService"]!;
 
@@ -36,6 +37,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
                 BatchId = context.Subject.BatchId,
                 FileShareEndpoint = fileShareEndpoint,
                 WorkspaceAuthenticationKey = context.Subject.WorkspaceAuthenticationKey,
+                ExchangeSetNameTemplate = context.Subject.ExchangeSetNameTemplate,
             };
 
             logger.LogStartupConfiguration(configurationLogView);

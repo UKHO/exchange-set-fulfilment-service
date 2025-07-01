@@ -42,8 +42,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
             var correlationId = context.Subject.Job.CorrelationId;
             var jobId = context.Subject.Job?.Id;
 
-            string fileName = context.Subject.ExchangeSetFileName;
-            string filePath = Path.Combine(context.Subject.ExchangeSetFilePath, context.Subject.ExchangeSetArchiveFolderName, $"{jobId}.zip");
+            var fileNameGenerator = new FileNameGenerator(context.Subject);
+
+            var fileName = fileNameGenerator.GenerateFileName();
+            var filePath = Path.Combine(context.Subject.ExchangeSetFilePath, context.Subject.ExchangeSetArchiveFolderName, $"{jobId}.zip");
 
             if (!File.Exists(filePath))
             {
