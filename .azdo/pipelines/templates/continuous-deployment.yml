@@ -164,26 +164,7 @@ jobs:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
-                echo "Setting variables..."
-                export DEPLOYMENT_NUMBER=$EPOCHSECONDS
-                export CONTAINER_IMAGE_CONFIG="$ACR_NAME.azurecr.io/exchange-set-fulfilment-service/adds-configuration-$(AZURE_ENV_NAME):azd-deploy-$DEPLOYMENT_NUMBER"
-                export CONTAINER_PORT=8080
-                export RESOURCE_GROUP="rg-$(AZURE_ENV_NAME)"
 
-                while IFS='=' read -r key value; do
-                    value=$(echo "$value" | sed 's/^"//' | sed 's/"$//')
-                    export "$key=$value"
-                done <<EOF
-                $(azd env get-values)
-                EOF
-
-                echo "Current environment variables:"
-                echo "---------------------------------------------------------------"
-                env
-                echo "---------------------------------------------------------------"
-
-                echo "Logging in to Azure Container Registry..."
-                az acr login --name $ACR_NAME
             env:
               ACR_NAME: $(BuilderAcrName)
               AZURE_ENV_NAME: $(AZURE_ENV_NAME)
@@ -195,6 +176,27 @@ jobs:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
+                echo "Setting variables..."
+                DEPLOYMENT_NUMBER=$EPOCHSECONDS
+                export CONTAINER_IMAGE_CONFIG="$ACR_NAME.azurecr.io/exchange-set-fulfilment-service/adds-configuration-$(AZURE_ENV_NAME):azd-deploy-$DEPLOYMENT_NUMBER"
+                export CONTAINER_PORT=8080
+                RESOURCE_GROUP="rg-$(AZURE_ENV_NAME)"
+
+                while IFS='=' read -r key value; do
+                    value=$(echo "$value" | sed 's/^"//' | sed 's/"$//')
+                    export "$key=$value"
+                done <<EOF
+                $(azd env get-values)
+                EOF
+
+                # echo "Current environment variables:"
+                # echo "---------------------------------------------------------------"
+                # env
+                # echo "---------------------------------------------------------------"
+
+                echo "Logging in to Azure Container Registry..."
+                az acr login --name $ACR_NAME
+
                 echo "Publishing image..."
                 dotnet publish "$(Build.SourcesDirectory)/config/repo/src/UKHO.ADDS.Configuration/UKHO.ADDS.Configuration.csproj" -r linux-x64 -c Release /t:PublishContainer -p:ContainerRepository=exchange-set-fulfilment-service/adds-configuration-dev -p:ContainerImageTag=azd-deploy-$DEPLOYMENT_NUMBER -p:ContainerRegistry=$ACR_NAME.azurecr.io --getProperty:GeneratedContainerConfiguration
 
@@ -202,6 +204,9 @@ jobs:
                 cp "$(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.LocalHost/infra/adds-configuration/adds-configuration.tmpl.bicepparam" "$(Build.SourcesDirectory)/infra/adds-configuration/adds-configuration.tmpl.bicepparam"
                 cd "$(Build.SourcesDirectory)/infra/adds-configuration"
                 az deployment group create --name adds-configuration-$DEPLOYMENT_NUMBER --resource-group $RESOURCE_GROUP --parameters adds-configuration.tmpl.bicepparam --debug
+            env:
+              ACR_NAME: $(BuilderAcrName)
+              AZURE_ENV_NAME: $(AZURE_ENV_NAME)
 
           - task: AzureCLI@2
             displayName: Download builder files from Azure
@@ -224,6 +229,9 @@ jobs:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
+                echo "Logging in to Azure Container Registry..."
+                az acr login --name $ACR_NAME
+
                 echo "Changing directory..."
                 cd $(Build.SourcesDirectory)/src
 
