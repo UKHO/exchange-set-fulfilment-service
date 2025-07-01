@@ -61,13 +61,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tests.Services
         }
 
         [Test]
-        public async Task WhenGetS100ProductsFromSpecificDateAsyncReturnsNotModified_ThenReturnsDataAndSinceDateTime()
+        public async Task WhenGetS100ProductsFromSpecificDateAsyncReturnsNotModified_ThenReturnsDataAndLastModified()
         {
             var sinceDateTime = DateTime.UtcNow.AddDays(-1);
             var expectedResponse = new S100SalesCatalogueResponse
             {
                 ResponseCode = HttpStatusCode.NotModified,
-                LastModified = null
+                LastModified = sinceDateTime,
             };
 
             var successResult = A.Fake<IResult<S100SalesCatalogueResponse>>();
@@ -77,7 +77,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tests.Services
             A.CallTo(() => _fakeSalesCatalogueClient.GetS100ProductsFromSpecificDateAsync(
                     A<string>.Ignored, A<string>.Ignored, sinceDateTime, A<string>.Ignored))
                 .Returns(Task.FromResult(successResult));
-            A.CallTo(() => successResult.IsSuccess(out expectedResponse, out error)).Returns(true);
 
             var (data, lastModified) = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(sinceDateTime, _exchangeSetRequestQueueMessage);
 

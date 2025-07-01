@@ -64,7 +64,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services
 
                     case HttpStatusCode.NotModified:
                         // No changes since the provided timestamp, return the original response with the provided timestamp
-                        return (s100SalesCatalogueData, sinceDateTime);
+                        return (s100SalesCatalogueData, s100SalesCatalogueData.LastModified);
 
                     default:
                         // Unexpected status code, log a warning and return an empty response
