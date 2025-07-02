@@ -51,7 +51,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Factories.S100
 
             _logger.LogJobUpdated(ExchangeSetJobLogView.Create(job));
 
-            await _buildRequestProcessor.SendBuildRequestAsync(job, stoppingToken);
+            // Queue the job if it hasn't been cancelled
+            if (job.State != ExchangeSetJobState.Cancelled)
+            {
+                await _buildRequestProcessor.SendBuildRequestAsync(job, stoppingToken);
+            }
         }
 
         private async Task GetS100ProductsFromSpecificDateAsync(S100ExchangeSetJob job, DateTime? timestamp)

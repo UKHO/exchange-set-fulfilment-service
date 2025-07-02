@@ -21,6 +21,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
 
         private readonly BuildSummary _summary;
 
+        private string _jobId;
+        private string _batchId;
+
         public ExchangeSetPipelineContext(
             IConfiguration configuration,
             IToolClient toolClient,
@@ -33,6 +36,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
             _queueClientFactory = queueClientFactory;
             _blobClientFactory = blobClientFactory;
             _loggerFactory = loggerFactory;
+
+            _jobId = string.Empty;
+            _batchId = string.Empty;
 
             _summary = new BuildSummary();
         }
@@ -49,12 +55,31 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
 
         public BlobClientFactory BlobClientFactory => _blobClientFactory;
 
-        public string JobId { get; set; }
+        public string JobId
+        {
+            get => _jobId;
+            set
+            {
+                _jobId = value;
+                _summary.JobId = value;
+            }
+        }
+
+        public string BatchId
+        {
+            get => _batchId;
+            set
+            {
+                _batchId = value;
+                _summary.BatchId = value;
+            }
+        }
+
         public string FileShareEndpoint { get; set; }
         public string WorkspaceAuthenticationKey { get; set; }
         public S100ExchangeSetJob Job { get; set; }
         public IEnumerable<BatchDetails> BatchDetails { get; set; }
-        public string BatchId { get; set; }
+        
         public string WorkSpaceRootPath { get; set; } = "/usr/local/tomcat/ROOT";
         public string WorkSpaceSpoolPath { get; } = "spool";
         public string WorkSpaceSpoolDataSetFilesPath { get; } = "dataSet_files";

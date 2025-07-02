@@ -17,13 +17,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
                 var logger = context.Subject.LoggerFactory.CreateLogger<ReadConfigurationNode>();
                 var configuration = context.Subject.Configuration;
 
-                foreach (var configEntry in configuration.AsEnumerable())
-                {
-#pragma warning disable LOG001
-                    logger.LogInformation($"Configuration: {configEntry.Key} = {configEntry.Value}");
-#pragma warning restore LOG001
-                }
-
                 var requestQueue = context.Subject.QueueClientFactory.CreateRequestQueueClient(context.Subject.Configuration);
                 var requestMessage = await requestQueue.ReceiveMessageAsync();
 
@@ -33,7 +26,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
                 await requestQueue.DeleteMessageAsync(requestMessage.Value.MessageId, requestMessage.Value.PopReceipt);
 
                 context.Subject.JobId = request.JobId;
-                context.Subject.Summary.JobId = request.JobId;
                 context.Subject.BatchId = request.BatchId;
                 context.Subject.WorkspaceAuthenticationKey = request.WorkspaceKey;
                 context.Subject.ExchangeSetNameTemplate = request.ExchangeSetNameTemplate;
@@ -57,9 +49,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
             }
             catch (Exception ex)
             {
-#pragma warning disable LOG001
-                Log.Error(ex, $"config read failed with error: {ex.Message}");
-#pragma warning restore LOG001
                 return NodeResultStatus.Failed;
             }
         }

@@ -4,6 +4,8 @@
     {
         public string JobId { get; set; }
 
+        public string BatchId { get; set; }
+
         public List<BuildNodeStatus>? Statuses { get; set; }
         
         public List<string>? LogMessages {get; set; }

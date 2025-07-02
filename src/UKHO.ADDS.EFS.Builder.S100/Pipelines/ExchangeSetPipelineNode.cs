@@ -33,7 +33,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
             var status = new BuildNodeStatus
             {
                 Sequence = IncrementingCounter.GetNext(),
-                NodeId = GetNodeType(type),
+                NodeId = GetType().Name,
                 Status = nodeResult.Status,
                 ElapsedMilliseconds = _stopwatch.Elapsed.TotalMilliseconds,
             };
@@ -49,12 +49,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
             }
 
             context.Subject.Summary.AddStatus(status);
-        }
-
-        private string GetNodeType(string nodeType)
-        {
-            var rootNamespace = typeof(Program).Namespace!;
-            return nodeType.Replace(rootNamespace, "");
         }
 
         private static string FlattenExceptionMessages(Exception? ex)

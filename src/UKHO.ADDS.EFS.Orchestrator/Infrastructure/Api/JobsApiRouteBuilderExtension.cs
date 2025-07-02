@@ -23,7 +23,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Api
                 logger.LogGetJobRequestFailed(jobId);
 
                 return Results.NotFound();
-            });
+            })
+            .WithDescription("Gets the job details for the given job request");
 
             jobsEndpoint.MapGet("/{jobId}/status", async (string jobId, BuildStatusTable table) =>
             {
@@ -35,7 +36,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Api
                 }
 
                 return Results.NotFound();
-            });
+            })
+            .WithDescription("Gets the job status for the given job request");
         }
     }
 }

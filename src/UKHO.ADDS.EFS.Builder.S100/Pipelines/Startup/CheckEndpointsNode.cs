@@ -15,10 +15,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
         {
-#pragma warning disable LOG001
-            Log.Information($"FS ENDPOINT IS {context.Subject.FileShareEndpoint}");
-#pragma warning restore LOG001
-
             if (!(await context.Subject.ToolClient.PingAsync()).IsSuccess(out _))
             {
                 throw new InvalidOperationException("IIC Ping failed");

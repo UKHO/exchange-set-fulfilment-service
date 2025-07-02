@@ -46,7 +46,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Api
                     throw;
                 }
 
-            }).WithRequiredHeader("x-correlation-id", "Correlation ID", "a-correlation-id");
+            })
+            .WithRequiredHeader("x-correlation-id", "Correlation ID", "a-correlation-id")
+            .WithDescription("Create a job request for the given data standard (currently only supports S100)");
         }
     }
 }
