@@ -163,7 +163,7 @@ jobs:
               AppName: adds-configuration
               AcrName: $(AcrName)
               AzureEnvName: $(AZURE_ENV_NAME)
-              Debug: ${{ parameters.AdditionalDebugging }}
+              AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
 
           # - task: AzureCLI@2
           #   displayName: Deploy adds-configuration

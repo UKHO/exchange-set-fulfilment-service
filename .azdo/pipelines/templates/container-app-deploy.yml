@@ -16,7 +16,6 @@ parameters:
   type: boolean
   default: false
 
-
 steps:
 - task: AzureCLI@2
   displayName: Deploy ${{ parameters.AppName }}
