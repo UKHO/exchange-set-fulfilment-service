@@ -53,7 +53,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                     InfrastructureSubnetId = new BicepValue<ResourceIdentifier>(subnetId),
                     IsInternal = true
                 };
-                containerEnvironment.Tags.Add("hidden-title", "EFS CAE");
+                containerEnvironment.Tags.Add("hidden-title", "EFS");
             });
 
             // Storage configuration
@@ -62,7 +62,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             {
                 var resources = config.GetProvisionableResources();
                 var storageAccount = resources.OfType<StorageAccount>().First();
-                storageAccount.Tags.Add("hidden-title", "EFS Storage");
+                storageAccount.Tags.Add("hidden-title", "EFS");
                 storageAccount.AllowSharedKeyAccess = true;
             });
 

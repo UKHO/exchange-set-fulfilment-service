@@ -18,7 +18,7 @@ resource efssa 'Microsoft.Storage/storageAccounts@2024-01-01' = {
   }
   tags: {
     'aspire-resource-name': 'efssa'
-    'hidden-title': 'EFS Storage'
+    'hidden-title': 'EFS'
   }
 }
 
