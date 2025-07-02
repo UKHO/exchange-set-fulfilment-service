@@ -189,10 +189,10 @@ jobs:
                 $(azd env get-values)
                 EOF
 
-                # echo "Current environment variables:"
-                # echo "---------------------------------------------------------------"
-                # env
-                # echo "---------------------------------------------------------------"
+                echo "Current environment variables:"
+                echo "---------------------------------------------------------------"
+                env
+                echo "---------------------------------------------------------------"
 
                 echo "Logging in to Azure Container Registry..."
                 az acr login --name $ACR_NAME
