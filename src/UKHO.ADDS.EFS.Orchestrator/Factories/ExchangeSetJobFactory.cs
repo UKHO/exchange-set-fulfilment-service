@@ -16,7 +16,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Factories
 
         public Task<T> CreateJob<T>(ExchangeSetRequestQueueMessage requestMessage) where T : ExchangeSetJob, new()
         {
-            // TODO The correlation ID becomes the job ID here - remove correlation ID
+            // The correlation ID becomes the job ID here
             var id = requestMessage.CorrelationId;
 
             var job = new T()
@@ -25,7 +25,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Factories
                 DataStandard = requestMessage.DataStandard,
                 Timestamp = DateTime.UtcNow,
                 State = ExchangeSetJobState.Created,
-                CorrelationId = id
             };
 
             _logger.LogJobCreated(requestMessage.CorrelationId, ExchangeSetJobLogView.Create(job));

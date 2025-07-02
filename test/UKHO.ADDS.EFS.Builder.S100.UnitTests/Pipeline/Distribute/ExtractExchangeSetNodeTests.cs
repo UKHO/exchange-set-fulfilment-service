@@ -41,7 +41,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         {
             _pipelineContext = new ExchangeSetPipelineContext(null, _toolClient, null, null, _loggerFactory)
             {
-                Job = new S100ExchangeSetJob { Id = "testId", CorrelationId = "corrId" },
+                Job = new S100ExchangeSetJob { Id = "testId" },
                 WorkspaceAuthenticationKey = "authKey"
             };
 

@@ -86,7 +86,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Factories.S100
 
         private async Task ProcessCreateBatchAsync(ExchangeSetJob job, CancellationToken stoppingToken)
         {
-            var createBatchResponseResult = await _fileShareClient.CreateBatchAsync(job.CorrelationId, stoppingToken);
+            var createBatchResponseResult = await _fileShareClient.CreateBatchAsync(job.GetCorrelationId(), stoppingToken);
 
             if (createBatchResponseResult.IsSuccess(out var batchHandle, out _))
             {

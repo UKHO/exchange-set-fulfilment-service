@@ -20,7 +20,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.NewViews
             {
                 DataStandard = job.DataStandard,
                 Products = job.GetProductDelimitedList(),
-                CorrelationId = job.CorrelationId,
+                CorrelationId = job.GetCorrelationId(),
                 StatusCode = statusCode
             };
         }

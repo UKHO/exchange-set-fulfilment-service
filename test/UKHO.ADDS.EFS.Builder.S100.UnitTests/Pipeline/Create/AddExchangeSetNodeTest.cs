@@ -35,7 +35,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         {
             var exchangeSetPipelineContext = new ExchangeSetPipelineContext(null, _toolClient, null, null, _loggerFactory)
             {
-                Job = new S100ExchangeSetJob { CorrelationId = "TestCorrelationId" },
+                Job = new S100ExchangeSetJob { Id = "TestCorrelationId" },
                 JobId = "TestJobId",
                 WorkspaceAuthenticationKey = "Test123"
             };

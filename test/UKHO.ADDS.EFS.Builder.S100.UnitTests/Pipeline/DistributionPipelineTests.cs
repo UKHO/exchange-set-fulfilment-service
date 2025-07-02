@@ -40,7 +40,7 @@ public class DistributionPipelineTests
         _distributionPipeline = new DistributionPipeline(_fileShareReadWriteClient);
         _pipelineContext = new ExchangeSetPipelineContext(null, _toolClient, null, null, _loggerFactory)
         {
-            Job = new S100ExchangeSetJob { Id = "testId", CorrelationId = "corrId" },
+            Job = new S100ExchangeSetJob { Id = "testId" },
             WorkspaceAuthenticationKey = "authKey",
             ExchangeSetFilePath = Directory.GetParent(tempPath.TrimEnd(Path.DirectorySeparatorChar))!.FullName!,
             ExchangeSetArchiveFolderName = new DirectoryInfo(tempPath.TrimEnd(Path.DirectorySeparatorChar)).Name

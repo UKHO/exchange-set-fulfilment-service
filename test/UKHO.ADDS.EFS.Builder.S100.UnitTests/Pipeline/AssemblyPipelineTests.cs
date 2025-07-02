@@ -39,7 +39,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
             {
                 Job = new S100ExchangeSetJob
                 {
-                    CorrelationId = "TestCorrelationId",
+                    Id = "TestCorrelationId",
                     Products = GetProducts()
                 },
             };

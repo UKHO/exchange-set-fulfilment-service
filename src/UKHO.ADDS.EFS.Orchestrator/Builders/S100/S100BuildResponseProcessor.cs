@@ -61,7 +61,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Builders.S100
             {
 
                 // Try to commit the batch
-                var commitBatchResult = await _fileShareService.CommitBatchAsync(job.BatchId, job.CorrelationId, stoppingToken);
+                var commitBatchResult = await _fileShareService.CommitBatchAsync(job.BatchId, job.GetCorrelationId(), stoppingToken);
                 if (!commitBatchResult.IsSuccess(out _, out _))
                 {
                     job.State = ExchangeSetJobState.Failed;
@@ -69,7 +69,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Builders.S100
                 }
 
                 // Search for other committed batches
-                var searchResult = await _fileShareService.SearchCommittedBatchesExcludingCurrentAsync(job.BatchId, job.CorrelationId, stoppingToken);
+                var searchResult = await _fileShareService.SearchCommittedBatchesExcludingCurrentAsync(job.BatchId, job.GetCorrelationId(), stoppingToken);
                 if (!searchResult.IsSuccess(out var searchResponse, out _))
                 {
                     job.State = ExchangeSetJobState.Failed;
@@ -84,7 +84,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Builders.S100
                 }
 
                 // Try to set expiry date on previous batches
-                var expiryResult = await _fileShareService.SetExpiryDateAsync(searchResponse.Entries, job.CorrelationId, stoppingToken);
+                var expiryResult = await _fileShareService.SetExpiryDateAsync(searchResponse.Entries, job.GetCorrelationId(), stoppingToken);
                 job.State = expiryResult.IsSuccess(out _, out _)
                     ? ExchangeSetJobState.Succeeded
                     : ExchangeSetJobState.Failed;

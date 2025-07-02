@@ -47,7 +47,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services2.Infrastructure
         {
             var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<S100SalesCatalogueResponse>(_logger, nameof(GetS100ProductsFromSpecificDateAsync));
             var s100SalesCatalogueResult = await retryPolicy.ExecuteAsync(() =>
-                _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(ScsApiVersion, ProductType, sinceDateTime, job.CorrelationId));
+                _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(ScsApiVersion, ProductType, sinceDateTime, job.GetCorrelationId()));
 
             // Check if the API call was successful
             if (s100SalesCatalogueResult.IsSuccess(out var s100SalesCatalogueData, out var error))

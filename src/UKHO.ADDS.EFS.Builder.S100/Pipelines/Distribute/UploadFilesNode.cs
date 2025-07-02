@@ -39,7 +39,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
         {
             _logger = context.Subject.LoggerFactory.CreateLogger<UploadFilesNode>();
             var batchId = context.Subject.BatchId;
-            var correlationId = context.Subject.Job.CorrelationId;
+            var correlationId = context.Subject.Job.GetCorrelationId();
             var jobId = context.Subject.Job?.Id;
 
             var fileNameGenerator = new FileNameGenerator(context.Subject);
