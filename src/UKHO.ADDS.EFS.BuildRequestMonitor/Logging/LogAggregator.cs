@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Logging
+namespace UKHO.ADDS.EFS.BuildRequestMonitor.Logging
 {
     internal class JsonObjectAggregator
     {

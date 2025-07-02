@@ -5,7 +5,6 @@ using UKHO.ADDS.EFS.BuildRequestMonitor.Builders;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Logging;
 using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
-using UKHO.ADDS.EFS.Orchestrator.Logging;
 
 namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
 {
