@@ -176,7 +176,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                         FileMode.Create,
                         FileAccess.Write,
                         FileShare.None,
-                        FileStreamBufferSize, // 80KB buffer size
+                        FileStreamBufferSize,
                         FileOptions.Asynchronous);
 
                     var streamResult = await retryPolicy.ExecuteAsync(() =>
