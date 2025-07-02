@@ -40,8 +40,8 @@ steps:
       done <<EOF
       $(azd env get-values)
       EOF
-      echo if [ "${{ parameters.AdditionalDebugging }}" == "true" ]; then
-      if [ "${{ parameters.AdditionalDebugging }}" == "true" ]; then
+
+      if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
         echo "Current environment variables:"
         echo "--------------------------------------------------------------------------------"
         env
@@ -58,7 +58,7 @@ steps:
       cp "$(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.LocalHost/infra/${{ parameters.AppName }}/${{ parameters.AppName }}.tmpl.bicepparam" "$(Build.SourcesDirectory)/infra/${{ parameters.AppName }}/${{ parameters.AppName }}.tmpl.bicepparam"
       cd "$(Build.SourcesDirectory)/infra/${{ parameters.AppName }}"
 
-      if [ "${{ parameters.AdditionalDebugging }}" == "true" ]; then
+      if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
         az deployment group create --name ${{ parameters.AppName }}-$DEPLOYMENT_NUMBER --resource-group $RESOURCE_GROUP --parameters ${{ parameters.AppName }}.tmpl.bicepparam --debug
       else
         az deployment group create --name ${{ parameters.AppName }}-$DEPLOYMENT_NUMBER --resource-group $RESOURCE_GROUP --parameters ${{ parameters.AppName }}.tmpl.bicepparam
