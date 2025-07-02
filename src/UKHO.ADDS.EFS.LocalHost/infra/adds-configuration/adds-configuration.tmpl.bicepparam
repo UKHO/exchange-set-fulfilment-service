@@ -1,6 +1,6 @@
 using './adds-configuration.module.bicep'
 
-param adds_configuration_containerimage = readEnvironmentVariable('CONTAINER_IMAGE_CONFIG')
+param adds_configuration_containerimage = readEnvironmentVariable('CONTAINER_IMAGE')
 param adds_configuration_containerport = readEnvironmentVariable('CONTAINER_PORT')
 param adds_configuration_identity_outputs_clientid = readEnvironmentVariable('ADDS_CONFIGURATION_IDENTITY_CLIENTID')
 param adds_configuration_identity_outputs_id = readEnvironmentVariable('ADDS_CONFIGURATION_IDENTITY_ID')

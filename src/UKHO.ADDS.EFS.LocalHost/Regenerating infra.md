@@ -9,7 +9,7 @@ If we need to regenerate from scratch again then you can run the `azd regenerate
     ```
     using './adds-configuration.module.bicep'
 
-    param adds_configuration_containerimage = readEnvironmentVariable('CONTAINER_IMAGE_CONFIG')
+    param adds_configuration_containerimage = readEnvironmentVariable('CONTAINER_IMAGE')
     param adds_configuration_containerport = readEnvironmentVariable('CONTAINER_PORT')
     param adds_configuration_identity_outputs_clientid = readEnvironmentVariable('ADDS_CONFIGURATION_IDENTITY_CLIENTID')
     param adds_configuration_identity_outputs_id = readEnvironmentVariable('ADDS_CONFIGURATION_IDENTITY_ID')
@@ -19,4 +19,31 @@ If we need to regenerate from scratch again then you can run the `azd regenerate
     param efs_cae_outputs_azure_container_apps_environment_id = readEnvironmentVariable('EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_ID')
     param efs_cae_outputs_azure_container_registry_endpoint = readEnvironmentVariable('EFS_CAE_AZURE_CONTAINER_REGISTRY_ENDPOINT')
     param efs_cae_outputs_azure_container_registry_managed_identity_id = readEnvironmentVariable('EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID')
+    ```
+3. `adds-mocks-efs.tmpl.bicepparam` Update to read environment variables directly:
+    ```
+    using './adds-mocks-efs.module.bicep'
+
+    param adds_mocks_efs_containerimage = readEnvironmentVariable('CONTAINER_IMAGE')
+    param adds_mocks_efs_containerport = readEnvironmentVariable('CONTAINER_PORT')
+    param efs_cae_outputs_azure_container_apps_environment_default_domain = readEnvironmentVariable('EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN')
+    param efs_cae_outputs_azure_container_apps_environment_id = readEnvironmentVariable('EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_ID')
+    param efs_cae_outputs_azure_container_registry_endpoint = readEnvironmentVariable('EFS_CAE_AZURE_CONTAINER_REGISTRY_ENDPOINT')
+    param efs_cae_outputs_azure_container_registry_managed_identity_id = readEnvironmentVariable('EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID')
+    ```
+4. `efs-orchestrator.tmpl.bicepparam` Update to read environment variables directly:
+    ```
+    using './efs-orchestrator.module.bicep'
+
+    param efs_cae_outputs_azure_container_apps_environment_default_domain = readEnvironmentVariable('EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN')
+    param efs_cae_outputs_azure_container_apps_environment_id = readEnvironmentVariable('EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_ID')
+    param efs_cae_outputs_azure_container_registry_endpoint = readEnvironmentVariable('EFS_CAE_AZURE_CONTAINER_REGISTRY_ENDPOINT')
+    param efs_cae_outputs_azure_container_registry_managed_identity_id = readEnvironmentVariable('EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID')
+    param efs_orchestrator_containerimage = readEnvironmentVariable('CONTAINER_IMAGE')
+    param efs_orchestrator_containerport = readEnvironmentVariable('CONTAINER_PORT')
+    param efs_orchestrator_identity_outputs_clientid = readEnvironmentVariable('EFS_ORCHESTRATOR_IDENTITY_CLIENTID')
+    param efs_orchestrator_identity_outputs_id = readEnvironmentVariable('EFS_ORCHESTRATOR_IDENTITY_ID')
+    param efssa_outputs_blobendpoint = readEnvironmentVariable('EFSSA_BLOBENDPOINT')
+    param efssa_outputs_queueendpoint = readEnvironmentVariable('EFSSA_QUEUEENDPOINT')
+    param efssa_outputs_tableendpoint = readEnvironmentVariable('EFSSA_TABLEENDPOINT')
     ```

@@ -1,13 +1,13 @@
 using './efs-orchestrator.module.bicep'
 
-param efs_cae_outputs_azure_container_apps_environment_default_domain = '{{ .Env.EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN }}'
-param efs_cae_outputs_azure_container_apps_environment_id = '{{ .Env.EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_ID }}'
-param efs_cae_outputs_azure_container_registry_endpoint = '{{ .Env.EFS_CAE_AZURE_CONTAINER_REGISTRY_ENDPOINT }}'
-param efs_cae_outputs_azure_container_registry_managed_identity_id = '{{ .Env.EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID }}'
-param efs_orchestrator_containerimage = '{{ .Image }}'
-param efs_orchestrator_containerport = '{{ targetPortOrDefault 8080 }}'
-param efs_orchestrator_identity_outputs_clientid = '{{ .Env.EFS_ORCHESTRATOR_IDENTITY_CLIENTID }}'
-param efs_orchestrator_identity_outputs_id = '{{ .Env.EFS_ORCHESTRATOR_IDENTITY_ID }}'
-param efssa_outputs_blobendpoint = '{{ .Env.EFSSA_BLOBENDPOINT }}'
-param efssa_outputs_queueendpoint = '{{ .Env.EFSSA_QUEUEENDPOINT }}'
-param efssa_outputs_tableendpoint = '{{ .Env.EFSSA_TABLEENDPOINT }}'
+param efs_cae_outputs_azure_container_apps_environment_default_domain = readEnvironmentVariable('EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN')
+param efs_cae_outputs_azure_container_apps_environment_id = readEnvironmentVariable('EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_ID')
+param efs_cae_outputs_azure_container_registry_endpoint = readEnvironmentVariable('EFS_CAE_AZURE_CONTAINER_REGISTRY_ENDPOINT')
+param efs_cae_outputs_azure_container_registry_managed_identity_id = readEnvironmentVariable('EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID')
+param efs_orchestrator_containerimage = readEnvironmentVariable('CONTAINER_IMAGE')
+param efs_orchestrator_containerport = readEnvironmentVariable('CONTAINER_PORT')
+param efs_orchestrator_identity_outputs_clientid = readEnvironmentVariable('EFS_ORCHESTRATOR_IDENTITY_CLIENTID')
+param efs_orchestrator_identity_outputs_id = readEnvironmentVariable('EFS_ORCHESTRATOR_IDENTITY_ID')
+param efssa_outputs_blobendpoint = readEnvironmentVariable('EFSSA_BLOBENDPOINT')
+param efssa_outputs_queueendpoint = readEnvironmentVariable('EFSSA_QUEUEENDPOINT')
+param efssa_outputs_tableendpoint = readEnvironmentVariable('EFSSA_TABLEENDPOINT')
