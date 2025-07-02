@@ -158,18 +158,6 @@ jobs:
           #     AZURE_SUBNET_VNET: $(AZURE_SUBNET_VNET)
 
           - task: AzureCLI@2
-            displayName: Deploy - env variables
-            inputs:
-              azureSubscription: ${{ variables.AzureSubscription }}
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-
-            env:
-              ACR_NAME: $(BuilderAcrName)
-              AZURE_ENV_NAME: $(AZURE_ENV_NAME)
-
-          - task: AzureCLI@2
             displayName: Deploy adds-configuration
             inputs:
               azureSubscription: ${{ variables.AzureSubscription }}
@@ -189,10 +177,10 @@ jobs:
                 $(azd env get-values)
                 EOF
 
-                echo "Current environment variables:"
-                echo "---------------------------------------------------------------"
-                env
-                echo "---------------------------------------------------------------"
+                # echo "Current environment variables:"
+                # echo "---------------------------------------------------------------"
+                # env
+                # echo "---------------------------------------------------------------"
 
                 echo "Logging in to Azure Container Registry..."
                 az acr login --name $ACR_NAME
