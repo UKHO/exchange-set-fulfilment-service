@@ -13,6 +13,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private readonly IFileShareReadOnlyClient _fileShareReadOnlyClient;
         private readonly IConfiguration _configuration;
         private readonly int _maxConcurrentDownloads;
+        private readonly SemaphoreSlim _downloadFileConcurrencyLimiter;
         private ILogger _logger;
 
         private const long FileSizeInBytes = 10485760;
@@ -27,6 +28,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private const int NumericPartStartIndex = 1;  // Skip the period
         private const int MinNumericValue = 000;
         private const int MaxNumericValue = 999;
+        private const int FileStreamBufferSize = 81920; // 80KB buffer size
         private int MaxConcurrentDownloads => _maxConcurrentDownloads;
 
         public DownloadFilesNode(IFileShareReadOnlyClient fileShareReadOnlyClient, IConfiguration configuration)
@@ -37,6 +39,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             {
                 _maxConcurrentDownloads = 4;
             }
+            _downloadFileConcurrencyLimiter = new SemaphoreSlim(_maxConcurrentDownloads);
         }
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
@@ -154,12 +157,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             string workSpaceSpoolSupportFilesPath,
             string correlationId)
         {
-            var semaphore = new SemaphoreSlim(MaxConcurrentDownloads);
             var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<Stream>(_logger, "DownloadFile");
 
             return allFilesToProcess.Select(async item =>
             {
-                await semaphore.WaitAsync();
+                await _downloadFileConcurrencyLimiter.WaitAsync();
                 try
                 {
                     var directoryPath = GetDirectoryPathForFile(
@@ -169,12 +171,17 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                         workSpaceSpoolSupportFilesPath);
                     var downloadPath = Path.Combine(directoryPath, item.FileName);
 
-                    await using var outputFileStream = new FileStream(downloadPath, FileMode.Create, FileAccess.Write);
+                    await using var outputFileStream = new FileStream(
+                        downloadPath,
+                        FileMode.Create,
+                        FileAccess.Write,
+                        FileShare.None,
+                        FileStreamBufferSize, // 80KB buffer size
+                        FileOptions.Asynchronous);
 
                     var streamResult = await retryPolicy.ExecuteAsync(() =>
                         _fileShareReadOnlyClient.DownloadFileAsync(
                             item.Batch.BatchId, item.FileName, outputFileStream, correlationId, FileSizeInBytes));
-
 
                     if (streamResult.IsFailure(out var error, out var value))
                     {
@@ -184,7 +191,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 }
                 finally
                 {
-                    semaphore.Release();
+                    _downloadFileConcurrencyLimiter.Release();
                 }
             });
         }
@@ -237,13 +244,19 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 return false;
             }
 
-            // Check for numeric extensions (.000 to .999)
-            var isNumericExtension = extension is { Length: NumericExtensionLength } &&
-                                     int.TryParse(extension[NumericPartStartIndex..], out var extNum) &&
-                                     extNum is >= MinNumericValue and <= MaxNumericValue;
+            // Check for numeric extensions (.000 to .999) using ReadOnlySpan for better performance
+            if (extension.Length == NumericExtensionLength)
+            {
+                ReadOnlySpan<char> numericPart = extension.AsSpan(NumericPartStartIndex);
+                if (int.TryParse(numericPart, out var extNum) &&
+                    extNum is >= MinNumericValue and <= MaxNumericValue)
+                {
+                    return true;
+                }
+            }
 
-            // Either numeric extension or H5 extension
-            return isNumericExtension || extension.Equals(H5Extension, StringComparison.OrdinalIgnoreCase);
+            // H5 extension
+            return extension.Equals(H5Extension, StringComparison.OrdinalIgnoreCase);
         }
 
         private void LogFssDownloadFailed(BatchDetails batch, string fileName, IError error, string correlationId)
