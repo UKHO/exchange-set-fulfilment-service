@@ -191,7 +191,7 @@ jobs:
                 cd $(Build.SourcesDirectory)/src
 
                 echo "Creating deployment tag..."
-                BUILD_TAG = docker-deploy-$EPOCHSECONDS
+                BUILD_TAG=docker-deploy-$EPOCHSECONDS
                 echo "$BUILD_TAG"
 
                 echo "Building Docker image..."
