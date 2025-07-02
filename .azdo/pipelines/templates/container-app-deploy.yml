@@ -29,7 +29,8 @@ steps:
     inlineScript: |
       echo "Setting variables..."
       DEPLOYMENT_NUMBER=$EPOCHSECONDS
-      export CONTAINER_IMAGE="${{ parameters.AcrName }}.azurecr.io/exchange-set-fulfilment-service/${{ parameters.AppName }}-${{ parameters.AzureEnvName }}:azd-deploy-$DEPLOYMENT_NUMBER"
+      DEPLOYMENT_TAG=az-deploy-$DEPLOYMENT_NUMBER
+      export CONTAINER_IMAGE="${{ parameters.AcrName }}.azurecr.io/exchange-set-fulfilment-service/${{ parameters.AppName }}-${{ parameters.AzureEnvName }}:$DEPLOYMENT_TAG"
       export CONTAINER_PORT=8080 # TODO: get this value from output of dotnet publish below (this is what azd does).
       RESOURCE_GROUP="rg-${{ parameters.AzureEnvName }}"
 
@@ -52,7 +53,7 @@ steps:
       az acr login --name ${{ parameters.AcrName }}
 
       echo "Publishing image..."
-      dotnet publish "${{ parameters.ProjectPath }}" -r linux-x64 -c Release /t:PublishContainer -p:ContainerRepository=exchange-set-fulfilment-service/${{ parameters.AppName }}-dev -p:ContainerImageTag=az-deploy-$DEPLOYMENT_NUMBER -p:ContainerRegistry=${{ parameters.AcrName }}.azurecr.io --getProperty:GeneratedContainerConfiguration
+      dotnet publish "${{ parameters.ProjectPath }}" -r linux-x64 -c Release /t:PublishContainer -p:ContainerRepository=exchange-set-fulfilment-service/${{ parameters.AppName }}-dev -p:ContainerImageTag=$DEPLOYMENT_TAG -p:ContainerRegistry=${{ parameters.AcrName }}.azurecr.io --getProperty:GeneratedContainerConfiguration
 
       echo "Deploying app..."
       cp "$(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.LocalHost/infra/${{ parameters.AppName }}/${{ parameters.AppName }}.tmpl.bicepparam" "$(Build.SourcesDirectory)/infra/${{ parameters.AppName }}/${{ parameters.AppName }}.tmpl.bicepparam"
