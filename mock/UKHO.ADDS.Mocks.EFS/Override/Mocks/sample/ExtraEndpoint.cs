@@ -1,7 +1,7 @@
 ﻿using UKHO.ADDS.Mocks.Markdown;
 using UKHO.ADDS.Mocks.SampleService.Override.Mocks.sample.Models;
 
-namespace UKHO.ADDS.Mocks.SampleService.Override.Mocks.sample
+namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.sample
 {
     public class ExtraEndpoint : ServiceEndpointMock
     {

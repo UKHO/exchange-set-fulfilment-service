@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using FakeItEasy;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.Clients.SalesCatalogueService;
 using UKHO.ADDS.Clients.SalesCatalogueService.Models;
@@ -16,6 +17,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tests.Services
         private ILogger<SalesCatalogueService> _logger;
         private SalesCatalogueService _salesCatalogueService;
         private ExchangeSetRequestQueueMessage _exchangeSetRequestQueueMessage;
+        private IConfiguration _configuration;
+
+        private const int RetryDelayInMilliseconds = 100;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
@@ -29,6 +33,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tests.Services
                 Products = "test-products",
                 DataStandard = ExchangeSetDataStandard.S100
             };
+        }
+
+        [SetUp]
+        public void SetUp()
+        {
+            _configuration = A.Fake<IConfiguration>();
+            A.CallTo(() => _configuration["HttpRetry:RetryDelayInMilliseconds"]).Returns(RetryDelayInMilliseconds.ToString());
+            UKHO.ADDS.EFS.RetryPolicy.HttpRetryPolicyFactory.SetConfiguration(_configuration);
         }
 
         [Test]
@@ -223,6 +235,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tests.Services
                 Assert.That(data.ResponseCode, Is.EqualTo(expectedResponse.ResponseCode));
                 Assert.That(lastModified, Is.EqualTo(expectedResponse.LastModified));
             });
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            UKHO.ADDS.EFS.RetryPolicy.HttpRetryPolicyFactory.SetConfiguration(null);
         }
     }
 }

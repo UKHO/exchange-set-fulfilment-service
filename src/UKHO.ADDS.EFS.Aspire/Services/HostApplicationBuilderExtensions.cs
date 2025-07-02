@@ -15,7 +15,22 @@ namespace Microsoft.Extensions.Hosting
     // To learn more about using this project, see https://aka.ms/dotnet/aspire/service-defaults
     public static class HostApplicationBuilderExtensions
     {
-        public static TBuilder AddServiceDefaults<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
+        /// <summary>
+        /// Configures default services and behaviors for the application, including health checks, service discovery, 
+        /// and HTTP client settings.
+        /// </summary>
+        /// <remarks>This method applies the following configurations: <list type="bullet">
+        /// <item><description>Configures OpenTelemetry for the application.</description></item>
+        /// <item><description>Adds default health checks.</description></item> <item><description>Registers service
+        /// discovery capabilities.</description></item> <item><description>Configures HTTP client defaults, including
+        /// optional resilience handlers and service discovery.</description></item> </list> Use this method to quickly
+        /// set up common service defaults for applications built with <see cref="IHostApplicationBuilder"/>.</remarks>
+        /// <typeparam name="TBuilder">The type of the application builder, which must implement <see cref="IHostApplicationBuilder"/>.</typeparam>
+        /// <param name="builder">The application builder to configure.</param>
+        /// <param name="enableStandardResilience">This condition is added to use explicit retry mechanism and should be revisited later<see langword="true"/>
+        /// to enable resilience; otherwise, <see langword="false"/>.</param>
+        /// <returns>The configured application builder.</returns>
+        public static TBuilder AddServiceDefaults<TBuilder>(this TBuilder builder, bool enableStandardResilience = true) where TBuilder : IHostApplicationBuilder
         {
             builder.ConfigureOpenTelemetry();
 
@@ -25,8 +40,11 @@ namespace Microsoft.Extensions.Hosting
 
             builder.Services.ConfigureHttpClientDefaults(http =>
             {
-                // Turn on resilience by default
-                http.AddStandardResilienceHandler();
+                if (enableStandardResilience)
+                {
+                    // Turn on resilience if requested
+                    http.AddStandardResilienceHandler();
+                }
 
                 // Turn on service discovery by default
                 http.AddServiceDiscovery();

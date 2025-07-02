@@ -49,7 +49,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                 builder.Configuration.AddConfigurationService("UKHO.ADDS.EFS.Orchestrator", "UKHO.ADDS.EFS.Builder.S100");
 
-                builder.AddServiceDefaults()
+                builder.AddServiceDefaults(enableStandardResilience:false)
                     .AddOrchestratorServices();
 
                 var app = builder.Build();
