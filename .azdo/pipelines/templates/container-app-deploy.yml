@@ -40,7 +40,7 @@ steps:
       done <<EOF
       $(azd env get-values)
       EOF
-
+      echo if [ "${{ parameters.AdditionalDebugging }}" == "true" ]; then
       if [ "${{ parameters.AdditionalDebugging }}" == "true" ]; then
         echo "Current environment variables:"
         echo "--------------------------------------------------------------------------------"
@@ -52,7 +52,7 @@ steps:
       az acr login --name ${{ parameters.AcrName }}
 
       echo "Publishing image..."
-      dotnet publish "${{ parameters.ProjectPath }}" -r linux-x64 -c Release /t:PublishContainer -p:ContainerRepository=exchange-set-fulfilment-service/${{ parameters.AppName }}-dev -p:ContainerImageTag=az-deploy-$DEPLOYMENT_NUMBER -p:ContainerRegistry=${{ parameters.AcrName }}.azurecr.io --no-restore --getProperty:GeneratedContainerConfiguration
+      dotnet publish "${{ parameters.ProjectPath }}" -r linux-x64 -c Release /t:PublishContainer -p:ContainerRepository=exchange-set-fulfilment-service/${{ parameters.AppName }}-dev -p:ContainerImageTag=az-deploy-$DEPLOYMENT_NUMBER -p:ContainerRegistry=${{ parameters.AcrName }}.azurecr.io --getProperty:GeneratedContainerConfiguration
 
       echo "Deploying app..."
       cp "$(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.LocalHost/infra/${{ parameters.AppName }}/${{ parameters.AppName }}.tmpl.bicepparam" "$(Build.SourcesDirectory)/infra/${{ parameters.AppName }}/${{ parameters.AppName }}.tmpl.bicepparam"
