@@ -39,11 +39,12 @@ steps:
       $(azd env get-values)
       EOF
 
-      ${{ if eq(parameters.AdditionalDebugging, true) }}:
+      if [ "${{ parameters.AdditionalDebugging }}" == "true" ]; then
         echo "Current environment variables:"
-        echo "---------------------------------------------------------------"
+        echo "--------------------------------------------------------------------------------"
         env
-        echo "---------------------------------------------------------------"
+        echo "--------------------------------------------------------------------------------"
+      fi
 
       echo "Logging in to Azure Container Registry..."
       az acr login --name ${{ parameters.AcrName }}
@@ -54,7 +55,9 @@ steps:
       echo "Deploying app..."
       cp "$(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.LocalHost/infra/${{ parameters.AppName }}/${{ parameters.AppName }}.tmpl.bicepparam" "$(Build.SourcesDirectory)/infra/${{ parameters.AppName }}/${{ parameters.AppName }}.tmpl.bicepparam"
       cd "$(Build.SourcesDirectory)/infra/${{ parameters.AppName }}"
-      ${{ if eq(parameters.AdditionalDebugging, true) }}:
+
+      if [ "${{ parameters.AdditionalDebugging }}" == "true" ]; then
         az deployment group create --name ${{ parameters.AppName }}-$DEPLOYMENT_NUMBER --resource-group $RESOURCE_GROUP --parameters ${{ parameters.AppName }}.tmpl.bicepparam --debug
-      ${{ else }}:
+      else
         az deployment group create --name ${{ parameters.AppName }}-$DEPLOYMENT_NUMBER --resource-group $RESOURCE_GROUP --parameters ${{ parameters.AppName }}.tmpl.bicepparam
+      fi
