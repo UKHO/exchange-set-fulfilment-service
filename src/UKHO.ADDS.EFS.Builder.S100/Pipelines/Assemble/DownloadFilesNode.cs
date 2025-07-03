@@ -37,7 +37,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             if (!int.TryParse(_configuration["ConcurrentDownloadLimitCount"], out _maxConcurrentDownloads))
             {
-                _maxConcurrentDownloads = 4;
+                _maxConcurrentDownloads = 1;
             }
             _downloadFileConcurrencyLimiter = new SemaphoreSlim(_maxConcurrentDownloads);
         }
