@@ -37,7 +37,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.API
         }
 
         [Test]
-        public async Task Validate_Exchange_Set_Creation_End_To_End_Positive_Flow()
+        public async Task ValidateExchangeSetCreation_EndToEndPositiveFlow()
         {
             var correlationId = Guid.NewGuid().ToString();
 
@@ -51,10 +51,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.API
             await _exchangeSetHelper.WaitForExchangeSetGeneration(correlationId);                    
 
             // Verify all builder nodes succeeded
-            await _exchangeSetHelper.verifyAllBuilderNodesSucceeded(correlationId);
+            await _exchangeSetHelper.VerifyAllBuilderNodesSucceeded(correlationId);
 
             //Verify Timestamp value has been updated for the current Exchange Set
-            await _exchangeSetHelper.verifyExchangeSetTimestampTableEntryUpdated("s100");
+            await _exchangeSetHelper.VerifyExchangeSetTimestampTableEntryUpdated("s100");
 
             //Connect to Azure Blob Storage and check the blob content
             await _blobHelpers.AssertBlobStateAndCorrelationIdAsync("succeeded", correlationId);

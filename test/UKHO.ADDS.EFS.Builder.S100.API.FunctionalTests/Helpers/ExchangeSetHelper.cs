@@ -45,7 +45,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Helpers
             Assert.That(reached, Is.True, "Exchange Set Generation failed as all the Builder nodes didn't succeed ");
         }
 
-        public async Task verifyAllBuilderNodesSucceeded(string partitionKey)
+        public async Task VerifyAllBuilderNodesSucceeded(string partitionKey)
         {
             var tableHelpers = new AzureTableHelpers();
             var allRowsEntities = await tableHelpers.GetAllEntitiesAsync(_nodeStatusTableClient, partitionKey);
@@ -87,7 +87,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Helpers
             Assert.That(succeededCount, Is.EqualTo(builderNodeNames.Count), "Not all builder nodes succeeded.");
         }
 
-        public async Task verifyExchangeSetTimestampTableEntryUpdated(string partitionKey)
+        public async Task VerifyExchangeSetTimestampTableEntryUpdated(string partitionKey)
         {
             var tableHelpers = new AzureTableHelpers();
             var allRowsEntities = await tableHelpers.GetAllEntitiesAsync(_exchangeSetTimestampTableClient, partitionKey);

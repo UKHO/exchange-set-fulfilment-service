@@ -25,7 +25,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Helpers  {
             return entities;
         }
 
-        public async Task<bool> WaitForEntityCountAsync(TableClient _tableClient, string partitionKey, int expectedCount, int timeoutSeconds = 60, int pollIntervalMs = 1000)
+        public async Task<bool> WaitForEntityCountAsync(TableClient _tableClient, string partitionKey, int expectedCount, int timeoutSeconds = 60, int pollingIntervalMilliSeconds = 1000)
         {
             var timeout = TimeSpan.FromSeconds(timeoutSeconds);
             var start = DateTime.UtcNow;
@@ -36,7 +36,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Helpers  {
                 if (entities.Count >= expectedCount)
                     return true;
 
-                await Task.Delay(pollIntervalMs);
+                await Task.Delay(pollingIntervalMilliSeconds);
             }
 
             return false;
