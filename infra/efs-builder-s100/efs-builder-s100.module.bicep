@@ -9,13 +9,18 @@ param efs_cae_outputs_azure_container_registry_managed_identity_id string
 
 param efs_builder_s100_containerimage string
 
+param storage_outputs_name string
+
+@secure()
+param storage_connection_string string
+
 resource efsbuilders100 'Microsoft.App/jobs@2025-01-01' = {
   name: 'efs-builder-s100'
   location: location
   identity: {
     type: 'UserAssigned'
     userAssignedIdentities: {
-      '/subscriptions/ac1ac25d-6c09-4d38-bbae-ffc1cd3c5ebf/resourcegroups/hb-job-test-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/hb-efs-job-test-mi2': {}
+      '${efs_cae_outputs_azure_container_registry_managed_identity_id}': {}
     }
   }
   properties: {
@@ -25,6 +30,7 @@ resource efsbuilders100 'Microsoft.App/jobs@2025-01-01' = {
       secrets: [
         {
           name: 'connection-string-secret'
+          value: storage_connection_string
         }
       ]
       triggerType: 'Event'
@@ -36,15 +42,15 @@ resource efsbuilders100 'Microsoft.App/jobs@2025-01-01' = {
         scale: {
           minExecutions: 0
           maxExecutions: 10
-          pollingInterval: 30
+          pollingInterval: 10
           rules: [
             {
               name: 'queue'
               type: 'azure-queue'
               metadata: {
-                accountName: 'hbefsjobtestsa'
+                accountName: storage_outputs_name
                 queueLength: '1'
-                queueName: 'myqueue'
+                queueName: 'queues'
               }
               auth: [
                 {
@@ -72,7 +78,7 @@ resource efsbuilders100 'Microsoft.App/jobs@2025-01-01' = {
           env: [
             {
               name: 'AZURE_STORAGE_QUEUE_NAME'
-              value: 'myqueue'
+              value: 'queues'
             }
             {
               name: 'AZURE_STORAGE_CONNECTION_STRING'

@@ -47,3 +47,4 @@ If we need to regenerate from scratch again then you can run the `azd regenerate
     param efssa_outputs_queueendpoint = readEnvironmentVariable('STORAGE_QUEUEENDPOINT')
     param efssa_outputs_tableendpoint = readEnvironmentVariable('STORAGE_TABLEENDPOINT')
     ```
+5. `main.bicep` Add storage name output: ```output STORAGE_NAME string = storage.outputs.name```

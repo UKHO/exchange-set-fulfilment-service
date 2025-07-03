@@ -56,7 +56,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                     InfrastructureSubnetId = new BicepValue<ResourceIdentifier>(subnetId),
                     IsInternal = true
                 };
-                containerEnvironment.Tags.Add("hidden-title", SystemConfiguration.SystemName);
+                containerEnvironment.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
             });
 
             // Storage configuration
@@ -64,7 +64,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             storage.ConfigureInfrastructure(config =>
             {
                 var storageAccount = config.GetProvisionableResources().OfType<StorageAccount>().Single();
-                storageAccount.Tags.Add("hidden-title", SystemConfiguration.SystemName);
+                storageAccount.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
                 storageAccount.AllowSharedKeyAccess = true;
             });
 
@@ -99,7 +99,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                 tb.AddEndpoint("buildermockfss", mockService, false, "host.docker.internal", "fss");
 
                 tb.AddEndpoint("builderorchestrator", orchestratorService, false, "host.docker.internal", null);
-            }, SystemConfiguration.SystemName)
+            }, ServiceConfiguration.ServiceName)
             .WithExternalHttpEndpoints();
 
             orchestratorService.WithConfiguration(configurationService);

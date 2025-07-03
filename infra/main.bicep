@@ -116,3 +116,4 @@ output EFS_ORCHESTRATOR_IDENTITY_ID string = efs_orchestrator_identity.outputs.i
 output STORAGE_BLOBENDPOINT string = storage.outputs.blobEndpoint
 output STORAGE_QUEUEENDPOINT string = storage.outputs.queueEndpoint
 output STORAGE_TABLEENDPOINT string = storage.outputs.tableEndpoint
+output STORAGE_NAME string = storage.outputs.name

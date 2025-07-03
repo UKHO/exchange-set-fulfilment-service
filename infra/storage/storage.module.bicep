@@ -34,3 +34,5 @@ output queueEndpoint string = storage.properties.primaryEndpoints.queue
 output tableEndpoint string = storage.properties.primaryEndpoints.table
 
 output name string = storage.name
+
+output queueConnectionString string = storage.listKeys().keys
