@@ -104,36 +104,6 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             orchestratorService.WithConfiguration(configurationService);
 
-            // Builder job - not currently used locally, but defined to generate the infrastructure.
-            var containerAppJob = builder.AddAzureInfrastructure(ContainerConfiguration.S100BuilderContainerName, infra =>
-                {
-                    var registry = new ContainerAppJob(ContainerConfiguration.S100BuilderContainerName.Replace("-", string.Empty), "2025-01-01")
-                    {
-                        //EnvironmentId = new BicepValue<string>(acaEnv.GetOutput("AZURE_CONTAINER_APPS_ENVIRONMENT_ID").Value!)
-                    };
-                    infra.Add(registry);
-
-                    //_name = DefineProperty<string>("Name", new string[1] { "name" }, isOutput: false, isRequired: true);
-                    //_location = DefineProperty<AzureLocation>("Location", new string[1] { "location" }, isOutput: false, isRequired: true);
-                    //_configuration = DefineModelProperty<ContainerAppJobConfiguration>("Configuration", new string[2] { "properties", "configuration" });
-                    //_environmentId = DefineProperty<string>("EnvironmentId", new string[2] { "properties", "environmentId" });
-                    //_identity = DefineModelProperty<ManagedServiceIdentity>("Identity", new string[1] { "identity" });
-                    //_tags = DefineDictionaryProperty<string>("Tags", new string[1] { "tags" });
-                    //_template = DefineModelProperty<ContainerAppJobTemplate>("Template", new string[2] { "properties", "template" });
-                    //_workloadProfileName = DefineProperty<string>("WorkloadProfileName", new string[2] { "properties", "workloadProfileName" });
-                    //_eventStreamEndpoint = DefineProperty<string>("EventStreamEndpoint", new string[2] { "properties", "eventStreamEndpoint" }, isOutput: true);
-                    //_id = DefineProperty<ResourceIdentifier>("Id", new string[1] { "id" }, isOutput: true);
-                    //_outboundIPAddresses = DefineListProperty<string>("OutboundIPAddresses", new string[2] { "properties", "outboundIpAddresses" }, isOutput: true);
-                    //_provisioningState = DefineProperty<ContainerAppJobProvisioningState>("ProvisioningState", new string[2] { "properties", "provisioningState" }, isOutput: true);
-                    //_systemData = DefineModelProperty<SystemData>("SystemData", new string[1] { "systemData" }, isOutput: true);
-
-                    //var output = new ProvisioningOutput("AZURE_BUILDER_CONTAINER_APP_JOB_NAME", typeof(string))
-                    //{
-                    //    Value = registry.Name
-                    //};
-                    //infra.Add(output);
-                });//.WithReferenceRelationship(acaEnv);
-
             if (buildOnStartup)
             {
                 await CreateS100BuilderContainerImage();

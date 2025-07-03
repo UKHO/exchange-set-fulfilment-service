@@ -43,7 +43,7 @@ If we need to regenerate from scratch again then you can run the `azd regenerate
     param efs_orchestrator_containerport = readEnvironmentVariable('CONTAINER_PORT')
     param efs_orchestrator_identity_outputs_clientid = readEnvironmentVariable('EFS_ORCHESTRATOR_IDENTITY_CLIENTID')
     param efs_orchestrator_identity_outputs_id = readEnvironmentVariable('EFS_ORCHESTRATOR_IDENTITY_ID')
-    param efssa_outputs_blobendpoint = readEnvironmentVariable('EFSSA_BLOBENDPOINT')
-    param efssa_outputs_queueendpoint = readEnvironmentVariable('EFSSA_QUEUEENDPOINT')
-    param efssa_outputs_tableendpoint = readEnvironmentVariable('EFSSA_TABLEENDPOINT')
+    param efssa_outputs_blobendpoint = readEnvironmentVariable('STORAGE_BLOBENDPOINT')
+    param efssa_outputs_queueendpoint = readEnvironmentVariable('STORAGE_QUEUEENDPOINT')
+    param efssa_outputs_tableendpoint = readEnvironmentVariable('STORAGE_TABLEENDPOINT')
     ```

@@ -66,13 +66,6 @@ module adds_configuration_was 'adds-configuration-was/adds-configuration-was.mod
     location: location
   }
 }
-module efs_builder_s100 'efs-builder-s100/efs-builder-s100.module.bicep' = {
-  name: 'efs-builder-s100'
-  scope: rg
-  params: {
-    location: location
-  }
-}
 module efs_cae 'efs-cae/efs-cae.module.bicep' = {
   name: 'efs-cae'
   scope: rg
@@ -92,17 +85,17 @@ module efs_orchestrator_identity 'efs-orchestrator-identity/efs-orchestrator-ide
     location: location
   }
 }
-module efs_orchestrator_roles_efssa 'efs-orchestrator-roles-efssa/efs-orchestrator-roles-efssa.module.bicep' = {
-  name: 'efs-orchestrator-roles-efssa'
+module efs_orchestrator_roles_storage 'efs-orchestrator-roles-storage/efs-orchestrator-roles-storage.module.bicep' = {
+  name: 'efs-orchestrator-roles-storage'
   scope: rg
   params: {
-    efssa_outputs_name: efssa.outputs.name
     location: location
     principalId: efs_orchestrator_identity.outputs.principalId
+    storage_outputs_name: storage.outputs.name
   }
 }
-module efssa 'efssa/efssa.module.bicep' = {
-  name: 'efssa'
+module storage 'storage/storage.module.bicep' = {
+  name: 'storage'
   scope: rg
   params: {
     location: location
@@ -120,6 +113,6 @@ output EFS_CAE_AZURE_CONTAINER_REGISTRY_ENDPOINT string = efs_cae.outputs.AZURE_
 output EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID string = efs_cae.outputs.AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID
 output EFS_ORCHESTRATOR_IDENTITY_CLIENTID string = efs_orchestrator_identity.outputs.clientId
 output EFS_ORCHESTRATOR_IDENTITY_ID string = efs_orchestrator_identity.outputs.id
-output EFSSA_BLOBENDPOINT string = efssa.outputs.blobEndpoint
-output EFSSA_QUEUEENDPOINT string = efssa.outputs.queueEndpoint
-output EFSSA_TABLEENDPOINT string = efssa.outputs.tableEndpoint
+output STORAGE_BLOBENDPOINT string = storage.outputs.blobEndpoint
+output STORAGE_QUEUEENDPOINT string = storage.outputs.queueEndpoint
+output STORAGE_TABLEENDPOINT string = storage.outputs.tableEndpoint

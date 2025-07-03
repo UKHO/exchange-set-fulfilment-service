@@ -2,7 +2,7 @@
 {
     public static class StorageConfiguration
     {
-        public const string StorageName = "efssa";
+        public const string StorageName = "storage";
 
         public const string QueuesName = "queues";
 
