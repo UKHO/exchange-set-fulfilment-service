@@ -10,7 +10,7 @@ resource adds_configuration_was 'Microsoft.Storage/storageAccounts@2024-01-01' =
   }
   properties: {
     accessTier: 'Hot'
-    allowSharedKeyAccess: false
+    allowSharedKeyAccess: true
     minimumTlsVersion: 'TLS1_2'
     networkAcls: {
       defaultAction: 'Allow'
@@ -18,6 +18,7 @@ resource adds_configuration_was 'Microsoft.Storage/storageAccounts@2024-01-01' =
   }
   tags: {
     'aspire-resource-name': 'adds-configuration-was'
+    'hidden-title': 'EFS'
   }
 }
 

@@ -46,23 +46,21 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WithParameter("subnetName", subnetName);
             acaEnv.ConfigureInfrastructure(config =>
             {
-                var resources = config.GetProvisionableResources();
-                var containerEnvironment = resources.OfType<ContainerAppManagedEnvironment>().First();
+                var containerEnvironment = config.GetProvisionableResources().OfType<ContainerAppManagedEnvironment>().Single();
                 containerEnvironment.VnetConfiguration = new ContainerAppVnetConfiguration
                 {
                     InfrastructureSubnetId = new BicepValue<ResourceIdentifier>(subnetId),
                     IsInternal = true
                 };
-                containerEnvironment.Tags.Add("hidden-title", "EFS");
+                containerEnvironment.Tags.Add("hidden-title", SystemConfiguration.SystemName);
             });
 
             // Storage configuration
             var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e => { e.WithDataVolume(); });
             storage.ConfigureInfrastructure(config =>
             {
-                var resources = config.GetProvisionableResources();
-                var storageAccount = resources.OfType<StorageAccount>().First();
-                storageAccount.Tags.Add("hidden-title", "EFS");
+                var storageAccount = config.GetProvisionableResources().OfType<StorageAccount>().Single();
+                storageAccount.Tags.Add("hidden-title", SystemConfiguration.SystemName);
                 storageAccount.AllowSharedKeyAccess = true;
             });
 
@@ -97,7 +95,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                 tb.AddEndpoint("buildermockfss", mockService, false, "host.docker.internal", "fss");
 
                 tb.AddEndpoint("builderorchestrator", orchestratorService, false, "host.docker.internal", null);
-            })
+            }, SystemConfiguration.SystemName)
             .WithExternalHttpEndpoints();
 
             orchestratorService.WithConfiguration(configurationService);

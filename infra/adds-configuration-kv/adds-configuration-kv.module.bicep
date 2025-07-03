@@ -14,6 +14,7 @@ resource adds_configuration_kv 'Microsoft.KeyVault/vaults@2023-07-01' = {
   }
   tags: {
     'aspire-resource-name': 'adds-configuration-kv'
+    'hidden-title': 'EFS'
   }
 }
 
