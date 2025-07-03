@@ -66,6 +66,13 @@ module adds_configuration_was 'adds-configuration-was/adds-configuration-was.mod
     location: location
   }
 }
+module efs_builder_s100 'efs-builder-s100/efs-builder-s100.module.bicep' = {
+  name: 'efs-builder-s100'
+  scope: rg
+  params: {
+    location: location
+  }
+}
 module efs_cae 'efs-cae/efs-cae.module.bicep' = {
   name: 'efs-cae'
   scope: rg
