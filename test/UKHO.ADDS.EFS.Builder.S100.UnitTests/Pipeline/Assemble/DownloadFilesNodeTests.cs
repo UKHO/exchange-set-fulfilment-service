@@ -23,12 +23,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         private ILogger _logger;
         private IConfiguration _configuration;
         private const int RetryDelayInMilliseconds = 100;
+        const int CONCURRENCY_LIMIT = 4;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
             _fileShareReadOnlyClient = A.Fake<IFileShareReadOnlyClient>();
             _configuration = A.Fake<IConfiguration>();
+            A.CallTo(() => _configuration["ConcurrentDownloadLimitCount"]).Returns(CONCURRENCY_LIMIT.ToString());
             _downloadFilesNode = new DownloadFilesNode(_fileShareReadOnlyClient, _configuration);
             _executionContext = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
             _loggerFactory = A.Fake<ILoggerFactory>();
@@ -181,7 +183,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         {
             // Arrange
             const int FILE_COUNT = 50;
-            const int CONCURRENCY_LIMIT = 4;
 
             var batch = CreateBatchDetails(fileNames: Enumerable.Range(1, FILE_COUNT).Select(i => $"file{i}.txt").ToArray());
             _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
@@ -190,7 +191,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
             IError outError = null;
             Stream outStream = new MemoryStream();
             A.CallTo(() => fakeResult.IsFailure(out outError, out outStream)).Returns(false);
-            A.CallTo(() => _configuration["ConcurrentDownloadLimitCount"]).Returns(CONCURRENCY_LIMIT.ToString());
 
             // Simulate delay for each download to test parallelism
             A.CallTo(() => _fileShareReadOnlyClient.DownloadFileAsync(A<string>._, A<string>._, A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._))
