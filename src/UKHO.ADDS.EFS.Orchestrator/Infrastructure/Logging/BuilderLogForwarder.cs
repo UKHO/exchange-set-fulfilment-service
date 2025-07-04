@@ -1,9 +1,6 @@
 ﻿using System.Text.Json;
-using Microsoft.Extensions.Logging;
-using Serilog.Events;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
-using EnvironmentVariableTarget = System.EnvironmentVariableTarget;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 {
@@ -11,7 +8,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
     {
         private readonly ILoggerFactory _loggerFactory;
         private readonly LogLevel _replayLevel;
-        
+
 
         public BuilderLogForwarder(IConfiguration configuration, ILoggerFactory loggerFactory)
         {
@@ -53,10 +50,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
                 return;
             }
 
-            var mergedLog = new Dictionary<string, object>(parsedLog)
-            {
-                ["server.name"] = builderName
-            };
+            var mergedLog = new Dictionary<string, object>(parsedLog) { ["server.name"] = builderName };
 
             var logMessage = "(no message template)";
 
@@ -84,7 +78,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         }
 
         /// <summary>
-        /// Extracts and maps the log level from the parsed log entry, falling back to the provided default if not found.
+        ///     Extracts and maps the log level from the parsed log entry, falling back to the provided default if not found.
         /// </summary>
         /// <param name="parsedLog">The parsed log entry as a dictionary.</param>
         /// <param name="defaultLevel">The default log level to use if not found in the log entry.</param>
@@ -120,6 +114,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
                     }
                 }
             }
+
             return defaultLevel;
         }
     }

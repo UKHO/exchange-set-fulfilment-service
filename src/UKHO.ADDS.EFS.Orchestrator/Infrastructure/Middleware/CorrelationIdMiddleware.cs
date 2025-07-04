@@ -9,10 +9,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Middleware
 
         private readonly RequestDelegate _next;
 
-        public CorrelationIdMiddleware(RequestDelegate next)
-        {
-            _next = next;
-        }
+        public CorrelationIdMiddleware(RequestDelegate next) => _next = next;
 
         public async Task InvokeAsync(HttpContext httpContext)
         {

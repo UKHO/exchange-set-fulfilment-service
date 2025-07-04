@@ -24,6 +24,11 @@ namespace UKHO.ADDS.EFS.Jobs
         public DateTime? SalesCatalogueTimestamp { get; set; }
 
         /// <summary>
+        ///     The existing timestamp we have stored against this data standard.
+        /// </summary>
+        public DateTime? ExistingTimestamp { get; set; }
+
+        /// <summary>
         ///     The job state.
         /// </summary>
         public ExchangeSetJobState State { get; set; }
@@ -33,6 +38,9 @@ namespace UKHO.ADDS.EFS.Jobs
         /// </summary>
         public ExchangeSetDataStandard DataStandard { get; set; }
 
+        /// <summary>
+        ///     The FSS Batch ID associated with the job.
+        /// </summary>
         public string BatchId { get; set; }
 
         /// <summary>

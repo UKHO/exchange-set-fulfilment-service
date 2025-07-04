@@ -1,59 +1,24 @@
-﻿using System.Threading.Channels;
-using Azure.Storage.Queues;
-using Azure.Storage.Queues.Models;
+﻿using Azure.Storage.Queues;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Messages;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
-using UKHO.ADDS.Infrastructure.Serialization.Json;
+using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Monitors
 {
-    internal class JobRequestQueueMonitor : BackgroundService
+    internal class JobRequestQueueMonitor : QueueMonitor<JobRequestQueueMessage>
     {
-        private readonly Channel<ExchangeSetRequestQueueMessage> _channel;
-        private readonly ILogger<JobRequestQueueMonitor> _logger;
+        private readonly AssemblyPipelineFactory _pipelineFactory;
 
-        private readonly QueueClient _queueClient;
+        public JobRequestQueueMonitor(AssemblyPipelineFactory pipelineFactory, QueueServiceClient queueServiceClient, IConfiguration configuration, ILogger<JobRequestQueueMonitor> logger)
+            : base(StorageConfiguration.JobRequestQueueName, "Queues:JobRequestQueue:PollingIntervalSeconds", "Queues:JobRequestQueue:BatchSize", queueServiceClient, configuration, logger) =>
+            _pipelineFactory = pipelineFactory;
 
-        private readonly int _pollingIntervalSeconds;
-        private readonly int _queueBatchSize;
-
-        public JobRequestQueueMonitor(Channel<ExchangeSetRequestQueueMessage> channel, QueueServiceClient queueServiceClient, IConfiguration configuration, ILogger<JobRequestQueueMonitor> logger)
+        protected override async Task ProcessMessageAsync(JobRequestQueueMessage messageInstance, CancellationToken stoppingToken)
         {
-            _channel = channel;
-            _logger = logger;
+            var parameters = AssemblyPipelineParameters.CreateFrom(messageInstance, Configuration);
+            var pipeline = _pipelineFactory.CreateAssemblyPipeline(parameters);
 
-            _queueClient = queueServiceClient.GetQueueClient(StorageConfiguration.JobRequestQueueName);
-
-            _pollingIntervalSeconds = configuration.GetValue<int>("Queues:JobRequestQueue:PollingIntervalSeconds");
-            _queueBatchSize = configuration.GetValue<int>("Queues:JobRequestQueue:BatchSize");
-        }
-
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                try
-                {
-                    QueueMessage[] queueMessages = await _queueClient.ReceiveMessagesAsync(_queueBatchSize, cancellationToken: stoppingToken);
-
-                    foreach (var message in queueMessages)
-                    {
-                        await _channel.Writer.WriteAsync(JsonCodec.Decode<ExchangeSetRequestQueueMessage>(message.MessageText)!, stoppingToken);
-                        await _queueClient.DeleteMessageAsync(message.MessageId, message.PopReceipt, stoppingToken);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogQueueServiceMessageReadFailed(nameof(JobRequestQueueMonitor), ex);
-
-                    // TODO: Dead letter, remove...
-                }
-
-                await Task.Delay(TimeSpan.FromSeconds(_pollingIntervalSeconds), stoppingToken);
-            }
-
-            _channel.Writer.Complete();
+            var response = await pipeline.RunAsync(stoppingToken);
         }
     }
 }

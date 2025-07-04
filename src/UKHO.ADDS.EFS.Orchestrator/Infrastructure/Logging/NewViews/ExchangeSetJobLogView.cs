@@ -1,5 +1,4 @@
 ﻿using UKHO.ADDS.EFS.Jobs;
-using UKHO.ADDS.EFS.Jobs.S100;
 using UKHO.ADDS.EFS.Messages;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.NewViews
@@ -20,9 +19,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.NewViews
 
         public int ProductCount { get; init; }
 
-        public static ExchangeSetJobLogView Create(ExchangeSetJob job)
-        {
-            return new ExchangeSetJobLogView()
+        public static ExchangeSetJobLogView Create(ExchangeSetJob job) =>
+            new()
             {
                 Id = job.Id,
                 BatchId = job.BatchId,
@@ -32,6 +30,5 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.NewViews
                 DataStandard = job.DataStandard,
                 ProductCount = job.GetProductCount()
             };
-        }
     }
 }

@@ -4,8 +4,7 @@ using Serilog;
 using Serilog.Events;
 using UKHO.ADDS.Configuration.Client;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Api;
+using UKHO.ADDS.EFS.Orchestrator.Api;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Middleware;
 using UKHO.ADDS.EFS.Orchestrator.Services2.Storage;
 
@@ -48,8 +47,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                 builder.Configuration.AddConfigurationService("UKHO.ADDS.EFS.Orchestrator", "UKHO.ADDS.EFS.Builder.S100");
 
-                builder.AddServiceDefaults()
-                    .AddOrchestratorServices();
+                builder.AddServiceDefaults().AddOrchestratorServices();
 
                 var app = builder.Build();
 

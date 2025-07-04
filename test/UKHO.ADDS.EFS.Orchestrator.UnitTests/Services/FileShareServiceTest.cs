@@ -39,7 +39,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         [Test]
         public async Task WhenCreateBatchAsyncIsCalled_ThenReturnsResultFromClient()
         {
-            var queueMessage = new ExchangeSetRequestQueueMessage
+            var queueMessage = new JobRequestQueueMessage
             {
                 Version = 1,
                 Timestamp = DateTime.UtcNow,

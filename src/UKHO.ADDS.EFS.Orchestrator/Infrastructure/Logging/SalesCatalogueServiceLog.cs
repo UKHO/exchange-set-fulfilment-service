@@ -7,6 +7,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
     {
         public HttpStatusCode ResponseCode { get; set; }
         public string CorrelationId { get; set; }
-        public ExchangeSetRequestQueueMessage Message { get; set; }
+        public JobRequestQueueMessage Message { get; set; }
     }
 }

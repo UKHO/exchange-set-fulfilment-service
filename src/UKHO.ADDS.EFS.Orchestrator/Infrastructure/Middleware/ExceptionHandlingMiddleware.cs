@@ -9,8 +9,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Middleware
 {
     internal class ExceptionHandlingMiddleware
     {
-        private readonly RequestDelegate _next;
         private readonly ILogger<ExceptionHandlingMiddleware> _logger;
+        private readonly RequestDelegate _next;
 
         public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
         {
@@ -45,13 +45,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Middleware
 
             var correlationId = httpContext.GetCorrelationId();
 
-            var problemDetails = new ProblemDetails
-            {
-                Extensions =
-                {
-                    ["correlationId"] = correlationId
-                }
-            };
+            var problemDetails = new ProblemDetails { Extensions = { ["correlationId"] = correlationId } };
 
             httpContext.Response.Headers.Append(ApiHeaderKeys.OriginHeaderKey, "EFS Orchestrator");
             await httpContext.Response.WriteAsJsonAsync(problemDetails);

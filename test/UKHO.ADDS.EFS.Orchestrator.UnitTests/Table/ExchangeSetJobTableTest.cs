@@ -8,8 +8,8 @@ using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Jobs.S100;
 using UKHO.ADDS.EFS.Messages;
-using UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure;
-using UKHO.ADDS.EFS.Orchestrator.Tables.S100;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.Infrastructure;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S100;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table

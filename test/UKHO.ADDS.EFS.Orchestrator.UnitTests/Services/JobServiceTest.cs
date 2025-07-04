@@ -11,9 +11,6 @@ using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Services2.Infrastructure;
-using UKHO.ADDS.EFS.Orchestrator.Tables;
-using UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure;
-using UKHO.ADDS.EFS.Orchestrator.Tables.S100;
 using UKHO.ADDS.EFS.Orchestrator.UnitTests.Extensions;
 using UKHO.ADDS.Infrastructure.Results;
 

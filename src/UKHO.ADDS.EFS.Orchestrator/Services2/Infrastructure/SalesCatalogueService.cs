@@ -9,17 +9,17 @@ using UKHO.ADDS.EFS.RetryPolicy;
 namespace UKHO.ADDS.EFS.Orchestrator.Services2.Infrastructure
 {
     /// <summary>
-    /// Service responsible for retrieving product information from the Sales Catalogue.
+    ///     Service responsible for retrieving product information from the Sales Catalogue.
     /// </summary>
-    internal class SalesCatalogueService 
+    internal class SalesCatalogueService
     {
-        private readonly ISalesCatalogueClient _salesCatalogueClient;
-        private readonly ILogger<SalesCatalogueService> _logger;
         private const string ScsApiVersion = "v2";
         private const string ProductType = "s100";
+        private readonly ILogger<SalesCatalogueService> _logger;
+        private readonly ISalesCatalogueClient _salesCatalogueClient;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SalesCatalogueService"/> class.
+        ///     Initializes a new instance of the <see cref="SalesCatalogueService" /> class.
         /// </summary>
         /// <param name="salesCatalogueClient">Client for interacting with the Sales Catalogue API.</param>
         /// <param name="logger">Logger for recording diagnostic information.</param>
@@ -30,18 +30,19 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services2.Infrastructure
         }
 
         /// <summary>
-        /// Retrieves S100 products that have been modified since a specific date.
+        ///     Retrieves S100 products that have been modified since a specific date.
         /// </summary>
         /// <param name="sinceDateTime">Optional date and time to filter products that have changed since this time.</param>
         /// <param name="job">The exchange set request message containing correlation ID and other metadata.</param>
         /// <returns>
-        /// A tuple containing:
-        /// - s100SalesCatalogueData: The response from the Sales Catalogue API.
-        /// - LastModified: The timestamp when the data was last modified. Will be the original sinceDateTime if response is NotModified.
+        ///     A tuple containing:
+        ///     - s100SalesCatalogueData: The response from the Sales Catalogue API.
+        ///     - LastModified: The timestamp when the data was last modified. Will be the original sinceDateTime if response is
+        ///     NotModified.
         /// </returns>
         /// <remarks>
-        /// The method returns an empty response with the original sinceDateTime when an error occurs or when
-        /// an unexpected HTTP status code is returned from the API.
+        ///     The method returns an empty response with the original sinceDateTime when an error occurs or when
+        ///     an unexpected HTTP status code is returned from the API.
         /// </remarks>
         public async Task<(S100SalesCatalogueResponse s100SalesCatalogueData, DateTime? LastModified)> GetS100ProductsFromSpecificDateAsync(DateTime? sinceDateTime, ExchangeSetJob job)
         {

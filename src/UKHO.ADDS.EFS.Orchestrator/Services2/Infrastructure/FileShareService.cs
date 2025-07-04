@@ -9,12 +9,10 @@ using UKHO.ADDS.Infrastructure.Results;
 namespace UKHO.ADDS.EFS.Orchestrator.Services2.Infrastructure
 {
     /// <summary>
-    /// Service for managing file share operations with the File Share Service.
+    ///     Service for managing file share operations with the File Share Service.
     /// </summary>
     internal class FileShareService
     {
-        private readonly IFileShareReadWriteClient _fileShareReadWriteClient;
-        private readonly ILogger<FileShareService> _logger;
         private const string BusinessUnit = "ADDS-S100";
         private const string ProductType = "S-100";
         private const string ProductTypeQueryClause = $"$batch(ProductType) eq '{ProductType}' and ";
@@ -23,9 +21,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services2.Infrastructure
         private const string SetExpiryDate = "SetExpiryDate";
         private const string CommitBatch = "CommitBatch";
         private const string CreateBatch = "CreateBatch";
+        private readonly IFileShareReadWriteClient _fileShareReadWriteClient;
+        private readonly ILogger<FileShareService> _logger;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FileShareService"/> class.
+        ///     Initializes a new instance of the <see cref="FileShareService" /> class.
         /// </summary>
         /// <param name="fileShareReadWriteClient">The file share read-write client.</param>
         /// <param name="logger">The logger.</param>
@@ -37,7 +37,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services2.Infrastructure
         }
 
         /// <summary>
-        /// Creates a new batch in the File Share Service.
+        ///     Creates a new batch in the File Share Service.
         /// </summary>
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
@@ -45,7 +45,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services2.Infrastructure
         public async Task<IResult<IBatchHandle>> CreateBatchAsync(string correlationId, CancellationToken cancellationToken)
         {
             var createBatchResponseResult = await _fileShareReadWriteClient.CreateBatchAsync(GetBatchModel(), correlationId, cancellationToken);
-            
+
             if (createBatchResponseResult.IsFailure(out var error, out _))
             {
                 LogFileShareServiceError(correlationId, CreateBatch, error, correlationId);
@@ -55,7 +55,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services2.Infrastructure
         }
 
         /// <summary>
-        /// Commits a batch to the File Share Service.
+        ///     Commits a batch to the File Share Service.
         /// </summary>
         /// <param name="batchId">The batch identifier to commit.</param>
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
@@ -74,7 +74,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services2.Infrastructure
         }
 
         /// <summary>
-        /// Searches for committed batches in the File Share Service, excluding the current batch.
+        ///     Searches for committed batches in the File Share Service, excluding the current batch.
         /// </summary>
         /// <param name="currentBatchId">The current batch identifier to exclude from results.</param>
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
@@ -95,14 +95,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services2.Infrastructure
         }
 
         /// <summary>
-        /// Sets the expiry date for multiple batches in the File Share Service.
+        ///     Sets the expiry date for multiple batches in the File Share Service.
         /// </summary>
         /// <param name="otherBatches">The list of batch details to set expiry dates for.</param>
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>
-        /// A result containing the last set expiry date response on success or error information on failure.
-        /// If no valid batches are found, returns a success result with an empty response.
+        ///     A result containing the last set expiry date response on success or error information on failure.
+        ///     If no valid batches are found, returns a success result with an empty response.
         /// </returns>
         public async Task<IResult<SetExpiryDateResponse>> SetExpiryDateAsync(List<BatchDetails> otherBatches, string correlationId, CancellationToken cancellationToken)
         {
@@ -133,29 +133,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services2.Infrastructure
         }
 
         /// <summary>
-        /// Creates a batch model with predefined settings for S-100 product type.
+        ///     Creates a batch model with predefined settings for S-100 product type.
         /// </summary>
         /// <returns>A configured batch model with appropriate access control and attributes.</returns>
-        private static BatchModel GetBatchModel()
-        {
-            return new BatchModel
-            {
-                BusinessUnit = "ADDS-S100",
-                Acl = new Acl
-                {
-                    ReadUsers = new List<string> { "public" },
-                    ReadGroups = new List<string> { "public" }
-                },
-                Attributes = new List<KeyValuePair<string, string>>
-                {
-                    new("Exchange Set Type", "Base"),
-                    new("Frequency", "DAILY"),
-                    new("Product Type", "S-100"),
-                    new("Media Type", "Zip")
-                },
-                ExpiryDate = null
-            };
-        }
+        private static BatchModel GetBatchModel() =>
+            new() { BusinessUnit = "ADDS-S100", Acl = new Acl { ReadUsers = new List<string> { "public" }, ReadGroups = new List<string> { "public" } }, Attributes = new List<KeyValuePair<string, string>> { new("Exchange Set Type", "Base"), new("Frequency", "DAILY"), new("Product Type", "S-100"), new("Media Type", "Zip") }, ExpiryDate = null };
 
         private void LogFileShareServiceError(string jobId, string endPoint, IError error, string correlationId, string batchId = "")
         {
@@ -173,12 +155,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services2.Infrastructure
 
         private void LogSearchCommittedBatchesError(string batchId, string correlationId, string filter, int limit, int start, IError error)
         {
-            var searchQuery = new SearchQuery
-            {
-                Filter = filter,
-                Limit = limit,
-                Start = start
-            };
+            var searchQuery = new SearchQuery { Filter = filter, Limit = limit, Start = start };
 
             var searchCommittedBatchesLogView = new SearchCommittedBatchesLog
             {
@@ -187,7 +164,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services2.Infrastructure
                 BusinessUnit = BusinessUnit,
                 ProductType = ProductType,
                 Query = searchQuery,
-                Error = error,
+                Error = error
             };
 
             _logger.LogFileShareSearchCommittedBatchesError(searchCommittedBatchesLogView);

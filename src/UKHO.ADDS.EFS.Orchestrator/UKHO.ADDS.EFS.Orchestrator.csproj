@@ -7,6 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="OLD\**" />
+    <Content Remove="OLD\**" />
+    <EmbeddedResource Remove="OLD\**" />
+    <None Remove="OLD\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="Services2\Infrastructure\IFileShareService.cs" />
     <Compile Remove="Services2\Infrastructure\ISalesCatalogueService.cs" />
   </ItemGroup>

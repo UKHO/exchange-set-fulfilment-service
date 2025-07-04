@@ -1,16 +1,16 @@
 ﻿using Azure.Storage.Queues;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
-using UKHO.ADDS.EFS.Orchestrator.Tables;
-using UKHO.ADDS.EFS.Orchestrator.Tables.S100;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S100;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services2.Storage
 {
     internal class StorageInitializerService
     {
-        private readonly QueueServiceClient _queueClient;
-        private readonly S100ExchangeSetJobTable _jobTable;
-        private readonly ExchangeSetTimestampTable _timestampTable;
         private readonly BuildStatusTable _buildStatusTable;
+        private readonly S100ExchangeSetJobTable _jobTable;
+        private readonly QueueServiceClient _queueClient;
+        private readonly ExchangeSetTimestampTable _timestampTable;
 
         public StorageInitializerService(QueueServiceClient queueClient, S100ExchangeSetJobTable jobTable, ExchangeSetTimestampTable timestampTable, BuildStatusTable buildStatusTable)
         {

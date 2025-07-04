@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using UKHO.ADDS.Clients.SalesCatalogueService.Models;
+﻿using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 
 namespace UKHO.ADDS.EFS.Jobs.S100
 {
