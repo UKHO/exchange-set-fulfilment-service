@@ -1,6 +1,5 @@
 ﻿using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.NewViews;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
 {

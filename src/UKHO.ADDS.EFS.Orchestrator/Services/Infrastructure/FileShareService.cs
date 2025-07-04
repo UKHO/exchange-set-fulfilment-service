@@ -3,10 +3,9 @@ using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.NewViews;
 using UKHO.ADDS.Infrastructure.Results;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Services2.Infrastructure
+namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
 {
     /// <summary>
     ///     Service for managing file share operations with the File Share Service.
@@ -155,9 +154,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services2.Infrastructure
 
         private void LogSearchCommittedBatchesError(string batchId, string correlationId, string filter, int limit, int start, IError error)
         {
-            var searchQuery = new SearchQuery { Filter = filter, Limit = limit, Start = start };
+            var searchQuery = new SearchQueryLogView { Filter = filter, Limit = limit, Start = start };
 
-            var searchCommittedBatchesLogView = new SearchCommittedBatchesLog
+            var searchCommittedBatchesLogView = new SearchCommittedBatchesLogView
             {
                 BatchId = batchId,
                 CorrelationId = correlationId,

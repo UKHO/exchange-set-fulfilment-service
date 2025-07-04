@@ -3,7 +3,7 @@ using UKHO.ADDS.EFS.Messages;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 {
-    internal class SalesCatalogueServiceLog
+    internal class SalesCatalogueServiceLogView
     {
         public HttpStatusCode ResponseCode { get; set; }
         public string CorrelationId { get; set; }

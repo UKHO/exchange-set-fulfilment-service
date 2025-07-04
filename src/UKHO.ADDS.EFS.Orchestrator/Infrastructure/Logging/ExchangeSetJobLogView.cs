@@ -1,7 +1,7 @@
 ﻿using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Messages;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.NewViews
+namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 {
     internal class ExchangeSetJobLogView
     {

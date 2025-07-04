@@ -1,6 +1,6 @@
 ﻿using UKHO.ADDS.Infrastructure.Results;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.NewViews
+namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 {
     internal class FileShareServiceLogView
     {

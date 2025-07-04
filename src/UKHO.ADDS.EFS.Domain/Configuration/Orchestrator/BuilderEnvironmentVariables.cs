@@ -2,13 +2,7 @@
 {
     public class BuilderEnvironmentVariables
     {
-        // TODO Remove these once builder refactored
-        public const string JobId = "JOB_ID";
         public const string FileShareEndpoint = "FSS_ENDPOINT";
-        public const string BuildServiceEndpoint = "BUILD_SVC_ENDPOINT";
-        public const string BatchId = "BATCH_ID";
-        public const string WorkspaceKey = "WORKSPACE_KEY";
-
 
         public const string RequestQueueName = "REQUEST_QUEUE_NAME";
 

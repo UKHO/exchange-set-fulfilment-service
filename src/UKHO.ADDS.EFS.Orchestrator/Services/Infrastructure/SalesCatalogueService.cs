@@ -3,10 +3,9 @@ using UKHO.ADDS.Clients.SalesCatalogueService;
 using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.NewViews;
 using UKHO.ADDS.EFS.RetryPolicy;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Services2.Infrastructure
+namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
 {
     /// <summary>
     ///     Service responsible for retrieving product information from the Sales Catalogue.

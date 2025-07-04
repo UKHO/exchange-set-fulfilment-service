@@ -6,7 +6,7 @@ using UKHO.ADDS.Configuration.Client;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Orchestrator.Api;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Middleware;
-using UKHO.ADDS.EFS.Orchestrator.Services2.Storage;
+using UKHO.ADDS.EFS.Orchestrator.Services.Storage;
 
 namespace UKHO.ADDS.EFS.Orchestrator
 {

@@ -14,8 +14,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="Services2\Infrastructure\IFileShareService.cs" />
-    <Compile Remove="Services2\Infrastructure\ISalesCatalogueService.cs" />
+    <Compile Remove="Services\Infrastructure\IFileShareService.cs" />
+    <Compile Remove="Services\Infrastructure\ISalesCatalogueService.cs" />
   </ItemGroup>
 
   <ItemGroup>

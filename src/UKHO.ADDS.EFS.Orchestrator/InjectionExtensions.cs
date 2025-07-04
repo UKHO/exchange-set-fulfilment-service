@@ -14,8 +14,8 @@ using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S100;
 using UKHO.ADDS.EFS.Orchestrator.Monitors;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
-using UKHO.ADDS.EFS.Orchestrator.Services2.Infrastructure;
-using UKHO.ADDS.EFS.Orchestrator.Services2.Storage;
+using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
+using UKHO.ADDS.EFS.Orchestrator.Services.Storage;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Orchestrator

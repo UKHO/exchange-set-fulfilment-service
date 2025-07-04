@@ -27,7 +27,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion
             pipeline.AddChild(NodeFactory.CreateNode<GetS100JobNode>(cancellationToken));
             pipeline.AddChild(NodeFactory.CreateNode<UpdateBuildStatusNode>(cancellationToken));
             pipeline.AddChild(NodeFactory.CreateNode<ReplayLogsNode>(cancellationToken));
-            pipeline.AddChild(NodeFactory.CreateNode<CommitFIleShareBatchNode>(cancellationToken));
+            pipeline.AddChild(NodeFactory.CreateNode<CommitFileShareBatchNode>(cancellationToken));
             pipeline.AddChild(NodeFactory.CreateNode<ExpireOldFileShareBatchesNode>(cancellationToken));
 
             var result = await pipeline.ExecuteAsync(Context);

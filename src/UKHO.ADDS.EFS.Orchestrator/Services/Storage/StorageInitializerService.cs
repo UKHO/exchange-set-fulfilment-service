@@ -3,7 +3,7 @@ using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S100;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Services2.Storage
+namespace UKHO.ADDS.EFS.Orchestrator.Services.Storage
 {
     internal class StorageInitializerService
     {

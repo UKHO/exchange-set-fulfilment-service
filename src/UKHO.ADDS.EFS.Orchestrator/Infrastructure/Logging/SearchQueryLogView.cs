@@ -1,6 +1,6 @@
 ﻿namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 {
-    internal class SearchQuery
+    internal class SearchQueryLogView
     {
         public int Limit { get; set; }
         public int Start { get; set; }

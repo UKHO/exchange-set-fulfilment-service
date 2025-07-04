@@ -18,6 +18,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Factories
             switch (environment)
             {
                 case "local":
+                    // We need to construct the client using the "URL" method for running locally so that the container network can connect to Azurite using host.docker.internal
                     var blobUri = new Uri($"{blobConnectionString}/{blobContainerName}/{blobName}");
 
                     return new BlobClient(blobUri, new StorageSharedKeyCredential(AzuriteAccountName, AzuriteKey));
