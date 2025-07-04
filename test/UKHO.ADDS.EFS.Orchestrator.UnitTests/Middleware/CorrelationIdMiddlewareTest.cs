@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using UKHO.ADDS.EFS.Constants;
 using UKHO.ADDS.EFS.Exceptions;
-using UKHO.ADDS.EFS.Orchestrator.Middleware;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Middleware;
 
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Middleware
 {

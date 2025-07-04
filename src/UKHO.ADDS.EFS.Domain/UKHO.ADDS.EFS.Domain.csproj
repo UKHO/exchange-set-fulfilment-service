@@ -8,10 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Entities\ExchangeSetRequest.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Polly" Version="8.6.0" />
     <PackageReference Include="Serilog" Version="4.2.0" />
     <PackageReference Include="UKHO.ADDS.Clients.FileShareService.ReadOnly" Version="0.0.50506-alpha.1" />

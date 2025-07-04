@@ -39,11 +39,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
         {
             _logger = context.Subject.LoggerFactory.CreateLogger<UploadFilesNode>();
             var batchId = context.Subject.BatchId;
-            var correlationId = context.Subject.Job.CorrelationId;
+            var correlationId = context.Subject.Job.GetCorrelationId();
             var jobId = context.Subject.Job?.Id;
 
-            string fileName = context.Subject.ExchangeSetFileName;
-            string filePath = Path.Combine(context.Subject.ExchangeSetFilePath, context.Subject.ExchangeSetArchiveFolderName, $"{jobId}.zip");
+            var fileNameGenerator = new FileNameGenerator(context.Subject);
+
+            var fileName = fileNameGenerator.GenerateFileName();
+            var filePath = Path.Combine(context.Subject.ExchangeSetFilePath, context.Subject.ExchangeSetArchiveFolderName, $"{jobId}.zip");
 
             if (!File.Exists(filePath))
             {

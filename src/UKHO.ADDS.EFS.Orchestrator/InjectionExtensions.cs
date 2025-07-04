@@ -1,18 +1,21 @@
 ﻿using System.Text.Json;
 using System.Threading.Channels;
-using Azure.Security.KeyVault.Secrets;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.SalesCatalogueService;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
-using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Extensions;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
-using UKHO.ADDS.EFS.Orchestrator.Services;
-using UKHO.ADDS.EFS.Orchestrator.Tables;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S100;
+using UKHO.ADDS.EFS.Orchestrator.Monitors;
+using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
+using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
+using UKHO.ADDS.EFS.Orchestrator.Services.Storage;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Orchestrator
@@ -37,20 +40,29 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             builder.Services.ConfigureOpenApi();
 
-            var queueChannelSize = configuration.GetValue<int>("QueuePolling:ChannelSize");
+            builder.Services.AddTransient<AssemblyPipelineFactory>();
+            builder.Services.AddTransient<AssemblyPipelineNodeFactory>();
 
-            builder.Services.AddSingleton(Channel.CreateBounded<ExchangeSetRequestQueueMessage>(new BoundedChannelOptions(queueChannelSize) { FullMode = BoundedChannelFullMode.Wait }));
+            builder.Services.AddTransient<CompletionPipelineFactory>();
+            builder.Services.AddTransient<CompletionPipelineNodeFactory>();
 
-            builder.Services.AddHostedService<QueuePollingService>();
-            builder.Services.AddHostedService<BuilderDispatcherService>();
-            builder.Services.AddSingleton<JobService>();
+            var queueChannelSize = configuration.GetValue<int>("Queues:JobRequestQueue:ChannelSize");
 
-            builder.Services.AddSingleton<ExchangeSetJobTable>();
-            builder.Services.AddSingleton<ExchangeSetTimestampTable>();
-            builder.Services.AddSingleton<ExchangeSetBuilderNodeStatusTable>();
+            builder.Services.AddSingleton(Channel.CreateBounded<JobRequestQueueMessage>(new BoundedChannelOptions(queueChannelSize) { FullMode = BoundedChannelFullMode.Wait }));
 
-            builder.Services.AddSingleton<ISalesCatalogueClientFactory>(provider =>
-                new SalesCatalogueClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
+            builder.Services.AddHostedService<JobRequestQueueMonitor>();
+
+            builder.Services.AddHostedService<S100BuildResponseMonitor>();
+
+            builder.Services.AddSingleton<S100ExchangeSetJobTable>();
+            builder.Services.AddTransient<ExchangeSetTimestampTable>();
+            builder.Services.AddSingleton<BuildStatusTable>();
+            builder.Services.AddSingleton<BuildSummaryTable>();
+
+            builder.Services.AddTransient<BuilderLogForwarder>();
+            builder.Services.AddTransient<StorageInitializerService>();
+
+            builder.Services.AddSingleton<ISalesCatalogueClientFactory>(provider => new SalesCatalogueClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
 
             builder.Services.AddSingleton(provider =>
             {
@@ -59,20 +71,19 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                 return factory.CreateClient(scsEndpoint.RemoveControlCharacters(), string.Empty);
             });
-            
-            builder.Services.AddSingleton<IFileShareReadWriteClientFactory>(provider =>
-                new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
+
+            builder.Services.AddSingleton<IFileShareReadWriteClientFactory>(provider => new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
 
             builder.Services.AddSingleton(provider =>
             {
                 var factory = provider.GetRequiredService<IFileShareReadWriteClientFactory>();
-                var fssEndpoint = configuration["Endpoints:FileShare"]!; 
+                var fssEndpoint = configuration["Endpoints:FileShare"]!;
 
                 return factory.CreateClient(fssEndpoint.RemoveControlCharacters(), string.Empty);
             });
 
-            builder.Services.AddSingleton<ISalesCatalogueService, SalesCatalogueService>();
-            builder.Services.AddSingleton<IFileShareService, FileShareService>();
+            builder.Services.AddSingleton<SalesCatalogueService>();
+            builder.Services.AddSingleton<FileShareService>();
 
             return builder;
         }
@@ -95,11 +106,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                             In = ParameterLocation.Header,
                             Required = header.Required,
                             Description = header.Description,
-                            Schema = new OpenApiSchema
-                            {
-                                Type = OpenApiRequiredType,
-                                Default = new OpenApiString(header.ExpectedValue)
-                            }
+                            Schema = new OpenApiSchema { Type = OpenApiRequiredType, Default = new OpenApiString(header.ExpectedValue) }
                         });
                     }
 

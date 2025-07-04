@@ -2,14 +2,26 @@
 {
     public static class StorageConfiguration
     {
-        public const string StorageName = "storage";
+        public const string StorageName = "efs-storage";
 
-        public const string QueuesName = "queues";
+        public const string QueuesName = "efs-queues";
 
-        public const string TablesName = "tables";
+        public const string TablesName = "efs-tables";
 
-        public const string BlobsName = "blobs";
+        public const string BlobsName = "efs-blobs";
 
-        public const string RequestQueueName = "request-queue";
+        // NB: Lowercase concatenated names are used to ensure compatibility and consistency across Azure storage
+
+        public const string JobRequestQueueName = "jobrequest";
+
+        public const string S100BuildRequestQueueName = "s100buildrequest";
+
+        public const string S100BuildResponseQueueName = "s100buildresponse";
+
+        public const string S100JobContainer = "s100job";
+
+        public const string ExchangeSetTimestampTable = "exchangesettimestamp";
+
+        public const string ExchangeSetBuildStatusTable = "exchangesetbuildstatus";
     }
 }

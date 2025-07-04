@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup;
-using UKHO.ADDS.EFS.Builder.S100.Services;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
@@ -19,14 +18,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
         private CheckEndpointsNode _checkEndpointsNode;
         private IExecutionContext<ExchangeSetPipelineContext> _context;
         private IToolClient _toolClient;
-        private INodeStatusWriter _nodeStatusWriter;
         private ILoggerFactory _loggerFactory;
 
         [SetUp]
         public void SetUp()
         {
             _toolClient = A.Fake<IToolClient>();
-            _nodeStatusWriter = A.Fake<INodeStatusWriter>();
             _loggerFactory = A.Fake<ILoggerFactory>();
             _fakeHttpClientFactory = A.Fake<IHttpClientFactory>();
             _mockHttpMessageHandler = new MockHttpMessageHandler();
@@ -39,8 +36,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
             var configuration = A.Fake<Microsoft.Extensions.Configuration.IConfiguration>();
             var pipelineContext = new ExchangeSetPipelineContext(
                 configuration,
-                _nodeStatusWriter,
                 _toolClient,
+                null, null,
                 _loggerFactory
             )
             {

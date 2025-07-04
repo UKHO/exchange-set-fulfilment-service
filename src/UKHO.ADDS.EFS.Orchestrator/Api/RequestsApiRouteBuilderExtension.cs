@@ -1,10 +1,8 @@
-﻿using Azure.Storage.Queues;
-using UKHO.ADDS.EFS.Configuration.Namespaces;
-using UKHO.ADDS.EFS.Messages;
+﻿using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
-using UKHO.ADDS.EFS.Orchestrator.Extensions;
-using UKHO.ADDS.EFS.Orchestrator.Logging;
-using UKHO.ADDS.Infrastructure.Serialization.Json;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Extensions;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
+using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Api
 {
@@ -15,28 +13,30 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             var logger = loggerFactory.CreateLogger("RequestsApi");
             var requestsEndpoint = routeBuilder.MapGroup("/requests");
 
-            requestsEndpoint.MapPost("/", async (ExchangeSetRequestMessage message, QueueServiceClient queueServiceClient, HttpContext httpContext) =>
-            {
-                try
+            requestsEndpoint.MapPost("/", async (JobRequestApiMessage message, IConfiguration configuration, AssemblyPipelineFactory pipelineFactory, HttpContext httpContext) =>
                 {
-                    var correlationId = httpContext.GetCorrelationId();
+                    try
+                    {
+                        var correlationId = httpContext.GetCorrelationId();
 
-                    var queueMessage = new ExchangeSetRequestQueueMessage { DataStandard = message.DataStandard, Products = message.Products, CorrelationId = correlationId };
+                        var parameters = AssemblyPipelineParameters.CreateFrom(message, configuration, correlationId);
+                        var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
 
-                    var messageJson = JsonCodec.Encode(queueMessage);
+                        logger.LogAssemblyPipelineStarted(parameters);
 
-                    var queueClient = queueServiceClient.GetQueueClient(StorageConfiguration.RequestQueueName);
-                    await queueClient.SendMessageAsync(messageJson);
+                        var result = await pipeline.RunAsync(httpContext.RequestAborted);
 
-                    logger.LogPostedExchangeSetQueueMessage(queueMessage);
-                }
-                catch (Exception e)
-                {
-                    logger.LogPostedExchangeSetQueueFailedMessage(message, e);
-                    throw;
-                }
-
-            }).WithRequiredHeader("x-correlation-id", "Correlation ID", "a-correlation-id");
+                        return result;
+                    }
+                    catch (Exception e)
+                    {
+                        logger.LogAssemblyPipelineFailed(message, e);
+                        throw;
+                    }
+                })
+                .Produces<AssemblyPipelineResponse>()
+                .WithRequiredHeader("x-correlation-id", "Correlation ID", "a-correlation-id")
+                .WithDescription("Create a job request for the given data standard (currently only supports S100)");
         }
     }
 }

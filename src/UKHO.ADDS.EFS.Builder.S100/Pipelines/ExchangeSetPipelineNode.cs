@@ -1,5 +1,6 @@
-﻿using UKHO.ADDS.EFS.Builder.S100.Services;
-using UKHO.ADDS.EFS.Entities;
+﻿using System.Diagnostics;
+using System.Text;
+using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
@@ -7,10 +8,17 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
 {
     internal abstract class ExchangeSetPipelineNode : Node<ExchangeSetPipelineContext>
     {
+        private readonly Stopwatch _stopwatch;
+
+        protected ExchangeSetPipelineNode() => _stopwatch = new Stopwatch();
+
+        protected override void OnBeforeExecute(IExecutionContext<ExchangeSetPipelineContext> context) => _stopwatch.Start();
+
         protected override void OnAfterExecute(IExecutionContext<ExchangeSetPipelineContext> context)
         {
+            _stopwatch.Stop();
+
             var result = context.ParentResult;
-            var writer = context.Subject.NodeStatusWriter;
 
             var type = GetType().FullName!;
 
@@ -21,14 +29,53 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
                 return;
             }
 
-            var status = new ExchangeSetBuilderNodeStatus { JobId = context.Subject.JobId, Sequence = IncrementingCounter.GetNext(), NodeId = type, Status = nodeResult.Status };
+            var status = new BuildNodeStatus
+            {
+                Sequence = IncrementingCounter.GetNext(),
+                NodeId = GetType().Name,
+                Status = nodeResult.Status,
+                ElapsedMilliseconds = _stopwatch.Elapsed.TotalMilliseconds,
+            };
 
             if (result.Exception != null)
             {
-                status.ErrorMessage = result.Exception.Message;
+                status.ErrorMessage = FlattenExceptionMessages(result.Exception);
             }
 
-            writer.WriteNodeStatusTelemetry(status, context.Subject.BuildServiceEndpoint);
+            if (nodeResult.Exception != null)
+            {
+                status.ErrorMessage = FlattenExceptionMessages(nodeResult.Exception);
+            }
+
+            context.Subject.Summary.AddStatus(status);
+        }
+
+        private static string FlattenExceptionMessages(Exception? ex)
+        {
+            if (ex == null)
+            {
+                return string.Empty;
+            }
+
+            var sb = new StringBuilder();
+            var level = 0;
+
+            while (ex != null)
+            {
+                if (level > 0)
+                {
+                    sb.Append(" --> ");
+                }
+
+                sb.Append(ex.GetType().Name);
+                sb.Append(": ");
+                sb.Append(ex.Message);
+
+                ex = ex.InnerException;
+                level++;
+            }
+
+            return sb.ToString();
         }
     }
 }

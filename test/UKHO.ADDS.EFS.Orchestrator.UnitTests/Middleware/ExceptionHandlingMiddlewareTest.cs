@@ -3,7 +3,7 @@ using FakeItEasy;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.EFS.Exceptions;
-using UKHO.ADDS.EFS.Orchestrator.Middleware;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Middleware;
 
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Middleware
 {

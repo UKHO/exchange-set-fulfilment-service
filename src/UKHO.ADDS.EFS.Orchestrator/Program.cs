@@ -1,21 +1,19 @@
 using System.Diagnostics.CodeAnalysis;
-using AzureKeyVaultEmulator.Aspire.Client;
-using Microsoft.Extensions.Azure;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
 using UKHO.ADDS.Configuration.Client;
-using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Orchestrator.Api;
-using UKHO.ADDS.EFS.Orchestrator.Middleware;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Middleware;
+using UKHO.ADDS.EFS.Orchestrator.Services.Storage;
 
 namespace UKHO.ADDS.EFS.Orchestrator
 {
     [ExcludeFromCodeCoverage]
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             Log.Logger = new LoggerConfiguration()
                 .WriteTo.Console()
@@ -49,8 +47,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                 builder.Configuration.AddConfigurationService("UKHO.ADDS.EFS.Orchestrator", "UKHO.ADDS.EFS.Builder.S100");
 
-                builder.AddServiceDefaults()
-                    .AddOrchestratorServices();
+                builder.AddServiceDefaults().AddOrchestratorServices();
 
                 var app = builder.Build();
 
@@ -71,10 +68,14 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
 
                 app.RegisterJobsApi(loggerFactory);
-                app.RegisterStatusApi(loggerFactory);
                 app.RegisterRequestsApi(loggerFactory);
 
-                app.Run();
+                var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
+
+                var storageInitializerService = app.Services.GetRequiredService<StorageInitializerService>();
+                await storageInitializerService.InitializeStorageAsync(lifetime.ApplicationStopping);
+
+                await app.RunAsync();
             }
             catch (Exception ex)
             {
@@ -84,7 +85,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
             }
             finally
             {
-                Log.CloseAndFlush();
+                await Log.CloseAndFlushAsync();
             }
         }
     }

@@ -21,7 +21,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
             var result = await context.Subject.ToolClient.AddExchangeSetAsync(
                 context.Subject.JobId,
                 context.Subject.WorkspaceAuthenticationKey,
-                context.Subject.Job.CorrelationId
+                context.Subject.Job.GetCorrelationId()
             );
 
             if (!result.IsSuccess(out _, out var error))

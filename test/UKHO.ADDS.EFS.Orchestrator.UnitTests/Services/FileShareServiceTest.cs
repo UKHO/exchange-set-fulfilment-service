@@ -5,7 +5,7 @@ using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
 using UKHO.ADDS.EFS.Messages;
-using UKHO.ADDS.EFS.Orchestrator.Services;
+using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
 using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
@@ -39,8 +39,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         [Test]
         public async Task WhenCreateBatchAsyncIsCalled_ThenReturnsResultFromClient()
         {
-            var queueMessage = new ExchangeSetRequestQueueMessage
+            var queueMessage = new JobRequestQueueMessage
             {
+                Version = 1,
+                Timestamp = DateTime.UtcNow,
+
                 CorrelationId = "corr-1",
                 DataStandard = ExchangeSetDataStandard.S100,
                 Products = "prod"

@@ -1,0 +1,7 @@
+﻿{
+    "DebugEndpoints": {
+        "FileShareService": "http://host.docker.internal:63645/fss/"
+    },
+    "QueuePort": 59060,
+    "BlobPort": 59061
+}

@@ -7,10 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Services\Tables\**" />
-    <Content Remove="Services\Tables\**" />
-    <EmbeddedResource Remove="Services\Tables\**" />
-    <None Remove="Services\Tables\**" />
+    <Compile Remove="OLD\**" />
+    <Content Remove="OLD\**" />
+    <EmbeddedResource Remove="OLD\**" />
+    <None Remove="OLD\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Services\Infrastructure\IFileShareService.cs" />
+    <Compile Remove="Services\Infrastructure\ISalesCatalogueService.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,12 +30,12 @@
     <PackageReference Include="Docker.DotNet" Version="3.125.15" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.3" />
     <PackageReference Include="Serilog" Version="4.2.0" />
-    <PackageReference Include="Aspire.Azure.Data.Tables" Version="9.3.1" />
-    <PackageReference Include="Aspire.Azure.Storage.Queues" Version="9.3.1" />
-    <PackageReference Include="Aspire.Azure.Storage.Blobs" Version="9.3.1" />
     <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageReference Include="Serilog.Expressions" Version="5.0.0" />
     <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.1.1" />
+    <PackageReference Include="Aspire.Azure.Data.Tables" Version="9.3.1" />
+    <PackageReference Include="Aspire.Azure.Storage.Queues" Version="9.3.1" />
+    <PackageReference Include="Aspire.Azure.Storage.Blobs" Version="9.3.1" />
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.3" />
     <PackageReference Include="UKHO.ADDS.Clients.Common" Version="0.0.50520-alpha.3" />

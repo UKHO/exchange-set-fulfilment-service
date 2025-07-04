@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.EFS.Entities;
+﻿using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.Jobs.S100;
 using UKHO.ADDS.EFS.Messages;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
@@ -19,7 +20,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging
 
         public int ProductCount { get; set; }
 
-        public static ExchangeSetJobLogView CreateFromJob(ExchangeSetJob job)
+        public static ExchangeSetJobLogView CreateFromJob(S100ExchangeSetJob job)
         {
             return new ExchangeSetJobLogView()
             {

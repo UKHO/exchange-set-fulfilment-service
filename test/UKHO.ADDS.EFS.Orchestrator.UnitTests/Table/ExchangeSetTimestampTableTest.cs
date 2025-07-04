@@ -3,10 +3,10 @@ using Azure;
 using Azure.Data.Tables;
 using Azure.Data.Tables.Models;
 using FakeItEasy;
-using UKHO.ADDS.EFS.Entities;
+using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Messages;
-using UKHO.ADDS.EFS.Orchestrator.Tables;
-using UKHO.ADDS.EFS.Orchestrator.Tables.Infrastructure;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.UnitTests.Extensions;
 
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
@@ -48,7 +48,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
             A.CallTo(() => _fakeTableClient.CreateIfNotExistsAsync(A<CancellationToken>.Ignored))
                 .Returns(Task.FromResult<Response<TableItem>>(null!));
 
-            var result = await _exchangeSetTimestampTable.CreateIfNotExistsAsync();
+            var result = await _exchangeSetTimestampTable.CreateIfNotExistsAsync(CancellationToken.None);
 
             Assert.That(result.IsSuccess, Is.True);
         }
@@ -59,7 +59,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
             A.CallTo(() => _fakeTableClient.CreateIfNotExistsAsync(A<CancellationToken>.Ignored))
                 .Throws(new Exception("Test exception"));
 
-            var result = await _exchangeSetTimestampTable.CreateIfNotExistsAsync();
+            var result = await _exchangeSetTimestampTable.CreateIfNotExistsAsync(CancellationToken.None);
 
             Assert.Multiple(() =>
             {

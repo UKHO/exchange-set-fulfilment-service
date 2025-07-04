@@ -3,8 +3,7 @@ using Microsoft.Extensions.Logging;
 using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.IIC.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
-using UKHO.ADDS.EFS.Builder.S100.Services;
-using UKHO.ADDS.EFS.Entities;
+using UKHO.ADDS.EFS.Jobs.S100;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
@@ -15,7 +14,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
     internal class CreationPipelineTest
     {
         private IToolClient _toolClient;
-        private INodeStatusWriter _nodeStatusWriter;
         private CreationPipeline _creationPipeline;
         private IExecutionContext<ExchangeSetPipelineContext> _context;
 
@@ -23,7 +21,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
         public void OneTimeSetUp()
         {
             _toolClient = A.Fake<IToolClient>();
-            _nodeStatusWriter = A.Fake<INodeStatusWriter>();
             _context = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
             _creationPipeline = new CreationPipeline();
         }
@@ -32,9 +29,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
         public void Setup()
         {
             var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
-            var exchangeSetPipelineContext = new ExchangeSetPipelineContext(null, _nodeStatusWriter, _toolClient, loggerFactory)
+            var exchangeSetPipelineContext = new ExchangeSetPipelineContext(null, _toolClient, null, null, loggerFactory)
             {
-                Job = new ExchangeSetJob { CorrelationId = "TestCorrelationId" },
+                Job = new S100ExchangeSetJob { Id = "TestCorrelationId" },
                 JobId = "TestJobId",
                 WorkspaceAuthenticationKey = "Test123"
             };
@@ -49,7 +46,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
             var opResponse = new OperationResponse { Code = 0, Type = "Success", Message = "OK" };
             IError? error = null;
             A.CallTo(() => fakeAddExchangeSetResult.IsSuccess(out opResponse, out error)).Returns(true);
-            A.CallTo(() => _toolClient.AddExchangeSetAsync(_context.Subject.JobId, _context.Subject.WorkspaceAuthenticationKey, _context.Subject.Job.CorrelationId)).Returns(Task.FromResult(fakeAddExchangeSetResult));
+            A.CallTo(() => _toolClient.AddExchangeSetAsync(_context.Subject.JobId, _context.Subject.WorkspaceAuthenticationKey, _context.Subject.Job.GetCorrelationId())).Returns(Task.FromResult(fakeAddExchangeSetResult));
 
             var fakeAddContentResult = A.Fake<IResult<OperationResponse>>();
             A.CallTo(() => fakeAddContentResult.IsSuccess(out opResponse, out error)).Returns(true);
@@ -90,7 +87,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
         {
             _context.Subject.JobId = jobId;
             _context.Subject.WorkspaceAuthenticationKey = authKey;
-            _context.Subject.Job = new ExchangeSetJob { CorrelationId = correlationId };
+            _context.Subject.Job = new S100ExchangeSetJob { Id = correlationId };
             var result = await _creationPipeline.ExecutePipeline(_context.Subject);
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
         }
