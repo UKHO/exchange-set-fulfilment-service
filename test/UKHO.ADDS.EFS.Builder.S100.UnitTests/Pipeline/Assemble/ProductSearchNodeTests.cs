@@ -17,7 +17,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
     internal class ProductSearchNodeTests
     {
         private IFileShareReadOnlyClient _fileShareReadOnlyClientFake;
-        private IExecutionContext<ExchangeSetPipelineContext> _executionContext;
+        private IExecutionContext<S100ExchangeSetPipelineContext> _executionContext;
         private ProductSearchNode _productSearchNode;
         private ILoggerFactory _loggerFactory;
         private ILogger _logger;
@@ -27,7 +27,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         {
             _fileShareReadOnlyClientFake = A.Fake<IFileShareReadOnlyClient>();
             _productSearchNode = new ProductSearchNode(_fileShareReadOnlyClientFake);
-            _executionContext = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
+            _executionContext = A.Fake<IExecutionContext<S100ExchangeSetPipelineContext>>();
             _loggerFactory = A.Fake<ILoggerFactory>();
             _logger = A.Fake<ILogger<ProductSearchNode>>();
         }
@@ -35,7 +35,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [SetUp]
         public void Setup()
         {
-            var exchangeSetPipelineContext = new ExchangeSetPipelineContext(null,  null, null, null, _loggerFactory)
+            var exchangeSetPipelineContext = new S100ExchangeSetPipelineContext(null,  null, null, null, _loggerFactory)
             {
                 Job = new S100ExchangeSetJob
                 {

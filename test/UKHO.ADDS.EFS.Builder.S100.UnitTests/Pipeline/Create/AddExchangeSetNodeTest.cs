@@ -16,7 +16,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
     {
         private IToolClient _toolClient;
         private AddExchangeSetNode _addExchangeSetNode;
-        private IExecutionContext<ExchangeSetPipelineContext> _executionContext;
+        private IExecutionContext<S100ExchangeSetPipelineContext> _executionContext;
         private ILoggerFactory _loggerFactory;
         private ILogger _logger;
 
@@ -25,7 +25,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         {
             _toolClient = A.Fake<IToolClient>();
             _addExchangeSetNode = new AddExchangeSetNode();
-            _executionContext = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
+            _executionContext = A.Fake<IExecutionContext<S100ExchangeSetPipelineContext>>();
             _loggerFactory = A.Fake<ILoggerFactory>();
             _logger = A.Fake<ILogger<AddContentExchangeSetNode>>();
         }
@@ -33,7 +33,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         [SetUp]
         public void Setup()
         {
-            var exchangeSetPipelineContext = new ExchangeSetPipelineContext(null, _toolClient, null, null, _loggerFactory)
+            var exchangeSetPipelineContext = new S100ExchangeSetPipelineContext(null, _toolClient, null, null, _loggerFactory)
             {
                 Job = new S100ExchangeSetJob { Id = "TestCorrelationId" },
                 JobId = "TestJobId",

@@ -4,7 +4,7 @@ using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
 {
-    internal class CheckEndpointsNode : ExchangeSetPipelineNode
+    internal class CheckEndpointsNode : S100ExchangeSetPipelineNode
     {
         private readonly IHttpClientFactory _clientFactory;
 
@@ -13,7 +13,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
             _clientFactory = clientFactory ?? throw new ArgumentNullException(nameof(clientFactory));
         }
 
-        protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
+        protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<S100ExchangeSetPipelineContext> context)
         {
             if (!(await context.Subject.ToolClient.PingAsync()).IsSuccess(out _))
             {

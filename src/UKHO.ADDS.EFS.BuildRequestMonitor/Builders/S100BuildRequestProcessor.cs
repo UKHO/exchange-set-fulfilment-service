@@ -1,15 +1,12 @@
-﻿using System.Data.Common;
-using UKHO.ADDS.Configuration.Schema;
+﻿using UKHO.ADDS.Configuration.Schema;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Services;
 using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 
 namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
 {
-    internal class S100BuildRequestProcessor
+    internal class S100BuildRequestProcessor : BuildRequestMonitor
     {
-        private const string ImageName = "efs-builder-s100";
-        private const string ContainerName = "efs-builder-s100-";
         private readonly string[] _command = ["sh", "-c", "echo Starting; sleep 5; echo Healthy now; sleep 5; echo Exiting..."];
 
         private readonly BuilderContainerService _containerService;
@@ -29,7 +26,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
         /// <returns></returns>
         public async Task ProcessRequestAsync(BuildRequest request, CancellationToken cancellationToken)
         {
-            var containerName = $"{ContainerName}{request.JobId}";
+            var containerName = $"{ProcessNames.S100Builder}-{request.JobId}";
 
             var queueConnectionString = _configuration[$"ConnectionStrings:{StorageConfiguration.QueuesName}"]!;
             var blobConnectionString = _configuration[$"ConnectionStrings:{StorageConfiguration.BlobsName}"]!;
@@ -38,7 +35,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
             var blobPort = ExtractPort(blobConnectionString, "BlobEndpoint");
 
             // Set the environment variables for the container - in production, these are set from the Azure environment (via the pipeline)
-            var containerId = await _containerService.CreateContainerAsync(ImageName, containerName, _command, request, env =>
+            var containerId = await _containerService.CreateContainerAsync(ProcessNames.S100Builder, containerName, _command, request, env =>
             {
                 env.AddsEnvironment = AddsEnvironment.Local.Value;
                 env.RequestQueueName = StorageConfiguration.S100BuildRequestQueueName;
@@ -47,25 +44,12 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
                 env.BlobConnectionString = $"http://host.docker.internal:{blobPort}/devstoreaccount1";
                 env.FileShareEndpoint = _configuration["Endpoints:S100BuilderFileShare"]!;
                 env.BlobContainerName = StorageConfiguration.S100JobContainer;
-                env.MaxRetryAttempts = int.Parse(_configuration["MaxRetries"]!); 
-                env.RetryDelayMilliseconds = int.Parse(_configuration["RetryDelayMilliseconds"]!); 
+                env.MaxRetryAttempts = int.Parse(_configuration["S100MaxRetries"]!); 
+                env.RetryDelayMilliseconds = int.Parse(_configuration["S100RetryDelayMilliseconds"]!); 
             });
 
             await _containerService.StartContainerAsync(containerId);
         }
 
-        private int ExtractPort(string connectionString, string name)
-        {
-            // Slight parsing hack here!
-
-            var builder = new DbConnectionStringBuilder { ConnectionString = connectionString };
-
-            if (builder.TryGetValue(name, out var value) && value is string endpoint && Uri.TryCreate(endpoint, UriKind.Absolute, out var uri))
-            {
-                return uri.Port;
-            }
-
-            return -1;
-        }
     }
 }

@@ -46,7 +46,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
 
                 CorrelationId = "corr-1",
                 DataStandard = ExchangeSetDataStandard.S100,
-                Products = "prod"
+                Products = "prod",
+                Filter = "filter"
             };
             var expectedResult = A.Fake<IResult<IBatchHandle>>();
 

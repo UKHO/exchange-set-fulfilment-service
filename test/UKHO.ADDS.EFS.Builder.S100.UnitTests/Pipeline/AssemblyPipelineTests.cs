@@ -18,8 +18,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
         private IFileShareReadOnlyClient _fakeReadOnlyClient;
         private ILoggerFactory _loggerFactory;
         private ILogger _logger;
-        private IExecutionContext<ExchangeSetPipelineContext> _executionContext;
-        private ExchangeSetPipelineContext _pipelineContext;
+        private IExecutionContext<S100ExchangeSetPipelineContext> _executionContext;
+        private S100ExchangeSetPipelineContext _pipelineContext;
 
 
         [OneTimeSetUp]
@@ -28,14 +28,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
             _fakeReadOnlyClient = A.Fake<IFileShareReadOnlyClient>();
             _loggerFactory = A.Fake<ILoggerFactory>();
             _logger = A.Fake<ILogger<AssemblyPipeline>>();
-            _executionContext = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
+            _executionContext = A.Fake<IExecutionContext<S100ExchangeSetPipelineContext>>();
 
         }
 
         [SetUp]
         public void SetUp()
         {
-            _pipelineContext = new ExchangeSetPipelineContext(null, null, null, null, _loggerFactory)
+            _pipelineContext = new S100ExchangeSetPipelineContext(null, null, null, null, _loggerFactory)
             {
                 Job = new S100ExchangeSetJob
                 {
@@ -88,7 +88,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
         [Test]
         public void WhenExecutePipelineExceptionThrown_ThenPropagatesException()
         {
-            var context = A.Fake<ExchangeSetPipelineContext>();
+            var context = A.Fake<S100ExchangeSetPipelineContext>();
 
             var ex = new InvalidOperationException("Test exception");
 
@@ -158,7 +158,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
                 _exceptionToThrow = exceptionToThrow;
             }
 
-            public new async Task<NodeResult> ExecutePipeline(ExchangeSetPipelineContext context)
+            public new async Task<NodeResult> ExecutePipeline(S100ExchangeSetPipelineContext context)
             {
                 await Task.Yield();
                 throw _exceptionToThrow;

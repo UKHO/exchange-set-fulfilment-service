@@ -12,6 +12,8 @@ using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S100;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S57;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S63;
 using UKHO.ADDS.EFS.Orchestrator.Monitors;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
@@ -46,18 +48,23 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddTransient<CompletionPipelineFactory>();
             builder.Services.AddTransient<CompletionPipelineNodeFactory>();
 
-            var queueChannelSize = configuration.GetValue<int>("Queues:JobRequestQueue:ChannelSize");
-
-            builder.Services.AddSingleton(Channel.CreateBounded<JobRequestQueueMessage>(new BoundedChannelOptions(queueChannelSize) { FullMode = BoundedChannelFullMode.Wait }));
-
             builder.Services.AddHostedService<JobRequestQueueMonitor>();
 
             builder.Services.AddHostedService<S100BuildResponseMonitor>();
+            builder.Services.AddHostedService<S63BuildResponseMonitor>();
+            builder.Services.AddHostedService<S57BuildResponseMonitor>();
 
             builder.Services.AddSingleton<S100ExchangeSetJobTable>();
+            builder.Services.AddSingleton<S63ExchangeSetJobTable>();
+            builder.Services.AddSingleton<S57ExchangeSetJobTable>();
+
             builder.Services.AddTransient<ExchangeSetTimestampTable>();
+            builder.Services.AddTransient<ExchangeSetJobTypeTable>();
             builder.Services.AddSingleton<BuildStatusTable>();
-            builder.Services.AddSingleton<BuildSummaryTable>();
+
+            builder.Services.AddSingleton<S100BuildSummaryTable>();
+            builder.Services.AddSingleton<S63BuildSummaryTable>();
+            builder.Services.AddSingleton<S57BuildSummaryTable>();
 
             builder.Services.AddTransient<BuilderLogForwarder>();
             builder.Services.AddTransient<StorageInitializerService>();
@@ -67,7 +74,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddSingleton(provider =>
             {
                 var factory = provider.GetRequiredService<ISalesCatalogueClientFactory>();
-                var scsEndpoint = configuration["Endpoints:SalesCatalogue"]!;
+                var scsEndpoint = configuration["Endpoints:S100SalesCatalogue"]!;
 
                 return factory.CreateClient(scsEndpoint.RemoveControlCharacters(), string.Empty);
             });
@@ -77,7 +84,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddSingleton(provider =>
             {
                 var factory = provider.GetRequiredService<IFileShareReadWriteClientFactory>();
-                var fssEndpoint = configuration["Endpoints:FileShare"]!;
+                var fssEndpoint = configuration["Endpoints:S100FileShare"]!;
 
                 return factory.CreateClient(fssEndpoint.RemoveControlCharacters(), string.Empty);
             });

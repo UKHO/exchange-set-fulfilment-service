@@ -5,9 +5,9 @@ using Serilog.Events;
 using Serilog.Formatting.Json;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
-using UKHO.ADDS.EFS.Builder.S100.Factories;
+using UKHO.ADDS.EFS.Builder.Common.Factories;
+using UKHO.ADDS.EFS.Builder.Common.Logging;
 using UKHO.ADDS.EFS.Builder.S100.IIC;
-using UKHO.ADDS.EFS.Builder.S100.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
@@ -114,7 +114,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
 
         private static IServiceCollection AddPipelineServices(this IServiceCollection services)
         {
-            services.AddSingleton<ExchangeSetPipelineContext>();
+            services.AddSingleton<S100ExchangeSetPipelineContext>();
             services.AddSingleton<StartupPipeline>();
             services.AddSingleton<AssemblyPipeline>();
             services.AddSingleton<CreationPipeline>();

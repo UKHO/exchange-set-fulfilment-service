@@ -45,7 +45,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     .MinimumLevel.Override("Azure.Storage.Blobs", LogEventLevel.Fatal)
                     .MinimumLevel.Override("Azure.Storage.Queues", LogEventLevel.Warning));
 
-                builder.Configuration.AddConfigurationService("UKHO.ADDS.EFS.Orchestrator", "UKHO.ADDS.EFS.Builder.S100");
+                builder.Configuration.AddConfigurationService("UKHO.ADDS.EFS.Orchestrator", "UKHO.ADDS.EFS.Builder.S100", "UKHO.ADDS.EFS.Builder.S63", "UKHO.ADDS.EFS.Builder.S57");
 
                 builder.AddServiceDefaults().AddOrchestratorServices();
 

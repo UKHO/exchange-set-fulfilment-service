@@ -17,7 +17,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
         public BuildStatus? BuildStatus { get; set; }
         public ExchangeSetJob? Job { get; set; }
 
-        public static CompletionPipelineContext CreateFrom(BuildResponse buildResponse) =>
-            new() { DataStandard = ExchangeSetDataStandard.S100, ExitCode = buildResponse.ExitCode, JobId = buildResponse.JobId };
+        public static CompletionPipelineContext CreateFrom(BuildResponse buildResponse, ExchangeSetDataStandard dataStandard)
+        {
+            return new() { DataStandard = dataStandard, ExitCode = buildResponse.ExitCode, JobId = buildResponse.JobId };
+        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Serilog;
+using UKHO.ADDS.EFS.Builder.Common;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Create.Logging;
@@ -22,14 +23,14 @@ namespace UKHO.ADDS.EFS.Builder.S100
             var sink = InjectionExtensions.ConfigureSerilog();
             var exitCode = BuilderExitCode.Success;
 
-            ExchangeSetPipelineContext? pipelineContext = null;
+            S100ExchangeSetPipelineContext? pipelineContext = null;
             IConfiguration? configuration = null;
 
             try
             {
                 var provider = ConfigureServices();
 
-                pipelineContext = provider.GetRequiredService<ExchangeSetPipelineContext>();
+                pipelineContext = provider.GetRequiredService<S100ExchangeSetPipelineContext>();
                 var startupPipeline = provider.GetRequiredService<StartupPipeline>();
 
                 configuration = provider.GetRequiredService<IConfiguration>();
