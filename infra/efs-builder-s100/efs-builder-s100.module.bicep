@@ -14,6 +14,14 @@ param efs_storage_name string
 @secure()
 param efs_storage_connection_string string
 
+param fss_endpoint string
+
+param azure_env_name string
+
+param max_retry_attempts string
+
+param retry_delay_ms string
+
 resource efsbuilders100 'Microsoft.App/jobs@2025-01-01' = {
   name: 'efs-builder-s100'
   location: location
@@ -45,12 +53,12 @@ resource efsbuilders100 'Microsoft.App/jobs@2025-01-01' = {
           pollingInterval: 10
           rules: [
             {
-              name: 'queue'
+              name: 'request-queue'
               type: 'azure-queue'
               metadata: {
                 accountName: efs_storage_name
                 queueLength: '1'
-                queueName: 'queues'
+                queueName: 's100buildrequest'
               }
               auth: [
                 {
@@ -77,12 +85,40 @@ resource efsbuilders100 'Microsoft.App/jobs@2025-01-01' = {
           name: 'efs-builder-s100'
           env: [
             {
-              name: 'AZURE_STORAGE_QUEUE_NAME'
-              value: 'queues'
+              name: 'FSS_ENDPOINT'
+              value: fss_endpoint
             }
             {
-              name: 'AZURE_STORAGE_CONNECTION_STRING'
+              name: 'REQUEST_QUEUE_NAME'
+              value: 's100buildrequest'
+            }
+            {
+              name: 'RESPONSE_QUEUE_NAME'
+              value: 's100buildresponse'
+            }
+            {
+              name: 'QUEUE_CONNECTION_STRING'
               secretRef: 'connection-string-secret'
+            }
+            {
+              name: 'BLOB_CONTAINER_NAME'
+              secretRef: 's100job'
+            }
+            {
+              name: 'BLOB_CONNECTION_STRING'
+              secretRef: 'connection-string-secret'
+            }
+            {
+              name: 'ADDS_ENVIRONMENT'
+              secretRef: azure_env_name
+            }
+            {
+              name: 'MAX_RETRY_ATTEMPTS'
+              secretRef: max_retry_attempts
+            }
+            {
+              name: 'RETRY_DELAY_MS'
+              secretRef: retry_delay_ms
             }
           ]
           resources: {

@@ -1,5 +1,4 @@
-﻿using Serilog;
-using UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging;
+﻿using UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging;
 using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.Infrastructure.Pipelines;

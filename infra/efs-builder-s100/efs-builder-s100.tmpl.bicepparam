@@ -6,3 +6,7 @@ param efs_cae_outputs_azure_container_registry_managed_identity_id = readEnviron
 param efs_builder_s100_containerimage = readEnvironmentVariable('CONTAINER_IMAGE')
 param efs_storage_name = readEnvironmentVariable('EFS_STORAGE_NAME')
 param efs_storage_connection_string = readEnvironmentVariable('EFS_STORAGE_CONNECTION_STRING')
+param fss_endpoint = readEnvironmentVariable('FSS_ENDPOINT')
+param azure_env_name = readEnvironmentVariable('AZURE_ENV_NAME')
+param max_retry_attempts = readEnvironmentVariable('MAX_RETRY_ATTEMPTS')
+param retry_delay_ms = readEnvironmentVariable('RETRY_DELAY_MS')
