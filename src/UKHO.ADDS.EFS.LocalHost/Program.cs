@@ -1,9 +1,7 @@
-using System.Security.Cryptography;
-using System.Security.Principal;
+using System.Runtime.InteropServices;
 using Azure.Core;
 using Azure.Provisioning;
 using Azure.Provisioning.AppContainers;
-using Azure.Provisioning.ContainerRegistry;
 using Azure.Provisioning.Storage;
 using Azure.ResourceManager.Network;
 using CliWrap;
@@ -16,7 +14,7 @@ using Serilog;
 using UKHO.ADDS.Configuration.Aspire;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.LocalHost.Extensions;
- 
+
 namespace UKHO.ADDS.EFS.LocalHost
 {
     /// <summary>
@@ -43,7 +41,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             var subnetId = SubnetResource.CreateResourceIdentifier("${subnetSubscription}", "${subnetResourceGroup}", "${subnetVnet}", "${subnetName}");
 
             // Container apps environment
-            var acaEnv = builder.AddAzureContainerAppEnvironment(ContainerConfiguration.AcaEnvironmentName)
+            var acaEnv = builder.AddAzureContainerAppEnvironment(ServiceConfiguration.AcaEnvironmentName)
                 .WithParameter("subnetSubscription", subnetSubscription)
                 .WithParameter("subnetResourceGroup", subnetResourceGroup)
                 .WithParameter("subnetVnet", subnetVnet)
