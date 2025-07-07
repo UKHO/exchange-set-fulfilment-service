@@ -125,7 +125,10 @@ namespace UKHO.ADDS.EFS.LocalHost
                 requestMonitor!.WithConfiguration(configurationService);
             }
 
-            await CreateBuilderContainerImages();
+            if (builder.Environment.IsDevelopment())
+            {
+                await CreateBuilderContainerImages();
+            }
 
             var application = builder.Build();
 

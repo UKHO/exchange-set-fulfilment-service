@@ -23,8 +23,8 @@ jobs:
     clean: all
   variables:
   - template: var/${{ lower(parameters.ShortName) }}-deploy.yml
-  - name: Containers.BuildOnStartup
-    value: false
+  # - name: Containers.BuildOnStartup
+  #   value: false
   strategy:
     runOnce:
       deploy:
@@ -50,13 +50,13 @@ jobs:
             packageType: sdk
             version: $(SdkVersion)
 
-        - task: FileTransform@2
-          displayName: Turn off builder in host
-          inputs:
-            folderPath: '$(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.LocalHost'
-            xmlTransformationRules: ''
-            enableXmlTransform: false
-            jsonTargetFiles: '**/appsettings.json'
+        # - task: FileTransform@2
+        #   displayName: Turn off builder in host
+        #   inputs:
+        #     folderPath: '$(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.LocalHost'
+        #     xmlTransformationRules: ''
+        #     enableXmlTransform: false
+        #     jsonTargetFiles: '**/appsettings.json'
 
         - ${{ if eq(parameters.DestroyResources, true) }}:
 
