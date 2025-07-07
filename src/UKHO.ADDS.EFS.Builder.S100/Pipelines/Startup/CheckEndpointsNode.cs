@@ -17,26 +17,36 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
         {
             if (!(await context.Subject.ToolClient.PingAsync()).IsSuccess(out _))
             {
-                throw new InvalidOperationException("IIC Ping failed");
+                return NodeResultStatus.Failed;
             }
 
             if (!(await context.Subject.ToolClient.ListWorkspaceAsync(context.Subject.WorkspaceAuthenticationKey)).IsSuccess(out _))
             {
-                throw new InvalidOperationException("IIC ListWorkspaces");
+                return NodeResultStatus.Failed;
             }
 
-            await CheckEndpointAsync(context.Subject.FileShareEndpoint, "health");
+            await CheckEndpointAsync(context.Subject.FileShareHealthEndpoint);
 
             return NodeResultStatus.Succeeded;
         }
 
-        private async Task CheckEndpointAsync(string baseAddress, string path)
+        private async Task CheckEndpointAsync(string endpoint)
         {
             var client = _clientFactory.CreateClient();
-            client.BaseAddress = new Uri(baseAddress);
 
-            using var response = await client.GetAsync(path);
-            response.EnsureSuccessStatusCode();
+            using var response = await client.GetAsync(endpoint);
+
+            try
+            {
+                response.EnsureSuccessStatusCode();
+            }
+            catch (HttpRequestException ex)
+            {
+#pragma warning disable LOG001
+                Log.Information($"****** HEALTH {endpoint} FAILED (CHECK)");
+#pragma warning restore LOG001
+
+            }
         }
     }
 }

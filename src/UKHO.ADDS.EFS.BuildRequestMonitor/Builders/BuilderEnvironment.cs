@@ -17,6 +17,9 @@
         public int MaxRetryAttempts { get; set; }
 
         public int RetryDelayMilliseconds { get; set; }
+
         public string FileShareEndpoint { get; set; }
+
+        public string FileShareHealthEndpoint { get; set; }
     }
 }

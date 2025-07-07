@@ -31,14 +31,17 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
                 context.Subject.ExchangeSetNameTemplate = request.ExchangeSetNameTemplate;
 
                 var fileShareEndpoint = configuration[BuilderEnvironmentVariables.FileShareEndpoint] ?? configuration["DebugEndpoints:FileShareService"]!;
+                var fileShareHealthEndpoint = configuration[BuilderEnvironmentVariables.FileShareHealthEndpoint] ?? configuration["DebugEndpoints:FileShareServiceHealth"]!;
 
                 context.Subject.FileShareEndpoint = fileShareEndpoint;
+                context.Subject.FileShareHealthEndpoint = fileShareHealthEndpoint;
 
                 var configurationLogView = new ConfigurationLogView()
                 {
                     JobId = context.Subject.JobId,
                     BatchId = context.Subject.BatchId,
                     FileShareEndpoint = fileShareEndpoint,
+                    FileShareHealthEndpoint = fileShareHealthEndpoint,
                     WorkspaceAuthenticationKey = context.Subject.WorkspaceAuthenticationKey,
                     ExchangeSetNameTemplate = context.Subject.ExchangeSetNameTemplate,
                 };

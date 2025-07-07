@@ -16,8 +16,8 @@ namespace UKHO.ADDS.EFS.Builder.S63.Pipelines
             var pipeline = new PipelineNode<S63ExchangeSetPipelineContext>();
 
             pipeline.AddChild(new ReadConfigurationNode());
-            pipeline.AddChild(new CheckEndpointsNode(_clientFactory));
             pipeline.AddChild(new GetJobNode());
+            pipeline.AddChild(new CheckEndpointsNode(_clientFactory));
 
             var result = await pipeline.ExecuteAsync(context);
 

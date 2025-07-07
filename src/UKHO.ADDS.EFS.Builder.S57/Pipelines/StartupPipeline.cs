@@ -14,9 +14,9 @@ namespace UKHO.ADDS.EFS.Builder.S57.Pipelines
             var pipeline = new PipelineNode<S57ExchangeSetPipelineContext>();
 
             pipeline.AddChild(new ReadConfigurationNode());
-            pipeline.AddChild(new CheckEndpointsNode(_clientFactory));
             pipeline.AddChild(new GetJobNode());
-
+            pipeline.AddChild(new CheckEndpointsNode(_clientFactory));
+            
             var result = await pipeline.ExecuteAsync(context);
 
             return result;

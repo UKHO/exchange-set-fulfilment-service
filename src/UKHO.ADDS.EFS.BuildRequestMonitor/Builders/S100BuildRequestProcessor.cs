@@ -43,6 +43,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
                 env.QueueConnectionString = $"http://host.docker.internal:{queuePort}/devstoreaccount1"; 
                 env.BlobConnectionString = $"http://host.docker.internal:{blobPort}/devstoreaccount1";
                 env.FileShareEndpoint = _configuration["Endpoints:S100BuilderFileShare"]!;
+                env.FileShareHealthEndpoint = _configuration["Endpoints:S100BuilderFileShareHealth"]!;
                 env.BlobContainerName = StorageConfiguration.S100JobContainer;
                 env.MaxRetryAttempts = int.Parse(_configuration["S100MaxRetries"]!); 
                 env.RetryDelayMilliseconds = int.Parse(_configuration["S100RetryDelayMilliseconds"]!); 

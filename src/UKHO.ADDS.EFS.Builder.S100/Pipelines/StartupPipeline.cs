@@ -16,10 +16,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
             var pipeline = new PipelineNode<S100ExchangeSetPipelineContext>();
 
             pipeline.AddChild(new ReadConfigurationNode());
+            pipeline.AddChild(new GetJobNode());
             pipeline.AddChild(new StartTomcatNode());
             pipeline.AddChild(new CheckEndpointsNode(_clientFactory));
-            pipeline.AddChild(new GetJobNode());
-
+            
             var result = await pipeline.ExecuteAsync(context);
 
             return result;

@@ -68,6 +68,8 @@ namespace UKHO.ADDS.EFS.Builder.Common.Pipelines
 
         public string FileShareEndpoint { get; set; }
 
+        public string FileShareHealthEndpoint { get; set; }
+
         public T Job { get; set; }
 
         public string ExchangeSetNameTemplate { get; set; }

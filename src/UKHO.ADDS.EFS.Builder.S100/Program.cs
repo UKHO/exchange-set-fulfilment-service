@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Serilog;
-using UKHO.ADDS.EFS.Builder.Common;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Create.Logging;
@@ -99,8 +98,6 @@ namespace UKHO.ADDS.EFS.Builder.S100
 
             finally
             {
-                await Log.CloseAndFlushAsync();
-
                 if (pipelineContext != null && configuration != null)
                 {
                     pipelineContext.Summary.SetLogMessages(sink.GetLogLines());
@@ -114,8 +111,16 @@ namespace UKHO.ADDS.EFS.Builder.S100
                     }
 
                     var response = new BuildResponse() { JobId = pipelineContext.JobId, ExitCode = exitCode};
+
+#pragma warning disable LOG001
+                    Log.Information($"****** SENDING RESPONSE with jobId : {pipelineContext.JobId}");
+#pragma warning restore LOG001
+
+
                     await queueClient.SendMessageAsync(JsonCodec.Encode(response));
                 }
+                //put back at top once debugged
+                await Log.CloseAndFlushAsync();
             }
         }
 
