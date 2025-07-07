@@ -15,8 +15,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
     {
         private ILoggerFactory _loggerFactory;
         private ILogger _logger;
-        private IExecutionContext<ExchangeSetPipelineContext> _executionContext;
-        private ExchangeSetPipelineContext _pipelineContext;
+        private IExecutionContext<S100ExchangeSetPipelineContext> _executionContext;
+        private S100ExchangeSetPipelineContext _pipelineContext;
         private ExtractExchangeSetNode _extractExchangeSetNode;
         private IToolClient _toolClient;
 
@@ -25,7 +25,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         {
             _toolClient = A.Fake<IToolClient>();
             _extractExchangeSetNode = new ExtractExchangeSetNode();
-            _executionContext = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
+            _executionContext = A.Fake<IExecutionContext<S100ExchangeSetPipelineContext>>();
             _loggerFactory = A.Fake<ILoggerFactory>();
             _logger = A.Fake<ILogger<ExtractExchangeSetNode>>();
         }
@@ -39,7 +39,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         [SetUp]
         public void SetUp()
         {
-            _pipelineContext = new ExchangeSetPipelineContext(null, _toolClient, null, null, _loggerFactory)
+            _pipelineContext = new S100ExchangeSetPipelineContext(null, _toolClient, null, null, _loggerFactory)
             {
                 Job = new S100ExchangeSetJob { Id = "testId" },
                 WorkspaceAuthenticationKey = "authKey"

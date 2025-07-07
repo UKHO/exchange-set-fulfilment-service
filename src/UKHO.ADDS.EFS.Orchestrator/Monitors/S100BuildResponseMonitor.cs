@@ -1,6 +1,7 @@
 ﻿using Azure.Storage.Queues;
 using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
+using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Monitors
@@ -15,7 +16,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Monitors
 
         protected override async Task ProcessMessageAsync(BuildResponse messageInstance, CancellationToken stoppingToken)
         {
-            var pipelineContext = CompletionPipelineContext.CreateFrom(messageInstance);
+            var pipelineContext = CompletionPipelineContext.CreateFrom(messageInstance, ExchangeSetDataStandard.S100);
 
             var pipeline = _pipelineFactory.CreateCompletionPipeline(pipelineContext);
             await pipeline.RunAsync(stoppingToken);

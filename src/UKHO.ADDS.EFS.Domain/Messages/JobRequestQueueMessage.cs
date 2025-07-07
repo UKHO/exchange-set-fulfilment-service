@@ -13,6 +13,8 @@
 
         public required string Products { get; init; }
 
+        public required string Filter { get; init; }
+
         public required string CorrelationId { get; init; }
 
     }

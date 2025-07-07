@@ -7,14 +7,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
     /// <summary>
     /// Pipeline node responsible for signing the exchange set using the provided tool client.
     /// </summary>
-    internal class SignExchangeSetNode : ExchangeSetPipelineNode
+    internal class SignExchangeSetNode : S100ExchangeSetPipelineNode
     {
         /// <summary>
         /// Executes the node logic to sign the exchange set.
         /// </summary>
         /// <param name="context">The pipeline execution context.</param>
         /// <returns>The result status of the node execution.</returns>
-        protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
+        protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<S100ExchangeSetPipelineContext> context)
         {
             var logger = context.Subject.LoggerFactory.CreateLogger<SignExchangeSetNode>();
 

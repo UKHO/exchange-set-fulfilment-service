@@ -4,7 +4,7 @@ using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
 {
-    internal class AssemblyPipeline : IBuilderPipeline<ExchangeSetPipelineContext>
+    internal class AssemblyPipeline : IBuilderPipeline<S100ExchangeSetPipelineContext>
     {
         private readonly IFileShareReadOnlyClient _fileShareReadOnlyClient;
 
@@ -13,9 +13,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
             _fileShareReadOnlyClient = fileShareReadOnlyClient ?? throw new ArgumentNullException(nameof(fileShareReadOnlyClient));
         }
 
-        public async Task<NodeResult> ExecutePipeline(ExchangeSetPipelineContext context)
+        public async Task<NodeResult> ExecutePipeline(S100ExchangeSetPipelineContext context)
         {
-            var pipeline = new PipelineNode<ExchangeSetPipelineContext>();
+            var pipeline = new PipelineNode<S100ExchangeSetPipelineContext>();
             
             pipeline.AddChild(new ProductSearchNode(_fileShareReadOnlyClient));
             pipeline.AddChild(new DownloadFilesNode(_fileShareReadOnlyClient));

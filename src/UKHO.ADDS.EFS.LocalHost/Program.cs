@@ -73,10 +73,17 @@ namespace UKHO.ADDS.EFS.LocalHost
             // Configuration
             var configurationService = builder.AddConfiguration(@"..\..\config\configuration.json", tb =>
             {
-                tb.AddEndpoint("mockfss", mockService, false, null, "fss");
-                tb.AddEndpoint("mockscs", mockService, false, null, "scs");
+                tb.AddEndpoint("s100mockfss", mockService, false, null, "fss");
+                tb.AddEndpoint("s100mockscs", mockService, false, null, "scs");
+                tb.AddEndpoint("s100buildermockfss", mockService, false, "host.docker.internal", "fss");
 
-                tb.AddEndpoint("buildermockfss", mockService, false, "host.docker.internal", "fss");
+                tb.AddEndpoint("s63mockfss", mockService, false, null, "fss6357");
+                tb.AddEndpoint("s63mockscs", mockService, false, null, "scs6357");
+                tb.AddEndpoint("s63buildermockfss", mockService, false, "host.docker.internal", "fss6357");
+
+                tb.AddEndpoint("s57mockfss", mockService, false, null, "fss6357");
+                tb.AddEndpoint("s57mockscs", mockService, false, null, "scs6357");
+                tb.AddEndpoint("s57buildermockfss", mockService, false, "host.docker.internal", "fss6357");
             })
             .WithExternalHttpEndpoints();
 
@@ -87,7 +94,9 @@ namespace UKHO.ADDS.EFS.LocalHost
                 requestMonitor!.WithConfiguration(configurationService);
             }
 
-            await CreateBuilderContainerImages();
+            await CreateBuilderContainerImages(ProcessNames.S100Builder, "latest", "UKHO.ADDS.EFS.Builder.S100");
+            await CreateBuilderContainerImages(ProcessNames.S63Builder, "latest", "UKHO.ADDS.EFS.Builder.S63");
+            await CreateBuilderContainerImages(ProcessNames.S57Builder, "latest", "UKHO.ADDS.EFS.Builder.S57");
 
             var application = builder.Build();
 
@@ -96,15 +105,10 @@ namespace UKHO.ADDS.EFS.LocalHost
             return 0;
         }
 
-        private const string ImageName = "efs-builder-s100";
-        private const string Tag = "latest";
-
-        private static async Task CreateBuilderContainerImages()
+        private static async Task CreateBuilderContainerImages(string name, string tag, string projectName)
         {
             // Check to see if we need to build any images
-
-            // S-100
-            var reference = $"{ImageName}:{Tag}";
+            var reference = $"{name}:{tag}";
 
             var dockerClient = new DockerClientConfiguration(GetDockerEndpoint()).CreateClient();
 
@@ -121,12 +125,12 @@ namespace UKHO.ADDS.EFS.LocalHost
                 }
             }
 
-            Log.Information("Creating S-100 builder container image...");
+            Log.Information($"Creating {name} builder container image...");
 
             var localHostDirectory = Directory.GetCurrentDirectory();
             var srcDirectory = Directory.GetParent(localHostDirectory)?.FullName!;
 
-            const string arguments = $"build -t {ProcessNames.S100Builder} -f ./UKHO.ADDS.EFS.Builder.S100/Dockerfile .";
+            var arguments = $"build -t {name} -f ./{projectName}/Dockerfile .";
 
             // 'docker' writes everything to stderr...
 
@@ -140,13 +144,14 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             if (result.IsSuccess)
             {
-                Log.Information($"{ProcessNames.S100Builder} built ok");
+                Log.Information($"{name} built ok");
             }
             else
             {
-                throw new Exception("Failed to create S-100 builder container image");
+                throw new Exception($"Failed to create {name} builder container image");
             }
         }
+
         private static Uri GetDockerEndpoint() => RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? new Uri("npipe://./pipe/docker_engine")
             : new Uri("unix:///var/run/docker.sock");

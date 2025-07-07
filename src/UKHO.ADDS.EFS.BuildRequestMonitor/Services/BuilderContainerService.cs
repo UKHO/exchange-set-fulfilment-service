@@ -42,19 +42,11 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
                     $"{BuilderEnvironmentVariables.BlobConnectionString}={environment.BlobConnectionString}",
                     $"{BuilderEnvironmentVariables.BlobContainerName}={environment.BlobContainerName}",
                     $"{BuilderEnvironmentVariables.FileShareEndpoint}={environment.FileShareEndpoint}",
+                    $"{BuilderEnvironmentVariables.FileShareHealthEndpoint}={environment.FileShareHealthEndpoint}",
                     $"{BuilderEnvironmentVariables.AddsEnvironment}={environment.AddsEnvironment}",
                     $"{BuilderEnvironmentVariables.MaxRetryAttempts}={environment.MaxRetryAttempts}",
                     $"{BuilderEnvironmentVariables.RetryDelayMilliseconds}={environment.RetryDelayMilliseconds}",
-                },
-                Healthcheck = new HealthConfig
-                {
-                    Test = new[] { "CMD-SHELL", "echo healthy" },
-                    Interval = TimeSpan.FromSeconds(3),
-                    Timeout = TimeSpan.FromSeconds(2),
-                    Retries = 3,
-                    StartPeriod = (long)TimeSpan.FromSeconds(2).TotalMilliseconds * 1000000
-                },
-                HostConfig = new HostConfig { RestartPolicy = new RestartPolicy { Name = RestartPolicyKind.OnFailure, MaximumRetryCount = 3 } }
+                }
             });
 
             return response.ID;

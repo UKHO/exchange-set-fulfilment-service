@@ -4,7 +4,7 @@ using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
 {
-    internal class ExtractExchangeSetNode : ExchangeSetPipelineNode
+    internal class ExtractExchangeSetNode : S100ExchangeSetPipelineNode
     {
         private ILogger _logger;
 
@@ -13,7 +13,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
         /// </summary>
         /// <param name="context">The execution context containing pipeline and job information.</param>
         /// <returns>NodeResultStatus indicating whether the node execution succeeded or failed</returns>
-        protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
+        protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<S100ExchangeSetPipelineContext> context)
         {
             _logger = context.Subject.LoggerFactory.CreateLogger<ExtractExchangeSetNode>();
             try

@@ -16,8 +16,8 @@ public class DistributionPipelineTests
 {
     private IFileShareReadWriteClient _fileShareReadWriteClient;
     private DistributionPipeline _distributionPipeline;
-    private IExecutionContext<ExchangeSetPipelineContext> _executionContext;
-    private ExchangeSetPipelineContext _pipelineContext;
+    private IExecutionContext<S100ExchangeSetPipelineContext> _executionContext;
+    private S100ExchangeSetPipelineContext _pipelineContext;
     private IToolClient _toolClient;
     private ILoggerFactory _loggerFactory;
     private ILogger _logger;
@@ -27,7 +27,7 @@ public class DistributionPipelineTests
     public void OneTimeSetUp()
     {
         _toolClient = A.Fake<IToolClient>();
-        _executionContext = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
+        _executionContext = A.Fake<IExecutionContext<S100ExchangeSetPipelineContext>>();
         _loggerFactory = A.Fake<ILoggerFactory>();
         _logger = A.Fake<ILogger<ExtractExchangeSetNode>>();
     }
@@ -38,7 +38,7 @@ public class DistributionPipelineTests
         var tempPath = Path.GetTempPath();
         _fileShareReadWriteClient = A.Fake<IFileShareReadWriteClient>();
         _distributionPipeline = new DistributionPipeline(_fileShareReadWriteClient);
-        _pipelineContext = new ExchangeSetPipelineContext(null, _toolClient, null, null, _loggerFactory)
+        _pipelineContext = new S100ExchangeSetPipelineContext(null, _toolClient, null, null, _loggerFactory)
         {
             Job = new S100ExchangeSetJob { Id = "testId" },
             WorkspaceAuthenticationKey = "authKey",

@@ -22,14 +22,14 @@ namespace UKHO.ADDS.EFS.Builder.S100
             var sink = InjectionExtensions.ConfigureSerilog();
             var exitCode = BuilderExitCode.Success;
 
-            ExchangeSetPipelineContext? pipelineContext = null;
+            S100ExchangeSetPipelineContext? pipelineContext = null;
             IConfiguration? configuration = null;
 
             try
             {
                 var provider = ConfigureServices();
 
-                pipelineContext = provider.GetRequiredService<ExchangeSetPipelineContext>();
+                pipelineContext = provider.GetRequiredService<S100ExchangeSetPipelineContext>();
                 var startupPipeline = provider.GetRequiredService<StartupPipeline>();
 
                 configuration = provider.GetRequiredService<IConfiguration>();
@@ -98,8 +98,6 @@ namespace UKHO.ADDS.EFS.Builder.S100
 
             finally
             {
-                await Log.CloseAndFlushAsync();
-
                 if (pipelineContext != null && configuration != null)
                 {
                     pipelineContext.Summary.SetLogMessages(sink.GetLogLines());
@@ -113,8 +111,16 @@ namespace UKHO.ADDS.EFS.Builder.S100
                     }
 
                     var response = new BuildResponse() { JobId = pipelineContext.JobId, ExitCode = exitCode};
+
+#pragma warning disable LOG001
+                    Log.Information($"****** SENDING RESPONSE with jobId : {pipelineContext.JobId}");
+#pragma warning restore LOG001
+
+
                     await queueClient.SendMessageAsync(JsonCodec.Encode(response));
                 }
+                //put back at top once debugged
+                await Log.CloseAndFlushAsync();
             }
         }
 

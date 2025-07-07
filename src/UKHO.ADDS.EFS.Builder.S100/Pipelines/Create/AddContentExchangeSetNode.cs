@@ -8,7 +8,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
     /// <summary>
     /// Pipeline node responsible for adding content to an exchange set using the provided tool client.
     /// </summary>
-    internal class AddContentExchangeSetNode : ExchangeSetPipelineNode
+    internal class AddContentExchangeSetNode : S100ExchangeSetPipelineNode
     {
         /// <summary>
         /// Executes the node logic to add content to the exchange set by processing the dataset and support files paths.
@@ -16,7 +16,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
         /// </summary>
         /// <param name="context">The pipeline execution context containing job and workspace information.</param>
         /// <returns>A <see cref="NodeResultStatus"/> indicating the result of the node execution.</returns>
-        protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
+        protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<S100ExchangeSetPipelineContext> context)
         {
             var logger = context.Subject.LoggerFactory.CreateLogger<AddContentExchangeSetNode>();
             var jobId = context.Subject.JobId;

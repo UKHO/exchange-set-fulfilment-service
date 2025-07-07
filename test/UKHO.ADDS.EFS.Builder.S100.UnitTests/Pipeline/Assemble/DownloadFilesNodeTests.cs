@@ -18,7 +18,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
     {
         private IFileShareReadOnlyClient _fileShareReadOnlyClient;
         private DownloadFilesNode _downloadFilesNode;
-        private IExecutionContext<ExchangeSetPipelineContext> _executionContext;
+        private IExecutionContext<S100ExchangeSetPipelineContext> _executionContext;
         private ILoggerFactory _loggerFactory;
         private ILogger _logger;
 
@@ -27,7 +27,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         {
             _fileShareReadOnlyClient = A.Fake<IFileShareReadOnlyClient>();
             _downloadFilesNode = new DownloadFilesNode(_fileShareReadOnlyClient);
-            _executionContext = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
+            _executionContext = A.Fake<IExecutionContext<S100ExchangeSetPipelineContext>>();
             _loggerFactory = A.Fake<ILoggerFactory>();
             _logger = A.Fake<ILogger<DownloadFilesNode>>();
         }
@@ -35,7 +35,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [SetUp]
         public void SetUp()
         {
-            var exchangeSetPipelineContext = new ExchangeSetPipelineContext(null,  null, null, null, _loggerFactory)
+            var exchangeSetPipelineContext = new S100ExchangeSetPipelineContext(null,  null, null, null, _loggerFactory)
             {
                 WorkSpaceRootPath = Path.GetTempPath(),
                 Job = new S100ExchangeSetJob

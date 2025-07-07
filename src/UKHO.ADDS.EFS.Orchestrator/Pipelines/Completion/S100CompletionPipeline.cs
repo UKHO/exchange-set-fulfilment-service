@@ -22,10 +22,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion
 
             var pipeline = new PipelineNode<CompletionPipelineContext>();
 
-            pipeline.AddChild(NodeFactory.CreateNode<GetBuildSummaryNode>(cancellationToken));
+            pipeline.AddChild(NodeFactory.CreateNode<GetS100BuildSummaryNode>(cancellationToken));
             pipeline.AddChild(NodeFactory.CreateNode<GetBuildStatusNode>(cancellationToken));
             pipeline.AddChild(NodeFactory.CreateNode<GetS100JobNode>(cancellationToken));
             pipeline.AddChild(NodeFactory.CreateNode<UpdateBuildStatusNode>(cancellationToken));
+            pipeline.AddChild(NodeFactory.CreateNode<UpdateS100JobNode>(cancellationToken));
             pipeline.AddChild(NodeFactory.CreateNode<ReplayLogsNode>(cancellationToken));
             pipeline.AddChild(NodeFactory.CreateNode<CommitFileShareBatchNode>(cancellationToken));
             pipeline.AddChild(NodeFactory.CreateNode<ExpireOldFileShareBatchesNode>(cancellationToken));

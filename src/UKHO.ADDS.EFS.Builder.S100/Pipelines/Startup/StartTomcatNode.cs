@@ -5,9 +5,9 @@ using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
 {
-    internal class StartTomcatNode : ExchangeSetPipelineNode
+    internal class StartTomcatNode : S100ExchangeSetPipelineNode
     {
-        protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
+        protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<S100ExchangeSetPipelineContext> context)
         {
             var logger = context.Subject.LoggerFactory.CreateLogger<StartTomcatNode>();
             var catalinaHome = Environment.GetEnvironmentVariable("CATALINA_HOME");

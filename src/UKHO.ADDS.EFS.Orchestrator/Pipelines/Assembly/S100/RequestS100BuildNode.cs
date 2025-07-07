@@ -1,7 +1,7 @@
 ﻿using Azure.Storage.Queues;
 using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
-using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.Jobs.S100;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
@@ -9,7 +9,7 @@ using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.S100
 {
-    internal class RequestS100BuildNode : AssemblyPipelineNode<ExchangeSetJob>
+    internal class RequestS100BuildNode : AssemblyPipelineNode<S100ExchangeSetJob>
     {
         private readonly QueueClient _queueClient;
 
@@ -17,7 +17,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.S100
             : base(environment) =>
             _queueClient = queueServiceClient.GetQueueClient(StorageConfiguration.S100BuildRequestQueueName);
 
-        protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetJob> context)
+        protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<S100ExchangeSetJob> context)
         {
             var job = context.Subject;
 
@@ -29,7 +29,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.S100
                 BatchId = job.BatchId,
                 DataStandard = job.DataStandard,
                 WorkspaceKey = Environment.Configuration["IICWorkspaceKey"]!,
-                ExchangeSetNameTemplate = Environment.Configuration["ExchangeSetNameTemplate"]!
+                ExchangeSetNameTemplate = Environment.Configuration["S100ExchangeSetNameTemplate"]!
             };
 
             var messageJson = JsonCodec.Encode(request);

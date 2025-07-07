@@ -12,7 +12,7 @@ using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 {
-    internal class ProductSearchNode : ExchangeSetPipelineNode
+    internal class ProductSearchNode : S100ExchangeSetPipelineNode
     {
         private readonly IFileShareReadOnlyClient _fileShareReadOnlyClient;
         private ILogger _logger;
@@ -39,7 +39,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             _fileShareReadOnlyClient = fileShareReadOnlyClient ?? throw new ArgumentNullException(nameof(fileShareReadOnlyClient));
         }
 
-        protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
+        protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<S100ExchangeSetPipelineContext> context)
         {
             try
             {

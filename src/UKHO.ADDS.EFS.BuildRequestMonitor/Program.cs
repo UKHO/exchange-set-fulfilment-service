@@ -27,7 +27,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor
 
             var builder = Host.CreateApplicationBuilder(args);
 
-            builder.Configuration.AddConfigurationService("UKHO.ADDS.EFS.Builder.S100");
+            builder.Configuration.AddConfigurationService("UKHO.ADDS.EFS.Builder.S100", "UKHO.ADDS.EFS.Builder.S63", "UKHO.ADDS.EFS.Builder.S57");
 
             builder.Logging.ClearProviders();
             builder.Logging.AddSerilog(Log.Logger, dispose: true);
@@ -35,9 +35,14 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor
             builder.AddAzureQueueClient(StorageConfiguration.QueuesName);
 
             builder.Services.AddTransient<BuilderContainerService>();
+
             builder.Services.AddTransient<S100BuildRequestProcessor>();
+            builder.Services.AddTransient<S63BuildRequestProcessor>();
+            builder.Services.AddTransient<S57BuildRequestProcessor>();
 
             builder.Services.AddHostedService<S100BuildRequestMonitor>();
+            builder.Services.AddHostedService<S63BuildRequestMonitor>();
+            builder.Services.AddHostedService<S57BuildRequestMonitor>();
 
             var host = builder.Build();
 

@@ -20,8 +20,22 @@
 
         public const string S100JobContainer = "s100job";
 
+        public const string S63BuildRequestQueueName = "s63buildrequest";
+
+        public const string S63BuildResponseQueueName = "s63buildresponse";
+
+        public const string S63JobContainer = "s63job";
+
+        public const string S57BuildRequestQueueName = "s57buildrequest";
+
+        public const string S57BuildResponseQueueName = "s57buildresponse";
+
+        public const string S57JobContainer = "s57job";
+
         public const string ExchangeSetTimestampTable = "exchangesettimestamp";
 
         public const string ExchangeSetBuildStatusTable = "exchangesetbuildstatus";
+
+        public const string ExchangeSetJobTypeTable = "exchangesetjobtype";
     }
 }

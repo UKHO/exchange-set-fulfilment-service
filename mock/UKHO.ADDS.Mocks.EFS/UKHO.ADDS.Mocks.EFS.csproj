@@ -12,6 +12,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Remove="Override\Files\scs6357\SCSCatalogueResponse.json" />
+    <Content Remove="Override\Files\scs6357\SCSResponse.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.6" />
   </ItemGroup>
 
