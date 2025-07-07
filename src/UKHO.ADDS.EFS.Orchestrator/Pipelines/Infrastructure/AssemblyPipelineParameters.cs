@@ -14,6 +14,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
 
         public required string JobId { get; init; }
 
+        public required string ProductNameInitials { get; init; }
+
         public IConfiguration Configuration { get; init; }
 
         public static AssemblyPipelineParameters CreateFrom(JobRequestApiMessage message, IConfiguration configuration, string correlationId) =>
@@ -23,6 +25,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
                 Timestamp = DateTime.UtcNow,
                 DataStandard = message.DataStandard,
                 Products = message.Products,
+                ProductNameInitials = message.ProductNameInitials,
                 JobId = correlationId,
                 Configuration = configuration
             };
@@ -34,6 +37,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
                 Timestamp = message.Timestamp,
                 DataStandard = message.DataStandard,
                 Products = message.Products,
+                ProductNameInitials = message.ProductNameInitials,
                 JobId = message.CorrelationId,
                 Configuration = configuration
             };

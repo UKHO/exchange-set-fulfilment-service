@@ -44,6 +44,11 @@ namespace UKHO.ADDS.EFS.Jobs
         public string BatchId { get; set; }
 
         /// <summary>
+        ///     The product type for the job.
+        /// </summary>
+        public string ProductNameInitials { get; set; }
+
+        /// <summary>
         ///     Gets the correlation ID for the job.
         /// </summary>
         /// <remarks>This is always the Job ID.</remarks>

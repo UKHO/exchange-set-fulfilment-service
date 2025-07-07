@@ -43,10 +43,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
             {
                 Version = 1,
                 Timestamp = DateTime.UtcNow,
-
                 CorrelationId = "corr-1",
                 DataStandard = ExchangeSetDataStandard.S100,
-                Products = "prod"
+                Products = "prod",
+                ProductNameInitials = "S-100" // Set required ProductType
             };
             var expectedResult = A.Fake<IResult<IBatchHandle>>();
 
