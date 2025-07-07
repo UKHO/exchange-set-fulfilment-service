@@ -10,7 +10,7 @@ resource storage 'Microsoft.Storage/storageAccounts@2024-01-01' = {
   }
   properties: {
     accessTier: 'Hot'
-    allowSharedKeyAccess: false
+    allowSharedKeyAccess: true
     minimumTlsVersion: 'TLS1_2'
     networkAcls: {
       defaultAction: 'Allow'
@@ -18,6 +18,7 @@ resource storage 'Microsoft.Storage/storageAccounts@2024-01-01' = {
   }
   tags: {
     'aspire-resource-name': 'storage'
+    'hidden-title': 'EFS'
   }
 }
 
@@ -33,3 +34,5 @@ output queueEndpoint string = storage.properties.primaryEndpoints.queue
 output tableEndpoint string = storage.properties.primaryEndpoints.table
 
 output name string = storage.name
+
+output queueConnectionString string = storage.listKeys().keys

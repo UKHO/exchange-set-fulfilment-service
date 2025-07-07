@@ -1,4 +1,11 @@
-using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Security.Principal;
+using Azure.Core;
+using Azure.Provisioning;
+using Azure.Provisioning.AppContainers;
+using Azure.Provisioning.ContainerRegistry;
+using Azure.Provisioning.Storage;
+using Azure.ResourceManager.Network;
 using CliWrap;
 using Docker.DotNet;
 using Docker.DotNet.Models;
@@ -12,6 +19,9 @@ using UKHO.ADDS.EFS.LocalHost.Extensions;
  
 namespace UKHO.ADDS.EFS.LocalHost
 {
+    /// <summary>
+    /// Defines the resources required by Aspire. If there are changes and the infrastructure IaC needs to be regenerated then please see Regenerating infra.md.
+    /// </summary>
     internal class Program
     {
         private static async Task<int> Main(string[] args)
@@ -25,8 +35,38 @@ namespace UKHO.ADDS.EFS.LocalHost
             var builder = DistributedApplication.CreateBuilder(args);
             builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());
 
+            // Create id for existing subnet
+            var subnetSubscription = builder.AddParameter("subnetSubscription");
+            var subnetResourceGroup = builder.AddParameter("subnetResourceGroup");
+            var subnetVnet = builder.AddParameter("subnetVnet");
+            var subnetName = builder.AddParameter("subnetName");
+            var subnetId = SubnetResource.CreateResourceIdentifier("${subnetSubscription}", "${subnetResourceGroup}", "${subnetVnet}", "${subnetName}");
+
+            // Container apps environment
+            var acaEnv = builder.AddAzureContainerAppEnvironment(ContainerConfiguration.AcaEnvironmentName)
+                .WithParameter("subnetSubscription", subnetSubscription)
+                .WithParameter("subnetResourceGroup", subnetResourceGroup)
+                .WithParameter("subnetVnet", subnetVnet)
+                .WithParameter("subnetName", subnetName);
+            acaEnv.ConfigureInfrastructure(config =>
+            {
+                var containerEnvironment = config.GetProvisionableResources().OfType<ContainerAppManagedEnvironment>().Single();
+                containerEnvironment.VnetConfiguration = new ContainerAppVnetConfiguration
+                {
+                    InfrastructureSubnetId = new BicepValue<ResourceIdentifier>(subnetId),
+                    IsInternal = true
+                };
+                containerEnvironment.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
+            });
+
             // Storage configuration
             var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e => { e.WithDataVolume(); });
+            storage.ConfigureInfrastructure(config =>
+            {
+                var storageAccount = config.GetProvisionableResources().OfType<StorageAccount>().Single();
+                storageAccount.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
+                storageAccount.AllowSharedKeyAccess = true;
+            });
 
             var storageQueue = storage.AddQueues(StorageConfiguration.QueuesName);
             var storageTable = storage.AddTables(StorageConfiguration.TablesName);
@@ -71,13 +111,13 @@ namespace UKHO.ADDS.EFS.LocalHost
             }
 
             // Configuration
-            var configurationService = builder.AddConfiguration(@"..\..\config\configuration.json", tb =>
+            var configurationService = builder.AddConfiguration(@"../../config/configuration.json", tb =>
             {
                 tb.AddEndpoint("mockfss", mockService, false, null, "fss");
                 tb.AddEndpoint("mockscs", mockService, false, null, "scs");
 
                 tb.AddEndpoint("buildermockfss", mockService, false, "host.docker.internal", "fss");
-            })
+            }, ServiceConfiguration.ServiceName)
             .WithExternalHttpEndpoints();
 
             orchestratorService.WithConfiguration(configurationService);

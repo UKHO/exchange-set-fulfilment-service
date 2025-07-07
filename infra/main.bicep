@@ -12,6 +12,10 @@ param location string
 @description('Id of the user or app to assign application roles')
 param principalId string = ''
 
+param subnetName string
+param subnetResourceGroup string
+param subnetSubscription string
+param subnetVnet string
 
 var tags = {
   'azd-env-name': environmentName
@@ -22,31 +26,72 @@ resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
   location: location
   tags: tags
 }
-module resources 'resources.bicep' = {
-  scope: rg
-  name: 'resources'
-  params: {
-    location: location
-    tags: tags
-    principalId: principalId
-  }
-}
 
-module efs_keyvault 'efs-keyvault/efs-keyvault.module.bicep' = {
-  name: 'efs-keyvault'
+module adds_configuration_identity 'adds-configuration-identity/adds-configuration-identity.module.bicep' = {
+  name: 'adds-configuration-identity'
   scope: rg
   params: {
     location: location
   }
 }
-module efs_keyvault_roles 'efs-keyvault-roles/efs-keyvault-roles.module.bicep' = {
-  name: 'efs-keyvault-roles'
+module adds_configuration_kv 'adds-configuration-kv/adds-configuration-kv.module.bicep' = {
+  name: 'adds-configuration-kv'
   scope: rg
   params: {
-    efs_keyvault_outputs_name: efs_keyvault.outputs.name
     location: location
-    principalId: resources.outputs.MANAGED_IDENTITY_PRINCIPAL_ID
-    principalType: 'ServicePrincipal'
+  }
+}
+module adds_configuration_roles_adds_configuration_kv 'adds-configuration-roles-adds-configuration-kv/adds-configuration-roles-adds-configuration-kv.module.bicep' = {
+  name: 'adds-configuration-roles-adds-configuration-kv'
+  scope: rg
+  params: {
+    adds_configuration_kv_outputs_name: adds_configuration_kv.outputs.name
+    location: location
+    principalId: adds_configuration_identity.outputs.principalId
+  }
+}
+module adds_configuration_roles_adds_configuration_was 'adds-configuration-roles-adds-configuration-was/adds-configuration-roles-adds-configuration-was.module.bicep' = {
+  name: 'adds-configuration-roles-adds-configuration-was'
+  scope: rg
+  params: {
+    adds_configuration_was_outputs_name: adds_configuration_was.outputs.name
+    location: location
+    principalId: adds_configuration_identity.outputs.principalId
+  }
+}
+module adds_configuration_was 'adds-configuration-was/adds-configuration-was.module.bicep' = {
+  name: 'adds-configuration-was'
+  scope: rg
+  params: {
+    location: location
+  }
+}
+module efs_cae 'efs-cae/efs-cae.module.bicep' = {
+  name: 'efs-cae'
+  scope: rg
+  params: {
+    location: location
+    subnetName: subnetName
+    subnetResourceGroup: subnetResourceGroup
+    subnetSubscription: subnetSubscription
+    subnetVnet: subnetVnet
+    userPrincipalId: principalId
+  }
+}
+module efs_orchestrator_identity 'efs-orchestrator-identity/efs-orchestrator-identity.module.bicep' = {
+  name: 'efs-orchestrator-identity'
+  scope: rg
+  params: {
+    location: location
+  }
+}
+module efs_orchestrator_roles_storage 'efs-orchestrator-roles-storage/efs-orchestrator-roles-storage.module.bicep' = {
+  name: 'efs-orchestrator-roles-storage'
+  scope: rg
+  params: {
+    location: location
+    principalId: efs_orchestrator_identity.outputs.principalId
+    storage_outputs_name: storage.outputs.name
   }
 }
 module storage 'storage/storage.module.bicep' = {
@@ -56,27 +101,19 @@ module storage 'storage/storage.module.bicep' = {
     location: location
   }
 }
-module storage_roles 'storage-roles/storage-roles.module.bicep' = {
-  name: 'storage-roles'
-  scope: rg
-  params: {
-    location: location
-    principalId: resources.outputs.MANAGED_IDENTITY_PRINCIPAL_ID
-    principalType: 'ServicePrincipal'
-    storage_outputs_name: storage.outputs.name
-  }
-}
-
-output MANAGED_IDENTITY_CLIENT_ID string = resources.outputs.MANAGED_IDENTITY_CLIENT_ID
-output MANAGED_IDENTITY_NAME string = resources.outputs.MANAGED_IDENTITY_NAME
-output AZURE_LOG_ANALYTICS_WORKSPACE_NAME string = resources.outputs.AZURE_LOG_ANALYTICS_WORKSPACE_NAME
-output AZURE_CONTAINER_REGISTRY_ENDPOINT string = resources.outputs.AZURE_CONTAINER_REGISTRY_ENDPOINT
-output AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID string = resources.outputs.AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID
-output AZURE_CONTAINER_REGISTRY_NAME string = resources.outputs.AZURE_CONTAINER_REGISTRY_NAME
-output AZURE_CONTAINER_APPS_ENVIRONMENT_NAME string = resources.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_NAME
-output AZURE_CONTAINER_APPS_ENVIRONMENT_ID string = resources.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_ID
-output AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN string = resources.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN
-output EFS_KEYVAULT_VAULTURI string = efs_keyvault.outputs.vaultUri
+output ADDS_CONFIGURATION_IDENTITY_CLIENTID string = adds_configuration_identity.outputs.clientId
+output ADDS_CONFIGURATION_IDENTITY_ID string = adds_configuration_identity.outputs.id
+output ADDS_CONFIGURATION_KV_VAULTURI string = adds_configuration_kv.outputs.vaultUri
+output ADDS_CONFIGURATION_WAS_TABLEENDPOINT string = adds_configuration_was.outputs.tableEndpoint
+output AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN string = efs_cae.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN
+output AZURE_CONTAINER_REGISTRY_ENDPOINT string = efs_cae.outputs.AZURE_CONTAINER_REGISTRY_ENDPOINT
+output EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN string = efs_cae.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN
+output EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_ID string = efs_cae.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_ID
+output EFS_CAE_AZURE_CONTAINER_REGISTRY_ENDPOINT string = efs_cae.outputs.AZURE_CONTAINER_REGISTRY_ENDPOINT
+output EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID string = efs_cae.outputs.AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID
+output EFS_ORCHESTRATOR_IDENTITY_CLIENTID string = efs_orchestrator_identity.outputs.clientId
+output EFS_ORCHESTRATOR_IDENTITY_ID string = efs_orchestrator_identity.outputs.id
 output STORAGE_BLOBENDPOINT string = storage.outputs.blobEndpoint
 output STORAGE_QUEUEENDPOINT string = storage.outputs.queueEndpoint
 output STORAGE_TABLEENDPOINT string = storage.outputs.tableEndpoint
+output STORAGE_NAME string = storage.outputs.name
