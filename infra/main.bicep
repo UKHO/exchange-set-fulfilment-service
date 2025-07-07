@@ -85,17 +85,17 @@ module efs_orchestrator_identity 'efs-orchestrator-identity/efs-orchestrator-ide
     location: location
   }
 }
-module efs_orchestrator_roles_storage 'efs-orchestrator-roles-storage/efs-orchestrator-roles-storage.module.bicep' = {
-  name: 'efs-orchestrator-roles-storage'
+module efs_orchestrator_roles_efs_storage 'efs-orchestrator-roles-efs-storage/efs-orchestrator-roles-efs-storage.module.bicep' = {
+  name: 'efs-orchestrator-roles-efs-storage'
   scope: rg
   params: {
+    efs_storage_outputs_name: efs_storage.outputs.name
     location: location
     principalId: efs_orchestrator_identity.outputs.principalId
-    storage_outputs_name: storage.outputs.name
   }
 }
-module storage 'storage/storage.module.bicep' = {
-  name: 'storage'
+module efs_storage 'efs-storage/efs-storage.module.bicep' = {
+  name: 'efs-storage'
   scope: rg
   params: {
     location: location
@@ -113,7 +113,7 @@ output EFS_CAE_AZURE_CONTAINER_REGISTRY_ENDPOINT string = efs_cae.outputs.AZURE_
 output EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID string = efs_cae.outputs.AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID
 output EFS_ORCHESTRATOR_IDENTITY_CLIENTID string = efs_orchestrator_identity.outputs.clientId
 output EFS_ORCHESTRATOR_IDENTITY_ID string = efs_orchestrator_identity.outputs.id
-output STORAGE_BLOBENDPOINT string = storage.outputs.blobEndpoint
-output STORAGE_QUEUEENDPOINT string = storage.outputs.queueEndpoint
-output STORAGE_TABLEENDPOINT string = storage.outputs.tableEndpoint
-output STORAGE_NAME string = storage.outputs.name
+output EFS_STORAGE_BLOBENDPOINT string = efs_storage.outputs.blobEndpoint
+output EFS_STORAGE_QUEUEENDPOINT string = efs_storage.outputs.queueEndpoint
+output EFS_STORAGE_TABLEENDPOINT string = efs_storage.outputs.tableEndpoint
+output EFS_STORAGE_NAME string = efs_storage.outputs.name

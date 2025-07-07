@@ -43,8 +43,8 @@ If we need to regenerate from scratch again then you can run the `azd regenerate
     param efs_orchestrator_containerport = readEnvironmentVariable('CONTAINER_PORT')
     param efs_orchestrator_identity_outputs_clientid = readEnvironmentVariable('EFS_ORCHESTRATOR_IDENTITY_CLIENTID')
     param efs_orchestrator_identity_outputs_id = readEnvironmentVariable('EFS_ORCHESTRATOR_IDENTITY_ID')
-    param efssa_outputs_blobendpoint = readEnvironmentVariable('STORAGE_BLOBENDPOINT')
-    param efssa_outputs_queueendpoint = readEnvironmentVariable('STORAGE_QUEUEENDPOINT')
-    param efssa_outputs_tableendpoint = readEnvironmentVariable('STORAGE_TABLEENDPOINT')
+    param efssa_outputs_blobendpoint = readEnvironmentVariable('EFS_STORAGE_BLOBENDPOINT')
+    param efssa_outputs_queueendpoint = readEnvironmentVariable('EFS_STORAGE_QUEUEENDPOINT')
+    param efssa_outputs_tableendpoint = readEnvironmentVariable('EFS_STORAGE_TABLEENDPOINT')
     ```
-5. `main.bicep` Add storage name output: ```output STORAGE_NAME string = storage.outputs.name```
+5. `main.bicep` Add storage name output: ```output EFS_STORAGE_NAME string = efs_storage.outputs.name```

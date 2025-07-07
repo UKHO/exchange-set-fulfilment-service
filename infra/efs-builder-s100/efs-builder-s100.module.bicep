@@ -9,10 +9,10 @@ param efs_cae_outputs_azure_container_registry_managed_identity_id string
 
 param efs_builder_s100_containerimage string
 
-param storage_outputs_name string
+param efs_storage_name string
 
 @secure()
-param storage_connection_string string
+param efs_storage_connection_string string
 
 resource efsbuilders100 'Microsoft.App/jobs@2025-01-01' = {
   name: 'efs-builder-s100'
@@ -30,7 +30,7 @@ resource efsbuilders100 'Microsoft.App/jobs@2025-01-01' = {
       secrets: [
         {
           name: 'connection-string-secret'
-          value: storage_connection_string
+          value: efs_storage_connection_string
         }
       ]
       triggerType: 'Event'
@@ -48,7 +48,7 @@ resource efsbuilders100 'Microsoft.App/jobs@2025-01-01' = {
               name: 'queue'
               type: 'azure-queue'
               metadata: {
-                accountName: storage_outputs_name
+                accountName: efs_storage_name
                 queueLength: '1'
                 queueName: 'queues'
               }

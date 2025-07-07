@@ -1,8 +1,8 @@
 @description('The location for the resource(s) to be deployed.')
 param location string = resourceGroup().location
 
-resource storage 'Microsoft.Storage/storageAccounts@2024-01-01' = {
-  name: take('storage${uniqueString(resourceGroup().id)}', 24)
+resource efs_storage 'Microsoft.Storage/storageAccounts@2024-01-01' = {
+  name: take('efsstorage${uniqueString(resourceGroup().id)}', 24)
   kind: 'StorageV2'
   location: location
   sku: {
@@ -17,22 +17,20 @@ resource storage 'Microsoft.Storage/storageAccounts@2024-01-01' = {
     }
   }
   tags: {
-    'aspire-resource-name': 'storage'
+    'aspire-resource-name': 'efs-storage'
     'hidden-title': 'EFS'
   }
 }
 
 resource blobs 'Microsoft.Storage/storageAccounts/blobServices@2024-01-01' = {
   name: 'default'
-  parent: storage
+  parent: efs_storage
 }
 
-output blobEndpoint string = storage.properties.primaryEndpoints.blob
+output blobEndpoint string = efs_storage.properties.primaryEndpoints.blob
 
-output queueEndpoint string = storage.properties.primaryEndpoints.queue
+output queueEndpoint string = efs_storage.properties.primaryEndpoints.queue
 
-output tableEndpoint string = storage.properties.primaryEndpoints.table
+output tableEndpoint string = efs_storage.properties.primaryEndpoints.table
 
-output name string = storage.name
-
-output queueConnectionString string = storage.listKeys().keys
+output name string = efs_storage.name

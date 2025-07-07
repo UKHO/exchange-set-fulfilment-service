@@ -4,5 +4,5 @@ param efs_cae_outputs_azure_container_apps_environment_id = readEnvironmentVaria
 param efs_cae_outputs_azure_container_registry_endpoint = readEnvironmentVariable('EFS_CAE_AZURE_CONTAINER_REGISTRY_ENDPOINT')
 param efs_cae_outputs_azure_container_registry_managed_identity_id = readEnvironmentVariable('EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID')
 param efs_builder_s100_containerimage = readEnvironmentVariable('CONTAINER_IMAGE')
-param storage_outputs_name = readEnvironmentVariable('STORAGE_OUTPUTS_NAME')
-param storage_connection_string = readEnvironmentVariable('STORAGE_CONNECTION_STRING')
+param efs_storage_name = readEnvironmentVariable('EFS_STORAGE_NAME')
+param efs_storage_connection_string = readEnvironmentVariable('EFS_STORAGE_CONNECTION_STRING')

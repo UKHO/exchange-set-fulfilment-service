@@ -15,11 +15,11 @@ param efs_orchestrator_identity_outputs_id string
 
 param efs_orchestrator_containerport string
 
-param storage_outputs_queueendpoint string
+param efs_storage_outputs_queueendpoint string
 
-param storage_outputs_tableendpoint string
+param efs_storage_outputs_tableendpoint string
 
-param storage_outputs_blobendpoint string
+param efs_storage_outputs_blobendpoint string
 
 param efs_orchestrator_identity_outputs_clientid string
 
@@ -69,16 +69,16 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2024-03-01' = {
               value: efs_orchestrator_containerport
             }
             {
-              name: 'ConnectionStrings__queues'
-              value: storage_outputs_queueendpoint
+              name: 'ConnectionStrings__efs-queues'
+              value: efs_storage_outputs_queueendpoint
             }
             {
-              name: 'ConnectionStrings__tables'
-              value: storage_outputs_tableendpoint
+              name: 'ConnectionStrings__efs-tables'
+              value: efs_storage_outputs_tableendpoint
             }
             {
-              name: 'ConnectionStrings__blobs'
-              value: storage_outputs_blobendpoint
+              name: 'ConnectionStrings__efs-blobs'
+              value: efs_storage_outputs_blobendpoint
             }
             {
               name: 'services__adds-mocks-efs__http__0'
