@@ -19,25 +19,28 @@ namespace UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss
                             return FssResponseGenerator.ProvideSearchFilterResponse(request);
 
                         case WellKnownState.BadRequest:
-                            return Results.Json(new
-                            {
-                                correlationId = request.Headers[WellKnownHeader.CorrelationId],
-                                errors = new[]
+                            return CreateErrorResponse(
+                                request,
+                                400,
+                                new
                                 {
-                                    new
+                                    errors = new[]
                                     {
-                                        source = "Search Batch",
-                                        description = "Bad Request."
+                                        new
+                                        {
+                                            source = "Search Batch",
+                                            description = "Bad Request."
+                                        }
                                     }
                                 }
-                            }, statusCode: 400);
+                            );
 
                         case WellKnownState.NotFound:
-                            return Results.Json(new
-                            {
-                                correlationId = request.Headers[WellKnownHeader.CorrelationId],
-                                details = "Not Found"
-                            }, statusCode: 404);
+                            return CreateErrorResponse(
+                                request,
+                                404,
+                                new { details = "Not Found" }
+                            );
 
                         case WellKnownState.UnsupportedMediaType:
                             return Results.Json(new
@@ -49,11 +52,11 @@ namespace UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss
                             }, statusCode: 415);
 
                         case WellKnownState.InternalServerError:
-                            return Results.Json(new
-                            {
-                                correlationId = request.Headers[WellKnownHeader.CorrelationId],
-                                details = "Internal Server Error"
-                            }, statusCode: 500);    
+                            return CreateErrorResponse(
+                                request,
+                                500,
+                                new { details = "Internal Server Error" }
+                            );                            
 
                         default:
                             // Just send default responses
@@ -72,5 +75,22 @@ namespace UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss
                         new MarkdownTextListItem("Value BusinessUnit eq 'ADDS-S100' and $batch(ProductType) eq 's100' and  (($batch(ProductName) eq '101GB004DEVQK' and $batch(EditionNumber) eq '2' and (($batch(UpdateNumber) eq '0' or $batch(UpdateNumber) eq '1' ))))")
                     ));
                 });
+
+        private static IResult CreateErrorResponse(HttpRequest request, int statusCode, object errorBody)
+        {
+            var correlationId = request.Headers[WellKnownHeader.CorrelationId];
+            var response = new Dictionary<string, object>
+            {
+                ["correlationId"] = correlationId
+            };
+
+            // Merge errorBody properties into the response dictionary
+            foreach (var prop in errorBody.GetType().GetProperties())
+            {
+                response[prop.Name] = prop.GetValue(errorBody);
+            }
+
+            return Results.Json(response, statusCode: statusCode);
+        }
     }
 }

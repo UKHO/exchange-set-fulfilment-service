@@ -46,7 +46,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tests.Services
             A.CallTo(() => _fakeSalesCatalogueClient.GetS100ProductsFromSpecificDateAsync(
                 A<string>.Ignored, A<string>.Ignored, A<DateTime?>.Ignored, A<string>.Ignored))
                 .Returns(Task.FromResult(successResult));
-            A.CallTo(() => successResult.IsSuccess(out expectedResponse, out error)).Returns(true);
 
             var result = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(null, _exchangeSetJob);
             S100SalesCatalogueResponse s100SalesCatalogueData = result.s100SalesCatalogueData;
