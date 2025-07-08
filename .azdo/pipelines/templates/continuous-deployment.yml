@@ -178,6 +178,7 @@ jobs:
 
           - task: AzureCLI@2
             displayName: Download S100 builder files from Azure
+            condition: eq('${{ parameters.DeployBuilderS100 }}', true)
             inputs:
               azureSubscription: ${{ variables.AzureSubscription }}
               scriptType: bash
