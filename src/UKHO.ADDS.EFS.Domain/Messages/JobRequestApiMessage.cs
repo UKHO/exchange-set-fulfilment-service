@@ -11,6 +11,6 @@
 
         public required string Products { get; set; }
 
-        public required string ProductNameInitials { get; set; }
+        public required string ProductIdentifier { get; set; }
     }
 }

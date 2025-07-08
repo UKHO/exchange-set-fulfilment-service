@@ -46,7 +46,7 @@ namespace UKHO.ADDS.EFS.Jobs
         /// <summary>
         ///     The product type for the job.
         /// </summary>
-        public string ProductNameInitials { get; set; }
+        public string ProductIdentifier { get; set; }
 
         /// <summary>
         ///     Gets the correlation ID for the job.

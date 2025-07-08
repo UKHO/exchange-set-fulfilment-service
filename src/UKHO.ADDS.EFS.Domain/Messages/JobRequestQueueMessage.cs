@@ -13,7 +13,7 @@
 
         public required string Products { get; init; }
 
-        public required string ProductNameInitials { get; init; }
+        public required string ProductIdentifier { get; init; }
 
         public required string CorrelationId { get; init; }
 

@@ -27,10 +27,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.S100
                 case HttpStatusCode.OK when result.s100SalesCatalogueData.ResponseBody.Any():
                     // Products were successfully retrieved
                     var filteredProducts = result.s100SalesCatalogueData.ResponseBody
-                        .Where(p => p.ProductName != null && p.ProductName.StartsWith(job.ProductNameInitials, StringComparison.OrdinalIgnoreCase))
+                        .Where(p => p.ProductName != null && p.ProductName.StartsWith(job.ProductIdentifier, StringComparison.OrdinalIgnoreCase))
                         .ToList();
                     job.Products = filteredProducts;
-                    job.SalesCatalogueTimestamp = result.LastModified; // TODO Check - this seems to be null
+                    job.SalesCatalogueTimestamp = result.LastModified;
                     break;
 
                 case HttpStatusCode.NotModified:

@@ -14,7 +14,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
 
         public required string JobId { get; init; }
 
-        public required string ProductNameInitials { get; init; }
+        public required string ProductIdentifier { get; init; }
 
         public IConfiguration Configuration { get; init; }
 
@@ -25,7 +25,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
                 Timestamp = DateTime.UtcNow,
                 DataStandard = message.DataStandard,
                 Products = message.Products,
-                ProductNameInitials = message.ProductNameInitials,
+                ProductIdentifier = message.ProductIdentifier,
                 JobId = correlationId,
                 Configuration = configuration
             };
@@ -37,7 +37,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
                 Timestamp = message.Timestamp,
                 DataStandard = message.DataStandard,
                 Products = message.Products,
-                ProductNameInitials = message.ProductNameInitials,
+                ProductIdentifier = message.ProductIdentifier,
                 JobId = message.CorrelationId,
                 Configuration = configuration
             };

@@ -16,8 +16,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly
         public override async Task<AssemblyPipelineResponse> RunAsync(CancellationToken cancellationToken)
         {
             var job = CreateJob<S100ExchangeSetJob>();
-            // Set ProductType from pipeline parameters
-            job.ProductNameInitials = Parameters.ProductNameInitials;
+            
+            job.ProductIdentifier = Parameters.ProductIdentifier;
 
             var pipeline = new PipelineNode<S100ExchangeSetJob>();
 

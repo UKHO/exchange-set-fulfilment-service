@@ -46,7 +46,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
                 CorrelationId = "corr-1",
                 DataStandard = ExchangeSetDataStandard.S100,
                 Products = "prod",
-                ProductNameInitials = "S-100" // Set required ProductType
+                ProductIdentifier = "101" // Set required ProductType
             };
             var expectedResult = A.Fake<IResult<IBatchHandle>>();
 
