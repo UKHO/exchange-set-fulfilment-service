@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.EFS.Jobs.S63;
+﻿using UKHO.ADDS.EFS.Jobs.S100;
+using UKHO.ADDS.EFS.Jobs.S63;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Common;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.S63;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
@@ -22,7 +23,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly
             pipeline.AddChild(NodeFactory.CreateNode<GetExistingTimestampNode>(cancellationToken));
             pipeline.AddChild(NodeFactory.CreateNode<GetS63ProductsFromExistingTimestampNode>(cancellationToken));
             pipeline.AddChild(NodeFactory.CreateNode<CreateFileShareBatchNode>(cancellationToken));
-            pipeline.AddChild(NodeFactory.CreateNode<PersistS63JobNode>(cancellationToken));
+            pipeline.AddChild(NodeFactory.CreateNode<PersistJobNode<S63ExchangeSetJob>>(cancellationToken));
             pipeline.AddChild(NodeFactory.CreateNode<SetJobTypeNode>(cancellationToken));
             pipeline.AddChild(NodeFactory.CreateNode<RequestS63BuildNode>(cancellationToken));
 

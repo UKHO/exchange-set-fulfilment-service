@@ -8,9 +8,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Common
 {
     internal class CreateFileShareBatchNode : AssemblyPipelineNode<ExchangeSetJob>
     {
-        private readonly FileShareService _fileShareService;
+        private readonly IOrchestratorFileShareClient _fileShareService;
 
-        public CreateFileShareBatchNode(NodeEnvironment environment, FileShareService fileShareService)
+        public CreateFileShareBatchNode(NodeEnvironment environment, IOrchestratorFileShareClient fileShareService)
             : base(environment) =>
             _fileShareService = fileShareService;
 

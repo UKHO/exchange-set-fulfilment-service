@@ -1,37 +1,43 @@
 ﻿using Azure.Storage.Queues;
+using UKHO.ADDS.EFS.Builds;
+using UKHO.ADDS.EFS.Builds.S100;
+using UKHO.ADDS.EFS.Builds.S57;
+using UKHO.ADDS.EFS.Builds.S63;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
+using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.Jobs.S100;
+using UKHO.ADDS.EFS.Jobs.S57;
+using UKHO.ADDS.EFS.Jobs.S63;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S100;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S57;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S63;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services.Storage
 {
     internal class StorageInitializerService
     {
-        private readonly BuildStatusTable _buildStatusTable;
-        private readonly S100ExchangeSetJobTable _s100JobTable;
-        private readonly S63ExchangeSetJobTable _s63JobTable;
-        private readonly S57ExchangeSetJobTable _s57JobTable;
-        private readonly S100BuildSummaryTable _s100BuildSummaryTable;
-        private readonly S63BuildSummaryTable _s63BuildSummaryTable;
-        private readonly S57BuildSummaryTable _s57BuildSummaryTable;
         private readonly QueueServiceClient _queueClient;
-        private readonly ExchangeSetJobTypeTable _jobTypeTable;
-        private readonly ExchangeSetTimestampTable _timestampTable;
+
+        private readonly ITable<BuildStatus> _buildStatusTable;
+        private readonly ITable<S100ExchangeSetJob> _s100JobTable;
+        private readonly ITable<S63ExchangeSetJob> _s63JobTable;
+        private readonly ITable<S57ExchangeSetJob> _s57JobTable;
+        private readonly ITable<S100BuildSummary> _s100BuildSummaryTable;
+        private readonly ITable<S63BuildSummary> _s63BuildSummaryTable;
+        private readonly ITable<S57BuildSummary> _s57BuildSummaryTable;
+        private readonly ITable<ExchangeSetJobType> _jobTypeTable;
+        private readonly ITable<ExchangeSetTimestamp> _timestampTable;
 
         public StorageInitializerService
             (
                 QueueServiceClient queueClient,
-                ExchangeSetJobTypeTable jobTypeTable,
-                S100ExchangeSetJobTable s100JobTable,
-                S63ExchangeSetJobTable s63JobTable,
-                S57ExchangeSetJobTable s57JobTable,
-                S100BuildSummaryTable s100BuildSummaryTable,
-                S63BuildSummaryTable s63BuildSummaryTable,
-                S57BuildSummaryTable s57BuildSummaryTable,
-                ExchangeSetTimestampTable timestampTable,
-                BuildStatusTable buildStatusTable)
+                ITable<ExchangeSetJobType> jobTypeTable,
+                ITable<S100ExchangeSetJob> s100JobTable,
+                ITable<S63ExchangeSetJob> s63JobTable,
+                ITable<S57ExchangeSetJob> s57JobTable,
+                ITable<S100BuildSummary> s100BuildSummaryTable,
+                ITable<S63BuildSummary> s63BuildSummaryTable,
+                ITable<S57BuildSummary> s57BuildSummaryTable,
+                ITable<ExchangeSetTimestamp> timestampTable,
+                ITable<BuildStatus> buildStatusTable)
         {
             _queueClient = queueClient;
             _jobTypeTable = jobTypeTable;

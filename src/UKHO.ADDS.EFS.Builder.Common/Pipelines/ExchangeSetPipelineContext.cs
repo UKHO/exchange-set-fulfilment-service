@@ -6,7 +6,7 @@ using UKHO.ADDS.EFS.Jobs;
 
 namespace UKHO.ADDS.EFS.Builder.Common.Pipelines
 {
-    public abstract class ExchangeSetPipelineContext<T> where T : ExchangeSetJob
+    public abstract class ExchangeSetPipelineContext<TJob, TSummary> where TJob : ExchangeSetJob where TSummary : BuildSummary, new()
     {
         private readonly IConfiguration _configuration;
 
@@ -14,7 +14,7 @@ namespace UKHO.ADDS.EFS.Builder.Common.Pipelines
         private readonly BlobClientFactory _blobClientFactory;
         private readonly ILoggerFactory _loggerFactory;
 
-        private readonly BuildSummary _summary;
+        private readonly TSummary _summary;
 
         private string _jobId;
         private string _batchId;
@@ -33,14 +33,14 @@ namespace UKHO.ADDS.EFS.Builder.Common.Pipelines
             _jobId = string.Empty;
             _batchId = string.Empty;
 
-            _summary = new BuildSummary();
+            _summary = new TSummary();
         }
 
         public IConfiguration Configuration => _configuration;
 
         public ILoggerFactory LoggerFactory => _loggerFactory;
 
-        public BuildSummary Summary => _summary;
+        public TSummary Summary => _summary;
 
         public QueueClientFactory QueueClientFactory => _queueClientFactory;
 
@@ -70,7 +70,7 @@ namespace UKHO.ADDS.EFS.Builder.Common.Pipelines
 
         public string FileShareHealthEndpoint { get; set; }
 
-        public T Job { get; set; }
+        public TJob Job { get; set; }
 
         public string ExchangeSetNameTemplate { get; set; }
     }

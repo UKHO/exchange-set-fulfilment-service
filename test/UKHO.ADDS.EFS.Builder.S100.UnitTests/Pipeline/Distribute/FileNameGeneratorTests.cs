@@ -13,14 +13,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
        [Test]
         public void WhenGeneratingFromTemplateWithNoParams_ThenReturnsTemplateVerbatim()
         {
-            var context = new S100ExchangeSetPipelineContext(null, null, null, null, null)
-            {
-                JobId = DefaultJobId,
-                ExchangeSetNameTemplate = "Test"
-            };
+            var exchangeSetNameTemplate = "Test";
 
-            var sut = new FileNameGenerator<S100ExchangeSetJob>(context);
-            var result = sut.GenerateFileName();
+            var sut = new FileNameGenerator(exchangeSetNameTemplate);
+            var result = sut.GenerateFileName(DefaultJobId);
 
             Assert.That(result, Is.EqualTo("Test"));
         }
@@ -28,46 +24,24 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         [Test]
         public void WhenGeneratingFromTemplateWithDefaultJobIdParam_ThenReturnsTemplateVerbatim()
         {
-            var context = new S100ExchangeSetPipelineContext(null, null, null, null, null)
-            {
-                JobId = DefaultJobId,
-                ExchangeSetNameTemplate = "Test_[jobid]"
-            };
+            var exchangeSetNameTemplate = "Test_[jobid]";
 
-            var sut = new FileNameGenerator<S100ExchangeSetJob>(context);
-            var result = sut.GenerateFileName();
+            var sut = new FileNameGenerator(exchangeSetNameTemplate);
+            var result = sut.GenerateFileName(DefaultJobId);
 
             Assert.That(result, Is.EqualTo("Test_TEST123"));
         }
 
-        [Test]
-        public void WhenGeneratingFromTemplateWithOverrideJobIdParam_ThenReturnsTemplateVerbatim()
-        {
-            var context = new S100ExchangeSetPipelineContext(null, null, null, null, null)
-            {
-                JobId = DefaultJobId,
-                ExchangeSetNameTemplate = "Test_[jobid]"
-            };
-
-            var sut = new FileNameGenerator<S100ExchangeSetJob>(context);
-            var result = sut.GenerateFileName(jobId: "OVERRIDE");
-
-            Assert.That(result, Is.EqualTo("Test_OVERRIDE"));
-        }
 
         [Test]
         public void WhenGeneratingFromTemplateWithDateParam_ThenReturnsTemplateVerbatim()
         {
-            var context = new S100ExchangeSetPipelineContext(null, null, null, null, null)
-            {
-                JobId = DefaultJobId,
-                ExchangeSetNameTemplate = "Test_[date]"
-            };
+            var exchangeSetNameTemplate = "Test_[date]";
 
-            var sut = new FileNameGenerator<S100ExchangeSetJob>(context);
+            var sut = new FileNameGenerator(exchangeSetNameTemplate);
             var date = new DateTime(2023, 10, 5);
 
-            var result = sut.GenerateFileName(date: date);
+            var result = sut.GenerateFileName(DefaultJobId, date);
 
             Assert.That(result, Is.EqualTo($"Test_20231005"));
         }

@@ -1,17 +1,18 @@
 ﻿using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Jobs;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S100;
+using UKHO.ADDS.EFS.Jobs.S100;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.S100
+namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Common
 {
-    internal class UpdateS100JobNode : CompletionPipelineNode
+    internal class UpdateJobNode<TJob> : CompletionPipelineNode where TJob : ExchangeSetJob
     {
-        private readonly S100ExchangeSetJobTable _jobTable;
+        private readonly ITable<TJob> _jobTable;
 
-        public UpdateS100JobNode(S100ExchangeSetJobTable jobTable, NodeEnvironment environment)
+        public UpdateJobNode(NodeEnvironment environment, ITable<TJob> jobTable)
             : base(environment)
         {
             _jobTable = jobTable;
@@ -19,7 +20,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.S100
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<CompletionPipelineContext> context)
         {
-            var jobResult = await _jobTable.GetAsync(context.Subject.JobId, context.Subject.JobId);
+            var jobResult = await _jobTable.GetUniqueAsync(context.Subject.JobId);
 
             if (jobResult.IsSuccess(out var existingJob))
             {

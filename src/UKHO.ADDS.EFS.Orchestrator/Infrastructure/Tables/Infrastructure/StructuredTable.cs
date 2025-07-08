@@ -44,7 +44,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.Infrastructure
             }
         }
 
-        public async Task<Result<TEntity>> GetAsync(string partitionKey, string rowKey)
+        public Task<Result<TEntity>> GetUniqueAsync(string key)
+        {
+            return GetUniqueAsync(key, key);
+        }
+
+        public async Task<Result<TEntity>> GetUniqueAsync(string partitionKey, string rowKey)
         {
             partitionKey = SanitizeKey(partitionKey);
             rowKey = SanitizeKey(rowKey);
@@ -61,7 +66,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.Infrastructure
             return JsonCodec.Decode<TEntity>(serializedEntity)!;
         }
 
-        public async Task<IEnumerable<TEntity>> GetAsync(string partitionKey)
+        public async Task<IEnumerable<TEntity>> GetListAsync(string partitionKey)
         {
             partitionKey = SanitizeKey(partitionKey);
 
@@ -80,7 +85,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.Infrastructure
             });
         }
 
-        public async Task<IEnumerable<TEntity>> ListAsync()
+        public async Task<IEnumerable<TEntity>> GetAllAsync()
         {
             // TODO Continuation logic etc
 

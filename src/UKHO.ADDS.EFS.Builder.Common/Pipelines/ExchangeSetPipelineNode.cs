@@ -7,7 +7,7 @@ using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
 namespace UKHO.ADDS.EFS.Builder.Common.Pipelines
 {
-    public abstract class ExchangeSetPipelineNode<T, TJob> : Node<T> where T : ExchangeSetPipelineContext<TJob> where TJob : ExchangeSetJob
+    public abstract class ExchangeSetPipelineNode<T, TJob, TSummary> : Node<T> where T : ExchangeSetPipelineContext<TJob, TSummary> where TJob : ExchangeSetJob where TSummary : BuildSummary, new()
     {
         private readonly Stopwatch _stopwatch;
 

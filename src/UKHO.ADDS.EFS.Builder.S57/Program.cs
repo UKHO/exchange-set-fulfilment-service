@@ -129,7 +129,7 @@ namespace UKHO.ADDS.EFS.Builder.S57
             var services = new ServiceCollection();
 
             var configuration = new ConfigurationBuilder()
-                .AddS100BuilderConfiguration()
+                .AddBuilderConfiguration()
                 .Build();
 
             services.AddSingleton<IConfiguration>(x => configuration);

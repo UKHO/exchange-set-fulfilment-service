@@ -1,30 +1,29 @@
 ﻿using System.Dynamic;
 using HandlebarsDotNet;
-using UKHO.ADDS.EFS.Jobs;
 
 namespace UKHO.ADDS.EFS.Builder.Common.Pipelines.Distribute
 {
-    public class FileNameGenerator<T> where T : ExchangeSetJob
+    public class FileNameGenerator
     {
+        private readonly string _template;
+
         public const string JobId = "jobid";
         public const string Date = "date";
 
-        private readonly ExchangeSetPipelineContext<T> _context;
-
-        public FileNameGenerator(ExchangeSetPipelineContext<T>context)
+        public FileNameGenerator(string template)
         {
-            _context = context;
+            _template = template;
         }
 
-        public string GenerateFileName(string? jobId = null, DateTime? date = null)
+        public string GenerateFileName(string jobId, DateTime? date = null)
         {
             // Template uses [] rather than {{ }} to avoid being swapped out by the configuration service
-            var templateString = _context.ExchangeSetNameTemplate.Replace("[", "{{").Replace("]", "}}");
+            var templateString = _template.Replace("[", "{{").Replace("]", "}}");
 
             var template = Handlebars.Compile(templateString);
 
             var model = new ExpandoObject();
-            model.TryAdd(JobId, jobId ?? _context.JobId);
+            model.TryAdd(JobId, jobId);
 
             date ??= DateTime.UtcNow;
 

@@ -1,10 +1,8 @@
-﻿using UKHO.ADDS.EFS.Jobs;
-using UKHO.ADDS.EFS.Jobs.S100;
+﻿using UKHO.ADDS.EFS.Builds.S57;
+using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Jobs.S57;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S100;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S57;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Common;
-using UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.S57;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
@@ -12,9 +10,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion
 {
     internal class S57CompletionPipeline : CompletionPipeline
     {
-        private readonly S57ExchangeSetJobTable _jobTable;
+        private readonly ITable<S57ExchangeSetJob> _jobTable;
 
-        public S57CompletionPipeline(S57ExchangeSetJobTable jobTable, CompletionPipelineContext context, CompletionPipelineNodeFactory nodeFactory, ILogger<S57CompletionPipeline> logger)
+        public S57CompletionPipeline(ITable<S57ExchangeSetJob> jobTable, CompletionPipelineContext context, CompletionPipelineNodeFactory nodeFactory, ILogger<S57CompletionPipeline> logger)
             : base(context, nodeFactory, logger)
         {
             _jobTable = jobTable;
@@ -26,11 +24,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion
 
             var pipeline = new PipelineNode<CompletionPipelineContext>();
 
-            pipeline.AddChild(NodeFactory.CreateNode<GetS57BuildSummaryNode>(cancellationToken));
+            pipeline.AddChild(NodeFactory.CreateNode<GetBuildSummaryNode<S57BuildSummary>>(cancellationToken));
             pipeline.AddChild(NodeFactory.CreateNode<GetBuildStatusNode>(cancellationToken));
-            pipeline.AddChild(NodeFactory.CreateNode<GetS57JobNode>(cancellationToken));
+            pipeline.AddChild(NodeFactory.CreateNode<GetJobNode<S57ExchangeSetJob>>(cancellationToken));
             pipeline.AddChild(NodeFactory.CreateNode<UpdateBuildStatusNode>(cancellationToken));
-            pipeline.AddChild(NodeFactory.CreateNode<UpdateS57JobNode>(cancellationToken));
+            pipeline.AddChild(NodeFactory.CreateNode<UpdateJobNode<S57ExchangeSetJob>>(cancellationToken));
             pipeline.AddChild(NodeFactory.CreateNode<ReplayLogsNode>(cancellationToken));
             pipeline.AddChild(NodeFactory.CreateNode<CommitFileShareBatchNode>(cancellationToken));
             pipeline.AddChild(NodeFactory.CreateNode<ExpireOldFileShareBatchesNode>(cancellationToken));

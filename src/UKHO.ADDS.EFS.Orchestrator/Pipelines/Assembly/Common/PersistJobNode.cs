@@ -1,27 +1,26 @@
 ﻿using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
-using UKHO.ADDS.EFS.Jobs.S57;
+using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S57;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.S57
+namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Common
 {
-    internal class PersistS57JobNode : AssemblyPipelineNode<S57ExchangeSetJob>
+    internal class PersistJobNode<TJob> : AssemblyPipelineNode<TJob> where TJob : ExchangeSetJob
     {
-        private readonly BuildStatusTable _buildStatusTable;
-        private readonly S57ExchangeSetJobTable _jobTable;
+        private readonly ITable<BuildStatus> _buildStatusTable;
+        private readonly ITable<TJob> _jobTable;
 
-        public PersistS57JobNode(NodeEnvironment environment, S57ExchangeSetJobTable jobTable, BuildStatusTable buildStatusTable)
+        public PersistJobNode(NodeEnvironment environment, ITable<TJob> jobTable, ITable<BuildStatus> buildStatusTable)
             : base(environment)
         {
             _jobTable = jobTable;
             _buildStatusTable = buildStatusTable;
         }
 
-        protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<S57ExchangeSetJob> context)
+        protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<TJob> context)
         {
             var job = context.Subject;
 

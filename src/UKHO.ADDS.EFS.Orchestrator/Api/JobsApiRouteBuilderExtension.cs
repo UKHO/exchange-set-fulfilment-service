@@ -1,9 +1,11 @@
-﻿using UKHO.ADDS.EFS.Messages;
+﻿using UKHO.ADDS.EFS.Builds;
+using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.Jobs.S100;
+using UKHO.ADDS.EFS.Jobs.S57;
+using UKHO.ADDS.EFS.Jobs.S63;
+using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S100;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S57;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S63;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Api
 {
@@ -14,9 +16,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             var logger = loggerFactory.CreateLogger("JobsApi");
             var jobsEndpoint = routeBuilder.MapGroup("/jobs");
 
-            jobsEndpoint.MapGet("/{jobId}", async (string jobId, ExchangeSetJobTypeTable jobTypeTable, S100ExchangeSetJobTable s100JobTable, S63ExchangeSetJobTable s63JobTable, S57ExchangeSetJobTable s57JobTable) =>
+            jobsEndpoint.MapGet("/{jobId}", async (string jobId, ITable<ExchangeSetJobType> jobTypeTable, ITable<S100ExchangeSetJob> s100JobTable, ITable<S63ExchangeSetJob> s63JobTable, ITable<S57ExchangeSetJob> s57JobTable) =>
                 {
-                    var jobTypeResult = await jobTypeTable.GetAsync(jobId, jobId);
+                    var jobTypeResult = await jobTypeTable.GetUniqueAsync(jobId);
 
                     if (!jobTypeResult.IsSuccess(out var jobType))
                     {
@@ -26,7 +28,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                     switch (jobType.DataStandard)
                     {
                         case ExchangeSetDataStandard.S100:
-                            var s100JobResult = await s100JobTable.GetAsync(jobId, jobId);
+                            var s100JobResult = await s100JobTable.GetUniqueAsync(jobId);
 
                             if (s100JobResult.IsSuccess(out var s100Job))
                             {
@@ -35,7 +37,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                             break;
                         case ExchangeSetDataStandard.S63:
-                            var s63JobResult = await s63JobTable.GetAsync(jobId, jobId);
+                            var s63JobResult = await s63JobTable.GetUniqueAsync(jobId);
 
                             if (s63JobResult.IsSuccess(out var s63Job))
                             {
@@ -44,7 +46,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                             break;
                         case ExchangeSetDataStandard.S57:
-                            var s57JobResult = await s57JobTable.GetAsync(jobId, jobId);
+                            var s57JobResult = await s57JobTable.GetUniqueAsync(jobId);
 
                             if (s57JobResult.IsSuccess(out var s57Job))
                             {
@@ -61,9 +63,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 })
                 .WithDescription("Gets the job details for the given job request");
 
-            jobsEndpoint.MapGet("/{jobId}/status", async (string jobId, BuildStatusTable table) =>
+            jobsEndpoint.MapGet("/{jobId}/status", async (string jobId, ITable<BuildStatus> table) =>
                 {
-                    var statusResult = await table.GetAsync(jobId, jobId);
+                    var statusResult = await table.GetUniqueAsync(jobId);
 
                     if (statusResult.IsSuccess(out var status))
                     {

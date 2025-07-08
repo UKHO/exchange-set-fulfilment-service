@@ -8,9 +8,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.S63
 {
     internal class GetS63ProductsFromExistingTimestampNode : AssemblyPipelineNode<S63ExchangeSetJob>
     {
-        private readonly SalesCatalogueService _salesCatalogueService;
+        private readonly IOrchestratorSalesCatalogueClient _salesCatalogueService;
 
-        public GetS63ProductsFromExistingTimestampNode(NodeEnvironment environment, SalesCatalogueService salesCatalogueService)
+        public GetS63ProductsFromExistingTimestampNode(NodeEnvironment environment, IOrchestratorSalesCatalogueClient salesCatalogueService)
             : base(environment) =>
             _salesCatalogueService = salesCatalogueService;
 

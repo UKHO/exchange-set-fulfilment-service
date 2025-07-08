@@ -14,8 +14,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
     internal class FileShareServiceTest
     {
         private IFileShareReadWriteClient _fakeFileShareReadWriteClient;
-        private FileShareService _fileShareService;
-        private ILogger<FileShareService> _logger;
+        private OrchestratorFileShareClient _fileShareService;
+        private ILogger<OrchestratorFileShareClient> _logger;
         private const string CorrelationId = "TestCorrelationId";
         private const string BatchId = "TestBatchId";
 
@@ -23,8 +23,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         public void OneTimeSetUp()
         {
             _fakeFileShareReadWriteClient = A.Fake<IFileShareReadWriteClient>();
-            _logger = A.Fake<ILogger<FileShareService>>();
-            _fileShareService = new FileShareService(_fakeFileShareReadWriteClient, _logger);
+            _logger = A.Fake<ILogger<OrchestratorFileShareClient>>();
+            _fileShareService = new OrchestratorFileShareClient(_fakeFileShareReadWriteClient, _logger);
         }
 
         [Test]
@@ -33,7 +33,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         {
             var mockClient = A.Fake<IFileShareReadWriteClient>();
 
-            Assert.Throws<ArgumentNullException>(() => new FileShareService(mockClient, null));
+            Assert.Throws<ArgumentNullException>(() => new OrchestratorFileShareClient(mockClient, null));
         }
         
         [Test]

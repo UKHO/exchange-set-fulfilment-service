@@ -29,7 +29,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging
                 SalesCatalogueTimestamp = job.SalesCatalogueTimestamp,
                 State = job.State,
                 DataStandard = job.DataStandard,
-                ProductCount = job.Products?.Count ?? 0
+                ProductCount = job.Products?.Count() ?? 0
             };
         }
     }

@@ -10,7 +10,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
     /// <summary>
     ///     Service for managing file share operations with the File Share Service.
     /// </summary>
-    internal class FileShareService
+    internal class OrchestratorFileShareClient : IOrchestratorFileShareClient
     {
         private const string BusinessUnit = "ADDS-S100";
         private const string ProductType = "S-100";
@@ -21,15 +21,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
         private const string CommitBatch = "CommitBatch";
         private const string CreateBatch = "CreateBatch";
         private readonly IFileShareReadWriteClient _fileShareReadWriteClient;
-        private readonly ILogger<FileShareService> _logger;
+        private readonly ILogger<OrchestratorFileShareClient> _logger;
 
         /// <summary>
-        ///     Initializes a new instance of the <see cref="FileShareService" /> class.
+        ///     Initializes a new instance of the <see cref="OrchestratorFileShareClient" /> class.
         /// </summary>
         /// <param name="fileShareReadWriteClient">The file share read-write client.</param>
         /// <param name="logger">The logger.</param>
         /// <exception cref="ArgumentNullException">Thrown when fileShareReadWriteClient or logger is null.</exception>
-        public FileShareService(IFileShareReadWriteClient fileShareReadWriteClient, ILogger<FileShareService> logger)
+        public OrchestratorFileShareClient(IFileShareReadWriteClient fileShareReadWriteClient, ILogger<OrchestratorFileShareClient> logger)
         {
             _fileShareReadWriteClient = fileShareReadWriteClient ?? throw new ArgumentNullException(nameof(fileShareReadWriteClient));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

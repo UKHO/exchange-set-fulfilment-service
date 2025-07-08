@@ -134,7 +134,7 @@ namespace UKHO.ADDS.EFS.Builder.S63
 
             services.AddSingleton<IConfiguration>(x => configuration);
 
-            services.AddS100BuilderServices(configuration);
+            services.AddBuilderServices(configuration);
 
             return services.BuildServiceProvider();
         }

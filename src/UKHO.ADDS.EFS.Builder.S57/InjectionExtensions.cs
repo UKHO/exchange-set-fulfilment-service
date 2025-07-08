@@ -37,7 +37,7 @@ namespace UKHO.ADDS.EFS.Builder.S57
             return sink;
         }
 
-        public static IConfigurationBuilder AddS100BuilderConfiguration(this IConfigurationBuilder configurationBuilder)
+        public static IConfigurationBuilder AddBuilderConfiguration(this IConfigurationBuilder configurationBuilder)
         {
             // Do we have an ADDS Environment set? If not, we are being run manually from Visual Studio. This would normally be set by
             // either Azure or the local BuildRequestMonitor

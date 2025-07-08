@@ -7,9 +7,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Common
 {
     internal class CommitFileShareBatchNode : CompletionPipelineNode
     {
-        private readonly FileShareService _fileShareService;
+        private readonly IOrchestratorFileShareClient _fileShareService;
 
-        public CommitFileShareBatchNode(FileShareService fileShareService, NodeEnvironment environment)
+        public CommitFileShareBatchNode(NodeEnvironment environment, IOrchestratorFileShareClient fileShareService)
             : base(environment) =>
             _fileShareService = fileShareService;
 

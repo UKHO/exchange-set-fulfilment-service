@@ -99,7 +99,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.Infrastructure
             }
         }
 
-        public async Task<Result<TEntity>> GetAsync(string partitionKey, string rowKey)
+        public Task<Result<TEntity>> GetUniqueAsync(string key)
+        {
+            return GetUniqueAsync(key, key);
+        }
+
+        public async Task<Result<TEntity>> GetUniqueAsync(string partitionKey, string rowKey)
         {
             partitionKey = SanitizeKey(partitionKey);
             rowKey = SanitizeKey(rowKey);
@@ -130,7 +135,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.Infrastructure
             }
         }
 
-        public async Task<IEnumerable<TEntity>> GetAsync(string partitionKey)
+        public async Task<IEnumerable<TEntity>> GetListAsync(string partitionKey)
         {
             partitionKey = SanitizeKey(partitionKey);
 
@@ -163,7 +168,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.Infrastructure
             }
         }
 
-        public async Task<IEnumerable<TEntity>> ListAsync()
+        public async Task<IEnumerable<TEntity>> GetAllAsync()
         {
             try
             {
@@ -266,25 +271,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.Infrastructure
                 .Replace(" ", "_")
                 .Replace("\\", "_")
                 .Replace("/", "_");
-        }
-
-        private static string SanitizeContainerName(string containerName)
-        {
-            if (string.IsNullOrEmpty(containerName))
-            {
-                throw new ArgumentException("Container name cannot be null or empty.", nameof(containerName));
-            }
-
-            return containerName.Trim()
-                .ToLower()
-                .Replace(" ", "_")
-                .Replace("<", "")
-                .Replace(">", "")
-                .Replace(",", "")
-                .Replace(".", "-")
-                .Replace("_", "-")
-                .TrimStart('-')
-                .TrimEnd('-');
         }
     }
 }

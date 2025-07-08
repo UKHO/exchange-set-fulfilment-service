@@ -7,5 +7,7 @@ namespace UKHO.ADDS.EFS.Jobs
         public required string JobId { get; init; }
 
         public ExchangeSetDataStandard DataStandard { get; init; }
+
+        public required DateTime Timestamp { get; init; } = DateTime.UtcNow;
     }
 }

@@ -8,9 +8,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Common
 {
     internal class SetJobTypeNode : AssemblyPipelineNode<ExchangeSetJob>
     {
-        private readonly ExchangeSetJobTypeTable _jobTypeTable;
+        private readonly ITable<ExchangeSetJobType> _jobTypeTable;
 
-        public SetJobTypeNode(ExchangeSetJobTypeTable jobTypeTable, NodeEnvironment environment)
+        public SetJobTypeNode(NodeEnvironment environment, ITable<ExchangeSetJobType> jobTypeTable)
             : base(environment)
         {
             _jobTypeTable = jobTypeTable;
@@ -18,7 +18,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Common
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetJob> context)
         {
-            var jobType = new ExchangeSetJobType() { JobId = context.Subject.Id, DataStandard = context.Subject.DataStandard };
+            var jobType = new ExchangeSetJobType() { JobId = context.Subject.Id, DataStandard = context.Subject.DataStandard, Timestamp = DateTime.UtcNow};
             await _jobTypeTable.AddAsync(jobType);
 
             return NodeResultStatus.Succeeded;

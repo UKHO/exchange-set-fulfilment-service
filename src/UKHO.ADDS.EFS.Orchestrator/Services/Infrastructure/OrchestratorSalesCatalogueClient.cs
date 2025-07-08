@@ -10,19 +10,19 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
     /// <summary>
     ///     Service responsible for retrieving product information from the Sales Catalogue.
     /// </summary>
-    internal class SalesCatalogueService
+    internal class OrchestratorSalesCatalogueClient : IOrchestratorSalesCatalogueClient
     {
         private const string ScsApiVersion = "v2";
         private const string ProductType = "s100";
-        private readonly ILogger<SalesCatalogueService> _logger;
+        private readonly ILogger<OrchestratorSalesCatalogueClient> _logger;
         private readonly ISalesCatalogueClient _salesCatalogueClient;
 
         /// <summary>
-        ///     Initializes a new instance of the <see cref="SalesCatalogueService" /> class.
+        ///     Initializes a new instance of the <see cref="OrchestratorSalesCatalogueClient" /> class.
         /// </summary>
         /// <param name="salesCatalogueClient">Client for interacting with the Sales Catalogue API.</param>
         /// <param name="logger">Logger for recording diagnostic information.</param>
-        public SalesCatalogueService(ISalesCatalogueClient salesCatalogueClient, ILogger<SalesCatalogueService> logger)
+        public OrchestratorSalesCatalogueClient(ISalesCatalogueClient salesCatalogueClient, ILogger<OrchestratorSalesCatalogueClient> logger)
         {
             _salesCatalogueClient = salesCatalogueClient ?? throw new ArgumentNullException(nameof(salesCatalogueClient));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

@@ -9,10 +9,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Common
 {
     internal class ExpireOldFileShareBatchesNode : CompletionPipelineNode
     {
-        private readonly FileShareService _fileShareService;
-        private readonly ExchangeSetTimestampTable _timestampTable;
+        private readonly IOrchestratorFileShareClient _fileShareService;
+        private readonly ITable<ExchangeSetTimestamp> _timestampTable;
 
-        public ExpireOldFileShareBatchesNode(FileShareService fileShareService, ExchangeSetTimestampTable timestampTable, NodeEnvironment environment)
+        public ExpireOldFileShareBatchesNode(NodeEnvironment environment, IOrchestratorFileShareClient fileShareService, ITable<ExchangeSetTimestamp> timestampTable)
             : base(environment)
         {
             _fileShareService = fileShareService;

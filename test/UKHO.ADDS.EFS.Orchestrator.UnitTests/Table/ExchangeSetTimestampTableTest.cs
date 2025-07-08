@@ -78,7 +78,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
                     A<CancellationToken>.Ignored))
                 .Returns(new List<JsonEntity>().CreateAsyncPageable());
 
-            var result = await _exchangeSetTimestampTable.GetAsync(PartitionKey, RowKey);
+            var result = await _exchangeSetTimestampTable.GetUniqueAsync(PartitionKey, RowKey);
 
             Assert.That(result.IsSuccess, Is.False);
         }
@@ -103,7 +103,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
                     A<CancellationToken>.Ignored))
                 .Returns(fakeTable.CreateAsyncPageable());
 
-            var result = await _exchangeSetTimestampTable.GetAsync(PartitionKey, RowKey);
+            var result = await _exchangeSetTimestampTable.GetUniqueAsync(PartitionKey, RowKey);
             result.IsSuccess(out var value, out var error);
 
             Assert.Multiple(() =>
@@ -124,7 +124,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
                     A<CancellationToken>.Ignored))
                 .Returns(new List<JsonEntity>().CreateAsyncPageable());
 
-            var result = await _exchangeSetTimestampTable.GetAsync(PartitionKey);
+            var result = await _exchangeSetTimestampTable.GetListAsync(PartitionKey);
 
             Assert.That(result, Is.Empty);
         }
@@ -155,7 +155,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
                     A<CancellationToken>.Ignored))
                 .Returns(fakeTable.CreateAsyncPageable());
 
-            var result = await _exchangeSetTimestampTable.GetAsync(PartitionKey);
+            var result = await _exchangeSetTimestampTable.GetListAsync(PartitionKey);
 
             Assert.Multiple(() =>
             {

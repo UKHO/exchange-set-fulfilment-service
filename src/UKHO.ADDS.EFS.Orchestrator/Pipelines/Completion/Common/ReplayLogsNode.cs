@@ -9,7 +9,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Common
     {
         private readonly BuilderLogForwarder _logForwarder;
 
-        public ReplayLogsNode(BuilderLogForwarder logForwarder, NodeEnvironment environment)
+        public ReplayLogsNode(NodeEnvironment environment, BuilderLogForwarder logForwarder)
             : base(environment) =>
             _logForwarder = logForwarder;
 
