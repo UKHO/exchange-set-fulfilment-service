@@ -16,6 +16,8 @@ param efs_storage_connection_string string
 
 param fss_endpoint string
 
+param fss_endpoint_health string
+
 param azure_env_name string
 
 param max_retry_attempts string
@@ -25,6 +27,9 @@ param retry_delay_ms string
 resource efsbuilders100 'Microsoft.App/jobs@2025-01-01' = {
   name: 'efs-builder-s100'
   location: location
+  tags: {
+    'hidden-title': 'EFS'
+  }
   identity: {
     type: 'UserAssigned'
     userAssignedIdentities: {
@@ -87,6 +92,10 @@ resource efsbuilders100 'Microsoft.App/jobs@2025-01-01' = {
             {
               name: 'FSS_ENDPOINT'
               value: fss_endpoint
+            }
+            {
+              name: 'FSS_ENDPOINT_HEALTH'
+              value: fss_endpoint_health
             }
             {
               name: 'REQUEST_QUEUE_NAME'
