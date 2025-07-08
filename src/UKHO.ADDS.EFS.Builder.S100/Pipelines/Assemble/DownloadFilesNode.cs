@@ -11,6 +11,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
     internal class DownloadFilesNode : S100ExchangeSetPipelineNode
     {
         private readonly IFileShareReadOnlyClient _fileShareReadOnlyClient;
+        private readonly IConfiguration _configuration;
+        private readonly int _maxConcurrentDownloads;
+        private readonly SemaphoreSlim _downloadFileConcurrencyLimiter;
         private ILogger _logger;
 
         private const long FileSizeInBytes = 10485760;
@@ -25,10 +28,27 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private const int NumericPartStartIndex = 1;  // Skip the period
         private const int MinNumericValue = 000;
         private const int MaxNumericValue = 999;
+        private const int FileStreamBufferSize = 81920; // 80KB buffer size
+        private const int DefaultConcurrentDownloads = 1; // Default number of concurrent downloads if not specified in config
 
-        public DownloadFilesNode(IFileShareReadOnlyClient fileShareReadOnlyClient)
+        /// <summary>
+        /// Gets the maximum number of concurrent downloads allowed
+        /// </summary>
+        private int MaxConcurrentDownloads => _maxConcurrentDownloads;
+
+        public DownloadFilesNode(IFileShareReadOnlyClient fileShareReadOnlyClient, IConfiguration configuration)
         {
             _fileShareReadOnlyClient = fileShareReadOnlyClient ?? throw new ArgumentNullException(nameof(fileShareReadOnlyClient));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            
+            // First try to get the configuration from the UKHO.ADDS.EFS.Builder.S100 section
+            if (!int.TryParse(_configuration["ConcurrentDownloadLimitCount"], out _maxConcurrentDownloads))
+            {
+                // Fall back to default value if not configured
+                _maxConcurrentDownloads = DefaultConcurrentDownloads;
+            }
+            
+            _downloadFileConcurrencyLimiter = new SemaphoreSlim(_maxConcurrentDownloads);
         }
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<S100ExchangeSetPipelineContext> context)
@@ -67,62 +87,122 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 .Select(g => g.OrderByDescending(x => x.Batch.BatchPublishedDate).First().Batch);
         }
 
-        private async Task<NodeResultStatus> DownloadLatestBatchFilesAsync(IEnumerable<BatchDetails> latestBatches, string workSpaceRootPath, string correlationId, string workSpaceSpoolDataSetFilesPath, string workSpaceSpoolSupportFilesPath)
+        private async Task<NodeResultStatus> DownloadLatestBatchFilesAsync(
+            IEnumerable<BatchDetails> latestBatches,
+            string workSpaceRootPath,
+            string correlationId,
+            string workSpaceSpoolDataSetFilesPath,
+            string workSpaceSpoolSupportFilesPath)
         {
-            // Track directories we've already created
             var createdDirectories = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-            // Ensure main directory exists
             CreateDirectoryIfNotExists(workSpaceRootPath, createdDirectories);
 
-            // Flatten batch and file structure into a single enumeration
-            var allFilesToProcess = latestBatches
-                .Where(batch => batch.Files.Any())
-                .SelectMany(batch => batch.Files.Select(file => new
-                {
-                    Batch = batch,
-                    FileName = file.Filename
-                }))
-                .ToList();
-
-            // Return early if no files to process
+            var allFilesToProcess = GetAllFilesToProcess(latestBatches);
             if (allFilesToProcess.Count == 0)
             {
                 _logger.LogDownloadFilesNodeNoFilesToProcessError("No files found for processing");
                 return NodeResultStatus.Failed;
             }
 
-            // First, determine and create all required directories
+            CreateRequiredDirectories(
+                allFilesToProcess,
+                workSpaceRootPath,
+                workSpaceSpoolDataSetFilesPath,
+                workSpaceSpoolSupportFilesPath,
+                createdDirectories);
+
+            var downloadTasks = CreateDownloadTasks(
+                allFilesToProcess,
+                workSpaceRootPath,
+                workSpaceSpoolDataSetFilesPath,
+                workSpaceSpoolSupportFilesPath,
+                correlationId);
+
+            try
+            {
+                await Task.WhenAll(downloadTasks);
+                return NodeResultStatus.Succeeded;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDownloadFilesNodeFailed(ex);
+                return NodeResultStatus.Failed;
+            }
+        }
+
+        private List<(BatchDetails Batch, string FileName)> GetAllFilesToProcess(IEnumerable<BatchDetails> latestBatches)
+        {
+            return latestBatches
+                .Where(batch => batch.Files.Any())
+                .SelectMany(batch => batch.Files.Select(file => (batch, file.Filename)))
+                .ToList();
+        }
+
+        private void CreateRequiredDirectories(
+            List<(BatchDetails Batch, string FileName)> allFilesToProcess,
+            string workSpaceRootPath,
+            string workSpaceSpoolDataSetFilesPath,
+            string workSpaceSpoolSupportFilesPath,
+            HashSet<string> createdDirectories)
+        {
             var fileDirectoryPaths = allFilesToProcess
-                .Select(item => GetDirectoryPathForFile(workSpaceRootPath, item.FileName, workSpaceSpoolDataSetFilesPath, workSpaceSpoolSupportFilesPath))
+                .Select(item => GetDirectoryPathForFile(
+                    workSpaceRootPath,
+                    item.FileName,
+                    workSpaceSpoolDataSetFilesPath,
+                    workSpaceSpoolSupportFilesPath))
                 .Distinct();
 
             foreach (var directoryPath in fileDirectoryPaths)
             {
                 CreateDirectoryIfNotExists(directoryPath, createdDirectories);
             }
+        }
 
-            // Now download all files (all directories are guaranteed to exist)
-            var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<Stream>(_logger, "GetDirectoryPathForFile");
-            foreach (var item in allFilesToProcess)
+        private IEnumerable<Task> CreateDownloadTasks(
+            List<(BatchDetails Batch, string FileName)> allFilesToProcess,
+            string workSpaceRootPath,
+            string workSpaceSpoolDataSetFilesPath,
+            string workSpaceSpoolSupportFilesPath,
+            string correlationId)
+        {
+            var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<Stream>(_logger, "DownloadFile");
+
+            return allFilesToProcess.Select(async item =>
             {
-                var directoryPath = GetDirectoryPathForFile(workSpaceRootPath, item.FileName, workSpaceSpoolDataSetFilesPath, workSpaceSpoolSupportFilesPath);
-                var downloadPath = Path.Combine(directoryPath, item.FileName);
-
-                await using var outputFileStream = new FileStream(downloadPath, FileMode.Create, FileAccess.Write);
-
-                var streamResult = await retryPolicy.ExecuteAsync(() =>
-                    _fileShareReadOnlyClient.DownloadFileAsync(
-                        item.Batch.BatchId, item.FileName, outputFileStream, correlationId, FileSizeInBytes));
-
-                if (streamResult.IsFailure(out var error, out var value))
+                await _downloadFileConcurrencyLimiter.WaitAsync();
+                try
                 {
-                    LogFssDownloadFailed(item.Batch, item.FileName, error, correlationId);
-                    return NodeResultStatus.Failed;
-                }
-            }
+                    var directoryPath = GetDirectoryPathForFile(
+                        workSpaceRootPath,
+                        item.FileName,
+                        workSpaceSpoolDataSetFilesPath,
+                        workSpaceSpoolSupportFilesPath);
+                    var downloadPath = Path.Combine(directoryPath, item.FileName);
 
-            return NodeResultStatus.Succeeded;
+                    await using var outputFileStream = new FileStream(
+                        downloadPath,
+                        FileMode.Create,
+                        FileAccess.Write,
+                        FileShare.None,
+                        FileStreamBufferSize,
+                        FileOptions.Asynchronous);
+
+                    var streamResult = await retryPolicy.ExecuteAsync(() =>
+                        _fileShareReadOnlyClient.DownloadFileAsync(
+                            item.Batch.BatchId, item.FileName, outputFileStream, correlationId, FileSizeInBytes));
+
+                    if (streamResult.IsFailure(out var error, out var value))
+                    {
+                        LogFssDownloadFailed(item.Batch, item.FileName, error, correlationId);
+                        throw new Exception($"Failed to download {item.FileName}");
+                    }
+                }
+                finally
+                {
+                    _downloadFileConcurrencyLimiter.Release();
+                }
+            });
         }
 
         private static void CreateDirectoryIfNotExists(string downloadPath, HashSet<string>? createdDirectories = null)
@@ -173,13 +253,19 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 return false;
             }
 
-            // Check for numeric extensions (.000 to .999)
-            var isNumericExtension = extension is { Length: NumericExtensionLength } &&
-                                     int.TryParse(extension[NumericPartStartIndex..], out var extNum) &&
-                                     extNum is >= MinNumericValue and <= MaxNumericValue;
+            // Check for numeric extensions (.000 to .999) using ReadOnlySpan for better performance
+            if (extension.Length == NumericExtensionLength)
+            {
+                ReadOnlySpan<char> numericPart = extension.AsSpan(NumericPartStartIndex);
+                if (int.TryParse(numericPart, out var extNum) &&
+                    extNum is >= MinNumericValue and <= MaxNumericValue)
+                {
+                    return true;
+                }
+            }
 
-            // Either numeric extension or H5 extension
-            return isNumericExtension || extension.Equals(H5Extension, StringComparison.OrdinalIgnoreCase);
+            // H5 extension
+            return extension.Equals(H5Extension, StringComparison.OrdinalIgnoreCase);
         }
 
         private void LogFssDownloadFailed(BatchDetails batch, string fileName, IError error, string correlationId)
