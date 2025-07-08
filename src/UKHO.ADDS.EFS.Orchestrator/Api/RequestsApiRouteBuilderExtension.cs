@@ -2,7 +2,7 @@
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Extensions;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
-using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
+using UKHO.ADDS.EFS.Orchestrator.Pipelines2.Infrastructure;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Api
 {

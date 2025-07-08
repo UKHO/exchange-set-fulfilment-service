@@ -1,15 +1,14 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using UKHO.ADDS.EFS.Builder.Common.Factories;
 using UKHO.ADDS.EFS.Builder.Common.Pipelines;
-using UKHO.ADDS.EFS.Builds.S63;
-using UKHO.ADDS.EFS.Jobs.S63;
+using UKHO.ADDS.EFS.NewEFS.S63;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
 namespace UKHO.ADDS.EFS.Builder.S63.Pipelines
 {
     [ExcludeFromCodeCoverage]
-    internal class S63ExchangeSetPipelineContext : ExchangeSetPipelineContext<S63ExchangeSetJob, S63BuildSummary>
+    internal class S63ExchangeSetPipelineContext : ExchangeSetPipelineContext<S63Build>
     {
         
         public S63ExchangeSetPipelineContext(

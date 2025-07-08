@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-using UKHO.ADDS.EFS.Messages;
+using UKHO.ADDS.EFS.NewEFS;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
@@ -16,7 +16,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
             _replayLevel = configuration.GetValue("Builders:LogReplayLevel", LogLevel.Information);
         }
 
-        public void ForwardLogs(IEnumerable<string> messages, ExchangeSetDataStandard dataStandard, string jobId)
+        public void ForwardLogs(IEnumerable<string> messages, DataStandard dataStandard, string jobId)
         {
             var builderName = $"Builder-{dataStandard}-{jobId}";
             var logger = _loggerFactory.CreateLogger(builderName);

@@ -1,4 +1,4 @@
-﻿using UKHO.ADDS.EFS.Jobs;
+﻿using UKHO.ADDS.EFS.NewEFS;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.Infrastructure.Pipelines;
@@ -8,9 +8,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Common
 {
     internal class GetExistingTimestampNode : AssemblyPipelineNode<ExchangeSetJob>
     {
-        private readonly ITable<ExchangeSetTimestamp> _timestampTable;
+        private readonly ITable<DataStandardTimestamp> _timestampTable;
 
-        public GetExistingTimestampNode(NodeEnvironment environment, ITable<ExchangeSetTimestamp> timestampTable)
+        public GetExistingTimestampNode(NodeEnvironment environment, ITable<DataStandardTimestamp> timestampTable)
             : base(environment) =>
             _timestampTable = timestampTable;
 

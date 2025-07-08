@@ -3,8 +3,7 @@ using Azure;
 using Azure.Data.Tables;
 using Azure.Data.Tables.Models;
 using FakeItEasy;
-using UKHO.ADDS.EFS.Jobs;
-using UKHO.ADDS.EFS.Messages;
+using UKHO.ADDS.EFS.NewEFS;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.UnitTests.Extensions;
@@ -13,12 +12,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
 {
     public class ExchangeSetTimestampTableTest
     {
-        private ExchangeSetTimestampTable _exchangeSetTimestampTable;
+        private DataStandardTimestampTable _exchangeSetTimestampTable;
         private TableServiceClient _fakeTableServiceClient;
         private TableClient _fakeTableClient;
         private const string PartitionKey = "validPartitionKey";
         private const string RowKey = "validRowKey";
-        private ExchangeSetTimestamp _entity;
+        private DataStandardTimestamp _entity;
 
         [SetUp]
         public void SetUp()
@@ -29,15 +28,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
             A.CallTo(() => _fakeTableServiceClient.GetTableClient(A<string>.Ignored))
                 .Returns(_fakeTableClient);
 
-            _exchangeSetTimestampTable = new ExchangeSetTimestampTable(_fakeTableServiceClient);
+            _exchangeSetTimestampTable = new DataStandardTimestampTable(_fakeTableServiceClient);
         }
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
-             _entity = new ExchangeSetTimestamp
+             _entity = new DataStandardTimestamp
             {
-                DataStandard = ExchangeSetDataStandard.S100,
+                DataStandard = DataStandard.S100,
                 Timestamp = DateTime.UtcNow
             };
         }
@@ -109,7 +108,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
             Assert.Multiple(() =>
             {
                 Assert.That(result.IsSuccess, Is.True);
-                Assert.That(value?.DataStandard, Is.EqualTo(ExchangeSetDataStandard.S100));
+                Assert.That(value?.DataStandard, Is.EqualTo(DataStandard.S100));
                 Assert.That(value?.Timestamp, Is.EqualTo(DateTime.Parse("2023-10-01T00:00:00Z").ToUniversalTime()));
             });
         }
@@ -159,12 +158,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table
 
             Assert.Multiple(() =>
             {
-                var exchangeSetTimestamps = result as ExchangeSetTimestamp[] ?? result.ToArray();
+                var exchangeSetTimestamps = result as DataStandardTimestamp[] ?? result.ToArray();
                 Assert.That(exchangeSetTimestamps, Is.Not.Empty);
                 Assert.That(exchangeSetTimestamps.Count(), Is.EqualTo(2));
-                Assert.That(exchangeSetTimestamps.First().DataStandard, Is.EqualTo(ExchangeSetDataStandard.S100));
+                Assert.That(exchangeSetTimestamps.First().DataStandard, Is.EqualTo(DataStandard.S100));
                 Assert.That(exchangeSetTimestamps.First().Timestamp, Is.EqualTo(DateTime.Parse("2023-10-01T00:00:00Z").ToUniversalTime()));
-                Assert.That(exchangeSetTimestamps.Last().DataStandard, Is.EqualTo(ExchangeSetDataStandard.S63));
+                Assert.That(exchangeSetTimestamps.Last().DataStandard, Is.EqualTo(DataStandard.S63));
                 Assert.That(exchangeSetTimestamps.Last().Timestamp, Is.EqualTo(DateTime.Parse("2023-10-02T00:00:00Z").ToUniversalTime()));
             });
         }

@@ -1,4 +1,4 @@
-﻿using UKHO.ADDS.EFS.Jobs;
+﻿using UKHO.ADDS.EFS.NewEFS;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
@@ -10,9 +10,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Common
     internal class ExpireOldFileShareBatchesNode : CompletionPipelineNode
     {
         private readonly IOrchestratorFileShareClient _fileShareService;
-        private readonly ITable<ExchangeSetTimestamp> _timestampTable;
+        private readonly ITable<DataStandardTimestamp> _timestampTable;
 
-        public ExpireOldFileShareBatchesNode(NodeEnvironment environment, IOrchestratorFileShareClient fileShareService, ITable<ExchangeSetTimestamp> timestampTable)
+        public ExpireOldFileShareBatchesNode(NodeEnvironment environment, IOrchestratorFileShareClient fileShareService, ITable<DataStandardTimestamp> timestampTable)
             : base(environment)
         {
             _fileShareService = fileShareService;
@@ -43,7 +43,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Common
 
             if (job.State == ExchangeSetJobState.Succeeded)
             {
-                var updateTimestampEntity = new ExchangeSetTimestamp { DataStandard = job.DataStandard, Timestamp = job.SalesCatalogueTimestamp };
+                var updateTimestampEntity = new DataStandardTimestamp { DataStandard = job.DataStandard, Timestamp = job.SalesCatalogueTimestamp };
 
                 await _timestampTable.UpsertAsync(updateTimestampEntity);
             }

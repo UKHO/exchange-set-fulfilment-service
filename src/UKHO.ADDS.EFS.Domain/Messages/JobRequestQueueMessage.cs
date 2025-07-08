@@ -1,4 +1,6 @@
-﻿namespace UKHO.ADDS.EFS.Messages
+﻿using UKHO.ADDS.EFS.NewEFS;
+
+namespace UKHO.ADDS.EFS.Messages
 {
     /// <summary>
     /// <see cref="JobRequestQueueMessage"/> is written to the queue by the EFS service when a new exchange set request is received.
@@ -9,7 +11,7 @@
 
         public required DateTime Timestamp { get; init; }
 
-        public required ExchangeSetDataStandard DataStandard { get; init; }
+        public required DataStandard DataStandard { get; init; }
 
         public required string Products { get; init; }
 

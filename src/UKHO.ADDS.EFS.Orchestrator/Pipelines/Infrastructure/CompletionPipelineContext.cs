@@ -1,7 +1,7 @@
 ﻿using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Jobs;
-using UKHO.ADDS.EFS.Messages;
+using UKHO.ADDS.EFS.NewEFS;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
 {
@@ -11,13 +11,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
 
         public required BuilderExitCode ExitCode { get; init; }
 
-        public required ExchangeSetDataStandard DataStandard { get; init; }
+        public required DataStandard DataStandard { get; init; }
 
         public BuildSummary? BuildSummary { get; set; }
         public BuildStatus? BuildStatus { get; set; }
         public ExchangeSetJob? Job { get; set; }
 
-        public static CompletionPipelineContext CreateFrom(BuildResponse buildResponse, ExchangeSetDataStandard dataStandard)
+        public static CompletionPipelineContext CreateFrom(BuildResponse buildResponse, DataStandard dataStandard)
         {
             return new() { DataStandard = dataStandard, ExitCode = buildResponse.ExitCode, JobId = buildResponse.JobId };
         }

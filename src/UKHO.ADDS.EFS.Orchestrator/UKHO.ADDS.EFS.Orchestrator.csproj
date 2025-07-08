@@ -8,12 +8,24 @@
 
   <ItemGroup>
     <Compile Remove="OLD\**" />
+    <Compile Remove="Pipelines\**" />
     <Content Remove="OLD\**" />
+    <Content Remove="Pipelines\**" />
     <EmbeddedResource Remove="OLD\**" />
+    <EmbeddedResource Remove="Pipelines\**" />
     <None Remove="OLD\**" />
+    <None Remove="Pipelines\**" />
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Infrastructure\Tables\BuildStatusTable.cs" />
+    <Compile Remove="Infrastructure\Tables\ExchangeSetJobTypeTable.cs" />
+    <Compile Remove="Infrastructure\Tables\S100\S100BuildSummaryTable.cs" />
+    <Compile Remove="Infrastructure\Tables\S100\S100ExchangeSetJobTable.cs" />
+    <Compile Remove="Infrastructure\Tables\S57\S57BuildSummaryTable.cs" />
+    <Compile Remove="Infrastructure\Tables\S57\S57ExchangeSetJobTable.cs" />
+    <Compile Remove="Infrastructure\Tables\S63\S63BuildSummaryTable.cs" />
+    <Compile Remove="Infrastructure\Tables\S63\S63ExchangeSetJobTable.cs" />
     <Compile Remove="Services\Infrastructure\IFileShareService.cs" />
     <Compile Remove="Services\Infrastructure\ISalesCatalogueService.cs" />
   </ItemGroup>
@@ -49,6 +61,18 @@
     <ProjectReference Include="..\UKHO.ADDS.EFS.Analyzers\UKHO.ADDS.EFS.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\UKHO.ADDS.EFS.Aspire\UKHO.ADDS.EFS.Aspire.csproj" />
     <ProjectReference Include="..\UKHO.ADDS.EFS.Domain\UKHO.ADDS.EFS.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Pipelines2\Assembly\Nodes\Common\" />
+    <Folder Include="Pipelines2\Assembly\Nodes\S57\" />
+    <Folder Include="Pipelines2\Assembly\Nodes\S63\" />
+    <Folder Include="Pipelines2\Assembly\Nodes\S100\" />
+    <Folder Include="Pipelines2\Completion\Nodes\Common\" />
+    <Folder Include="Pipelines2\Completion\Nodes\S100\" />
+    <Folder Include="Pipelines2\Completion\Nodes\S57\" />
+    <Folder Include="Pipelines2\Completion\Nodes\S63\" />
+    <Folder Include="Pipelines2\States\" />
   </ItemGroup>
 
 </Project>

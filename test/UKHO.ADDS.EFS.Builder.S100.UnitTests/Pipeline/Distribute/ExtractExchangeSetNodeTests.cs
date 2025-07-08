@@ -3,7 +3,8 @@ using Microsoft.Extensions.Logging;
 using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute;
-using UKHO.ADDS.EFS.Jobs.S100;
+using UKHO.ADDS.EFS.NewEFS;
+using UKHO.ADDS.EFS.NewEFS.S100;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
@@ -41,7 +42,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         {
             _pipelineContext = new S100ExchangeSetPipelineContext(null, _toolClient, null, null, _loggerFactory)
             {
-                Job = new S100ExchangeSetJob { Id = "testId" },
+                Build = new S100Build
+                {
+                    JobId = "testId",
+                    BatchId = "a-batch-id",
+                    BuildState = BuildState.Scheduled,
+                    DataStandard = DataStandard.S100
+                },
                 WorkspaceAuthenticationKey = "authKey"
             };
 

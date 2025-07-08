@@ -6,16 +6,12 @@ using Microsoft.OpenApi.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.SalesCatalogueService;
 using UKHO.ADDS.EFS.Builds;
-using UKHO.ADDS.EFS.Builds.S100;
-using UKHO.ADDS.EFS.Builds.S57;
-using UKHO.ADDS.EFS.Builds.S63;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Extensions;
-using UKHO.ADDS.EFS.Jobs;
-using UKHO.ADDS.EFS.Jobs.S100;
-using UKHO.ADDS.EFS.Jobs.S57;
-using UKHO.ADDS.EFS.Jobs.S63;
-using UKHO.ADDS.EFS.Messages;
+using UKHO.ADDS.EFS.NewEFS;
+using UKHO.ADDS.EFS.NewEFS.S100;
+using UKHO.ADDS.EFS.NewEFS.S57;
+using UKHO.ADDS.EFS.NewEFS.S63;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
@@ -23,7 +19,7 @@ using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S100;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S57;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S63;
 using UKHO.ADDS.EFS.Orchestrator.Monitors;
-using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
+using UKHO.ADDS.EFS.Orchestrator.Pipelines2.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Services.Storage;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
@@ -62,17 +58,13 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddHostedService<S63BuildResponseMonitor>();
             builder.Services.AddHostedService<S57BuildResponseMonitor>();
 
-            builder.Services.AddSingleton<ITable<S100ExchangeSetJob>, S100ExchangeSetJobTable>();
-            builder.Services.AddSingleton<ITable<S63ExchangeSetJob>, S63ExchangeSetJobTable>();
-            builder.Services.AddSingleton<ITable<S57ExchangeSetJob>, S57ExchangeSetJobTable>();
+            builder.Services.AddSingleton<ITable<S100Build>, S100BuildTable>();
+            builder.Services.AddSingleton<ITable<S63Build>, S63BuildTable>();
+            builder.Services.AddSingleton<ITable<S57Build>, S57BuildTable>();
 
-            builder.Services.AddTransient<ITable<ExchangeSetTimestamp>, ExchangeSetTimestampTable>();
-            builder.Services.AddTransient<ITable<ExchangeSetJobType>, ExchangeSetJobTypeTable>();
-            builder.Services.AddSingleton<ITable<BuildStatus>, BuildStatusTable>();
-
-            builder.Services.AddSingleton<ITable<S100BuildSummary>, S100BuildSummaryTable>();
-            builder.Services.AddSingleton<ITable<S63BuildSummary>, S63BuildSummaryTable>();
-            builder.Services.AddSingleton<ITable<S57BuildSummary>, S57BuildSummaryTable>();
+            builder.Services.AddTransient<ITable<DataStandardTimestamp>, DataStandardTimestampTable>();
+            builder.Services.AddTransient<ITable<Job>, JobTable>();
+            builder.Services.AddTransient<ITable<JobHistory>, JobHistoryTable>();
 
             builder.Services.AddTransient<BuilderLogForwarder>();
             builder.Services.AddTransient<StorageInitializerService>();

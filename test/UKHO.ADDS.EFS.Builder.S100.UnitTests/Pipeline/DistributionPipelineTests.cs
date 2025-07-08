@@ -2,11 +2,11 @@
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
-using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
 using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute;
-using UKHO.ADDS.EFS.Jobs.S100;
+using UKHO.ADDS.EFS.NewEFS;
+using UKHO.ADDS.EFS.NewEFS.S100;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
@@ -40,13 +40,19 @@ public class DistributionPipelineTests
         _distributionPipeline = new DistributionPipeline(_fileShareReadWriteClient);
         _pipelineContext = new S100ExchangeSetPipelineContext(null, _toolClient, null, null, _loggerFactory)
         {
-            Job = new S100ExchangeSetJob { Id = "testId" },
+            Build = new S100Build()
+            {
+                JobId = "testId",
+                BatchId = "a-batch-id",
+                BuildState = BuildState.Scheduled,
+                DataStandard = DataStandard.S100
+            },
             WorkspaceAuthenticationKey = "authKey",
             ExchangeSetFilePath = Directory.GetParent(tempPath.TrimEnd(Path.DirectorySeparatorChar))!.FullName!,
             ExchangeSetArchiveFolderName = new DirectoryInfo(tempPath.TrimEnd(Path.DirectorySeparatorChar)).Name
         };
 
-        _tempFilePath = Path.Combine(_pipelineContext.ExchangeSetFilePath, _pipelineContext.ExchangeSetArchiveFolderName, _pipelineContext.Job.Id + ".zip");
+        _tempFilePath = Path.Combine(_pipelineContext.ExchangeSetFilePath, _pipelineContext.ExchangeSetArchiveFolderName, _pipelineContext.Build.JobId + ".zip");
         File.WriteAllText(_tempFilePath, "Temporary test file content.");
         A.CallTo(() => _executionContext.Subject).Returns(_pipelineContext);
     }

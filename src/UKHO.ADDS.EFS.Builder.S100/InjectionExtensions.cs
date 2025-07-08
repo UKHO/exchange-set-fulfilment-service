@@ -52,7 +52,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
                 Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.AddsEnvironment, "local");
                 Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.RequestQueueName, StorageConfiguration.S100BuildRequestQueueName);
                 Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.ResponseQueueName, StorageConfiguration.S100BuildResponseQueueName);
-                Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.BlobContainerName, StorageConfiguration.S100JobContainer);
+                Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.BlobContainerName, StorageConfiguration.S100BuildContainer);
 
                 // Paths are different when running in debug under VS
                 var catalinaHomePath = Environment.GetEnvironmentVariable("CATALINA_HOME") ?? string.Empty;

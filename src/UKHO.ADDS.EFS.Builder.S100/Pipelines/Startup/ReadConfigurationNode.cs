@@ -1,6 +1,5 @@
-﻿using Serilog;
-using UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging;
-using UKHO.ADDS.EFS.Builds;
+﻿using UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging;
+using UKHO.ADDS.EFS.Builds.S100;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
@@ -20,7 +19,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
                 var requestQueue = context.Subject.QueueClientFactory.CreateRequestQueueClient(context.Subject.Configuration);
                 var requestMessage = await requestQueue.ReceiveMessageAsync();
 
-                var request = JsonCodec.Decode<BuildRequest>(requestMessage.Value.MessageText)!;
+                var request = JsonCodec.Decode<S100BuildRequest>(requestMessage.Value.MessageText)!;
 
                 // TODO Decide on retry strategy for queues and move this as necessary
                 await requestQueue.DeleteMessageAsync(requestMessage.Value.MessageId, requestMessage.Value.PopReceipt);

@@ -5,6 +5,7 @@ using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
 using UKHO.ADDS.EFS.Messages;
+using UKHO.ADDS.EFS.NewEFS;
 using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
 using UKHO.ADDS.Infrastructure.Results;
 
@@ -45,7 +46,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
                 Timestamp = DateTime.UtcNow,
 
                 CorrelationId = "corr-1",
-                DataStandard = ExchangeSetDataStandard.S100,
+                DataStandard = DataStandard.S100,
                 Products = "prod",
                 Filter = "filter"
             };

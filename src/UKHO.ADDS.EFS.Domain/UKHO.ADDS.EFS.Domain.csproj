@@ -8,9 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="NewEFS\**" />
-    <EmbeddedResource Remove="NewEFS\**" />
-    <None Remove="NewEFS\**" />
+    <Compile Remove="Builds\BuildSummary.cs" />
+    <Compile Remove="Builds\S100\S100BuildSummary.cs" />
+    <Compile Remove="Builds\S57\S57BuildSummary.cs" />
+    <Compile Remove="Builds\S63\S63BuildSummary.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,10 +22,6 @@
     <PackageReference Include="UKHO.ADDS.Infrastructure.Results" Version="0.0.50322-alpha.2" />
     <PackageReference Include="UKHO.ADDS.Infrastructure.Serialization" Version="0.0.50326-alpha.1" />
     <PackageReference Include="UKHO.ADDS.Infrastructure.Pipelines" Version="0.0.50327-alpha.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Builds\S100\" />
   </ItemGroup>
 
 </Project>

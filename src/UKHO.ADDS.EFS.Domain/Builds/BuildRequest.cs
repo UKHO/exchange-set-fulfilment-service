@@ -1,21 +1,37 @@
-﻿using UKHO.ADDS.EFS.Messages;
+﻿using UKHO.ADDS.EFS.NewEFS;
 
 namespace UKHO.ADDS.EFS.Builds
 {
-    public class BuildRequest
+    public abstract class BuildRequest
     {
+        /// <summary>
+        /// The message version
+        /// </summary>
         public required int Version { get; init; }
 
-        public DateTime Timestamp { get; init; }
+        /// <summary>
+        /// The build request timestamp
+        /// </summary>
+        public required DateTime Timestamp { get; init; }
 
+        /// <summary>
+        /// The job ID relating to this build
+        /// </summary>
         public required string JobId { get; init; }
 
+        /// <summary>
+        /// The File Share batch ID for this build
+        /// </summary>
         public required string BatchId { get; init; }
 
-        public required ExchangeSetDataStandard DataStandard { get; init; }
+        /// <summary>
+        /// The data standard
+        /// </summary>
+        public required DataStandard DataStandard { get; init; }
 
-        public required string WorkspaceKey { get; init; }
-
+        /// <summary>
+        /// The Exchange Set name template
+        /// </summary>
         public required string ExchangeSetNameTemplate { get; init; }
     }
 }

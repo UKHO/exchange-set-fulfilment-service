@@ -1,5 +1,5 @@
 ﻿using UKHO.ADDS.EFS.Configuration.Orchestrator;
-using UKHO.ADDS.EFS.Messages;
+using UKHO.ADDS.EFS.NewEFS;
 
 namespace UKHO.ADDS.EFS.Builds
 {
@@ -11,7 +11,7 @@ namespace UKHO.ADDS.EFS.Builds
 
         public DateTime? EndTimestamp { get; set; }
 
-        public required ExchangeSetDataStandard DataStandard { get; init; }
+        public required DataStandard DataStandard { get; init; }
 
         public BuilderExitCode ExitCode { get; set; }
 

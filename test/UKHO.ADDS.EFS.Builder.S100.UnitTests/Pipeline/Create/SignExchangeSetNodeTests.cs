@@ -5,7 +5,8 @@ using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.IIC.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Create;
-using UKHO.ADDS.EFS.Jobs.S100;
+using UKHO.ADDS.EFS.NewEFS;
+using UKHO.ADDS.EFS.NewEFS.S100;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
@@ -36,7 +37,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         {
             var exchangeSetPipelineContext = new S100ExchangeSetPipelineContext(null, _toolClient, null, null, _loggerFactory)
             {
-                Job = new S100ExchangeSetJob { Id = "TestCorrelationId" },
+                Build = new S100Build()
+                {
+                    JobId = "TestCorrelationId",
+                    BatchId = "a-valid-batch-id",
+                    BuildState = BuildState.Scheduled,
+                    DataStandard = DataStandard.S100
+                },
                 JobId = "TestJobId",
                 WorkspaceAuthenticationKey = "Test123"
             };

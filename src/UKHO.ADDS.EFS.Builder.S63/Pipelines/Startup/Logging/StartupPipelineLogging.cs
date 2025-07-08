@@ -24,7 +24,7 @@ namespace UKHO.ADDS.EFS.Builder.S63.Pipelines.Startup.Logging
         public static readonly EventId JobRetrieved = new(JobRetrievedId, nameof(JobRetrieved));
 
         [LoggerMessage(JobRetrievedId, LogLevel.Information, "Job retrieved: {@job}", EventName = nameof(JobRetrieved))]
-        public static partial void LogJobRetrieved(this ILogger logger, [LogProperties] ExchangeSetJobLogView job);
+        public static partial void LogJobRetrieved(this ILogger logger, [LogProperties] S63BuildLogView job);
 
 
         // Debug job warning

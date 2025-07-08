@@ -2,6 +2,8 @@
 {
     public static class StorageConfiguration
     {
+        // TODO Split between "account" and "storage", these refer to two different things
+
         public const string StorageName = "efs-storage";
 
         public const string QueuesName = "efs-queues";
@@ -18,24 +20,24 @@
 
         public const string S100BuildResponseQueueName = "s100buildresponse";
 
-        public const string S100JobContainer = "s100job";
+        public const string S100BuildContainer = "s100build";
 
         public const string S63BuildRequestQueueName = "s63buildrequest";
 
         public const string S63BuildResponseQueueName = "s63buildresponse";
 
-        public const string S63JobContainer = "s63job";
+        public const string S63BuildContainer = "s63build";
 
         public const string S57BuildRequestQueueName = "s57buildrequest";
 
         public const string S57BuildResponseQueueName = "s57buildresponse";
 
-        public const string S57JobContainer = "s57job";
+        public const string S57BuildContainer = "s57build";
 
-        public const string ExchangeSetTimestampTable = "exchangesettimestamp";
+        public const string DataStandardTimestampTable = "datastandardtimestamp";
 
-        public const string ExchangeSetBuildStatusTable = "exchangesetbuildstatus";
+        public const string JobTable = "job";
 
-        public const string ExchangeSetJobTypeTable = "exchangesetjobtype";
+        public const string JobHistoryTable = "jobhistory";
     }
 }
