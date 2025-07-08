@@ -2,7 +2,7 @@ targetScope = 'subscription'
 
 @minLength(1)
 @maxLength(64)
-@description('Name of the environment that can be used as part of naming resource convention, the name of the resource group for your application will use this name, prefixed with rg-')
+@description('Name of the environment that can be used as part of naming resource convention. The name of the resource group for your application will include this name.')
 param environmentName string
 
 @minLength(1)
@@ -22,7 +22,7 @@ var tags = {
 }
 
 resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
-  name: 'rg-${environmentName}'
+  name: 'efs-${environmentName}-rg'
   location: location
   tags: tags
 }

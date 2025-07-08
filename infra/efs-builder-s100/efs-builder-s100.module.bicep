@@ -33,7 +33,7 @@ resource efsbuilders100 'Microsoft.App/jobs@2025-01-01' = {
   }
   properties: {
     environmentId: efs_cae_outputs_azure_container_apps_environment_id
-    workloadProfileName: 'Consumption'
+    workloadProfileName: 'consumption'
     configuration: {
       secrets: [
         {
@@ -102,7 +102,7 @@ resource efsbuilders100 'Microsoft.App/jobs@2025-01-01' = {
             }
             {
               name: 'BLOB_CONTAINER_NAME'
-              secretRef: 's100job'
+              value: 's100job'
             }
             {
               name: 'BLOB_CONNECTION_STRING'
@@ -110,15 +110,15 @@ resource efsbuilders100 'Microsoft.App/jobs@2025-01-01' = {
             }
             {
               name: 'ADDS_ENVIRONMENT'
-              secretRef: azure_env_name
+              value: azure_env_name
             }
             {
               name: 'MAX_RETRY_ATTEMPTS'
-              secretRef: max_retry_attempts
+              value: max_retry_attempts
             }
             {
               name: 'RETRY_DELAY_MS'
-              secretRef: retry_delay_ms
+              value: retry_delay_ms
             }
           ]
           resources: {
