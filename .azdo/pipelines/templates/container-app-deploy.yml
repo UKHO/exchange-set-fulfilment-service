@@ -18,10 +18,15 @@ parameters:
 - name: AdditionalDebugging
   type: boolean
   default: false
+# Skip deployment if false.
+- name: DeployApp
+  type: boolean
+  default: true
 
 steps:
 - task: AzureCLI@2
   displayName: Deploy ${{ parameters.AppName }}
+  condition: eq('${{ parameters.DeployApp }}', true)
   inputs:
     azureSubscription: ${{ parameters.AzureSubscription }}
     scriptType: bash
@@ -32,7 +37,7 @@ steps:
       DEPLOYMENT_TAG=az-deploy-$DEPLOYMENT_NUMBER
       export CONTAINER_IMAGE="${{ parameters.AcrName }}.azurecr.io/exchange-set-fulfilment-service/${{ parameters.AppName }}-${{ parameters.AzureEnvName }}:$DEPLOYMENT_TAG"
       export CONTAINER_PORT=8080 # TODO: get this value from output of dotnet publish below (this is what azd does).
-      RESOURCE_GROUP="rg-${{ parameters.AzureEnvName }}"
+      RESOURCE_GROUP="efs-${{ parameters.AzureEnvName }}-rg"
 
       echo "Reading azd variables..."
       while IFS='=' read -r key value; do

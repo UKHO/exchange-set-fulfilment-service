@@ -5,56 +5,32 @@ parameters:
 # The name of the container app to deploy.
 - name: AppName
   type: string
-# The path of the app project to deploy.
-- name: ProjectPath
-  type: string
-# The name of the container registry to publish to.
-- name: AcrName
-  type: string
-# The name of the Azure environment (e.g., dev, iat, prod).
-- name: AzureEnvName
+# The name of the folder under src containing the Dockerfile.
+- name: ProjectFolder
   type: string
 # If true, additional debugging will be enabled.
 - name: AdditionalDebugging
   type: boolean
   default: false
+# Skip deployment if false.
+- name: DeployApp
+  type: boolean
+  default: true
 
 steps:
 - task: AzureCLI@2
   displayName: Deploy ${{ parameters.AppName }}
+  condition: eq('${{ parameters.DeployApp }}', true)
   inputs:
     azureSubscription: ${{ parameters.AzureSubscription }}
     scriptType: bash
     scriptLocation: inlineScript
     inlineScript: |
-      echo "Logging in to Azure Container Registry..."
-      az acr login --name ${{ parameters.AcrName }}
-
-      echo "Changing directory..."
-      cd $(Build.SourcesDirectory)/src
-
-      echo "Creating deployment tag..."
-      BUILD_TAG=docker-deploy-$EPOCHSECONDS
-      echo "$BUILD_TAG"
-
-      echo "Building Docker image..."
-      docker build -t ${{ parameters.AcrName }}.azurecr.io/exchange-set-fulfilment-service/efs-builder-s100:$BUILD_TAG -f UKHO.ADDS.EFS.Builder.S100/Dockerfile .
-
-      echo "Pushing Docker image to Azure Container Registry..."
-      docker push ${{ parameters.AcrName }}.azurecr.io/exchange-set-fulfilment-service/efs-builder-s100:$BUILD_TAG
-
-
-
-
-
-
-
       echo "Setting variables..."
       DEPLOYMENT_NUMBER=$EPOCHSECONDS
-      DEPLOYMENT_TAG=az-deploy-$DEPLOYMENT_NUMBER
-      export CONTAINER_IMAGE="${{ parameters.AcrName }}.azurecr.io/exchange-set-fulfilment-service/${{ parameters.AppName }}-${{ parameters.AzureEnvName }}:$DEPLOYMENT_TAG"
-      export CONTAINER_PORT=8080 # TODO: get this value from output of dotnet publish below (this is what azd does).
-      RESOURCE_GROUP="rg-${{ parameters.AzureEnvName }}"
+      DEPLOYMENT_TAG=docker-deploy-$DEPLOYMENT_NUMBER
+      export CONTAINER_IMAGE="$(AcrName).azurecr.io/exchange-set-fulfilment-service/${{ parameters.AppName }}-$(AZURE_ENV_NAME):$DEPLOYMENT_TAG"
+      RESOURCE_GROUP="efs-$(AZURE_ENV_NAME)-rg"
 
       echo "Reading azd variables..."
       while IFS='=' read -r key value; do
@@ -72,13 +48,18 @@ steps:
       fi
 
       echo "Logging in to Azure Container Registry..."
-      az acr login --name ${{ parameters.AcrName }}
+      az acr login --name $(AcrName)
 
-      echo "Publishing image..."
-      dotnet publish "${{ parameters.ProjectPath }}" -r linux-x64 -c Release /t:PublishContainer -p:ContainerRepository=exchange-set-fulfilment-service/${{ parameters.AppName }}-dev -p:ContainerImageTag=$DEPLOYMENT_TAG -p:ContainerRegistry=${{ parameters.AcrName }}.azurecr.io --getProperty:GeneratedContainerConfiguration
+      echo "Changing directory..."
+      cd $(Build.SourcesDirectory)/src
 
-      echo "Deploying app..."
-      cp "$(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.LocalHost/infra/${{ parameters.AppName }}/${{ parameters.AppName }}.tmpl.bicepparam" "$(Build.SourcesDirectory)/infra/${{ parameters.AppName }}/${{ parameters.AppName }}.tmpl.bicepparam"
+      echo "Building Docker image..."
+      docker build -t $CONTAINER_IMAGE -f ${{ parameters.ProjectFolder }}/Dockerfile .
+
+      echo "Pushing Docker image to Azure Container Registry..."
+      docker push $CONTAINER_IMAGE
+
+      echo "Deploying app job..."
       cd "$(Build.SourcesDirectory)/infra/${{ parameters.AppName }}"
 
       if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
@@ -86,3 +67,9 @@ steps:
       else
         az deployment group create --name ${{ parameters.AppName }}-$DEPLOYMENT_NUMBER --resource-group $RESOURCE_GROUP --parameters ${{ parameters.AppName }}.tmpl.bicepparam
       fi
+    env:
+      EFS_STORAGE_CONNECTION_STRING: $(EFS_STORAGE_CONNECTION_STRING)
+      FSS_ENDPOINT: $(FSS_ENDPOINT)
+      FSS_ENDPOINT_HEALTH: $(FSS_ENDPOINT_HEALTH)
+      MAX_RETRY_ATTEMPTS: $(MAX_RETRY_ATTEMPTS)
+      RETRY_DELAY_MS: $(RETRY_DELAY_MS)

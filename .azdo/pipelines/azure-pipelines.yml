@@ -21,6 +21,22 @@ parameters:
     displayName: "Skip deployment (temporary until dev deployment works)"
     type: boolean
     default: false
+  - name: DeployOrchestrator
+    displayName: "Deploy orchestrator"
+    type: boolean
+    default: false
+  - name: DeployConfiguration
+    displayName: "Deploy configuration"
+    type: boolean
+    default: false
+  - name: DeployBuilderS100
+    displayName: "Deploy S100 builder"
+    type: boolean
+    default: false
+  - name: DeployAddsMock
+    displayName: "Deploy ADDS mock"
+    type: boolean
+    default: false
   - name: AdditionalDebugging
     displayName: "Enable optional debugging"
     type: boolean
@@ -142,3 +158,7 @@ stages:
         ShortName: dev
         DestroyResources: ${{ parameters.DestroyResourcesDev }}
         AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+        DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
+        DeployConfiguration: ${{ parameters.DeployConfiguration }}
+        DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
+        DeployAddsMock: ${{ parameters.DeployAddsMock }}

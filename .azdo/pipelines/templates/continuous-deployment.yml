@@ -9,6 +9,26 @@ parameters:
 - name: DestroyResources
   type: boolean
   default: false
+# Deploy the orchestrator container app.
+- name: DeployOrchestrator
+  displayName: "Deploy orchestrator"
+  type: boolean
+  default: false
+# Deploy the configuration container app.
+- name: DeployConfiguration
+  displayName: "Deploy configuration"
+  type: boolean
+  default: false
+# Deploy the S100 builder container app job.
+- name: DeployBuilderS100
+  displayName: "Deploy S100 builder"
+  type: boolean
+  default: false
+# Deploy the ADDS mock container app.
+- name: DeployAddsMock
+  displayName: "Deploy ADDS mock"
+  type: boolean
+  default: false
 # If true, additional debugging will be enabled.
 - name: AdditionalDebugging
   type: boolean
@@ -23,8 +43,6 @@ jobs:
     clean: all
   variables:
   - template: var/${{ lower(parameters.ShortName) }}-deploy.yml
-  # - name: Containers.BuildOnStartup
-  #   value: false
   strategy:
     runOnce:
       deploy:
@@ -49,14 +67,6 @@ jobs:
           inputs:
             packageType: sdk
             version: $(SdkVersion)
-
-        # - task: FileTransform@2
-        #   displayName: Turn off builder in host
-        #   inputs:
-        #     folderPath: '$(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.LocalHost'
-        #     xmlTransformationRules: ''
-        #     enableXmlTransform: false
-        #     jsonTargetFiles: '**/appsettings.json'
 
         - ${{ if eq(parameters.DestroyResources, true) }}:
 
@@ -144,6 +154,7 @@ jobs:
               AcrName: $(AcrName)
               AzureEnvName: $(AZURE_ENV_NAME)
               AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+              DeployApp: ${{ parameters.DeployConfiguration }}
 
           - template: container-app-deploy.yml
             parameters:
@@ -153,6 +164,7 @@ jobs:
               AcrName: $(AcrName)
               AzureEnvName: $(AZURE_ENV_NAME)
               AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+              DeployApp: ${{ parameters.DeployAddsMock }}
 
           - template: container-app-deploy.yml
             parameters:
@@ -162,9 +174,10 @@ jobs:
               AcrName: $(AcrName)
               AzureEnvName: $(AZURE_ENV_NAME)
               AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+              DeployApp: ${{ parameters.DeployOrchestrator }}
 
           - task: AzureCLI@2
-            displayName: Download builder files from Azure
+            displayName: Download S100 builder files from Azure
             inputs:
               azureSubscription: ${{ variables.AzureSubscription }}
               scriptType: bash
@@ -177,27 +190,10 @@ jobs:
               StorageContainerName: $(BuilderFilesContainer)
               AZURE_STORAGE_KEY: $(BuilderFilesSaKey)
 
-          - task: AzureCLI@2
-            displayName: Build and push Docker image to ACR
-            inputs:
-              azureSubscription: ${{ variables.AzureSubscription }}
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                echo "Logging in to Azure Container Registry..."
-                az acr login --name $ACR_NAME
-
-                echo "Changing directory..."
-                cd $(Build.SourcesDirectory)/src
-
-                echo "Creating deployment tag..."
-                BUILD_TAG=docker-deploy-$EPOCHSECONDS
-                echo "$BUILD_TAG"
-
-                echo "Building Docker image..."
-                docker build -t $ACR_NAME.azurecr.io/exchange-set-fulfilment-service/efs-builder-s100:$BUILD_TAG -f UKHO.ADDS.EFS.Builder.S100/Dockerfile .
-
-                echo "Pushing Docker image to Azure Container Registry..."
-                docker push $ACR_NAME.azurecr.io/exchange-set-fulfilment-service/efs-builder-s100:$BUILD_TAG
-            env:
-              ACR_NAME: $(AcrName)
+          - template: container-app-job-deploy.yml
+            parameters:
+              AzureSubscription: ${{ variables.AzureSubscription }}
+              AppName: efs-builder-s100
+              ProjectFolder: UKHO.ADDS.EFS.Builder.S100
+              AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+              DeployApp: ${{ parameters.DeployBuilderS100 }}
