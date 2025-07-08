@@ -76,5 +76,41 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
             // Return an empty response with the original timestamp in case of failure
             return (new S100SalesCatalogueResponse(), sinceDateTime);
         }
+
+
+
+        public async Task<(S100ProductNamesResponse s100SalesCatalogueData, DateTime? LastModified)> GetS100ProductNamesAsync(IEnumerable<string> productNames, ExchangeSetJob job)
+        {
+            var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<S100ProductNamesResponse>(_logger, nameof(GetS100ProductNamesAsync));
+            var s100SalesCatalogueResult = await retryPolicy.ExecuteAsync(() =>
+                _salesCatalogueClient.GetS100ProductNamesAsync(ScsApiVersion, ProductType, productNames, job.GetCorrelationId()));
+
+            // Check if the API call was successful
+            if (s100SalesCatalogueResult.IsSuccess(out var s100SalesCatalogueData, out var error))
+            {
+                // Process the response based on the HTTP status code
+                switch (s100SalesCatalogueData.ResponseCode)
+                {
+                    case HttpStatusCode.OK:
+                        // Return the response data with the last modified timestamp from the API
+                        return (s100SalesCatalogueData, job.SalesCatalogueTimestamp);
+
+                    case HttpStatusCode.NotModified:
+                        // No changes since the provided timestamp, return the original response with the provided timestamp
+                        return (s100SalesCatalogueData, job.SalesCatalogueTimestamp);
+
+                    default:
+                        // Unexpected status code, log a warning and return an empty response
+                        _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, s100SalesCatalogueData.ResponseCode));
+                        return (new S100ProductNamesResponse(), job.SalesCatalogueTimestamp);
+                }
+            }
+
+            // API call failed, log the error
+            _logger.LogSalesCatalogueApiError(error, SalesCatalogApiErrorLogView.Create(job));
+
+            // Return an empty response with the original timestamp in case of failure
+            return (new S100ProductNamesResponse(), job.SalesCatalogueTimestamp);
+        }
     }
 }

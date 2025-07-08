@@ -21,6 +21,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly
 
             pipeline.AddChild(NodeFactory.CreateNode<GetExistingTimestampNode>(cancellationToken));
             pipeline.AddChild(NodeFactory.CreateNode<GetS100ProductsFromExistingTimestampNode>(cancellationToken));
+            pipeline.AddChild(NodeFactory.CreateNode<GetS100ProductNamesNode>(cancellationToken));
             pipeline.AddChild(NodeFactory.CreateNode<CreateFileShareBatchNode>(cancellationToken));
             pipeline.AddChild(NodeFactory.CreateNode<PersistS100JobNode>(cancellationToken));
             pipeline.AddChild(NodeFactory.CreateNode<SetJobTypeNode>(cancellationToken));
