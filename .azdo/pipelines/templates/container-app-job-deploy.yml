@@ -1,0 +1,88 @@
+parameters:
+# The name of the service connection for deployment.
+- name: AzureSubscription
+  type: string
+# The name of the container app to deploy.
+- name: AppName
+  type: string
+# The path of the app project to deploy.
+- name: ProjectPath
+  type: string
+# The name of the container registry to publish to.
+- name: AcrName
+  type: string
+# The name of the Azure environment (e.g., dev, iat, prod).
+- name: AzureEnvName
+  type: string
+# If true, additional debugging will be enabled.
+- name: AdditionalDebugging
+  type: boolean
+  default: false
+
+steps:
+- task: AzureCLI@2
+  displayName: Deploy ${{ parameters.AppName }}
+  inputs:
+    azureSubscription: ${{ parameters.AzureSubscription }}
+    scriptType: bash
+    scriptLocation: inlineScript
+    inlineScript: |
+      echo "Logging in to Azure Container Registry..."
+      az acr login --name ${{ parameters.AcrName }}
+
+      echo "Changing directory..."
+      cd $(Build.SourcesDirectory)/src
+
+      echo "Creating deployment tag..."
+      BUILD_TAG=docker-deploy-$EPOCHSECONDS
+      echo "$BUILD_TAG"
+
+      echo "Building Docker image..."
+      docker build -t ${{ parameters.AcrName }}.azurecr.io/exchange-set-fulfilment-service/efs-builder-s100:$BUILD_TAG -f UKHO.ADDS.EFS.Builder.S100/Dockerfile .
+
+      echo "Pushing Docker image to Azure Container Registry..."
+      docker push ${{ parameters.AcrName }}.azurecr.io/exchange-set-fulfilment-service/efs-builder-s100:$BUILD_TAG
+
+
+
+
+
+
+
+      echo "Setting variables..."
+      DEPLOYMENT_NUMBER=$EPOCHSECONDS
+      DEPLOYMENT_TAG=az-deploy-$DEPLOYMENT_NUMBER
+      export CONTAINER_IMAGE="${{ parameters.AcrName }}.azurecr.io/exchange-set-fulfilment-service/${{ parameters.AppName }}-${{ parameters.AzureEnvName }}:$DEPLOYMENT_TAG"
+      export CONTAINER_PORT=8080 # TODO: get this value from output of dotnet publish below (this is what azd does).
+      RESOURCE_GROUP="rg-${{ parameters.AzureEnvName }}"
+
+      echo "Reading azd variables..."
+      while IFS='=' read -r key value; do
+          value=$(echo "$value" | sed 's/^"//' | sed 's/"$//')
+          export "$key=$value"
+      done <<EOF
+      $(azd env get-values)
+      EOF
+
+      if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
+        echo "Current environment variables:"
+        echo "--------------------------------------------------------------------------------"
+        env
+        echo "--------------------------------------------------------------------------------"
+      fi
+
+      echo "Logging in to Azure Container Registry..."
+      az acr login --name ${{ parameters.AcrName }}
+
+      echo "Publishing image..."
+      dotnet publish "${{ parameters.ProjectPath }}" -r linux-x64 -c Release /t:PublishContainer -p:ContainerRepository=exchange-set-fulfilment-service/${{ parameters.AppName }}-dev -p:ContainerImageTag=$DEPLOYMENT_TAG -p:ContainerRegistry=${{ parameters.AcrName }}.azurecr.io --getProperty:GeneratedContainerConfiguration
+
+      echo "Deploying app..."
+      cp "$(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.LocalHost/infra/${{ parameters.AppName }}/${{ parameters.AppName }}.tmpl.bicepparam" "$(Build.SourcesDirectory)/infra/${{ parameters.AppName }}/${{ parameters.AppName }}.tmpl.bicepparam"
+      cd "$(Build.SourcesDirectory)/infra/${{ parameters.AppName }}"
+
+      if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
+        az deployment group create --name ${{ parameters.AppName }}-$DEPLOYMENT_NUMBER --resource-group $RESOURCE_GROUP --parameters ${{ parameters.AppName }}.tmpl.bicepparam --debug
+      else
+        az deployment group create --name ${{ parameters.AppName }}-$DEPLOYMENT_NUMBER --resource-group $RESOURCE_GROUP --parameters ${{ parameters.AppName }}.tmpl.bicepparam
+      fi
