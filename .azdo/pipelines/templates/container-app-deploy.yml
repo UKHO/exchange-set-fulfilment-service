@@ -8,12 +8,6 @@ parameters:
 # The path of the app project to deploy.
 - name: ProjectPath
   type: string
-# The name of the container registry to publish to.
-- name: AcrName
-  type: string
-# The name of the Azure environment (e.g., dev, iat, prod).
-- name: AzureEnvName
-  type: string
 # If true, additional debugging will be enabled.
 - name: AdditionalDebugging
   type: boolean
@@ -35,9 +29,9 @@ steps:
       echo "Setting variables..."
       DEPLOYMENT_NUMBER=$EPOCHSECONDS
       DEPLOYMENT_TAG=az-deploy-$DEPLOYMENT_NUMBER
-      export CONTAINER_IMAGE="${{ parameters.AcrName }}.azurecr.io/exchange-set-fulfilment-service/${{ parameters.AppName }}-${{ parameters.AzureEnvName }}:$DEPLOYMENT_TAG"
+      export CONTAINER_IMAGE="$(AcrName).azurecr.io/exchange-set-fulfilment-service/${{ parameters.AppName }}-$(AZURE_ENV_NAME):$DEPLOYMENT_TAG"
       export CONTAINER_PORT=8080 # TODO: get this value from output of dotnet publish below (this is what azd does).
-      RESOURCE_GROUP="efs-${{ parameters.AzureEnvName }}-rg"
+      RESOURCE_GROUP="efs-$(AZURE_ENV_NAME)-rg"
 
       echo "Reading azd variables..."
       while IFS='=' read -r key value; do
@@ -55,10 +49,10 @@ steps:
       fi
 
       echo "Logging in to Azure Container Registry..."
-      az acr login --name ${{ parameters.AcrName }}
+      az acr login --name $(AcrName)
 
       echo "Publishing image..."
-      dotnet publish "${{ parameters.ProjectPath }}" -r linux-x64 -c Release /t:PublishContainer -p:ContainerRepository=exchange-set-fulfilment-service/${{ parameters.AppName }}-dev -p:ContainerImageTag=$DEPLOYMENT_TAG -p:ContainerRegistry=${{ parameters.AcrName }}.azurecr.io --getProperty:GeneratedContainerConfiguration
+      dotnet publish "${{ parameters.ProjectPath }}" -r linux-x64 -c Release /t:PublishContainer -p:ContainerRepository=exchange-set-fulfilment-service/${{ parameters.AppName }}-dev -p:ContainerImageTag=$DEPLOYMENT_TAG -p:ContainerRegistry=$(AcrName).azurecr.io --getProperty:GeneratedContainerConfiguration
 
       echo "Deploying app..."
       cp "$(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.LocalHost/infra/${{ parameters.AppName }}/${{ parameters.AppName }}.tmpl.bicepparam" "$(Build.SourcesDirectory)/infra/${{ parameters.AppName }}/${{ parameters.AppName }}.tmpl.bicepparam"

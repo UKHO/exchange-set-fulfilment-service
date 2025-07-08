@@ -151,8 +151,6 @@ jobs:
               AzureSubscription: ${{ variables.AzureSubscription }}
               AppName: adds-configuration
               ProjectPath: $(Build.SourcesDirectory)/config/repo/src/UKHO.ADDS.Configuration/UKHO.ADDS.Configuration.csproj
-              AcrName: $(AcrName)
-              AzureEnvName: $(AZURE_ENV_NAME)
               AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
               DeployApp: ${{ parameters.DeployConfiguration }}
 
@@ -161,8 +159,6 @@ jobs:
               AzureSubscription: ${{ variables.AzureSubscription }}
               AppName: adds-mocks-efs
               ProjectPath: $(Build.SourcesDirectory)/mock/UKHO.ADDS.Mocks.EFS/UKHO.ADDS.Mocks.EFS.csproj
-              AcrName: $(AcrName)
-              AzureEnvName: $(AZURE_ENV_NAME)
               AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
               DeployApp: ${{ parameters.DeployAddsMock }}
 
@@ -171,8 +167,6 @@ jobs:
               AzureSubscription: ${{ variables.AzureSubscription }}
               AppName: efs-orchestrator
               ProjectPath: $(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.Orchestrator/UKHO.ADDS.EFS.Orchestrator.csproj
-              AcrName: $(AcrName)
-              AzureEnvName: $(AZURE_ENV_NAME)
               AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
               DeployApp: ${{ parameters.DeployOrchestrator }}
 
