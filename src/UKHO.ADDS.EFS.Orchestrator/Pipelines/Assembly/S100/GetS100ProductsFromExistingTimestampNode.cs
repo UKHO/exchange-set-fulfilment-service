@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Jobs.S100;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
@@ -25,28 +26,33 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.S100
             switch (result.s100SalesCatalogueData.ResponseCode)
             {
                 case HttpStatusCode.OK when result.s100SalesCatalogueData.ResponseBody.Any():
-                    // Products were successfully retrieved
-                    var filteredProducts = result.s100SalesCatalogueData.ResponseBody
-                        .Where(p => p.ProductName != null && p.ProductName.StartsWith(job.ProductIdentifier, StringComparison.OrdinalIgnoreCase))
-                        .ToList();
+                    var filteredProducts = FilterProducts(result.s100SalesCatalogueData.ResponseBody, job.ProductIdentifier);
                     job.Products = filteredProducts;
                     job.SalesCatalogueTimestamp = result.LastModified;
                     break;
 
                 case HttpStatusCode.NotModified:
-                    // No new data since the specified timestamp
                     job.State = ExchangeSetJobState.Cancelled;
                     job.SalesCatalogueTimestamp = result.LastModified;
                     break;
 
                 default:
-                    // Any other response code (error cases)
                     job.State = ExchangeSetJobState.Cancelled;
                     job.SalesCatalogueTimestamp = job.ExistingTimestamp;
                     break;
             }
 
             return NodeResultStatus.Succeeded;
+        }
+
+        private static List<S100Products> FilterProducts(IEnumerable<S100Products> products, string productIdentifier)
+        {
+            if (string.IsNullOrEmpty(productIdentifier)) { return products.ToList(); }
+
+            return products
+                .Where(p => !string.IsNullOrEmpty(p.ProductName) &&
+                            p.ProductName.StartsWith(productIdentifier, StringComparison.OrdinalIgnoreCase))
+                .ToList();
         }
     }
 }
