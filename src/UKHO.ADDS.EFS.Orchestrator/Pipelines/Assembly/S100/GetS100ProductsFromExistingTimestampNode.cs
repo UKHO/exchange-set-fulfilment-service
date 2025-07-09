@@ -47,10 +47,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.S100
 
         private static List<S100Products> FilterProducts(IEnumerable<S100Products> products, string productIdentifier)
         {
-            if (string.IsNullOrEmpty(productIdentifier)) { return products.ToList(); }
+            if (string.IsNullOrWhiteSpace(productIdentifier))
+            {
+                return products.Where(p => !string.IsNullOrWhiteSpace(p.ProductName)).ToList();
+            }
 
             return products
-                .Where(p => !string.IsNullOrEmpty(p.ProductName) &&
+                .Where(p => !string.IsNullOrWhiteSpace(p.ProductName) &&
                             p.ProductName.StartsWith(productIdentifier, StringComparison.OrdinalIgnoreCase))
                 .ToList();
         }
