@@ -63,10 +63,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Pipelines2\Assembly\Nodes\Common\" />
-    <Folder Include="Pipelines2\Assembly\Nodes\S57\" />
-    <Folder Include="Pipelines2\Assembly\Nodes\S63\" />
-    <Folder Include="Pipelines2\Assembly\Nodes\S100\" />
     <Folder Include="Pipelines2\Completion\Nodes\Common\" />
     <Folder Include="Pipelines2\Completion\Nodes\S100\" />
     <Folder Include="Pipelines2\Completion\Nodes\S57\" />

@@ -1,6 +1,7 @@
 ﻿using UKHO.ADDS.EFS.Builds;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
-using UKHO.ADDS.EFS.Orchestrator.Jobs;
+using UKHO.ADDS.EFS.Orchestrator.Pipelines2.Infrastructure.Markers;
+using UKHO.ADDS.Infrastructure.Pipelines;
+using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines2.Infrastructure
 {
@@ -16,34 +17,30 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines2.Infrastructure
         private readonly PipelineContextFactory<TBuild> _contextFactory;
         private readonly AssemblyPipelineParameters _parameters;
 
+        private readonly PipelineNode<PipelineContext<TBuild>> _pipeline;
+
         protected AssemblyPipeline(AssemblyPipelineParameters parameters, AssemblyPipelineNodeFactory nodeFactory, PipelineContextFactory<TBuild> contextFactory, ILogger logger)
         {
             _parameters = parameters;
             _nodeFactory = nodeFactory;
             _contextFactory = contextFactory;
             _logger = logger;
+
+            _pipeline = new PipelineNode<PipelineContext<TBuild>>();
         }
 
         protected AssemblyPipelineParameters Parameters => _parameters;
 
-        protected AssemblyPipelineNodeFactory NodeFactory => _nodeFactory;
+        protected PipelineNode<PipelineContext<TBuild>> Pipeline => _pipeline;
 
         protected PipelineContextFactory<TBuild> ContextFactory => _contextFactory;
 
         protected abstract Task<PipelineContext<TBuild>> CreateContext();
 
-        public Job CreateJob()
+        protected void AddPipelineNode<TNode>(CancellationToken cancellationToken) where TNode : IAssemblyPipelineNode, INode<PipelineContext<TBuild>>
         {
-            var job = new Job
-            {
-                Id = Parameters.JobId,
-                DataStandard = Parameters.DataStandard,
-                Timestamp = Parameters.Timestamp
-            };
-
-            _logger.LogJobCreated(EFSJobLogView.Create(job));
-
-            return job;
+            var node = _nodeFactory.CreateNode<TNode>(cancellationToken);
+            _pipeline?.AddChild(node);
         }
     }
 }

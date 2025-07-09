@@ -1,5 +1,6 @@
-﻿using UKHO.ADDS.EFS.Jobs;
-using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
+﻿using UKHO.ADDS.EFS.Builds;
+using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.Orchestrator.Jobs;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines2.Infrastructure
 {
@@ -9,8 +10,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines2.Infrastructure
 
         public required string JobId { get; init; }
 
-        // TODO NO!!! 
-        public required NodeResultStatus Status { get; init; }
+        public required JobState JobStatus { get; init; }
+
+        public required BuildState BuildStatus { get; init; }
 
         public required DataStandard DataStandard { get; init; }
 

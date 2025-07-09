@@ -5,7 +5,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines2.Assembly
 {
     internal class S63AssemblyPipeline : AssemblyPipeline<S63Build>
     {
-        public S63AssemblyPipeline(AssemblyPipelineParameters parameters, AssemblyPipelineNodeFactory nodeFactory, PipelineContextFactory<S63Build> contextFactory, ILogger logger)
+        public S63AssemblyPipeline(AssemblyPipelineParameters parameters, AssemblyPipelineNodeFactory nodeFactory, PipelineContextFactory<S63Build> contextFactory, ILogger<S63AssemblyPipeline> logger)
             : base(parameters, nodeFactory,  contextFactory, logger)
         {
         }

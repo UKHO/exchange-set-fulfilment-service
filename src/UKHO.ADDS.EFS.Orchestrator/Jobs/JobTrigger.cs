@@ -4,6 +4,7 @@
     {
         MarkUpToDate,
         MarkDuplicate,
+        CreateBuild,
         ScheduleBuild,
         AssemblyFailed,
         BuildFailed,

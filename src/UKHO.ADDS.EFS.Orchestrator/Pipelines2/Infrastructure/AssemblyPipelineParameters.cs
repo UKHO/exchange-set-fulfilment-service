@@ -1,5 +1,6 @@
 ﻿using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Messages;
+using UKHO.ADDS.EFS.Orchestrator.Jobs;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines2.Infrastructure
 {
@@ -18,6 +19,18 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines2.Infrastructure
         public required string JobId { get; init; }
 
         public required IConfiguration Configuration { get; init; }
+
+        public Job CreateJob()
+        {
+            return new Job()
+            {
+                Id = JobId,
+                Timestamp = Timestamp,
+                DataStandard = DataStandard,
+                RequestedProducts = Products,
+                RequestedFilter = Filter
+            };
+        }
 
         public static AssemblyPipelineParameters CreateFrom(JobRequestApiMessage message, IConfiguration configuration, string correlationId) =>
             new()

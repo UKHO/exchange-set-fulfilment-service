@@ -2,6 +2,7 @@
 using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
 using UKHO.ADDS.EFS.Orchestrator.Jobs;
+using UKHO.ADDS.EFS.Orchestrator.Pipelines2.Services;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines2.Infrastructure
 {
@@ -9,11 +10,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines2.Infrastructure
     {
         private readonly ITable<Job> _jobTable;
         private readonly ITable<TBuild> _buildTable;
+        private readonly IStorageService _storageService;
 
-        public PipelineContextFactory(ITable<Job> jobTable, ITable<TBuild> buildTable)
+        public PipelineContextFactory(ITable<Job> jobTable, ITable<TBuild> buildTable, IStorageService storageService)
         {
             _jobTable = jobTable;
             _buildTable = buildTable;
+            _storageService = storageService;
         }
 
         public async Task Persist(PipelineContext<TBuild> context)
@@ -28,12 +31,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines2.Infrastructure
 
         public Task<PipelineContext<TBuild>> CreatePipelineContext(AssemblyPipelineParameters parameters)
         {
-            var job = new Job()
-            {
-                Id = parameters.JobId,
-                DataStandard = parameters.DataStandard,
-                Timestamp = DateTime.UtcNow
-            };
+            var job = parameters.CreateJob();
 
             var build = new TBuild()
             {
@@ -42,19 +40,19 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines2.Infrastructure
                 BatchId = null
             };
 
-            var context = new PipelineContext<TBuild>(job, build);
+            var context = new PipelineContext<TBuild>(job, build, _storageService);
 
             return Task.FromResult(context);
         }
 
-        public async Task<PipelineContext<TBuild>?> CreatePipelineContext(CompletionPipelineParameters parameters)
+        public async Task<PipelineContext<TBuild>> CreatePipelineContext(CompletionPipelineParameters parameters)
         {
             var jobResult = await _jobTable.GetUniqueAsync(parameters.JobId);
             var buildResult = await _buildTable.GetUniqueAsync(parameters.JobId);
 
             if (jobResult.IsSuccess(out var job) && buildResult.IsSuccess(out var build))
             {
-                return new PipelineContext<TBuild>(job, build);
+                return new PipelineContext<TBuild>(job, build, _storageService);
             }
 
             return null;

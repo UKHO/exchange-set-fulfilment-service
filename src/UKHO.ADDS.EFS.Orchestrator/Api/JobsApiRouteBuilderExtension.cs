@@ -1,6 +1,6 @@
-﻿using UKHO.ADDS.EFS.Builds;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
+﻿using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
+using UKHO.ADDS.EFS.Orchestrator.Jobs;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Api
 {
@@ -11,7 +11,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             var logger = loggerFactory.CreateLogger("JobsApi");
             var jobsEndpoint = routeBuilder.MapGroup("/jobs");
 
-            jobsEndpoint.MapGet("/{jobId}", async (string jobId, ITable<JobTable> jobTable) =>
+            jobsEndpoint.MapGet("/{jobId}", async (string jobId, ITable<Job> jobTable) =>
             {
                 var jobResult = await jobTable.GetUniqueAsync(jobId);
 

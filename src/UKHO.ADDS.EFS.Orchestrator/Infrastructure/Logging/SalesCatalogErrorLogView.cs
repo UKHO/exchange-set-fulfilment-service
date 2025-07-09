@@ -1,5 +1,5 @@
-﻿using UKHO.ADDS.EFS.Builds;
-using UKHO.ADDS.EFS.Jobs;
+﻿using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.Orchestrator.Jobs;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 {
@@ -11,7 +11,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 
         public required string CorrelationId { get; init; }
 
-        public static SalesCatalogApiErrorLogView Create(Build job) =>
-            new() { DataStandard = job.DataStandard, Products = job.GetProductDelimitedList(), CorrelationId = job.GetCorrelationId() };
+        public static SalesCatalogApiErrorLogView Create(Job job) =>
+            new() { DataStandard = job.DataStandard, Products = job.RequestedProducts, CorrelationId = job.GetCorrelationId() };
     }
 }
