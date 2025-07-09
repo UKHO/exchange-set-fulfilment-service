@@ -1,6 +1,6 @@
 ﻿using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 
-namespace UKHO.ADDS.EFS.NewEFS.S100
+namespace UKHO.ADDS.EFS.Builds.S100
 {
     public class S100Build : Build
     {

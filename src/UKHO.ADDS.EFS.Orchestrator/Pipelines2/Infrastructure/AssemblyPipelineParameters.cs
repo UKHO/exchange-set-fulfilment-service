@@ -1,5 +1,5 @@
-﻿using UKHO.ADDS.EFS.Messages;
-using UKHO.ADDS.EFS.NewEFS;
+﻿using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.Messages;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines2.Infrastructure
 {

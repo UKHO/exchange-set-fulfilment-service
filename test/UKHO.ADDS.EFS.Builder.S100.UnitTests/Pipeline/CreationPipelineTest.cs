@@ -3,8 +3,8 @@ using Microsoft.Extensions.Logging;
 using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.IIC.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
-using UKHO.ADDS.EFS.NewEFS;
-using UKHO.ADDS.EFS.NewEFS.S100;
+using UKHO.ADDS.EFS.Builds.S100;
+using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
@@ -36,7 +36,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
                 {
                     JobId = "TestCorrelationId",
                     BatchId = "a-valid-batch-id",
-                    BuildState = BuildState.Scheduled,
                     DataStandard = DataStandard.S100
                 },
                 JobId = "TestJobId",
@@ -98,7 +97,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
             {
                 JobId = correlationId,
                 BatchId = "a-valid-batch-id",
-                BuildState = BuildState.Scheduled,
                 DataStandard = DataStandard.S100
             };
             var result = await _creationPipeline.ExecutePipeline(_context.Subject);

@@ -1,5 +1,5 @@
-﻿using UKHO.ADDS.EFS.NewEFS;
-using UKHO.ADDS.EFS.NewEFS.S100;
+﻿using UKHO.ADDS.EFS.Builds;
+using UKHO.ADDS.EFS.Jobs;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 {

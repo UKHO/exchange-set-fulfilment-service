@@ -1,4 +1,4 @@
-﻿namespace UKHO.ADDS.EFS.NewEFS
+﻿namespace UKHO.ADDS.EFS.Jobs
 {
     public class DataStandardTimestamp
     {

@@ -24,18 +24,18 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 return Results.NotFound();
             }).WithDescription("Gets the job details for the given job request");
 
-            jobsEndpoint.MapGet("/{jobId}/status", async (string jobId, ITable<BuildStatus> table) =>
-                {
-                    var statusResult = await table.GetUniqueAsync(jobId);
+            //jobsEndpoint.MapGet("/{jobId}/status", async (string jobId, ITable<BuildStatus> table) =>
+            //    {
+            //        var statusResult = await table.GetUniqueAsync(jobId);
 
-                    if (statusResult.IsSuccess(out var status))
-                    {
-                        return Results.Ok(status);
-                    }
+            //        if (statusResult.IsSuccess(out var status))
+            //        {
+            //            return Results.Ok(status);
+            //        }
 
-                    return Results.NotFound();
-                })
-                .WithDescription("Gets the build status for the given job request");
+            //        return Results.NotFound();
+            //    })
+            //    .WithDescription("Gets the build status for the given job request");
         }
     }
 }

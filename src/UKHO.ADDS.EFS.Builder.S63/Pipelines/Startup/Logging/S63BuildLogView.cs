@@ -1,5 +1,5 @@
-﻿using UKHO.ADDS.EFS.NewEFS;
-using UKHO.ADDS.EFS.NewEFS.S63;
+﻿using UKHO.ADDS.EFS.Builds.S63;
+using UKHO.ADDS.EFS.Jobs;
 
 namespace UKHO.ADDS.EFS.Builder.S63.Pipelines.Startup.Logging
 {
@@ -8,8 +8,6 @@ namespace UKHO.ADDS.EFS.Builder.S63.Pipelines.Startup.Logging
         public required string Id { get; init; }
 
         public required DateTime? SalesCatalogueTimestamp { get; init; }
-
-        public required BuildState State { get; init; }
 
         public required DataStandard DataStandard { get; init; }
 
@@ -21,7 +19,6 @@ namespace UKHO.ADDS.EFS.Builder.S63.Pipelines.Startup.Logging
             {
                 Id = build.JobId,
                 SalesCatalogueTimestamp = build.SalesCatalogueTimestamp,
-                State = build.BuildState,
                 DataStandard = build.DataStandard,
                 ProductCount = build.GetProductCount()
             };

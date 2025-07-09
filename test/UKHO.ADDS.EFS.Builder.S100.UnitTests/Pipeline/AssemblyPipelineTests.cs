@@ -5,8 +5,8 @@ using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
-using UKHO.ADDS.EFS.NewEFS;
-using UKHO.ADDS.EFS.NewEFS.S100;
+using UKHO.ADDS.EFS.Builds.S100;
+using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
@@ -42,7 +42,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
                 {
                     JobId = "TestCorrelationId",
                     BatchId = "a-batch-id",
-                    BuildState = BuildState.Scheduled,
                     DataStandard = DataStandard.S100,
                     Products = GetProducts()
                 },

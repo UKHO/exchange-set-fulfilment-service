@@ -1,5 +1,5 @@
 ﻿using UKHO.ADDS.EFS.Builder.Common.Pipelines;
-using UKHO.ADDS.EFS.NewEFS.S57;
+using UKHO.ADDS.EFS.Builds.S57;
 
 namespace UKHO.ADDS.EFS.Builder.S57.Pipelines
 {

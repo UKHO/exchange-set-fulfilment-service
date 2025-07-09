@@ -1,4 +1,4 @@
-﻿using UKHO.ADDS.EFS.NewEFS;
+﻿using UKHO.ADDS.EFS.Jobs;
 
 namespace UKHO.ADDS.EFS.Messages
 {

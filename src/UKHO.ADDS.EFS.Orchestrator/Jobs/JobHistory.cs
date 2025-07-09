@@ -1,4 +1,6 @@
-﻿namespace UKHO.ADDS.EFS.NewEFS
+﻿using UKHO.ADDS.EFS.Jobs;
+
+namespace UKHO.ADDS.EFS.Orchestrator.Jobs
 {
     public class JobHistory
     {

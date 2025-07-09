@@ -1,5 +1,6 @@
-﻿using UKHO.ADDS.EFS.NewEFS;
+﻿using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
+using UKHO.ADDS.EFS.Orchestrator.Jobs;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines2.Infrastructure
 {
@@ -8,16 +9,18 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines2.Infrastructure
         public abstract Task<AssemblyPipelineResponse> RunAsync(CancellationToken cancellationToken);
     }
 
-    internal abstract class AssemblyPipeline<TBuild> : AssemblyPipeline where TBuild : Build
+    internal abstract class AssemblyPipeline<TBuild> : AssemblyPipeline where TBuild : Build, new()
     {
         private readonly ILogger _logger;
         private readonly AssemblyPipelineNodeFactory _nodeFactory;
+        private readonly PipelineContextFactory<TBuild> _contextFactory;
         private readonly AssemblyPipelineParameters _parameters;
 
-        protected AssemblyPipeline(AssemblyPipelineParameters parameters, AssemblyPipelineNodeFactory nodeFactory, ILogger logger)
+        protected AssemblyPipeline(AssemblyPipelineParameters parameters, AssemblyPipelineNodeFactory nodeFactory, PipelineContextFactory<TBuild> contextFactory, ILogger logger)
         {
             _parameters = parameters;
             _nodeFactory = nodeFactory;
+            _contextFactory = contextFactory;
             _logger = logger;
         }
 
@@ -25,7 +28,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines2.Infrastructure
 
         protected AssemblyPipelineNodeFactory NodeFactory => _nodeFactory;
 
-        protected abstract PipelineContext<TBuild> CreateContext();
+        protected PipelineContextFactory<TBuild> ContextFactory => _contextFactory;
+
+        protected abstract Task<PipelineContext<TBuild>> CreateContext();
 
         public Job CreateJob()
         {
@@ -33,9 +38,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines2.Infrastructure
             {
                 Id = Parameters.JobId,
                 DataStandard = Parameters.DataStandard,
-                Timestamp = Parameters.Timestamp,
-                JobState = JobState.Created,
-                BuildState = BuildState.NotScheduled
+                Timestamp = Parameters.Timestamp
             };
 
             _logger.LogJobCreated(EFSJobLogView.Create(job));

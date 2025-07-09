@@ -1,20 +1,20 @@
-﻿using UKHO.ADDS.EFS.NewEFS.S100;
+﻿using UKHO.ADDS.EFS.Builds.S100;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines2.Infrastructure;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines2.Assembly
 {
     internal class S100AssemblyPipeline : AssemblyPipeline<S100Build>
     {
-        public S100AssemblyPipeline(AssemblyPipelineParameters parameters, AssemblyPipelineNodeFactory nodeFactory, ILogger logger)
-            : base(parameters, nodeFactory, logger)
+        public S100AssemblyPipeline(AssemblyPipelineParameters parameters, AssemblyPipelineNodeFactory nodeFactory, PipelineContextFactory<S100Build> contextFactory, ILogger logger)
+            : base(parameters, nodeFactory, contextFactory, logger)
         {
         }
 
         public override Task<AssemblyPipelineResponse> RunAsync(CancellationToken cancellationToken) => throw new NotImplementedException();
 
-        protected override PipelineContext<S100Build> CreateContext()
+        protected override async Task<PipelineContext<S100Build>> CreateContext()
         {
-            return new PipelineContext<S100Build>();
+            return await ContextFactory.CreatePipelineContext(Parameters);
         }
     }
 }

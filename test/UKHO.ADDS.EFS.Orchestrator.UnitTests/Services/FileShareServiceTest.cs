@@ -4,8 +4,8 @@ using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
+using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Messages;
-using UKHO.ADDS.EFS.NewEFS;
 using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
 using UKHO.ADDS.Infrastructure.Results;
 

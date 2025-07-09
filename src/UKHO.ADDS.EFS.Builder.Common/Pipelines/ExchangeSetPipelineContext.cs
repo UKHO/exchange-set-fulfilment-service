@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.EFS.Builder.Common.Factories;
-using UKHO.ADDS.EFS.NewEFS;
+using UKHO.ADDS.EFS.Builds;
 
 namespace UKHO.ADDS.EFS.Builder.Common.Pipelines
 {

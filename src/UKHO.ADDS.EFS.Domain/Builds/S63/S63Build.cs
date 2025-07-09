@@ -1,6 +1,6 @@
-﻿namespace UKHO.ADDS.EFS.NewEFS.S57
+﻿namespace UKHO.ADDS.EFS.Builds.S63
 {
-    public class S57Build : Build
+    public class S63Build : Build
     {
         public override string GetProductDelimitedList() => throw new NotImplementedException();
 

@@ -6,18 +6,19 @@ using Microsoft.OpenApi.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.SalesCatalogueService;
 using UKHO.ADDS.EFS.Builds;
+using UKHO.ADDS.EFS.Builds.S100;
+using UKHO.ADDS.EFS.Builds.S57;
+using UKHO.ADDS.EFS.Builds.S63;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Extensions;
-using UKHO.ADDS.EFS.NewEFS;
-using UKHO.ADDS.EFS.NewEFS.S100;
-using UKHO.ADDS.EFS.NewEFS.S57;
-using UKHO.ADDS.EFS.NewEFS.S63;
+using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S100;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S57;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S63;
+using UKHO.ADDS.EFS.Orchestrator.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Monitors;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines2.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
@@ -51,6 +52,10 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             builder.Services.AddTransient<CompletionPipelineFactory>();
             builder.Services.AddTransient<CompletionPipelineNodeFactory>();
+
+            builder.Services.AddSingleton<PipelineContextFactory<S100Build>>();
+            builder.Services.AddSingleton<PipelineContextFactory<S63Build>>();
+            builder.Services.AddSingleton<PipelineContextFactory<S57Build>>();
 
             builder.Services.AddHostedService<JobRequestQueueMonitor>();
 

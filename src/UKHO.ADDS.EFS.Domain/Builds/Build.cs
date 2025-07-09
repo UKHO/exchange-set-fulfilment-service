@@ -1,6 +1,6 @@
-﻿using UKHO.ADDS.EFS.Builds;
+﻿using UKHO.ADDS.EFS.Jobs;
 
-namespace UKHO.ADDS.EFS.NewEFS
+namespace UKHO.ADDS.EFS.Builds
 {
     public abstract class Build
     {
@@ -13,7 +13,7 @@ namespace UKHO.ADDS.EFS.NewEFS
             _logMessages = [];
         }
 
-        public required string JobId { get; init; }
+        public string JobId { get; init; }
 
         /// <summary>
         ///     The Sales Catalogue timestamp queried for this job.
@@ -23,17 +23,12 @@ namespace UKHO.ADDS.EFS.NewEFS
         /// <summary>
         ///     The build data standard, which indicates the format of the data being processed.
         /// </summary>
-        public required DataStandard DataStandard { get; init; }
-
-        /// <summary>
-        ///     The state of the build.
-        /// </summary>
-        public required BuildState BuildState { get; init; }
+        public DataStandard DataStandard { get; init; }
 
         /// <summary>
         ///     The FSS Batch ID associated with the build.
         /// </summary>
-        public required string BatchId { get; init; }
+        public string? BatchId { get; init; }
 
         /// <summary>
         ///     Gets the collection of node statuses for this build.
