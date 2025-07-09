@@ -6,6 +6,7 @@ using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble;
+using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Jobs.S100;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
@@ -30,7 +31,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         {
             _fileShareReadOnlyClient = A.Fake<IFileShareReadOnlyClient>();
             _configuration = A.Fake<IConfiguration>();
-            A.CallTo(() => _configuration["ConcurrentDownloadLimitCount"]).Returns(CONCURRENCY_LIMIT.ToString());
+            A.CallTo(() => _configuration[BuilderEnvironmentVariables.ConcurrentDownloadLimitCount]).Returns(CONCURRENCY_LIMIT.ToString());
             _downloadFilesNode = new DownloadFilesNode(_fileShareReadOnlyClient, _configuration);
             _executionContext = A.Fake<IExecutionContext<S100ExchangeSetPipelineContext>>();
             _loggerFactory = A.Fake<ILoggerFactory>();
