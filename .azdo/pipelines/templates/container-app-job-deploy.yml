@@ -29,6 +29,7 @@ steps:
       echo "Setting variables..."
       DEPLOYMENT_NUMBER=$EPOCHSECONDS
       DEPLOYMENT_TAG=docker-deploy-$DEPLOYMENT_NUMBER
+      echo "Deployment tag - $DEPLOYMENT_TAG"
       export CONTAINER_IMAGE="$(AcrName).azurecr.io/exchange-set-fulfilment-service/${{ parameters.AppName }}-$(AZURE_ENV_NAME):$DEPLOYMENT_TAG"
       RESOURCE_GROUP="efs-$(AZURE_ENV_NAME)-rg"
 

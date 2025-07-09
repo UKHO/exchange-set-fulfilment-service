@@ -29,6 +29,7 @@ steps:
       echo "Setting variables..."
       DEPLOYMENT_NUMBER=$EPOCHSECONDS
       DEPLOYMENT_TAG=az-deploy-$DEPLOYMENT_NUMBER
+      echo "Deployment tag - $DEPLOYMENT_TAG"
       export CONTAINER_IMAGE="$(AcrName).azurecr.io/exchange-set-fulfilment-service/${{ parameters.AppName }}-$(AZURE_ENV_NAME):$DEPLOYMENT_TAG"
       export CONTAINER_PORT=8080 # TODO: get this value from output of dotnet publish below (this is what azd does).
       RESOURCE_GROUP="efs-$(AZURE_ENV_NAME)-rg"

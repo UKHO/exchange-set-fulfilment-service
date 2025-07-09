@@ -146,6 +146,14 @@ jobs:
               AZURE_SUBNET_SUBSCRIPTION: $(AZURE_SUBSCRIPTION_ID)
               AZURE_SUBNET_VNET: $(AZURE_SUBNET_VNET)
 
+          - task: DotNetCoreCLI@2
+            displayName: Run configuration seeder
+            inputs:
+              azureSubscription: ${{ variables.AzureSubscription }}
+              command: run
+              projects: '$(Build.SourcesDirectory)/config/repo/src/UKHO.ADDS.Configuration.Seeder/UKHO.ADDS.Configuration.Seeder.csproj'
+              arguments: '--configuration Release --no-restore -- $(AZURE_ENV_NAME) $(Build.SourcesDirectory)/config/configuration.json $(ConfigConnectionString)'
+
           - template: container-app-deploy.yml
             parameters:
               AzureSubscription: ${{ variables.AzureSubscription }}
