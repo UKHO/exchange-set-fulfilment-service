@@ -20,7 +20,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.S100
         {
             var job = context.Subject;
 
-            var productNames = job.GetProductDelimitedList().Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            var productNames = job.GetProductDelimitedList()
+                .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(name => name.Trim())
+                .ToArray();
 
             var result = await _salesCatalogueService.GetS100ProductNamesAsync(productNames, job);
 
