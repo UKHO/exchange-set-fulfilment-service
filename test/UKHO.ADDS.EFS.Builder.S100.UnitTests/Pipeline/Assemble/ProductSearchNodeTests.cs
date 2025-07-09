@@ -35,7 +35,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [SetUp]
         public void Setup()
         {
-            var exchangeSetPipelineContext = new S100ExchangeSetPipelineContext(null, null, null, null, _loggerFactory)
+            var exchangeSetPipelineContext = new S100ExchangeSetPipelineContext(null,  null, null, null, _loggerFactory)
             {
                 Job = new S100ExchangeSetJob
                 {
@@ -61,7 +61,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
 
         [Test]
         public async Task WhenPerformExecuteAsyncCalledWithValidProducts_ThenReturnSucceeded()
-        {
+        { 
             var batchDetails = new List<BatchDetails>
             {
                 new() { BatchId = "TestBatchId1" }
@@ -97,11 +97,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
 
         [Test]
         public async Task WhenPerformExecuteAsyncIsCalledAndSearchFails_ThenReturnFailed()
-        {
+        {           
             var error = new Error { Message = "Search failed" };
             A.CallTo(() => _fileShareReadOnlyClientFake.SearchAsync(A<string>._, A<int?>._, A<int?>._, A<string>._))
                 .Returns(Result.Failure<BatchSearchResponse>(error));
-
+         
             var result = await _productSearchNode.ExecuteAsync(_executionContext);
 
             Assert.Multiple(() =>
@@ -195,7 +195,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
                     A<Exception>._,
                     A<Func<LoggerMessageState, Exception?, string>>._))
                 .MustHaveHappenedOnceExactly();
-
+            
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
         }
 
