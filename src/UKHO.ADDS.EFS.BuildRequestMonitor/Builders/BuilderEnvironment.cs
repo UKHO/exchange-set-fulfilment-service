@@ -21,5 +21,7 @@
         public string FileShareEndpoint { get; set; }
 
         public string FileShareHealthEndpoint { get; set; }
+
+        public int ConcurrentDownloadLimitCount { get; set; }
     }
 }

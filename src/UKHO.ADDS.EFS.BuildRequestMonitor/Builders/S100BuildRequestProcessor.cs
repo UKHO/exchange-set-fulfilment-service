@@ -46,7 +46,8 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
                 env.FileShareHealthEndpoint = _configuration["Endpoints:S100BuilderFileShareHealth"]!;
                 env.BlobContainerName = StorageConfiguration.S100JobContainer;
                 env.MaxRetryAttempts = int.Parse(_configuration["S100MaxRetries"]!); 
-                env.RetryDelayMilliseconds = int.Parse(_configuration["S100RetryDelayMilliseconds"]!); 
+                env.RetryDelayMilliseconds = int.Parse(_configuration["S100RetryDelayMilliseconds"]!);
+                env.ConcurrentDownloadLimitCount = int.Parse(_configuration["ConcurrentDownloadLimitCount"]!);
             });
 
             await _containerService.StartContainerAsync(containerId);

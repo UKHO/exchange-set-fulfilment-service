@@ -1,6 +1,7 @@
 ﻿using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging;
+using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.RetryPolicy;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
@@ -42,7 +43,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             
             // First try to get the configuration from the UKHO.ADDS.EFS.Builder.S100 section
-            if (!int.TryParse(_configuration["ConcurrentDownloadLimitCount"], out _maxConcurrentDownloads))
+            if (!int.TryParse(_configuration[BuilderEnvironmentVariables.ConcurrentDownloadLimitCount], out _maxConcurrentDownloads))
             {
                 // Fall back to default value if not configured
                 _maxConcurrentDownloads = DefaultConcurrentDownloads;
