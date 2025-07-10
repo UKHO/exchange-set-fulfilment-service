@@ -32,11 +32,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private const int FileStreamBufferSize = 81920; // 80KB buffer size
         private const int DefaultConcurrentDownloads = 1; // Default number of concurrent downloads if not specified in config
 
-        /// <summary>
-        /// Gets the maximum number of concurrent downloads allowed
-        /// </summary>
-        private int MaxConcurrentDownloads => _maxConcurrentDownloads;
-
         public DownloadFilesNode(IFileShareReadOnlyClient fileShareReadOnlyClient, IConfiguration configuration)
         {
             _fileShareReadOnlyClient = fileShareReadOnlyClient ?? throw new ArgumentNullException(nameof(fileShareReadOnlyClient));
