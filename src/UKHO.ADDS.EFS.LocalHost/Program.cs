@@ -54,7 +54,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                     InfrastructureSubnetId = new BicepValue<ResourceIdentifier>(subnetId),
                     IsInternal = true
                 };
-                containerEnvironment.Tags.Clear();
+                // This doesn't seem to work at the moment so I've updated the bicep directly.
                 containerEnvironment.Tags.Add("aspire-resource-name", ServiceConfiguration.AcaEnvironmentName);
                 containerEnvironment.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
             });

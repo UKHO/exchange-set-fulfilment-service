@@ -3,8 +3,6 @@ param location string = resourceGroup().location
 
 param userPrincipalId string
 
-param tags object = { }
-
 param subnetSubscription string
 
 param subnetResourceGroup string
@@ -16,7 +14,10 @@ param subnetName string
 resource efs_cae_mi 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: take('efs_cae_mi-${uniqueString(resourceGroup().id)}', 128)
   location: location
-  tags: tags
+  tags: {
+    'aspire-resource-name': 'efs-cae-mi'
+    'hidden-title': 'EFS'
+  }
 }
 
 resource efs_cae_acr 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
@@ -25,7 +26,10 @@ resource efs_cae_acr 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
   sku: {
     name: 'Basic'
   }
-  tags: tags
+  tags: {
+    'aspire-resource-name': 'efs-cae-acr'
+    'hidden-title': 'EFS'
+  }
 }
 
 resource efs_cae_acr_efs_cae_mi_AcrPull 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
@@ -46,7 +50,10 @@ resource efs_cae_law 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
       name: 'PerGB2018'
     }
   }
-  tags: tags
+  tags: {
+    'aspire-resource-name': 'efs-cae-law'
+    'hidden-title': 'EFS'
+  }
 }
 
 resource efs_cae 'Microsoft.App/managedEnvironments@2024-03-01' = {
@@ -71,7 +78,10 @@ resource efs_cae 'Microsoft.App/managedEnvironments@2024-03-01' = {
       }
     ]
   }
-  tags: tags
+  tags: {
+    'aspire-resource-name': 'efs-cae'
+    'hidden-title': 'EFS'
+  }
 }
 
 resource aspireDashboard 'Microsoft.App/managedEnvironments/dotNetComponents@2024-10-02-preview' = {
