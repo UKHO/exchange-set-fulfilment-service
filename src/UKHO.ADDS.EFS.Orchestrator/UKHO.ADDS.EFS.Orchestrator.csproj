@@ -7,13 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="OLD\**" />
-    <Content Remove="OLD\**" />
-    <EmbeddedResource Remove="OLD\**" />
-    <None Remove="OLD\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Remove="Infrastructure\Tables\BuildStatusTable.cs" />
     <Compile Remove="Infrastructure\Tables\ExchangeSetJobTypeTable.cs" />
     <Compile Remove="Infrastructure\Tables\S100\S100BuildSummaryTable.cs" />
@@ -33,6 +26,7 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Storage.Blobs" Version="12.24.0" />
+    <PackageReference Include="Konscious.Security.Cryptography.Blake2" Version="1.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.3" />
     <PackageReference Include="Scalar.AspNetCore" Version="2.1.1" />
     <PackageReference Include="Docker.DotNet" Version="3.125.15" />
@@ -56,10 +50,6 @@
     <ProjectReference Include="..\UKHO.ADDS.EFS.Analyzers\UKHO.ADDS.EFS.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\UKHO.ADDS.EFS.Aspire\UKHO.ADDS.EFS.Aspire.csproj" />
     <ProjectReference Include="..\UKHO.ADDS.EFS.Domain\UKHO.ADDS.EFS.Domain.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Pipelines\States\" />
   </ItemGroup>
 
 </Project>

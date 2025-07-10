@@ -69,6 +69,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             builder.Services.AddSingleton<ITimestampService, TimestampService>();
             builder.Services.AddSingleton<IStorageService, StorageService>();
+            builder.Services.AddSingleton<IHashingService, HashingService>();
 
             builder.Services.AddSingleton<ITable<S100Build>, S100BuildTable>();
             builder.Services.AddSingleton<ITable<S63Build>, S63BuildTable>();
