@@ -8,13 +8,9 @@
 
   <ItemGroup>
     <Compile Remove="OLD\**" />
-    <Compile Remove="Pipelines\**" />
     <Content Remove="OLD\**" />
-    <Content Remove="Pipelines\**" />
     <EmbeddedResource Remove="OLD\**" />
-    <EmbeddedResource Remove="Pipelines\**" />
     <None Remove="OLD\**" />
-    <None Remove="Pipelines\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -63,11 +59,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Pipelines2\Completion\Nodes\Common\" />
-    <Folder Include="Pipelines2\Completion\Nodes\S100\" />
-    <Folder Include="Pipelines2\Completion\Nodes\S57\" />
-    <Folder Include="Pipelines2\Completion\Nodes\S63\" />
-    <Folder Include="Pipelines2\States\" />
+    <Folder Include="Pipelines\States\" />
   </ItemGroup>
 
 </Project>

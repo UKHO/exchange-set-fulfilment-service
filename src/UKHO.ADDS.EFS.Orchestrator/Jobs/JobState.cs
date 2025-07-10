@@ -31,10 +31,5 @@
         ///     The job has been completed successfully without any errors
         /// </summary>
         Completed,
-
-        /// <summary>
-        ///     The job has been completed but encountered error(s) during processing
-        /// </summary>
-        CompletedWithError
     }
 }

@@ -5,7 +5,6 @@ using UKHO.ADDS.EFS.Builder.Common.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builds.S100;
 
-
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines

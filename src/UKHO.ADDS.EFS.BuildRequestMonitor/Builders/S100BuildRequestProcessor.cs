@@ -33,7 +33,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
             
             var queuePort = ExtractPort(queueConnectionString, "QueueEndpoint");
             var blobPort = ExtractPort(blobConnectionString, "BlobEndpoint");
-
+            
             // Set the environment variables for the container - in production, these are set from the Azure environment (via the pipeline)
             var containerId = await _containerService.CreateContainerAsync(ProcessNames.S100Builder, containerName, _command, request, env =>
             {

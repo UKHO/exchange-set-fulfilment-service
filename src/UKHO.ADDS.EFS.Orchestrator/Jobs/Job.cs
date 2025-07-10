@@ -4,7 +4,7 @@ using UKHO.ADDS.EFS.Jobs;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Jobs
 {
-    public class Job
+    public partial class Job
     {
         public Job()
         {
@@ -72,13 +72,5 @@ namespace UKHO.ADDS.EFS.Orchestrator.Jobs
         /// <remarks>This is always the Job ID.</remarks>
         /// <returns></returns>
         public string GetCorrelationId() => Id;
-
-        internal void ValidateAndSet(JobState jobState, BuildState buildState)
-        {
-            // TODO Implement state validation
-
-            JobState = jobState;
-            BuildState = buildState;
-        }
     }
 }

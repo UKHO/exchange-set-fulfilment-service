@@ -38,6 +38,8 @@
 
         public const string JobTable = "job";
 
+        public const string BuildMementoTable = "buildmemento";
+
         public const string JobHistoryTable = "jobhistory";
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.SalesCatalogueService;
+using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Builds.S100;
 using UKHO.ADDS.EFS.Builds.S57;
 using UKHO.ADDS.EFS.Builds.S63;
@@ -12,15 +13,18 @@ using UKHO.ADDS.EFS.Extensions;
 using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S100;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S57;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S63;
 using UKHO.ADDS.EFS.Orchestrator.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Monitors;
-using UKHO.ADDS.EFS.Orchestrator.Pipelines2.Infrastructure;
-using UKHO.ADDS.EFS.Orchestrator.Pipelines2.Services;
-using UKHO.ADDS.EFS.Orchestrator.Pipelines2.Services.Implementation;
+using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
+using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
+using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
+using UKHO.ADDS.EFS.Orchestrator.Pipelines.Services;
+using UKHO.ADDS.EFS.Orchestrator.Pipelines.Services.Implementation;
 using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Services.Storage;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
@@ -72,9 +76,10 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             builder.Services.AddSingleton<ITable<DataStandardTimestamp>, DataStandardTimestampTable>();
             builder.Services.AddSingleton<ITable<Job>, JobTable>();
+            builder.Services.AddSingleton<ITable<BuildMemento>, BuildMementoTable>();
             builder.Services.AddSingleton<ITable<JobHistory>, JobHistoryTable>();
 
-            builder.Services.AddSingleton<BuilderLogForwarder>();
+            builder.Services.AddSingleton<IBuilderLogForwarder, BuilderLogForwarder>();
             builder.Services.AddSingleton<StorageInitializerService>();
 
             builder.Services.AddSingleton<ISalesCatalogueClientFactory>(provider => new SalesCatalogueClientFactory(provider.GetRequiredService<IHttpClientFactory>()));

@@ -17,10 +17,10 @@ namespace UKHO.ADDS.EFS.Builds.S100
             set => _products = value?.ToList() ?? [];
         }
 
-        public override string GetProductDelimitedList() => throw new NotImplementedException();
+        public override string GetProductDelimitedList() => (Products == null) ? string.Empty : string.Join(", ", Products.Select(p => p));
 
         public override string GetProductDiscriminator() => throw new NotImplementedException();
 
-        public override int GetProductCount() => throw new NotImplementedException();
+        public override int GetProductCount() => (Products == null) ? 0 : Products?.Count() ?? 0;
     }
 }

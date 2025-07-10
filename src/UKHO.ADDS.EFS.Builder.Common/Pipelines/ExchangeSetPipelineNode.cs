@@ -47,7 +47,7 @@ namespace UKHO.ADDS.EFS.Builder.Common.Pipelines
                 status.ErrorMessage = FlattenExceptionMessages(nodeResult.Exception);
             }
 
-            context.Subject.Build.AddStatus(status);
+            context.Subject.AddStatus(status);
         }
 
         private static string FlattenExceptionMessages(Exception? ex)

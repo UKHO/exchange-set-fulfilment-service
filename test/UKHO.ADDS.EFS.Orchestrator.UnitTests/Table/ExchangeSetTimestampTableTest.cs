@@ -5,7 +5,7 @@ using Azure.Data.Tables.Models;
 using FakeItEasy;
 using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.Infrastructure;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.Implementation;
 using UKHO.ADDS.EFS.Orchestrator.UnitTests.Extensions;
 
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Table

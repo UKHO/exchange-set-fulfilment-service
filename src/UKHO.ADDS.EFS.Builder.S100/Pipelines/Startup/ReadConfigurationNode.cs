@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging;
+﻿using Serilog;
+using UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging;
 using UKHO.ADDS.EFS.Builds.S100;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.Infrastructure.Pipelines;
@@ -51,6 +52,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
             }
             catch (Exception ex)
             {
+#pragma warning disable LOG001
+                Log.Fatal(ex, $"An unhandled exception occurred during execution : {ex.Message}");
+#pragma warning restore LOG001
+
                 return NodeResultStatus.Failed;
             }
         }

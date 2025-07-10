@@ -98,23 +98,12 @@ namespace UKHO.ADDS.EFS.Builder.S57
 
             finally
             {
-                await Log.CloseAndFlushAsync();
-
                 if (pipelineContext != null && configuration != null)
                 {
-                    pipelineContext.Build.SetLogMessages(sink.GetLogLines());
-
-                    var queueClient = pipelineContext.QueueClientFactory.CreateResponseQueueClient(configuration);
-                    var blobClient = pipelineContext.BlobClientFactory.CreateBlobClient(configuration, $"{pipelineContext.JobId}/{pipelineContext.JobId}");
-
-                    using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(JsonCodec.Encode(pipelineContext.Build))))
-                    {
-                        await blobClient.UploadAsync(stream, true);
-                    }
-
-                    var response = new BuildResponse { JobId = pipelineContext.JobId, ExitCode = exitCode };
-                    await queueClient.SendMessageAsync(JsonCodec.Encode(response));
+                    await pipelineContext.CompleteBuild(configuration, sink, exitCode);
                 }
+
+                await Log.CloseAndFlushAsync();
             }
         }
 

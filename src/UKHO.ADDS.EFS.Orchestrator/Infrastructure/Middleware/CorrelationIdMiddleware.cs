@@ -5,7 +5,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Middleware
 {
     internal class CorrelationIdMiddleware
     {
-        private static readonly string[] _pathsWithoutCorrelationId = ["/scalar", "/healthcheck", "/openapi", "/jobs", "/status", "/favicon.ico"];
+        private static readonly string[] _pathsWithoutCorrelationId = ["/scalar", "/healthcheck", "/openapi", "/jobs", "/favicon.ico"];
 
         private readonly RequestDelegate _next;
 
@@ -13,7 +13,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Middleware
 
         public async Task InvokeAsync(HttpContext httpContext)
         {
-            if (_pathsWithoutCorrelationId.All(v => httpContext.Request.Path.Value?.Contains(v, StringComparison.OrdinalIgnoreCase) != true))
+            // TODO This is really fragile, need a better approach to determine if a correlation ID is required.
+
+            var demandsCorrelationId = _pathsWithoutCorrelationId.All(v => httpContext.Request.Path.Value?.Contains(v, StringComparison.OrdinalIgnoreCase) != true);
+
+            if (demandsCorrelationId || httpContext.Request.Method == "POST")
             {
                 var hasCorrelationId = httpContext.Request.Headers.TryGetValue(ApiHeaderKeys.XCorrelationIdHeaderKey, out var correlationId);
 

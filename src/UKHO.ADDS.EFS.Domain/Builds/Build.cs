@@ -28,7 +28,7 @@ namespace UKHO.ADDS.EFS.Builds
         /// <summary>
         ///     The FSS Batch ID associated with the build.
         /// </summary>
-        public string? BatchId { get; init; }
+        public string? BatchId { get; set; }
 
         /// <summary>
         ///     Gets the collection of node statuses for this build.
@@ -36,7 +36,7 @@ namespace UKHO.ADDS.EFS.Builds
         public IEnumerable<BuildNodeStatus>? Statuses
         {
             get => _statuses;
-            internal set => _statuses = value?.ToList() ?? [];
+            set => _statuses = value?.ToList() ?? [];
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace UKHO.ADDS.EFS.Builds
         public IEnumerable<string>? LogMessages
         {
             get => _logMessages;
-            internal set => _logMessages = value?.ToList() ?? [];
+            set => _logMessages = value?.ToList() ?? [];
         }
 
         /// <summary>
@@ -74,23 +74,16 @@ namespace UKHO.ADDS.EFS.Builds
         public abstract int GetProductCount();
 
         /// <summary>
-        ///     Adds a node status to the build. Each builder node records a status after execution.
+        ///     Adds node statuses and logs to the build
         /// </summary>
-        /// <param name="status"></param>
-        public void AddStatus(BuildNodeStatus status)
+        /// <param name="statuses"></param>
+        /// <param name="logMessages"></param>
+        public void SetOutputs(IEnumerable<BuildNodeStatus> statuses, IEnumerable<string> logMessages)
         {
-            _statuses ??= [];
-            _statuses.Add(status);
-        }
+            _statuses.AddRange(statuses);
 
-        /// <summary>
-        ///     Sets the collection of log messages for the build.
-        /// </summary>
-        /// <param name="logLines"></param>
-        public void SetLogMessages(IEnumerable<string> logLines)
-        {
             _logMessages ??= [];
-            _logMessages.AddRange(logLines);
+            _logMessages.AddRange(logMessages);
         }
     }
 }
