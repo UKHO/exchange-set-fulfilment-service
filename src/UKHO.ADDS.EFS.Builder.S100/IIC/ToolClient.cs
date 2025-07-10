@@ -12,7 +12,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
     {
         private readonly HttpClient _httpClient;
         private const string WorkSpaceId = "working9";
-        private const string ApiVersion = "2.7";
+        private const string ApiVersion = "7.2";
         private const string ApplicationName = "IICToolAPI";
 
         /// <summary>
@@ -144,18 +144,33 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
             try
             {
                 var path = BuildApiPath(action, exchangeSetId, authKey, resourceLocation);
-                using var response = await _httpClient.GetAsync(path);
-                var content = await response.Content.ReadAsStringAsync();
-                var resultObj = JsonCodec.Decode<T>(content);
-
-                if (response.IsSuccessStatusCode && resultObj != null)
+                HttpResponseMessage response;
+                // Determine if we should use PUT instead of GET
+                if (action == "addExchangeSet" || action == "addContent")
                 {
-                    return Result.Success(resultObj);
+                    // For PUT requests, we'll send an empty content body
+                    using var content = new StringContent(string.Empty, System.Text.Encoding.UTF8, "application/json");
+                    response = await _httpClient.PutAsync(path, content);
                 }
                 else
                 {
-                    var errorMetadata = await response.CreateErrorMetadata(ApplicationName, correlationId);
-                    return Result.Failure<T>(ErrorFactory.CreateError(response.StatusCode, errorMetadata));
+                    response = await _httpClient.GetAsync(path);
+                }
+
+                using (response)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    var resultObj = JsonCodec.Decode<T>(content);
+
+                    if (response.IsSuccessStatusCode && resultObj != null)
+                    {
+                        return Result.Success(resultObj);
+                    }   
+                    else
+                    {
+                        var errorMetadata = await response.CreateErrorMetadata(ApplicationName, correlationId);
+                        return Result.Failure<T>(ErrorFactory.CreateError(response.StatusCode, errorMetadata));
+                    }
                 }
             }
             catch (Exception ex)

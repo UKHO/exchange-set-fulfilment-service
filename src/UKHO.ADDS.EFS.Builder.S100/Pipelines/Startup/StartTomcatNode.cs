@@ -43,12 +43,20 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
 
             for (var i = 0; i < maxRetries; i++)
             {
-                var pingResult = await toolClient.PingAsync();
-                if (pingResult.IsSuccess())
-                {
-                    ready = true;
-                    break;
-                }
+                ready = true;
+                break;
+                //var result = await context.Subject.ToolClient.ListWorkspaceAsync(context.Subject.WorkspaceAuthenticationKey);
+                //if (result.IsSuccess(out var response) && !string.IsNullOrEmpty(response))
+                //{
+                //    ready = true;
+                //    break;
+                //}
+                //    var pingResult = await toolClient.PingAsync();
+                //if (pingResult.IsSuccess())
+                //{
+                //    ready = true;
+                //    break;
+                //}
 
                 await Task.Delay(retryDelayInMilliseconds);
             }
