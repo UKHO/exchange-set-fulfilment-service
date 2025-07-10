@@ -25,7 +25,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.S100
                 .Select(name => name.Trim())
                 .ToArray();
 
-            var result = await _salesCatalogueService.GetS100ProductNamesAsync(productNames, job);
+            var result = await _salesCatalogueService.GetS100ProductNamesAsync(productNames, job, Environment.CancellationToken);
 
             switch (result.s100SalesCatalogueData.ResponseCode)
             {

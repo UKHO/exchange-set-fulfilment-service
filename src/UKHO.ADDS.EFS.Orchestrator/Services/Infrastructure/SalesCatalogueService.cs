@@ -91,11 +91,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
         ///     The method returns an empty response with the original SalesCatalogueTimestamp when an error occurs or when
         ///     an unexpected HTTP status code is returned from the API.
         /// </remarks>
-        public async Task<(S100ProductNamesResponse s100SalesCatalogueData, DateTime? LastModified)> GetS100ProductNamesAsync(IEnumerable<string> productNames, ExchangeSetJob job)
+        public async Task<(S100ProductNamesResponse s100SalesCatalogueData, DateTime? LastModified)> GetS100ProductNamesAsync(IEnumerable<string> productNames, ExchangeSetJob job, CancellationToken cancellationToken)
         {
             var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<S100ProductNamesResponse>(_logger, nameof(GetS100ProductNamesAsync));
             var s100SalesCatalogueResult = await retryPolicy.ExecuteAsync(() =>
-                _salesCatalogueClient.GetS100ProductNamesAsync(ScsApiVersion, ProductType, productNames, job.GetCorrelationId()));
+                _salesCatalogueClient.GetS100ProductNamesAsync(ScsApiVersion, ProductType, productNames, job.GetCorrelationId(), cancellationToken));
 
             // Check if the API call was successful
             if (s100SalesCatalogueResult.IsSuccess(out var s100SalesCatalogueData, out var error))

@@ -238,7 +238,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tests.Services
 
             SetupProductNamesClientSuccess(expectedResponse, productNames);
 
-            var result = await _salesCatalogueService.GetS100ProductNamesAsync(productNames, _exchangeSetJob);
+            var result = await _salesCatalogueService.GetS100ProductNamesAsync(productNames, _exchangeSetJob, CancellationToken.None);
 
             Assert.Multiple(() =>
             {
@@ -259,7 +259,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tests.Services
 
             SetupProductNamesClientSuccess(expectedResponse, productNames);
 
-            var result = await _salesCatalogueService.GetS100ProductNamesAsync(productNames, _exchangeSetJob);
+            var result = await _salesCatalogueService.GetS100ProductNamesAsync(productNames, _exchangeSetJob, CancellationToken.None);
 
             Assert.Multiple(() =>
             {
@@ -279,7 +279,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tests.Services
 
             SetupProductNamesClientSuccess(expectedResponse, productNames);
 
-            var result = await _salesCatalogueService.GetS100ProductNamesAsync(productNames, _exchangeSetJob);
+            var result = await _salesCatalogueService.GetS100ProductNamesAsync(productNames, _exchangeSetJob, CancellationToken.None);
 
             AssertLoggerCalled();
             Assert.Multiple(() =>
@@ -296,7 +296,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tests.Services
             var productNames = new List<string> { "Product1", "Product2" };
             SetupProductNamesClientFailure(productNames);
 
-            var result = await _salesCatalogueService.GetS100ProductNamesAsync(productNames, _exchangeSetJob);
+            var result = await _salesCatalogueService.GetS100ProductNamesAsync(productNames, _exchangeSetJob, CancellationToken.None);
 
             AssertLoggerCalled();
             Assert.Multiple(() =>
@@ -318,7 +318,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tests.Services
 
             SetupProductNamesClientSuccess(expectedResponse, productNames);
 
-            var result = await _salesCatalogueService.GetS100ProductNamesAsync(productNames, _exchangeSetJob);
+            var result = await _salesCatalogueService.GetS100ProductNamesAsync(productNames, _exchangeSetJob, CancellationToken.None);
 
             A.CallTo(() => _fakeSalesCatalogueClient.GetS100ProductNamesAsync(
                 A<string>.Ignored, A<string>.Ignored, A<IEnumerable<string>>.That.IsEmpty(), A<string>.Ignored, A<CancellationToken>.Ignored))
@@ -363,7 +363,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tests.Services
                     return successResult;
                 });
 
-            var result = await _salesCatalogueService.GetS100ProductNamesAsync(productNames, _exchangeSetJob);
+            var result = await _salesCatalogueService.GetS100ProductNamesAsync(productNames, _exchangeSetJob, CancellationToken.None);
             var data = result.s100SalesCatalogueData;
 
             Assert.Multiple(() =>
