@@ -54,6 +54,8 @@ namespace UKHO.ADDS.EFS.LocalHost
                     InfrastructureSubnetId = new BicepValue<ResourceIdentifier>(subnetId),
                     IsInternal = true
                 };
+                containerEnvironment.Tags.Clear();
+                containerEnvironment.Tags.Add("aspire-resource-name", ServiceConfiguration.AcaEnvironmentName);
                 containerEnvironment.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
             });
 
