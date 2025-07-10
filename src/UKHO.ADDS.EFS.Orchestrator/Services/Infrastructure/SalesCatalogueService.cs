@@ -77,8 +77,20 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
             return (new S100SalesCatalogueResponse(), sinceDateTime);
         }
 
-
-
+        /// <summary>
+        ///     Retrieves S100 product names from the Sales Catalogue for the specified product names.
+        /// </summary>
+        /// <param name="productNames">A collection of product names to query.</param>
+        /// <param name="job">The exchange set request message containing correlation ID and other metadata.</param>
+        /// <returns>
+        ///     A tuple containing:
+        ///     - s100SalesCatalogueData: The response from the Sales Catalogue API.
+        ///     - LastModified: The timestamp when the data was last modified, or the original SalesCatalogueTimestamp if not modified or on error.
+        /// </returns>
+        /// <remarks>
+        ///     The method returns an empty response with the original SalesCatalogueTimestamp when an error occurs or when
+        ///     an unexpected HTTP status code is returned from the API.
+        /// </remarks>
         public async Task<(S100ProductNamesResponse s100SalesCatalogueData, DateTime? LastModified)> GetS100ProductNamesAsync(IEnumerable<string> productNames, ExchangeSetJob job)
         {
             var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<S100ProductNamesResponse>(_logger, nameof(GetS100ProductNamesAsync));
