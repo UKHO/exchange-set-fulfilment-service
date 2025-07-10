@@ -229,11 +229,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Tests.Services
             var expectedResponse = new S100ProductNamesResponse
             {
                 ResponseCode = HttpStatusCode.OK,
-                Products = new List<S100ProductNames>
-                {
+                Products =
+                [
                     new S100ProductNames { ProductName = "Product1" },
                     new S100ProductNames { ProductName = "Product2" }
-                }
+                ]
             };
 
             SetupProductNamesClientSuccess(expectedResponse, productNames);
