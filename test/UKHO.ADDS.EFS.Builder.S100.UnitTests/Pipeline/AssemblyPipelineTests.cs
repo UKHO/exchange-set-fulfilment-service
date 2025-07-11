@@ -33,8 +33,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
             _executionContext = A.Fake<IExecutionContext<S100ExchangeSetPipelineContext>>();
             _configuration = A.Fake<IConfiguration>();
 
-            // Set up the ConcurrentDownloadLimitCount config value
-            A.CallTo(() => _configuration["ConcurrentDownloadLimitCount"]).Returns("4");
+            // Set up the S100ConcurrentDownloadLimitCount config value
+            A.CallTo(() => _configuration["S100ConcurrentDownloadLimitCount"]).Returns("4");
         }
 
         [SetUp]
