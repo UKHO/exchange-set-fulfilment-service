@@ -21,5 +21,19 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
         ///     an unexpected HTTP status code is returned from the API.
         /// </remarks>
         Task<(S100SalesCatalogueResponse s100SalesCatalogueData, DateTime? LastModified)> GetS100ProductsFromSpecificDateAsync(DateTime? sinceDateTime, Job job);
+
+        /// <summary>
+        ///     Retrieves S100 product names and their details from the Sales Catalogue Service.
+        /// </summary>
+        /// <param name="productNames">A collection of product names to retrieve.</param>
+        /// <param name="job">The job context for the request.</param>
+        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+        /// <returns>
+        ///     A tuple containing:
+        ///     - s100SalesCatalogueData: The response with product details.
+        ///     - LastModified: The timestamp when the data was last modified, or null if unavailable.
+        /// </returns>
+        Task<(S100ProductNamesResponse s100SalesCatalogueData, DateTime? LastModified)> GetS100ProductNamesAsync(
+            IEnumerable<string> productNames, Job job, CancellationToken cancellationToken);
     }
 }
