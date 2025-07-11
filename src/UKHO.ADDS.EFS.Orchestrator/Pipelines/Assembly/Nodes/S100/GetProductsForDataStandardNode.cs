@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Builds.S100;
 using UKHO.ADDS.EFS.Orchestrator.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
@@ -6,6 +7,7 @@ using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
+using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 {
@@ -37,7 +39,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             {
                 case HttpStatusCode.OK when s100SalesCatalogueData.ResponseBody.Any():
                     // We have something to build, so move forwards with scheduling a build
-                    build.Products = s100SalesCatalogueData.ResponseBody;
+                    //build.Products = s100SalesCatalogueData.ResponseBody;
+                    var filteredProducts = FilterProducts(s100SalesCatalogueData.ResponseBody, job.RequestedFilter);
+                    build.Products = filteredProducts;
 
                     job.DataStandardTimestamp = lastModified;
                     build.SalesCatalogueTimestamp = lastModified;
@@ -66,6 +70,19 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             }
 
             return nodeResult;
+        }
+
+        private static List<S100Products> FilterProducts(IEnumerable<S100Products> products, string requestedFilter)
+        {
+            if (string.IsNullOrWhiteSpace(requestedFilter))
+            {
+                return products.Where(p => !string.IsNullOrWhiteSpace(p.ProductName)).ToList();
+            }
+
+            return products
+                .Where(p => !string.IsNullOrWhiteSpace(p.ProductName) &&
+                            p.ProductName.StartsWith(requestedFilter, StringComparison.OrdinalIgnoreCase))
+                .ToList();
         }
     }
 }
