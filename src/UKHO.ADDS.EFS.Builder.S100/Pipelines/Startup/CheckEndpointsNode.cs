@@ -20,10 +20,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
             //    return NodeResultStatus.Failed;
             //}
 
-            //if (!(await context.Subject.ToolClient.ListWorkspaceAsync(context.Subject.WorkspaceAuthenticationKey)).IsSuccess(out _))
-            //{
-            //    return NodeResultStatus.Failed;
-            //}
+            if (!(await context.Subject.ToolClient.ListWorkspaceAsync(context.Subject.WorkspaceAuthenticationKey)).IsSuccess(out _))
+            {
+                return NodeResultStatus.Failed;
+            }
 
             await CheckEndpointAsync(context.Subject.FileShareHealthEndpoint);
 

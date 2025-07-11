@@ -160,7 +160,7 @@ RUN set -eux; \
 	fi
 
 # copy in war file to webapps for unpacking...
-COPY UKHO.ADDS.EFS.Builder.S100/xchg-7.2.1.war /usr/local/tomcat/webapps/
+COPY UKHO.ADDS.EFS.Builder.S100/xchg-7.2.war /usr/local/tomcat/webapps/
 ADD UKHO.ADDS.EFS.Builder.S100/root2.tar.gz /usr/local/tomcat/
 
 # UKHO additions
