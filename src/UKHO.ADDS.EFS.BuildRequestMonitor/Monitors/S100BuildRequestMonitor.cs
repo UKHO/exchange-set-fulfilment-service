@@ -1,8 +1,8 @@
 using Azure.Storage.Queues;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Builders;
-using UKHO.ADDS.EFS.Builds;
+using UKHO.ADDS.EFS.Builds.S100;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
-using UKHO.ADDS.EFS.Messages;
+using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.BuildRequestMonitor.Monitors
@@ -48,7 +48,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Monitors
                     {
                         try
                         {
-                            var request = JsonCodec.Decode<BuildRequest>(message.MessageText)!;
+                            var request = JsonCodec.Decode<S100BuildRequest>(message.MessageText)!;
 
                             if (_processedJobs.Contains(request.JobId))
                             {
@@ -59,7 +59,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Monitors
 
                             switch (request.DataStandard)
                             {
-                                case ExchangeSetDataStandard.S100:
+                                case DataStandard.S100:
                                     _logger.LogInformation("Received S100 build request for JobId: {JobId}, BatchId: {BatchId}", request.JobId, request.BatchId);
 
                                     await _processor.ProcessRequestAsync(request, cancellationToken: stoppingToken);

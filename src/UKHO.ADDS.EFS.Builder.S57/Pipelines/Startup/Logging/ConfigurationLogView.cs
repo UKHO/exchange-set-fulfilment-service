@@ -5,7 +5,6 @@
         public required string JobId { get; init; }
         public required string BatchId { get; init; }
         public required string FileShareEndpoint { get; init; }
-        public required string WorkspaceAuthenticationKey { get; init; }
         public required string ExchangeSetNameTemplate { get; init; }
     }
 }

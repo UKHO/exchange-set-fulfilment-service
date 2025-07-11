@@ -7,13 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="OLD\**" />
-    <Content Remove="OLD\**" />
-    <EmbeddedResource Remove="OLD\**" />
-    <None Remove="OLD\**" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <Compile Remove="Infrastructure\Tables\BuildStatusTable.cs" />
+    <Compile Remove="Infrastructure\Tables\ExchangeSetJobTypeTable.cs" />
+    <Compile Remove="Infrastructure\Tables\S100\S100BuildSummaryTable.cs" />
+    <Compile Remove="Infrastructure\Tables\S100\S100ExchangeSetJobTable.cs" />
+    <Compile Remove="Infrastructure\Tables\S57\S57BuildSummaryTable.cs" />
+    <Compile Remove="Infrastructure\Tables\S57\S57ExchangeSetJobTable.cs" />
+    <Compile Remove="Infrastructure\Tables\S63\S63BuildSummaryTable.cs" />
+    <Compile Remove="Infrastructure\Tables\S63\S63ExchangeSetJobTable.cs" />
     <Compile Remove="Services\Infrastructure\IFileShareService.cs" />
     <Compile Remove="Services\Infrastructure\ISalesCatalogueService.cs" />
   </ItemGroup>
@@ -25,6 +26,7 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Storage.Blobs" Version="12.24.0" />
+    <PackageReference Include="Konscious.Security.Cryptography.Blake2" Version="1.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.3" />
     <PackageReference Include="Scalar.AspNetCore" Version="2.1.1" />
     <PackageReference Include="Docker.DotNet" Version="3.125.15" />

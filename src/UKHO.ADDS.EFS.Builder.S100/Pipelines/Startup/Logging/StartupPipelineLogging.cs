@@ -21,18 +21,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging
         public static partial void LogStartupPipelineFailed(this ILogger logger, [LogProperties] NodeResult result);
 
 
-        // The job was received
+        // The build was retrieved
         public static readonly EventId JobRetrieved = new(JobRetrievedId, nameof(JobRetrieved));
 
         [LoggerMessage(JobRetrievedId, LogLevel.Information, "Job retrieved: {@job}", EventName = nameof(JobRetrieved))]
-        public static partial void LogJobRetrieved(this ILogger logger, [LogProperties] ExchangeSetJobLogView job);
-
-
-        // Debug job warning
-        public static readonly EventId DebugJobWarning = new(DebugJobWarningId, nameof(DebugJobWarning));
-
-        [LoggerMessage(DebugJobWarningId, LogLevel.Warning, "Debug job", EventName = nameof(DebugJobWarning))]
-        public static partial void LogDebugJobWarning(this ILogger logger);
+        public static partial void LogBuildRetrieved(this ILogger logger, [LogProperties] S100BuildLogView job);
 
 
         // startup configuration

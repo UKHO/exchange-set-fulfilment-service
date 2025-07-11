@@ -1,49 +1,43 @@
-﻿using UKHO.ADDS.EFS.Jobs;
-using UKHO.ADDS.EFS.Jobs.S100;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S100;
-using UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Common;
-using UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.S100;
+﻿using UKHO.ADDS.EFS.Builds.S100;
+using UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
+using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion
 {
-    internal class S100CompletionPipeline : CompletionPipeline
+    internal class S100CompletionPipeline : CompletionPipeline<S100Build>
     {
-        private readonly S100ExchangeSetJobTable _jobTable;
-
-        public S100CompletionPipeline(S100ExchangeSetJobTable jobTable, CompletionPipelineContext context, CompletionPipelineNodeFactory nodeFactory, ILogger<S100CompletionPipeline> logger)
-            : base(context, nodeFactory, logger) =>
-            _jobTable = jobTable;
+        public S100CompletionPipeline(CompletionPipelineParameters parameters, CompletionPipelineNodeFactory nodeFactory, PipelineContextFactory<S100Build> contextFactory, ILogger<S100CompletionPipeline> logger)
+            : base(parameters, nodeFactory, contextFactory, logger)
+        {
+        }
 
         public override async Task RunAsync(CancellationToken cancellationToken)
         {
-            // TODO Arrange in parallel
+            var context = await CreateContext();
 
-            var pipeline = new PipelineNode<CompletionPipelineContext>();
+            AddPipelineNode<CreateBuildMementoNode>(cancellationToken);
 
-            pipeline.AddChild(NodeFactory.CreateNode<GetS100BuildSummaryNode>(cancellationToken));
-            pipeline.AddChild(NodeFactory.CreateNode<GetBuildStatusNode>(cancellationToken));
-            pipeline.AddChild(NodeFactory.CreateNode<GetS100JobNode>(cancellationToken));
-            pipeline.AddChild(NodeFactory.CreateNode<UpdateBuildStatusNode>(cancellationToken));
-            pipeline.AddChild(NodeFactory.CreateNode<UpdateS100JobNode>(cancellationToken));
-            pipeline.AddChild(NodeFactory.CreateNode<ReplayLogsNode>(cancellationToken));
-            pipeline.AddChild(NodeFactory.CreateNode<CommitFileShareBatchNode>(cancellationToken));
-            pipeline.AddChild(NodeFactory.CreateNode<ExpireOldFileShareBatchesNode>(cancellationToken));
+            AddPipelineNode<ReplayLogsNode>(cancellationToken);
+            AddPipelineNode<CommitFileShareBatchNode>(cancellationToken);
+            AddPipelineNode<ExpireFileShareBatchesNode>(cancellationToken);
+            AddPipelineNode<CompleteJobNode>(cancellationToken);
 
-            var result = await pipeline.ExecuteAsync(Context);
+            var result = await Pipeline.ExecuteAsync(context);
 
-            if (Context.Job != null)
+            switch (result.Status)
             {
-                Context.Job.State = result.Status switch
-                {
-                    NodeResultStatus.Succeeded => ExchangeSetJobState.Succeeded,
-                    NodeResultStatus.Failed => ExchangeSetJobState.Failed,
-                    _ => Context.Job.State
-                };
-
-                await _jobTable.UpdateAsync((S100ExchangeSetJob)Context.Job);
+                case NodeResultStatus.NotRun:
+                case NodeResultStatus.Failed:
+                    await context.SignalCompletionFailure();
+                    break;
             }
+        }
+
+        protected override async Task<PipelineContext<S100Build>> CreateContext()
+        {
+            return await ContextFactory.CreatePipelineContext(Parameters);
         }
     }
 }

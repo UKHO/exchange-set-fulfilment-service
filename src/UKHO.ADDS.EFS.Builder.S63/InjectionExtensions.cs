@@ -50,7 +50,7 @@ namespace UKHO.ADDS.EFS.Builder.S63
                 Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.AddsEnvironment, "local");
                 Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.RequestQueueName, StorageConfiguration.S63BuildRequestQueueName);
                 Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.ResponseQueueName, StorageConfiguration.S63BuildResponseQueueName);
-                Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.BlobContainerName, StorageConfiguration.S63JobContainer);
+                Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.BlobContainerName, StorageConfiguration.S63BuildContainer);
 
                 // Paths are different when running in debug under VS
                 var catalinaHomePath = Environment.GetEnvironmentVariable("CATALINA_HOME") ?? string.Empty;
@@ -83,7 +83,7 @@ namespace UKHO.ADDS.EFS.Builder.S63
             return configurationBuilder;
         }
 
-        public static IServiceCollection AddS100BuilderServices(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddBuilderServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddLogging(ConfigureLogging);
             services.AddHttpClient();
