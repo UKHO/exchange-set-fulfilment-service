@@ -21,5 +21,7 @@
         public const string MaxRetryAttempts = "MAX_RETRY_ATTEMPTS";
 
         public const string RetryDelayMilliseconds = "RETRY_DELAY_MS";
+
+        public const string ConcurrentDownloadLimitCount = "CONCURRENT_DOWNLOAD_LIMIT_COUNT";
     }
 }

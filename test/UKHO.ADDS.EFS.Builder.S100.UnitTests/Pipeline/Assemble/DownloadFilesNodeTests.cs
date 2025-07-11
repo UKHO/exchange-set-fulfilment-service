@@ -1,4 +1,5 @@
 ﻿using FakeItEasy;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
@@ -6,6 +7,7 @@ using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble;
 using UKHO.ADDS.EFS.Builds.S100;
+using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
@@ -21,12 +23,17 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         private IExecutionContext<S100ExchangeSetPipelineContext> _executionContext;
         private ILoggerFactory _loggerFactory;
         private ILogger _logger;
+        private IConfiguration _configuration;
+        private const int RetryDelayInMilliseconds = 100;
+        const int CONCURRENCY_LIMIT = 4;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
             _fileShareReadOnlyClient = A.Fake<IFileShareReadOnlyClient>();
-            _downloadFilesNode = new DownloadFilesNode(_fileShareReadOnlyClient);
+            _configuration = A.Fake<IConfiguration>();
+            A.CallTo(() => _configuration[BuilderEnvironmentVariables.ConcurrentDownloadLimitCount]).Returns(CONCURRENCY_LIMIT.ToString());
+            _downloadFilesNode = new DownloadFilesNode(_fileShareReadOnlyClient, _configuration);
             _executionContext = A.Fake<IExecutionContext<S100ExchangeSetPipelineContext>>();
             _loggerFactory = A.Fake<ILoggerFactory>();
             _logger = A.Fake<ILogger<DownloadFilesNode>>();
@@ -35,7 +42,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [SetUp]
         public void SetUp()
         {
-            var exchangeSetPipelineContext = new S100ExchangeSetPipelineContext(null,  null, null, null, _loggerFactory)
+            _configuration = A.Fake<IConfiguration>();
+            A.CallTo(() => _configuration["HttpRetry:RetryDelayInMilliseconds"]).Returns(RetryDelayInMilliseconds.ToString());
+            UKHO.ADDS.EFS.RetryPolicy.HttpRetryPolicyFactory.SetConfiguration(_configuration);
+
+            var exchangeSetPipelineContext = new S100ExchangeSetPipelineContext(null, null, null, null, _loggerFactory)
             {
                 WorkSpaceRootPath = Path.GetTempPath(),
                 Build = new S100Build
@@ -53,12 +64,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
 
             A.CallTo(() => _executionContext.Subject).Returns(exchangeSetPipelineContext);
             A.CallTo(() => _loggerFactory.CreateLogger(typeof(DownloadFilesNode).FullName!)).Returns(_logger);
-        }
-
-        [OneTimeTearDown]
-        public void OneTimeTearDown()
-        {
-            _loggerFactory?.Dispose();
         }
 
         [Test]
@@ -91,7 +96,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
 
         [Test]
         public async Task WhenDownloadFileAsyncExceptionThrown_ThenReturnsFailed()
-        {        
+        {
             var exceptionMessage = "Download file failed ";
             var batch = CreateBatchDetails();
             _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
@@ -177,6 +182,61 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
             Assert.That(callCount, Is.EqualTo(4), "Should retry 3 times plus the initial call (total 4)");
         }
 
+        [Test]
+        public async Task DownloadFilesNode_AllowsParallelDownloads()
+        {
+            // Arrange
+            const int FILE_COUNT = 50;
+
+            var batch = CreateBatchDetails(fileNames: Enumerable.Range(1, FILE_COUNT).Select(i => $"file{i}.txt").ToArray());
+            _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
+
+            var fakeResult = A.Fake<IResult<Stream>>();
+            IError outError = null;
+            Stream outStream = new MemoryStream();
+            A.CallTo(() => fakeResult.IsFailure(out outError, out outStream)).Returns(false);
+
+            // Simulate delay for each download to test parallelism
+            A.CallTo(() => _fileShareReadOnlyClient.DownloadFileAsync(A<string>._, A<string>._, A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._))
+                .ReturnsLazily(async () => { await Task.Delay(500); return fakeResult; });
+
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+            var result = await _downloadFilesNode.ExecuteAsync(_executionContext);
+
+            stopwatch.Stop();
+
+            var expectedMaxDuration = (FILE_COUNT / CONCURRENCY_LIMIT) * 0.5 + 5; // added 5 seconds buffer
+
+            // Assert
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
+            Assert.That(stopwatch.Elapsed.TotalSeconds, Is.LessThan(expectedMaxDuration), "Should complete quickly as all downloads are parallel");
+        }
+
+        [Test]
+        public async Task WhenExceptionThrownDuringDownload_ThenLogsAndReturnsFailed()
+        {
+            // Arrange: BatchDetails with one file, simulate exception in download
+            var batch = CreateBatchDetails();
+            _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
+            var testException = new InvalidOperationException("Test exception");
+            A.CallTo(() => _fileShareReadOnlyClient.DownloadFileAsync(A<string>._, A<string>._, A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._))
+                .Throws(testException);
+
+            // Act
+            var result = await _downloadFilesNode.ExecuteAsync(_executionContext);
+
+            // Assert
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
+            A.CallTo(() => _logger.Log<LoggerMessageState>(
+                LogLevel.Error,
+                A<EventId>.That.Matches(e => e.Name == "DownloadFilesNodeFailed"),
+                A<LoggerMessageState>._,
+                testException,
+                A<Func<LoggerMessageState, Exception?, string>>._))
+                .MustHaveHappenedOnceExactly();
+        }
+
         private static BatchDetails CreateBatchDetails(string batchId = "b1", string[]? fileNames = null, List<BatchDetailsAttributes>? attributes = null)
         {
             return new BatchDetails(
@@ -190,6 +250,19 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
                 batchPublishedDate: DateTime.UtcNow,
                 files: fileNames?.Select(f => new BatchDetailsFiles(f)).ToList() ?? new List<BatchDetailsFiles> { new BatchDetailsFiles("file1.txt") }
             );
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            UKHO.ADDS.EFS.RetryPolicy.HttpRetryPolicyFactory.SetConfiguration(null);
+        }
+
+
+        [OneTimeTearDown]
+        public void OneTimeTearDown()
+        {
+            _loggerFactory?.Dispose();
         }
     }
 }

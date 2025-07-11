@@ -48,7 +48,8 @@
             "IICWorkspaceKey": "D89D11D265B19CA5C2BE97A7FCB1EF21", // Secret has literal value in local environment only
             "S100ExchangeSetNameTemplate": "V01X01_[jobid].zip", // Template for naming an exchange set: options are "jobid", "date"
             "S100MaxRetries": 3, // Azure ENV var when deployed
-            "S100RetryDelayMilliseconds": 10000 // Azure ENV var when deployed
+            "S100RetryDelayMilliseconds": 10000, // Azure ENV var when deployed
+            "S100ConcurrentDownloadLimitCount": 4 // Number of concurrent downloads to allow
         },
         "UKHO.ADDS.EFS.Builder.S63": {
             "Endpoints": {
@@ -112,9 +113,10 @@
         },
         "UKHO.ADDS.EFS.Builder.S100": {
             "IICWorkspaceKey": "workspace-key-secret-name",
-            "S100ExchangeSetNameTemplate": "V01X01_[jobid].zip"
+            "S100ExchangeSetNameTemplate": "V01X01_[jobid].zip",
+            "S100ConcurrentDownloadLimitCount": 4
         }
-   },
+    },
     "_schema": {
         "UKHO.ADDS.EFS.Orchestrator": {
             "Endpoints:S100FileShare": {
