@@ -1,54 +1,43 @@
-﻿using UKHO.ADDS.EFS.Jobs;
-using UKHO.ADDS.EFS.Jobs.S100;
-using UKHO.ADDS.EFS.Jobs.S57;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S100;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S57;
-using UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Common;
-using UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.S57;
+﻿using UKHO.ADDS.EFS.Builds.S57;
+using UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S57;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
+using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion
 {
-    internal class S57CompletionPipeline : CompletionPipeline
+    internal class S57CompletionPipeline : CompletionPipeline<S57Build>
     {
-        private readonly S57ExchangeSetJobTable _jobTable;
-
-        public S57CompletionPipeline(S57ExchangeSetJobTable jobTable, CompletionPipelineContext context, CompletionPipelineNodeFactory nodeFactory, ILogger<S57CompletionPipeline> logger)
-            : base(context, nodeFactory, logger)
+        public S57CompletionPipeline(CompletionPipelineParameters parameters, CompletionPipelineNodeFactory nodeFactory, PipelineContextFactory<S57Build> contextFactory, ILogger<S57CompletionPipeline> logger)
+            : base(parameters, nodeFactory, contextFactory, logger)
         {
-            _jobTable = jobTable;
         }
 
         public override async Task RunAsync(CancellationToken cancellationToken)
         {
-            // TODO Arrange in parallel
+            var context = await CreateContext();
 
-            var pipeline = new PipelineNode<CompletionPipelineContext>();
+            AddPipelineNode<CreateBuildMementoNode>(cancellationToken);
 
-            pipeline.AddChild(NodeFactory.CreateNode<GetS57BuildSummaryNode>(cancellationToken));
-            pipeline.AddChild(NodeFactory.CreateNode<GetBuildStatusNode>(cancellationToken));
-            pipeline.AddChild(NodeFactory.CreateNode<GetS57JobNode>(cancellationToken));
-            pipeline.AddChild(NodeFactory.CreateNode<UpdateBuildStatusNode>(cancellationToken));
-            pipeline.AddChild(NodeFactory.CreateNode<UpdateS57JobNode>(cancellationToken));
-            pipeline.AddChild(NodeFactory.CreateNode<ReplayLogsNode>(cancellationToken));
-            pipeline.AddChild(NodeFactory.CreateNode<CommitFileShareBatchNode>(cancellationToken));
-            pipeline.AddChild(NodeFactory.CreateNode<ExpireOldFileShareBatchesNode>(cancellationToken));
+            AddPipelineNode<ReplayLogsNode>(cancellationToken);
+            AddPipelineNode<CommitFileShareBatchNode>(cancellationToken);
+            AddPipelineNode<ExpireFileShareBatchesNode>(cancellationToken);
+            AddPipelineNode<CompleteJobNode>(cancellationToken);
 
-            var result = await pipeline.ExecuteAsync(Context);
+            var result = await Pipeline.ExecuteAsync(context);
 
-            if (Context.Job != null)
+            switch (result.Status)
             {
-                Context.Job.State = result.Status switch
-                {
-                    NodeResultStatus.Succeeded => ExchangeSetJobState.Succeeded,
-                    NodeResultStatus.Failed => ExchangeSetJobState.Failed,
-                    _ => Context.Job.State
-                };
-
-                await _jobTable.UpdateAsync((S57ExchangeSetJob)Context.Job);
+                case NodeResultStatus.NotRun:
+                case NodeResultStatus.Failed:
+                    await context.SignalCompletionFailure();
+                    break;
             }
+        }
 
+        protected override async Task<PipelineContext<S57Build>> CreateContext()
+        {
+            return await ContextFactory.CreatePipelineContext(Parameters);
         }
     }
 }

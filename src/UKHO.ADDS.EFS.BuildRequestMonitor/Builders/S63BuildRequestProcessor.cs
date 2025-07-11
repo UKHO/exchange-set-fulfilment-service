@@ -1,12 +1,13 @@
 ﻿using UKHO.ADDS.Configuration.Schema;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Services;
-using UKHO.ADDS.EFS.Builds;
+using UKHO.ADDS.EFS.Builds.S63;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 
 namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
 {
     internal class S63BuildRequestProcessor : BuildRequestMonitor
     {
+        // TODO Can remove this now?
         private readonly string[] _command = ["sh", "-c", "echo Starting; sleep 5; echo Healthy now; sleep 5; echo Exiting..."];
 
         private readonly BuilderContainerService _containerService;
@@ -24,7 +25,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
         /// <param name="request"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task ProcessRequestAsync(BuildRequest request, CancellationToken cancellationToken)
+        public async Task ProcessRequestAsync(S63BuildRequest request, CancellationToken cancellationToken)
         {
             var containerName = $"{ProcessNames.S63Builder}-{request.JobId}";
 
@@ -44,7 +45,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
                 env.BlobConnectionString = $"http://host.docker.internal:{blobPort}/devstoreaccount1";
                 env.FileShareEndpoint = _configuration["Endpoints:S63BuilderFileShare"]!;
                 env.FileShareHealthEndpoint = _configuration["Endpoints:S63BuilderFileShareHealth"]!;
-                env.BlobContainerName = StorageConfiguration.S63JobContainer;
+                env.BlobContainerName = StorageConfiguration.S63BuildContainer;
                 env.MaxRetryAttempts = int.Parse(_configuration["S63MaxRetries"]!); 
                 env.RetryDelayMilliseconds = int.Parse(_configuration["S63RetryDelayMilliseconds"]!); 
             });

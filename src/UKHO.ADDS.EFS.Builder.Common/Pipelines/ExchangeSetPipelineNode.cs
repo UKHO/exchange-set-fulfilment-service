@@ -1,13 +1,12 @@
 ﻿using System.Diagnostics;
 using System.Text;
 using UKHO.ADDS.EFS.Builds;
-using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
 namespace UKHO.ADDS.EFS.Builder.Common.Pipelines
 {
-    public abstract class ExchangeSetPipelineNode<T, TJob> : Node<T> where T : ExchangeSetPipelineContext<TJob> where TJob : ExchangeSetJob
+    public abstract class ExchangeSetPipelineNode<T, TBuild> : Node<T> where T : ExchangeSetPipelineContext<TBuild> where TBuild : Build 
     {
         private readonly Stopwatch _stopwatch;
 
@@ -48,7 +47,7 @@ namespace UKHO.ADDS.EFS.Builder.Common.Pipelines
                 status.ErrorMessage = FlattenExceptionMessages(nodeResult.Exception);
             }
 
-            context.Subject.Summary.AddStatus(status);
+            context.Subject.AddStatus(status);
         }
 
         private static string FlattenExceptionMessages(Exception? ex)
