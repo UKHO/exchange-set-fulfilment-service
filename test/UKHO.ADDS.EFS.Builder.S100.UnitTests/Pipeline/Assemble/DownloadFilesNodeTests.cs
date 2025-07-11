@@ -6,8 +6,9 @@ using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble;
+using UKHO.ADDS.EFS.Builds.S100;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
-using UKHO.ADDS.EFS.Jobs.S100;
+using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
@@ -48,9 +49,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
             var exchangeSetPipelineContext = new S100ExchangeSetPipelineContext(null, null, null, null, _loggerFactory)
             {
                 WorkSpaceRootPath = Path.GetTempPath(),
-                Job = new S100ExchangeSetJob
+                Build = new S100Build
                 {
-                    Id = "TestCorrelationId",
+                    JobId = "TestCorrelationId",
+                    DataStandard = DataStandard.S100,
+                    BatchId = "a-batch-id",
                     Products =
                     [
                         new S100Products { ProductName = "Product1", LatestEditionNumber = 1, LatestUpdateNumber = 0 },

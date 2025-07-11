@@ -32,7 +32,7 @@ namespace UKHO.ADDS.EFS.Builder.S57.Pipelines.Startup.Logging
         public static partial void LogStartupPipelineFailed(this ILogger logger, [LogProperties] NodeResult result);
 
         [LoggerMessage(JobRetrievedId, LogLevel.Information, "Job retrieved: {@job}", EventName = nameof(JobRetrieved))]
-        public static partial void LogJobRetrieved(this ILogger logger, [LogProperties] ExchangeSetJobLogView job);
+        public static partial void LogJobRetrieved(this ILogger logger, [LogProperties] S57BuildLogView job);
 
         [LoggerMessage(DebugJobWarningId, LogLevel.Warning, "Debug job", EventName = nameof(DebugJobWarning))]
         public static partial void LogDebugJobWarning(this ILogger logger);
