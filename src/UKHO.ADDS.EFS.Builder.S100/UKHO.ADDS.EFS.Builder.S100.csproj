@@ -9,13 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Logging\**" />
-    <Content Remove="Logging\**" />
-    <EmbeddedResource Remove="Logging\**" />
-    <None Remove="Logging\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <InternalsVisibleTo Include="UKHO.ADDS.EFS.Builder.S100.UnitTests" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
@@ -32,26 +25,19 @@
     <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
     <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.1.1" />
-    <PackageReference Include="UKHO.ADDS.Clients.FileShareService.ReadWrite" Version="0.0.50520-alpha.3" />
-    <PackageReference Include="UKHO.ADDS.Clients.Common" Version="0.0.50520-alpha.3" />
-    <PackageReference Include="UKHO.ADDS.Clients.FileShareService.ReadOnly" Version="0.0.50520-alpha.3" />
-  </ItemGroup>
-
-  <!--<ItemGroup>
-    <None Update="Tomcat\**\*">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>-->
-
-  <ItemGroup>
-    <None Update="appsettings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <PackageReference Include="UKHO.ADDS.Clients.FileShareService.ReadWrite" Version="0.0.50701-alpha.2" />
+    <PackageReference Include="UKHO.ADDS.Clients.Common" Version="0.0.50701-alpha.2" />
+    <PackageReference Include="UKHO.ADDS.Clients.FileShareService.ReadOnly" Version="0.0.50701-alpha.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\UKHO.ADDS.EFS.Domain\UKHO.ADDS.EFS.Domain.csproj" />
-    <ProjectReference Include="..\UKHO.ADDS.EFS.Analyzers\UKHO.ADDS.EFS.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\UKHO.ADDS.EFS.Builder.Common\UKHO.ADDS.EFS.Builder.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="debug.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

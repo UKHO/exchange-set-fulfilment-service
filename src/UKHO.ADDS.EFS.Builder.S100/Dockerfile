@@ -186,6 +186,7 @@ WORKDIR /dotnet
 # Copy and restore projects
 COPY ["UKHO.ADDS.EFS.Builder.S100/UKHO.ADDS.EFS.Builder.S100.csproj", "UKHO.ADDS.EFS.Builder.S100/"]
 COPY ["UKHO.ADDS.EFS.Domain/UKHO.ADDS.EFS.Domain.csproj", "UKHO.ADDS.EFS.Domain/"]
+COPY ["UKHO.ADDS.EFS.Builder.Common/UKHO.ADDS.EFS.Builder.Common.csproj", "UKHO.ADDS.EFS.Builder.Common/"]
 RUN dotnet restore UKHO.ADDS.EFS.Builder.S100/UKHO.ADDS.EFS.Builder.S100.csproj
 
 # Copy remaining files and build

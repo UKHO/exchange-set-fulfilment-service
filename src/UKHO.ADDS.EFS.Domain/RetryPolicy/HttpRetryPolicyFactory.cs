@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Polly;
+using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.RetryPolicy
@@ -36,8 +37,9 @@ namespace UKHO.ADDS.EFS.RetryPolicy
         /// <returns>A tuple containing max retry attempts and retry delay in milliseconds.</returns>
         private static (int maxRetryAttempts, int retryDelayMs) LoadRetrySettings()
         {
-            int maxRetryAttempts = MaxRetryAttempts;
-            int retryDelayInMilliseconds = RetryDelayInMilliseconds;
+            var maxRetryAttempts = MaxRetryAttempts;
+            var retryDelayInMilliseconds = RetryDelayInMilliseconds;
+
             if (_configuration != null)
             {
                 if (!int.TryParse(_configuration["HttpRetry:MaxRetryAttempts"], out maxRetryAttempts) || maxRetryAttempts <= 0)
@@ -49,7 +51,18 @@ namespace UKHO.ADDS.EFS.RetryPolicy
                 {
                     retryDelayInMilliseconds = RetryDelayInMilliseconds;
                 }
+
+                if (!int.TryParse(_configuration[BuilderEnvironmentVariables.MaxRetryAttempts], out maxRetryAttempts) || maxRetryAttempts <= 0)
+                {
+                    maxRetryAttempts = MaxRetryAttempts;
+                }
+
+                if (!int.TryParse(_configuration[BuilderEnvironmentVariables.RetryDelayMilliseconds], out retryDelayInMilliseconds) || retryDelayInMilliseconds <= 0)
+                {
+                    retryDelayInMilliseconds = RetryDelayInMilliseconds;
+                }
             }
+
             return (maxRetryAttempts, retryDelayInMilliseconds);
         }
 
@@ -91,8 +104,8 @@ namespace UKHO.ADDS.EFS.RetryPolicy
                     (outcome, timespan, retryAttempt, _) =>
                     {
                         int? statusCodeInt = outcome.Result != null ? (int)outcome.Result.StatusCode : null;
-                        string statusCode = statusCodeInt?.ToString() ?? outcome.Exception?.StackTrace ?? "Unknown";
-                        string url = outcome.Result?.RequestMessage?.RequestUri?.ToString() ?? "N/A";
+                        var statusCode = statusCodeInt?.ToString() ?? outcome.Exception?.StackTrace ?? "Unknown";
+                        var url = outcome.Result?.RequestMessage?.RequestUri?.ToString() ?? "N/A";
 
                         if (statusCodeInt.HasValue && _retryStatusCodes.Contains(statusCodeInt.Value))
                         {

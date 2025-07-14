@@ -1,5 +1,5 @@
 ﻿using NUnit.Framework.Legacy;
-using UKHO.ADDS.EFS.Builder.S100.Services;
+using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 
 namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Services
 {

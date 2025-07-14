@@ -1,12 +1,15 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using Serilog;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Create.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging;
+using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
+using UKHO.ADDS.Infrastructure.Serialization.Json;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace UKHO.ADDS.EFS.Builder.S100
@@ -16,14 +19,20 @@ namespace UKHO.ADDS.EFS.Builder.S100
     {
         private static async Task<int> Main(string[] args)
         {
-            InjectionExtensions.ConfigureSerilog();
+            var sink = InjectionExtensions.ConfigureSerilog();
+            var exitCode = BuilderExitCode.Success;
+
+            S100ExchangeSetPipelineContext? pipelineContext = null;
+            IConfiguration? configuration = null;
 
             try
             {
                 var provider = ConfigureServices();
 
-                var pipelineContext = provider.GetRequiredService<ExchangeSetPipelineContext>();
+                pipelineContext = provider.GetRequiredService<S100ExchangeSetPipelineContext>();
                 var startupPipeline = provider.GetRequiredService<StartupPipeline>();
+
+                configuration = provider.GetRequiredService<IConfiguration>();
 
                 var startupResult = await startupPipeline.ExecutePipeline(pipelineContext);
 
@@ -32,55 +41,68 @@ namespace UKHO.ADDS.EFS.Builder.S100
                     var logger = GetLogger<StartupPipeline>(provider);
                     logger.LogStartupPipelineFailed(startupResult);
 
-                    return BuilderExitCodes.Failed;
+                    exitCode = BuilderExitCode.Failed;
                 }
 
-                var assemblyPipeline = provider.GetRequiredService<AssemblyPipeline>();
-                var assemblyResult = await assemblyPipeline.ExecutePipeline(pipelineContext);
-
-                if (assemblyResult.Status != NodeResultStatus.Succeeded)
+                if (exitCode == BuilderExitCode.Success)
                 {
-                    var logger = GetLogger<AssemblyPipeline>(provider);
-                    logger.LogAssemblyPipelineFailed(assemblyResult);
+                    var assemblyPipeline = provider.GetRequiredService<AssemblyPipeline>();
+                    var assemblyResult = await assemblyPipeline.ExecutePipeline(pipelineContext);
 
-                    return BuilderExitCodes.Failed;
+                    if (assemblyResult.Status != NodeResultStatus.Succeeded)
+                    {
+                        var logger = GetLogger<AssemblyPipeline>(provider);
+                        logger.LogAssemblyPipelineFailed(assemblyResult);
+
+                        exitCode = BuilderExitCode.Failed;
+                    }
                 }
 
-                var creationPipeline = provider.GetRequiredService<CreationPipeline>();
-                var creationResult = await creationPipeline.ExecutePipeline(pipelineContext);
-
-                if (creationResult.Status != NodeResultStatus.Succeeded)
+                if (exitCode == BuilderExitCode.Success)
                 {
-                    var logger = GetLogger<CreationPipeline>(provider);
-                    logger.LogCreationPipelineFailed(creationResult);
+                    var creationPipeline = provider.GetRequiredService<CreationPipeline>();
+                    var creationResult = await creationPipeline.ExecutePipeline(pipelineContext);
 
-                    return BuilderExitCodes.Failed;
+                    if (creationResult.Status != NodeResultStatus.Succeeded)
+                    {
+                        var logger = GetLogger<CreationPipeline>(provider);
+                        logger.LogCreationPipelineFailed(creationResult);
+
+                        exitCode = BuilderExitCode.Failed;
+                    }
                 }
 
-                var distributionPipeline = provider.GetRequiredService<DistributionPipeline>();
-                var distributionResult = await distributionPipeline.ExecutePipeline(pipelineContext);
-
-                if (distributionResult.Status != NodeResultStatus.Succeeded)
+                if (exitCode == BuilderExitCode.Success)
                 {
-                    // TODO If the upload stage fails, we should retry?
+                    var distributionPipeline = provider.GetRequiredService<DistributionPipeline>();
+                    var distributionResult = await distributionPipeline.ExecutePipeline(pipelineContext);
 
-                    var logger = GetLogger<DistributionPipeline>(provider);
-                    logger.LogDistributionPipelineFailed(distributionResult);
+                    if (distributionResult.Status != NodeResultStatus.Succeeded)
+                    {
+                        var logger = GetLogger<DistributionPipeline>(provider);
+                        logger.LogDistributionPipelineFailed(distributionResult);
 
-                    return BuilderExitCodes.Failed;
+                        exitCode = BuilderExitCode.Failed;
+                    }
                 }
 
-                return BuilderExitCodes.Success;
+                return (int)exitCode;
             }
             catch (Exception ex)
             {
 #pragma warning disable LOG001
                 Log.Fatal(ex, $"An unhandled exception occurred during execution : {ex.Message}");
 #pragma warning restore LOG001
-                return BuilderExitCodes.Failed;
+                return (int)BuilderExitCode.Failed;
             }
+
             finally
             {
+                if (pipelineContext != null && configuration != null)
+                {
+                    await pipelineContext.CompleteBuild(configuration, sink, exitCode);
+                }
+
                 await Log.CloseAndFlushAsync();
             }
         }
@@ -95,25 +117,8 @@ namespace UKHO.ADDS.EFS.Builder.S100
         {
             var services = new ServiceCollection();
 
-            var catalinaHomePath = Environment.GetEnvironmentVariable("CATALINA_HOME") ?? string.Empty;
-
-            var currentDirectory = Directory.GetCurrentDirectory();
-            var appContextDirectory = AppContext.BaseDirectory;
-
-            var configPathPrefix = string.Empty;
-
-            if (currentDirectory.TrimEnd('/').Equals(catalinaHomePath.TrimEnd('/'), StringComparison.InvariantCultureIgnoreCase))
-            {
-                configPathPrefix = appContextDirectory;
-            }
-
-            var appsettingsPath = $"{configPathPrefix}appsettings.json";
-            var appsettingsDevPath = $"{configPathPrefix}appsettings.Development.json";
-
             var configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile(appsettingsPath)
-                .AddJsonFile(appsettingsDevPath, true)
+                .AddBuilderConfiguration()
                 .Build();
 
             services.AddSingleton<IConfiguration>(x => configuration);

@@ -12,7 +12,7 @@ using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 {
-    internal class ProductSearchNode : ExchangeSetPipelineNode
+    internal class ProductSearchNode : S100ExchangeSetPipelineNode
     {
         private readonly IFileShareReadOnlyClient _fileShareReadOnlyClient;
         private ILogger _logger;
@@ -39,13 +39,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             _fileShareReadOnlyClient = fileShareReadOnlyClient ?? throw new ArgumentNullException(nameof(fileShareReadOnlyClient));
         }
 
-        protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
+        protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<S100ExchangeSetPipelineContext> context)
         {
             try
             {
                 _logger = context.Subject.LoggerFactory.CreateLogger<ProductSearchNode>();
-                var products = context.Subject.Job?.Products;
-                if (products == null || products.Count == 0)
+                var products = context.Subject.Build?.Products;
+                if (products == null || products.Count() == 0)
                 {
                     return NodeResultStatus.NotRun;
                 }
@@ -60,12 +60,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                         UpdateNumbers = g.Select(p => p.LatestUpdateNumber).ToList()
                     }).ToList();
 
-                var productGroupCount = (int)Math.Ceiling((double)products.Count / MaxSearchOperations);
+                var productGroupCount = (int)Math.Ceiling((double)products.Count() / MaxSearchOperations);
                 var productsList = SplitList(groupedProducts, productGroupCount);
 
                 foreach (var productGroup in productsList)
                 {
-                    var batchDetails = await QueryFileShareServiceFilesAsync(productGroup, context.Subject.Job?.CorrelationId!);
+                    var batchDetails = await QueryFileShareServiceFilesAsync(productGroup, context.Subject.Build?.GetCorrelationId()!);
                     if (batchDetails != null)
                     {
                         batchList.AddRange(batchDetails);

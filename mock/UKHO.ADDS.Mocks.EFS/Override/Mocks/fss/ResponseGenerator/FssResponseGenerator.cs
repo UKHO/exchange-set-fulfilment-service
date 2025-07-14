@@ -1,6 +1,7 @@
 ﻿using System.Text.Json.Nodes;
 using UKHO.ADDS.Mocks.Configuration.Mocks.fss.ResponseGenerator;
 using UKHO.ADDS.Mocks.EFS.Override.Mocks.fss.Enums;
+using UKHO.ADDS.Mocks.Headers;
 using UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss.Models;
 
 namespace UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss.ResponseGenerator
@@ -28,7 +29,7 @@ namespace UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss.ResponseGenerator
                 var filter = requestMessage.Query["$filter"].FirstOrDefault();
                 if (string.IsNullOrEmpty(filter))
                 {
-                    return Results.BadRequest("Missing or invalid $filter parameter.");
+                    return CreateBadRequestResponse(requestMessage, "Missing or invalid $filter parameter.");
                 }
 
                 var batchDetails = BatchQueryParser.ParseBatchQuery("$filter=" + filter);
@@ -155,6 +156,18 @@ namespace UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss.ResponseGenerator
                 ["first"] = new JsonObject { ["href"] = encodedFilterUrl },
                 ["last"] = new JsonObject { ["href"] = encodedFilterUrl }
             };
+        }
+
+        private static IResult CreateBadRequestResponse(HttpRequest requestMessage, string description)
+        {
+            return Results.BadRequest(new
+            {
+                correlationId = requestMessage.Headers[WellKnownHeader.CorrelationId],
+                errors = new[]
+                {
+                    new { source = "Search Batch", description }
+                }
+            });
         }
     }
 }

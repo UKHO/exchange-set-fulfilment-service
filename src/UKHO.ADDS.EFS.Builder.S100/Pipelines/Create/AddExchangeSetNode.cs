@@ -7,21 +7,21 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
     /// <summary>
     /// Pipeline node responsible for adding an exchange set using the provided tool client.
     /// </summary>
-    internal class AddExchangeSetNode : ExchangeSetPipelineNode
+    internal class AddExchangeSetNode : S100ExchangeSetPipelineNode
     {
         /// <summary>
         /// Executes the node logic to add an exchange set.
         /// </summary>
         /// <param name="context">The pipeline execution context.</param>
         /// <returns>The result status of the node execution.</returns>
-        protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
+        protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<S100ExchangeSetPipelineContext> context)
         {
             var logger = context.Subject.LoggerFactory.CreateLogger<AddExchangeSetNode>();
 
             var result = await context.Subject.ToolClient.AddExchangeSetAsync(
                 context.Subject.JobId,
                 context.Subject.WorkspaceAuthenticationKey,
-                context.Subject.Job.CorrelationId
+                context.Subject.Build.GetCorrelationId()
             );
 
             if (!result.IsSuccess(out _, out var error))

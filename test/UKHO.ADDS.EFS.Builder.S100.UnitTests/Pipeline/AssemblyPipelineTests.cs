@@ -1,12 +1,13 @@
 ﻿using FakeItEasy;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
-using UKHO.ADDS.EFS.Builder.S100.Services;
-using UKHO.ADDS.EFS.Entities;
+using UKHO.ADDS.EFS.Builds.S100;
+using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
@@ -19,10 +20,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
         private IFileShareReadOnlyClient _fakeReadOnlyClient;
         private ILoggerFactory _loggerFactory;
         private ILogger _logger;
-        private IExecutionContext<ExchangeSetPipelineContext> _executionContext;
-        private ExchangeSetPipelineContext _pipelineContext;
-        private INodeStatusWriter _nodeStatusWriter;
-
+        private IExecutionContext<S100ExchangeSetPipelineContext> _executionContext;
+        private S100ExchangeSetPipelineContext _pipelineContext;
+        private IConfiguration _configuration;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
@@ -30,19 +30,23 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
             _fakeReadOnlyClient = A.Fake<IFileShareReadOnlyClient>();
             _loggerFactory = A.Fake<ILoggerFactory>();
             _logger = A.Fake<ILogger<AssemblyPipeline>>();
-            _executionContext = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
-            _nodeStatusWriter = A.Fake<INodeStatusWriter>();
+            _executionContext = A.Fake<IExecutionContext<S100ExchangeSetPipelineContext>>();
+            _configuration = A.Fake<IConfiguration>();
 
+            // Set up the S100ConcurrentDownloadLimitCount config value
+            A.CallTo(() => _configuration["S100ConcurrentDownloadLimitCount"]).Returns("4");
         }
 
         [SetUp]
         public void SetUp()
         {
-            _pipelineContext = new ExchangeSetPipelineContext(null, _nodeStatusWriter, null, _loggerFactory)
+            _pipelineContext = new S100ExchangeSetPipelineContext(null, null, null, null, _loggerFactory)
             {
-                Job = new ExchangeSetJob
+                Build = new S100Build
                 {
-                    CorrelationId = "TestCorrelationId",
+                    JobId = "TestCorrelationId",
+                    BatchId = "a-batch-id",
+                    DataStandard = DataStandard.S100,
                     Products = GetProducts()
                 },
             };
@@ -55,7 +59,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
         public void WhenReadOnlyClientNull_ThenThrowsArgumentNullException()
         {
             Assert.Throws<ArgumentNullException>(() =>
-                new AssemblyPipeline(null));
+                new AssemblyPipeline(null, _configuration));
+        }
+
+        [Test]
+        public void WhenConfigurationNull_ThenThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() =>
+                new AssemblyPipeline(_fakeReadOnlyClient, null));
         }
 
         [Test]
@@ -74,7 +85,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
             A.CallTo(() => _fakeReadOnlyClient.DownloadFileAsync(A<string>._, A<string>._, A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._))
                 .Returns(Task.FromResult(fakeResult));
 
-            var pipeline = new AssemblyPipeline(_fakeReadOnlyClient);
+            var pipeline = new AssemblyPipeline(_fakeReadOnlyClient, _configuration);
 
             var result = await pipeline.ExecutePipeline(_pipelineContext);
 
@@ -91,11 +102,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
         [Test]
         public void WhenExecutePipelineExceptionThrown_ThenPropagatesException()
         {
-            var context = A.Fake<ExchangeSetPipelineContext>();
+            var context = A.Fake<S100ExchangeSetPipelineContext>();
 
             var ex = new InvalidOperationException("Test exception");
 
-            var throwingPipeline = new ThrowingAssemblyPipeline(_fakeReadOnlyClient, ex);
+            var throwingPipeline = new ThrowingAssemblyPipeline(_fakeReadOnlyClient, _configuration, ex);
 
             Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
@@ -155,13 +166,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
 
             public ThrowingAssemblyPipeline(
                 IFileShareReadOnlyClient readOnlyClient,
+                IConfiguration configuration,
                 Exception exceptionToThrow)
-                : base(readOnlyClient)
+                : base(readOnlyClient, configuration)
             {
                 _exceptionToThrow = exceptionToThrow;
             }
 
-            public new async Task<NodeResult> ExecutePipeline(ExchangeSetPipelineContext context)
+            public new async Task<NodeResult> ExecutePipeline(S100ExchangeSetPipelineContext context)
             {
                 await Task.Yield();
                 throw _exceptionToThrow;

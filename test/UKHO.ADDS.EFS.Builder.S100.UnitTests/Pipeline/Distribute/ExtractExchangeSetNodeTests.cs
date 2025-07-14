@@ -3,8 +3,8 @@ using Microsoft.Extensions.Logging;
 using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute;
-using UKHO.ADDS.EFS.Builder.S100.Services;
-using UKHO.ADDS.EFS.Entities;
+using UKHO.ADDS.EFS.Builds.S100;
+using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
@@ -16,21 +16,19 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
     {
         private ILoggerFactory _loggerFactory;
         private ILogger _logger;
-        private IExecutionContext<ExchangeSetPipelineContext> _executionContext;
-        private ExchangeSetPipelineContext _pipelineContext;
+        private IExecutionContext<S100ExchangeSetPipelineContext> _executionContext;
+        private S100ExchangeSetPipelineContext _pipelineContext;
         private ExtractExchangeSetNode _extractExchangeSetNode;
         private IToolClient _toolClient;
-        private INodeStatusWriter _nodeStatusWriter;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
             _toolClient = A.Fake<IToolClient>();
             _extractExchangeSetNode = new ExtractExchangeSetNode();
-            _executionContext = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
+            _executionContext = A.Fake<IExecutionContext<S100ExchangeSetPipelineContext>>();
             _loggerFactory = A.Fake<ILoggerFactory>();
             _logger = A.Fake<ILogger<ExtractExchangeSetNode>>();
-            _nodeStatusWriter = A.Fake<INodeStatusWriter>();
         }
 
         [OneTimeTearDown]
@@ -42,9 +40,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         [SetUp]
         public void SetUp()
         {
-            _pipelineContext = new ExchangeSetPipelineContext(null, _nodeStatusWriter, _toolClient, _loggerFactory)
+            _pipelineContext = new S100ExchangeSetPipelineContext(null, _toolClient, null, null, _loggerFactory)
             {
-                Job = new ExchangeSetJob { Id = "testId", CorrelationId = "corrId" },
+                Build = new S100Build
+                {
+                    JobId = "testId",
+                    BatchId = "a-batch-id",
+                    DataStandard = DataStandard.S100
+                },
                 WorkspaceAuthenticationKey = "authKey"
             };
 

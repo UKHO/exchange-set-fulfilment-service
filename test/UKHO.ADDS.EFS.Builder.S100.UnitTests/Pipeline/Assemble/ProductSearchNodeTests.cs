@@ -5,7 +5,8 @@ using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble;
-using UKHO.ADDS.EFS.Entities;
+using UKHO.ADDS.EFS.Builds.S100;
+using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
@@ -17,7 +18,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
     internal class ProductSearchNodeTests
     {
         private IFileShareReadOnlyClient _fileShareReadOnlyClientFake;
-        private IExecutionContext<ExchangeSetPipelineContext> _executionContext;
+        private IExecutionContext<S100ExchangeSetPipelineContext> _executionContext;
         private ProductSearchNode _productSearchNode;
         private ILoggerFactory _loggerFactory;
         private ILogger _logger;
@@ -27,7 +28,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         {
             _fileShareReadOnlyClientFake = A.Fake<IFileShareReadOnlyClient>();
             _productSearchNode = new ProductSearchNode(_fileShareReadOnlyClientFake);
-            _executionContext = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
+            _executionContext = A.Fake<IExecutionContext<S100ExchangeSetPipelineContext>>();
             _loggerFactory = A.Fake<ILoggerFactory>();
             _logger = A.Fake<ILogger<ProductSearchNode>>();
         }
@@ -35,11 +36,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [SetUp]
         public void Setup()
         {
-            var exchangeSetPipelineContext = new ExchangeSetPipelineContext(null, null, null, _loggerFactory)
+            var exchangeSetPipelineContext = new S100ExchangeSetPipelineContext(null,  null, null, null, _loggerFactory)
             {
-                Job = new ExchangeSetJob
+                Build = new S100Build
                 {
-                    CorrelationId = "TestCorrelationId",
+                    JobId = "TestCorrelationId",
+                    DataStandard = DataStandard.S100,
+                    BatchId = "a-batch-id",
                     Products =
                     [
                         new S100Products { ProductName = "Product1", LatestEditionNumber = 1, LatestUpdateNumber = 0 },
@@ -84,7 +87,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [Test]
         public async Task WhenPerformExecuteAsyncCalledWithNoProductsInContext_ThenReturnNoRun()
         {
-            _executionContext.Subject.Job.Products = [];
+            _executionContext.Subject.Build.Products = [];
 
             var result = await _productSearchNode.ExecuteAsync(_executionContext);
 

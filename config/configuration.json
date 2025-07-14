@@ -9,26 +9,65 @@
                 }
             },
             "Endpoints": {
-                "FileShare": "{{mockfss}}",
-                "SalesCatalogue": "{{mockscs}}"
+                "S100FileShare": "{{s100mockfss}}", // Local dynamic fss mock address from aspire, set in LocalHost
+                "S100SalesCatalogue": "{{s100mockscs}}", // Local dynamic scs mock address from aspire, set in LocalHost
+                "S63FileShare": "{{s63mockfss}}", // Local dynamic fss mock address from aspire, set in LocalHost
+                "S63SalesCatalogue": "{{s63mockscs}}", // Local dynamic scs mock address from aspire, set in LocalHost
+                "S57FileShare": "{{s57mockfss}}", // Local dynamic fss mock address from aspire, set in LocalHost
+                "S57SalesCatalogue": "{{s57mockscs}}" // Local dynamic scs mock address from aspire, set in LocalHost
             },
             "AllowedHosts": "*",
-            "BuilderContainerTag": "latest",
-            "QueuePolling": {
-                "BatchSize": 10,
-                "ChannelSize": 20,
-                "PollingIntervalSeconds": 5
-            },
             "Builders": {
-                "MaximumConcurrentBuilders": 5
+                "LogReplayLevel": "Information" // Log level for replaying builder logs
+            },
+            "Queues": {
+                "JobRequestQueue": {
+                    "BatchSize": 1,
+                    "PollingIntervalSeconds": 1,
+                    "ChannelSize": 10
+                },
+                "S100ResponseQueue": {
+                    "BatchSize": 1,
+                    "PollingIntervalSeconds": 1
+                },
+                "S63ResponseQueue": {
+                    "BatchSize": 1,
+                    "PollingIntervalSeconds": 1
+                },
+                "S57ResponseQueue": {
+                    "BatchSize": 1,
+                    "PollingIntervalSeconds": 1
+                }
             }
         },
         "UKHO.ADDS.EFS.Builder.S100": {
             "Endpoints": {
-                "BuilderFileShare": "{{buildermockfss}}",
-                "BuilderOrchestrator": "{{builderorchestrator}}"
+                "S100BuilderFileShare": "{{s100buildermockfss}}", // Local dynamic fss mock address from aspire with host adjusted for docker, set in LocalHost
+                "S100BuilderFileShareHealth": "{{s100buildermockfss}}health"
             },
-            "WorkspaceKey": "D89D11D265B19CA5C2BE97A7FCB1EF21"
+            "IICWorkspaceKey": "D89D11D265B19CA5C2BE97A7FCB1EF21", // Secret has literal value in local environment only
+            "S100ExchangeSetNameTemplate": "V01X01_[jobid].zip", // Template for naming an exchange set: options are "jobid", "date"
+            "S100MaxRetries": 3, // Azure ENV var when deployed
+            "S100RetryDelayMilliseconds": 10000, // Azure ENV var when deployed
+            "S100ConcurrentDownloadLimitCount": 4 // Number of concurrent downloads to allow
+        },
+        "UKHO.ADDS.EFS.Builder.S63": {
+            "Endpoints": {
+                "S63BuilderFileShare": "{{s63buildermockfss}},", // Local dynamic fss mock address from aspire with host adjusted for docker, set in LocalHost
+                "S63BuilderFileShareHealth": "{{s63buildermockfss}}health"
+            },
+            "S63ExchangeSetNameTemplate": "V01X01_S63_[jobid].zip", // Template for naming an exchange set: options are "jobid", "date"
+            "S63MaxRetries": 3, // Azure ENV var when deployed
+            "S63RetryDelayMilliseconds": 10000 // Azure ENV var when deployed
+        },
+        "UKHO.ADDS.EFS.Builder.S57": {
+            "Endpoints": {
+                "S57BuilderFileShare": "{{s57buildermockfss}}", // Local dynamic fss mock address from aspire with host adjusted for docker, set in LocalHost
+                "S57BuilderFileShareHealth": "{{s57buildermockfss}}health"
+            },
+            "S57ExchangeSetNameTemplate": "V01X01_S57_[jobid].zip", // Template for naming an exchange set: options are "jobid", "date"
+            "S57MaxRetries": 3, // Azure ENV var when deployed
+            "S57RetryDelayMilliseconds": 10000 // Azure ENV var when deployed
         }
     },
     "dev": {
@@ -41,106 +80,56 @@
                 }
             },
             "Endpoints": {
-                "FileShare": "https://dev.filesharemock",
-                "SalesCatalogue": "https://dev.scsmock"
+                "S100FileShare": "https://dev.filesharemock",
+                "S100SalesCatalogue": "https://dev.scsmock",
+                "S63FileShare": "https://dev.filesharemock",
+                "S63SalesCatalogue": "https://dev.scsmock",
+                "S57FileShare": "https://dev.filesharemock",
+                "S57SalesCatalogue": "https://dev.scsmock"
             },
             "AllowedHosts": "*",
-            "BuilderContainerTag": "latest",
-            "QueuePolling": {
-                "BatchSize": 10,
-                "ChannelSize": 20,
-                "PollingIntervalSeconds": 5
-            },
             "Builders": {
-                "MaximumConcurrentBuilders": 5
-            }
-        },
-        "UKHO.ADDS.EFS.Builder.S100": {
-            "Endpoints": {
-                "BuilderFileShare": "https://dev.filesharemock"
+                "LogReplayLevel": "Information" // Log level for replaying builder logs
             },
-            "WorkspaceKey": "workspace-key-secret-name"
-        }
-    },
-    "vnext-iat": {
-        "UKHO.ADDS.EFS.Orchestrator": {
-            "Logging": {
-                "LogLevel": {
-                    "Default": "Information",
-                    "Microsoft.AspNetCore": "Warning",
-                    "Aspire.Hosting.Dcp": "Warning"
+            "Queues": {
+                "JobRequestQueue": {
+                    "BatchSize": 1,
+                    "PollingIntervalSeconds": 1,
+                    "ChannelSize": 10
+                },
+                "S100ResponseQueue": {
+                    "BatchSize": 1,
+                    "PollingIntervalSeconds": 1
+                },
+                "S63ResponseQueue": {
+                    "BatchSize": 1,
+                    "PollingIntervalSeconds": 1
+                },
+                "S57ResponseQueue": {
+                    "BatchSize": 1,
+                    "PollingIntervalSeconds": 1
                 }
-            },
-            "Endpoints": {
-                "FileShare": "https://vniat.filesharemock",
-                "SalesCatalogue": "https://vniat.scsmock"
-            },
-            "AllowedHosts": "*",
-            "BuilderContainerTag": "latest",
-            "QueuePolling": {
-                "BatchSize": 10,
-                "ChannelSize": 20,
-                "PollingIntervalSeconds": 5
-            },
-            "Builders": {
-                "MaximumConcurrentBuilders": 5
             }
         },
         "UKHO.ADDS.EFS.Builder.S100": {
-            "Endpoints": {
-                "BuilderFileShare": "https://vniat.filesharemock"
-            },
-            "WorkspaceKey": "workspace-key-secret-name"
-        }
-    },
-    "vnext-e2e": {
-        "UKHO.ADDS.EFS.Orchestrator": {
-            "Logging": {
-                "LogLevel": {
-                    "Default": "Information",
-                    "Microsoft.AspNetCore": "Warning",
-                    "Aspire.Hosting.Dcp": "Warning"
-                }
-            },
-            "Endpoints": {
-                "FileShare": "https://vne2e.filesharemock",
-                "SalesCatalogue": "https://vne2e.scsmock"
-            },
-            "AllowedHosts": "*",
-            "BuilderContainerTag": "latest",
-            "QueuePolling": {
-                "BatchSize": 10,
-                "ChannelSize": 20,
-                "PollingIntervalSeconds": 5
-            },
-            "Builders": {
-                "MaximumConcurrentBuilders": 5
-            }
-        },
-        "UKHO.ADDS.EFS.Builder.S100": {
-            "Endpoints": {
-                "BuilderFileShare": "https://vne2e.filesharemock"
-            },
-            "WorkspaceKey": "workspace-key-secret-name"
+            "IICWorkspaceKey": "workspace-key-secret-name",
+            "S100ExchangeSetNameTemplate": "V01X01_[jobid].zip",
+            "S100ConcurrentDownloadLimitCount": 4
         }
     },
     "_schema": {
         "UKHO.ADDS.EFS.Orchestrator": {
-            "Endpoints:FileShare": {
+            "Endpoints:S100FileShare": {
                 "type": "url",
                 "required": true
             },
-            "Endpoints:SalesCatalogue": {
+            "Endpoints:S100SalesCatalogue": {
                 "type": "url",
                 "required": true
             }
         },
         "UKHO.ADDS.EFS.Builder.S100": {
-            "Endpoints:BuilderFileShare": {
-                "type": "url",
-                "required": true
-            },
-            "WorkspaceKey": {
+            "IICWorkspaceKey": {
                 "type": "string",
                 "required": true,
                 "secret": true

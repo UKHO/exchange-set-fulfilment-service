@@ -7,10 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Services\Tables\**" />
-    <Content Remove="Services\Tables\**" />
-    <EmbeddedResource Remove="Services\Tables\**" />
-    <None Remove="Services\Tables\**" />
+    <Compile Remove="Infrastructure\Tables\BuildStatusTable.cs" />
+    <Compile Remove="Infrastructure\Tables\ExchangeSetJobTypeTable.cs" />
+    <Compile Remove="Infrastructure\Tables\S100\S100BuildSummaryTable.cs" />
+    <Compile Remove="Infrastructure\Tables\S100\S100ExchangeSetJobTable.cs" />
+    <Compile Remove="Infrastructure\Tables\S57\S57BuildSummaryTable.cs" />
+    <Compile Remove="Infrastructure\Tables\S57\S57ExchangeSetJobTable.cs" />
+    <Compile Remove="Infrastructure\Tables\S63\S63BuildSummaryTable.cs" />
+    <Compile Remove="Infrastructure\Tables\S63\S63ExchangeSetJobTable.cs" />
+    <Compile Remove="Services\Infrastructure\IFileShareService.cs" />
+    <Compile Remove="Services\Infrastructure\ISalesCatalogueService.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -20,22 +26,23 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Storage.Blobs" Version="12.24.0" />
+    <PackageReference Include="Konscious.Security.Cryptography.Blake2" Version="1.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.3" />
     <PackageReference Include="Scalar.AspNetCore" Version="2.1.1" />
     <PackageReference Include="Docker.DotNet" Version="3.125.15" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.3" />
     <PackageReference Include="Serilog" Version="4.2.0" />
-    <PackageReference Include="Aspire.Azure.Data.Tables" Version="9.3.1" />
-    <PackageReference Include="Aspire.Azure.Storage.Queues" Version="9.3.1" />
-    <PackageReference Include="Aspire.Azure.Storage.Blobs" Version="9.3.1" />
     <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageReference Include="Serilog.Expressions" Version="5.0.0" />
     <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.1.1" />
+    <PackageReference Include="Aspire.Azure.Data.Tables" Version="9.3.1" />
+    <PackageReference Include="Aspire.Azure.Storage.Queues" Version="9.3.1" />
+    <PackageReference Include="Aspire.Azure.Storage.Blobs" Version="9.3.1" />
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.3" />
-    <PackageReference Include="UKHO.ADDS.Clients.Common" Version="0.0.50520-alpha.3" />
-    <PackageReference Include="UKHO.ADDS.Clients.FileShareService.ReadWrite" Version="0.0.50520-alpha.3" />
-    <PackageReference Include="UKHO.ADDS.Clients.SalesCatalogueService" Version="0.0.50512-alpha.3" />
+    <PackageReference Include="UKHO.ADDS.Clients.Common" Version="0.0.50701-alpha.2" />
+    <PackageReference Include="UKHO.ADDS.Clients.FileShareService.ReadWrite" Version="0.0.50701-alpha.2" />
+    <PackageReference Include="UKHO.ADDS.Clients.SalesCatalogueService" Version="0.0.50701-alpha.2" />
   </ItemGroup>
 
   <ItemGroup>

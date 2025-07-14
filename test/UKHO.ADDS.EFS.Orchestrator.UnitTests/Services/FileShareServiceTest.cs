@@ -4,8 +4,9 @@ using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
+using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Messages;
-using UKHO.ADDS.EFS.Orchestrator.Services;
+using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
 using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
@@ -14,8 +15,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
     internal class FileShareServiceTest
     {
         private IFileShareReadWriteClient _fakeFileShareReadWriteClient;
-        private FileShareService _fileShareService;
-        private ILogger<FileShareService> _logger;
+        private OrchestratorFileShareClient _fileShareService;
+        private ILogger<OrchestratorFileShareClient> _logger;
         private const string CorrelationId = "TestCorrelationId";
         private const string BatchId = "TestBatchId";
 
@@ -23,8 +24,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         public void OneTimeSetUp()
         {
             _fakeFileShareReadWriteClient = A.Fake<IFileShareReadWriteClient>();
-            _logger = A.Fake<ILogger<FileShareService>>();
-            _fileShareService = new FileShareService(_fakeFileShareReadWriteClient, _logger);
+            _logger = A.Fake<ILogger<OrchestratorFileShareClient>>();
+            _fileShareService = new OrchestratorFileShareClient(_fakeFileShareReadWriteClient, _logger);
         }
 
         [Test]
@@ -33,17 +34,21 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         {
             var mockClient = A.Fake<IFileShareReadWriteClient>();
 
-            Assert.Throws<ArgumentNullException>(() => new FileShareService(mockClient, null));
+            Assert.Throws<ArgumentNullException>(() => new OrchestratorFileShareClient(mockClient, null));
         }
         
         [Test]
         public async Task WhenCreateBatchAsyncIsCalled_ThenReturnsResultFromClient()
         {
-            var queueMessage = new ExchangeSetRequestQueueMessage
+            var queueMessage = new JobRequestQueueMessage
             {
+                Version = 1,
+                Timestamp = DateTime.UtcNow,
+
                 CorrelationId = "corr-1",
-                DataStandard = ExchangeSetDataStandard.S100,
-                Products = "prod"
+                DataStandard = DataStandard.S100,
+                Products = "prod",
+                Filter = "filter"
             };
             var expectedResult = A.Fake<IResult<IBatchHandle>>();
 

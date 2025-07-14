@@ -1,76 +1,63 @@
-﻿using UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging;
+﻿using Serilog;
+using UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging;
+using UKHO.ADDS.EFS.Builds.S100;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
+using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
 {
-    internal class ReadConfigurationNode : ExchangeSetPipelineNode
+    internal class ReadConfigurationNode : S100ExchangeSetPipelineNode
     {
-        private const string DebugJobId = "DebugJobId";
-        private const string DebugBatchId = "DebugBatchId";
-
-        protected override Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
+        protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<S100ExchangeSetPipelineContext> context)
         {
-            var logger = context.Subject.LoggerFactory.CreateLogger<ReadConfigurationNode>();
-
-            var jobId = GetEnvironmentVariable(BuilderEnvironmentVariables.JobId, DebugJobId);
-            var batchId = GetEnvironmentVariable(BuilderEnvironmentVariables.BatchId, DebugBatchId);
-            var workspaceAuthenticationKey = GetEnvironmentVariable(BuilderEnvironmentVariables.WorkspaceKey, "D89D11D265B19CA5C2BE97A7FCB1EF21");
-
-            if (jobId.Equals(DebugJobId, StringComparison.InvariantCultureIgnoreCase))
+            try
             {
-                logger.LogDebugJobWarning();
+                var logger = context.Subject.LoggerFactory.CreateLogger<ReadConfigurationNode>();
+                var configuration = context.Subject.Configuration;
 
-                context.Subject.IsDebugSession = true;
-                context.Subject.JobId = Guid.NewGuid().ToString("N");
-                context.Subject.BatchId = Guid.NewGuid().ToString("N");
+                var requestQueue = context.Subject.QueueClientFactory.CreateRequestQueueClient(context.Subject.Configuration);
+                var requestMessage = await requestQueue.ReceiveMessageAsync();
+
+                var request = JsonCodec.Decode<S100BuildRequest>(requestMessage.Value.MessageText)!;
+
+                // TODO Decide on retry strategy for queues and move this as necessary
+                await requestQueue.DeleteMessageAsync(requestMessage.Value.MessageId, requestMessage.Value.PopReceipt);
+
+                context.Subject.JobId = request.JobId;
+                context.Subject.BatchId = request.BatchId;
+                context.Subject.WorkspaceAuthenticationKey = request.WorkspaceKey;
+                context.Subject.ExchangeSetNameTemplate = request.ExchangeSetNameTemplate;
+
+                var fileShareEndpoint = configuration[BuilderEnvironmentVariables.FileShareEndpoint] ?? configuration["DebugEndpoints:FileShareService"]!;
+                var fileShareHealthEndpoint = configuration[BuilderEnvironmentVariables.FileShareHealthEndpoint] ?? configuration["DebugEndpoints:FileShareServiceHealth"]!;
+
+                context.Subject.FileShareEndpoint = fileShareEndpoint;
+                context.Subject.FileShareHealthEndpoint = fileShareHealthEndpoint;
+
+                var configurationLogView = new ConfigurationLogView()
+                {
+                    JobId = context.Subject.JobId,
+                    BatchId = context.Subject.BatchId,
+                    FileShareEndpoint = fileShareEndpoint,
+                    FileShareHealthEndpoint = fileShareHealthEndpoint,
+                    WorkspaceAuthenticationKey = context.Subject.WorkspaceAuthenticationKey,
+                    ExchangeSetNameTemplate = context.Subject.ExchangeSetNameTemplate,
+                };
+
+                logger.LogStartupConfiguration(configurationLogView);
+
+                return NodeResultStatus.Succeeded;
             }
-            else
+            catch (Exception ex)
             {
-                context.Subject.IsDebugSession = false;
-                context.Subject.JobId = jobId;
-                context.Subject.BatchId = batchId;
+#pragma warning disable LOG001
+                Log.Fatal(ex, $"An unhandled exception occurred during execution : {ex.Message}");
+#pragma warning restore LOG001
+
+                return NodeResultStatus.Failed;
             }
-
-            var fileShareEndpoint = GetEnvironmentVariable(BuilderEnvironmentVariables.FileShareEndpoint, context.Subject.Configuration.GetValue<string>("Endpoints:FileShareService")!);
-            var buildServiceEndpoint = GetEnvironmentVariable(BuilderEnvironmentVariables.BuildServiceEndpoint, context.Subject.Configuration.GetValue<string>("Endpoints:BuildService")!);
-
-
-            context.Subject.FileShareEndpoint = fileShareEndpoint;
-            context.Subject.BuildServiceEndpoint = buildServiceEndpoint;
-            context.Subject.WorkspaceAuthenticationKey = workspaceAuthenticationKey;
-
-
-            var configurationLogView = new ConfigurationLogView()
-            {
-                JobId = context.Subject.JobId,
-                BatchId = context.Subject.BatchId,
-                FileShareEndpoint = fileShareEndpoint,
-                BuildServiceEndpoint = buildServiceEndpoint,
-                WorkspaceAuthenticationKey = workspaceAuthenticationKey,
-            };
-
-            logger.LogStartupConfiguration(configurationLogView);
-
-            return Task.FromResult(NodeResultStatus.Succeeded);
-        }
-
-        private static string GetEnvironmentVariable(string variable, string overrideValue)
-        {
-            var value = Environment.GetEnvironmentVariable(variable);
-
-            if (!string.IsNullOrEmpty(value))
-            {
-                return value;
-            }
-
-            if (string.IsNullOrEmpty(overrideValue))
-            {
-                throw new InvalidOperationException($"{variable} is not set");
-            }
-
-            return overrideValue;
         }
     }
 }

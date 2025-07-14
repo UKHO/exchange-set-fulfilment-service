@@ -3,9 +3,9 @@ using Microsoft.Extensions.Logging;
 using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.IIC.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
-using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Create;
-using UKHO.ADDS.EFS.Entities;
+using UKHO.ADDS.EFS.Builds.S100;
+using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
@@ -17,7 +17,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
     {
         private IToolClient _toolClient;
         private AddContentExchangeSetNode _addContentExchangeSetNode;
-        private IExecutionContext<ExchangeSetPipelineContext> _executionContext;
+        private IExecutionContext<S100ExchangeSetPipelineContext> _executionContext;
         private ILoggerFactory _loggerFactory;
         private ILogger _logger;
 
@@ -26,7 +26,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         {
             _toolClient = A.Fake<IToolClient>();
             _addContentExchangeSetNode = new AddContentExchangeSetNode();
-            _executionContext = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
+            _executionContext = A.Fake<IExecutionContext<S100ExchangeSetPipelineContext>>();
             _loggerFactory = A.Fake<ILoggerFactory>();
             _logger = A.Fake<ILogger<AddContentExchangeSetNode>>();
         }
@@ -34,9 +34,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         [SetUp]
         public void Setup()
         {
-            var exchangeSetPipelineContext = new ExchangeSetPipelineContext(null, null, _toolClient, _loggerFactory)
+            var exchangeSetPipelineContext = new S100ExchangeSetPipelineContext(null,  _toolClient, null, null, _loggerFactory)
             {
-                Job = new ExchangeSetJob { CorrelationId = "TestCorrelationId" },
+                Build = new S100Build
+                {
+                    JobId = "TestCorrelationId",
+                    BatchId = "a-valid-batch-id",
+                    DataStandard = DataStandard.S100
+                },
                 JobId = "TestJobId",
                 WorkspaceAuthenticationKey = "Test123",
                 WorkSpaceRootPath = "rootPath"

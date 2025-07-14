@@ -1,6 +1,7 @@
 ﻿using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
+using UKHO.ADDS.EFS.Builder.Common.Pipelines.Distribute;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute.Logging;
 using UKHO.ADDS.EFS.Constants;
 using UKHO.ADDS.EFS.RetryPolicy;
@@ -13,7 +14,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
     /// <summary>
     /// Pipeline node responsible for uploading exchange set files to the File Share Service batch.
     /// </summary>
-    internal class UploadFilesNode : ExchangeSetPipelineNode
+    internal class UploadFilesNode : S100ExchangeSetPipelineNode
     {
         private readonly IFileShareReadWriteClient _fileShareReadWriteClient;
         private ILogger _logger;
@@ -35,15 +36,17 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
         /// </summary>
         /// <param name="context">The execution context containing pipeline data.</param>
         /// <returns>The result status of the node execution.</returns>
-        protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<ExchangeSetPipelineContext> context)
+        protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<S100ExchangeSetPipelineContext> context)
         {
             _logger = context.Subject.LoggerFactory.CreateLogger<UploadFilesNode>();
             var batchId = context.Subject.BatchId;
-            var correlationId = context.Subject.Job.CorrelationId;
-            var jobId = context.Subject.Job?.Id;
+            var correlationId = context.Subject.Build.GetCorrelationId();
+            var jobId = context.Subject.Build!.JobId;
 
-            string fileName = context.Subject.ExchangeSetFileName;
-            string filePath = Path.Combine(context.Subject.ExchangeSetFilePath, context.Subject.ExchangeSetArchiveFolderName, $"{jobId}.zip");
+            var fileNameGenerator = new FileNameGenerator(context.Subject.ExchangeSetNameTemplate);
+
+            var fileName = fileNameGenerator.GenerateFileName(jobId);
+            var filePath = Path.Combine(context.Subject.ExchangeSetFilePath, context.Subject.ExchangeSetArchiveFolderName, $"{jobId}.zip");
 
             if (!File.Exists(filePath))
             {

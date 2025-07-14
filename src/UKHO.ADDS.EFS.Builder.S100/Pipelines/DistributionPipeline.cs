@@ -4,7 +4,7 @@ using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
 {
-    internal class DistributionPipeline : IBuilderPipeline<ExchangeSetPipelineContext>
+    internal class DistributionPipeline : IBuilderPipeline<S100ExchangeSetPipelineContext>
     {
         private readonly IFileShareReadWriteClient _fileShareReadWriteClient;
         public DistributionPipeline(IFileShareReadWriteClient fileShareReadWriteClient)
@@ -12,9 +12,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
             _fileShareReadWriteClient = fileShareReadWriteClient ?? throw new ArgumentNullException(nameof(fileShareReadWriteClient));
         }
 
-        public async Task<NodeResult> ExecutePipeline(ExchangeSetPipelineContext context)
+        public async Task<NodeResult> ExecutePipeline(S100ExchangeSetPipelineContext context)
         {
-            var pipeline = new PipelineNode<ExchangeSetPipelineContext>();
+            var pipeline = new PipelineNode<S100ExchangeSetPipelineContext>();
 
             pipeline.AddChild(new ExtractExchangeSetNode());
             pipeline.AddChild(new UploadFilesNode(_fileShareReadWriteClient));
