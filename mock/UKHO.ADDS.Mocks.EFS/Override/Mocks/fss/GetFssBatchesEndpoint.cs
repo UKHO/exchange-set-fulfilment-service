@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.Mocks.Markdown;
+﻿using UKHO.ADDS.Mocks.Headers;
+using UKHO.ADDS.Mocks.Markdown;
 using UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss.ResponseGenerator;
 using UKHO.ADDS.Mocks.States;
 
@@ -17,6 +18,46 @@ namespace UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss
 
                             return FssResponseGenerator.ProvideSearchFilterResponse(request);
 
+                        case WellKnownState.BadRequest:
+                            return CreateErrorResponse(
+                                request,
+                                400,
+                                new
+                                {
+                                    errors = new[]
+                                    {
+                                        new
+                                        {
+                                            source = "Search Batch",
+                                            description = "Bad Request."
+                                        }
+                                    }
+                                }
+                            );
+
+                        case WellKnownState.NotFound:
+                            return CreateErrorResponse(
+                                request,
+                                404,
+                                new { details = "Not Found" }
+                            );
+
+                        case WellKnownState.UnsupportedMediaType:
+                            return Results.Json(new
+                            {
+                                type = "https://example.com",
+                                title = "Unsupported Media Type",
+                                status = 415,
+                                traceId = "00-012-0123-01"
+                            }, statusCode: 415);
+
+                        case WellKnownState.InternalServerError:
+                            return CreateErrorResponse(
+                                request,
+                                500,
+                                new { details = "Internal Server Error" }
+                            );                            
+
                         default:
                             // Just send default responses
                             return WellKnownStateHandler.HandleWellKnownState(state);
@@ -34,5 +75,22 @@ namespace UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss
                         new MarkdownTextListItem("Value BusinessUnit eq 'ADDS-S100' and $batch(ProductType) eq 's100' and  (($batch(ProductName) eq '101GB004DEVQK' and $batch(EditionNumber) eq '2' and (($batch(UpdateNumber) eq '0' or $batch(UpdateNumber) eq '1' ))))")
                     ));
                 });
+
+        private static IResult CreateErrorResponse(HttpRequest request, int statusCode, object errorBody)
+        {
+            var correlationId = request.Headers[WellKnownHeader.CorrelationId];
+            var response = new Dictionary<string, object>
+            {
+                ["correlationId"] = correlationId
+            };
+
+            // Merge errorBody properties into the response dictionary
+            foreach (var prop in errorBody.GetType().GetProperties())
+            {
+                response[prop.Name] = prop.GetValue(errorBody);
+            }
+
+            return Results.Json(response, statusCode: statusCode);
+        }
     }
 }
