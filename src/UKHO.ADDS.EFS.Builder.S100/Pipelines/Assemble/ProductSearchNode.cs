@@ -44,7 +44,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             try
             {
                 _logger = context.Subject.LoggerFactory.CreateLogger<ProductSearchNode>();
-                var products = context.Subject.Build?.Products;
+                var products = context.Subject.Build?.ProductNames;
                 if (products == null || products.Count() == 0)
                 {
                     return NodeResultStatus.NotRun;
@@ -56,8 +56,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                     .Select(g => new BatchProductDetail
                     {
                         ProductName = g.Key,
-                        EditionNumber = g.First().LatestEditionNumber,
-                        UpdateNumbers = g.Select(p => p.LatestUpdateNumber).ToList()
+                        EditionNumber = g.First().EditionNumber,
+                        UpdateNumbers = g.SelectMany(p => p.UpdateNumbers.Cast<int?>()).ToList()
                     }).ToList();
 
                 var productGroupCount = (int)Math.Ceiling((double)products.Count() / MaxSearchOperations);

@@ -30,7 +30,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             var build = context.Subject.Build;
 
             var productNames = build.Products?
-                .Select(p => p.ProductName) 
+                .Select(p => p.ProductName)
                 .Where(name => !string.IsNullOrWhiteSpace(name))
                 .ToArray() ?? Array.Empty<string>();
 
@@ -42,7 +42,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             {
                 case HttpStatusCode.OK when s100SalesCatalogueData.Products.Any():
                     // We have something to build, so move forwards with scheduling a build
-                    build.S100ProductNames = s100SalesCatalogueData.Products;
+                    build.ProductNames = s100SalesCatalogueData.Products;
 
                     job.DataStandardTimestamp = lastModified;
                     build.SalesCatalogueTimestamp = lastModified;
@@ -52,15 +52,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                     nodeResult = NodeResultStatus.Succeeded;
 
                     break;
-                case HttpStatusCode.NotModified:
-                    // No new data since the specified timestamp, so no build needed
-                    job.DataStandardTimestamp = lastModified;
 
-                    await context.Subject.SignalNoBuildRequired();
-
-                    nodeResult = NodeResultStatus.Succeeded;
-
-                    break;
                 default:
                     // Something went wrong, so the job has failed
                     await context.Subject.SignalAssemblyError();

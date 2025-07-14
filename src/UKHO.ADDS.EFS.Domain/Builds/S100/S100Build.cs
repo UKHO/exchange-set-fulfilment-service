@@ -6,12 +6,12 @@ namespace UKHO.ADDS.EFS.Builds.S100
     public class S100Build : Build
     {
         private List<S100Products> _products;
-        private List<S100ProductNames> _s100ProductNames;
+        private List<S100ProductNames> _productNames;
 
         public S100Build()
         {
             _products = [];
-            _s100ProductNames = [];
+            _productNames = [];
         }
 
         public IEnumerable<S100Products>? Products
@@ -20,10 +20,10 @@ namespace UKHO.ADDS.EFS.Builds.S100
             set => _products = value?.ToList() ?? [];
         }
 
-        public IEnumerable<S100ProductNames> S100ProductNames
+        public IEnumerable<S100ProductNames> ProductNames
         {
-            get => _s100ProductNames;
-            set => _s100ProductNames = value?.ToList() ?? [];
+            get => _productNames;
+            set => _productNames = value?.ToList() ?? [];
         }
 
         public override string GetProductDelimitedList() => (Products == null) ? string.Empty : string.Join(", ", Products.Select(p => p));
