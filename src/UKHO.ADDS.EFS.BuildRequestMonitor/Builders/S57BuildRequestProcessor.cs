@@ -1,6 +1,6 @@
 ﻿using UKHO.ADDS.Configuration.Schema;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Services;
-using UKHO.ADDS.EFS.Builds;
+using UKHO.ADDS.EFS.Builds.S57;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 
 namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
@@ -24,7 +24,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
         /// <param name="request"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task ProcessRequestAsync(BuildRequest request, CancellationToken cancellationToken)
+        public async Task ProcessRequestAsync(S57BuildRequest request, CancellationToken cancellationToken)
         {
             var containerName = $"{ProcessNames.S57Builder}-{request.JobId}";
 
@@ -44,7 +44,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
                 env.BlobConnectionString = $"http://host.docker.internal:{blobPort}/devstoreaccount1";
                 env.FileShareEndpoint = _configuration["Endpoints:S57BuilderFileShare"]!;
                 env.FileShareHealthEndpoint = _configuration["Endpoints:S57BuilderFileShareHealth"]!;
-                env.BlobContainerName = StorageConfiguration.S57JobContainer;
+                env.BlobContainerName = StorageConfiguration.S57BuildContainer;
                 env.MaxRetryAttempts = int.Parse(_configuration["S57MaxRetries"]!); 
                 env.RetryDelayMilliseconds = int.Parse(_configuration["S57RetryDelayMilliseconds"]!); 
             });

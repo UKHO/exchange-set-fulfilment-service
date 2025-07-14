@@ -1,12 +1,12 @@
 ﻿using System.Net;
 using UKHO.ADDS.EFS.Jobs;
-using UKHO.ADDS.EFS.Messages;
+using UKHO.ADDS.EFS.Orchestrator.Jobs;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 {
     internal class SalesCatalogUnexpectedStatusLogView
     {
-        public ExchangeSetDataStandard DataStandard { get; init; }
+        public DataStandard DataStandard { get; init; }
 
         public required string Products { get; init; }
 
@@ -14,7 +14,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 
         public HttpStatusCode StatusCode { get; init; }
 
-        public static SalesCatalogUnexpectedStatusLogView Create(ExchangeSetJob job, HttpStatusCode statusCode) =>
-            new() { DataStandard = job.DataStandard, Products = job.GetProductDelimitedList(), CorrelationId = job.GetCorrelationId(), StatusCode = statusCode };
+        public static SalesCatalogUnexpectedStatusLogView Create(Job job, HttpStatusCode statusCode) =>
+            new() { DataStandard = job.DataStandard, Products = job.RequestedProducts, CorrelationId = job.GetCorrelationId(), StatusCode = statusCode };
     }
 }

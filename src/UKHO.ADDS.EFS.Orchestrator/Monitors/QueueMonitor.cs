@@ -50,7 +50,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.Monitors
                     // TODO: Dead letter, remove...
                 }
 
-                await Task.Delay(TimeSpan.FromSeconds(_pollingIntervalSeconds), stoppingToken);
+                try
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(_pollingIntervalSeconds), stoppingToken);
+                }
+                catch (TaskCanceledException)
+                {
+                    // Task was cancelled, exit the loop
+                    break;
+                }
             }
         }
 

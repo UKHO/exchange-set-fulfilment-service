@@ -44,8 +44,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             try
             {
                 _logger = context.Subject.LoggerFactory.CreateLogger<ProductSearchNode>();
-                var products = context.Subject.Job?.Products;
-                if (products == null || products.Count == 0)
+                var products = context.Subject.Build?.Products;
+                if (products == null || products.Count() == 0)
                 {
                     return NodeResultStatus.NotRun;
                 }
@@ -60,12 +60,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                         UpdateNumbers = g.Select(p => p.LatestUpdateNumber).ToList()
                     }).ToList();
 
-                var productGroupCount = (int)Math.Ceiling((double)products.Count / MaxSearchOperations);
+                var productGroupCount = (int)Math.Ceiling((double)products.Count() / MaxSearchOperations);
                 var productsList = SplitList(groupedProducts, productGroupCount);
 
                 foreach (var productGroup in productsList)
                 {
-                    var batchDetails = await QueryFileShareServiceFilesAsync(productGroup, context.Subject.Job?.GetCorrelationId()!);
+                    var batchDetails = await QueryFileShareServiceFilesAsync(productGroup, context.Subject.Build?.GetCorrelationId()!);
                     if (batchDetails != null)
                     {
                         batchList.AddRange(batchDetails);

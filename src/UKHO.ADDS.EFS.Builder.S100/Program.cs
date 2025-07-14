@@ -100,26 +100,9 @@ namespace UKHO.ADDS.EFS.Builder.S100
             {
                 if (pipelineContext != null && configuration != null)
                 {
-                    pipelineContext.Summary.SetLogMessages(sink.GetLogLines());
-
-                    var queueClient = pipelineContext.QueueClientFactory.CreateResponseQueueClient(configuration);
-                    var blobClient = pipelineContext.BlobClientFactory.CreateBlobClient(configuration, $"{pipelineContext.JobId}/{pipelineContext.JobId}-summary");
-
-                    using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(JsonCodec.Encode(pipelineContext.Summary))))
-                    {
-                        await blobClient.UploadAsync(stream, overwrite: true);
-                    }
-
-                    var response = new BuildResponse() { JobId = pipelineContext.JobId, ExitCode = exitCode};
-
-#pragma warning disable LOG001
-                    Log.Information($"****** SENDING RESPONSE with jobId : {pipelineContext.JobId}");
-#pragma warning restore LOG001
-
-
-                    await queueClient.SendMessageAsync(JsonCodec.Encode(response));
+                    await pipelineContext.CompleteBuild(configuration, sink, exitCode);
                 }
-                //put back at top once debugged
+
                 await Log.CloseAndFlushAsync();
             }
         }
@@ -135,7 +118,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
             var services = new ServiceCollection();
 
             var configuration = new ConfigurationBuilder()
-                .AddS100BuilderConfiguration()
+                .AddBuilderConfiguration()
                 .Build();
 
             services.AddSingleton<IConfiguration>(x => configuration);

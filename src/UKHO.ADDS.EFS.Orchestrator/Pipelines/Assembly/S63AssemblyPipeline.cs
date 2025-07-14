@@ -1,34 +1,57 @@
-﻿using UKHO.ADDS.EFS.Jobs.S63;
-using UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Common;
-using UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.S63;
+﻿using UKHO.ADDS.EFS.Builds.S63;
+using UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S63;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
+using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly
 {
-    internal class S63AssemblyPipeline : AssemblyPipeline
+    internal class S63AssemblyPipeline : AssemblyPipeline<S63Build>
     {
-        public S63AssemblyPipeline(AssemblyPipelineParameters parameters, AssemblyPipelineNodeFactory nodeFactory, ILogger<S63AssemblyPipeline> logger)
-            : base(parameters, nodeFactory, logger)
+        public S63AssemblyPipeline(AssemblyPipelineParameters parameters, AssemblyPipelineNodeFactory nodeFactory, PipelineContextFactory<S63Build> contextFactory, ILogger<S63AssemblyPipeline> logger)
+            : base(parameters, nodeFactory,  contextFactory, logger)
         {
         }
 
         public override async Task<AssemblyPipelineResponse> RunAsync(CancellationToken cancellationToken)
         {
-            var job = CreateJob<S63ExchangeSetJob>();
+            var context = await CreateContext();
 
-            var pipeline = new PipelineNode<S63ExchangeSetJob>();
+            AddPipelineNode<CreateJobNode>(cancellationToken);
+            AddPipelineNode<GetDataStandardTimestampNode>(cancellationToken);
+            AddPipelineNode<GetProductsForDataStandardNode>(cancellationToken);
+            AddPipelineNode<CreateFileShareBatchNode>(cancellationToken);
+            AddPipelineNode<ScheduleBuildNode>(cancellationToken);
 
-            pipeline.AddChild(NodeFactory.CreateNode<GetExistingTimestampNode>(cancellationToken));
-            pipeline.AddChild(NodeFactory.CreateNode<GetS63ProductsFromExistingTimestampNode>(cancellationToken));
-            pipeline.AddChild(NodeFactory.CreateNode<CreateFileShareBatchNode>(cancellationToken));
-            pipeline.AddChild(NodeFactory.CreateNode<PersistS63JobNode>(cancellationToken));
-            pipeline.AddChild(NodeFactory.CreateNode<SetJobTypeNode>(cancellationToken));
-            pipeline.AddChild(NodeFactory.CreateNode<RequestS63BuildNode>(cancellationToken));
+            var result = await Pipeline.ExecuteAsync(context);
 
-            var result = await pipeline.ExecuteAsync(job);
+            switch (result.Status)
+            {
+                case NodeResultStatus.Succeeded:
+                case NodeResultStatus.SucceededWithErrors:
+                    // Nothing to do here, the job is already updated in the context
+                    break;
 
-            return new AssemblyPipelineResponse { JobId = Parameters.JobId, Status = result.Status, DataStandard = Parameters.DataStandard, BatchId = job.BatchId };
+                case NodeResultStatus.NotRun:
+                case NodeResultStatus.Failed:
+                default:
+                    await context.SignalAssemblyError();
+                    break;
+            }
+
+            return new AssemblyPipelineResponse()
+            {
+                JobId = context.Job.Id,
+                DataStandard = context.Job.DataStandard,
+                JobStatus = context.Job.JobState,
+                BuildStatus = context.Job.BuildState,
+                BatchId = context.Job.BatchId
+            };
+        }
+
+        protected override async Task<PipelineContext<S63Build>> CreateContext()
+        {
+            return await ContextFactory.CreatePipelineContext(Parameters);
         }
     }
 }

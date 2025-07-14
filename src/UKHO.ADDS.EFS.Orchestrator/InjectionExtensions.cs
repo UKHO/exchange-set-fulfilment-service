@@ -1,21 +1,30 @@
 ﻿using System.Text.Json;
-using System.Threading.Channels;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.SalesCatalogueService;
+using UKHO.ADDS.EFS.Builds;
+using UKHO.ADDS.EFS.Builds.S100;
+using UKHO.ADDS.EFS.Builds.S57;
+using UKHO.ADDS.EFS.Builds.S63;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Extensions;
-using UKHO.ADDS.EFS.Messages;
+using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S100;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S57;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S63;
+using UKHO.ADDS.EFS.Orchestrator.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Monitors;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
+using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
+using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
+using UKHO.ADDS.EFS.Orchestrator.Pipelines.Services;
+using UKHO.ADDS.EFS.Orchestrator.Pipelines.Services.Implementation;
 using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Services.Storage;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
@@ -48,26 +57,31 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddTransient<CompletionPipelineFactory>();
             builder.Services.AddTransient<CompletionPipelineNodeFactory>();
 
+            builder.Services.AddSingleton<PipelineContextFactory<S100Build>>();
+            builder.Services.AddSingleton<PipelineContextFactory<S63Build>>();
+            builder.Services.AddSingleton<PipelineContextFactory<S57Build>>();
+
             builder.Services.AddHostedService<JobRequestQueueMonitor>();
 
             builder.Services.AddHostedService<S100BuildResponseMonitor>();
             builder.Services.AddHostedService<S63BuildResponseMonitor>();
             builder.Services.AddHostedService<S57BuildResponseMonitor>();
 
-            builder.Services.AddSingleton<S100ExchangeSetJobTable>();
-            builder.Services.AddSingleton<S63ExchangeSetJobTable>();
-            builder.Services.AddSingleton<S57ExchangeSetJobTable>();
+            builder.Services.AddSingleton<ITimestampService, TimestampService>();
+            builder.Services.AddSingleton<IStorageService, StorageService>();
+            builder.Services.AddSingleton<IHashingService, HashingService>();
 
-            builder.Services.AddTransient<ExchangeSetTimestampTable>();
-            builder.Services.AddTransient<ExchangeSetJobTypeTable>();
-            builder.Services.AddSingleton<BuildStatusTable>();
+            builder.Services.AddSingleton<ITable<S100Build>, S100BuildTable>();
+            builder.Services.AddSingleton<ITable<S63Build>, S63BuildTable>();
+            builder.Services.AddSingleton<ITable<S57Build>, S57BuildTable>();
 
-            builder.Services.AddSingleton<S100BuildSummaryTable>();
-            builder.Services.AddSingleton<S63BuildSummaryTable>();
-            builder.Services.AddSingleton<S57BuildSummaryTable>();
+            builder.Services.AddSingleton<ITable<DataStandardTimestamp>, DataStandardTimestampTable>();
+            builder.Services.AddSingleton<ITable<Job>, JobTable>();
+            builder.Services.AddSingleton<ITable<BuildMemento>, BuildMementoTable>();
+            builder.Services.AddSingleton<ITable<JobHistory>, JobHistoryTable>();
 
-            builder.Services.AddTransient<BuilderLogForwarder>();
-            builder.Services.AddTransient<StorageInitializerService>();
+            builder.Services.AddSingleton<IBuilderLogForwarder, BuilderLogForwarder>();
+            builder.Services.AddSingleton<StorageInitializerService>();
 
             builder.Services.AddSingleton<ISalesCatalogueClientFactory>(provider => new SalesCatalogueClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
 
@@ -89,8 +103,8 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 return factory.CreateClient(fssEndpoint.RemoveControlCharacters(), string.Empty);
             });
 
-            builder.Services.AddSingleton<SalesCatalogueService>();
-            builder.Services.AddSingleton<FileShareService>();
+            builder.Services.AddSingleton<IOrchestratorSalesCatalogueClient, OrchestratorSalesCatalogueClient>();
+            builder.Services.AddSingleton<IOrchestratorFileShareClient, OrchestratorFileShareClient>();
 
             return builder;
         }

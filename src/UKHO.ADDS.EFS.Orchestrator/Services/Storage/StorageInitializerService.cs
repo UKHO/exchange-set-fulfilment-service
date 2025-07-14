@@ -1,48 +1,46 @@
 ﻿using Azure.Storage.Queues;
+using UKHO.ADDS.EFS.Builds;
+using UKHO.ADDS.EFS.Builds.S100;
+using UKHO.ADDS.EFS.Builds.S57;
+using UKHO.ADDS.EFS.Builds.S63;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
+using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S100;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S57;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S63;
+using UKHO.ADDS.EFS.Orchestrator.Jobs;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services.Storage
 {
     internal class StorageInitializerService
     {
-        private readonly BuildStatusTable _buildStatusTable;
-        private readonly S100ExchangeSetJobTable _s100JobTable;
-        private readonly S63ExchangeSetJobTable _s63JobTable;
-        private readonly S57ExchangeSetJobTable _s57JobTable;
-        private readonly S100BuildSummaryTable _s100BuildSummaryTable;
-        private readonly S63BuildSummaryTable _s63BuildSummaryTable;
-        private readonly S57BuildSummaryTable _s57BuildSummaryTable;
         private readonly QueueServiceClient _queueClient;
-        private readonly ExchangeSetJobTypeTable _jobTypeTable;
-        private readonly ExchangeSetTimestampTable _timestampTable;
+
+        private readonly ITable<DataStandardTimestamp> _timestampTable;
+        private readonly ITable<Job> _jobTable;
+        private readonly ITable<JobHistory> _jobHistoryTable;
+        private readonly ITable<S100Build> _s100BuildTable;
+        private readonly ITable<S63Build> _s63BuildTable;
+        private readonly ITable<S57Build> _s57BuildTable;
+        private readonly ITable<BuildMemento> _buildMementoTable;
 
         public StorageInitializerService
             (
                 QueueServiceClient queueClient,
-                ExchangeSetJobTypeTable jobTypeTable,
-                S100ExchangeSetJobTable s100JobTable,
-                S63ExchangeSetJobTable s63JobTable,
-                S57ExchangeSetJobTable s57JobTable,
-                S100BuildSummaryTable s100BuildSummaryTable,
-                S63BuildSummaryTable s63BuildSummaryTable,
-                S57BuildSummaryTable s57BuildSummaryTable,
-                ExchangeSetTimestampTable timestampTable,
-                BuildStatusTable buildStatusTable)
+                ITable<DataStandardTimestamp> timestampTable,
+                ITable<Job> jobTable,
+                ITable<JobHistory> jobHistoryTable,
+                ITable<S100Build> s100BuildTable,
+                ITable<S63Build> s63BuildTable,
+                ITable<S57Build> s57BuildTable,
+                ITable<BuildMemento> buildMementoTable)
         {
             _queueClient = queueClient;
-            _jobTypeTable = jobTypeTable;
-            _s100JobTable = s100JobTable;
-            _s63JobTable = s63JobTable;
-            _s57JobTable = s57JobTable;
-            _s100BuildSummaryTable = s100BuildSummaryTable;
-            _s63BuildSummaryTable = s63BuildSummaryTable;
-            _s57BuildSummaryTable = s57BuildSummaryTable;
             _timestampTable = timestampTable;
-            _buildStatusTable = buildStatusTable;
+            _jobTable = jobTable;
+            _jobHistoryTable = jobHistoryTable;
+            _s100BuildTable = s100BuildTable;
+            _s63BuildTable = s63BuildTable;
+            _s57BuildTable = s57BuildTable;
+            _buildMementoTable = buildMementoTable;
         }
 
         public async Task InitializeStorageAsync(CancellationToken stoppingToken)
@@ -60,17 +58,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Storage
                 await EnsureQueueExists(StorageConfiguration.S57BuildRequestQueueName, stoppingToken);
                 await EnsureQueueExists(StorageConfiguration.S57BuildResponseQueueName, stoppingToken);
 
-                await _s100JobTable.CreateIfNotExistsAsync(stoppingToken);
-                await _s63JobTable.CreateIfNotExistsAsync(stoppingToken);
-                await _s57JobTable.CreateIfNotExistsAsync(stoppingToken);
+                await _s100BuildTable.CreateIfNotExistsAsync(stoppingToken);
+                await _s63BuildTable.CreateIfNotExistsAsync(stoppingToken);
+                await _s57BuildTable.CreateIfNotExistsAsync(stoppingToken);
 
-                await _s100BuildSummaryTable.CreateIfNotExistsAsync(stoppingToken);
-                await _s63BuildSummaryTable.CreateIfNotExistsAsync(stoppingToken);
-                await _s57BuildSummaryTable.CreateIfNotExistsAsync(stoppingToken);
+                await _jobTable.CreateIfNotExistsAsync(stoppingToken);
+                await _jobHistoryTable.CreateIfNotExistsAsync(stoppingToken);
 
                 await _timestampTable.CreateIfNotExistsAsync(stoppingToken);
-                await _jobTypeTable.CreateIfNotExistsAsync(stoppingToken);
-                await _buildStatusTable.CreateIfNotExistsAsync(stoppingToken);
+                await _buildMementoTable.CreateIfNotExistsAsync(stoppingToken);
             }
             catch (Exception ex)
             {

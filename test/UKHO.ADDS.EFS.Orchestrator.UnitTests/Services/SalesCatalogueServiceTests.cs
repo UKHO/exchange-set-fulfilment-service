@@ -3,9 +3,8 @@
 //using Microsoft.Extensions.Logging;
 //using UKHO.ADDS.Clients.SalesCatalogueService;
 //using UKHO.ADDS.Clients.SalesCatalogueService.Models;
-//using UKHO.ADDS.EFS.Messages;
-//using UKHO.ADDS.EFS.Orchestrator.Services;
-//using UKHO.ADDS.EFS.Orchestrator.Services2.Infrastructure;
+//using UKHO.ADDS.EFS.Jobs;
+//using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
 //using UKHO.ADDS.Infrastructure.Results;
 
 //namespace UKHO.ADDS.EFS.Orchestrator.Tests.Services
@@ -16,7 +15,7 @@
 //        private ISalesCatalogueClient _fakeSalesCatalogueClient;
 //        private ILogger<SalesCatalogueService> _logger;
 //        private SalesCatalogueService _salesCatalogueService;
-//        private ExchangeSetRequestQueueMessage _exchangeSetRequestQueueMessage;
+//        private ExchangeSetJob _exchangeSetJob;
 
 //        [OneTimeSetUp]
 //        public void OneTimeSetUp()
@@ -24,11 +23,9 @@
 //            _fakeSalesCatalogueClient = A.Fake<ISalesCatalogueClient>();
 //            _logger = A.Fake<ILogger<SalesCatalogueService>>();
 //            _salesCatalogueService = new SalesCatalogueService(_fakeSalesCatalogueClient, _logger);
-//            _exchangeSetRequestQueueMessage = new ExchangeSetRequestQueueMessage
+//            _exchangeSetJob = new TestExchangeSetJob
 //            {
-//                CorrelationId = "test-correlation-id",
-//                Products = "test-products",
-//                DataStandard = ExchangeSetDataStandard.S100
+//                Id = "test-correlation-id"
 //            };
 //        }
 
@@ -49,26 +46,27 @@
 //            A.CallTo(() => _fakeSalesCatalogueClient.GetS100ProductsFromSpecificDateAsync(
 //                A<string>.Ignored, A<string>.Ignored, A<DateTime?>.Ignored, A<string>.Ignored))
 //                .Returns(Task.FromResult(successResult));
-//            A.CallTo(() => successResult.IsSuccess(out expectedResponse, out error)).Returns(true);
 
-//            var (data, lastModified) = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(null, _exchangeSetRequestQueueMessage);
+//            var result = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(null, _exchangeSetJob);
+//            S100SalesCatalogueResponse s100SalesCatalogueData = result.s100SalesCatalogueData;
+//            DateTime? lastModified = result.LastModified; 
 
 //            Assert.Multiple(() =>
 //            {
-//                Assert.That(data.ResponseCode, Is.EqualTo(expectedResponse.ResponseCode));
-//                Assert.That(data.LastModified, Is.EqualTo(expectedResponse.LastModified));
+//                Assert.That(s100SalesCatalogueData.ResponseCode, Is.EqualTo(expectedResponse.ResponseCode));
+//                Assert.That(s100SalesCatalogueData.LastModified, Is.EqualTo(expectedResponse.LastModified));
 //                Assert.That(lastModified, Is.EqualTo(expectedDate));
 //            });
 //        }
 
 //        [Test]
-//        public async Task WhenGetS100ProductsFromSpecificDateAsyncReturnsNotModified_ThenReturnsDataAndSinceDateTime()
+//        public async Task WhenGetS100ProductsFromSpecificDateAsyncReturnsNotModified_ThenReturnsDataAndLastModified()
 //        {
 //            var sinceDateTime = DateTime.UtcNow.AddDays(-1);
 //            var expectedResponse = new S100SalesCatalogueResponse
 //            {
 //                ResponseCode = HttpStatusCode.NotModified,
-//                LastModified = null
+//                LastModified = sinceDateTime
 //            };
 
 //            var successResult = A.Fake<IResult<S100SalesCatalogueResponse>>();
@@ -78,14 +76,15 @@
 //            A.CallTo(() => _fakeSalesCatalogueClient.GetS100ProductsFromSpecificDateAsync(
 //                    A<string>.Ignored, A<string>.Ignored, sinceDateTime, A<string>.Ignored))
 //                .Returns(Task.FromResult(successResult));
-//            A.CallTo(() => successResult.IsSuccess(out expectedResponse, out error)).Returns(true);
 
-//            var (data, lastModified) = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(sinceDateTime, _exchangeSetRequestQueueMessage);
+//            var result = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(sinceDateTime, _exchangeSetJob);
+
+//            S100SalesCatalogueResponse data = result.s100SalesCatalogueData;
 
 //            Assert.Multiple(() =>
 //            {
 //                Assert.That(data.ResponseCode, Is.EqualTo(expectedResponse.ResponseCode));
-//                Assert.That(lastModified, Is.EqualTo(sinceDateTime));
+//                Assert.That(result.LastModified, Is.EqualTo(sinceDateTime));
 //            });
 //        }
 
@@ -100,14 +99,14 @@
 //                    A<string>.Ignored, A<string>.Ignored, A<DateTime?>.Ignored, A<string>.Ignored))
 //                .Returns(Task.FromResult(failResult));
 
-//            var (data, lastModified) = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(null, _exchangeSetRequestQueueMessage);
+//            var result = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(null, _exchangeSetJob);
 
 //            A.CallTo(() => _logger.Log(A<LogLevel>._, A<EventId>._, A<LoggerMessageState>._, A<Exception>._, A<Func<LoggerMessageState, Exception?, string>>._)).MustHaveHappened();
-
+//            S100SalesCatalogueResponse data = result.s100SalesCatalogueData;
 //            Assert.Multiple(() =>
 //            {
 //                Assert.That(data, Is.Not.Null);
-//                Assert.That(lastModified, Is.Null);
+//                Assert.That(data.LastModified, Is.Null);
 //            });
 //        }
 
@@ -127,12 +126,13 @@
 //                    A<string>.Ignored, A<string>.Ignored, null, A<string>.Ignored))
 //                .Returns(Task.FromResult(successResult));
 
-//            var (data, lastModified) = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(null, _exchangeSetRequestQueueMessage);
+//            var result = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(null, _exchangeSetJob);
+//            S100SalesCatalogueResponse data = result.s100SalesCatalogueData;
 
 //            Assert.Multiple(() =>
 //            {
 //                Assert.That(data.ResponseCode, Is.EqualTo(HttpStatusCode.OK));
-//                Assert.That(lastModified, Is.EqualTo(expectedResponse.LastModified));
+//                Assert.That(data.LastModified, Is.EqualTo(expectedResponse.LastModified));
 //            });
 //        }
 
@@ -153,15 +153,15 @@
 //                    A<string>.Ignored, A<string>.Ignored, A<DateTime?>.Ignored, A<string>.Ignored))
 //                .Returns(Task.FromResult(successResult));
 
-//            var (data, lastModified) = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(null, _exchangeSetRequestQueueMessage);
-
+//            var result = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(null, _exchangeSetJob);
+//            S100SalesCatalogueResponse data = result.s100SalesCatalogueData;
 //            A.CallTo(() => _logger.Log(A<LogLevel>._, A<EventId>._, A<LoggerMessageState>._, A<Exception>._, A<Func<LoggerMessageState, Exception?, string>>._)).MustHaveHappened();
 
 //            Assert.Multiple(() =>
 //            {
 //                Assert.That(data, Is.Not.Null);
 //                Assert.That(data.ResponseCode, Is.EqualTo(default(HttpStatusCode)));
-//                Assert.That(lastModified, Is.Null);
+//                Assert.That(data.LastModified, Is.Null);
 //            });
 //        }
 
@@ -174,14 +174,15 @@
 //            A.CallTo(() => failResult.IsSuccess(out outResponse!, out error)).Returns(false);
 //            A.CallTo(() => _fakeSalesCatalogueClient.GetS100ProductsFromSpecificDateAsync(A<string>.Ignored, A<string>.Ignored, A<DateTime?>.Ignored, A<string>.Ignored)).Returns(Task.FromResult(failResult));
 
-//            var (data, lastModified) = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(null, _exchangeSetRequestQueueMessage);
+//            var result = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(null, _exchangeSetJob);
+//            S100SalesCatalogueResponse data = result.s100SalesCatalogueData;
 
 //            A.CallTo(() => _logger.Log(A<LogLevel>._, A<EventId>._, A<LoggerMessageState>._, A<Exception>._, A<Func<LoggerMessageState, Exception?, string>>._)).MustHaveHappened();
 
 //            Assert.Multiple(() =>
 //            {
 //                Assert.That(data, Is.Not.Null);
-//                Assert.That(lastModified, Is.Null);
+//                Assert.That(result.LastModified, Is.Null);
 //            });
 //        }
 
@@ -211,19 +212,24 @@
 //                    callCount++;
 //                    if (callCount < 4)
 //                    {
-//                        return (IResult<S100SalesCatalogueResponse>)UKHO.ADDS.Infrastructure.Results.Result.Failure<S100SalesCatalogueResponse>(retriableError);
+//                        return (Result.Failure<S100SalesCatalogueResponse>(retriableError));
 //                    }
 //                    return successResult;
 //                });
 
-//            var (data, lastModified) = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(null, _exchangeSetRequestQueueMessage);
-
+//            var result = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(null, _exchangeSetJob);
+//            S100SalesCatalogueResponse data = result.s100SalesCatalogueData;
 //            Assert.Multiple(() =>
 //            {
 //                Assert.That(callCount, Is.EqualTo(4), "Should retry 3 times plus the initial call (total 4)");
 //                Assert.That(data.ResponseCode, Is.EqualTo(expectedResponse.ResponseCode));
-//                Assert.That(lastModified, Is.EqualTo(expectedResponse.LastModified));
+//                Assert.That(result.LastModified, Is.EqualTo(expectedResponse.LastModified));
 //            });
 //        }
+//    }
+//    public class TestExchangeSetJob : ExchangeSetJob
+//    {
+//        public override string GetProductDelimitedList() => "test-products";
+//        public override int GetProductCount() => 1;
 //    }
 //}

@@ -4,7 +4,6 @@ using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
 using UKHO.ADDS.EFS.Builder.Common.Pipelines.Distribute;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute.Logging;
 using UKHO.ADDS.EFS.Constants;
-using UKHO.ADDS.EFS.Jobs.S100;
 using UKHO.ADDS.EFS.RetryPolicy;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
@@ -41,12 +40,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
         {
             _logger = context.Subject.LoggerFactory.CreateLogger<UploadFilesNode>();
             var batchId = context.Subject.BatchId;
-            var correlationId = context.Subject.Job.GetCorrelationId();
-            var jobId = context.Subject.Job?.Id;
+            var correlationId = context.Subject.Build.GetCorrelationId();
+            var jobId = context.Subject.Build!.JobId;
 
-            var fileNameGenerator = new FileNameGenerator<S100ExchangeSetJob>(context.Subject);
+            var fileNameGenerator = new FileNameGenerator(context.Subject.ExchangeSetNameTemplate);
 
-            var fileName = fileNameGenerator.GenerateFileName();
+            var fileName = fileNameGenerator.GenerateFileName(jobId);
             var filePath = Path.Combine(context.Subject.ExchangeSetFilePath, context.Subject.ExchangeSetArchiveFolderName, $"{jobId}.zip");
 
             if (!File.Exists(filePath))

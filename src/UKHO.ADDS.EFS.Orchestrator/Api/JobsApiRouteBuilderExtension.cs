@@ -1,9 +1,11 @@
-﻿using UKHO.ADDS.EFS.Messages;
+﻿using UKHO.ADDS.EFS.Builds;
+using UKHO.ADDS.EFS.Messages;
+using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Extensions;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S100;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S57;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S63;
+using UKHO.ADDS.EFS.Orchestrator.Jobs;
+using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Api
 {
@@ -14,65 +16,69 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             var logger = loggerFactory.CreateLogger("JobsApi");
             var jobsEndpoint = routeBuilder.MapGroup("/jobs");
 
-            jobsEndpoint.MapGet("/{jobId}", async (string jobId, ExchangeSetJobTypeTable jobTypeTable, S100ExchangeSetJobTable s100JobTable, S63ExchangeSetJobTable s63JobTable, S57ExchangeSetJobTable s57JobTable) =>
+            jobsEndpoint.MapPost("/", async (JobRequestApiMessage message, IConfiguration configuration, AssemblyPipelineFactory pipelineFactory, HttpContext httpContext) =>
                 {
-                    var jobTypeResult = await jobTypeTable.GetAsync(jobId, jobId);
-
-                    if (!jobTypeResult.IsSuccess(out var jobType))
+                    try
                     {
-                        return Results.NotFound();
-                    }
+                        var correlationId = httpContext.GetCorrelationId();
 
-                    switch (jobType.DataStandard)
+                        var parameters = AssemblyPipelineParameters.CreateFrom(message, configuration, correlationId);
+                        var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
+
+                        logger.LogAssemblyPipelineStarted(parameters);
+
+                        var result = await pipeline.RunAsync(httpContext.RequestAborted);
+
+                        return result;
+                    }
+                    catch (Exception e)
                     {
-                        case ExchangeSetDataStandard.S100:
-                            var s100JobResult = await s100JobTable.GetAsync(jobId, jobId);
-
-                            if (s100JobResult.IsSuccess(out var s100Job))
-                            {
-                                return Results.Ok(s100Job);
-                            }
-
-                            break;
-                        case ExchangeSetDataStandard.S63:
-                            var s63JobResult = await s63JobTable.GetAsync(jobId, jobId);
-
-                            if (s63JobResult.IsSuccess(out var s63Job))
-                            {
-                                return Results.Ok(s63Job);
-                            }
-
-                            break;
-                        case ExchangeSetDataStandard.S57:
-                            var s57JobResult = await s57JobTable.GetAsync(jobId, jobId);
-
-                            if (s57JobResult.IsSuccess(out var s57Job))
-                            {
-                                return Results.Ok(s57Job);
-                            }
-
-                            break;
-                        default:
-                            logger.LogGetJobRequestFailed(jobId);
-                            return Results.NotFound();
+                        logger.LogAssemblyPipelineFailed(message, e);
+                        throw;
                     }
-
-                    return Results.NotFound();
                 })
-                .WithDescription("Gets the job details for the given job request");
+                .Produces<AssemblyPipelineResponse>()
+                .WithRequiredHeader("x-correlation-id", "Correlation ID", "a-correlation-id")
+                .WithDescription("Create a job request for the given data standard (currently only supports S100)");
 
-            jobsEndpoint.MapGet("/{jobId}/status", async (string jobId, BuildStatusTable table) =>
+            jobsEndpoint.MapGet("/{jobId}", async (string jobId, ITable<Job> jobTable) =>
+            {
+                var jobResult = await jobTable.GetUniqueAsync(jobId);
+
+                if (jobResult.IsSuccess(out var job))
                 {
-                    var statusResult = await table.GetAsync(jobId, jobId);
+                    return Results.Ok(job);
+                }
 
-                    if (statusResult.IsSuccess(out var status))
-                    {
-                        return Results.Ok(status);
-                    }
+                logger.LogGetJobRequestFailed(jobId);
+                return Results.NotFound();
+            }).WithDescription("Gets the job for the given job id");
 
-                    return Results.NotFound();
-                })
-                .WithDescription("Gets the build status for the given job request");
+            jobsEndpoint.MapGet("/{jobId}/build", async (string jobId, ITable<BuildMemento> mementoTable) =>
+            {
+                var mementoResult = await mementoTable.GetUniqueAsync(jobId);
+
+                if (mementoResult.IsSuccess(out var memento))
+                {
+                    return Results.Ok(memento);
+                }
+
+                logger.LogGetJobRequestFailed(jobId);
+                return Results.NotFound();
+            }).WithDescription("Gets the job build memento for the given job id");
+
+            //jobsEndpoint.MapGet("/{jobId}/status", async (string jobId, ITable<BuildStatus> table) =>
+            //    {
+            //        var statusResult = await table.GetUniqueAsync(jobId);
+
+            //        if (statusResult.IsSuccess(out var status))
+            //        {
+            //            return Results.Ok(status);
+            //        }
+
+            //        return Results.NotFound();
+            //    })
+            //    .WithDescription("Gets the build status for the given job request");
         }
     }
 }

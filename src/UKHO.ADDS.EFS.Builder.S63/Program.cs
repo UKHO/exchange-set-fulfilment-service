@@ -98,23 +98,12 @@ namespace UKHO.ADDS.EFS.Builder.S63
 
             finally
             {
-                await Log.CloseAndFlushAsync();
-
                 if (pipelineContext != null && configuration != null)
                 {
-                    pipelineContext.Summary.SetLogMessages(sink.GetLogLines());
-
-                    var queueClient = pipelineContext.QueueClientFactory.CreateResponseQueueClient(configuration);
-                    var blobClient = pipelineContext.BlobClientFactory.CreateBlobClient(configuration, $"{pipelineContext.JobId}/{pipelineContext.JobId}-summary");
-
-                    using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(JsonCodec.Encode(pipelineContext.Summary))))
-                    {
-                        await blobClient.UploadAsync(stream, overwrite: true);
-                    }
-
-                    var response = new BuildResponse() { JobId = pipelineContext.JobId, ExitCode = exitCode};
-                    await queueClient.SendMessageAsync(JsonCodec.Encode(response));
+                    await pipelineContext.CompleteBuild(configuration, sink, exitCode);
                 }
+
+                await Log.CloseAndFlushAsync();
             }
         }
 
@@ -134,7 +123,7 @@ namespace UKHO.ADDS.EFS.Builder.S63
 
             services.AddSingleton<IConfiguration>(x => configuration);
 
-            services.AddS100BuilderServices(configuration);
+            services.AddBuilderServices(configuration);
 
             return services.BuildServiceProvider();
         }

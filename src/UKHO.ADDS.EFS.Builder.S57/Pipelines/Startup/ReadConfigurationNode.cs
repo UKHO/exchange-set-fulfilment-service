@@ -1,5 +1,5 @@
 ﻿using UKHO.ADDS.EFS.Builder.S57.Pipelines.Startup.Logging;
-using UKHO.ADDS.EFS.Builds;
+using UKHO.ADDS.EFS.Builds.S57;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
@@ -19,14 +19,13 @@ namespace UKHO.ADDS.EFS.Builder.S57.Pipelines.Startup
                 var requestQueue = context.Subject.QueueClientFactory.CreateRequestQueueClient(context.Subject.Configuration);
                 var requestMessage = await requestQueue.ReceiveMessageAsync();
 
-                var request = JsonCodec.Decode<BuildRequest>(requestMessage.Value.MessageText)!;
+                var request = JsonCodec.Decode<S57BuildRequest>(requestMessage.Value.MessageText)!;
 
                 // TODO Decide on retry strategy for queues and move this as necessary
                 await requestQueue.DeleteMessageAsync(requestMessage.Value.MessageId, requestMessage.Value.PopReceipt);
 
                 context.Subject.JobId = request.JobId;
                 context.Subject.BatchId = request.BatchId;
-                context.Subject.WorkspaceAuthenticationKey = request.WorkspaceKey;
                 context.Subject.ExchangeSetNameTemplate = request.ExchangeSetNameTemplate;
 
                 var fileShareEndpoint = configuration[BuilderEnvironmentVariables.FileShareEndpoint] ?? configuration["DebugEndpoints:FileShareService"]!;
@@ -38,7 +37,6 @@ namespace UKHO.ADDS.EFS.Builder.S57.Pipelines.Startup
                     JobId = context.Subject.JobId,
                     BatchId = context.Subject.BatchId,
                     FileShareEndpoint = fileShareEndpoint,
-                    WorkspaceAuthenticationKey = context.Subject.WorkspaceAuthenticationKey,
                     ExchangeSetNameTemplate = context.Subject.ExchangeSetNameTemplate
                 };
 
