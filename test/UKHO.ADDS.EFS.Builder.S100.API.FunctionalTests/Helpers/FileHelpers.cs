@@ -3,8 +3,7 @@
 namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Helpers
 {
     public class FileHelpers
-    {
-        // Enhanced: Reports exact non-matching folders and files
+    {        
         public void CompareZipFolderAndFileStructures(string sourceZipPath, string targetZipPath)
         {
             var sourceExtractPath = Path.Combine(Path.GetTempPath(), "source_" + Guid.NewGuid());

@@ -16,12 +16,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Facades
         }
 
         public async Task<string> DownloadExchangeSetAsZipAsync(string servicePrefix, string correlationID)
-        {
-            // Build exchange set name with date pattern replacement if needed
-            var datePattern = "yyyyMMdd";
-            var exchangeSetName = _exchangeSetName.Contains(datePattern)
-                ? _exchangeSetName.Replace(datePattern, DateTime.UtcNow.ToString(datePattern))
-                : $"{_exchangeSetName}{correlationID}";
+        {            
+            var exchangeSetName = _exchangeSetName.Replace("{jobId}", correlationID);
 
             // Build the final download URL
             var finalDownloadUrl = _downloadExchangeApiEndpoint
@@ -38,7 +34,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Facades
             await using var zipStream = await zipResponse.Content.ReadAsStreamAsync();
 
             var projectDirectory = AppContext.BaseDirectory;
-            var destinationFilePath = Path.Combine(TestConfiguration.ProjectDirectory, "out", $"{exchangeSetName}_{correlationID}.zip");
+            var destinationFilePath = Path.Combine(TestConfiguration.ProjectDirectory, "out", $"{exchangeSetName}.zip");
 
             // Ensure the directory exists
             var destinationDirectory = Path.GetDirectoryName(destinationFilePath);

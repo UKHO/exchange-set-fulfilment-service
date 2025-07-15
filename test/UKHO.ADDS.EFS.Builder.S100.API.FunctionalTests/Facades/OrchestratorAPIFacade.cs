@@ -12,7 +12,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Facades
             _orchestratorApiEndpoint = testConfiguration.OrchestratorApiEndpointName;            
         }              
 
-        public async Task<HttpResponseMessage> RequestOrchestrator(string correlationID, string productsList)
+        public async Task<HttpResponseMessage> RequestOrchestrator(string correlationID, string productsList, string filterCriteria)
         {           
 
             HttpClient _client = new HttpClient();
@@ -20,8 +20,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Facades
             // Arrange  
             var request = new
             {
+                version = "1",
                 dataStandard = "s100",
-                products = productsList
+                products = productsList,
+                filter = filterCriteria
             };
 
             var httpRequest = new HttpRequestMessage(HttpMethod.Post, _orchestratorApiEndpoint)
@@ -36,6 +38,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Facades
 
             return response;
 
+        }
+
+        public async Task<HttpResponseMessage> CheckJobStatus(string jobId)
+        {
+            var jobStatusEndpoint = $"{_orchestratorApiEndpoint}/{jobId}";
+
+            var client = new HttpClient();
+            var httpRequest = new HttpRequestMessage(HttpMethod.Get, jobStatusEndpoint);
+
+            var response = await client.SendAsync(httpRequest);
+            return response;
         }
     }
 }

@@ -19,7 +19,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Support
         }
 
         public string AzureStorageConnectionString => _configuration["Storage:ConnectionString"] ?? string.Empty;
-        public string NodeStatusTable => _configuration["Storage:NodeStatusTable"] ?? string.Empty;
+        public string BuildMementoTable => _configuration["Storage:BuildMementoTable"] ?? string.Empty;
         public string ExchangeSetTimestampTable => _configuration["Storage:ExchangeSetTimestampTable"] ?? string.Empty;
         public string ExchangeSetContainerName => _configuration["Storage:ExchangeSetContainerName"] ?? string.Empty;
         public string OrchestratorApiEndpointName => _configuration["EndPoints:OrchestratorApiEndpoint"] ?? string.Empty;

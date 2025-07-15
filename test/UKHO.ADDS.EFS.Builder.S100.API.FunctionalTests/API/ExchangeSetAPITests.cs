@@ -12,7 +12,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.API
         private ExchangeSetDownloadAPIFacade _exchangeSetDownloadAPIFacade;
         private BlobHelpers _blobHelpers;
         private FileHelpers _fileHelpers;
-        private ExchangeSetHelper _exchangeSetHelper; // Added instance of ExchangeSetHelper
+        private ExchangeSetHelper _exchangeSetHelper;
+               
 
         [SetUp]
         public void SetUp()
@@ -42,9 +43,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.API
             var correlationId = Guid.NewGuid().ToString();
 
             // Give a call to the orchestrator API for the exchange set generation
-            var response = await _orchestratorAPIFacade.RequestOrchestrator(correlationId, "TestProduct");
+            var response = await _orchestratorAPIFacade.RequestOrchestrator(correlationId, "", "");
 
-            // Assert  
+            // Assert OK response
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
             // Wait For Exchange Set Generation process is completed
@@ -57,7 +58,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.API
             await _exchangeSetHelper.VerifyExchangeSetTimestampTableEntryUpdated("s100");
 
             //Connect to Azure Blob Storage and check the blob content
-            await _blobHelpers.AssertBlobStateAndCorrelationIdAsync("succeeded", correlationId);
+            await _blobHelpers.AssertBlobStateAndCorrelationIdAsync(correlationId);
 
             var sourceZipPath = Path.Combine(TestConfiguration.ProjectDirectory, "TestData/exchangeSet-25Products.testzip");
 
@@ -66,7 +67,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.API
 
             // Compare the folder and file structures of the source and target zip files
             _fileHelpers.CompareZipFolderAndFileStructures(sourceZipPath, exchangeSetDownloadPath);
-        }
-       
+        }        
+
     }
 }

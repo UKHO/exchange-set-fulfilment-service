@@ -35,18 +35,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Helpers  {
             var blobClient = GetBlobClient(blobName);
             await blobClient.DownloadToAsync(destinationFilePath);
         }
-        public async Task AssertBlobStateAndCorrelationIdAsync(string expectedState, string expectedCorrelationId)
+        public async Task AssertBlobStateAndCorrelationIdAsync(string expectedCorrelationId)
         {
             var blobName = $"{_containerName}/{expectedCorrelationId}/{expectedCorrelationId}";
             var jsonDoc = await DownloadBlobAsJsonAsync(blobName);
 
             Assert.Multiple(() =>
-            {
-                Assert.That(jsonDoc.RootElement.GetProperty("state").GetString(), Is.EqualTo(expectedState), $"The 'state' property is not '{expectedState}'.");
-                Assert.That(jsonDoc.RootElement.GetProperty("correlationId").GetString(), Is.EqualTo(expectedCorrelationId), "The 'correlationId' property does not match the expected value.");
+            {                
+                Assert.That(jsonDoc.RootElement.GetProperty("jobId").GetString(), Is.EqualTo(expectedCorrelationId), "The 'correlationId' property does not match the expected value.");
 
                 // Check timestamp is within 1 minute of now (UTC)
-                if (jsonDoc.RootElement.TryGetProperty("timestamp", out var timestampProp))
+                if (jsonDoc.RootElement.TryGetProperty("salesCatalogueTimestamp", out var timestampProp))
                 {
                     DateTimeOffset timestamp;
                     if (timestampProp.ValueKind == JsonValueKind.String && DateTimeOffset.TryParse(timestampProp.GetString(), out var parsed))
