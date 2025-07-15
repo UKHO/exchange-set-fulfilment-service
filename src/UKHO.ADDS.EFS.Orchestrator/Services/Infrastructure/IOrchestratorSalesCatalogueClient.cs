@@ -29,9 +29,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
         /// <param name="job">The job context for the request.</param>
         /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
         /// <returns>
-        ///     A tuple containing:
-        ///     - s100SalesCatalogueData: The response with product details.
-        ///     - LastModified: The timestamp when the data was last modified, or null if unavailable.
+        ///     The response containing product details or an empty response if an error occurs.
         /// </returns>
         Task<S100ProductNamesResponse> GetS100ProductNamesAsync(IEnumerable<string> productNames, Job job, CancellationToken cancellationToken);
     }
