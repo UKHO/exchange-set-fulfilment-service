@@ -61,8 +61,6 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddSingleton<PipelineContextFactory<S63Build>>();
             builder.Services.AddSingleton<PipelineContextFactory<S57Build>>();
 
-            builder.Services.AddHostedService<JobRequestQueueMonitor>();
-
             builder.Services.AddHostedService<S100BuildResponseMonitor>();
             builder.Services.AddHostedService<S63BuildResponseMonitor>();
             builder.Services.AddHostedService<S57BuildResponseMonitor>();

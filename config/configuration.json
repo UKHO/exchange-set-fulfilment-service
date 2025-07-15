@@ -21,11 +21,6 @@
                 "LogReplayLevel": "Information" // Log level for replaying builder logs
             },
             "Queues": {
-                "JobRequestQueue": {
-                    "BatchSize": 1,
-                    "PollingIntervalSeconds": 1,
-                    "ChannelSize": 10
-                },
                 "S100ResponseQueue": {
                     "BatchSize": 1,
                     "PollingIntervalSeconds": 1
@@ -92,11 +87,6 @@
                 "LogReplayLevel": "Information" // Log level for replaying builder logs
             },
             "Queues": {
-                "JobRequestQueue": {
-                    "BatchSize": 1,
-                    "PollingIntervalSeconds": 1,
-                    "ChannelSize": 10
-                },
                 "S100ResponseQueue": {
                     "BatchSize": 1,
                     "PollingIntervalSeconds": 1
