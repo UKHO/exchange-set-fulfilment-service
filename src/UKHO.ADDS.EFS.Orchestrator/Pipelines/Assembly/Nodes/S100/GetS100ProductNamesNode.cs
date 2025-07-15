@@ -16,10 +16,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
         private readonly IOrchestratorSalesCatalogueClient _salesCatalogueClient;
         private readonly ILogger<GetS100ProductNamesNode> _logger;
 
-        public GetS100ProductNamesNode(AssemblyNodeEnvironment nodeEnvironment, IOrchestratorSalesCatalogueClient salesCatalogueClient)
+        public GetS100ProductNamesNode(AssemblyNodeEnvironment nodeEnvironment, IOrchestratorSalesCatalogueClient salesCatalogueClient, ILogger<GetS100ProductNamesNode> logger)
             : base(nodeEnvironment)
         {
             _salesCatalogueClient = salesCatalogueClient;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public override Task<bool> ShouldExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
