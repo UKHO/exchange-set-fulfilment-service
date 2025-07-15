@@ -53,7 +53,7 @@ jobs:
         - download: none
 
         - script: git submodule update --init --recursive
-          displayName: Restore mock submodule
+          displayName: Restore submodules
           workingDirectory: '$(Build.SourcesDirectory)'
   
         - script: |
