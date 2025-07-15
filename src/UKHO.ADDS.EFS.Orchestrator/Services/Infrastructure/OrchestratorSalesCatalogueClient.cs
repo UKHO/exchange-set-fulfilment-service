@@ -102,17 +102,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
             // Check if the API call was successful
             if (s100SalesCatalogueResult.IsSuccess(out var s100SalesCatalogueData, out var error))
             {
-                // Process the response based on the HTTP status code
                 switch (s100SalesCatalogueData.ResponseCode)
                 {
                     case HttpStatusCode.OK:
-                        // Return the response data with the last modified timestamp from the job
                         return s100SalesCatalogueData;
-
-                    case HttpStatusCode.NotModified:
-                        // No changes since the provided timestamp, return the original response with the provided timestamp
-                        return s100SalesCatalogueData;
-
                     default:
                         // Unexpected status code, log a warning and return an empty response
                         _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, s100SalesCatalogueData.ResponseCode));
