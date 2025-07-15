@@ -19,7 +19,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
         public GetS100ProductNamesNode(AssemblyNodeEnvironment nodeEnvironment, IOrchestratorSalesCatalogueClient salesCatalogueClient, ILogger<GetS100ProductNamesNode> logger)
             : base(nodeEnvironment)
         {
-            _salesCatalogueClient = salesCatalogueClient;
+            _salesCatalogueClient = salesCatalogueClient ?? throw new ArgumentNullException(nameof(salesCatalogueClient));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
