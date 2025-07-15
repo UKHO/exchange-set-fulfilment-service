@@ -43,17 +43,5 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 JobId = correlationId,
                 Configuration = configuration
             };
-
-        public static AssemblyPipelineParameters CreateFrom(JobRequestQueueMessage message, IConfiguration configuration) =>
-            new()
-            {
-                Version = message.Version,
-                Timestamp = message.Timestamp,
-                DataStandard = message.DataStandard,
-                Products = message.Products,
-                Filter = message.Filter,
-                JobId = message.CorrelationId,
-                Configuration = configuration
-            };
     }
 }
