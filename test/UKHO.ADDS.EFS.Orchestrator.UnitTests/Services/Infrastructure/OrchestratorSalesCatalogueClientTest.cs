@@ -176,7 +176,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services.Infrastructure
             var s100SalesCatalogueData = await _orchestratorSalesCatalogueClient.GetS100ProductNamesAsync(
                 productNames, _job, CancellationToken.None);
 
-            Assert.That(s100SalesCatalogueData, Is.SameAs(apiResponse));
+            Assert.That(s100SalesCatalogueData.Products, Is.EqualTo(apiResponse.Products));
         }
 
         [Test]
@@ -198,7 +198,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services.Infrastructure
             var s100SalesCatalogueData = await _orchestratorSalesCatalogueClient.GetS100ProductNamesAsync(
                 productNames, _job, CancellationToken.None);
 
-            Assert.That(s100SalesCatalogueData, Is.SameAs(apiResponse));
+           Assert.That(s100SalesCatalogueData.Products, Is.EqualTo(apiResponse.Products));
         }
 
         [Test]
