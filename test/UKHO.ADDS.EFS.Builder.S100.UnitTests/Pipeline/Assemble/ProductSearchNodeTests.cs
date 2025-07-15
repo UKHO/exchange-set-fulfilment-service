@@ -63,7 +63,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
 
             A.CallTo(() => _executionContext.Subject).Returns(exchangeSetPipelineContext);
             A.CallTo(() => _loggerFactory.CreateLogger(typeof(ProductSearchNode).FullName!)).Returns(_logger);
-
         }
 
         [Test]
@@ -98,6 +97,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         public async Task WhenPerformExecuteAsyncCalledWithNoProductsInContext_ThenReturnNoRun()
         {
             _executionContext.Subject.Build.Products = [];
+            _executionContext.Subject.Build.ProductNames = [];
 
             var result = await _productSearchNode.ExecuteAsync(_executionContext);
 
@@ -135,18 +135,29 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [Test]
         public async Task WhenPerformExecuteAsyncIsCalled_ThenQueryIsCorrectlyConfigured()
         {
-            var searchQuery = "BusinessUnit eq 'ADDS-S100' and $batch(ProductType) eq 'S-100' and (($batch(ProductName) eq 'Product2' and $batch(EditionNumber) eq '2' and (($batch(UpdateNumber) eq '1' ))))";
+            var searchQuery = "BusinessUnit eq 'ADDS-S100' and $batch(ProductType) eq 'S-100' and (($batch(ProductName) eq 'TestProduct2' and $batch(EditionNumber) eq '2' and (($batch(UpdateNumber) eq '1' ))))";
             string? capturedQuery = null;
             var batchResponse = new BatchSearchResponse
             {
                 Entries = []
             };
+
             A.CallTo(() => _fileShareReadOnlyClientFake.SearchAsync(A<string>._, A<int?>._, A<int?>._, A<string>._))
                 .Invokes((string query, int? pageSize, int? start, string correlationId) =>
                 {
                     capturedQuery = query;
                 })
                 .Returns(Result.Success(batchResponse));
+
+            _executionContext.Subject.Build.ProductNames = new List<S100ProductNames>
+            {
+                new()
+                {
+                    ProductName = "TestProduct2",
+                    EditionNumber = 2,
+                    UpdateNumbers = new List<int> { 1 }
+                }
+            };
 
             await _productSearchNode.ExecuteAsync(_executionContext);
 
@@ -173,10 +184,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
             {
                 Entries = [new BatchDetails { BatchId = "TestBatchId2" }],
             };
+
             A.CallTo(() => _fileShareReadOnlyClientFake.SearchAsync(A<string>._, A<int?>._, A<int?>._, A<string>._))
                 .ReturnsNextFromSequence(
-                Result.Success(batchSearchResponseOne),
-                Result.Success(batchSearchResponseTwo)
+                    Result.Success(batchSearchResponseOne),
+                    Result.Success(batchSearchResponseTwo)
                 );
 
             var result = await _productSearchNode.ExecuteAsync(_executionContext);
