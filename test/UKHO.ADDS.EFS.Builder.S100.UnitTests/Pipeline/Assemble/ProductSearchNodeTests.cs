@@ -168,36 +168,57 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [Test]
         public async Task WhenPerformExecuteAsyncIsCalledFssReturnNextHrefUrl_ThenHandleNextHrefUrl()
         {
-            var batchSearchResponseOne = new BatchSearchResponse
+            var responses = new[]
             {
-                Entries = [new BatchDetails { BatchId = "TestBatchId1" }],
-                Links = new Links(
-                    self: null,
-                    first: null,
-                    previous: null,
-                    next: new Link(href: "https://example.com?start=10&limit=5"),
-                    last: null
-                )
-            };
-
-            var batchSearchResponseTwo = new BatchSearchResponse
-            {
-                Entries = [new BatchDetails { BatchId = "TestBatchId2" }],
+                new BatchSearchResponse
+                {
+                    Entries = [new BatchDetails { BatchId = "TestBatchId1" }],
+                    Links = new Links(
+                        self: null,
+                        first: null,
+                        previous: null,
+                        next: new Link(href: "https://example.com?start=10&limit=5"),
+                        last: null
+                    )
+                },
+                new BatchSearchResponse
+                {
+                    Entries = [new BatchDetails { BatchId = "TestBatchId2" }],
+                    Links = new Links(
+                        self: null,
+                        first: null,
+                        previous: null,
+                        next: new Link(href: "https://example.com?start=10&limit=5"),
+                        last: null
+                    )
+                },
+                new BatchSearchResponse
+                {
+                    Entries = [],
+                    Links = new Links(
+                        self: null,
+                        first: null,
+                        previous: null,
+                        next: null,
+                        last: null
+                    )
+                }
             };
 
             A.CallTo(() => _fileShareReadOnlyClientFake.SearchAsync(A<string>._, A<int?>._, A<int?>._, A<string>._))
                 .ReturnsNextFromSequence(
-                    Result.Success(batchSearchResponseOne),
-                    Result.Success(batchSearchResponseTwo)
+                    Result.Success(responses[0]),
+                    Result.Success(responses[1]),
+                    Result.Success(responses[2])
                 );
 
             var result = await _productSearchNode.ExecuteAsync(_executionContext);
+            var batchDetails = _executionContext.Subject.BatchDetails?.ToList();
 
             Assert.Multiple(() =>
             {
-                Assert.That(_executionContext.Subject.BatchDetails.ToList(), Has.Count.EqualTo(2));
-                Assert.That(_executionContext.Subject.BatchDetails.ToList()[0].BatchId, Is.EqualTo("TestBatchId1"));
-                Assert.That(_executionContext.Subject.BatchDetails.ToList()[1].BatchId, Is.EqualTo("TestBatchId2"));
+                Assert.That(batchDetails, Is.Not.Null.And.Count.EqualTo(2));
+                Assert.That(batchDetails!.Select(b => b.BatchId), Is.EquivalentTo(new[] { "TestBatchId1", "TestBatchId2" }));
             });
         }
 
