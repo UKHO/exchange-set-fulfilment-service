@@ -79,7 +79,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services.Infrastructure
             var sinceDateTime = DateTime.UtcNow.AddDays(-7);
             var apiResponse = new S100SalesCatalogueResponse
             {
-                ResponseCode = HttpStatusCode.NotModified
+                ResponseCode = HttpStatusCode.NotModified,
+                LastModified = sinceDateTime
             };
 
             var result = Result.Success(apiResponse);
@@ -198,7 +199,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services.Infrastructure
             var s100SalesCatalogueData = await _orchestratorSalesCatalogueClient.GetS100ProductNamesAsync(
                 productNames, _job, CancellationToken.None);
 
-           Assert.That(s100SalesCatalogueData.Products, Is.EqualTo(apiResponse.Products));
+            Assert.That(s100SalesCatalogueData.Products, Is.EqualTo(apiResponse.Products));
         }
 
         [Test]
