@@ -75,12 +75,12 @@
                 }
             },
             "Endpoints": {
-                "S100FileShare": "https://adds-mocks-efs.graydune-e676e866.uksouth.azurecontainerapps.io/fss/",
-                "S100SalesCatalogue": "https://adds-mocks-efs.graydune-e676e866.uksouth.azurecontainerapps.io/scs/",
-                "S63FileShare": "https://adds-mocks-efs.graydune-e676e866.uksouth.azurecontainerapps.io/fss6357/",
-                "S63SalesCatalogue": "https://adds-mocks-efs.graydune-e676e866.uksouth.azurecontainerapps.io/scs6357/",
-                "S57FileShare": "https://adds-mocks-efs.graydune-e676e866.uksouth.azurecontainerapps.io/fss6357/",
-                "S57SalesCatalogue": "https://adds-mocks-efs.graydune-e676e866.uksouth.azurecontainerapps.io/scs6357/"
+                "S100FileShare": "https://adds-mocks-efs.happytree-f0540dc1.uksouth.azurecontainerapps.io/fss/",
+                "S100SalesCatalogue": "https://adds-mocks-efs.happytree-f0540dc1.uksouth.azurecontainerapps.io/scs/",
+                "S63FileShare": "https://adds-mocks-efs.happytree-f0540dc1.uksouth.azurecontainerapps.io/fss6357/",
+                "S63SalesCatalogue": "https://adds-mocks-efs.happytree-f0540dc1.uksouth.azurecontainerapps.io/scs6357/",
+                "S57FileShare": "https://adds-mocks-efs.happytree-f0540dc1.uksouth.azurecontainerapps.io/fss6357/",
+                "S57SalesCatalogue": "https://adds-mocks-efs.happytree-f0540dc1.uksouth.azurecontainerapps.io/scs6357/"
             },
             "AllowedHosts": "*",
             "Builders": {
