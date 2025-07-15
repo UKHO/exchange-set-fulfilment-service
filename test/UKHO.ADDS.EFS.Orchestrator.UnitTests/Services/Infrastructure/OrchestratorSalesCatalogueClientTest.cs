@@ -50,6 +50,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services.Infrastructure
                 Throws.ArgumentNullException.With.Property("ParamName").EqualTo("logger"));
         }
 
+        [Test]
         public async Task WhenGetS100ProductsFromSpecificDateAsyncCalledAndApiReturnsOK_ThenReturnsDataWithApiLastModifiedTimestamp()
         {
             var sinceDateTime = DateTime.UtcNow.AddDays(-7);
@@ -172,11 +173,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services.Infrastructure
                 "v2", "s100", A<IEnumerable<string>>.That.IsSameSequenceAs(productNames), _job.Id, A<CancellationToken>._))
                 .Returns(Task.FromResult<IResult<S100ProductNamesResponse>>(result));
 
-            var (s100SalesCatalogueData, lastModified) = await _orchestratorSalesCatalogueClient.GetS100ProductNamesAsync(
+            var s100SalesCatalogueData = await _orchestratorSalesCatalogueClient.GetS100ProductNamesAsync(
                 productNames, _job, CancellationToken.None);
 
             Assert.That(s100SalesCatalogueData, Is.SameAs(apiResponse));
-            Assert.That(lastModified, Is.EqualTo(jobTimestamp));
         }
 
         [Test]
@@ -195,11 +195,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services.Infrastructure
                 "v2", "s100", A<IEnumerable<string>>.That.IsSameSequenceAs(productNames), _job.Id, A<CancellationToken>._))
                 .Returns(Task.FromResult<IResult<S100ProductNamesResponse>>(result));
 
-            var (s100SalesCatalogueData, lastModified) = await _orchestratorSalesCatalogueClient.GetS100ProductNamesAsync(
+            var s100SalesCatalogueData = await _orchestratorSalesCatalogueClient.GetS100ProductNamesAsync(
                 productNames, _job, CancellationToken.None);
 
             Assert.That(s100SalesCatalogueData, Is.SameAs(apiResponse));
-            Assert.That(lastModified, Is.EqualTo(jobTimestamp));
         }
 
         [Test]
@@ -218,12 +217,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services.Infrastructure
                 "v2", "s100", A<IEnumerable<string>>.That.IsSameSequenceAs(productNames), _job.Id, A<CancellationToken>._))
                 .Returns(Task.FromResult<IResult<S100ProductNamesResponse>>(result));
 
-            var (s100SalesCatalogueData, lastModified) = await _orchestratorSalesCatalogueClient.GetS100ProductNamesAsync(
+            var s100SalesCatalogueData = await _orchestratorSalesCatalogueClient.GetS100ProductNamesAsync(
                 productNames, _job, CancellationToken.None);
 
             Assert.That(s100SalesCatalogueData, Is.Not.SameAs(apiResponse));
             Assert.That(s100SalesCatalogueData, Is.TypeOf<S100ProductNamesResponse>());
-            Assert.That(lastModified, Is.EqualTo(jobTimestamp));
         }
 
         [Test]
@@ -238,11 +236,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services.Infrastructure
                 "v2", "s100", A<IEnumerable<string>>.That.IsSameSequenceAs(productNames), _job.Id, A<CancellationToken>._))
                 .Returns(Task.FromResult<IResult<S100ProductNamesResponse>>(result));
 
-            var (s100SalesCatalogueData, lastModified) = await _orchestratorSalesCatalogueClient.GetS100ProductNamesAsync(
+            var s100SalesCatalogueData = await _orchestratorSalesCatalogueClient.GetS100ProductNamesAsync(
                 productNames, _job, CancellationToken.None);
 
             Assert.That(s100SalesCatalogueData, Is.TypeOf<S100ProductNamesResponse>());
-            Assert.That(lastModified, Is.EqualTo(jobTimestamp));
         }
 
         [Test]

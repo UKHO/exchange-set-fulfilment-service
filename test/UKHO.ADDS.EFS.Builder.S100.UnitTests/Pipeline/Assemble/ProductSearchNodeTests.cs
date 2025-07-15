@@ -43,10 +43,20 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
                     JobId = "TestCorrelationId",
                     DataStandard = DataStandard.S100,
                     BatchId = "a-batch-id",
-                    Products =
+                    ProductNames =
                     [
-                        new S100Products { ProductName = "Product1", LatestEditionNumber = 1, LatestUpdateNumber = 0 },
-                        new S100Products { ProductName = "Product2", LatestEditionNumber = 2, LatestUpdateNumber = 1 }
+                        new S100ProductNames 
+                        {
+                            ProductName = "TestProduct",
+                            EditionNumber = 1,
+                            UpdateNumbers = [0, 1]
+                        },
+                        new S100ProductNames 
+                        {
+                            ProductName = "TestProduct2",
+                            EditionNumber = 2,
+                            UpdateNumbers = [0, 1]
+                        }
                     ]
                 }
             };

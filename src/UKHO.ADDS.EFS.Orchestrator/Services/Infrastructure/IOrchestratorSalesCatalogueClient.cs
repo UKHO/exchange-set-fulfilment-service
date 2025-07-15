@@ -33,7 +33,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
         ///     - s100SalesCatalogueData: The response with product details.
         ///     - LastModified: The timestamp when the data was last modified, or null if unavailable.
         /// </returns>
-        Task<(S100ProductNamesResponse s100SalesCatalogueData, DateTime? LastModified)> GetS100ProductNamesAsync(
-            IEnumerable<string> productNames, Job job, CancellationToken cancellationToken);
+        Task<S100ProductNamesResponse> GetS100ProductNamesAsync(IEnumerable<string> productNames, Job job, CancellationToken cancellationToken);
     }
 }

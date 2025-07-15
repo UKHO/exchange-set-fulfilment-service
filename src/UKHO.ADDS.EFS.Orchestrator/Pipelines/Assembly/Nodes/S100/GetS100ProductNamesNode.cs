@@ -32,20 +32,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             var productNames = build.Products?
                 .Select(p => p.ProductName)
                 .Where(name => !string.IsNullOrWhiteSpace(name))
-                .ToArray() ?? Array.Empty<string>();
+                .ToArray() ?? [];
 
-            var (s100SalesCatalogueData, lastModified) = await _salesCatalogueClient.GetS100ProductNamesAsync(productNames, job, Environment.CancellationToken);
+            var s100SalesCatalogueData = await _salesCatalogueClient.GetS100ProductNamesAsync(productNames, job, Environment.CancellationToken);
 
             var nodeResult = NodeResultStatus.NotRun;
 
             switch (s100SalesCatalogueData.ResponseCode)
             {
                 case HttpStatusCode.OK when s100SalesCatalogueData.Products.Any():
-                    // We have something to build, so move forwards with scheduling a build
                     build.ProductNames = s100SalesCatalogueData.Products;
-
-                    job.DataStandardTimestamp = lastModified;
-                    build.SalesCatalogueTimestamp = lastModified;
+                    build.SalesCatalogueTimestamp = job.DataStandardTimestamp;
 
                     await context.Subject.SignalBuildRequired();
 
@@ -54,7 +51,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                     break;
 
                 default:
-                    // Something went wrong, so the job has failed
                     await context.Subject.SignalAssemblyError();
 
                     nodeResult = NodeResultStatus.Failed;

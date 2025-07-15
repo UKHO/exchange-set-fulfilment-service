@@ -93,7 +93,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
         ///     The method returns an empty response with the original DataStandardTimestamp when an error occurs or when
         ///     an unexpected HTTP status code is returned from the API.
         /// </remarks>
-        public async Task<(S100ProductNamesResponse s100SalesCatalogueData, DateTime? LastModified)> GetS100ProductNamesAsync(IEnumerable<string> productNames, Job job, CancellationToken cancellationToken)
+        public async Task<S100ProductNamesResponse> GetS100ProductNamesAsync(IEnumerable<string> productNames, Job job, CancellationToken cancellationToken)
         {
             var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<S100ProductNamesResponse>(_logger, nameof(GetS100ProductNamesAsync));
             var s100SalesCatalogueResult = await retryPolicy.ExecuteAsync(() =>
@@ -107,16 +107,16 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
                 {
                     case HttpStatusCode.OK:
                         // Return the response data with the last modified timestamp from the job
-                        return (s100SalesCatalogueData, job.DataStandardTimestamp);
+                        return s100SalesCatalogueData;
 
                     case HttpStatusCode.NotModified:
                         // No changes since the provided timestamp, return the original response with the provided timestamp
-                        return (s100SalesCatalogueData, job.DataStandardTimestamp);
+                        return s100SalesCatalogueData;
 
                     default:
                         // Unexpected status code, log a warning and return an empty response
                         _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, s100SalesCatalogueData.ResponseCode));
-                        return (new S100ProductNamesResponse(), job.DataStandardTimestamp);
+                        return new S100ProductNamesResponse();
                 }
             }
 
@@ -124,7 +124,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
             _logger.LogSalesCatalogueApiError(error, SalesCatalogApiErrorLogView.Create(job));
 
             // Return an empty response with the original timestamp in case of failure
-            return (new S100ProductNamesResponse(), job.DataStandardTimestamp);
+            return new S100ProductNamesResponse();
         }
     }
 }
