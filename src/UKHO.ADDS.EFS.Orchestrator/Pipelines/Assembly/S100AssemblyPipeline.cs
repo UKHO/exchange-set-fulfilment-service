@@ -20,6 +20,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly
             AddPipelineNode<CreateJobNode>(cancellationToken);
             AddPipelineNode<GetDataStandardTimestampNode>(cancellationToken);
             AddPipelineNode<GetProductsForDataStandardNode>(cancellationToken);
+            AddPipelineNode<FilterProductsNode>(cancellationToken);
 
             AddPipelineNode<CreateFileShareBatchNode>(cancellationToken);
             AddPipelineNode<ScheduleBuildNode>(cancellationToken);
