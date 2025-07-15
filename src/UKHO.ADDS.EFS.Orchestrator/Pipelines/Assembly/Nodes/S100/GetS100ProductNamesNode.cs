@@ -77,9 +77,5 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
             return nodeResult;
         }
-        private void LogProductsNotReturned(ProductCounts productCounts)
-        {
-
-        }
     }
 }
