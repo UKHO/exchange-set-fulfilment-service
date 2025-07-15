@@ -7,7 +7,6 @@ using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
-using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 {
@@ -39,9 +38,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             {
                 case HttpStatusCode.OK when s100SalesCatalogueData.ResponseBody.Any():
                     // We have something to build, so move forwards with scheduling a build
-                    //build.Products = s100SalesCatalogueData.ResponseBody;
-                    var filteredProducts = FilterProducts(s100SalesCatalogueData.ResponseBody, job.RequestedFilter);
-                    build.Products = filteredProducts;
+                    build.Products = FilterProducts(s100SalesCatalogueData.ResponseBody, job.RequestedFilter);
 
                     job.DataStandardTimestamp = lastModified;
                     build.SalesCatalogueTimestamp = lastModified;
