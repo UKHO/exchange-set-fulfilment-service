@@ -52,7 +52,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                 containerEnvironment.VnetConfiguration = new ContainerAppVnetConfiguration
                 {
                     InfrastructureSubnetId = new BicepValue<ResourceIdentifier>(subnetId),
-                    IsInternal = true
+                    IsInternal = false
                 };
                 // This doesn't seem to work at the moment so I've updated the bicep directly.
                 containerEnvironment.Tags.Add("aspire-resource-name", ServiceConfiguration.AcaEnvironmentName);

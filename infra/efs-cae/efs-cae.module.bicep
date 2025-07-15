@@ -68,7 +68,7 @@ resource efs_cae 'Microsoft.App/managedEnvironments@2024-03-01' = {
       }
     }
     vnetConfiguration: {
-      internal: true
+      internal: false
       infrastructureSubnetId: '/subscriptions/${subnetSubscription}/resourceGroups/${subnetResourceGroup}/providers/Microsoft.Network/virtualNetworks/${subnetVnet}/subnets/${subnetName}'
     }
     workloadProfiles: [
