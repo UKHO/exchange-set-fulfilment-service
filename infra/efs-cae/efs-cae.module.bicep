@@ -3,13 +3,7 @@ param location string = resourceGroup().location
 
 param userPrincipalId string
 
-param subnetSubscription string
-
-param subnetResourceGroup string
-
-param subnetVnet string
-
-param subnetName string
+param subnetResourceId string
 
 resource efs_cae_mi 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: take('efs_cae_mi-${uniqueString(resourceGroup().id)}', 128)
@@ -69,7 +63,7 @@ resource efs_cae 'Microsoft.App/managedEnvironments@2024-03-01' = {
     }
     vnetConfiguration: {
       internal: false
-      infrastructureSubnetId: '/subscriptions/${subnetSubscription}/resourceGroups/${subnetResourceGroup}/providers/Microsoft.Network/virtualNetworks/${subnetVnet}/subnets/${subnetName}'
+      infrastructureSubnetId: subnetResourceId
     }
     workloadProfiles: [
       {

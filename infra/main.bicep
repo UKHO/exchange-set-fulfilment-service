@@ -12,10 +12,7 @@ param location string
 @description('Id of the user or app to assign application roles')
 param principalId string = ''
 
-param subnetName string
-param subnetResourceGroup string
-param subnetSubscription string
-param subnetVnet string
+param subnetResourceId string
 
 var tags = {
   'azd-env-name': environmentName
@@ -71,10 +68,7 @@ module efs_cae 'efs-cae/efs-cae.module.bicep' = {
   scope: rg
   params: {
     location: location
-    subnetName: subnetName
-    subnetResourceGroup: subnetResourceGroup
-    subnetSubscription: subnetSubscription
-    subnetVnet: subnetVnet
+    subnetResourceId: subnetResourceId
     userPrincipalId: principalId
   }
 }

@@ -3,7 +3,6 @@ using Azure.Core;
 using Azure.Provisioning;
 using Azure.Provisioning.AppContainers;
 using Azure.Provisioning.Storage;
-using Azure.ResourceManager.Network;
 using CliWrap;
 using Docker.DotNet;
 using Docker.DotNet.Models;
@@ -33,25 +32,18 @@ namespace UKHO.ADDS.EFS.LocalHost
             var builder = DistributedApplication.CreateBuilder(args);
             builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());
 
-            // Create id for existing subnet
-            var subnetSubscription = builder.AddParameter("subnetSubscription");
-            var subnetResourceGroup = builder.AddParameter("subnetResourceGroup");
-            var subnetVnet = builder.AddParameter("subnetVnet");
-            var subnetName = builder.AddParameter("subnetName");
-            var subnetId = SubnetResource.CreateResourceIdentifier("${subnetSubscription}", "${subnetResourceGroup}", "${subnetVnet}", "${subnetName}");
+            // Get id for existing subnet
+            var subnetResourceId = builder.AddParameter("subnetResourceId");
 
             // Container apps environment
             var acaEnv = builder.AddAzureContainerAppEnvironment(ServiceConfiguration.AcaEnvironmentName)
-                .WithParameter("subnetSubscription", subnetSubscription)
-                .WithParameter("subnetResourceGroup", subnetResourceGroup)
-                .WithParameter("subnetVnet", subnetVnet)
-                .WithParameter("subnetName", subnetName);
+                .WithParameter("subnetResourceId", subnetResourceId);
             acaEnv.ConfigureInfrastructure(config =>
             {
                 var containerEnvironment = config.GetProvisionableResources().OfType<ContainerAppManagedEnvironment>().Single();
                 containerEnvironment.VnetConfiguration = new ContainerAppVnetConfiguration
                 {
-                    InfrastructureSubnetId = new BicepValue<ResourceIdentifier>(subnetId),
+                    InfrastructureSubnetId = new BicepValue<ResourceIdentifier>("subnetResourceId"),
                     IsInternal = false
                 };
                 // This doesn't seem to work at the moment so I've updated the bicep directly.
