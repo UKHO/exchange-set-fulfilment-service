@@ -111,7 +111,7 @@ resource efsbuilders100 'Microsoft.App/jobs@2025-01-01' = {
             }
             {
               name: 'BLOB_CONTAINER_NAME'
-              value: 's100job'
+              value: 's100build'
             }
             {
               name: 'BLOB_CONNECTION_STRING'
