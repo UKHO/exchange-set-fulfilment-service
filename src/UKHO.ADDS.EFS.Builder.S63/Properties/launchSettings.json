@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "UKHO.ADDS.EFS.Builder.S63": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:63650;http://localhost:63651"
+    }
+  }
+}

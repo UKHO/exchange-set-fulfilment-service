@@ -5,6 +5,9 @@
       "principalId": {
         "value": "${AZURE_PRINCIPAL_ID}"
       },
+      "subnetResourceId": {
+        "value": "${AZURE_SUBNET_RESOURCE_ID}"
+      },
       "environmentName": {
         "value": "${AZURE_ENV_NAME}"
       },
