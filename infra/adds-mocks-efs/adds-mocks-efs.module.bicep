@@ -16,6 +16,9 @@ param adds_mocks_efs_containerport string
 resource adds_mocks_efs 'Microsoft.App/containerApps@2024-03-01' = {
   name: 'adds-mocks-efs'
   location: location
+  tags: {
+    'hidden-title': 'EFS'
+  }
   properties: {
     configuration: {
       activeRevisionsMode: 'Single'

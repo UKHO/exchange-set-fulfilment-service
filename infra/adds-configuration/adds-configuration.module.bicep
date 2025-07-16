@@ -24,6 +24,9 @@ param adds_configuration_identity_outputs_clientid string
 resource adds_configuration 'Microsoft.App/containerApps@2024-03-01' = {
   name: 'adds-configuration'
   location: location
+  tags: {
+    'hidden-title': 'EFS'
+  }
   properties: {
     configuration: {
       activeRevisionsMode: 'Single'

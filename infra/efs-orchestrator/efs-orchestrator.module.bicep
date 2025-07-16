@@ -26,6 +26,9 @@ param efs_orchestrator_identity_outputs_clientid string
 resource efs_orchestrator 'Microsoft.App/containerApps@2024-03-01' = {
   name: 'efs-orchestrator'
   location: location
+  tags: {
+    'hidden-title': 'EFS'
+  }
   properties: {
     configuration: {
       activeRevisionsMode: 'Single'
