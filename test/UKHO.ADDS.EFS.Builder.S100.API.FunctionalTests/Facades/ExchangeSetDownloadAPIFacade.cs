@@ -11,7 +11,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Facades
         public ExchangeSetDownloadAPIFacade()
         {
             TestConfiguration testConfiguration = new TestConfiguration();
-            _downloadExchangeApiEndpoint = testConfiguration.DownloadExchangeApiEndpoint + "/{ServicePrefix}/{FileName}.zip";
+            _downloadExchangeApiEndpoint = testConfiguration.DownloadExchangeApiEndpoint;
             _exchangeSetName = testConfiguration.ExchangeSetName;            
         }
 
@@ -20,9 +20,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Facades
             var exchangeSetName = _exchangeSetName.Replace("{jobId}", correlationID);
 
             // Build the final download URL
-            var finalDownloadUrl = _downloadExchangeApiEndpoint
-                .Replace("{ServicePrefix}", servicePrefix)
-                .Replace("{FileName}", exchangeSetName);           
+            var finalDownloadUrl = $"{_downloadExchangeApiEndpoint}/{servicePrefix}/{exchangeSetName}.zip";               
 
             using var client = new HttpClient();
             var httpRequest = new HttpRequestMessage(HttpMethod.Get, finalDownloadUrl);

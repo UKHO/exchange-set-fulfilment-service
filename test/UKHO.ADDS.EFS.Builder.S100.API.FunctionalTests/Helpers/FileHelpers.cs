@@ -3,11 +3,11 @@
 namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Helpers
 {
     public class FileHelpers
-    {        
+    {
         public void CompareZipFolderAndFileStructures(string sourceZipPath, string targetZipPath)
         {
-            var sourceExtractPath = Path.Combine(Path.GetTempPath(), "source_" + Guid.NewGuid());
-            var targetExtractPath = Path.Combine(Path.GetTempPath(), "target_" + Guid.NewGuid());
+            var sourceExtractPath = Path.Combine(Path.GetTempPath(), $"source_{Guid.NewGuid()}");
+            var targetExtractPath = Path.Combine(Path.GetTempPath(), $"target_{Guid.NewGuid()}");
 
             try
             {
@@ -62,5 +62,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.API.FunctionalTests.Helpers
                     Directory.Delete(targetExtractPath, true);
             }
         }
+        
     }
 }
