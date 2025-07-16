@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using Aspire.Hosting;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
+using Xunit.Abstractions;
 
 namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
 {
@@ -39,10 +40,7 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
         [Fact]
         public async Task S100EndToEnd()
         {
-
-            // Act
             var httpClient = _app.CreateHttpClient(ProcessNames.OrchestratorService);
-
 
             // 1.Prepare a job submission request and confirm that it was submitted successfully.
             var content = new StringContent(
@@ -84,14 +82,14 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
                 responseJson.RootElement.TryGetProperty("buildState", out var buildState);
                 currentJobState = jobState.GetString() ?? string.Empty;
                 currentBuildState = buildState.GetString() ?? string.Empty;
-                elapsedMinutes = (TimeOnly.FromDateTime(DateTime.Now) - startTime).TotalMinutes;
                 await Task.Delay(waitDuration);
+                elapsedMinutes = (TimeOnly.FromDateTime(DateTime.Now) - startTime).TotalMinutes;
             } while (currentJobState == "submitted" && elapsedMinutes < maxTimeToWait);
 
             Assert.Equal("completed", currentJobState);
             Assert.Equal("succeeded", currentBuildState);
 
-            // 3.Check the builder has successfully returned build status
+            // 3.Check the builder has returned build status and it has been successfully processed by orchestrator.
             var jobCompletedResponse = await httpClient.GetAsync($"/jobs/{jobId}/build");
             Assert.True(jobCompletedResponse.IsSuccessStatusCode, "Expected success status code but got: " + jobCompletedResponse.StatusCode);
 
@@ -105,11 +103,22 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
         }
 
         [Fact]
-        public async Task RunMultipleRequests()
+        public async Task TestMultipleRequests()
         {
             var httpClient = _app.CreateHttpClient(ProcessNames.OrchestratorService);
 
-            var content = new StringContent(
+            StringContent content;
+            var jobs = new List<string>();
+            var completedJobs = new List<string>();
+            double elapsedMinutes = 0;
+            var numberOfJobs = 8; // Number of jobs to submit
+
+            // 1.Submit multiple job requests and confirm that they were all submitted successfully.
+            for (int i = 0; i < numberOfJobs; i++)
+            {
+                string jobNumber = i.ToString("D4");
+
+                content = new StringContent(
                 """
                 {
                     "version": 1,
@@ -119,29 +128,34 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
                 }
                 """,
                 Encoding.UTF8, "application/json");
-            content.Headers.Add("x-correlation-id", "a-test-job-0001");
+                content.Headers.Add("x-correlation-id", $"a-test-job-{jobNumber}");
 
-            var jobs = new List<string>();
-            var completedJobs = new List<string>();
-
-            for (int i = 0; i < 5; i++)
-            {
-                // Act
                 var jobSubmitResponse = await httpClient.PostAsync("/jobs", content);
                 Assert.True(jobSubmitResponse.IsSuccessStatusCode, "Expected success status code but got: " + jobSubmitResponse.StatusCode);
 
                 var responseContent = await jobSubmitResponse.Content.ReadAsStringAsync();
                 var responseJson = JsonDocument.Parse(responseContent);
                 responseJson.RootElement.TryGetProperty("jobId", out var jobId);
-                jobs.Add(jobId.GetString() ?? string.Empty);
-                await Task.Delay(1000);
+                var jobIdValue = jobId.GetString();
+                if(!string.IsNullOrEmpty(jobIdValue))
+                {
+                    jobs.Add(jobIdValue);
+                }
             }
+            Assert.Equal(numberOfJobs, jobs.Count);
 
+
+            // 2.Check for notification that the jobs have been picked up by the builder and completed successfully.
+            var waitDuration = 2000; // 2 seconds
+            var maxTimeToWait = 3; // 3 minutes
+            TimeOnly startTime = TimeOnly.FromDateTime(DateTime.Now);
             do { 
                 foreach (var jobId in jobs)
                 {
                     if (completedJobs.Contains(jobId)) continue; // Skip if job already completed
                     var jobStateResponse = await httpClient.GetAsync($"/jobs/{jobId}");
+                    Assert.True(jobStateResponse.IsSuccessStatusCode, "Expected success status code but got: " + jobStateResponse.StatusCode);
+
                     var responseContent = await jobStateResponse.Content.ReadAsStringAsync();
                     var responseJson = JsonDocument.Parse(responseContent);
                     responseJson.RootElement.TryGetProperty("jobState", out var jobState);
@@ -151,12 +165,14 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
                         completedJobs.Add(jobId);
                     }
                 }
-                // Wait for a short period before checking again
-                await Task.Delay(2000);
-            } while (completedJobs.Count < jobs.Count);
+                await Task.Delay(waitDuration);
+                elapsedMinutes = (TimeOnly.FromDateTime(DateTime.Now) - startTime).TotalMinutes;
+            } while (completedJobs.Count < jobs.Count && elapsedMinutes < maxTimeToWait);
 
             Assert.Equal(jobs.Count, completedJobs.Count);
 
+
+            // 3.Check the builder has successfully returned build status for each completed job
             foreach (var jobId in completedJobs)
             {
                 var jobCompletedResponse = await httpClient.GetAsync($"/jobs/{jobId}/build");
