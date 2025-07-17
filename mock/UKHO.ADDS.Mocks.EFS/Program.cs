@@ -9,6 +9,11 @@ namespace UKHO.ADDS.Mocks.EFS
         public static async Task Main(string[] args)
         {
             MockServices.AddServices();
+
+            ServiceRegistry.AddDefinition(new ServiceDefinition("fss", "FileShare Service", []));
+
+            ServiceRegistry.AddDefinition(new ServiceDefinition("scs", "Sales Catalogue Service", [new StateDefinition("get-invalidproducts", "Gets invalid products")]));
+
             ServiceRegistry.AddDefinitionState("sample", new StateDefinition("get-jpeg", "Gets a JPEG file"));
 
             ServiceRegistry.AddDefinition(new ServiceDefinition("fss6357", "File Share Service (S63/S57)", []));

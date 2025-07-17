@@ -1,9 +1,9 @@
-﻿using UKHO.ADDS.Mocks.Headers;
+﻿using UKHO.ADDS.Mocks.EFS.Override.Mocks.fss.ResponseGenerator;
+using UKHO.ADDS.Mocks.Headers;
 using UKHO.ADDS.Mocks.Markdown;
-using UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss.ResponseGenerator;
 using UKHO.ADDS.Mocks.States;
 
-namespace UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss
+namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
 {
     public class GetFssBatchesEndpoint : ServiceEndpointMock
     {
