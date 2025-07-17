@@ -56,8 +56,8 @@ steps:
       dotnet publish "${{ parameters.ProjectPath }}" -r linux-x64 -c Release /t:PublishContainer -p:ContainerRepository=exchange-set-fulfilment-service/${{ parameters.AppName }}-dev -p:ContainerImageTag=$DEPLOYMENT_TAG -p:ContainerRegistry=$(AcrName).azurecr.io --getProperty:GeneratedContainerConfiguration
 
       echo "Deploying app..."
-      cp "$(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.LocalHost/infra/${{ parameters.AppName }}/${{ parameters.AppName }}.tmpl.bicepparam" "$(Build.SourcesDirectory)/infra/${{ parameters.AppName }}/${{ parameters.AppName }}.tmpl.bicepparam"
-      cd "$(Build.SourcesDirectory)/infra/${{ parameters.AppName }}"
+      cp "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost/infra/${{ parameters.AppName }}/${{ parameters.AppName }}.tmpl.bicepparam" "$(Build.SourcesDirectory)/efs/infra/${{ parameters.AppName }}/${{ parameters.AppName }}.tmpl.bicepparam"
+      cd "$(Build.SourcesDirectory)/efs/infra/${{ parameters.AppName }}"
 
       if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
         az deployment group create --name ${{ parameters.AppName }}-$DEPLOYMENT_NUMBER --resource-group $RESOURCE_GROUP --parameters ${{ parameters.AppName }}.tmpl.bicepparam --debug

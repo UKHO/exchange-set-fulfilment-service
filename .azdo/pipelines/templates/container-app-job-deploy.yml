@@ -52,7 +52,7 @@ steps:
       az acr login --name $(AcrName)
 
       echo "Changing directory..."
-      cd $(Build.SourcesDirectory)/src
+      cd $(Build.SourcesDirectory)/efs/src
 
       echo "Building Docker image..."
       docker build -t $CONTAINER_IMAGE -f ${{ parameters.ProjectFolder }}/Dockerfile .
@@ -61,7 +61,7 @@ steps:
       docker push $CONTAINER_IMAGE
 
       echo "Deploying app job..."
-      cd "$(Build.SourcesDirectory)/infra/${{ parameters.AppName }}"
+      cd "$(Build.SourcesDirectory)/efs/infra/${{ parameters.AppName }}"
 
       if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
         az deployment group create --name ${{ parameters.AppName }}-$DEPLOYMENT_NUMBER --resource-group $RESOURCE_GROUP --parameters ${{ parameters.AppName }}.tmpl.bicepparam --debug

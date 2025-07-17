@@ -71,6 +71,14 @@ variables:
   - name: snykAbzuOrganizationId
     value: aeb7543b-8394-457c-8334-a31493d8910d
 
+resources:
+  repositories:
+  - repository: PrivateEfs
+    endpoint: UKHO
+    name: UKHO/exchange-set-fulfilment-service-pvt
+    ref: refs/heads/main
+    type: github
+
 stages:
   # - stage: VulnerabilityChecks
   #   displayName: "Snyk Checks"
