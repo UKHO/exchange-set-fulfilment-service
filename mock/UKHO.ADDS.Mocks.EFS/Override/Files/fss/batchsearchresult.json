@@ -1,0 +1,115 @@
+{
+  "count": 2,
+  "total": 2,
+  "entries": [
+    {
+      "batchId": "8192a626-9824-434f-9859-e6cdc48dbfa6",
+      "status": "Committed",
+      "allFilesZipSize": null,
+      "attributes": [
+        {
+          "key": "ProductName",
+          "value": "DE4NO13K"
+        },
+        {
+          "key": "EditionNumber",
+          "value": 2
+        },
+        {
+          "key": "UpdateNumber",
+          "value": 0
+        },
+        {
+          "key": "ProductCode",
+          "value": "AVCS"
+        }
+      ],
+      "businessUnit": "ADDS",
+      "batchPublishedDate": "2025-02-28T14:29:47.106Z",
+      "expiryDate": "2025-06-29T14:29:47.113Z",
+      "isAllFilesZipAvailable": true,
+      "files": [
+        {
+          "filename": "DE4NO13K.000",
+          "fileSize": 874,
+          "mimeType": "text/plain",
+          "hash": "",
+          "links": {
+            "get": {
+              "href": "/batch/8192a626-9824-434f-9859-e6cdc48dbfa6/files/DE4NO13K.000"
+            }
+          }
+        },
+        {
+          "filename": "DE4NO13K.TXT",
+          "fileSize": 1192,
+          "mimeType": "text/plain",
+          "hash": "",
+          "links": {
+            "get": {
+              "href": "/batch/8192a626-9824-434f-9859-e6cdc48dbfa6/files/DE4NO13K.TXT"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "batchId": "9b3911b6-201f-4d0c-94a7-02519d5c4822",
+      "status": "Committed",
+      "allFilesZipSize": null,
+      "attributes": [
+        {
+          "key": "ProductName",
+          "value": "DE4NO13K"
+        },
+        {
+          "key": "EditionNumber",
+          "value": 2
+        },
+        {
+          "key": "UpdateNumber",
+          "value": 1
+        },
+        {
+          "key": "ProductCode",
+          "value": "AVCS"
+        }
+      ],
+      "businessUnit": "ADDS",
+      "batchPublishedDate": "2025-02-28T14:29:47.114Z",
+      "expiryDate": "2025-06-29T14:29:47.114Z",
+      "isAllFilesZipAvailable": true,
+      "files": [
+        {
+          "filename": "DE4NO13K.001",
+          "fileSize": 874,
+          "mimeType": "text/plain",
+          "hash": "",
+          "links": {
+            "get": {
+              "href": "/batch/9b3911b6-201f-4d0c-94a7-02519d5c4822/files/DE4NO13K.001"
+            }
+          }
+        },
+        {
+          "filename": "DE4NO13K.TXT",
+          "fileSize": 1192,
+          "mimeType": "text/plain",
+          "hash": "",
+          "links": {
+            "get": {
+              "href": "/batch/9b3911b6-201f-4d0c-94a7-02519d5c4822/files/DE4NO13K.TXT"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "_links": {
+    "self": "/batch?limit=10&start=0&$filter=%24batch%28ProductCode%29%20eq%20%27AVCS%27%20and%20%24batch%28ProductName%29%20eq%20%27DE4NO13K%27%20and%20%24batch%28EditionNumber%29%20eq%20%272%27%20and%20%24batch%28UpdateNumber%29%20eq%20%270%27",
+    "first": "/batch?limit=10&start=0&$filter=%24batch%28ProductCode%29%20eq%20%27AVCS%27%20and%20%24batch%28ProductName%29%20eq%20%27DE4NO13K%27%20and%20%24batch%28EditionNumber%29%20eq%20%272%27%20and%20%24batch%28UpdateNumber%29%20eq%20%270%27",
+    "previous": "/batch?limit=10&start=0&$filter=%24batch%28ProductCode%29%20eq%20%27AVCS%27%20and%20%24batch%28ProductName%29%20eq%20%27DE4NO13K%27%20and%20%24batch%28EditionNumber%29%20eq%20%272%27%20and%20%24batch%28UpdateNumber%29%20eq%20%270%27",
+    "next": "/batch?limit=10&start=0&$filter=%24batch%28ProductCode%29%20eq%20%27AVCS%27%20and%20%24batch%28ProductName%29%20eq%20%27DE4NO13K%27%20and%20%24batch%28EditionNumber%29%20eq%20%272%27%20and%20%24batch%28UpdateNumber%29%20eq%20%270%27",
+    "last": "/batch?limit=10&start=0&$filter=%24batch%28ProductCode%29%20eq%20%27AVCS%27%20and%20%24batch%28ProductName%29%20eq%20%27DE4NO13K%27%20and%20%24batch%28EditionNumber%29%20eq%20%272%27%20and%20%24batch%28UpdateNumber%29%20eq%20%270%27"
+  }
+}

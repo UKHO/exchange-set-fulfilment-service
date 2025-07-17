@@ -1,7 +1,6 @@
 ﻿using System.Net;
 using UKHO.ADDS.Clients.SalesCatalogueService;
 using UKHO.ADDS.Clients.SalesCatalogueService.Models;
-using UKHO.ADDS.EFS.Builds.S100;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Jobs;
 using UKHO.ADDS.EFS.RetryPolicy;
@@ -76,6 +75,46 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
 
             // Return an empty response with the original timestamp in case of failure
             return (new S100SalesCatalogueResponse(), sinceDateTime);
+        }
+
+        /// <summary>
+        ///     Retrieves S100 product names and their details from the Sales Catalogue Service.
+        /// </summary>
+        /// <param name="productNames">A collection of product names to retrieve.</param>
+        /// <param name="job">The job context for the request.</param>
+        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+        /// <returns>
+        ///     The response containing product details or an empty response if an error occurs.
+        /// </returns>
+        /// <remarks>
+        ///     The method returns an empty response when an error occurs or when
+        ///     an unexpected HTTP status code is returned from the API.
+        /// </remarks>
+        public async Task<S100ProductNamesResponse> GetS100ProductNamesAsync(IEnumerable<string> productNames, Job job, CancellationToken cancellationToken)
+        {
+            var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<S100ProductNamesResponse>(_logger, nameof(GetS100ProductNamesAsync));
+            var s100SalesCatalogueResult = await retryPolicy.ExecuteAsync(() =>
+                _salesCatalogueClient.GetS100ProductNamesAsync(ScsApiVersion, ProductType, productNames, job.GetCorrelationId(), cancellationToken));
+
+            // Check if the API call was successful
+            if (s100SalesCatalogueResult.IsSuccess(out var s100SalesCatalogueData, out var error))
+            {
+                switch (s100SalesCatalogueData.ResponseCode)
+                {
+                    case HttpStatusCode.OK:
+                        return s100SalesCatalogueData;
+                    default:
+                        // Unexpected status code, log a warning and return an empty response
+                        _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, s100SalesCatalogueData.ResponseCode));
+                        return new S100ProductNamesResponse();
+                }
+            }
+
+            // API call failed, log the error
+            _logger.LogSalesCatalogueApiError(error, SalesCatalogApiErrorLogView.Create(job));
+
+            // Return an empty response with the original timestamp in case of failure
+            return new S100ProductNamesResponse();
         }
     }
 }

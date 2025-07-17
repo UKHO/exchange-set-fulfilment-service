@@ -1,4 +1,4 @@
-﻿namespace UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss.Models
+﻿namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss.Models
 {
     public class Product
     {

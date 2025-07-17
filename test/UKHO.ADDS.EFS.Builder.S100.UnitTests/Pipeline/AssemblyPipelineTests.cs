@@ -47,7 +47,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
                     JobId = "TestCorrelationId",
                     BatchId = "a-batch-id",
                     DataStandard = DataStandard.S100,
-                    Products = GetProducts()
+                    Products = GetProducts(),
+                    ProductNames = GetProductNames()
                 },
             };
 
@@ -158,6 +159,18 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
                     }
                 }
                 ];
+        }
+
+        private static List<S100ProductNames> GetProductNames()
+        {
+            return [
+                new S100ProductNames
+                {
+                    ProductName = "TestProduct",
+                    EditionNumber = 1,
+                    UpdateNumbers =  [0,1]
+                }
+            ];
         }
 
         private class ThrowingAssemblyPipeline : AssemblyPipeline
