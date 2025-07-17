@@ -38,8 +38,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                     }
                 })
                 .Produces<AssemblyPipelineResponse>()
-                .WithRequiredHeader("x-correlation-id", "Correlation ID", "a-correlation-id")
-                .WithDescription("Create a job request for the given data standard (currently only supports S100)");
+                .WithRequiredHeader("x-correlation-id", "Correlation ID", $"job-{Guid.NewGuid():N}")
+                .WithDescription("Create a job request for the given data standard. To filter (S100) by product type, use the filter property \"startswith(ProductName, '101')\"");
 
             jobsEndpoint.MapGet("/{jobId}", async (string jobId, ITable<Job> jobTable) =>
             {

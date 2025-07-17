@@ -1,7 +1,7 @@
 ﻿using System.Text.RegularExpressions;
-using UKHO.ADDS.Mocks.SampleService.Override.Mocks.fss.Models;
+using UKHO.ADDS.Mocks.EFS.Override.Mocks.fss.Models;
 
-namespace UKHO.ADDS.Mocks.Configuration.Mocks.fss.ResponseGenerator
+namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss.ResponseGenerator
 {
     public class BatchQueryParser
     {
