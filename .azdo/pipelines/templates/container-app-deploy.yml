@@ -23,6 +23,7 @@ steps:
   condition: eq('${{ parameters.DeployApp }}', true)
   inputs:
     azureSubscription: ${{ parameters.AzureSubscription }}
+    workingDirectory: $(Build.SourcesDirectory)/efs
     scriptType: bash
     scriptLocation: inlineScript
     inlineScript: |
