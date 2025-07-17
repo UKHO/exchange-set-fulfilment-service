@@ -88,6 +88,7 @@ jobs:
             displayName: Destroy infrastructure
             inputs:
               azureSubscription: ${{ variables.AzureSubscription }}
+              workingDirectory: $(Build.SourcesDirectory)/efs
               scriptType: bash
               scriptLocation: inlineScript
               ${{ if eq(parameters.AdditionalDebugging, true) }}:
@@ -119,6 +120,7 @@ jobs:
             displayName: Package application
             inputs:
               azureSubscription: ${{ variables.AzureSubscription }}
+              workingDirectory: $(Build.SourcesDirectory)/efs
               scriptType: bash
               scriptLocation: inlineScript
               ${{ if eq(parameters.AdditionalDebugging, true) }}:
@@ -137,6 +139,7 @@ jobs:
             displayName: Provision infrastructure
             inputs:
               azureSubscription: ${{ variables.AzureSubscription }}
+              workingDirectory: $(Build.SourcesDirectory)/efs
               scriptType: bash
               scriptLocation: inlineScript
               ${{ if eq(parameters.AdditionalDebugging, true) }}:
