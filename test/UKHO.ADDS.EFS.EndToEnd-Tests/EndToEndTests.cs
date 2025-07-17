@@ -53,7 +53,9 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
                 }
                 """,
                 Encoding.UTF8, "application/json");
-            content.Headers.Add("x-correlation-id", "a-test-job-0001");
+            var requestId = Guid.NewGuid().ToString();
+            content.Headers.Add("x-correlation-id", $"job-0001-{requestId}");
+
 
             var jobSubmitResponse = await httpClient.PostAsync("/jobs", content);
             Assert.True(jobSubmitResponse.IsSuccessStatusCode, "Expected success status code but got: " + jobSubmitResponse.StatusCode);
@@ -114,6 +116,7 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
             var numberOfJobs = 8; // Number of jobs to submit
 
             // 1.Submit multiple job requests and confirm that they were all submitted successfully.
+            var requestId = Guid.NewGuid().ToString();
             for (int i = 0; i < numberOfJobs; i++)
             {
                 string jobNumber = i.ToString("D4");
@@ -128,7 +131,7 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
                 }
                 """,
                 Encoding.UTF8, "application/json");
-                content.Headers.Add("x-correlation-id", $"a-test-job-{jobNumber}");
+                content.Headers.Add("x-correlation-id", $"job-{jobNumber}-{requestId}");
 
                 var jobSubmitResponse = await httpClient.PostAsync("/jobs", content);
                 Assert.True(jobSubmitResponse.IsSuccessStatusCode, "Expected success status code but got: " + jobSubmitResponse.StatusCode);
