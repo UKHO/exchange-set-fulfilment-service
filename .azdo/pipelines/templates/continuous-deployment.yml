@@ -58,17 +58,12 @@ jobs:
           path: s/pvtefs
 
         - script: |
-            ls -l "$(Build.SourcesDirectory)"
             cp "$(Build.SourcesDirectory)/pvtefs/root2.tar.gz" "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Builder.S100/root2.tar.gz"
             cp "$(Build.SourcesDirectory)/pvtefs/xchg-2.7.war" "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Builder.S100/xchg-2.7.war"
           condition: eq('${{ parameters.DeployBuilderS100 }}', true)
           displayName: Copy S100 builder files
 
         - download: none
-
-        # - script: git submodule update --init --recursive
-        #   displayName: Restore submodules
-        #   workingDirectory: '$(Build.SourcesDirectory)/efs'
   
         - script: |
             curl -fsSL https://aka.ms/install-azd.sh | bash
@@ -185,21 +180,6 @@ jobs:
               ProjectPath: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Orchestrator/UKHO.ADDS.EFS.Orchestrator.csproj
               AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
               DeployApp: ${{ parameters.DeployOrchestrator }}
-
-          # - task: AzureCLI@2
-          #   displayName: Download S100 builder files from Azure
-          #   condition: eq('${{ parameters.DeployBuilderS100 }}', true)
-          #   inputs:
-          #     azureSubscription: ${{ variables.AzureSubscription }}
-          #     scriptType: bash
-          #     scriptLocation: inlineScript
-          #     inlineScript: |
-          #       az storage blob download --container-name $StorageContainerName --name root2.tar.gz --file $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Builder.S100/root2.tar.gz --auth-mode key
-          #       az storage blob download --container-name $StorageContainerName --name xchg-2.7.war --file $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Builder.S100/xchg-2.7.war --auth-mode key
-          #   env:
-          #     AZURE_STORAGE_ACCOUNT: $(BuilderFilesSa)
-          #     StorageContainerName: $(BuilderFilesContainer)
-          #     AZURE_STORAGE_KEY: $(BuilderFilesSaKey)
 
           - template: container-app-job-deploy.yml
             parameters:
