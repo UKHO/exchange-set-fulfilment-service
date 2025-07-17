@@ -17,7 +17,7 @@ using UKHO.ADDS.EFS.LocalHost.Extensions;
 namespace UKHO.ADDS.EFS.LocalHost
 {
     /// <summary>
-    /// Defines the resources required by Aspire. If there are changes and the infrastructure IaC needs to be regenerated then please see Regenerating infra.md.
+    /// Defines the resources required by Aspire. If there are changes and the infrastructure IaC needs to be regenerated then please see 'Regenerating infra.md'.
     /// </summary>
     internal class Program
     {
