@@ -1,0 +1,15 @@
+{
+    "Storage": {
+        "ConnectionString": "DefaultEndpointsProtocol=https;",
+        "ExchangeSetContainerName": "s100build",
+        "BuildMementoTable": "buildmemento",
+        "ExchangeSetTimestampTable": "datastandardtimestamp"
+    },
+    "EndPoints": {
+        "OrchestratorApiEndpoint": "https://localhost:51627/jobs",        
+        "DownloadExchangeApiEndpoint": "https://localhost:62824/_admin/files"
+    },
+    "ExchangeSet": {
+        "ExchangeSetName": "V01X01_{jobId}"
+    }
+}
