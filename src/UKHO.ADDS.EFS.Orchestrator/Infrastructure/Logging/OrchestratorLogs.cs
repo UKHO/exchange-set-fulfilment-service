@@ -41,6 +41,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         private const int SalesCatalogueUnexpectedStatusCodeId = BaseEventId + 19;
         private const int SearchCommittedBatchesFailedId = BaseEventId + 20;
         private const int FileShareServiceOperationFailedId = BaseEventId + 21;
+        private const int SalesCatalogueProductsNotReturnedId = BaseEventId + 22;
 
         // An unhandled HTTP error has occurred
         public static readonly EventId UnhandledHttpError = new(UnhandledHttpErrorId, nameof(UnhandledHttpError));
@@ -122,6 +123,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         // Search committed batches failed
         public static readonly EventId SearchCommittedBatchesFailed = new(SearchCommittedBatchesFailedId, nameof(SearchCommittedBatchesFailed));
 
+        public static readonly EventId SalesCatalogueProductsNotReturned = new(SalesCatalogueProductsNotReturnedId, nameof(SalesCatalogueProductsNotReturned));
+
         [LoggerMessage(UnhandledHttpErrorId, LogLevel.Error, "An unhandled exception was caught by the HTTP pipeline: {@message}", EventName = nameof(UnhandledHttpError))]
         public static partial void LogUnhandledHttpError(this ILogger logger, string message, Exception exception);
 
@@ -184,5 +187,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 
         [LoggerMessage(SearchCommittedBatchesFailedId, LogLevel.Error, "Search committed batches failed: {@searchCommittedBatchesLogView}", EventName = nameof(SearchCommittedBatchesFailed))]
         public static partial void LogFileShareSearchCommittedBatchesError(this ILogger logger, [LogProperties] SearchCommittedBatchesLogView searchCommittedBatchesLogView);
+
+        [LoggerMessage(SalesCatalogueProductsNotReturnedId, LogLevel.Warning, "Sales Catalogue products not returned: {@salesCatalogueLog}", EventName = nameof(SalesCatalogueProductsNotReturned))]
+        public static partial void LogSalesCatalogueProductsNotReturned(this ILogger logger, [LogProperties] SalesCatalogServiceProductsNotReturnedView salesCatalogueLog);
     }
 }

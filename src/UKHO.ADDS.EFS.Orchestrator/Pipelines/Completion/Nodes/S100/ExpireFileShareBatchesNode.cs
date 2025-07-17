@@ -45,6 +45,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
 
             var expiryResult = await _fileShareClient.SetExpiryDateAsync(searchResponse.Entries, job.GetCorrelationId(), Environment.CancellationToken);
 
+            if (expiryResult.IsFailure())
+            {
+                return NodeResultStatus.Failed;
+            }
+
             await _timestampService.SetTimestampForJobAsync(job);
 
             return NodeResultStatus.Succeeded;
