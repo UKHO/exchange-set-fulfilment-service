@@ -1,0 +1,13 @@
+using './efs-builder-s100.module.bicep'
+
+param efs_cae_outputs_azure_container_apps_environment_id = readEnvironmentVariable('EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_ID')
+param efs_cae_outputs_azure_container_registry_endpoint = readEnvironmentVariable('EFS_CAE_AZURE_CONTAINER_REGISTRY_ENDPOINT')
+param efs_cae_outputs_azure_container_registry_managed_identity_id = readEnvironmentVariable('EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID')
+param efs_builder_s100_containerimage = readEnvironmentVariable('CONTAINER_IMAGE')
+param efs_storage_name = readEnvironmentVariable('EFS_STORAGE_NAME')
+param efs_storage_connection_string = readEnvironmentVariable('EFS_STORAGE_CONNECTION_STRING')
+param fss_endpoint = readEnvironmentVariable('FSS_ENDPOINT')
+param fss_endpoint_health = readEnvironmentVariable('FSS_ENDPOINT_HEALTH')
+param azure_env_name = readEnvironmentVariable('AZURE_ENV_NAME')
+param max_retry_attempts = readEnvironmentVariable('MAX_RETRY_ATTEMPTS')
+param retry_delay_ms = readEnvironmentVariable('RETRY_DELAY_MS')

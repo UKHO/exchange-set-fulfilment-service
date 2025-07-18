@@ -1,4 +1,8 @@
 using System.Runtime.InteropServices;
+using Azure.Core;
+using Azure.Provisioning;
+using Azure.Provisioning.AppContainers;
+using Azure.Provisioning.Storage;
 using CliWrap;
 using Docker.DotNet;
 using Docker.DotNet.Models;
@@ -9,9 +13,12 @@ using Serilog;
 using UKHO.ADDS.Configuration.Aspire;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.LocalHost.Extensions;
- 
+
 namespace UKHO.ADDS.EFS.LocalHost
 {
+    /// <summary>
+    /// Defines the resources required by Aspire. If there are changes and the infrastructure IaC needs to be regenerated then please see 'Regenerating infra.md'.
+    /// </summary>
     internal class Program
     {
         private static async Task<int> Main(string[] args)
@@ -25,8 +32,36 @@ namespace UKHO.ADDS.EFS.LocalHost
             var builder = DistributedApplication.CreateBuilder(args);
             builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());
 
+            // Get parameters
+            var subnetResourceId = builder.AddParameter("subnetResourceId");
+            var zoneRedundant = builder.AddParameter("zoneRedundant");
+
+            // Container apps environment
+            var acaEnv = builder.AddAzureContainerAppEnvironment(ServiceConfiguration.AcaEnvironmentName)
+                .WithParameter("subnetResourceId", subnetResourceId)
+                .WithParameter("zoneRedundant", zoneRedundant);
+            acaEnv.ConfigureInfrastructure(config =>
+            {
+                var containerEnvironment = config.GetProvisionableResources().OfType<ContainerAppManagedEnvironment>().Single();
+                containerEnvironment.VnetConfiguration = new ContainerAppVnetConfiguration
+                {
+                    InfrastructureSubnetId = new BicepValue<ResourceIdentifier>("subnetResourceId"),
+                    IsInternal = false
+                };
+                containerEnvironment.IsZoneRedundant = false;
+                // This doesn't seem to work at the moment so I've updated the bicep tags directly.
+                containerEnvironment.Tags.Add("aspire-resource-name", ServiceConfiguration.AcaEnvironmentName);
+                containerEnvironment.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
+            });
+
             // Storage configuration
             var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e => { e.WithDataVolume(); });
+            storage.ConfigureInfrastructure(config =>
+            {
+                var storageAccount = config.GetProvisionableResources().OfType<StorageAccount>().Single();
+                storageAccount.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
+                storageAccount.AllowSharedKeyAccess = true;
+            });
 
             var storageQueue = storage.AddQueues(StorageConfiguration.QueuesName);
             var storageTable = storage.AddTables(StorageConfiguration.TablesName);
@@ -71,7 +106,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             }
 
             // Configuration
-            var configurationService = builder.AddConfiguration(@"..\..\config\configuration.json", tb =>
+            var configurationService = builder.AddConfiguration(@"../../config/configuration.json", tb =>
             {
                 tb.AddEndpoint("s100mockfss", mockService, false, null, "fss");
                 tb.AddEndpoint("s100mockscs", mockService, false, null, "scs");
@@ -84,7 +119,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                 tb.AddEndpoint("s57mockfss", mockService, false, null, "fss6357");
                 tb.AddEndpoint("s57mockscs", mockService, false, null, "scs6357");
                 tb.AddEndpoint("s57buildermockfss", mockService, false, "host.docker.internal", "fss6357");
-            })
+            }, ServiceConfiguration.ServiceName)
             .WithExternalHttpEndpoints();
 
             orchestratorService.WithConfiguration(configurationService);
@@ -94,9 +129,12 @@ namespace UKHO.ADDS.EFS.LocalHost
                 requestMonitor!.WithConfiguration(configurationService);
             }
 
-            await CreateBuilderContainerImages(ProcessNames.S100Builder, "latest", "UKHO.ADDS.EFS.Builder.S100");
-            await CreateBuilderContainerImages(ProcessNames.S63Builder, "latest", "UKHO.ADDS.EFS.Builder.S63");
-            await CreateBuilderContainerImages(ProcessNames.S57Builder, "latest", "UKHO.ADDS.EFS.Builder.S57");
+            if (builder.Environment.IsDevelopment())
+            {
+                await CreateBuilderContainerImages(ProcessNames.S100Builder, "latest", "UKHO.ADDS.EFS.Builder.S100");
+                await CreateBuilderContainerImages(ProcessNames.S63Builder, "latest", "UKHO.ADDS.EFS.Builder.S63");
+                await CreateBuilderContainerImages(ProcessNames.S57Builder, "latest", "UKHO.ADDS.EFS.Builder.S57");
+            }
 
             var application = builder.Build();
 

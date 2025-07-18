@@ -52,9 +52,6 @@ BenchmarkDotNet.Artifacts/
 project.lock.json
 project.fragment.lock.json
 artifacts/
-**/Properties/launchSettings.json
-!src/UKHO.ADDS.EFS.LocalHost/Properties/launchSettings.json
-!src/UKHO.ADDS.EFS.Builder.S100/Properties/launchSettings.json
 
 # External 
 *.zip
