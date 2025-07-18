@@ -5,12 +5,12 @@ using UKHO.ADDS.EFS.Orchestrator.Jobs;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables
 {
-    internal class JobHistoryTable : StructuredTable<JobHistory>
+    internal class BuildFingerprintTable : StructuredTable<BuildFingerprint>
     {
         // TODO Swap out for history interface
 
-        public JobHistoryTable(TableServiceClient tableServiceClient)
-            : base(StorageConfiguration.JobHistoryTable, tableServiceClient, x => x.Discriminant, x => x.Discriminant)
+        public BuildFingerprintTable(TableServiceClient tableServiceClient)
+            : base(StorageConfiguration.BuildFingerprintTable, tableServiceClient, x => x.Discriminant, x => x.Discriminant)
         {
         }
     }

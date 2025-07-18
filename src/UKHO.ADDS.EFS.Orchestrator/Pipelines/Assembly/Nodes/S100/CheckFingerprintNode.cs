@@ -9,16 +9,16 @@ using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 {
-    internal class CheckForDuplicateNode : AssemblyPipelineNode<S100Build>
+    internal class CheckFingerprintNode : AssemblyPipelineNode<S100Build>
     {
         private readonly IHashingService _hashingService;
-        private readonly ITable<JobHistory> _jobHistoryTable;
+        private readonly ITable<BuildFingerprint> _buildFingerprintTable;
 
-        public CheckForDuplicateNode(AssemblyNodeEnvironment nodeEnvironment, ITable<JobHistory> jobHistoryTable, IHashingService hashingService)
+        public CheckFingerprintNode(AssemblyNodeEnvironment nodeEnvironment, ITable<BuildFingerprint> buildFingerprintTable, IHashingService hashingService)
             : base(nodeEnvironment)
         {
             _hashingService = hashingService;
-            _jobHistoryTable = jobHistoryTable;
+            _buildFingerprintTable = buildFingerprintTable;
         }
 
         public override Task<bool> ShouldExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
@@ -37,7 +37,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             var discriminant = build.GetProductDiscriminant();
             var discriminantHash = _hashingService.CalculateHash(discriminant);
 
-            var hasDuplicateResult = await _jobHistoryTable.GetUniqueAsync(discriminantHash);
+            var hasDuplicateResult = await _buildFingerprintTable.GetUniqueAsync(discriminantHash);
 
             if (hasDuplicateResult.IsSuccess(out var duplicate))
             {

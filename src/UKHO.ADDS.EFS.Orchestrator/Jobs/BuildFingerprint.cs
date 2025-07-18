@@ -2,7 +2,7 @@
 
 namespace UKHO.ADDS.EFS.Orchestrator.Jobs
 {
-    public class JobHistory
+    public class BuildFingerprint
     {
         /// <summary>
         ///     The Job ID
@@ -10,7 +10,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Jobs
         public required string JobId { get; init; }
 
         /// <summary>
-        ///     The discriminant is a BLAKE2b-512 hash of the build discriminator string
+        ///     The discriminant is a BLAKE2b-256 hash of the build discriminator string
         /// </summary>
         public required string Discriminant { get; init; }
 
