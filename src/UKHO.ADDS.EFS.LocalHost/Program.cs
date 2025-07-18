@@ -32,12 +32,14 @@ namespace UKHO.ADDS.EFS.LocalHost
             var builder = DistributedApplication.CreateBuilder(args);
             builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());
 
-            // Get id for existing subnet
+            // Get parameters
             var subnetResourceId = builder.AddParameter("subnetResourceId");
+            var zoneRedundant = builder.AddParameter("zoneRedundant");
 
             // Container apps environment
             var acaEnv = builder.AddAzureContainerAppEnvironment(ServiceConfiguration.AcaEnvironmentName)
-                .WithParameter("subnetResourceId", subnetResourceId);
+                .WithParameter("subnetResourceId", subnetResourceId)
+                .WithParameter("zoneRedundant", zoneRedundant);
             acaEnv.ConfigureInfrastructure(config =>
             {
                 var containerEnvironment = config.GetProvisionableResources().OfType<ContainerAppManagedEnvironment>().Single();
@@ -46,6 +48,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                     InfrastructureSubnetId = new BicepValue<ResourceIdentifier>("subnetResourceId"),
                     IsInternal = false
                 };
+                containerEnvironment.IsZoneRedundant = false;
                 // This doesn't seem to work at the moment so I've updated the bicep directly.
                 containerEnvironment.Tags.Add("aspire-resource-name", ServiceConfiguration.AcaEnvironmentName);
                 containerEnvironment.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);

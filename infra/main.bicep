@@ -13,6 +13,7 @@ param location string
 param principalId string = ''
 
 param subnetResourceId string
+param zoneRedundant bool
 
 var tags = {
   'azd-env-name': environmentName
@@ -70,6 +71,7 @@ module efs_cae 'efs-cae/efs-cae.module.bicep' = {
     location: location
     subnetResourceId: subnetResourceId
     userPrincipalId: principalId
+    zoneRedundant: zoneRedundant
   }
 }
 module efs_orchestrator_identity 'efs-orchestrator-identity/efs-orchestrator-identity.module.bicep' = {

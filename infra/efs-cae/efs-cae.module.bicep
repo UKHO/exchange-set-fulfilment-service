@@ -5,6 +5,8 @@ param userPrincipalId string
 
 param subnetResourceId string
 
+param zoneRedundant bool
+
 resource efs_cae_mi 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: take('efs_cae_mi-${uniqueString(resourceGroup().id)}', 128)
   location: location
@@ -61,6 +63,7 @@ resource efs_cae 'Microsoft.App/managedEnvironments@2024-03-01' = {
         sharedKey: efs_cae_law.listKeys().primarySharedKey
       }
     }
+    zoneRedundant: zoneRedundant
     vnetConfiguration: {
       internal: false
       infrastructureSubnetId: subnetResourceId
