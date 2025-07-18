@@ -1,6 +1,4 @@
-﻿using StringToExpression.LanguageDefinitions;
-using UKHO.ADDS.Clients.SalesCatalogueService.Models;
-using UKHO.ADDS.EFS.Builds.S100;
+﻿using UKHO.ADDS.EFS.Builds.S100;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
 using UKHO.ADDS.EFS.Orchestrator.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
@@ -13,13 +11,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 {
     internal class CheckDeduplicationNode : AssemblyPipelineNode<S100Build>
     {
-        public IHashingService HashingService { get; }
+        private readonly IHashingService _hashingService;
         private readonly ITable<JobHistory> _jobHistoryTable;
 
         public CheckDeduplicationNode(AssemblyNodeEnvironment nodeEnvironment, ITable<JobHistory> jobHistoryTable, IHashingService hashingService)
             : base(nodeEnvironment)
         {
-            HashingService = hashingService;
+            _hashingService = hashingService;
             _jobHistoryTable = jobHistoryTable;
         }
 
@@ -37,7 +35,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             var build = context.Subject.Build;
 
             var discriminant = build.GetProductDiscriminant();
-            var discriminantHash = HashingService.CalculateHash(discriminant);
+            var discriminantHash = _hashingService.CalculateHash(discriminant);
 
             var hasDuplicateResult = await _jobHistoryTable.GetUniqueAsync(discriminantHash);
 
