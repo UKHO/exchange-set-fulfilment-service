@@ -1,8 +1,8 @@
 @description('The location for the resource(s) to be deployed.')
 param location string = resourceGroup().location
 
-resource adds_configuration_kv 'Microsoft.KeyVault/vaults@2023-07-01' = {
-  name: take('addsconfigurationkv-${uniqueString(resourceGroup().id)}', 24)
+resource adds_con_kv 'Microsoft.KeyVault/vaults@2023-07-01' = {
+  name: take('addsconkv-${uniqueString(resourceGroup().id)}', 24)
   location: location
   properties: {
     tenantId: tenant().tenantId
@@ -13,11 +13,11 @@ resource adds_configuration_kv 'Microsoft.KeyVault/vaults@2023-07-01' = {
     enableRbacAuthorization: true
   }
   tags: {
-    'aspire-resource-name': 'adds-configuration-kv'
+    'aspire-resource-name': 'adds-con-kv'
     'hidden-title': 'EFS'
   }
 }
 
-output vaultUri string = adds_configuration_kv.properties.vaultUri
+output vaultUri string = adds_con_kv.properties.vaultUri
 
-output name string = adds_configuration_kv.name
+output name string = adds_con_kv.name
