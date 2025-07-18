@@ -5,10 +5,6 @@ parameters:
     displayName: "Disable Stryker"
     type: boolean
     default: false
-  - name: DestroyResourcesDev
-    displayName: "Destroy dev environment"
-    type: boolean
-    default: false
   - name: SnykOnlyFailIfFixable
     displayName: "Snyk - fail only if an issue has an available fix"
     type: boolean
@@ -17,10 +13,30 @@ parameters:
     displayName: "Snyk - don't fail if issues found"
     type: boolean
     default: false
-  - name: SkipDeployment
-    displayName: "Skip deployment (temporary until dev deployment works)"
+  - name: DeployOrchestrator
+    displayName: "Deploy orchestrator"
     type: boolean
-    default: true
+    default: false
+  - name: DeployConfiguration
+    displayName: "Deploy configuration"
+    type: boolean
+    default: false
+  - name: DeployBuilderS100
+    displayName: "Deploy S100 builder"
+    type: boolean
+    default: false
+  - name: DeployAddsMock
+    displayName: "Deploy ADDS mock"
+    type: boolean
+    default: false
+  - name: DestroyResourcesDev
+    displayName: "Destroy dev environment"
+    type: boolean
+    default: false
+  - name: AdditionalDebugging
+    displayName: "Enable optional pipeline debugging"
+    type: boolean
+    default: false
 
 trigger:
   - main
@@ -50,6 +66,14 @@ variables:
     value: "Mare Nectaris"
   - name: snykAbzuOrganizationId
     value: aeb7543b-8394-457c-8334-a31493d8910d
+
+resources:
+  repositories:
+  - repository: PrivateEfs
+    endpoint: UKHO
+    name: UKHO/exchange-set-fulfilment-service-pvt
+    ref: refs/heads/main
+    type: github
 
 stages:
   - stage: VulnerabilityChecks
@@ -130,10 +154,14 @@ stages:
     - VulnerabilityChecks
     - Test
     displayName: Dev deploy
-    condition: eq('${{ parameters.SkipDeployment }}', false)
     jobs:
     - template: templates/continuous-deployment.yml
       parameters:
         AzureDevOpsEnvironment: Ess-Dev
         ShortName: dev
         DestroyResources: ${{ parameters.DestroyResourcesDev }}
+        AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+        DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
+        DeployConfiguration: ${{ parameters.DeployConfiguration }}
+        DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
+        DeployAddsMock: ${{ parameters.DeployAddsMock }}

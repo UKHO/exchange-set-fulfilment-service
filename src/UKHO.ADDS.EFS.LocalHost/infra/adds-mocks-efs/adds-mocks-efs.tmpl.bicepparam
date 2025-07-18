@@ -1,0 +1,8 @@
+using './adds-mocks-efs.module.bicep'
+
+param adds_mocks_efs_containerimage = readEnvironmentVariable('CONTAINER_IMAGE')
+param adds_mocks_efs_containerport = readEnvironmentVariable('CONTAINER_PORT')
+param efs_cae_outputs_azure_container_apps_environment_default_domain = readEnvironmentVariable('EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN')
+param efs_cae_outputs_azure_container_apps_environment_id = readEnvironmentVariable('EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_ID')
+param efs_cae_outputs_azure_container_registry_endpoint = readEnvironmentVariable('EFS_CAE_AZURE_CONTAINER_REGISTRY_ENDPOINT')
+param efs_cae_outputs_azure_container_registry_managed_identity_id = readEnvironmentVariable('EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID')
