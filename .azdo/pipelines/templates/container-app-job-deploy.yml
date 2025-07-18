@@ -56,7 +56,7 @@ steps:
       cd $(Build.SourcesDirectory)/efs/src
 
       echo "Building Docker image..."
-      docker build -t $CONTAINER_IMAGE -f ${{ parameters.ProjectFolder }}/Dockerfile .
+      docker build -t $CONTAINER_IMAGE -f ${{ parameters.ProjectFolder }}/Dockerfile-Release .
 
       echo "Pushing Docker image to Azure Container Registry..."
       docker push $CONTAINER_IMAGE

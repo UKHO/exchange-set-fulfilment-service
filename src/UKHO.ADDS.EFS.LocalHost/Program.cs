@@ -49,7 +49,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                     IsInternal = false
                 };
                 containerEnvironment.IsZoneRedundant = false;
-                // This doesn't seem to work at the moment so I've updated the bicep directly.
+                // This doesn't seem to work at the moment so I've updated the bicep tags directly.
                 containerEnvironment.Tags.Add("aspire-resource-name", ServiceConfiguration.AcaEnvironmentName);
                 containerEnvironment.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
             });
