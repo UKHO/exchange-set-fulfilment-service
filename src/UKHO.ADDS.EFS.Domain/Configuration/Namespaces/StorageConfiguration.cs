@@ -40,6 +40,6 @@
 
         public const string BuildMementoTable = "buildmemento";
 
-        public const string JobHistoryTable = "jobhistory";
+        public const string BuildFingerprintTable = "buildfingerprint";
     }
 }

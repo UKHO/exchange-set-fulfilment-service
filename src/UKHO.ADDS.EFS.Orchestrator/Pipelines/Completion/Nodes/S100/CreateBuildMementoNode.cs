@@ -28,11 +28,16 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
                 BuilderSteps = context.Subject.Build.Statuses,
             };
 
-            await _buildMementoTable.AddAsync(memento);
+            var result = await _buildMementoTable.AddAsync(memento);
 
             if (Environment.BuilderExitCode != BuilderExitCode.Success)
             {
                 await context.Subject.SignalBuildFailure();
+            }
+
+            if (result.IsFailure())
+            {
+                return NodeResultStatus.Failed;
             }
 
             return NodeResultStatus.Succeeded;

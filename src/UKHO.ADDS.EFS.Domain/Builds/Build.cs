@@ -65,7 +65,7 @@ namespace UKHO.ADDS.EFS.Builds
         ///     Gets a lexically ordered string that represents the products.
         /// </summary>
         /// <returns></returns>
-        public abstract string GetProductDiscriminator();
+        public abstract string GetProductDiscriminant();
 
         /// <summary>
         ///     Gets the count of products in the job.

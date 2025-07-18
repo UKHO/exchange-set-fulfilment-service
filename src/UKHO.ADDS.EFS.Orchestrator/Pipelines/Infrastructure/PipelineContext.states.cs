@@ -5,6 +5,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
 {
     partial class PipelineContext<TBuild> where TBuild : Build
     {
+        public async Task SignalBuildDuplicated()
+        {
+            _job.ValidateAndSet(JobState.Duplicate, BuildState.NotScheduled);
+            await _storageService.UpdateJobAsync(_job);
+        }
+
         public async Task SignalBuildRequired()
         {
             _job.ValidateAndSet(JobState.Created, BuildState.NotScheduled);
