@@ -117,11 +117,9 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
             Assert.Equal("success", builderExitCode.GetString());
 
             // 4.Download Exchange Set, call to the Admin API for downloading the exchange set
-            var exchangeSetDownloadPath = await DownloadExchangeSetAsZipAsync(jobId.ToString());
+            var exchangeSetDownloadPath = await DownloadExchangeSetAsZipAsync(jobId.ToString());           
 
-            var projectDirectory = Directory.GetParent(AppContext.BaseDirectory)!.Parent!.Parent!.Parent!.FullName;
-
-            var sourceZipPath = Path.Combine(projectDirectory, "TestData/exchangeSet-25Products.testzip");
+            var sourceZipPath = Path.Combine(_projectDirectory, "TestData/exchangeSet-25Products.testzip");
 
             // 5. Compare the folder structure of the source and target zip files
             CompareZipFolderStructure(sourceZipPath, exchangeSetDownloadPath);
