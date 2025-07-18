@@ -23,7 +23,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly
             AddPipelineNode<FilterProductsNode>(cancellationToken);
             AddPipelineNode<GetS100ProductNamesNode>(cancellationToken);
 
-            AddPipelineNode<CheckDeduplicationNode>(cancellationToken);
+            AddPipelineNode<CheckForDuplicateNode>(cancellationToken);
 
             AddPipelineNode<CreateFileShareBatchNode>(cancellationToken);
             AddPipelineNode<ScheduleBuildNode>(cancellationToken);

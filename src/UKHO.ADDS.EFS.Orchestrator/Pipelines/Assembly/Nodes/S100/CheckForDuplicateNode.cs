@@ -9,12 +9,12 @@ using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 {
-    internal class CheckDeduplicationNode : AssemblyPipelineNode<S100Build>
+    internal class CheckForDuplicateNode : AssemblyPipelineNode<S100Build>
     {
         private readonly IHashingService _hashingService;
         private readonly ITable<JobHistory> _jobHistoryTable;
 
-        public CheckDeduplicationNode(AssemblyNodeEnvironment nodeEnvironment, ITable<JobHistory> jobHistoryTable, IHashingService hashingService)
+        public CheckForDuplicateNode(AssemblyNodeEnvironment nodeEnvironment, ITable<JobHistory> jobHistoryTable, IHashingService hashingService)
             : base(nodeEnvironment)
         {
             _hashingService = hashingService;
