@@ -150,7 +150,7 @@ stages:
     - template: templates/test.yml
 
   - stage: DevDeploy
-    dependsOn: []
+    dependsOn:
     - VulnerabilityChecks
     - Test
     displayName: Dev deploy
