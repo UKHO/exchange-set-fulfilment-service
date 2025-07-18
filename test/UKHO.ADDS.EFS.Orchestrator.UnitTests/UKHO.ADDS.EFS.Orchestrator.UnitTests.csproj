@@ -35,4 +35,15 @@
     <ProjectReference Include="..\..\src\UKHO.ADDS.EFS.Orchestrator\UKHO.ADDS.EFS.Orchestrator.csproj" />
   </ItemGroup>
 
+<<<<<<< HEAD
+=======
+  <ItemGroup>
+    <Using Include="NUnit.Framework" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Scenarios\" />
+  </ItemGroup>
+
+>>>>>>> 4f50409482191d87e4a3d597525811557ee5da62
 </Project>
