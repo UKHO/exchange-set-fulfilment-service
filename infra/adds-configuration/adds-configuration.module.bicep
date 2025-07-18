@@ -15,9 +15,9 @@ param adds_configuration_identity_outputs_id string
 
 param adds_configuration_containerport string
 
-param adds_configuration_was_outputs_tableendpoint string
+param adds_con_was_outputs_tableendpoint string
 
-param adds_configuration_kv_outputs_vaulturi string
+param adds_con_kv_outputs_vaulturi string
 
 param adds_configuration_identity_outputs_clientid string
 
@@ -70,12 +70,12 @@ resource adds_configuration 'Microsoft.App/containerApps@2024-03-01' = {
               value: adds_configuration_containerport
             }
             {
-              name: 'ConnectionStrings__adds-configuration-was-ts'
-              value: adds_configuration_was_outputs_tableendpoint
+              name: 'ConnectionStrings__adds-con-was-ts'
+              value: adds_con_was_outputs_tableendpoint
             }
             {
-              name: 'ConnectionStrings__adds-configuration-kv'
-              value: adds_configuration_kv_outputs_vaulturi
+              name: 'ConnectionStrings__adds-con-kv'
+              value: adds_con_kv_outputs_vaulturi
             }
             {
               name: 'adds-environment'

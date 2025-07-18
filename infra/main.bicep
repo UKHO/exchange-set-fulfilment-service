@@ -25,6 +25,20 @@ resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
   tags: tags
 }
 
+module adds_con_kv 'adds-con-kv/adds-con-kv.module.bicep' = {
+  name: 'adds-con-kv'
+  scope: rg
+  params: {
+    location: location
+  }
+}
+module adds_con_was 'adds-con-was/adds-con-was.module.bicep' = {
+  name: 'adds-con-was'
+  scope: rg
+  params: {
+    location: location
+  }
+}
 module adds_configuration_identity 'adds-configuration-identity/adds-configuration-identity.module.bicep' = {
   name: 'adds-configuration-identity'
   scope: rg
@@ -32,36 +46,22 @@ module adds_configuration_identity 'adds-configuration-identity/adds-configurati
     location: location
   }
 }
-module adds_configuration_kv 'adds-configuration-kv/adds-configuration-kv.module.bicep' = {
-  name: 'adds-configuration-kv'
+module adds_configuration_roles_adds_con_kv 'adds-configuration-roles-adds-con-kv/adds-configuration-roles-adds-con-kv.module.bicep' = {
+  name: 'adds-configuration-roles-adds-con-kv'
   scope: rg
   params: {
-    location: location
-  }
-}
-module adds_configuration_roles_adds_configuration_kv 'adds-configuration-roles-adds-configuration-kv/adds-configuration-roles-adds-configuration-kv.module.bicep' = {
-  name: 'adds-configuration-roles-adds-configuration-kv'
-  scope: rg
-  params: {
-    adds_configuration_kv_outputs_name: adds_configuration_kv.outputs.name
+    adds_con_kv_outputs_name: adds_con_kv.outputs.name
     location: location
     principalId: adds_configuration_identity.outputs.principalId
   }
 }
-module adds_configuration_roles_adds_configuration_was 'adds-configuration-roles-adds-configuration-was/adds-configuration-roles-adds-configuration-was.module.bicep' = {
-  name: 'adds-configuration-roles-adds-configuration-was'
+module adds_configuration_roles_adds_con_was 'adds-configuration-roles-adds-con-was/adds-configuration-roles-adds-con-was.module.bicep' = {
+  name: 'adds-configuration-roles-adds-con-was'
   scope: rg
   params: {
-    adds_configuration_was_outputs_name: adds_configuration_was.outputs.name
+    adds_con_was_outputs_name: adds_con_was.outputs.name
     location: location
     principalId: adds_configuration_identity.outputs.principalId
-  }
-}
-module adds_configuration_was 'adds-configuration-was/adds-configuration-was.module.bicep' = {
-  name: 'adds-configuration-was'
-  scope: rg
-  params: {
-    location: location
   }
 }
 module efs_cae 'efs-cae/efs-cae.module.bicep' = {
@@ -97,10 +97,10 @@ module efs_storage 'efs-storage/efs-storage.module.bicep' = {
     location: location
   }
 }
+output ADDS_CON_KV_VAULTURI string = adds_con_kv.outputs.vaultUri
+output ADDS_CON_WAS_TABLEENDPOINT string = adds_con_was.outputs.tableEndpoint
 output ADDS_CONFIGURATION_IDENTITY_CLIENTID string = adds_configuration_identity.outputs.clientId
 output ADDS_CONFIGURATION_IDENTITY_ID string = adds_configuration_identity.outputs.id
-output ADDS_CONFIGURATION_KV_VAULTURI string = adds_configuration_kv.outputs.vaultUri
-output ADDS_CONFIGURATION_WAS_TABLEENDPOINT string = adds_configuration_was.outputs.tableEndpoint
 output AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN string = efs_cae.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN
 output AZURE_CONTAINER_REGISTRY_ENDPOINT string = efs_cae.outputs.AZURE_CONTAINER_REGISTRY_ENDPOINT
 output EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN string = efs_cae.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN

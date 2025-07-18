@@ -16,19 +16,19 @@ parameters:
   - name: DeployOrchestrator
     displayName: "Deploy orchestrator"
     type: boolean
-    default: false
+    default: true
   - name: DeployConfiguration
     displayName: "Deploy configuration"
     type: boolean
-    default: false
+    default: true
   - name: DeployBuilderS100
     displayName: "Deploy S100 builder"
     type: boolean
-    default: false
+    default: true
   - name: DeployAddsMock
     displayName: "Deploy ADDS mock"
     type: boolean
-    default: false
+    default: true
   - name: DestroyResourcesDev
     displayName: "Destroy dev environment"
     type: boolean
