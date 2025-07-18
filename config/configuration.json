@@ -17,6 +17,8 @@
                 "S57SalesCatalogue": "{{s57mockscs}}" // Local dynamic scs mock address from aspire, set in LocalHost
             },
             "AllowedHosts": "*",
+            "DeduplicationEnabled": false, // Enable deduplication of requests
+            "DeduplicationExpiry": "23:00:00", // The timeframe for deduplication from first generation to expiry
             "Builders": {
                 "LogReplayLevel": "Information" // Log level for replaying builder logs
             },
@@ -83,6 +85,8 @@
                 "S57SalesCatalogue": "https://dev.scsmock"
             },
             "AllowedHosts": "*",
+            "EnableDeduplication": false, // Enable deduplication of requests
+            "DeduplicationExpiry": "23:00:00", // The timeframe for deduplication from first generation to expiry
             "Builders": {
                 "LogReplayLevel": "Information" // Log level for replaying builder logs
             },

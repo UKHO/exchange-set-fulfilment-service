@@ -28,7 +28,7 @@ namespace UKHO.ADDS.EFS.Builds.S100
 
         public override string GetProductDelimitedList() => (Products == null) ? string.Empty : string.Join(", ", Products.Select(p => p));
 
-        public override string GetProductDiscriminator()
+        public override string GetProductDiscriminant()
         {
             // TODO Produce a lexically ordered string for duplicate detection
 

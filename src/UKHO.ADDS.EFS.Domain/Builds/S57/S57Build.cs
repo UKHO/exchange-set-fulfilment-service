@@ -17,7 +17,7 @@
 
         public override string GetProductDelimitedList() => (Products == null) ? string.Empty : string.Join(", ", Products.Select(p => p));
 
-        public override string GetProductDiscriminator() => $"s57-{Guid.NewGuid():N}"; // TODO Implement when product list is available
+        public override string GetProductDiscriminant() => $"s57-{Guid.NewGuid():N}"; // TODO Implement when product list is available
 
         public override int GetProductCount() => (Products == null) ? 0 : Products?.Count() ?? 0;
     }
