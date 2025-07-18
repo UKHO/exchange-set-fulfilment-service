@@ -12,6 +12,8 @@ if exist "%scriptdir%next-steps.md" del "%scriptdir%next-steps.md"
 if exist "%scriptdir%src\UKHO.ADDS.EFS.LocalHost\infra" rmdir /s /q "%scriptdir%src\UKHO.ADDS.EFS.LocalHost\infra"
 if exist "%scriptdir%.azure" rmdir /s /q "%scriptdir%.azure"
 
+pause
+
 azd init
 azd infra gen
 
