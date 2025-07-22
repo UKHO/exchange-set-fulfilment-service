@@ -43,6 +43,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         private const int FileShareServiceOperationFailedId = BaseEventId + 21;
         private const int SalesCatalogueProductsNotReturnedId = BaseEventId + 22;
 
+        private const int CreateErrorFileSuccessId = BaseEventId + 23;
+        private const int CreateErrorFileNodeFailedId = BaseEventId + 24;
+        private const int CreateErrorFileAddFileFailedId = BaseEventId + 25;
+
         // An unhandled HTTP error has occurred
         public static readonly EventId UnhandledHttpError = new(UnhandledHttpErrorId, nameof(UnhandledHttpError));
 
@@ -125,6 +129,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 
         public static readonly EventId SalesCatalogueProductsNotReturned = new(SalesCatalogueProductsNotReturnedId, nameof(SalesCatalogueProductsNotReturned));
 
+        // Error file creation events
+        public static readonly EventId CreateErrorFileSuccess = new(CreateErrorFileSuccessId, nameof(CreateErrorFileSuccess));
+        public static readonly EventId CreateErrorFileNodeFailed = new(CreateErrorFileNodeFailedId, nameof(CreateErrorFileNodeFailed));
+        public static readonly EventId CreateErrorFileAddFileFailed = new(CreateErrorFileAddFileFailedId, nameof(CreateErrorFileAddFileFailed));
+
         [LoggerMessage(UnhandledHttpErrorId, LogLevel.Error, "An unhandled exception was caught by the HTTP pipeline: {@message}", EventName = nameof(UnhandledHttpError))]
         public static partial void LogUnhandledHttpError(this ILogger logger, string message, Exception exception);
 
@@ -190,5 +199,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 
         [LoggerMessage(SalesCatalogueProductsNotReturnedId, LogLevel.Warning, "Sales Catalogue products not returned: {@salesCatalogueLog}", EventName = nameof(SalesCatalogueProductsNotReturned))]
         public static partial void LogSalesCatalogueProductsNotReturned(this ILogger logger, [LogProperties] SalesCatalogServiceProductsNotReturnedView salesCatalogueLog);
+
+        [LoggerMessage(CreateErrorFileSuccessId, LogLevel.Information, "Error file created successfully for correlation ID: {correlationId}, batch ID: {batchId}", EventName = nameof(CreateErrorFileSuccess))]
+        public static partial void LogCreateErrorFileSuccess(this ILogger logger, string correlationId, string batchId);
+
+        [LoggerMessage(CreateErrorFileNodeFailedId, LogLevel.Error, "CreateErrorFileNode failed for correlation ID: {correlationId}, batch ID: {batchId}", EventName = nameof(CreateErrorFileNodeFailed))]
+        public static partial void LogCreateErrorFileNodeFailed(this ILogger logger, string correlationId, string batchId, Exception exception);
+
+        [LoggerMessage(CreateErrorFileAddFileFailedId, LogLevel.Error, "Failed to add error file to batch for correlation ID: {correlationId}, batch ID: {batchId}, error: {@error}", EventName = nameof(CreateErrorFileAddFileFailed))]
+        public static partial void LogCreateErrorFileAddFileFailed(this ILogger logger, string correlationId, string batchId, [LogProperties] IError error);
     }
 }
