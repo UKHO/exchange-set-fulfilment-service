@@ -57,7 +57,7 @@ variables:
   - name: UkhoAssemblyProduct
     value: "ESS Fulfilment Service"
   - name: UKHOAssemblyCopyright
-    value: "Copyright © UK Hydrographic Office"
+    value: "Copyright ï¿½ UK Hydrographic Office"
   - name: SdkVersion
     value: "9.0.x"
   - name: WindowsPool
@@ -165,3 +165,57 @@ stages:
         DeployConfiguration: ${{ parameters.DeployConfiguration }}
         DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
         DeployAddsMock: ${{ parameters.DeployAddsMock }}
+
+  - stage: vnextiatDeploy
+    dependsOn:
+    - VulnerabilityChecks
+    - Test
+    - DevDeploy
+    displayName: vNext IAT Deploy
+    jobs:
+    - template: templates/continuous-deployment.yml
+      parameters:
+        AzureDevOpsEnvironment: Ess-vnextiat
+        ShortName: vnextiat
+        DestroyResources: ${{ parameters.DestroyResourcesDev }}
+        AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+        DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
+        DeployConfiguration: ${{ parameters.DeployConfiguration }}
+        DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
+        DeployAddsMock: false
+
+  - stage: vnexte2eDeploy
+    dependsOn:
+    - VulnerabilityChecks
+    - Test
+    - vnextiatDeploy
+    displayName: vNext E2E Deploy
+    jobs:
+    - template: templates/continuous-deployment.yml
+      parameters:
+        AzureDevOpsEnvironment: Ess-vnexte2e
+        ShortName: vnexte2e
+        DestroyResources: ${{ parameters.DestroyResourcesDev }}
+        AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+        DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
+        DeployConfiguration: ${{ parameters.DeployConfiguration }}
+        DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
+        DeployAddsMock: false
+
+  - stage: iatDeploy
+    dependsOn:
+    - VulnerabilityChecks
+    - Test
+    - DevDeploy
+    displayName: IAT Deploy
+    jobs:
+    - template: templates/continuous-deployment.yml
+      parameters:
+        AzureDevOpsEnvironment: Ess-iat
+        ShortName: iat
+        DestroyResources: ${{ parameters.DestroyResourcesDev }}
+        AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+        DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
+        DeployConfiguration: ${{ parameters.DeployConfiguration }}
+        DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
+        DeployAddsMock: false
