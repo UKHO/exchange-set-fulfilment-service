@@ -139,7 +139,8 @@ namespace UKHO.ADDS.EFS.LocalHost
             // Orchestrator trigger
             builder.AddAzureFunctionsProject<UKHO_ADDS_EFS_Trigger>(ProcessNames.OrchestratorFunctionTrigger)
                 .WithExternalHttpEndpoints()
-                .WithReference(orchestratorService);
+                .WithReference(orchestratorService)
+                .WithHostStorage(storage);
 
             var application = builder.Build();
 
