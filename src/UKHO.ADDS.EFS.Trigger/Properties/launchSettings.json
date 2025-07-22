@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "UKHO.ADDS.EFS.Trigger": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7165",
+      "launchBrowser": false
+    }
+  }
+}

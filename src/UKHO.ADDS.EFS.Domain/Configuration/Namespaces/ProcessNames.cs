@@ -13,5 +13,7 @@
         public const string MockService = "adds-mocks-efs";
 
         public const string RequestMonitorService = "efs-local-request-monitor";
+
+        public const string OrchestratorFunctionTrigger = "efs-orchestrator-trigger";
     }
 }
