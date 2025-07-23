@@ -57,7 +57,7 @@ variables:
   - name: UkhoAssemblyProduct
     value: "ESS Fulfilment Service"
   - name: UKHOAssemblyCopyright
-    value: "Copyright � UK Hydrographic Office"
+    value: "Copyright © UK Hydrographic Office"
   - name: SdkVersion
     value: "9.0.x"
   - name: WindowsPool
@@ -168,8 +168,6 @@ stages:
 
   - stage: vnextiatDeploy
     dependsOn:
-    - VulnerabilityChecks
-    - Test
     - DevDeploy
     displayName: vNext IAT Deploy
     jobs:
@@ -186,8 +184,6 @@ stages:
 
   - stage: vnexte2eDeploy
     dependsOn:
-    - VulnerabilityChecks
-    - Test
     - vnextiatDeploy
     displayName: vNext E2E Deploy
     jobs:
@@ -204,8 +200,6 @@ stages:
 
   - stage: iatDeploy
     dependsOn:
-    - VulnerabilityChecks
-    - Test
     - DevDeploy
     displayName: IAT Deploy
     jobs:
