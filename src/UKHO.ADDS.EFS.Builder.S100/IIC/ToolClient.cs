@@ -12,7 +12,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
     {
         private readonly HttpClient _httpClient;
         private const string WorkSpaceId = "working9";
-        private const string ApiVersion = "2.7";
+        private const string ApiVersion = "7.3";
         private const string ApplicationName = "IICToolAPI";
 
         /// <summary>
@@ -144,7 +144,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
             try
             {
                 var path = BuildApiPath(action, exchangeSetId, authKey, resourceLocation);
-                using var response = await _httpClient.GetAsync(path);
+                using var response = await SendHttpRequestAsync(action, path);
                 var content = await response.Content.ReadAsStringAsync();
                 var resultObj = JsonCodec.Decode<T>(content);
 
@@ -152,16 +152,30 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
                 {
                     return Result.Success(resultObj);
                 }
-                else
-                {
-                    var errorMetadata = await response.CreateErrorMetadata(ApplicationName, correlationId);
-                    return Result.Failure<T>(ErrorFactory.CreateError(response.StatusCode, errorMetadata));
-                }
+
+                var errorMetadata = await response.CreateErrorMetadata(ApplicationName, correlationId);
+                return Result.Failure<T>(ErrorFactory.CreateError(response.StatusCode, errorMetadata));
             }
             catch (Exception ex)
             {
                 return Result.Failure<T>(ex);
             }
+        }
+
+        /// <summary>
+        /// Sends an HTTP request to the IIC Tool API for the specified action and path.
+        /// </summary>
+        /// <param name="action">The API action to perform (e.g., "addExchangeSet", "addContent", etc.).</param>
+        /// <param name="path">The fully constructed API endpoint path.</param>
+        /// <returns>returns the response from the API.</returns>
+        private async Task<HttpResponseMessage> SendHttpRequestAsync(string action, string path)
+        {
+            if (action == "addExchangeSet" || action == "addContent")
+            {
+                var emptyContent = new StringContent(string.Empty, System.Text.Encoding.UTF8, "application/json");
+                return await _httpClient.PutAsync(path, emptyContent);
+            }
+            return await _httpClient.GetAsync(path);
         }
 
         /// <summary>

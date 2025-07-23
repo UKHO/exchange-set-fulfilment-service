@@ -34,7 +34,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
 
-            // Wait for Tomcat to respond by using the ToolClient's PingAsync method
+            // Wait for Tomcat to respond by using the ToolClient's ListWorkspaceAsync method
             var toolClient = context.Subject.ToolClient;
             var ready = false;
 
@@ -43,8 +43,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
 
             for (var i = 0; i < maxRetries; i++)
             {
-                var pingResult = await toolClient.PingAsync();
-                if (pingResult.IsSuccess())
+                var result = await toolClient.ListWorkspaceAsync(context.Subject.WorkspaceAuthenticationKey);
+                if (result.IsSuccess(out var response) && !string.IsNullOrEmpty(response))
                 {
                     ready = true;
                     break;
