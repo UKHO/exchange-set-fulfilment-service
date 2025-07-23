@@ -169,3 +169,4 @@ stages:
         DeployConfiguration: ${{ parameters.DeployConfiguration }}
         DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
         DeployAddsMock: ${{ parameters.DeployAddsMock }}
+        DeployTrigger: ${{ parameters.DeployTrigger }}
