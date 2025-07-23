@@ -29,6 +29,10 @@ parameters:
     displayName: "Deploy ADDS mock"
     type: boolean
     default: true
+  - name: DeployTrigger
+    displayName: "Deploy Trigger"
+    type: boolean
+    default: false
   - name: DestroyResourcesDev
     displayName: "Destroy dev environment"
     type: boolean
