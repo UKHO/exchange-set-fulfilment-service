@@ -90,8 +90,31 @@ module efs_orchestrator_roles_efs_storage 'efs-orchestrator-roles-efs-storage/ef
     principalId: efs_orchestrator_identity.outputs.principalId
   }
 }
+module efs_orchestrator_trigger_identity 'efs-orchestrator-trigger-identity/efs-orchestrator-trigger-identity.module.bicep' = {
+  name: 'efs-orchestrator-trigger-identity'
+  scope: rg
+  params: {
+    location: location
+  }
+}
+module efs_orchestrator_trigger_roles_funcstorage26e0b 'efs-orchestrator-trigger-roles-funcstorage26e0b/efs-orchestrator-trigger-roles-funcstorage26e0b.module.bicep' = {
+  name: 'efs-orchestrator-trigger-roles-funcstorage26e0b'
+  scope: rg
+  params: {
+    funcstorage26e0b_outputs_name: funcstorage26e0b.outputs.name
+    location: location
+    principalId: efs_orchestrator_trigger_identity.outputs.principalId
+  }
+}
 module efs_storage 'efs-storage/efs-storage.module.bicep' = {
   name: 'efs-storage'
+  scope: rg
+  params: {
+    location: location
+  }
+}
+module funcstorage26e0b 'funcstorage26e0b/funcstorage26e0b.module.bicep' = {
+  name: 'funcstorage26e0b'
   scope: rg
   params: {
     location: location
@@ -109,7 +132,12 @@ output EFS_CAE_AZURE_CONTAINER_REGISTRY_ENDPOINT string = efs_cae.outputs.AZURE_
 output EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID string = efs_cae.outputs.AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID
 output EFS_ORCHESTRATOR_IDENTITY_CLIENTID string = efs_orchestrator_identity.outputs.clientId
 output EFS_ORCHESTRATOR_IDENTITY_ID string = efs_orchestrator_identity.outputs.id
+output EFS_ORCHESTRATOR_TRIGGER_IDENTITY_CLIENTID string = efs_orchestrator_trigger_identity.outputs.clientId
+output EFS_ORCHESTRATOR_TRIGGER_IDENTITY_ID string = efs_orchestrator_trigger_identity.outputs.id
 output EFS_STORAGE_BLOBENDPOINT string = efs_storage.outputs.blobEndpoint
 output EFS_STORAGE_QUEUEENDPOINT string = efs_storage.outputs.queueEndpoint
 output EFS_STORAGE_TABLEENDPOINT string = efs_storage.outputs.tableEndpoint
 output EFS_STORAGE_NAME string = efs_storage.outputs.name
+output FUNCSTORAGE26E0B_BLOBENDPOINT string = funcstorage26e0b.outputs.blobEndpoint
+output FUNCSTORAGE26E0B_QUEUEENDPOINT string = funcstorage26e0b.outputs.queueEndpoint
+output FUNCSTORAGE26E0B_TABLEENDPOINT string = funcstorage26e0b.outputs.tableEndpoint

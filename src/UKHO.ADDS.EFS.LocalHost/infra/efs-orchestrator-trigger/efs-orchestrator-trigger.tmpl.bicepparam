@@ -1,0 +1,12 @@
+using './efs-orchestrator-trigger.module.bicep'
+
+param efs_cae_outputs_azure_container_apps_environment_default_domain = '{{ .Env.EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN }}'
+param efs_cae_outputs_azure_container_apps_environment_id = '{{ .Env.EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_ID }}'
+param efs_cae_outputs_azure_container_registry_endpoint = '{{ .Env.EFS_CAE_AZURE_CONTAINER_REGISTRY_ENDPOINT }}'
+param efs_cae_outputs_azure_container_registry_managed_identity_id = '{{ .Env.EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID }}'
+param efs_orchestrator_trigger_containerimage = '{{ .Image }}'
+param efs_orchestrator_trigger_identity_outputs_clientid = '{{ .Env.EFS_ORCHESTRATOR_TRIGGER_IDENTITY_CLIENTID }}'
+param efs_orchestrator_trigger_identity_outputs_id = '{{ .Env.EFS_ORCHESTRATOR_TRIGGER_IDENTITY_ID }}'
+param funcstorage26e0b_outputs_blobendpoint = '{{ .Env.FUNCSTORAGE26E0B_BLOBENDPOINT }}'
+param funcstorage26e0b_outputs_queueendpoint = '{{ .Env.FUNCSTORAGE26E0B_QUEUEENDPOINT }}'
+param funcstorage26e0b_outputs_tableendpoint = '{{ .Env.FUNCSTORAGE26E0B_TABLEENDPOINT }}'
