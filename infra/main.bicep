@@ -97,26 +97,6 @@ module efs_storage 'efs-storage/efs-storage.module.bicep' = {
     location: location
   }
 }
-
-module efs_orchestrator_trigger_identity 'efs-orchestrator-trigger-identity/efs-orchestrator-trigger-identity.module.bicep' = {
-  name: 'efs-orchestrator-trigger-identity'
-  scope: rg
-  params: {
-    location: location
-  }
-}
-
-module efs_orchestrator_trigger 'efs-orchestrator-trigger/efs-orchestrator-trigger.module.bicep' = {
-  name: 'efs-orchestrator-trigger'
-  scope: rg
-  params: {
-    location: location
-    functionAppName: 'efs-orchestrator-trigger-functionapp'
-    hostingPlanName: 'efs-orchestrator-trigger-plan'
-    storageAccountName: efs_storage.outputs.name
-    userAssignedIdentityId: efs_orchestrator_trigger_identity.outputs.id
-  }
-}
 output ADDS_CON_KV_VAULTURI string = adds_con_kv.outputs.vaultUri
 output ADDS_CON_WAS_TABLEENDPOINT string = adds_con_was.outputs.tableEndpoint
 output ADDS_CONFIGURATION_IDENTITY_CLIENTID string = adds_configuration_identity.outputs.clientId
