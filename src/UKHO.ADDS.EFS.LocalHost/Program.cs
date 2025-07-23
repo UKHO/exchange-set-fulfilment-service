@@ -3,6 +3,7 @@ using Azure.Core;
 using Azure.Provisioning;
 using Azure.Provisioning.AppContainers;
 using Azure.Provisioning.Storage;
+using Aspire.Hosting.Azure;
 using CliWrap;
 using Docker.DotNet;
 using Docker.DotNet.Models;
@@ -31,6 +32,9 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             var builder = DistributedApplication.CreateBuilder(args);
             builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());
+
+            // app insights
+            var appInsights = builder.AddAzureApplicationInsights("appInsights");
 
             // Get parameters
             var subnetResourceId = builder.AddParameter("subnetResourceId");
@@ -70,7 +74,8 @@ namespace UKHO.ADDS.EFS.LocalHost
             // ADDS Mock
             var mockService = builder.AddProject<UKHO_ADDS_Mocks_EFS>(ProcessNames.MockService)
                 .WithDashboard("Dashboard")
-                .WithExternalHttpEndpoints();
+                .WithExternalHttpEndpoints()
+                .WithReference(appInsights);
 
             // Build Request Monitor
             IResourceBuilder<ProjectResource>? requestMonitor = null;
@@ -123,6 +128,8 @@ namespace UKHO.ADDS.EFS.LocalHost
             .WithExternalHttpEndpoints();
 
             orchestratorService.WithConfiguration(configurationService);
+            
+
 
             if (builder.Environment.IsDevelopment())
             {

@@ -61,6 +61,10 @@ resource adds_mocks_efs 'Microsoft.App/containerApps@2024-03-01' = {
               name: 'HTTP_PORTS'
               value: adds_mocks_efs_containerport
             }
+            {
+              name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+              value: appinsights_outputs_appinsightsconnectionstring
+            }
           ]
         }
       ]
