@@ -24,6 +24,11 @@ parameters:
   displayName: "Deploy S100 builder"
   type: boolean
   default: false
+# Deploy the Trigger container app.
+- name: DeployTrigger
+  displayName: "Deploy Trigger"
+  type: boolean
+  default: false
 # Deploy the ADDS mock container app.
 - name: DeployAddsMock
   displayName: "Deploy ADDS mock"
@@ -188,3 +193,11 @@ jobs:
               ProjectFolder: UKHO.ADDS.EFS.Builder.S100
               AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
               DeployApp: ${{ parameters.DeployBuilderS100 }}
+
+          - template: container-functionapp-deploy.yml
+            parameters:
+              AzureSubscription: ${{ variables.AzureSubscription }}
+              AppName: efs-orchestrator-trigger
+              ProjectFolder: UKHO.ADDS.EFS.Trigger
+              AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+              DeployApp: ${{ parameters.DeployTrigger }}
