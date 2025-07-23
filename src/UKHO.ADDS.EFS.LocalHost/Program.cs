@@ -103,7 +103,8 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WithReference(mockService)
                 .WaitFor(mockService)
                 .WithExternalHttpEndpoints()
-                .WithScalar("API Browser");
+                .WithScalar("API Browser")
+                .WithReference(appInsights);
 
             if (builder.Environment.IsDevelopment())
             {

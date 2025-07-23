@@ -21,6 +21,8 @@ param efs_storage_outputs_tableendpoint string
 
 param efs_storage_outputs_blobendpoint string
 
+param appinsights_outputs_appinsightsconnectionstring string
+
 param efs_orchestrator_identity_outputs_clientid string
 
 resource efs_orchestrator 'Microsoft.App/containerApps@2024-03-01' = {
@@ -90,6 +92,10 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2024-03-01' = {
             {
               name: 'services__adds-mocks-efs__https__0'
               value: 'https://adds-mocks-efs.${efs_cae_outputs_azure_container_apps_environment_default_domain}'
+            }
+            {
+              name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+              value: appinsights_outputs_appinsightsconnectionstring
             }
             {
               name: 'services__adds-configuration__http__0'
