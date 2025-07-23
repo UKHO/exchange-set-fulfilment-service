@@ -4,7 +4,7 @@ parameters:
   - name: DisableStryker
     displayName: "Disable Stryker"
     type: boolean
-    default: false
+    default: true
   - name: SnykOnlyFailIfFixable
     displayName: "Snyk - fail only if an issue has an available fix"
     type: boolean
@@ -16,15 +16,15 @@ parameters:
   - name: DeployOrchestrator
     displayName: "Deploy orchestrator"
     type: boolean
-    default: true
+    default: false
   - name: DeployConfiguration
     displayName: "Deploy configuration"
     type: boolean
-    default: true
+    default: false
   - name: DeployBuilderS100
     displayName: "Deploy S100 builder"
     type: boolean
-    default: true
+    default: false
   - name: DeployAddsMock
     displayName: "Deploy ADDS mock"
     type: boolean
@@ -57,7 +57,7 @@ variables:
   - name: UkhoAssemblyProduct
     value: "ESS Fulfilment Service"
   - name: UKHOAssemblyCopyright
-    value: "Copyright � UK Hydrographic Office"
+    value: "Copyright © UK Hydrographic Office"
   - name: SdkVersion
     value: "9.0.x"
   - name: WindowsPool
@@ -150,6 +150,9 @@ stages:
   #   - template: templates/test.yml
 
   - stage: DevDeploy
+    dependsOn: []
+    # - VulnerabilityChecks
+    # - Test
     displayName: Dev deploy
     jobs:
     - template: templates/continuous-deployment.yml
