@@ -198,6 +198,6 @@ jobs:
             parameters:
               AzureSubscription: ${{ variables.AzureSubscription }}
               AppName: efs-orchestrator-trigger
-              ProjectFolder: UKHO.ADDS.EFS.Trigger
+              ProjectPath: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Trigger/UKHO.ADDS.EFS.Trigger.csproj
               AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
               DeployApp: ${{ parameters.DeployTrigger }}
