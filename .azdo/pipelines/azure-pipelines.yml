@@ -150,9 +150,6 @@ stages:
   #   - template: templates/test.yml
 
   - stage: DevDeploy
-    # dependsOn:
-    # - VulnerabilityChecks
-    # - Test
     displayName: Dev deploy
     jobs:
     - template: templates/continuous-deployment.yml
