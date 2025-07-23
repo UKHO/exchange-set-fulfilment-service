@@ -111,8 +111,8 @@ module efs_orchestrator_trigger 'efs-orchestrator-trigger/efs-orchestrator-trigg
   scope: rg
   params: {
     location: location
-    functionAppName: efs_orchestrator_trigger.outputs.functionAppName
-    hostingPlanName: efs_orchestrator_trigger.outputs.hostingPlanName
+    functionAppName: 'efs-orchestrator-trigger-functionapp'
+    hostingPlanName: 'efs-orchestrator-trigger-plan'
     storageAccountName: efs_storage.outputs.name
     userAssignedIdentityId: efs_orchestrator_trigger_identity.outputs.id
   }
