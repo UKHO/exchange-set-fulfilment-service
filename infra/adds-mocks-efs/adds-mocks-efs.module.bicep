@@ -13,6 +13,8 @@ param adds_mocks_efs_containerimage string
 
 param adds_mocks_efs_containerport string
 
+param appinsights_outputs_appinsightsconnectionstring string
+
 resource adds_mocks_efs 'Microsoft.App/containerApps@2024-03-01' = {
   name: 'adds-mocks-efs'
   location: location
