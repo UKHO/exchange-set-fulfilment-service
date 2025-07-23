@@ -62,8 +62,8 @@ steps:
 
       if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
         #az deployment group create --name ${{ parameters.AppName }}-$DEPLOYMENT_NUMBER --resource-group $RESOURCE_GROUP --parameters ${{ parameters.AppName }}.tmpl.bicepparam --debug
-        azd deploy ${{ parameters.AppName }} --no-wait
+        azd deploy ${{ parameters.AppName }}
       else
         #az deployment group create --name ${{ parameters.AppName }}-$DEPLOYMENT_NUMBER --resource-group $RESOURCE_GROUP --parameters ${{ parameters.AppName }}.tmpl.bicepparam
-        azd deploy ${{ parameters.AppName }} --no-wait
+        azd deploy ${{ parameters.AppName }}
       fi
