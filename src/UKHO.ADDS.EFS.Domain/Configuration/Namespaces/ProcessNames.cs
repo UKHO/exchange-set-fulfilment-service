@@ -14,6 +14,5 @@
 
         public const string RequestMonitorService = "efs-local-request-monitor";
 
-        public const string AppInsightsService = "efs-app-insights";
     }
 }
