@@ -24,9 +24,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
             var authKey = context.Subject.WorkspaceAuthenticationKey;
             var toolClient = context.Subject.ToolClient;
 
+            // Paths to check directory exists
             var datasetFilesPath = Path.Combine(context.Subject.WorkSpaceRootPath, context.Subject.WorkSpaceSpoolPath, context.Subject.WorkSpaceSpoolDataSetFilesPath);
             var supportFilesPath = Path.Combine(context.Subject.WorkSpaceRootPath, context.Subject.WorkSpaceSpoolPath, context.Subject.WorkSpaceSpoolSupportFilesPath);
 
+            // Validate the paths and filter out those that do not exist
             var validContentPaths = new[] {
                     (Path: context.Subject.WorkSpaceSpoolDataSetFilesPath, FullPath: datasetFilesPath),
                     (Path: context.Subject.WorkSpaceSpoolSupportFilesPath, FullPath: supportFilesPath)
@@ -35,6 +37,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
                 .Select(x => x.Path)
                 .ToArray();
 
+            // Process each path
             foreach (var path in validContentPaths)
             {
                 if (!await AddContentForPathAsync(toolClient, path, jobId, authKey, logger))
