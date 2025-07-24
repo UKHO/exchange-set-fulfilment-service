@@ -3,23 +3,23 @@ param location string = resourceGroup().location
 
 param sku string = 'Standard'
 
-resource efsventhub 'Microsoft.EventHub/namespaces@2024-01-01' = {
-  name: take('efsventhub-${uniqueString(resourceGroup().id)}', 256)
+resource efseventhub 'Microsoft.EventHub/namespaces@2024-01-01' = {
+  name: take('efseventhub-${uniqueString(resourceGroup().id)}', 256)
   location: location
   sku: {
     name: sku
   }
   tags: {
-    'aspire-resource-name': 'efsventhub'
+    'aspire-resource-name': 'efseventhub'
     'hidden-title': 'EFS'
   }
 }
 
 resource efsingestionhub 'Microsoft.EventHub/namespaces/eventhubs@2024-01-01' = {
   name: 'efsingestionhub'
-  parent: efsventhub
+  parent: efseventhub
 }
 
-output eventHubsEndpoint string = efsventhub.properties.serviceBusEndpoint
+output eventHubsEndpoint string = efseventhub.properties.serviceBusEndpoint
 
-output name string = efsventhub.name
+output name string = efseventhub.name
