@@ -30,9 +30,16 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
                 context.Subject.WorkSpaceSpoolSupportFilesPath
             };
 
-            // Process each path
+            var supportFilesPath = Path.Combine(context.Subject.WorkSpaceRootPath, context.Subject.WorkSpaceSpoolPath, context.Subject.WorkSpaceSpoolSupportFilesPath);
+            var supportFilesExists = Directory.Exists(supportFilesPath);
+
             foreach (var path in contentPaths)
             {
+                if (path == context.Subject.WorkSpaceSpoolSupportFilesPath && !supportFilesExists)
+                {
+                    continue;
+                }
+
                 if (!await AddContentForPathAsync(toolClient, path, jobId, authKey, logger))
                 {
                     return NodeResultStatus.Failed;
