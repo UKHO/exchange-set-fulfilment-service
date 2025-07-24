@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.EFS.Builder.S100.IIC;
+﻿using System.IO;
+using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Create.Logging;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
@@ -23,23 +24,19 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
             var authKey = context.Subject.WorkspaceAuthenticationKey;
             var toolClient = context.Subject.ToolClient;
 
-            // Define paths to process
-            var contentPaths = new[]
-            {
-                context.Subject.WorkSpaceSpoolDataSetFilesPath,
-                context.Subject.WorkSpaceSpoolSupportFilesPath
-            };
-
+            var datasetFilesPath = Path.Combine(context.Subject.WorkSpaceRootPath, context.Subject.WorkSpaceSpoolPath, context.Subject.WorkSpaceSpoolDataSetFilesPath);
             var supportFilesPath = Path.Combine(context.Subject.WorkSpaceRootPath, context.Subject.WorkSpaceSpoolPath, context.Subject.WorkSpaceSpoolSupportFilesPath);
-            var supportFilesExists = Directory.Exists(supportFilesPath);
 
-            foreach (var path in contentPaths)
-            {
-                if (path == context.Subject.WorkSpaceSpoolSupportFilesPath && !supportFilesExists)
-                {
-                    continue;
+            var validContentPaths = new[] {
+                    (Path: context.Subject.WorkSpaceSpoolDataSetFilesPath, FullPath: datasetFilesPath),
+                    (Path: context.Subject.WorkSpaceSpoolSupportFilesPath, FullPath: supportFilesPath)
                 }
+                .Where(x => Directory.Exists(x.FullPath))
+                .Select(x => x.Path)
+                .ToArray();
 
+            foreach (var path in validContentPaths)
+            {
                 if (!await AddContentForPathAsync(toolClient, path, jobId, authKey, logger))
                 {
                     return NodeResultStatus.Failed;
