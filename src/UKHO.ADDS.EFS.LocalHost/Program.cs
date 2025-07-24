@@ -38,7 +38,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             
             // Event Hubs
             var eventHubs = builder.AddAzureEventHubs(ServiceConfiguration.EventHubService);
-            eventHubs.AddHub("efs-ingestion-hub");
+            eventHubs.AddHub(ServiceConfiguration.IngestionHub);
 
             // Get parameters
             var subnetResourceId = builder.AddParameter("subnetResourceId");
