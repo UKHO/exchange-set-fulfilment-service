@@ -79,7 +79,8 @@ namespace UKHO.ADDS.EFS.LocalHost
             var mockService = builder.AddProject<UKHO_ADDS_Mocks_EFS>(ProcessNames.MockService)
                 .WithDashboard("Dashboard")
                 .WithExternalHttpEndpoints()
-                .WithReference(appInsights);
+                .WithReference(appInsights)
+                .WithReference(eventHub);
 
             // Build Request Monitor
             IResourceBuilder<ProjectResource>? requestMonitor = null;
