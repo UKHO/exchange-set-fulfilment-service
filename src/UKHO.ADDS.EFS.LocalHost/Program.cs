@@ -35,6 +35,10 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             // app insights
             var appInsights = builder.AddAzureApplicationInsights(ServiceConfiguration.AppInsightsService);
+            
+            // Event Hubs
+            var eventHubs = builder.AddAzureEventHubs(ServiceConfiguration.EventHubService);
+            eventHubs.AddHub("efs-ingestion-hub");
 
             // Get parameters
             var subnetResourceId = builder.AddParameter("subnetResourceId");
@@ -104,7 +108,8 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WaitFor(mockService)
                 .WithExternalHttpEndpoints()
                 .WithScalar("API Browser")
-                .WithReference(appInsights);
+                .WithReference(appInsights)
+                .WithReference(eventHubs);
 
             if (builder.Environment.IsDevelopment())
             {
