@@ -34,7 +34,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());
 
             // app insights
-            var appInsights = builder.AddAzureApplicationInsights("appInsights");
+            var appInsights = builder.AddAzureApplicationInsights(ProcessNames.AppInsightsService);
 
             // Get parameters
             var subnetResourceId = builder.AddParameter("subnetResourceId");

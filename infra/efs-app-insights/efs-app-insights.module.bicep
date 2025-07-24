@@ -7,8 +7,8 @@ param kind string = 'web'
 
 param logAnalyticsWorkspaceId string
 
-resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
-  name: take('appInsights-${uniqueString(resourceGroup().id)}', 260)
+resource efs_app_insights 'Microsoft.Insights/components@2020-02-02' = {
+  name: take('efs_app_insights-${uniqueString(resourceGroup().id)}', 260)
   kind: kind
   location: location
   properties: {
@@ -16,8 +16,9 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
     WorkspaceResourceId: logAnalyticsWorkspaceId
   }
   tags: {
-    'aspire-resource-name': 'appInsights'
+    'aspire-resource-name': 'efs-app-insights',
+    'hidden-title': 'EFS'
   }
 }
 
-output appInsightsConnectionString string = appInsights.properties.ConnectionString
+output appInsightsConnectionString string = efs_app_insights.properties.ConnectionString

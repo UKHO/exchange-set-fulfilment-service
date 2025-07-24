@@ -11,4 +11,4 @@ param efs_orchestrator_identity_outputs_id = readEnvironmentVariable('EFS_ORCHES
 param efs_storage_outputs_blobendpoint = readEnvironmentVariable('EFS_STORAGE_BLOBENDPOINT')
 param efs_storage_outputs_queueendpoint = readEnvironmentVariable('EFS_STORAGE_QUEUEENDPOINT')
 param efs_storage_outputs_tableendpoint = readEnvironmentVariable('EFS_STORAGE_TABLEENDPOINT')
-param appinsights_outputs_appinsightsconnectionstring = readEnvironmentVariable('APPINSIGHTS_APPINSIGHTSCONNECTIONSTRING')
+param efs_app_insights_outputs_appinsightsconnectionstring = readEnvironmentVariable('EFS_APP_INSIGHTS_APPINSIGHTSCONNECTIONSTRING')

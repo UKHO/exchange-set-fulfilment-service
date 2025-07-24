@@ -64,8 +64,8 @@ module adds_configuration_roles_adds_con_was 'adds-configuration-roles-adds-con-
     principalId: adds_configuration_identity.outputs.principalId
   }
 }
-module appInsights 'appInsights/appInsights.module.bicep' = {
-  name: 'appInsights'
+module efs_app_insights 'efs-app-insights/efs-app-insights.module.bicep' = {
+  name: 'efs-app-insights'
   scope: rg
   params: {
     location: location
@@ -109,9 +109,9 @@ output ADDS_CON_KV_VAULTURI string = adds_con_kv.outputs.vaultUri
 output ADDS_CON_WAS_TABLEENDPOINT string = adds_con_was.outputs.tableEndpoint
 output ADDS_CONFIGURATION_IDENTITY_CLIENTID string = adds_configuration_identity.outputs.clientId
 output ADDS_CONFIGURATION_IDENTITY_ID string = adds_configuration_identity.outputs.id
-output APPINSIGHTS_APPINSIGHTSCONNECTIONSTRING string = appInsights.outputs.appInsightsConnectionString
 output AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN string = efs_cae.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN
 output AZURE_CONTAINER_REGISTRY_ENDPOINT string = efs_cae.outputs.AZURE_CONTAINER_REGISTRY_ENDPOINT
+output EFS_APP_INSIGHTS_APPINSIGHTSCONNECTIONSTRING string = efs_app_insights.outputs.appInsightsConnectionString
 output EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN string = efs_cae.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN
 output EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_ID string = efs_cae.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_ID
 output EFS_CAE_AZURE_CONTAINER_REGISTRY_ENDPOINT string = efs_cae.outputs.AZURE_CONTAINER_REGISTRY_ENDPOINT
