@@ -200,13 +200,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         [LoggerMessage(SalesCatalogueProductsNotReturnedId, LogLevel.Warning, "Sales Catalogue products not returned: {@salesCatalogueLog}", EventName = nameof(SalesCatalogueProductsNotReturned))]
         public static partial void LogSalesCatalogueProductsNotReturned(this ILogger logger, [LogProperties] SalesCatalogServiceProductsNotReturnedView salesCatalogueLog);
 
-        [LoggerMessage(CreateErrorFileSuccessId, LogLevel.Information, "Error file created successfully for correlation ID: {correlationId}, batch ID: {batchId}", EventName = nameof(CreateErrorFileSuccess))]
-        public static partial void LogCreateErrorFileSuccess(this ILogger logger, string correlationId, string batchId);
+        [LoggerMessage(CreateErrorFileSuccessId, LogLevel.Error, "Error file created successfully for correlation ID: {correlationId} | Timestamp: {timestamp}", EventName = nameof(CreateErrorFileSuccess))]
+        public static partial void LogCreateErrorFileSuccess(this ILogger logger, string correlationId, DateTimeOffset timestamp);
 
-        [LoggerMessage(CreateErrorFileNodeFailedId, LogLevel.Error, "CreateErrorFileNode failed for correlation ID: {correlationId}, batch ID: {batchId}", EventName = nameof(CreateErrorFileNodeFailed))]
-        public static partial void LogCreateErrorFileNodeFailed(this ILogger logger, string correlationId, string batchId, Exception exception);
+        [LoggerMessage(CreateErrorFileNodeFailedId, LogLevel.Error, "CreateErrorFileNode failed for correlation ID: {correlationId} | Timestamp: {timestamp}", EventName = nameof(CreateErrorFileNodeFailed))]
+        public static partial void LogCreateErrorFileNodeFailed(this ILogger logger, string correlationId, DateTimeOffset timestamp, Exception exception);
 
-        [LoggerMessage(CreateErrorFileAddFileFailedId, LogLevel.Error, "Failed to add error file to batch for correlation ID: {correlationId}, batch ID: {batchId}, error: {@error}", EventName = nameof(CreateErrorFileAddFileFailed))]
-        public static partial void LogCreateErrorFileAddFileFailed(this ILogger logger, string correlationId, string batchId, [LogProperties] IError error);
+        [LoggerMessage(CreateErrorFileAddFileFailedId, LogLevel.Error, "Failed to add error file to batch for correlation ID: {correlationId} | | Timestamp: {timestamp} | Error: {@error}", EventName = nameof(CreateErrorFileAddFileFailed))]
+        public static partial void LogCreateErrorFileAddFileFailed(this ILogger logger, string correlationId, DateTimeOffset timestamp, [LogProperties] IError error);
     }
 }
