@@ -7,6 +7,8 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using Serilog;
+using Serilog.Events;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.Hosting
@@ -49,6 +51,22 @@ namespace Microsoft.Extensions.Hosting
                 logging.IncludeFormattedMessage = true;
                 logging.IncludeScopes = true;
             });
+
+            var eventHubConnectionString = builder.Configuration["ConnectionStrings__efseventhub"];
+            var eventHubName = "";
+
+            // Configure Serilog to send logs to Azure Event Hub if connection string and hub name are provided
+            if (!string.IsNullOrWhiteSpace(eventHubConnectionString) && !string.IsNullOrWhiteSpace(eventHubName))
+            {
+                Log.Logger = new LoggerConfiguration()
+                    .MinimumLevel.Information()
+                    .WriteTo.AzureEventHub(
+                        connectionString: eventHubConnectionString,
+                        eventHubName: eventHubName,
+                        restrictedToMinimumLevel: LogEventLevel.Information)
+                    .CreateLogger();
+                builder.Logging.AddSerilog(Log.Logger, dispose: true);
+            }
 
             builder.Services.AddOpenTelemetry()
                 .WithMetrics(metrics =>
