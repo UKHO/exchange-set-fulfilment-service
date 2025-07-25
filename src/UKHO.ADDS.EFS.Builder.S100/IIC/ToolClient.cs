@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.Clients.Common.Extensions;
+﻿using UKHO.ADDS.Clients.Common.Constants;
+using UKHO.ADDS.Clients.Common.Extensions;
 using UKHO.ADDS.EFS.Builder.S100.IIC.Models;
 using UKHO.ADDS.Infrastructure.Results;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
@@ -14,6 +15,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
         private const string WorkSpaceId = "working9";
         private const string ApiVersion = "7.3";
         private const string ApplicationName = "IICToolAPI";
+        private const string AddExchnageSet = "addExchangeSet";
+        private const string AddContent = "addContent";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ToolClient"/> class.
@@ -170,9 +173,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
         /// <returns>returns the response from the API.</returns>
         private async Task<HttpResponseMessage> SendHttpRequestAsync(string action, string path)
         {
-            if (action == "addExchangeSet" || action == "addContent")
+            if (action == AddExchnageSet || action == AddContent)
             {
-                var emptyContent = new StringContent(string.Empty, System.Text.Encoding.UTF8, "application/json");
+                var emptyContent = new StringContent(string.Empty, System.Text.Encoding.UTF8,ApiHeaderKeys.ContentTypeJson );
                 return await _httpClient.PutAsync(path, emptyContent);
             }
             return await _httpClient.GetAsync(path);
