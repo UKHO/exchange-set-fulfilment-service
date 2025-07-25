@@ -174,7 +174,7 @@ stages:
     - template: templates/continuous-deployment.yml
       parameters:
         AzureDevOpsEnvironment: Ess-vnextiat
-        ShortName: vni
+        ShortName: vnext-iat
         DestroyResources: ${{ parameters.DestroyResourcesDev }}
         AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
         DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
@@ -190,7 +190,7 @@ stages:
     - template: templates/continuous-deployment.yml
       parameters:
         AzureDevOpsEnvironment: Ess-vnexte2e
-        ShortName: vne
+        ShortName: vnext-e2e
         DestroyResources: ${{ parameters.DestroyResourcesDev }}
         AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
         DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
