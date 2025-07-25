@@ -4,6 +4,8 @@ using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
+using UKHO.ADDS.Configuration.Client;
+
 namespace UKHO.ADDS.EFS.Trigger
 {
     internal class Program
@@ -29,6 +31,8 @@ namespace UKHO.ADDS.EFS.Trigger
                 .MinimumLevel.Override("Azure.Core", LogEventLevel.Fatal)
                 .MinimumLevel.Override("Azure.Storage.Blobs", LogEventLevel.Fatal)
                 .MinimumLevel.Override("Azure.Storage.Queues", LogEventLevel.Warning));
+
+            builder.Configuration.AddConfigurationService("UKHO.ADDS.EFS.Trigger");
 
             builder.AddServiceDefaults();
 

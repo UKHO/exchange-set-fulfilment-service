@@ -136,11 +136,13 @@ namespace UKHO.ADDS.EFS.LocalHost
                 await CreateBuilderContainerImages(ProcessNames.S57Builder, "latest", "UKHO.ADDS.EFS.Builder.S57");
             }
 
-            // Orchestrator trigger
+            // Function trigger
             builder.AddAzureFunctionsProject<UKHO_ADDS_EFS_Trigger>(ProcessNames.OrchestratorFunctionTrigger)
                 .WithExternalHttpEndpoints()
                 .WithReference(orchestratorService)
-                .WithHostStorage(storage);
+                .WaitFor(orchestratorService)
+                .WithHostStorage(storage)
+                .WithConfiguration(configurationService);
 
             var application = builder.Build();
 

@@ -23,6 +23,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\config\repo\src\UKHO.ADDS.Configuration.Client\UKHO.ADDS.Configuration.Client.csproj" />
     <ProjectReference Include="..\UKHO.ADDS.EFS.Aspire\UKHO.ADDS.EFS.Aspire.csproj" />
     <ProjectReference Include="..\UKHO.ADDS.EFS.Domain\UKHO.ADDS.EFS.Domain.csproj" />
   </ItemGroup>
