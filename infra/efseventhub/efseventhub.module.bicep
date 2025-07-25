@@ -32,8 +32,6 @@ resource efseventhubAuthRule 'Microsoft.EventHub/namespaces/AuthorizationRules@2
   }
 }
 
-output eventHubsEndpoint string = efseventhub.properties.serviceBusEndpoint
-
 output name string = efseventhub.name
 
 output efseventhubConnectionString string = listKeys(efseventhubAuthRule.id, efseventhubAuthRule.apiVersion).primaryConnectionString
