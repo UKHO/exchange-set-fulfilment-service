@@ -21,7 +21,7 @@ resource efsingestionhub 'Microsoft.EventHub/namespaces/eventhubs@2024-01-01' = 
 }
 
 resource efseventhubAuthRule 'Microsoft.EventHub/namespaces/AuthorizationRules@2024-01-01' = {
-  name: 'RootAccessPolicy'
+  name: 'RootManageSharedAccessKey'
   parent: efseventhub
   properties: {
     rights: [

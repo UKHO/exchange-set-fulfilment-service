@@ -98,15 +98,7 @@ module efs_orchestrator_roles_efs_storage 'efs-orchestrator-roles-efs-storage/ef
     principalId: efs_orchestrator_identity.outputs.principalId
   }
 }
-module efs_orchestrator_roles_efseventhub 'efs-orchestrator-roles-efseventhub/efs-orchestrator-roles-efseventhub.module.bicep' = {
-  name: 'efs-orchestrator-roles-efseventhub'
-  scope: rg
-  params: {
-    efseventhub_outputs_name: efseventhub.outputs.name
-    location: location
-    principalId: efs_orchestrator_identity.outputs.principalId
-  }
-}
+
 module efs_storage 'efs-storage/efs-storage.module.bicep' = {
   name: 'efs-storage'
   scope: rg
