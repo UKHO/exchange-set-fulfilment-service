@@ -2,35 +2,34 @@ using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
 using Aspire.Hosting;
+using Projects;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
-using Xunit.Abstractions;
 
-namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
+namespace UKHO.ADDS.EFS.EndToEndTests
 {
     public class EndToEndTests : IAsyncLifetime
     {
-        private DistributedApplication _app;
-
         private readonly string _projectDirectory;
-        public EndToEndTests()
-        {
-            _projectDirectory = Directory.GetParent(AppContext.BaseDirectory)!.Parent!.Parent!.Parent!.FullName;
-        }
+        private DistributedApplication? _app;
+
+        public EndToEndTests() => _projectDirectory = Directory.GetParent(AppContext.BaseDirectory)!.Parent!.Parent!.Parent!.FullName;
 
 
         public async Task InitializeAsync()
         {
-            var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.UKHO_ADDS_EFS_LocalHost>();
+            var appHost = await DistributedApplicationTestingBuilder.CreateAsync<UKHO_ADDS_EFS_LocalHost>();
+
             appHost.Services.ConfigureHttpClientDefaults(clientBuilder =>
             {
                 clientBuilder.AddStandardResilienceHandler();
             });
+
             _app = await appHost.BuildAsync();
 
             var resourceNotificationService = _app.Services.GetRequiredService<ResourceNotificationService>();
+
             await _app.StartAsync();
             await resourceNotificationService.WaitForResourceAsync(ProcessNames.OrchestratorService, KnownResourceStates.Running).WaitAsync(TimeSpan.FromSeconds(30));
-
         }
 
         public async Task DisposeAsync()
@@ -39,14 +38,15 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
             {
                 await _app.StopAsync();
                 await _app.DisposeAsync();
-            }                       
+            }
 
             //Clean up temporary files and directories
-            var outDir = Path.Combine(_projectDirectory, "out");           
-           
+            var outDir = Path.Combine(_projectDirectory, "out");
+
             if (Directory.Exists(outDir))
+            {
                 Array.ForEach(Directory.GetFiles(outDir, "*.zip"), File.Delete);
-           
+            }
         }
 
 
@@ -66,14 +66,16 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
                 }
                 """,
                 Encoding.UTF8, "application/json");
+
             var requestId = Guid.NewGuid().ToString();
             content.Headers.Add("x-correlation-id", $"job-0001-{requestId}");
 
-
             var jobSubmitResponse = await httpClient.PostAsync("/jobs", content);
             Assert.True(jobSubmitResponse.IsSuccessStatusCode, "Expected success status code but got: " + jobSubmitResponse.StatusCode);
+
             var responseContent = await jobSubmitResponse.Content.ReadAsStringAsync();
             var responseJson = JsonDocument.Parse(responseContent);
+
             responseJson.RootElement.TryGetProperty("jobId", out var jobId);
             responseJson.RootElement.TryGetProperty("jobStatus", out var jobStatus);
             responseJson.RootElement.TryGetProperty("buildStatus", out var buildStatus);
@@ -85,19 +87,24 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
             string currentJobState;
             string currentBuildState;
             double elapsedMinutes = 0;
+
             var waitDuration = 2000; // 2 seconds
             var maxTimeToWait = 2; // 2 minutes
-            TimeOnly startTime = TimeOnly.FromDateTime(DateTime.Now);
+            var startTime = TimeOnly.FromDateTime(DateTime.Now);
+
             do
             {
                 var jobStateResponse = await httpClient.GetAsync($"/jobs/{jobId}");
                 responseContent = await jobStateResponse.Content.ReadAsStringAsync();
+
                 responseJson = JsonDocument.Parse(responseContent);
                 responseJson.RootElement.TryGetProperty("jobState", out var jobState);
                 responseJson.RootElement.TryGetProperty("buildState", out var buildState);
                 currentJobState = jobState.GetString() ?? string.Empty;
                 currentBuildState = buildState.GetString() ?? string.Empty;
+
                 await Task.Delay(waitDuration);
+
                 elapsedMinutes = (TimeOnly.FromDateTime(DateTime.Now) - startTime).TotalMinutes;
             } while (currentJobState == "submitted" && elapsedMinutes < maxTimeToWait);
 
@@ -106,6 +113,7 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
 
             // 3.Check the builder has returned build status and it has been successfully processed by orchestrator.
             var jobCompletedResponse = await httpClient.GetAsync($"/jobs/{jobId}/build");
+
             Assert.True(jobCompletedResponse.IsSuccessStatusCode, "Expected success status code but got: " + jobCompletedResponse.StatusCode);
 
             // and that the builder exit code is 'success' although success is not necessary
@@ -114,10 +122,11 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
             responseContent = await jobCompletedResponse.Content.ReadAsStringAsync();
             responseJson = JsonDocument.Parse(responseContent);
             responseJson.RootElement.TryGetProperty("builderExitCode", out var builderExitCode);
+
             Assert.Equal("success", builderExitCode.GetString());
 
             // 4.Download Exchange Set, call to the Admin API for downloading the exchange set
-            var exchangeSetDownloadPath = await DownloadExchangeSetAsZipAsync(jobId.ToString());           
+            var exchangeSetDownloadPath = await DownloadExchangeSetAsZipAsync(jobId.ToString());
 
             var sourceZipPath = Path.Combine(_projectDirectory, "TestData/exchangeSet-25Products.testzip");
 
@@ -130,7 +139,6 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
         {
             var httpClient = _app.CreateHttpClient(ProcessNames.OrchestratorService);
 
-            StringContent content;
             var jobs = new List<string>();
             var completedJobs = new List<string>();
             double elapsedMinutes = 0;
@@ -138,20 +146,21 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
 
             // 1.Submit multiple job requests and confirm that they were all submitted successfully.
             var requestId = Guid.NewGuid().ToString();
-            for (int i = 0; i < numberOfJobs; i++)
+            for (var i = 0; i < numberOfJobs; i++)
             {
-                string jobNumber = i.ToString("D4");
+                var jobNumber = i.ToString("D4");
 
-                content = new StringContent(
-                """
-                {
-                    "version": 1,
-                    "dataStandard": "s100",
-                    "products": "",
-                    "filter": ""
-                }
-                """,
-                Encoding.UTF8, "application/json");
+                var content = new StringContent(
+                    """
+                    {
+                        "version": 1,
+                        "dataStandard": "s100",
+                        "products": "",
+                        "filter": ""
+                    }
+                    """,
+                    Encoding.UTF8, "application/json");
+
                 content.Headers.Add("x-correlation-id", $"job-{jobNumber}-{requestId}");
 
                 var jobSubmitResponse = await httpClient.PostAsync("/jobs", content);
@@ -159,24 +168,33 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
 
                 var responseContent = await jobSubmitResponse.Content.ReadAsStringAsync();
                 var responseJson = JsonDocument.Parse(responseContent);
+
                 responseJson.RootElement.TryGetProperty("jobId", out var jobId);
+
                 var jobIdValue = jobId.GetString();
-                if(!string.IsNullOrEmpty(jobIdValue))
+
+                if (!string.IsNullOrEmpty(jobIdValue))
                 {
                     jobs.Add(jobIdValue);
                 }
             }
-            Assert.Equal(numberOfJobs, jobs.Count);
 
+            Assert.Equal(numberOfJobs, jobs.Count);
 
             // 2.Check for notification that the jobs have been picked up by the builder and completed successfully.
             var waitDuration = 2000; // 2 seconds
             var maxTimeToWait = 3; // 3 minutes
-            TimeOnly startTime = TimeOnly.FromDateTime(DateTime.Now);
-            do { 
+            var startTime = TimeOnly.FromDateTime(DateTime.Now);
+
+            do
+            {
                 foreach (var jobId in jobs)
                 {
-                    if (completedJobs.Contains(jobId)) continue; // Skip if job already completed
+                    if (completedJobs.Contains(jobId))
+                    {
+                        continue; // Skip if job already completed
+                    }
+
                     var jobStateResponse = await httpClient.GetAsync($"/jobs/{jobId}");
                     Assert.True(jobStateResponse.IsSuccessStatusCode, "Expected success status code but got: " + jobStateResponse.StatusCode);
 
@@ -189,49 +207,53 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
                         completedJobs.Add(jobId);
                     }
                 }
+
                 await Task.Delay(waitDuration);
+
                 elapsedMinutes = (TimeOnly.FromDateTime(DateTime.Now) - startTime).TotalMinutes;
             } while (completedJobs.Count < jobs.Count && elapsedMinutes < maxTimeToWait);
 
             Assert.Equal(jobs.Count, completedJobs.Count);
-
 
             // 3.Check the builder has successfully returned build status for each completed job
             foreach (var jobId in completedJobs)
             {
                 var jobCompletedResponse = await httpClient.GetAsync($"/jobs/{jobId}/build");
                 Assert.True(jobCompletedResponse.IsSuccessStatusCode, "Expected success status code but got: " + jobCompletedResponse.StatusCode);
+
                 var responseContent = await jobCompletedResponse.Content.ReadAsStringAsync();
                 var responseJson = JsonDocument.Parse(responseContent);
+
                 responseJson.RootElement.TryGetProperty("builderExitCode", out var builderExitCode);
+
                 Assert.Equal("success", builderExitCode.GetString());
             }
-
-
         }
 
         public async Task<string> DownloadExchangeSetAsZipAsync(string jobId)
         {
             var httpClientMock = _app.CreateHttpClient(ProcessNames.MockService);
-            var mockResponse = await httpClientMock.GetAsync($"/_admin/files/FSS/V01X01_{jobId}.zip");
+            var mockResponse = await httpClientMock.GetAsync($"/_admin/files/fss/s100ExchangeSets/V01X01_{jobId}.zip");
+
             mockResponse.EnsureSuccessStatusCode();
 
-            var zipResponse = await mockResponse.Content.ReadAsStringAsync();
-
             await using var zipStream = await mockResponse.Content.ReadAsStreamAsync();
-                        
+
             var destinationFilePath = Path.Combine(_projectDirectory, "out", $"V01X01_{jobId}.zip");
 
             // Ensure the directory exists
             var destinationDirectory = Path.GetDirectoryName(destinationFilePath);
+
             if (!Directory.Exists(destinationDirectory))
             {
                 Directory.CreateDirectory(destinationDirectory!);
             }
 
             await using var fileStream = new FileStream(destinationFilePath, FileMode.Create, FileAccess.Write, FileShare.None);
+
             await zipStream.CopyToAsync(fileStream);
             await fileStream.FlushAsync();
+
             return destinationFilePath;
         }
 
@@ -241,13 +263,16 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
             var files = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             using var archive = ZipFile.OpenRead(zipPath);
+
             foreach (var entry in archive.Entries)
             {
                 // Normalize path separators
                 var entryPath = entry.FullName.Replace('\\', '/').TrimEnd('/');
 
                 if (string.IsNullOrEmpty(entryPath))
+                {
                     continue;
+                }
 
                 if (entry.FullName.EndsWith("/"))
                 {
@@ -269,8 +294,10 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
                     }
                 }
             }
+
             return (folders, files);
         }
+
         private void CompareZipFolderStructure(string sourceZipPath, string targetZipPath)
         {
             var (sourceFolders, sourceFiles) = GetZipStructure(sourceZipPath);
@@ -282,12 +309,9 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
 
             // Assert: Folder and file structures match, with details
             Assert.True(foldersOnlyInSource.Count == 0 && foldersOnlyInTarget.Count == 0,
-                $"Folder structures do not match.\n" +
+                "Folder structures do not match.\n" +
                 (foldersOnlyInSource.Count > 0 ? $"Folders only in source: {string.Join(", ", foldersOnlyInSource)}\n" : "") +
                 (foldersOnlyInTarget.Count > 0 ? $"Folders only in target: {string.Join(", ", foldersOnlyInTarget)}\n" : ""));
-
         }
-
-
     }
 }
