@@ -125,7 +125,7 @@
             "S57ExchangeSetNameTemplate": "V01X01_S57_[jobid].zip" // Template for naming an exchange set: options are "jobid", "date"
         }
     },
-    "vni": {
+    "vnextiat": {
         "UKHO.ADDS.EFS.Orchestrator": {
             "Logging": {
                 "LogLevel": {
