@@ -200,7 +200,7 @@ stages:
 
   - stage: iatDeploy
     dependsOn:
-    - DevDeploy
+    #- DevDeploy
     displayName: IAT Deploy
     jobs:
     - template: templates/continuous-deployment.yml
