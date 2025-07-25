@@ -22,7 +22,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion
             AddPipelineNode<ReplayLogsNode>(cancellationToken);
             AddPipelineNode<CreateErrorFileNode>(cancellationToken);
             AddPipelineNode<CommitFileShareBatchNode>(cancellationToken);
-            AddPipelineNode<CreateFingerprintNode>(cancellationToken);
             AddPipelineNode<ExpireFileShareBatchesNode>(cancellationToken);
             AddPipelineNode<CompleteJobNode>(cancellationToken);
 

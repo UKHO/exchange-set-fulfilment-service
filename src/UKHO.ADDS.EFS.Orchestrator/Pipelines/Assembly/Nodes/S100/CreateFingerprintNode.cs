@@ -1,30 +1,33 @@
-﻿using UKHO.ADDS.EFS.Builds.S100;
+﻿using System.Text;
+using Microsoft.Extensions.Caching.Distributed;
+using UKHO.ADDS.EFS.Builds.S100;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
 using UKHO.ADDS.EFS.Orchestrator.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
-using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
+using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Services;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
+using UKHO.ADDS.Infrastructure.Serialization.Json;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
+namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 {
-    internal class CreateFingerprintNode : CompletionPipelineNode<S100Build>
+    internal class CreateFingerprintNode : AssemblyPipelineNode<S100Build>
     {
-        private readonly ITable<BuildFingerprint> _buildFingerprintTable;
+        private readonly IDistributedCache _distributedCache;
         private readonly IHashingService _hashingService;
 
-        public CreateFingerprintNode(CompletionNodeEnvironment nodeEnvironment, ITable<BuildFingerprint> buildFingerprintTable, IHashingService hashingService)
+        public CreateFingerprintNode(AssemblyNodeEnvironment nodeEnvironment, IDistributedCache distributedCache, IHashingService hashingService)
             : base(nodeEnvironment)
         {
-            _buildFingerprintTable = buildFingerprintTable;
+            _distributedCache = distributedCache;
             _hashingService = hashingService;
         }
 
         public override Task<bool> ShouldExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
         {
             var enabled = Environment.Configuration.GetValue<bool>("DeduplicationEnabled");
-            return Task.FromResult(enabled);
+            return Task.FromResult(enabled && context.Subject.Job.JobState == JobState.Submitted);
         }
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
@@ -35,8 +38,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
             var discriminant = build.GetProductDiscriminant();
             var discriminantHash = _hashingService.CalculateHash(discriminant);
 
-            // Deduplication is 'best effort' - someone else may have already created a history entry for this job
-            // but this one will be later, so update or insert as appropriate. We can't guarantee strict deduplication.
+            // Deduplication is 'best effort', we can't guarantee to catch all of them
 
             var history = new BuildFingerprint()
             {
@@ -47,7 +49,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
                 Discriminant = discriminantHash
             };
 
-            await _buildFingerprintTable.UpsertAsync(history);
+            var historyJson = JsonCodec.Encode(history);
+
+            var expiry = Environment.Configuration.GetValue<TimeSpan>("DeduplicationExpiry");
+
+            await _distributedCache.SetAsync(discriminantHash, Encoding.UTF8.GetBytes(historyJson), new DistributedCacheEntryOptions()
+            {
+                AbsoluteExpirationRelativeToNow = expiry
+            });
 
             return NodeResultStatus.Succeeded;
         }

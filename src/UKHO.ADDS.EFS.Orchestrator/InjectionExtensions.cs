@@ -76,7 +76,6 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddSingleton<ITable<DataStandardTimestamp>, DataStandardTimestampTable>();
             builder.Services.AddSingleton<ITable<Job>, JobTable>();
             builder.Services.AddSingleton<ITable<BuildMemento>, BuildMementoTable>();
-            builder.Services.AddSingleton<ITable<BuildFingerprint>, BuildFingerprintTable>();
 
             builder.Services.AddSingleton<IBuilderLogForwarder, BuilderLogForwarder>();
             builder.Services.AddSingleton<StorageInitializerService>();
