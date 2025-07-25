@@ -22,4 +22,8 @@
     <PackageReference Include="Serilog.Sinks.AzureEventHub" Version="6.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\UKHO.ADDS.EFS.Domain\UKHO.ADDS.EFS.Domain.csproj" />
+  </ItemGroup>
+
 </Project>

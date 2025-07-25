@@ -9,6 +9,7 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using Serilog;
 using Serilog.Events;
+using UKHO.ADDS.EFS.Configuration.Namespaces;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.Hosting
@@ -53,7 +54,7 @@ namespace Microsoft.Extensions.Hosting
             });
 
             var eventHubConnectionString = builder.Configuration["ConnectionStrings__efseventhub"];
-            var eventHubName = "";
+            var eventHubName = ServiceConfiguration.IngestionHub;
 
             // Configure Serilog to send logs to Azure Event Hub if connection string and hub name are provided
             if (!string.IsNullOrWhiteSpace(eventHubConnectionString) && !string.IsNullOrWhiteSpace(eventHubName))
