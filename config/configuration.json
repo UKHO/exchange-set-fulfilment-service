@@ -19,6 +19,7 @@
             "AllowedHosts": "*",
             "DeduplicationEnabled": false, // Enable deduplication of requests
             "DeduplicationExpiry": "23:00:00", // The timeframe for deduplication from first generation to expiry
+            "S100ErrorFileNameTemplate": "error_[jobid].txt",
             "Builders": {
                 "LogReplayLevel": "Information" // Log level for replaying builder logs
             },
@@ -87,6 +88,7 @@
             "AllowedHosts": "*",
             "EnableDeduplication": false, // Enable deduplication of requests
             "DeduplicationExpiry": "23:00:00", // The timeframe for deduplication from first generation to expiry
+            "S100ErrorFileNameTemplate": "error.txt",
             "Builders": {
                 "LogReplayLevel": "Information" // Log level for replaying builder logs
             },

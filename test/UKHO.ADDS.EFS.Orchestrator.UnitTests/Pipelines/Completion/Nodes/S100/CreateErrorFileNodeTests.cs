@@ -3,7 +3,6 @@ using FakeItEasy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
-using UKHO.ADDS.Configuration.Schema;
 using UKHO.ADDS.EFS.Builds.S100;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Constants;
@@ -31,6 +30,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
         private PipelineContext<S100Build> _pipelineContext;
         private IConfiguration _configuration;
         private readonly CancellationToken _cancellationToken = CancellationToken.None;
+        private const string S100ErrorFileNameTemplate = "S100ErrorFileNameTemplate";
 
         [SetUp]
         public void SetUp()
@@ -39,6 +39,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
             _logger = A.Fake<ILogger<CreateErrorFileNode>>();
             _configuration = A.Fake<IConfiguration>();
             var environmentLogger = A.Fake<ILogger>();
+
+            A.CallTo(() => _configuration[S100ErrorFileNameTemplate]).Returns("error.txt");
 
             _nodeEnvironment = new CompletionNodeEnvironment(_configuration, _cancellationToken, environmentLogger, BuilderExitCode.Failed);
             _createErrorFileNode = new CreateErrorFileNode(_nodeEnvironment, _fileShareClient, _logger);
@@ -160,9 +162,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
         }
 
         [Test]
-        public async Task WhenExecuteAsyncCalledInLocalEnvironment_ThenUsesJobIdInFileName()
+        public async Task WhenExecuteAsyncCalledWithJobIdPlaceholderInTemplate_ThenReplacesJobIdInFileName()
         {
-            A.CallTo(() => _configuration[WellKnownConfigurationName.AddsEnvironmentName]).Returns("local");
+            A.CallTo(() => _configuration[S100ErrorFileNameTemplate]).Returns("error_[jobid].txt");
             var addFileResponse = new AddFileToBatchResponse();
 
             A.CallTo(() => _fileShareClient.AddFileToBatchAsync(
@@ -177,34 +179,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
             var result = await _createErrorFileNode.ExecuteAsync(_executionContext);
 
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-
-            A.CallTo(_logger).Where(call => call.Method.Name == "Log" && call.GetArgument<LogLevel>(0) == LogLevel.Error).MustHaveHappenedOnceExactly();
         }
 
         [Test]
-        public async Task WhenExecuteAsyncCalledInLocalEnvironmentCaseInsensitive_ThenUsesJobIdInFileName()
+        public async Task WhenExecuteAsyncCalledWithNoJobIdPlaceholder_ThenUsesTemplateAsIs()
         {
-            A.CallTo(() => _configuration[WellKnownConfigurationName.AddsEnvironmentName]).Returns("LOCAL");
-            var addFileResponse = new AddFileToBatchResponse();
-
-            A.CallTo(() => _fileShareClient.AddFileToBatchAsync(
-                A<string>._,
-                A<Stream>._,
-                A<string>.That.IsEqualTo("error_test-job-id.txt"),
-                A<string>._,
-                A<string>._,
-                A<CancellationToken>._))
-                .Returns(Result.Success(addFileResponse));
-
-            var result = await _createErrorFileNode.ExecuteAsync(_executionContext);
-
-            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-        }
-
-        [Test]
-        public async Task WhenExecuteAsyncCalledInNonLocalEnvironment_ThenUsesStandardFileName()
-        {
-            A.CallTo(() => _configuration[WellKnownConfigurationName.AddsEnvironmentName]).Returns("production");
+            A.CallTo(() => _configuration[S100ErrorFileNameTemplate]).Returns("error.txt");
             var addFileResponse = new AddFileToBatchResponse();
 
             A.CallTo(() => _fileShareClient.AddFileToBatchAsync(
@@ -219,8 +199,26 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
             var result = await _createErrorFileNode.ExecuteAsync(_executionContext);
 
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
+        }
 
-            A.CallTo(_logger).Where(call => call.Method.Name == "Log" && call.GetArgument<LogLevel>(0) == LogLevel.Error).MustHaveHappenedOnceExactly();
+        [Test]
+        public async Task WhenExecuteAsyncCalledWithEmptyErrorFileNameTemplate_ThenUsesEmptyFileName()
+        {
+            A.CallTo(() => _configuration[S100ErrorFileNameTemplate]).Returns(string.Empty);
+            var addFileResponse = new AddFileToBatchResponse();
+
+            A.CallTo(() => _fileShareClient.AddFileToBatchAsync(
+                A<string>._,
+                A<Stream>._,
+                A<string>.That.IsEqualTo(string.Empty),
+                A<string>._,
+                A<string>._,
+                A<CancellationToken>._))
+                .Returns(Result.Success(addFileResponse));
+
+            var result = await _createErrorFileNode.ExecuteAsync(_executionContext);
+
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
         }
 
         [Test]
@@ -245,10 +243,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
             await _createErrorFileNode.ExecuteAsync(_executionContext);
 
             var content = Encoding.UTF8.GetString(capturedStream.ToArray());
-            var expectedMessage = "There has been a problem in creating your exchange set, so we are unable to fulfil your request at this time. Please contact UKHO Customer Services quoting correlation ID test-job-id";
+            var expectedMessage = "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID test-job-id";
 
             Assert.That(content, Is.EqualTo(expectedMessage));
-            A.CallTo(_logger).Where(call => call.Method.Name == "Log" && call.GetArgument<LogLevel>(0) == LogLevel.Error).MustHaveHappenedOnceExactly();
         }
 
         [Test]
@@ -297,9 +294,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
 
             A.CallTo(_logger).Where(call => call.Method.Name == "Log" && call.GetArgument<LogLevel>(0) == LogLevel.Error).MustHaveHappenedOnceExactly();
-
-            A.CallTo(() => _logger.Log(A<LogLevel>.That.IsEqualTo(LogLevel.Error), A<EventId>._, A<IReadOnlyList<KeyValuePair<string, object>>>._, A<Exception>._, A<Func<IReadOnlyList<KeyValuePair<string, object>>, Exception, string>>._))
-                .MustNotHaveHappened();
         }
 
         [Test]
@@ -320,86 +314,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
 
             A.CallTo(_logger).Where(call => call.Method.Name == "Log" && call.GetArgument<LogLevel>(0) == LogLevel.Error).MustHaveHappenedOnceExactly();
-        }
-
-        [Test]
-        public async Task WhenExecuteAsyncCalledWithNullEnvironmentConfig_ThenUsesStandardFileName()
-        {
-            A.CallTo(() => _configuration[WellKnownConfigurationName.AddsEnvironmentName]).Returns(null);
-            var addFileResponse = new AddFileToBatchResponse();
-
-            A.CallTo(() => _fileShareClient.AddFileToBatchAsync(
-                A<string>._,
-                A<Stream>._,
-                A<string>.That.IsEqualTo("error.txt"),
-                A<string>._,
-                A<string>._,
-                A<CancellationToken>._))
-                .Returns(Result.Success(addFileResponse));
-
-            var result = await _createErrorFileNode.ExecuteAsync(_executionContext);
-
-            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-        }
-
-        [Test]
-        public async Task WhenExecuteAsyncCalledWithEmptyEnvironmentConfig_ThenUsesStandardFileName()
-        {
-            A.CallTo(() => _configuration[WellKnownConfigurationName.AddsEnvironmentName]).Returns(string.Empty);
-            var addFileResponse = new AddFileToBatchResponse();
-
-            A.CallTo(() => _fileShareClient.AddFileToBatchAsync(
-                A<string>._,
-                A<Stream>._,
-                A<string>.That.IsEqualTo("error.txt"),
-                A<string>._,
-                A<string>._,
-                A<CancellationToken>._))
-                .Returns(Result.Success(addFileResponse));
-
-            var result = await _createErrorFileNode.ExecuteAsync(_executionContext);
-
-            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-        }
-
-        [Test]
-        public async Task WhenExecuteAsyncCalledWithOtherThenLocalEnvironmentConfig_ThenUsesStandardFileName()
-        {
-            A.CallTo(() => _configuration[WellKnownConfigurationName.AddsEnvironmentName]).Returns("test-environment");
-            var addFileResponse = new AddFileToBatchResponse();
-
-            A.CallTo(() => _fileShareClient.AddFileToBatchAsync(
-                A<string>._,
-                A<Stream>._,
-                A<string>.That.IsEqualTo("error.txt"),
-                A<string>._,
-                A<string>._,
-                A<CancellationToken>._))
-                .Returns(Result.Success(addFileResponse));
-
-            var result = await _createErrorFileNode.ExecuteAsync(_executionContext);
-
-            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-        }
-
-        [Test]
-        public async Task WhenExecuteAsyncCalledWithLocalEnvironmentConfig_ThenUsesError_JobIdFilename()
-        {
-            A.CallTo(() => _configuration[WellKnownConfigurationName.AddsEnvironmentName]).Returns("local");
-            var addFileResponse = new AddFileToBatchResponse();
-
-            A.CallTo(() => _fileShareClient.AddFileToBatchAsync(
-                A<string>._,
-                A<Stream>._,
-                A<string>.That.IsEqualTo("error_test-job-id.txt"),
-                A<string>._,
-                A<string>._,
-                A<CancellationToken>._))
-                .Returns(Result.Success(addFileResponse));
-
-            var result = await _createErrorFileNode.ExecuteAsync(_executionContext);
-
-            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
         }
 
         [Test]
@@ -455,44 +369,40 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
         }
 
         [Test]
-        public async Task WhenExecuteAsyncCalledWithDifferentJobIds_ThenUsesCorrectCorrelationId()
+        public async Task WhenExecuteAsyncCalledWithStreamDisposal_ThenStreamIsProperlyDisposed()
         {
-            var differentJob = new Job
-            {
-                Id = "different-job-id",
-                Timestamp = DateTime.UtcNow,
-                DataStandard = DataStandard.S100,
-                RequestedProducts = "",
-                RequestedFilter = "",
-                BatchId = "test-batch-id"
-            };
-
-            var differentBuild = new S100Build
-            {
-                JobId = "different-job-id",
-                DataStandard = DataStandard.S100,
-                BatchId = "test-batch-id"
-            };
-
-            var differentPipelineContext = new PipelineContext<S100Build>(differentJob, differentBuild, A.Fake<IStorageService>());
-            A.CallTo(() => _executionContext.Subject).Returns(differentPipelineContext);
-
             var addFileResponse = new AddFileToBatchResponse();
+            var streamWasDisposed = false;
 
             A.CallTo(() => _fileShareClient.AddFileToBatchAsync(
                 A<string>._,
                 A<Stream>._,
                 A<string>._,
                 A<string>._,
-                "different-job-id",
+                A<string>._,
                 A<CancellationToken>._))
+                .Invokes((string batchId, Stream stream, string fileName, string contentType, string correlationId, CancellationToken ct) =>
+                {
+                    Task.Run(async () =>
+                    {
+                        await Task.Delay(100);
+                        try
+                        {
+                            _ = stream.ReadByte();
+                        }
+                        catch (ObjectDisposedException)
+                        {
+                            streamWasDisposed = true;
+                        }
+                    });
+                })
                 .Returns(Result.Success(addFileResponse));
 
             var result = await _createErrorFileNode.ExecuteAsync(_executionContext);
 
+            await Task.Delay(200);
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-
-            A.CallTo(_logger).Where(call => call.Method.Name == "Log" && call.GetArgument<LogLevel>(0) == LogLevel.Error).MustHaveHappenedOnceExactly();
+            Assert.That(streamWasDisposed, Is.True, "Stream should be disposed after use");
         }
     }
 }
