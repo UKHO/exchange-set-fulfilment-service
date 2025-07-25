@@ -64,7 +64,8 @@ namespace Microsoft.Extensions.Hosting
                     .WriteTo.AzureEventHub(
                         connectionString: eventHubConnectionString,
                         eventHubName: eventHubName,
-                        restrictedToMinimumLevel: LogEventLevel.Information)
+                        restrictedToMinimumLevel: LogEventLevel.Verbose,
+                        formatter: new Serilog.Formatting.Json.JsonFormatter())
                     .CreateLogger();
                 builder.Logging.AddSerilog(Log.Logger, dispose: true);
             }
