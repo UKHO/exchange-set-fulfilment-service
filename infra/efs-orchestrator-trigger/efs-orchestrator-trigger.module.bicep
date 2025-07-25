@@ -11,8 +11,6 @@ param efs_cae_outputs_azure_container_registry_managed_identity_id string
 
 param efs_orchestrator_trigger_containerimage string
 
-param efs_orchestrator_trigger_containerport string
-
 param efs_orchestrator_trigger_identity_outputs_id string
 
 param efs_storage_outputs_blobendpoint string
@@ -31,7 +29,7 @@ resource efs_orchestrator_trigger 'Microsoft.App/containerApps@2024-03-01' = {
       activeRevisionsMode: 'Single'
       ingress: {
         external: true
-        targetPort: int(efs_orchestrator_trigger_containerport)
+        targetPort: 8080
         transport: 'http'
       }
       registries: [
