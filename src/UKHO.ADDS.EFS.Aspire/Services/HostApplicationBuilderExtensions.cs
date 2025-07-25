@@ -64,10 +64,12 @@ namespace Microsoft.Extensions.Hosting
                     .WriteTo.AzureEventHub(
                         connectionString: eventHubConnectionString,
                         eventHubName: eventHubName,
-                        restrictedToMinimumLevel: LogEventLevel.Verbose,
+                        restrictedToMinimumLevel: LogEventLevel.Information,
                         formatter: new Serilog.Formatting.Json.JsonFormatter())
                     .CreateLogger();
                 builder.Logging.AddSerilog(Log.Logger, dispose: true);
+                Log.Information("Serilog configured to send logs to Azure Event Hub.");
+                Log.Logger.Information("Serilog configured to send logs to Azure Event Hub.");
             }
 
             builder.Services.AddOpenTelemetry()
