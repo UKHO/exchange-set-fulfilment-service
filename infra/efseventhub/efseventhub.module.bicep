@@ -20,18 +20,16 @@ resource efsingestionhub 'Microsoft.EventHub/namespaces/eventhubs@2024-01-01' = 
   parent: efseventhub
 }
 
-resource efseventhubAuthRule 'Microsoft.EventHub/namespaces/AuthorizationRules@2024-01-01' = {
-  name: 'RootManageSharedAccessKey'
-  parent: efseventhub
+resource efsingestionhubAuthRule 'Microsoft.EventHub/namespaces/eventhubs/AuthorizationRules@2024-01-01' = {
+  name: 'ManageSharedAccessKeySendRule'
+  parent: efsingestionhub
   properties: {
     rights: [
-      'Listen'
       'Send'
-      'Manage'
     ]
   }
 }
 
 output name string = efseventhub.name
 
-output efseventhubConnectionString string = listKeys(efseventhubAuthRule.id, efseventhubAuthRule.apiVersion).primaryConnectionString
+output efseventhubConnectionString string = listKeys(efsingestionhubAuthRule.id, efsingestionhubAuthRule.apiVersion).primaryConnectionString
