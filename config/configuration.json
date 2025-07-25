@@ -251,12 +251,12 @@
                 }
             },
             "Endpoints": {
-                "S100FileShare": "https://filesvnextiat.admiralty.co.uk",
-                "S100SalesCatalogue": "https://salesCataloguevNextIAT.ukho.gov.uk",
-                "S63FileShare": "https://filesvnextiat.admiralty.co.uk",
-                "S63SalesCatalogue": "https://salesCataloguevNextIAT.ukho.gov.uk",
-                "S57FileShare": "https://filesvnextiat.admiralty.co.uk",
-                "S57SalesCatalogue": "https://salesCataloguevNextIAT.ukho.gov.uk"
+                "S100FileShare": "https://filesiat.admiralty.co.uk",
+                "S100SalesCatalogue": "https://salesCatalogueIAT.ukho.gov.uk",
+                "S63FileShare": "https://filesiat.admiralty.co.uk",
+                "S63SalesCatalogue": "https://salesCatalogueIAT.ukho.gov.uk",
+                "S57FileShare": "https://filesiat.admiralty.co.uk",
+                "S57SalesCatalogue": "https://salesCatalogueIAT.ukho.gov.uk"
             },
             "AllowedHosts": "*",
             "EnableDeduplication": false, // Enable deduplication of requests
