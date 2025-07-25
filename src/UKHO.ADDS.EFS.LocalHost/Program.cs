@@ -35,9 +35,10 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             // app insights
             var appInsights = builder.AddAzureApplicationInsights(ServiceConfiguration.AppInsightsService);
-
-            // event hub
-            var eventHub = builder.AddAzureEventHubs(ServiceConfiguration.EventHubService);
+            
+            // Event Hubs
+            var eventHubs = builder.AddAzureEventHubs(ServiceConfiguration.EventHubService);
+            eventHubs.AddHub(ServiceConfiguration.IngestionHub);
 
             // Get parameters
             var subnetResourceId = builder.AddParameter("subnetResourceId");
@@ -78,8 +79,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             var mockService = builder.AddProject<UKHO_ADDS_Mocks_EFS>(ProcessNames.MockService)
                 .WithDashboard("Dashboard")
                 .WithExternalHttpEndpoints()
-                .WithReference(appInsights)
-                .WithReference(eventHub);
+                .WithReference(appInsights);
 
             // Build Request Monitor
             IResourceBuilder<ProjectResource>? requestMonitor = null;
@@ -109,7 +109,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WithExternalHttpEndpoints()
                 .WithScalar("API Browser")
                 .WithReference(appInsights)
-                .WithReference(eventHub);
+                .WithReference(eventHubs);
 
             if (builder.Environment.IsDevelopment())
             {

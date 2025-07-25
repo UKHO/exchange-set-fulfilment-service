@@ -98,8 +98,24 @@ module efs_orchestrator_roles_efs_storage 'efs-orchestrator-roles-efs-storage/ef
     principalId: efs_orchestrator_identity.outputs.principalId
   }
 }
+module efs_orchestrator_roles_efseventhub 'efs-orchestrator-roles-efseventhub/efs-orchestrator-roles-efseventhub.module.bicep' = {
+  name: 'efs-orchestrator-roles-efseventhub'
+  scope: rg
+  params: {
+    efseventhub_outputs_name: efseventhub.outputs.name
+    location: location
+    principalId: efs_orchestrator_identity.outputs.principalId
+  }
+}
 module efs_storage 'efs-storage/efs-storage.module.bicep' = {
   name: 'efs-storage'
+  scope: rg
+  params: {
+    location: location
+  }
+}
+module efseventhub 'efseventhub/efseventhub.module.bicep' = {
+  name: 'efseventhub'
   scope: rg
   params: {
     location: location
@@ -116,6 +132,7 @@ output EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN string = efs_cae.
 output EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_ID string = efs_cae.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_ID
 output EFS_CAE_AZURE_CONTAINER_REGISTRY_ENDPOINT string = efs_cae.outputs.AZURE_CONTAINER_REGISTRY_ENDPOINT
 output EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID string = efs_cae.outputs.AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID
+output EFSEVENTHUB_EVENTHUBSENDPOINT string = efseventhub.outputs.eventHubsEndpoint
 output EFS_ORCHESTRATOR_IDENTITY_CLIENTID string = efs_orchestrator_identity.outputs.clientId
 output EFS_ORCHESTRATOR_IDENTITY_ID string = efs_orchestrator_identity.outputs.id
 output EFS_STORAGE_BLOBENDPOINT string = efs_storage.outputs.blobEndpoint
