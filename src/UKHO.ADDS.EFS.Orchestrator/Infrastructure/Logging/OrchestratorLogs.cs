@@ -43,7 +43,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         private const int FileShareServiceOperationFailedId = BaseEventId + 21;
         private const int SalesCatalogueProductsNotReturnedId = BaseEventId + 22;
 
-        private const int CreateErrorFileSuccessId = BaseEventId + 23;
+        private const int CreateErrorFileId = BaseEventId + 23;
         private const int CreateErrorFileNodeFailedId = BaseEventId + 24;
         private const int CreateErrorFileAddFileFailedId = BaseEventId + 25;
 
@@ -130,7 +130,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         public static readonly EventId SalesCatalogueProductsNotReturned = new(SalesCatalogueProductsNotReturnedId, nameof(SalesCatalogueProductsNotReturned));
 
         // Error file creation events
-        public static readonly EventId CreateErrorFileSuccess = new(CreateErrorFileSuccessId, nameof(CreateErrorFileSuccess));
+        public static readonly EventId CreateErrorFile = new(CreateErrorFileId, nameof(CreateErrorFile));
         public static readonly EventId CreateErrorFileNodeFailed = new(CreateErrorFileNodeFailedId, nameof(CreateErrorFileNodeFailed));
         public static readonly EventId CreateErrorFileAddFileFailed = new(CreateErrorFileAddFileFailedId, nameof(CreateErrorFileAddFileFailed));
 
@@ -200,8 +200,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         [LoggerMessage(SalesCatalogueProductsNotReturnedId, LogLevel.Warning, "Sales Catalogue products not returned: {@salesCatalogueLog}", EventName = nameof(SalesCatalogueProductsNotReturned))]
         public static partial void LogSalesCatalogueProductsNotReturned(this ILogger logger, [LogProperties] SalesCatalogServiceProductsNotReturnedView salesCatalogueLog);
 
-        [LoggerMessage(CreateErrorFileSuccessId, LogLevel.Error, "Error file created successfully for correlation ID: {correlationId} | Timestamp: {timestamp}", EventName = nameof(CreateErrorFileSuccess))]
-        public static partial void LogCreateErrorFileSuccess(this ILogger logger, string correlationId, DateTimeOffset timestamp);
+        [LoggerMessage(CreateErrorFileId, LogLevel.Error, "Error file created for correlation ID: {correlationId} | Timestamp: {timestamp}", EventName = nameof(CreateErrorFile))]
+        public static partial void LogCreateErrorFile(this ILogger logger, string correlationId, DateTimeOffset timestamp);
 
         [LoggerMessage(CreateErrorFileNodeFailedId, LogLevel.Error, "CreateErrorFileNode failed for correlation ID: {correlationId} | Timestamp: {timestamp}", EventName = nameof(CreateErrorFileNodeFailed))]
         public static partial void LogCreateErrorFileNodeFailed(this ILogger logger, string correlationId, DateTimeOffset timestamp, Exception exception);

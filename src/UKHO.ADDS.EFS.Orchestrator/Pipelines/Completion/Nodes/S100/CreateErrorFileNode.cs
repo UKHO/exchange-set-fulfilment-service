@@ -56,7 +56,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
                     return NodeResultStatus.Failed;
                 }
 
-                _logger.LogCreateErrorFileSuccess(job.Id, DateTimeOffset.UtcNow);
+                _logger.LogCreateErrorFile(job.Id, DateTimeOffset.UtcNow);
                 return NodeResultStatus.Succeeded;
             }
             catch (Exception ex)
