@@ -149,26 +149,26 @@ stages:
   #   jobs:
   #   - template: templates/test.yml
 
-  - stage: DevDeploy
-    #dependsOn:
-    #- VulnerabilityChecks
-    #- Test
-    displayName: Dev deploy
-    jobs:
-    - template: templates/continuous-deployment.yml
-      parameters:
-        AzureDevOpsEnvironment: Ess-Dev
-        ShortName: dev
-        DestroyResources: ${{ parameters.DestroyResourcesDev }}
-        AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
-        DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
-        DeployConfiguration: ${{ parameters.DeployConfiguration }}
-        DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
-        DeployAddsMock: ${{ parameters.DeployAddsMock }}
+  # - stage: DevDeploy
+  #   #dependsOn:
+  #   #- VulnerabilityChecks
+  #   #- Test
+  #   displayName: Dev deploy
+  #   jobs:
+  #   - template: templates/continuous-deployment.yml
+  #     parameters:
+  #       AzureDevOpsEnvironment: Ess-Dev
+  #       ShortName: dev
+  #       DestroyResources: ${{ parameters.DestroyResourcesDev }}
+  #       AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+  #       DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
+  #       DeployConfiguration: ${{ parameters.DeployConfiguration }}
+  #       DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
+  #       DeployAddsMock: ${{ parameters.DeployAddsMock }}
 
   - stage: vnextiatDeploy
     dependsOn:
-    - DevDeploy
+    #- DevDeploy
     displayName: vNext IAT Deploy
     jobs:
     - template: templates/continuous-deployment.yml
