@@ -125,7 +125,7 @@
             "S57ExchangeSetNameTemplate": "V01X01_S57_[jobid].zip" // Template for naming an exchange set: options are "jobid", "date"
         }
     },
-    "vnext-iat": {
+    "vni": {
         "UKHO.ADDS.EFS.Orchestrator": {
             "Logging": {
                 "LogLevel": {
@@ -183,7 +183,7 @@
             "S57ExchangeSetNameTemplate": "V01X01_S57_[jobid].zip" // Template for naming an exchange set: options are "jobid", "date"
         }
     },
-    "vnext-e2e": {
+    "vne": {
         "UKHO.ADDS.EFS.Orchestrator": {
             "Logging": {
                 "LogLevel": {
