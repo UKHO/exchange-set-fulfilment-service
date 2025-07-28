@@ -3,6 +3,7 @@ using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
 using UKHO.ADDS.Configuration.Client;
+using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Orchestrator.Api;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Middleware;
@@ -48,6 +49,8 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 builder.Configuration.AddConfigurationService("UKHO.ADDS.EFS.Orchestrator", "UKHO.ADDS.EFS.Builder.S100", "UKHO.ADDS.EFS.Builder.S63", "UKHO.ADDS.EFS.Builder.S57");
 
                 builder.AddServiceDefaults().AddOrchestratorServices();
+
+                builder.AddRedisDistributedCache(ProcessNames.RedisCache);
 
                 var app = builder.Build();
 
