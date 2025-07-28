@@ -36,4 +36,4 @@ var keys = listKeys(efseventsnamespaceAuthRule.id, efseventsnamespaceAuthRule.ap
 var connectionStringWithEntityPath = '${keys.primaryConnectionString};EntityPath=${efs_events_hub.name}'
 output eventHubsEndpoint string = connectionStringWithEntityPath
 output name string = efs_events_namespace.name
-output eventhubname = efs_events_hub.name
+output eventhubname string = efs_events_hub.name
