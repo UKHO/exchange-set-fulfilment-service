@@ -100,7 +100,6 @@ jobs:
 
         - ${{ else }}:
 
-
           - task: DotNetCoreCLI@2
             displayName: NuGet restore for non test projects only
             inputs:
@@ -142,7 +141,7 @@ jobs:
                 inlineScript: |
                   azd provision --no-prompt --debug
               ${{ else }}:
-                inlineScript: |                
+                inlineScript: |
                   azd provision --no-prompt
             env:
               AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
