@@ -15,8 +15,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
         private const string WorkSpaceId = "working9";
         private const string ApiVersion = "7.3";
         private const string ApplicationName = "IICToolAPI";
-        private const string AddExchnageSet = "addExchangeSet";
-        private const string AddContent = "addContent";
+        private const string AddExchangeSet = "addExchangeSet";
+        private const string AddContent = "addContent";        
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ToolClient"/> class.
@@ -173,7 +173,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
         /// <returns>returns the response from the API.</returns>
         private async Task<HttpResponseMessage> SendHttpRequestAsync(string action, string path)
         {
-            if (action == AddExchnageSet || action == AddContent)
+            if (action == AddExchangeSet || action == AddContent)
             {
                 var emptyContent = new StringContent(string.Empty, System.Text.Encoding.UTF8,ApiHeaderKeys.ContentTypeJson );
                 return await _httpClient.PutAsync(path, emptyContent);
