@@ -7,6 +7,7 @@ using Azure.Messaging.EventHubs.Producer;
 using System.Text;
 using System.Threading.Channels;
 using System.Net.Sockets;
+using Azure.Identity;
 
 public class EventHubSerilogSink : ILogEventSink, IAsyncDisposable
 {
@@ -24,18 +25,24 @@ public class EventHubSerilogSink : ILogEventSink, IAsyncDisposable
     public EventHubSerilogSink(string? connectionString = null, ITextFormatter? formatter = null)
     {
         connectionString ??= Environment.GetEnvironmentVariable("ConnectionStrings__efs-events-namespace");
-        if (string.IsNullOrWhiteSpace(connectionString))
-            throw new InvalidOperationException("Missing Event Hub connection string.");
+        var eventHubName = Environment.GetEnvironmentVariable("EVENTHUB_NAME");
+        if (string.IsNullOrWhiteSpace(connectionString) || string.IsNullOrWhiteSpace(eventHubName))
+            throw new InvalidOperationException("Missing Event Hub connection string or event hub name.");
 
         _formatter = formatter ?? new JsonFormatter();
 
-        _producerClient = new EventHubProducerClient(connectionString, new EventHubProducerClientOptions
-        {
-            ConnectionOptions = new EventHubConnectionOptions
-            {
-                TransportType = EventHubsTransportType.AmqpWebSockets
-            }
-        });
+         _producerClient = new EventHubProducerClient(
+                fullyQualifiedNamespace: connectionString,
+                eventHubName: eventHubName,
+                credential: new DefaultAzureCredential(),
+                clientOptions: new EventHubProducerClientOptions
+                {
+                    ConnectionOptions = new EventHubConnectionOptions
+                    {
+                        TransportType = EventHubsTransportType.AmqpWebSockets
+                    }
+                }
+            );
 
         _logChannel = Channel.CreateBounded<LogEvent>(new BoundedChannelOptions(1000)
         {
