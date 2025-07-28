@@ -33,6 +33,17 @@ parameters:
     displayName: "Destroy dev environment"
     type: boolean
     default: false
+  - name: DestroyResourcesVnextIat
+    displayName: "Destroy VnextIat environment"
+    type: boolean
+    default: false
+  - name: DestroyResourcesVnextE2E
+    displayName: "Destroy VnextE2e environment"
+    type: boolean
+  - name: DestroyResourcesIAT
+    displayName: "Destroy IAT environment"
+    type: boolean
+    default: false
   - name: AdditionalDebugging
     displayName: "Enable optional pipeline debugging"
     type: boolean
@@ -175,7 +186,7 @@ stages:
       parameters:
         AzureDevOpsEnvironment: Ess-vnextiat
         ShortName: vnextiat
-        DestroyResources: ${{ parameters.DestroyResourcesDev }}
+        DestroyResources: ${{ parameters.DestroyResourcesVnextIat }}
         AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
         DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
         DeployConfiguration: ${{ parameters.DeployConfiguration }}
@@ -191,7 +202,7 @@ stages:
       parameters:
         AzureDevOpsEnvironment: Ess-vnexte2e
         ShortName: vnexte2e
-        DestroyResources: ${{ parameters.DestroyResourcesDev }}
+        DestroyResources: ${{ parameters.DestroyResourcesVnextE2E }}
         AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
         DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
         DeployConfiguration: ${{ parameters.DeployConfiguration }}
@@ -207,7 +218,7 @@ stages:
       parameters:
         AzureDevOpsEnvironment: Ess-iat
         ShortName: iat
-        DestroyResources: ${{ parameters.DestroyResourcesDev }}
+        DestroyResources: ${{ parameters.DestroyResourcesIAT }}
         AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
         DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
         DeployConfiguration: ${{ parameters.DeployConfiguration }}
