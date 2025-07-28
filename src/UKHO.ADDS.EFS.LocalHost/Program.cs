@@ -32,6 +32,10 @@ namespace UKHO.ADDS.EFS.LocalHost
             var builder = DistributedApplication.CreateBuilder(args);
             builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());
 
+
+            // app insights
+            var appInsights = builder.AddAzureApplicationInsights("efstestappinishgt");
+
             // Get parameters
             var subnetResourceId = builder.AddParameter("subnetResourceId");
             var zoneRedundant = builder.AddParameter("zoneRedundant");
