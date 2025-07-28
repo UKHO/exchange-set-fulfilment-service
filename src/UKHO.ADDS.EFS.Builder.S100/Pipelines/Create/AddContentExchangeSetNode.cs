@@ -37,6 +37,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
                 .Select(x => x.Path)
                 .ToArray();
 
+            
+            if (validContentPaths.Length == 0)
+            {
+                return NodeResultStatus.Failed;
+            }
             // Process each path
             foreach (var path in validContentPaths)
             {
