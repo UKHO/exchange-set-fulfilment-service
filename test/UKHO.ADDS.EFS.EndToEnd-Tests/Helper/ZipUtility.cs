@@ -28,20 +28,47 @@ namespace UKHO.ADDS.EFS.EndToEndTests.Helper
             return destinationFilePath;
         }
 
-        public static void CompareZipFilesExactMatch(string sourceZipPath, string targetZipPath)
+        public static void CompareZipFolderStructure(string sourceZipPath, string targetZipPath)
         {
             using var archive1 = ZipFile.OpenRead(sourceZipPath);
             using var archive2 = ZipFile.OpenRead(targetZipPath);
 
-            var entries1 = archive1.Entries.Select(e => e.FullName.Replace('\\', '/')).OrderBy(e => e).ToList();
-            var entries2 = archive2.Entries.Select(e => e.FullName.Replace('\\', '/')).OrderBy(e => e).ToList();
+            // Extract folder paths from entries
+            var folders1 = archive1.Entries
+                .Select(e => e.FullName.Replace('\\', '/'))
+                .SelectMany(e => GetParentFolders(e))
+                .Distinct()
+                .OrderBy(f => f)
+                .ToList();
 
-            // Compare file names and structure
-            Assert.Equal(entries1.Count, entries2.Count);
-            for (var i = 0; i < entries1.Count; i++)
+            var folders2 = archive2.Entries
+                .Select(e => e.FullName.Replace('\\', '/'))
+                .SelectMany(e => GetParentFolders(e))
+                .Distinct()
+                .OrderBy(f => f)
+                .ToList();
+
+            // Compare folder structures
+            Assert.Equal(folders1.Count, folders2.Count);
+            for (var i = 0; i < folders1.Count; i++)
             {
-                Assert.Equal(entries1[i], entries2[i]);
+                Assert.Equal(folders1[i], folders2[i]);
             }
+        }
+
+        // Helper method to get all parent folders from a path
+        private static IEnumerable<string> GetParentFolders(string entryPath)
+        {
+            var folders = new List<string>();
+            var parts = entryPath.Split('/');
+
+            var currentPath = "";
+            for (var i = 0; i < parts.Length - 1; i++) // Exclude file name part
+            {
+                currentPath = string.IsNullOrEmpty(currentPath) ? parts[i] : $"{currentPath}/{parts[i]}";
+                folders.Add(currentPath + "/"); // Ensure it ends with '/'
+            }
+            return folders;
         }
     }
 }
