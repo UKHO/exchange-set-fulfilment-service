@@ -36,8 +36,8 @@ namespace UKHO.ADDS.EFS.LocalHost
             var appInsights = builder.AddAzureApplicationInsights(ServiceConfiguration.AppInsightsService);
             
             // Event Hubs
-            var eventHubs = builder.AddAzureEventHubs(ServiceConfiguration.EventHubService);
-            eventHubs.AddHub(ServiceConfiguration.IngestionHub);
+            var eventHubs = builder.AddAzureEventHubs(ServiceConfiguration.EventHubNamespace);
+            eventHubs.AddHub(ServiceConfiguration.EventHubName);
 
             // Get parameters
             var subnetResourceId = builder.AddParameter("subnetResourceId");

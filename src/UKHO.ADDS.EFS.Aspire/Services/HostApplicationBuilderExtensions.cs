@@ -20,7 +20,7 @@ namespace Microsoft.Extensions.Hosting
         public static TBuilder AddServiceDefaults<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
         {
             // Configure Serilog to send logs to Azure Event Hub
-            var eventHubConnectionString = builder.Configuration["EVENTHUB_CONNECTION_STRING"];
+            var eventHubConnectionString = builder.Configuration["ConnectionStrings__efs-events-namespace"];
             var eventHubName = builder.Configuration["EVENTHUB_NAME"]; ;
             if (!string.IsNullOrWhiteSpace(eventHubConnectionString) && !string.IsNullOrWhiteSpace(eventHubName))
             {

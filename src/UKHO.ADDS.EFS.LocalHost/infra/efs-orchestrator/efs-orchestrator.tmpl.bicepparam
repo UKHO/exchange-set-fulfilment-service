@@ -12,4 +12,5 @@ param efs_storage_outputs_blobendpoint = readEnvironmentVariable('EFS_STORAGE_BL
 param efs_storage_outputs_queueendpoint = readEnvironmentVariable('EFS_STORAGE_QUEUEENDPOINT')
 param efs_storage_outputs_tableendpoint = readEnvironmentVariable('EFS_STORAGE_TABLEENDPOINT')
 param efs_app_insights_outputs_appinsightsconnectionstring = readEnvironmentVariable('EFS_APP_INSIGHTS_APPINSIGHTSCONNECTIONSTRING')
-param efseventhub_outputs_eventhubsendpoint = readEnvironmentVariable('EFSEVENTHUB_EVENTHUBSENDPOINT_CONNECTION_STRING')
+param efs_events_namespace_outputs_eventhubsendpoint = readEnvironmentVariable('EFS_EVENTS_NAMESPACE_ENDPOINT')
+param efs_events_hub_outputs_name = readEnvironmentVariable('EFS_EVENT_HUBNAME')

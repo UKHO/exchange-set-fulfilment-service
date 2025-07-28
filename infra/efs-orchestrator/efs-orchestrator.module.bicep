@@ -23,7 +23,9 @@ param efs_storage_outputs_blobendpoint string
 
 param efs_app_insights_outputs_appinsightsconnectionstring string
 
-param efseventhub_outputs_eventhubsendpoint string
+param efs_events_namespace_outputs_eventhubsendpoint string
+
+param efs_events_hub_outputs_name string
 
 param efs_orchestrator_identity_outputs_clientid string
 
@@ -100,8 +102,12 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2024-03-01' = {
               value: efs_app_insights_outputs_appinsightsconnectionstring
             }
             {
-              name: 'ConnectionStrings__efseventhub'
-              value: efseventhub_outputs_eventhubsendpoint
+              name: 'ConnectionStrings__efs-events-namespace'
+              value: efs_events_namespace_outputs_eventhubsendpoint
+            }
+            {
+              name: 'EVENTHUB_NAME'
+              value: efs_events_hub_outputs_name
             }
             {
               name: 'services__adds-configuration__http__0'
