@@ -1,4 +1,4 @@
-﻿using FakeItEasy;
+using FakeItEasy;
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
@@ -29,7 +29,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         }
 
         [Test]
-
+        
         public void WhenConstructorIsCalledWithNullLogger_ThenThrowsArgumentNullException()
         {
             var mockClient = A.Fake<IFileShareReadWriteClient>();
@@ -192,7 +192,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
             var fakeResult = A.Fake<IResult<BatchSearchResponse>>();
             IError expectedError = A.Fake<IError>();
             BatchSearchResponse dummyResponse = null;
-
+            
             A.CallTo(() => fakeResult.IsFailure(out expectedError, out dummyResponse))
                 .Returns(true);
 
@@ -227,7 +227,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
 
             await _fileShareService.CreateBatchAsync(CorrelationId, CancellationToken.None);
 
-            A.CallTo(() => _logger.Log(A<LogLevel>._, A<EventId>._, A<LoggerMessageState>._, A<Exception>._, A<Func<LoggerMessageState, Exception?, string>>._)).MustHaveHappened();
+            A.CallTo(() => _logger.Log(A<LogLevel>._, A<EventId>._, A<LoggerMessageState>._, A<Exception>._,A<Func<LoggerMessageState, Exception?, string>>._)).MustHaveHappened();
         }
 
         [Test]
@@ -259,7 +259,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
 
             await _fileShareService.SearchCommittedBatchesExcludingCurrentAsync(BatchId, CorrelationId, CancellationToken.None);
 
-            A.CallTo(() => _logger.Log(A<LogLevel>._, A<EventId>._, A<LoggerMessageState>._, A<Exception>._, A<Func<LoggerMessageState, Exception?, string>>._)).MustHaveHappened();
+            A.CallTo(() => _logger.Log(A<LogLevel>._, A<EventId>._, A<LoggerMessageState>._, A<Exception>._,A<Func<LoggerMessageState, Exception?, string>>._)).MustHaveHappened();
         }
 
         [Test]
@@ -277,7 +277,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
 
             var result = await _fileShareService.SetExpiryDateAsync(batches, CorrelationId, CancellationToken.None);
 
-            A.CallTo(() => _logger.Log(A<LogLevel>._, A<EventId>._, A<LoggerMessageState>._, A<Exception>._, A<Func<LoggerMessageState, Exception?, string>>._)).MustHaveHappened();
+            A.CallTo(() => _logger.Log(A<LogLevel>._, A<EventId>._, A<LoggerMessageState>._, A<Exception>._,A<Func<LoggerMessageState, Exception?, string>>._)).MustHaveHappened();
             Assert.That(result, Is.SameAs(fakeResult));
         }
 
