@@ -29,7 +29,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
         }
 
         public override Task<bool> ShouldExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
-            => Task.FromResult(!string.IsNullOrWhiteSpace(context.Subject.Job.BatchId) && Environment.BuilderExitCode == BuilderExitCode.Failed);
+        {
+            return Task.FromResult(!string.IsNullOrWhiteSpace(context.Subject.Job.BatchId) && Environment.BuilderExitCode == BuilderExitCode.Failed);
+        }
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
         {
@@ -52,15 +54,18 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
 
                 if (!addFileResult.IsSuccess(out _, out var error))
                 {
+                    context.Subject.IsErrorFileCreated = false;
                     _logger.LogCreateErrorFileAddFileFailed(job.Id, DateTimeOffset.UtcNow, error);
                     return NodeResultStatus.Failed;
                 }
 
+                context.Subject.IsErrorFileCreated = true;
                 _logger.LogCreateErrorFile(job.Id, DateTimeOffset.UtcNow);
                 return NodeResultStatus.Succeeded;
             }
             catch (Exception ex)
             {
+                context.Subject.IsErrorFileCreated = false;
                 _logger.LogCreateErrorFileNodeFailed(job.Id, DateTimeOffset.UtcNow, ex);
                 return NodeResultStatus.Failed;
             }

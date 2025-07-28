@@ -31,6 +31,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
         private IConfiguration _configuration;
         private readonly CancellationToken _cancellationToken = CancellationToken.None;
         private const string S100ErrorFileNameTemplate = "S100ErrorFileNameTemplate";
+        private const string TestBatchId = "test-batch-id";
+        private const string TestJobId = "test-job-id";
 
         [SetUp]
         public void SetUp()
@@ -47,19 +49,19 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
 
             var job = new Job
             {
-                Id = "test-job-id",
+                Id = TestJobId,
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
                 RequestedProducts = "",
                 RequestedFilter = "",
-                BatchId = "test-batch-id"
+                BatchId = TestBatchId
             };
 
             var build = new S100Build
             {
-                JobId = "test-job-id",
+                JobId = TestJobId,
                 DataStandard = DataStandard.S100,
-                BatchId = "test-batch-id"
+                BatchId = TestBatchId
             };
 
             _pipelineContext = new PipelineContext<S100Build>(job, build, A.Fake<IStorageService>());
@@ -146,11 +148,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
         {
             var addFileResponse = new AddFileToBatchResponse();
             A.CallTo(() => _fileShareClient.AddFileToBatchAsync(
-                A<string>.That.IsEqualTo("test-batch-id"),
+                A<string>.That.IsEqualTo(TestBatchId),
                 A<Stream>._,
                 A<string>.That.IsEqualTo("error.txt"),
                 A<string>.That.IsEqualTo(ApiHeaderKeys.ContentTypeTextPlain),
-                A<string>.That.IsEqualTo("test-job-id"),
+                A<string>.That.IsEqualTo(TestJobId),
                 A<CancellationToken>._))
                 .Returns(Result.Success(addFileResponse));
 
@@ -162,17 +164,53 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
         }
 
         [Test]
+        public async Task WhenExecuteAsyncCalledAndAddFileSucceeds_ErrorFileCreatedIsTrue()
+        {
+            var addFileResponse = new AddFileToBatchResponse();
+            A.CallTo(() => _fileShareClient.AddFileToBatchAsync(
+                A<string>.That.IsEqualTo(TestBatchId),
+                A<Stream>._,
+                A<string>.That.IsEqualTo("error.txt"),
+                A<string>.That.IsEqualTo(ApiHeaderKeys.ContentTypeTextPlain),
+                A<string>.That.IsEqualTo(TestJobId),
+                A<CancellationToken>._))
+                .Returns(Result.Success(addFileResponse));
+
+            var result = await _createErrorFileNode.ExecuteAsync(_executionContext);
+
+            Assert.That(_pipelineContext.IsErrorFileCreated, Is.True);
+        }
+
+        [Test]
+        public async Task WhenExecuteAsyncCalledAndAddFileFails_ErrorFileCreatedIsFalse()
+        {
+            var error = new Error("Add file failed");
+            A.CallTo(() => _fileShareClient.AddFileToBatchAsync(
+                A<string>._,
+                A<Stream>._,
+                A<string>._,
+                A<string>._,
+                A<string>._,
+                A<CancellationToken>._))
+                .Returns(Result.Failure<AddFileToBatchResponse>(error));
+
+            var result = await _createErrorFileNode.ExecuteAsync(_executionContext);
+
+            Assert.That(_pipelineContext.IsErrorFileCreated, Is.False);
+        }
+
+        [Test]
         public async Task WhenExecuteAsyncCalledWithJobIdPlaceholderInTemplate_ThenReplacesJobIdInFileName()
         {
             A.CallTo(() => _configuration[S100ErrorFileNameTemplate]).Returns("error_[jobid].txt");
             var addFileResponse = new AddFileToBatchResponse();
 
             A.CallTo(() => _fileShareClient.AddFileToBatchAsync(
-                A<string>.That.IsEqualTo("test-batch-id"),
+                A<string>.That.IsEqualTo(TestBatchId),
                 A<Stream>._,
                 A<string>.That.IsEqualTo("error_test-job-id.txt"),
                 A<string>.That.IsEqualTo(ApiHeaderKeys.ContentTypeTextPlain),
-                A<string>.That.IsEqualTo("test-job-id"),
+                A<string>.That.IsEqualTo(TestJobId),
                 A<CancellationToken>._))
                 .Returns(Result.Success(addFileResponse));
 
@@ -359,11 +397,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
             await _createErrorFileNode.ExecuteAsync(_executionContext);
 
             A.CallTo(() => _fileShareClient.AddFileToBatchAsync(
-                "test-batch-id",
+                TestBatchId,
                 A<Stream>.That.Not.IsNull(),
                 "error.txt",
                 ApiHeaderKeys.ContentTypeTextPlain,
-                "test-job-id",
+                TestJobId,
                 A<CancellationToken>._))
                 .MustHaveHappenedOnceExactly();
         }
