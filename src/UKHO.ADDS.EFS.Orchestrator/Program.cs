@@ -48,7 +48,8 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     .MinimumLevel.Override("Azure.Storage.Queues", LogEventLevel.Warning)
                     .MinimumLevel.Override("Azure.Messaging.EventHubs", LogEventLevel.Fatal)
                     .MinimumLevel.Override("Azure.Messaging.EventHubs.EventHubProducerClient", LogEventLevel.Fatal)
-                    .MinimumLevel.Override("Azure.Messaging.EventHubs.Producer", LogEventLevel.Fatal));
+                    .MinimumLevel.Override("Azure.Messaging.EventHubs.Producer", LogEventLevel.Fatal)
+                    .MinimumLevel.Override("Azure.Identity", LogEventLevel.Fatal));
 
 
                 builder.Configuration.AddConfigurationService("UKHO.ADDS.EFS.Orchestrator", "UKHO.ADDS.EFS.Builder.S100", "UKHO.ADDS.EFS.Builder.S63", "UKHO.ADDS.EFS.Builder.S57");
