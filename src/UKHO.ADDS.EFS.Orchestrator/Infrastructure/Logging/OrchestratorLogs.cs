@@ -206,7 +206,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         [LoggerMessage(CreateErrorFileNodeFailedId, LogLevel.Error, "CreateErrorFileNode failed for correlation ID: {correlationId} | Timestamp: {timestamp}", EventName = nameof(CreateErrorFileNodeFailed))]
         public static partial void LogCreateErrorFileNodeFailed(this ILogger logger, string correlationId, DateTimeOffset timestamp, Exception exception);
 
-        [LoggerMessage(CreateErrorFileAddFileFailedId, LogLevel.Error, "Failed to add error file to batch for correlation ID: {correlationId} | | Timestamp: {timestamp} | Error: {@error}", EventName = nameof(CreateErrorFileAddFileFailed))]
+        [LoggerMessage(CreateErrorFileAddFileFailedId, LogLevel.Error, "Failed to add error file to batch for correlation ID: {correlationId} | Timestamp: {timestamp} | Error: {@error}", EventName = nameof(CreateErrorFileAddFileFailed))]
         public static partial void LogCreateErrorFileAddFileFailed(this ILogger logger, string correlationId, DateTimeOffset timestamp, [LogProperties] IError error);
     }
 }
