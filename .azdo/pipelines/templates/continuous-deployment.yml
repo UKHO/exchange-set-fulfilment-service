@@ -180,42 +180,34 @@ jobs:
               AZURE_LOCATION: $(AZURE_LOCATION)
               AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
 
-          # - task: DotNetCoreCLI@2
-          #   displayName: Run configuration seeder
-          #   inputs:
-          #     azureSubscription: ${{ variables.AzureSubscription }}
-          #     command: run
-          #     projects: '$(Build.SourcesDirectory)/efs/config/repo/src/UKHO.ADDS.Configuration.Seeder/UKHO.ADDS.Configuration.Seeder.csproj'
-          #     arguments: '--configuration Release --no-restore -- $(AZURE_ENV_NAME) $(Build.SourcesDirectory)/efs/config/configuration.json $(ConfigConnectionString)'
+          - template: container-app-deploy.yml
+            parameters:
+              AzureSubscription: ${{ variables.AzureSubscription }}
+              AppName: adds-configuration
+              ProjectPath: $(Build.SourcesDirectory)/efs/config/repo/src/UKHO.ADDS.Configuration/UKHO.ADDS.Configuration.csproj
+              AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+              DeployApp: ${{ parameters.DeployConfiguration }}
 
-          # - template: container-app-deploy.yml
-          #   parameters:
-          #     AzureSubscription: ${{ variables.AzureSubscription }}
-          #     AppName: adds-configuration
-          #     ProjectPath: $(Build.SourcesDirectory)/efs/config/repo/src/UKHO.ADDS.Configuration/UKHO.ADDS.Configuration.csproj
-          #     AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
-          #     DeployApp: ${{ parameters.DeployConfiguration }}
+          - template: container-app-deploy.yml
+            parameters:
+              AzureSubscription: ${{ variables.AzureSubscription }}
+              AppName: adds-mocks-efs
+              ProjectPath: $(Build.SourcesDirectory)/efs/mock/UKHO.ADDS.Mocks.EFS/UKHO.ADDS.Mocks.EFS.csproj
+              AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+              DeployApp: ${{ parameters.DeployAddsMock }}
 
-          # - template: container-app-deploy.yml
-          #   parameters:
-          #     AzureSubscription: ${{ variables.AzureSubscription }}
-          #     AppName: adds-mocks-efs
-          #     ProjectPath: $(Build.SourcesDirectory)/efs/mock/UKHO.ADDS.Mocks.EFS/UKHO.ADDS.Mocks.EFS.csproj
-          #     AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
-          #     DeployApp: ${{ parameters.DeployAddsMock }}
+          - template: container-app-deploy.yml
+            parameters:
+              AzureSubscription: ${{ variables.AzureSubscription }}
+              AppName: efs-orchestrator
+              ProjectPath: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Orchestrator/UKHO.ADDS.EFS.Orchestrator.csproj
+              AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+              DeployApp: ${{ parameters.DeployOrchestrator }}
 
-          # - template: container-app-deploy.yml
-          #   parameters:
-          #     AzureSubscription: ${{ variables.AzureSubscription }}
-          #     AppName: efs-orchestrator
-          #     ProjectPath: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Orchestrator/UKHO.ADDS.EFS.Orchestrator.csproj
-          #     AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
-          #     DeployApp: ${{ parameters.DeployOrchestrator }}
-
-          # - template: container-app-job-deploy.yml
-          #   parameters:
-          #     AzureSubscription: ${{ variables.AzureSubscription }}
-          #     AppName: efs-builder-s100
-          #     ProjectFolder: UKHO.ADDS.EFS.Builder.S100
-          #     AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
-          #     DeployApp: ${{ parameters.DeployBuilderS100 }}
+          - template: container-app-job-deploy.yml
+            parameters:
+              AzureSubscription: ${{ variables.AzureSubscription }}
+              AppName: efs-builder-s100
+              ProjectFolder: UKHO.ADDS.EFS.Builder.S100
+              AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+              DeployApp: ${{ parameters.DeployBuilderS100 }}
