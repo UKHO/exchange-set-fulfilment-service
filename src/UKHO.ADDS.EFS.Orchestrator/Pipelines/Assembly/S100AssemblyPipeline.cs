@@ -27,6 +27,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly
 
             AddPipelineNode<CreateFileShareBatchNode>(cancellationToken);
             AddPipelineNode<ScheduleBuildNode>(cancellationToken);
+            AddPipelineNode<CreateFingerprintNode>(cancellationToken);
+
 
             var result = await Pipeline.ExecuteAsync(context);
 

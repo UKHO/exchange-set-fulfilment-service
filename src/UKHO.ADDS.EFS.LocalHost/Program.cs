@@ -48,6 +48,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             var acaEnv = builder.AddAzureContainerAppEnvironment(ServiceConfiguration.AcaEnvironmentName)
                 .WithParameter("subnetResourceId", subnetResourceId)
                 .WithParameter("zoneRedundant", zoneRedundant);
+
             acaEnv.ConfigureInfrastructure(config =>
             {
                 var containerEnvironment = config.GetProvisionableResources().OfType<ContainerAppManagedEnvironment>().Single();
@@ -74,6 +75,10 @@ namespace UKHO.ADDS.EFS.LocalHost
             var storageQueue = storage.AddQueues(StorageConfiguration.QueuesName);
             var storageTable = storage.AddTables(StorageConfiguration.TablesName);
             var storageBlob = storage.AddBlobs(StorageConfiguration.BlobsName);
+
+            // Redis cache
+            var redisCache = builder.AddRedis(ProcessNames.RedisCache)
+                .WithRedisInsight();
 
             // ADDS Mock
             var mockService = builder.AddProject<UKHO_ADDS_Mocks_EFS>(ProcessNames.MockService)
@@ -106,6 +111,8 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WaitFor(storageBlob)
                 .WithReference(mockService)
                 .WaitFor(mockService)
+                .WithReference(redisCache)
+                .WaitFor(redisCache)
                 .WithExternalHttpEndpoints()
                 .WithScalar("API Browser")
                 .WithReference(appInsights)

@@ -12,6 +12,8 @@
 
         public const string MockService = "adds-mocks-efs";
 
+        public const string RedisCache = "efs-redis";
+
         public const string RequestMonitorService = "efs-local-request-monitor";
 
     }
