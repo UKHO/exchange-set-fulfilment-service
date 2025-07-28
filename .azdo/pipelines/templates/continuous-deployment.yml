@@ -139,10 +139,14 @@ jobs:
               scriptLocation: inlineScript
               ${{ if eq(parameters.AdditionalDebugging, true) }}:
                 inlineScript: |
-                  azd provision --no-prompt --no-state --debug
+                  az keyvault list-deleted --output table
+
+                  #azd provision --no-prompt --no-state --debug
               ${{ else }}:
                 inlineScript: |
-                  azd provision --no-prompt --no-state
+                  az keyvault list-deleted --output table
+
+                  #azd provision --no-prompt --no-state
             env:
               AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
               AZURE_ENV_NAME: $(AZURE_ENV_NAME)
