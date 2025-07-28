@@ -8,8 +8,6 @@ using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using Serilog;
-using Serilog.Events;
-using UKHO.ADDS.EFS.Configuration.Namespaces;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.Hosting
@@ -21,6 +19,19 @@ namespace Microsoft.Extensions.Hosting
     {
         public static TBuilder AddServiceDefaults<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
         {
+            // Configure Serilog to send logs to Azure Event Hub
+            var eventHubConnectionString = builder.Configuration["EVENTHUB_CONNECTION_STRING"];
+            var eventHubName = builder.Configuration["EVENTHUB_NAME"]; ;
+            if (!string.IsNullOrWhiteSpace(eventHubConnectionString) && !string.IsNullOrWhiteSpace(eventHubName))
+            {
+                Log.Logger = new LoggerConfiguration()
+                    .MinimumLevel.Information()
+                    .WriteTo.AzureEventHub(eventHubConnectionString, eventHubName)
+                    .CreateLogger();
+                builder.Logging.ClearProviders();
+                builder.Logging.AddSerilog();
+            }
+
             builder.ConfigureOpenTelemetry();
 
             builder.AddDefaultHealthChecks();
@@ -52,25 +63,6 @@ namespace Microsoft.Extensions.Hosting
                 logging.IncludeFormattedMessage = true;
                 logging.IncludeScopes = true;
             });
-
-            var eventHubConnectionString = builder.Configuration["ConnectionStrings__efseventhub"];
-            var eventHubName = ServiceConfiguration.IngestionHub;
-
-            // Configure Serilog to send logs to Azure Event Hub if connection string and hub name are provided
-            if (!string.IsNullOrWhiteSpace(eventHubConnectionString) && !string.IsNullOrWhiteSpace(eventHubName))
-            {
-                Log.Logger = new LoggerConfiguration()
-                    .MinimumLevel.Information()
-                    .WriteTo.AzureEventHub(
-                        connectionString: eventHubConnectionString,
-                        eventHubName: eventHubName,
-                        restrictedToMinimumLevel: LogEventLevel.Information,
-                        formatter: new Serilog.Formatting.Json.JsonFormatter())
-                    .CreateLogger();
-                builder.Logging.AddSerilog(Log.Logger, dispose: true);
-                Log.Information("Serilog configured to send logs to Azure Event Hub.");
-                Log.Logger.Information("Serilog configured to send logs to Azure Event Hub.");
-            }
 
             builder.Services.AddOpenTelemetry()
                 .WithMetrics(metrics =>

@@ -3,7 +3,6 @@ using Azure.Core;
 using Azure.Provisioning;
 using Azure.Provisioning.AppContainers;
 using Azure.Provisioning.Storage;
-using Aspire.Hosting.Azure;
 using CliWrap;
 using Docker.DotNet;
 using Docker.DotNet.Models;
