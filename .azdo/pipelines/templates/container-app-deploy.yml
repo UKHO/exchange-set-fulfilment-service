@@ -54,7 +54,7 @@ steps:
       az acr login --name $(AcrName)
 
       echo "Publishing image..."
-      dotnet publish "${{ parameters.ProjectPath }}" -r linux-x64 -c Release /t:PublishContainer -p:ContainerRepository=exchange-set-fulfilment-service/${{ parameters.AppName }}-dev -p:ContainerImageTag=$DEPLOYMENT_TAG -p:ContainerRegistry=$(AcrName).azurecr.io --getProperty:GeneratedContainerConfiguration
+      dotnet publish "${{ parameters.ProjectPath }}" -r linux-x64 -c Release /t:PublishContainer -p:ContainerRepository=exchange-set-fulfilment-service/${{ parameters.AppName }}-$(AZURE_ENV_NAME) -p:ContainerImageTag=$DEPLOYMENT_TAG -p:ContainerRegistry=$(AcrName).azurecr.io --getProperty:GeneratedContainerConfiguration
 
       echo "Deploying app..."
       cp "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost/infra/${{ parameters.AppName }}/${{ parameters.AppName }}.tmpl.bicepparam" "$(Build.SourcesDirectory)/efs/infra/${{ parameters.AppName }}/${{ parameters.AppName }}.tmpl.bicepparam"
