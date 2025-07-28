@@ -127,6 +127,8 @@ namespace UKHO.ADDS.EFS.Builder.S100
         private static IServiceCollection AddFileShareServices(this IServiceCollection services, IConfiguration configuration)
         {
             var fileShareEndpoint = configuration[BuilderEnvironmentVariables.FileShareEndpoint] ?? configuration["DebugEndpoints:FileShareService"]!;
+            // Add distributed cache for token caching
+            services.AddDistributedMemoryCache();
 
             services.AddSingleton<IAuthFssTokenProvider, AuthFssTokenProvider>();
             services.AddSingleton<IAuthScsTokenProvider, AuthScsTokenProvider>();

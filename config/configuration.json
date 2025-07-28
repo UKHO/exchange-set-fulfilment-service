@@ -37,9 +37,10 @@
                 }
             },
             "EfsManagedIdentity": {
-                "EfsClientId": "", 
-                "FssClientId": "", 
-                "ScsClientId": "" 
+                "EfsClientId": "",
+                "FssClientId": "",
+                "ScsClientId": "",
+                "DeductTokenExpiryMinutes": 1
             }
         },
         "UKHO.ADDS.EFS.Builder.S100": {
@@ -110,9 +111,10 @@
                 }
             },
             "EfsManagedIdentity": {
-                "EfsClientId": "", 
-                "FssClientId": "", 
-                "ScsClientId": ""  
+                "EfsClientId": "",
+                "FssClientId": "",
+                "ScsClientId": "",
+                "DeductTokenExpiryMinutes": 1
             }
         },
         "UKHO.ADDS.EFS.Builder.S100": {
