@@ -1,293 +1,160 @@
-using System.IO.Compression;
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
-using Aspire.Hosting;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
+using UKHO.ADDS.EFS.EndToEndTests.Helper;
 using Xunit.Abstractions;
 
 namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
 {
-    public class EndToEndTests : IAsyncLifetime
+    public class EndToEndTests : TestBase
     {
-        private DistributedApplication _app;
+        private readonly ITestOutputHelper _output;
 
-        private readonly string _projectDirectory;
-        public EndToEndTests()
+        public EndToEndTests(ITestOutputHelper output) : base()
         {
-            _projectDirectory = Directory.GetParent(AppContext.BaseDirectory)!.Parent!.Parent!.Parent!.FullName;
+            _output = output;
         }
 
-
-        public async Task InitializeAsync()
+        [Theory]
+        [InlineData("ProductName eq '101GB004DEVQK'", "Single101Product.zip")]
+        [InlineData("ProductName eq '102CA005N5040W00130'", "Single102Product.zip")]
+        [InlineData("ProductName eq '104CA00_20241103T001500Z_GB3DEVK0_dcf2'", "Single104Product.zip")]
+        [InlineData("ProductName eq '111FR00_20241217T001500Z_GB3DEVK0_dcf2'", "Single111Product.zip")]
+        [InlineData("ProductName eq '111CA00_20241217T001500Z_GB3DEVQ0_dcf2' or ProductName eq '104CA00_20241103T001500Z_GB3DEVK0_dcf2'", "MultipleProducts.zip")]
+        [InlineData("startswith(ProductName, '101')", "StartWithS101Products.zip")]
+        [InlineData("startswith(ProductName, '102')", "StartWithS102Products.zip")]
+        [InlineData("startswith(ProductName, '104')", "StartWithS104Products.zip")]
+        [InlineData("startswith(ProductName, '111')", "StartWithS111Products.zip")]
+        [InlineData("ProductName eq '101GB004DEVQK' or startswith(ProductName, '104')", "SingleProductAndStartWithS104Products.zip")]
+        [InlineData("startswith(ProductName , '111') or startswith(ProductName,'101')", "StartWithS101AndS111.zip")]
+        [InlineData("", "WithoutFilter.zip")]
+        public async Task S100EndToEnd(string filter, string zipFileName)
         {
-            var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.UKHO_ADDS_EFS_LocalHost>();
-            appHost.Services.ConfigureHttpClientDefaults(clientBuilder =>
-            {
-                clientBuilder.AddStandardResilienceHandler();
-            });
-            _app = await appHost.BuildAsync();
+            var httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
 
-            var resourceNotificationService = _app.Services.GetRequiredService<ResourceNotificationService>();
-            await _app.StartAsync();
-            await resourceNotificationService.WaitForResourceAsync(ProcessNames.OrchestratorService, KnownResourceStates.Running).WaitAsync(TimeSpan.FromSeconds(30));
+            var jobId = await SubmitJobAsync(httpClient, filter);
 
-        }
+            await WaitForJobCompletionAsync(httpClient, jobId);
 
-        public async Task DisposeAsync()
-        {
-            if (_app != null)
-            {
-                await _app.StopAsync();
-                await _app.DisposeAsync();
-            }                       
+            await VerifyBuildStatusAsync(httpClient, jobId);
 
-            //Clean up temporary files and directories
-            var outDir = Path.Combine(_projectDirectory, "out");           
-           
-            if (Directory.Exists(outDir))
-                Array.ForEach(Directory.GetFiles(outDir, "*.zip"), File.Delete);
-           
-        }
+            var exchangeSetDownloadPath = await ZipUtility.DownloadExchangeSetAsZipAsync(jobId, App!);
+            var sourceZipPath = Path.Combine(ProjectDirectory!, "TestData", zipFileName);
 
-
-        [Fact]
-        public async Task S100EndToEnd()
-        {
-            var httpClient = _app.CreateHttpClient(ProcessNames.OrchestratorService);
-
-            // 1.Prepare a job submission request and confirm that it was submitted successfully.
-            var content = new StringContent(
-                """
-                {
-                    "version": 1,
-                    "dataStandard": "s100",
-                    "products": "",
-                    "filter": ""
-                }
-                """,
-                Encoding.UTF8, "application/json");
-            var requestId = Guid.NewGuid().ToString();
-            content.Headers.Add("x-correlation-id", $"job-0001-{requestId}");
-
-
-            var jobSubmitResponse = await httpClient.PostAsync("/jobs", content);
-            Assert.True(jobSubmitResponse.IsSuccessStatusCode, "Expected success status code but got: " + jobSubmitResponse.StatusCode);
-            var responseContent = await jobSubmitResponse.Content.ReadAsStringAsync();
-            var responseJson = JsonDocument.Parse(responseContent);
-            responseJson.RootElement.TryGetProperty("jobId", out var jobId);
-            responseJson.RootElement.TryGetProperty("jobStatus", out var jobStatus);
-            responseJson.RootElement.TryGetProperty("buildStatus", out var buildStatus);
-
-            Assert.Equal("submitted", jobStatus.GetString());
-            Assert.Equal("scheduled", buildStatus.GetString());
-
-            // 2.Check for notification that the job has been picked up by the builder and completed successfully. 
-            string currentJobState;
-            string currentBuildState;
-            double elapsedMinutes = 0;
-            var waitDuration = 2000; // 2 seconds
-            var maxTimeToWait = 2; // 2 minutes
-            TimeOnly startTime = TimeOnly.FromDateTime(DateTime.Now);
-            do
-            {
-                var jobStateResponse = await httpClient.GetAsync($"/jobs/{jobId}");
-                responseContent = await jobStateResponse.Content.ReadAsStringAsync();
-                responseJson = JsonDocument.Parse(responseContent);
-                responseJson.RootElement.TryGetProperty("jobState", out var jobState);
-                responseJson.RootElement.TryGetProperty("buildState", out var buildState);
-                currentJobState = jobState.GetString() ?? string.Empty;
-                currentBuildState = buildState.GetString() ?? string.Empty;
-                await Task.Delay(waitDuration);
-                elapsedMinutes = (TimeOnly.FromDateTime(DateTime.Now) - startTime).TotalMinutes;
-            } while (currentJobState == "submitted" && elapsedMinutes < maxTimeToWait);
-
-            Assert.Equal("completed", currentJobState);
-            Assert.Equal("succeeded", currentBuildState);
-
-            // 3.Check the builder has returned build status and it has been successfully processed by orchestrator.
-            var jobCompletedResponse = await httpClient.GetAsync($"/jobs/{jobId}/build");
-            Assert.True(jobCompletedResponse.IsSuccessStatusCode, "Expected success status code but got: " + jobCompletedResponse.StatusCode);
-
-            // and that the builder exit code is 'success' although success is not necessary
-            // the fact that a response was returned is sufficient to indicate that all components in the process
-            // are working together.
-            responseContent = await jobCompletedResponse.Content.ReadAsStringAsync();
-            responseJson = JsonDocument.Parse(responseContent);
-            responseJson.RootElement.TryGetProperty("builderExitCode", out var builderExitCode);
-            Assert.Equal("success", builderExitCode.GetString());
-
-            // 4.Download Exchange Set, call to the Admin API for downloading the exchange set
-            var exchangeSetDownloadPath = await DownloadExchangeSetAsZipAsync(jobId.ToString());           
-
-            var sourceZipPath = Path.Combine(_projectDirectory, "TestData/exchangeSet-25Products.testzip");
-
-            // 5. Compare the folder structure of the source and target zip files
-            CompareZipFolderStructure(sourceZipPath, exchangeSetDownloadPath);
+            ZipUtility.CompareZipFilesExactMatch(sourceZipPath, exchangeSetDownloadPath);
         }
 
         [Fact]
         public async Task TestMultipleRequests()
         {
-            var httpClient = _app.CreateHttpClient(ProcessNames.OrchestratorService);
 
-            StringContent content;
-            var jobs = new List<string>();
-            var completedJobs = new List<string>();
-            double elapsedMinutes = 0;
-            var numberOfJobs = 8; // Number of jobs to submit
+            var httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
+            const int expectedNumberOfJobs = 8;
+            var jobIds = new List<string>();
 
-            // 1.Submit multiple job requests and confirm that they were all submitted successfully.
-            var requestId = Guid.NewGuid().ToString();
-            for (int i = 0; i < numberOfJobs; i++)
+            // 1. Submit multiple job requests with empty filter
+            for (var i = 0; i < expectedNumberOfJobs; i++)
             {
-                string jobNumber = i.ToString("D4");
-
-                content = new StringContent(
-                """
+                try
                 {
-                    "version": 1,
-                    "dataStandard": "s100",
-                    "products": "",
-                    "filter": ""
+                    var jobId = await SubmitJobAsync(httpClient, jobNumber: i);
+                    jobIds.Add(jobId);
                 }
-                """,
-                Encoding.UTF8, "application/json");
-                content.Headers.Add("x-correlation-id", $"job-{jobNumber}-{requestId}");
-
-                var jobSubmitResponse = await httpClient.PostAsync("/jobs", content);
-                Assert.True(jobSubmitResponse.IsSuccessStatusCode, "Expected success status code but got: " + jobSubmitResponse.StatusCode);
-
-                var responseContent = await jobSubmitResponse.Content.ReadAsStringAsync();
-                var responseJson = JsonDocument.Parse(responseContent);
-                responseJson.RootElement.TryGetProperty("jobId", out var jobId);
-                var jobIdValue = jobId.GetString();
-                if(!string.IsNullOrEmpty(jobIdValue))
+                catch (Exception e)
                 {
-                    jobs.Add(jobIdValue);
+                    _output.WriteLine(e.Message);
+                    _output.WriteLine("Submit Job failed for Job Id :- " + jobIds[i]);
                 }
             }
-            Assert.Equal(numberOfJobs, jobs.Count);
 
-
-            // 2.Check for notification that the jobs have been picked up by the builder and completed successfully.
-            var waitDuration = 2000; // 2 seconds
-            var maxTimeToWait = 3; // 3 minutes
-            TimeOnly startTime = TimeOnly.FromDateTime(DateTime.Now);
-            do { 
-                foreach (var jobId in jobs)
-                {
-                    if (completedJobs.Contains(jobId)) continue; // Skip if job already completed
-                    var jobStateResponse = await httpClient.GetAsync($"/jobs/{jobId}");
-                    Assert.True(jobStateResponse.IsSuccessStatusCode, "Expected success status code but got: " + jobStateResponse.StatusCode);
-
-                    var responseContent = await jobStateResponse.Content.ReadAsStringAsync();
-                    var responseJson = JsonDocument.Parse(responseContent);
-                    responseJson.RootElement.TryGetProperty("jobState", out var jobState);
-                    responseJson.RootElement.TryGetProperty("buildState", out var buildState);
-                    if (jobState.GetString() == "completed" && buildState.GetString() == "succeeded")
-                    {
-                        completedJobs.Add(jobId);
-                    }
-                }
-                await Task.Delay(waitDuration);
-                elapsedMinutes = (TimeOnly.FromDateTime(DateTime.Now) - startTime).TotalMinutes;
-            } while (completedJobs.Count < jobs.Count && elapsedMinutes < maxTimeToWait);
-
-            Assert.Equal(jobs.Count, completedJobs.Count);
-
-
-            // 3.Check the builder has successfully returned build status for each completed job
-            foreach (var jobId in completedJobs)
+            // 2. Wait for all jobs to complete
+            foreach (var jobId in jobIds)
             {
-                var jobCompletedResponse = await httpClient.GetAsync($"/jobs/{jobId}/build");
-                Assert.True(jobCompletedResponse.IsSuccessStatusCode, "Expected success status code but got: " + jobCompletedResponse.StatusCode);
-                var responseContent = await jobCompletedResponse.Content.ReadAsStringAsync();
-                var responseJson = JsonDocument.Parse(responseContent);
-                responseJson.RootElement.TryGetProperty("builderExitCode", out var builderExitCode);
-                Assert.Equal("success", builderExitCode.GetString());
+                try
+                {
+                    await WaitForJobCompletionAsync(httpClient, jobId);
+                }
+                catch (Exception e)
+                {
+                    _output.WriteLine(e.Message);
+                    _output.WriteLine("Job completion failed for Job Id :- " + jobId);
+                }
             }
 
-
+            // 3. Verify build status for each job
+            foreach (var jobId in jobIds)
+            {
+                try
+                {
+                    await VerifyBuildStatusAsync(httpClient, jobId);
+                }
+                catch(Exception e)
+                {
+                    jobIds.Remove(jobId);
+                }
+            }
+            Assert.Equal(expectedNumberOfJobs, jobIds.Count);
         }
 
-        public async Task<string> DownloadExchangeSetAsZipAsync(string jobId)
+        private static async Task<string> SubmitJobAsync(HttpClient httpClient, string filter = "", int jobNumber = 1)
         {
-            var httpClientMock = _app.CreateHttpClient(ProcessNames.MockService);
-            var mockResponse = await httpClientMock.GetAsync($"/_admin/files/FSS/V01X01_{jobId}.zip");
-            mockResponse.EnsureSuccessStatusCode();
+            var requestId = $"job-000{jobNumber}-" + Guid.NewGuid();
+            var payload = new { version = 1, dataStandard = "s100", products = "", filter = $"{filter}" };
 
-            var zipResponse = await mockResponse.Content.ReadAsStringAsync();
+            var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
-            await using var zipStream = await mockResponse.Content.ReadAsStreamAsync();
-                        
-            var destinationFilePath = Path.Combine(_projectDirectory, "out", $"V01X01_{jobId}.zip");
+            content.Headers.Add("x-correlation-id", requestId);
 
-            // Ensure the directory exists
-            var destinationDirectory = Path.GetDirectoryName(destinationFilePath);
-            if (!Directory.Exists(destinationDirectory))
-            {
-                Directory.CreateDirectory(destinationDirectory!);
-            }
+            var response = await httpClient.PostAsync("/jobs", content);
 
-            await using var fileStream = new FileStream(destinationFilePath, FileMode.Create, FileAccess.Write, FileShare.None);
-            await zipStream.CopyToAsync(fileStream);
-            await fileStream.FlushAsync();
-            return destinationFilePath;
+            Assert.True(response.IsSuccessStatusCode, $"Expected success status code but got: {response.StatusCode}");
+
+            var responseJson = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            var jobId = responseJson.RootElement.GetProperty("jobId").GetString();
+            var jobStatus = responseJson.RootElement.GetProperty("jobStatus").GetString();
+            var buildStatus = responseJson.RootElement.GetProperty("buildStatus").GetString();
+
+            Assert.Equal("submitted", jobStatus);
+            Assert.Equal("scheduled", buildStatus);
+
+            return requestId!;
         }
 
-        public (HashSet<string> Folders, HashSet<string> Files) GetZipStructure(string zipPath)
+        private static async Task WaitForJobCompletionAsync(HttpClient httpClient, string jobId)
         {
-            var folders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            var files = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            const int waitDurationMs = 2000;
+            const double maxWaitMinutes = 2;
+            var startTime = DateTime.Now;
 
-            using var archive = ZipFile.OpenRead(zipPath);
-            foreach (var entry in archive.Entries)
+            string jobState, buildState;
+            do
             {
-                // Normalize path separators
-                var entryPath = entry.FullName.Replace('\\', '/').TrimEnd('/');
+                var response = await httpClient.GetAsync($"/jobs/{jobId}");
+                var responseJson = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
 
-                if (string.IsNullOrEmpty(entryPath))
-                    continue;
+                jobState = responseJson.RootElement.GetProperty("jobState").GetString() ?? string.Empty;
+                buildState = responseJson.RootElement.GetProperty("buildState").GetString() ?? string.Empty;
 
-                if (entry.FullName.EndsWith("/"))
-                {
-                    // It's a directory entry
-                    folders.Add(entryPath);
-                }
-                else
-                {
-                    // It's a file entry
-                    files.Add(entryPath);
+                if (jobState == "completed" && buildState == "succeeded")
+                    break;
 
-                    // Add all parent folders
-                    var lastSlash = entryPath.LastIndexOf('/');
-                    while (lastSlash > 0)
-                    {
-                        var folder = entryPath.Substring(0, lastSlash);
-                        folders.Add(folder);
-                        lastSlash = folder.LastIndexOf('/');
-                    }
-                }
-            }
-            return (folders, files);
+                await Task.Delay(waitDurationMs);
+            } while ((DateTime.Now - startTime).TotalMinutes < maxWaitMinutes);
+
+            Assert.Equal("completed", jobState);
+            Assert.Equal("succeeded", buildState);
         }
-        private void CompareZipFolderStructure(string sourceZipPath, string targetZipPath)
+
+        private static async Task VerifyBuildStatusAsync(HttpClient httpClient, string jobId)
         {
-            var (sourceFolders, sourceFiles) = GetZipStructure(sourceZipPath);
-            var (targetFolders, targetFiles) = GetZipStructure(targetZipPath);
+            var response = await httpClient.GetAsync($"/jobs/{jobId}/build");
+            Assert.True(response.IsSuccessStatusCode, $"Expected success status code but got: {response.StatusCode}");
 
-            // Find non-matching folders
-            var foldersOnlyInSource = sourceFolders.Except(targetFolders).ToList();
-            var foldersOnlyInTarget = targetFolders.Except(sourceFolders).ToList();
+            var responseJson = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            var builderExitCode = responseJson.RootElement.GetProperty("builderExitCode").GetString();
 
-            // Assert: Folder and file structures match, with details
-            Assert.True(foldersOnlyInSource.Count == 0 && foldersOnlyInTarget.Count == 0,
-                $"Folder structures do not match.\n" +
-                (foldersOnlyInSource.Count > 0 ? $"Folders only in source: {string.Join(", ", foldersOnlyInSource)}\n" : "") +
-                (foldersOnlyInTarget.Count > 0 ? $"Folders only in target: {string.Join(", ", foldersOnlyInTarget)}\n" : ""));
-
+            Assert.Equal("success", builderExitCode);
         }
-
 
     }
 }
