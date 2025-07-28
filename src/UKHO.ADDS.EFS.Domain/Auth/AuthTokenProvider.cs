@@ -16,12 +16,12 @@ namespace UKHO.ADDS.EFS.Auth
 
         public async Task<string> GetManagedIdentityAuthAsync(string resource)
         {
-            var newAccessToken = await GetNewAuthToken(resource);
+            var newAccessToken = await GetAuthToken(resource);
 
             return newAccessToken.AccessToken;
         }
 
-        private async Task<AccessTokenItem> GetNewAuthToken(string resource)
+        private async Task<AccessTokenItem> GetAuthToken(string resource)
         {
             var tokenCredential = new DefaultAzureCredential(new DefaultAzureCredentialOptions { ManagedIdentityClientId = _efsManagedIdentityConfiguration.Value.EfsClientId });
             var accessToken = await tokenCredential.GetTokenAsync(
