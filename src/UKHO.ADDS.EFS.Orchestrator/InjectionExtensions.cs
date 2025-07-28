@@ -45,7 +45,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.Configure<JsonOptions>(options => JsonCodec.DefaultOptions.CopyTo(options.SerializerOptions));
 
             // Configure ManagedIdentity
-            builder.Services.Configure<EfsManagedIdentityConfiguration>(configuration.GetSection("ManagedIdentity"));
+            builder.Services.Configure<EfsManagedIdentityConfiguration>(configuration.GetSection("EfsManagedIdentity"));
             builder.Services.AddSingleton<IAuthFssTokenProvider, AuthFssTokenProvider>();
             builder.Services.AddSingleton<IAuthScsTokenProvider, AuthScsTokenProvider>();
 
