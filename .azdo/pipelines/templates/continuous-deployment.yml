@@ -149,42 +149,73 @@ jobs:
               AZURE_LOCATION: $(AZURE_LOCATION)
               AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
 
-          - task: DotNetCoreCLI@2
+          - task: AzureCLI@2
             displayName: Run configuration seeder
             inputs:
               azureSubscription: ${{ variables.AzureSubscription }}
-              command: run
-              projects: '$(Build.SourcesDirectory)/efs/config/repo/src/UKHO.ADDS.Configuration.Seeder/UKHO.ADDS.Configuration.Seeder.csproj'
-              arguments: '--configuration Release --no-restore -- $(AZURE_ENV_NAME) $(Build.SourcesDirectory)/efs/config/configuration.json $(ConfigConnectionString)'
+              addSpnToEnvironment: true
+              workingDirectory: $(Build.SourcesDirectory)/efs
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                echo "Reading azd variables..."
+                while IFS='=' read -r key value; do
+                    value=$(echo "$value" | sed 's/^"//' | sed 's/"$//')
+                    export "$key=$value"
+                done <<EOF
+                $(azd env get-values)
+                EOF
 
-          - template: container-app-deploy.yml
-            parameters:
-              AzureSubscription: ${{ variables.AzureSubscription }}
-              AppName: adds-configuration
-              ProjectPath: $(Build.SourcesDirectory)/efs/config/repo/src/UKHO.ADDS.Configuration/UKHO.ADDS.Configuration.csproj
-              AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
-              DeployApp: ${{ parameters.DeployConfiguration }}
+                if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
+                  echo "Current environment variables:"
+                  echo "--------------------------------------------------------------------------------"
+                  env | sort
+                  echo "--------------------------------------------------------------------------------"
+                fi
 
-          - template: container-app-deploy.yml
-            parameters:
-              AzureSubscription: ${{ variables.AzureSubscription }}
-              AppName: adds-mocks-efs
-              ProjectPath: $(Build.SourcesDirectory)/efs/mock/UKHO.ADDS.Mocks.EFS/UKHO.ADDS.Mocks.EFS.csproj
-              AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
-              DeployApp: ${{ parameters.DeployAddsMock }}
+                dotnet run --project $(Build.SourcesDirectory)/efs/config/repo/src/UKHO.ADDS.Configuration.Seeder/UKHO.ADDS.Configuration.Seeder.csproj --configuration Release --no-restore -- "$(AZURE_ENV_NAME)" "$(Build.SourcesDirectory)/efs/config/configuration.json" "$ADDS_CON_WAS_TABLEENDPOINT"
+            env:
+              AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+              AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+              AZURE_LOCATION: $(AZURE_LOCATION)
+              AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
 
-          - template: container-app-deploy.yml
-            parameters:
-              AzureSubscription: ${{ variables.AzureSubscription }}
-              AppName: efs-orchestrator
-              ProjectPath: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Orchestrator/UKHO.ADDS.EFS.Orchestrator.csproj
-              AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
-              DeployApp: ${{ parameters.DeployOrchestrator }}
+          # - task: DotNetCoreCLI@2
+          #   displayName: Run configuration seeder
+          #   inputs:
+          #     azureSubscription: ${{ variables.AzureSubscription }}
+          #     command: run
+          #     projects: '$(Build.SourcesDirectory)/efs/config/repo/src/UKHO.ADDS.Configuration.Seeder/UKHO.ADDS.Configuration.Seeder.csproj'
+          #     arguments: '--configuration Release --no-restore -- $(AZURE_ENV_NAME) $(Build.SourcesDirectory)/efs/config/configuration.json $(ConfigConnectionString)'
 
-          - template: container-app-job-deploy.yml
-            parameters:
-              AzureSubscription: ${{ variables.AzureSubscription }}
-              AppName: efs-builder-s100
-              ProjectFolder: UKHO.ADDS.EFS.Builder.S100
-              AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
-              DeployApp: ${{ parameters.DeployBuilderS100 }}
+          # - template: container-app-deploy.yml
+          #   parameters:
+          #     AzureSubscription: ${{ variables.AzureSubscription }}
+          #     AppName: adds-configuration
+          #     ProjectPath: $(Build.SourcesDirectory)/efs/config/repo/src/UKHO.ADDS.Configuration/UKHO.ADDS.Configuration.csproj
+          #     AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+          #     DeployApp: ${{ parameters.DeployConfiguration }}
+
+          # - template: container-app-deploy.yml
+          #   parameters:
+          #     AzureSubscription: ${{ variables.AzureSubscription }}
+          #     AppName: adds-mocks-efs
+          #     ProjectPath: $(Build.SourcesDirectory)/efs/mock/UKHO.ADDS.Mocks.EFS/UKHO.ADDS.Mocks.EFS.csproj
+          #     AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+          #     DeployApp: ${{ parameters.DeployAddsMock }}
+
+          # - template: container-app-deploy.yml
+          #   parameters:
+          #     AzureSubscription: ${{ variables.AzureSubscription }}
+          #     AppName: efs-orchestrator
+          #     ProjectPath: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Orchestrator/UKHO.ADDS.EFS.Orchestrator.csproj
+          #     AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+          #     DeployApp: ${{ parameters.DeployOrchestrator }}
+
+          # - template: container-app-job-deploy.yml
+          #   parameters:
+          #     AzureSubscription: ${{ variables.AzureSubscription }}
+          #     AppName: efs-builder-s100
+          #     ProjectFolder: UKHO.ADDS.EFS.Builder.S100
+          #     AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+          #     DeployApp: ${{ parameters.DeployBuilderS100 }}

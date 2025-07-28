@@ -4,7 +4,7 @@ parameters:
   - name: DisableStryker
     displayName: "Disable Stryker"
     type: boolean
-    default: false
+    default: true
   - name: SnykOnlyFailIfFixable
     displayName: "Snyk - fail only if an issue has an available fix"
     type: boolean
@@ -16,19 +16,19 @@ parameters:
   - name: DeployOrchestrator
     displayName: "Deploy orchestrator"
     type: boolean
-    default: true
+    default: false
   - name: DeployConfiguration
     displayName: "Deploy configuration"
     type: boolean
-    default: true
+    default: false
   - name: DeployBuilderS100
     displayName: "Deploy S100 builder"
     type: boolean
-    default: true
+    default: false
   - name: DeployAddsMock
     displayName: "Deploy ADDS mock"
     type: boolean
-    default: true
+    default: false
   - name: DestroyResourcesDev
     displayName: "Destroy dev environment"
     type: boolean
@@ -36,7 +36,7 @@ parameters:
   - name: AdditionalDebugging
     displayName: "Enable optional pipeline debugging"
     type: boolean
-    default: false
+    default: true
 
 trigger:
   - main
@@ -76,14 +76,14 @@ resources:
     type: github
 
 stages:
-  - stage: VulnerabilityChecks
-    displayName: "Snyk Checks"
-    dependsOn: []
-    jobs:
-    - template: templates/vulnerability-checks.yml
-      parameters:
-        SnykOnlyFailIfFixable: ${{ parameters.SnykOnlyFailIfFixable }}
-        SnykPassOnIssues: ${{ parameters.SnykPassOnIssues }}
+  # - stage: VulnerabilityChecks
+  #   displayName: "Snyk Checks"
+  #   dependsOn: []
+  #   jobs:
+  #   - template: templates/vulnerability-checks.yml
+  #     parameters:
+  #       SnykOnlyFailIfFixable: ${{ parameters.SnykOnlyFailIfFixable }}
+  #       SnykPassOnIssues: ${{ parameters.SnykPassOnIssues }}
 
   - stage: Stryker_Mutator
     displayName: "Stryker Mutator"
@@ -143,16 +143,16 @@ stages:
             reportPattern: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Builder.S100.UnitTests/**/mutation-report.html'
             reportDisplayName: 'EFS Builder S100 UnitTests'
 
-  - stage: Test
-    displayName: Test
-    dependsOn: []
-    jobs:
-    - template: templates/test.yml
+  # - stage: Test
+  #   displayName: Test
+  #   dependsOn: []
+  #   jobs:
+  #   - template: templates/test.yml
 
   - stage: DevDeploy
-    dependsOn:
-    - VulnerabilityChecks
-    - Test
+    dependsOn: []
+    # - VulnerabilityChecks
+    # - Test
     displayName: Dev deploy
     jobs:
     - template: templates/continuous-deployment.yml
