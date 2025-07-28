@@ -40,6 +40,7 @@ parameters:
   - name: DestroyResourcesVnextE2E
     displayName: "Destroy VnextE2e environment"
     type: boolean
+    default: false
   - name: DestroyResourcesIAT
     displayName: "Destroy IAT environment"
     type: boolean
