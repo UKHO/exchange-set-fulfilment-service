@@ -195,7 +195,7 @@ stages:
 
   - stage: vnexte2eDeploy
     dependsOn:
-    - vnextiatDeploy
+   # - vnextiatDeploy
     displayName: vNext E2E Deploy
     jobs:
     - template: templates/continuous-deployment.yml

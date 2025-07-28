@@ -140,41 +140,10 @@ jobs:
               scriptLocation: inlineScript
               ${{ if eq(parameters.AdditionalDebugging, true) }}:
                 inlineScript: |
-                  #az keyvault list-deleted --query "[].{Name:name, Location:location, ScheduledPurge:properties.scheduledPurgeDate}" -o table
-
-                  # Set key vault name (replace with your actual key vault name or pass as a variable)
-                  KEY_VAULT_NAME="addsconkv-ld6nsrs3cnud4"
-
-                  # Check if soft-deleted Key Vault exists
-                  if az keyvault list-deleted --query "[?name=='$KEY_VAULT_NAME']" | grep -q "$KEY_VAULT_NAME"; then
-                    echo "Key Vault '$KEY_VAULT_NAME' found in soft-deleted state. Purging..."
-                    #az keyvault recover --name $KEY_VAULT_NAME
-                    az keyvault purge --name $KEY_VAULT_NAME
-                    az keyvault purge --name "addsconkv-fgeigndobldqe"
-                  else
-                    echo "No soft-deleted Key Vault '$KEY_VAULT_NAME' found. Proceeding..."
-                  fi
-
-                  azd provision --no-prompt --no-state --debug
+                  azd provision --no-prompt --debug
               ${{ else }}:
-                inlineScript: |
-                  #az keyvault list-deleted --query "[].{Name:name, Location:location, ScheduledPurge:properties.scheduledPurgeDate}" -o table
-
-                   # Set key vault name (replace with your actual key vault name or pass as a variable)
-                  KEY_VAULT_NAME="addsconkv-ld6nsrs3cnud4"
-
-                  # Check if soft-deleted Key Vault exists
-                  if az keyvault list-deleted --query "[?name=='$KEY_VAULT_NAME']" | grep -q "$KEY_VAULT_NAME"; then
-                    echo "Key Vault '$KEY_VAULT_NAME' found in soft-deleted state. purging..."
-                    #az keyvault recover --name $KEY_VAULT_NAME
-                    az keyvault purge --name $KEY_VAULT_NAME
-                    az keyvault purge --name "addsconkv-fgeigndobldqe"
-                  else
-                    echo "No soft-deleted Key Vault '$KEY_VAULT_NAME' found. Proceeding..."
-                  fi
-
-
-                  azd provision --no-prompt --no-state
+                inlineScript: |                
+                  azd provision --no-prompt
             env:
               AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
               AZURE_ENV_NAME: $(AZURE_ENV_NAME)
