@@ -1,8 +1,18 @@
-﻿using System.Text.Json;
+﻿using System.Net.Sockets;
+using System.Reflection.PortableExecutable;
+using System.Text.Json;
+using Azure.Identity;
 using Microsoft.AspNetCore.Http.Json;
+using Microsoft.Kiota.Abstractions;
+using Microsoft.Kiota.Abstractions.Authentication;
+using Microsoft.Kiota.Authentication.Azure;
+using Microsoft.Kiota.Http.HttpClientLibrary;
+using Microsoft.Kiota.Http.HttpClientLibrary.Middleware;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
+using UKHO.ADDS.Clients.Common.MiddlewareExtensions;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
+using UKHO.ADDS.Clients.Kiota.SalesCatalogueService;
 using UKHO.ADDS.Clients.SalesCatalogueService;
 using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Builds.S100;
@@ -81,6 +91,18 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddSingleton<IBuilderLogForwarder, BuilderLogForwarder>();
             builder.Services.AddSingleton<StorageInitializerService>();
 
+
+            // Register Kiota Defaults and commong authentication provider
+
+            builder.Services.AddKiotaHandlers();
+            builder.Services.AddKiotaDefaults(new AnonymousAuthenticationProvider());
+            // Uncomment the line below to use Azure Identity for authentication, if required
+            //builder.Services.AddKiotaDefaults(new AzureIdentityAuthenticationProvider(new DefaultAzureCredential()));
+
+
+            // Sales Catalogue Service Kiota
+            builder.Services.RegisterKiotaClient<KiotaSalesCatalogueService>("Endpoints:S100SalesCatalogue");
+
             builder.Services.AddSingleton<ISalesCatalogueClientFactory>(provider => new SalesCatalogueClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
 
             builder.Services.AddSingleton(provider =>
@@ -134,6 +156,40 @@ namespace UKHO.ADDS.EFS.Orchestrator
             });
 
             return serviceCollection;
+        }
+
+        public static IHttpClientBuilder AddConfiguredHttpClient2<TClient>(this IServiceCollection services, string endpointConfigKey,
+                                                                          IDictionary<string, string>? headers = null)
+            where TClient : class
+        {
+            string test = "";
+            var result =  services.AddHttpClient<TClient>((provider, client) =>
+            {
+                var config = provider.GetRequiredService<IConfiguration>();
+                var endpoint = config[endpointConfigKey]!;
+                client.BaseAddress = new Uri(endpointConfigKey);
+                test = endpoint;
+                if (headers != null)
+                {
+                    foreach (var header in headers)
+                    {
+                        client.DefaultRequestHeaders.Add(header.Key, header.Value);
+                    }
+                }
+            });
+            return result;
+        }
+
+        public static IServiceCollection AddKiotaHandlers(this IServiceCollection services)
+        {
+            var kiotaHandlers = KiotaClientFactory.GetDefaultHandlerActivatableTypes();
+            var kiotaHandlers2 = KiotaClientFactory.GetDefaultHandlerTypes();
+
+            foreach (var handler in kiotaHandlers)
+            {
+                services.AddTransient(handler);
+            }
+            return services;
         }
     }
 }
