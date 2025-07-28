@@ -100,6 +100,7 @@ jobs:
 
         - ${{ else }}:
 
+
           - task: DotNetCoreCLI@2
             displayName: NuGet restore for non test projects only
             inputs:
@@ -139,12 +140,12 @@ jobs:
               scriptLocation: inlineScript
               ${{ if eq(parameters.AdditionalDebugging, true) }}:
                 inlineScript: |
-                  az keyvault list-deleted --query "[].{Name:name, ResourceGroup:properties.resourceGroup}" -o table
+                  az keyvault list-deleted --query "[].{Name:name, Location:location, ScheduledPurge:properties.scheduledPurgeDate}" -o table
 
                   #azd provision --no-prompt --no-state --debug
               ${{ else }}:
                 inlineScript: |
-                  az keyvault list-deleted --query "[].{Name:name, ResourceGroup:properties.resourceGroup}" -o table
+                  az keyvault list-deleted --query "[].{Name:name, Location:location, ScheduledPurge:properties.scheduledPurgeDate}" -o table
 
                   #azd provision --no-prompt --no-state
             env:
