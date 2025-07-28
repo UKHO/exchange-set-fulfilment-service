@@ -1,7 +1,5 @@
-﻿using System.Text;
-using System.Text.Json;
-using UKHO.ADDS.EFS.Configuration.Namespaces;
-using UKHO.ADDS.EFS.EndToEndTests.Helper;
+﻿using UKHO.ADDS.EFS.Configuration.Namespaces;
+using UKHO.ADDS.EFS.EndToEndTests.Services;
 using Xunit.Abstractions;
 
 namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
@@ -10,7 +8,7 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
     {
         private readonly ITestOutputHelper _output;
 
-        public EndToEndTests(ITestOutputHelper output) : base()
+        public EndToEndTests(ITestOutputHelper output)
         {
             _output = output;
         }
@@ -32,11 +30,11 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
         {
             var httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
 
-            var jobId = await SubmitJobAsync(httpClient, filter);
+            var jobId = await OrchestratorJobHelper.SubmitJobAsync(httpClient, filter);
 
-            await WaitForJobCompletionAsync(httpClient, jobId);
+            await OrchestratorJobHelper.WaitForJobCompletionAsync(httpClient, jobId);
 
-            await VerifyBuildStatusAsync(httpClient, jobId);
+            await OrchestratorJobHelper.VerifyBuildStatusAsync(httpClient, jobId);
 
             var exchangeSetDownloadPath = await ZipUtility.DownloadExchangeSetAsZipAsync(jobId, App!);
             var sourceZipPath = Path.Combine(ProjectDirectory!, "TestData", zipFileName);
@@ -57,7 +55,7 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
             {
                 try
                 {
-                    var jobId = await SubmitJobAsync(httpClient, jobNumber: i);
+                    var jobId = await OrchestratorJobHelper.SubmitJobAsync(httpClient, jobNumber: i);
                     jobIds.Add(jobId);
                 }
                 catch (Exception e)
@@ -72,7 +70,7 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
             {
                 try
                 {
-                    await WaitForJobCompletionAsync(httpClient, jobId);
+                    await OrchestratorJobHelper.WaitForJobCompletionAsync(httpClient, jobId);
                 }
                 catch (Exception e)
                 {
@@ -86,7 +84,7 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
             {
                 try
                 {
-                    await VerifyBuildStatusAsync(httpClient, jobId);
+                    await OrchestratorJobHelper.VerifyBuildStatusAsync(httpClient, jobId);
                 }
                 catch(Exception e)
                 {
@@ -95,66 +93,5 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
             }
             Assert.Equal(expectedNumberOfJobs, jobIds.Count);
         }
-
-        private static async Task<string> SubmitJobAsync(HttpClient httpClient, string filter = "", int jobNumber = 1)
-        {
-            var requestId = $"job-000{jobNumber}-" + Guid.NewGuid();
-            var payload = new { version = 1, dataStandard = "s100", products = "", filter = $"{filter}" };
-
-            var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-
-            content.Headers.Add("x-correlation-id", requestId);
-
-            var response = await httpClient.PostAsync("/jobs", content);
-
-            Assert.True(response.IsSuccessStatusCode, $"Expected success status code but got: {response.StatusCode}");
-
-            var responseJson = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-            var jobId = responseJson.RootElement.GetProperty("jobId").GetString();
-            var jobStatus = responseJson.RootElement.GetProperty("jobStatus").GetString();
-            var buildStatus = responseJson.RootElement.GetProperty("buildStatus").GetString();
-
-            Assert.Equal("submitted", jobStatus);
-            Assert.Equal("scheduled", buildStatus);
-
-            return requestId!;
-        }
-
-        private static async Task WaitForJobCompletionAsync(HttpClient httpClient, string jobId)
-        {
-            const int waitDurationMs = 2000;
-            const double maxWaitMinutes = 2;
-            var startTime = DateTime.Now;
-
-            string jobState, buildState;
-            do
-            {
-                var response = await httpClient.GetAsync($"/jobs/{jobId}");
-                var responseJson = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-
-                jobState = responseJson.RootElement.GetProperty("jobState").GetString() ?? string.Empty;
-                buildState = responseJson.RootElement.GetProperty("buildState").GetString() ?? string.Empty;
-
-                if (jobState == "completed" && buildState == "succeeded")
-                    break;
-
-                await Task.Delay(waitDurationMs);
-            } while ((DateTime.Now - startTime).TotalMinutes < maxWaitMinutes);
-
-            Assert.Equal("completed", jobState);
-            Assert.Equal("succeeded", buildState);
-        }
-
-        private static async Task VerifyBuildStatusAsync(HttpClient httpClient, string jobId)
-        {
-            var response = await httpClient.GetAsync($"/jobs/{jobId}/build");
-            Assert.True(response.IsSuccessStatusCode, $"Expected success status code but got: {response.StatusCode}");
-
-            var responseJson = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-            var builderExitCode = responseJson.RootElement.GetProperty("builderExitCode").GetString();
-
-            Assert.Equal("success", builderExitCode);
-        }
-
     }
 }
