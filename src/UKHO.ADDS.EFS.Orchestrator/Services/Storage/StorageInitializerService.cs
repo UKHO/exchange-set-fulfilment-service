@@ -16,7 +16,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Storage
 
         private readonly ITable<DataStandardTimestamp> _timestampTable;
         private readonly ITable<Job> _jobTable;
-        private readonly ITable<BuildFingerprint> _buildFingerprintTable;
         private readonly ITable<S100Build> _s100BuildTable;
         private readonly ITable<S63Build> _s63BuildTable;
         private readonly ITable<S57Build> _s57BuildTable;
@@ -27,7 +26,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Storage
                 QueueServiceClient queueClient,
                 ITable<DataStandardTimestamp> timestampTable,
                 ITable<Job> jobTable,
-                ITable<BuildFingerprint> buildFingerprintTable,
                 ITable<S100Build> s100BuildTable,
                 ITable<S63Build> s63BuildTable,
                 ITable<S57Build> s57BuildTable,
@@ -36,7 +34,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Storage
             _queueClient = queueClient;
             _timestampTable = timestampTable;
             _jobTable = jobTable;
-            _buildFingerprintTable = buildFingerprintTable;
             _s100BuildTable = s100BuildTable;
             _s63BuildTable = s63BuildTable;
             _s57BuildTable = s57BuildTable;
@@ -63,7 +60,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Storage
                 await _s57BuildTable.CreateIfNotExistsAsync(stoppingToken);
 
                 await _jobTable.CreateIfNotExistsAsync(stoppingToken);
-                await _buildFingerprintTable.CreateIfNotExistsAsync(stoppingToken);
 
                 await _timestampTable.CreateIfNotExistsAsync(stoppingToken);
                 await _buildMementoTable.CreateIfNotExistsAsync(stoppingToken);
