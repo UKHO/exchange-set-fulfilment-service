@@ -36,15 +36,14 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     .Enrich.FromLogContext()
                     .WriteTo.OpenTelemetry(o => { o.Endpoint = oltpEndpoint; })
                     .WriteTo.Console()
+                    .WriteTo.Sink(new EventHubSerilogSink())
                     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
                     .MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Error)
                     .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Error)
                     .MinimumLevel.Override("Microsoft.AspNetCore.Mvc", LogEventLevel.Error)
                     .MinimumLevel.Override("Microsoft.AspNetCore.Routing", LogEventLevel.Warning)
                     .MinimumLevel.Override("Microsoft.AspNetCore.Hosting", LogEventLevel.Warning)
-                    .MinimumLevel.Override("Azure.Core", LogEventLevel.Fatal)
-                    .MinimumLevel.Override("Azure.Storage.Blobs", LogEventLevel.Fatal)
-                    .MinimumLevel.Override("Azure.Storage.Queues", LogEventLevel.Warning));
+                    .MinimumLevel.Override("Azure", (LogEventLevel)6));
 
                 builder.Configuration.AddConfigurationService("UKHO.ADDS.EFS.Orchestrator", "UKHO.ADDS.EFS.Builder.S100", "UKHO.ADDS.EFS.Builder.S63", "UKHO.ADDS.EFS.Builder.S57");
 

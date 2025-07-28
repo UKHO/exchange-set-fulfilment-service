@@ -45,6 +45,7 @@
     <PackageReference Include="UKHO.ADDS.Clients.Common" Version="0.0.50701-alpha.2" />
     <PackageReference Include="UKHO.ADDS.Clients.FileShareService.ReadWrite" Version="0.0.50701-alpha.2" />
     <PackageReference Include="UKHO.ADDS.Clients.SalesCatalogueService" Version="0.0.50701-alpha.2" />
+     <PackageReference Include="Azure.Messaging.EventHubs" Version="5.12.2" />
   </ItemGroup>
 
   <ItemGroup>
