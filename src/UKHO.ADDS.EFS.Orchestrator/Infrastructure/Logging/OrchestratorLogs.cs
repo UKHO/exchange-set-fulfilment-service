@@ -42,6 +42,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         private const int SearchCommittedBatchesFailedId = BaseEventId + 20;
         private const int FileShareServiceOperationFailedId = BaseEventId + 21;
         private const int SalesCatalogueProductsNotReturnedId = BaseEventId + 22;
+        private const int TokenGenerationSuccessId = BaseEventId + 23;
 
         // An unhandled HTTP error has occurred
         public static readonly EventId UnhandledHttpError = new(UnhandledHttpErrorId, nameof(UnhandledHttpError));
@@ -123,7 +124,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         // Search committed batches failed
         public static readonly EventId SearchCommittedBatchesFailed = new(SearchCommittedBatchesFailedId, nameof(SearchCommittedBatchesFailed));
 
+        // Sales Catalogue products not returned
         public static readonly EventId SalesCatalogueProductsNotReturned = new(SalesCatalogueProductsNotReturnedId, nameof(SalesCatalogueProductsNotReturned));
+
+        // Token generation successful in development environment
+        public static readonly EventId TokenGenerationSuccess = new(TokenGenerationSuccessId, nameof(TokenGenerationSuccess));
 
         [LoggerMessage(UnhandledHttpErrorId, LogLevel.Error, "An unhandled exception was caught by the HTTP pipeline: {@message}", EventName = nameof(UnhandledHttpError))]
         public static partial void LogUnhandledHttpError(this ILogger logger, string message, Exception exception);
@@ -190,5 +195,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 
         [LoggerMessage(SalesCatalogueProductsNotReturnedId, LogLevel.Warning, "Sales Catalogue products not returned: {@salesCatalogueLog}", EventName = nameof(SalesCatalogueProductsNotReturned))]
         public static partial void LogSalesCatalogueProductsNotReturned(this ILogger logger, [LogProperties] SalesCatalogServiceProductsNotReturnedView salesCatalogueLog);
+
+        [LoggerMessage(TokenGenerationSuccessId, LogLevel.Information, "Token generated successfully for service: {serviceName}, resource: {resourceId}", EventName = nameof(TokenGenerationSuccess))]
+        public static partial void LogTokenGenerationSuccess(this ILogger logger, string serviceName, string resourceId);
     }
 }

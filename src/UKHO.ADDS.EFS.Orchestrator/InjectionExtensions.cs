@@ -101,11 +101,14 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 var scsClientId = configuration["EfsManagedIdentity:ScsClientId"]!;
                 var authTokenProvider = provider.GetRequiredService<IAuthScsTokenProvider>();
                 var scsAuthToken = string.Empty;
+                var logger = provider.GetRequiredService<ILogger<Program>>();
 
                 if (builder.Environment.IsDevelopment())
                 {
                     // Get the auth token for the SCS endpoint
                     scsAuthToken = authTokenProvider.GetManagedIdentityAuthAsync(scsClientId).GetAwaiter().GetResult();
+                    // Log success in dev environment for troubleshooting
+                    logger.LogTokenGenerationSuccess("SalesCatalogueService", scsAuthToken[..5]);
                 }
 
                 return factory.CreateClient(scsEndpoint.RemoveControlCharacters(), scsAuthToken);
@@ -121,11 +124,14 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 var fssClientId = configuration["EfsManagedIdentity:FssClientId"]!;
                 var authTokenProvider = provider.GetRequiredService<IAuthFssTokenProvider>();
                 var fssAuthToken = string.Empty;
+                var logger = provider.GetRequiredService<ILogger<Program>>();
 
                 if (builder.Environment.IsDevelopment())
                 {
                     // Get the auth token for the FSS endpoint
                     fssAuthToken = authTokenProvider.GetManagedIdentityAuthAsync(fssClientId).GetAwaiter().GetResult();
+                    // Log success in dev environment for troubleshooting
+                    logger.LogTokenGenerationSuccess("FileShareService", fssAuthToken[..5]);
                 }
 
                 return factory.CreateClient(fssEndpoint.RemoveControlCharacters(), fssAuthToken);
