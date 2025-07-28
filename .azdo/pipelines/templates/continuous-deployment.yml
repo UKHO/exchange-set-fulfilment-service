@@ -139,10 +139,10 @@ jobs:
               scriptLocation: inlineScript
               ${{ if eq(parameters.AdditionalDebugging, true) }}:
                 inlineScript: |
-                  azd provision --no-prompt --debug
+                  azd provision --no-prompt --no-state --debug
               ${{ else }}:
                 inlineScript: |
-                  azd provision --no-prompt
+                  azd provision --no-prompt --no-state
             env:
               AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
               AZURE_ENV_NAME: $(AZURE_ENV_NAME)
