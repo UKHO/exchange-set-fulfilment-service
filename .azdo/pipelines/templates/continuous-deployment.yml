@@ -153,7 +153,6 @@ jobs:
             displayName: Run configuration seeder
             inputs:
               azureSubscription: ${{ variables.AzureSubscription }}
-              addSpnToEnvironment: true
               workingDirectory: $(Build.SourcesDirectory)/efs
               scriptType: bash
               scriptLocation: inlineScript
