@@ -6,34 +6,36 @@ using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
 using System.Text;
 using System.Threading.Channels;
-using System.Net.Http;
+using System.Net.Sockets;
 
-public class EventHubSerilogSink : ILogEventSink, IDisposable
+public class EventHubSerilogSink : ILogEventSink, IAsyncDisposable
 {
     private readonly EventHubProducerClient _producerClient;
     private readonly ITextFormatter _formatter;
     private readonly Channel<LogEvent> _logChannel;
-    private readonly CancellationTokenSource _cts;
+    private readonly CancellationTokenSource _cts = new();
     private readonly Task _processingTask;
 
-    public EventHubSerilogSink(ITextFormatter? formatter = null)
+    // Configuration
+    private const int MaxBatchSize = 100;
+    private static readonly TimeSpan FlushInterval = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan SendTimeout = TimeSpan.FromSeconds(5);
+
+    public EventHubSerilogSink(string? connectionString = null, ITextFormatter? formatter = null)
     {
-        _formatter = formatter ?? new JsonFormatter();
-        var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__efs-events-namespace");
+        connectionString ??= Environment.GetEnvironmentVariable("ConnectionStrings__efs-events-namespace");
         if (string.IsNullOrWhiteSpace(connectionString))
-        {
-            throw new InvalidOperationException("Environment variable 'ConnectionStrings__efs-events-namespace' is not set.");
-        }
-        Console.WriteLine($"Using Event Hub connection string: {connectionString}");
-        var clientOptions = new EventHubProducerClientOptions
+            throw new InvalidOperationException("Missing Event Hub connection string.");
+
+        _formatter = formatter ?? new JsonFormatter();
+
+        _producerClient = new EventHubProducerClient(connectionString, new EventHubProducerClientOptions
         {
             ConnectionOptions = new EventHubConnectionOptions
             {
                 TransportType = EventHubsTransportType.AmqpWebSockets
             }
-        };
-
-        _producerClient = new EventHubProducerClient(connectionString, clientOptions);
+        });
 
         _logChannel = Channel.CreateBounded<LogEvent>(new BoundedChannelOptions(1000)
         {
@@ -42,7 +44,6 @@ public class EventHubSerilogSink : ILogEventSink, IDisposable
             SingleWriter = false
         });
 
-        _cts = new CancellationTokenSource();
         _processingTask = Task.Run(ProcessLogQueueAsync);
     }
 
@@ -56,6 +57,9 @@ public class EventHubSerilogSink : ILogEventSink, IDisposable
 
     private async Task ProcessLogQueueAsync()
     {
+        var buffer = new List<EventData>();
+        var timer = new PeriodicTimer(FlushInterval);
+
         try
         {
             while (await _logChannel.Reader.WaitToReadAsync(_cts.Token))
@@ -64,73 +68,88 @@ public class EventHubSerilogSink : ILogEventSink, IDisposable
                 {
                     using var sw = new StringWriter();
                     _formatter.Format(logEvent, sw);
-                    var jsonLog = sw.ToString();
-                    var eventData = new EventData(Encoding.UTF8.GetBytes(jsonLog));
+                    var payload = Encoding.UTF8.GetBytes(sw.ToString());
+                    buffer.Add(new EventData(payload));
 
-                    try
-                    {
-                        using EventDataBatch batch = await _producerClient.CreateBatchAsync();
-                        if (!batch.TryAdd(eventData))
-                        {
-                            Console.Error.WriteLine("Log event too large for Event Hub batch.");
-                            continue;
-                        }
-
-                        await _producerClient.SendAsync(batch);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.Error.WriteLine($"Failed to send log to Event Hub: {ex}");
-                    }
+                    if (buffer.Count >= MaxBatchSize)
+                        await FlushAsync(buffer);
                 }
+
+                if (await timer.WaitForNextTickAsync(_cts.Token) && buffer.Count > 0)
+                    await FlushAsync(buffer);
             }
         }
-        catch (OperationCanceledException)
-        {
-            // Expected during shutdown
-        }
+        catch (OperationCanceledException) { }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Log processing crashed: {ex}");
+            Console.Error.WriteLine($"Log processing error: {ex}");
+        }
+        finally
+        {
+            if (buffer.Count > 0)
+                await FlushAsync(buffer);
         }
     }
 
-    public void Dispose()
-    {
-        _cts.Cancel();
-        _logChannel.Writer.Complete();
-        try
-        {
-            _processingTask.GetAwaiter().GetResult();
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"Error during log flushing: {ex}");
-        }
-
-        _producerClient.DisposeAsync().AsTask().GetAwaiter().GetResult();
-    }
-
-    /// <summary>
-    /// Basic connectivity test to verify outbound HTTPS to Event Hub namespace.
-    /// This is a diagnostics tool and not part of log transport.
-    /// </summary>
-    public static async Task TestOutboundHttpsAsync(string fullyQualifiedNamespace)
+    private async Task FlushAsync(List<EventData> buffer)
     {
         try
         {
-            var url = fullyQualifiedNamespace;
-            using var client = new HttpClient
+            using var batch = await _producerClient.CreateBatchAsync(_cts.Token);
+            foreach (var evt in buffer)
             {
-                Timeout = TimeSpan.FromSeconds(10)
-            };
-
-            var response = await client.GetAsync(url);
-            Console.WriteLine($"Connection status for {url}: {response.StatusCode}");
+                if (!batch.TryAdd(evt))
+                {
+                    await SafeSendAsync(batch);
+                    using var newBatch = await _producerClient.CreateBatchAsync(_cts.Token);
+                    if (!newBatch.TryAdd(evt))
+                        Console.Error.WriteLine("Single log too large to send.");
+                    else
+                        await SafeSendAsync(newBatch);
+                }
+            }
+            await SafeSendAsync(batch);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Failed outbound HTTPS test to {fullyQualifiedNamespace}: {ex.Message}");
+            Console.Error.WriteLine($"Flush failed: {ex}");
+        }
+        finally
+        {
+            buffer.Clear();
+        }
+    }
+
+    private async Task SafeSendAsync(EventDataBatch batch)
+    {
+        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token);
+        timeoutCts.CancelAfter(SendTimeout);
+
+        try
+        {
+            await _producerClient.SendAsync(batch, timeoutCts.Token);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"SendAsync failed: {ex.Message}");
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            _cts.Cancel();
+            _logChannel.Writer.TryComplete();
+            await _processingTask;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"DisposeAsync error: {ex}");
+        }
+        finally
+        {
+            await _producerClient.DisposeAsync();
         }
     }
 }
