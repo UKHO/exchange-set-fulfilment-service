@@ -4,7 +4,7 @@ parameters:
   - name: DisableStryker
     displayName: "Disable Stryker"
     type: boolean
-    default: true
+    default: false
   - name: SnykOnlyFailIfFixable
     displayName: "Snyk - fail only if an issue has an available fix"
     type: boolean
