@@ -79,6 +79,7 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
                 }
             }
 
+            var count = jobIds.Count;
             // 3. Verify build status for each job
             foreach (var jobId in jobIds)
             {
@@ -88,10 +89,10 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
                 }
                 catch(Exception e)
                 {
-                    jobIds.Remove(jobId);
+                    count--;
                 }
             }
-            Assert.Equal(expectedNumberOfJobs, jobIds.Count);
+            Assert.Equal(expectedNumberOfJobs, count);
         }
     }
 }

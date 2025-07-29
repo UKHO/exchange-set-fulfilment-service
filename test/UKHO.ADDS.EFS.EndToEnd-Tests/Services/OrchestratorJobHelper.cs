@@ -43,7 +43,7 @@ namespace UKHO.ADDS.EFS.EndToEndTests.Services
                 jobState = responseJson.RootElement.GetProperty("jobState").GetString() ?? string.Empty;
                 buildState = responseJson.RootElement.GetProperty("buildState").GetString() ?? string.Empty;
 
-                if (jobState == "completed" && buildState == "succeeded")
+                if (jobState is "completed" or "failed")
                     break;
 
                 await Task.Delay(waitDurationMs);
