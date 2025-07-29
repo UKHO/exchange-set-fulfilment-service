@@ -15,11 +15,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<S100ExchangeSetPipelineContext> context)
         {
-            if (!(await context.Subject.ToolClient.PingAsync()).IsSuccess(out _))
-            {
-                return NodeResultStatus.Failed;
-            }
-
             if (!(await context.Subject.ToolClient.ListWorkspaceAsync(context.Subject.WorkspaceAuthenticationKey)).IsSuccess(out _))
             {
                 return NodeResultStatus.Failed;
