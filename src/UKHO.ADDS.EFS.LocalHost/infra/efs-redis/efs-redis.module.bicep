@@ -11,6 +11,9 @@ param efs_redis_password_value string
 resource efs_redis 'Microsoft.App/containerApps@2024-03-01' = {
   name: 'efs-redis'
   location: location
+  tags: {
+    'hidden-title': 'EFS'
+  }
   properties: {
     configuration: {
       secrets: [
