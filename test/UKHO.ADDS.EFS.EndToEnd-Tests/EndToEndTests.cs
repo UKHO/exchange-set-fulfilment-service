@@ -36,10 +36,10 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
 
             await OrchestratorJobHelper.VerifyBuildStatusAsync(httpClient, jobId);
 
-            var exchangeSetDownloadPath = await ZipUtility.DownloadExchangeSetAsZipAsync(jobId, App!);
+            var exchangeSetDownloadPath = await ZipStructureComparer.DownloadExchangeSetAsZipAsync(jobId, App!);
             var sourceZipPath = Path.Combine(ProjectDirectory!, "TestData", zipFileName);
 
-            ZipUtility.CompareZipFolderStructure(sourceZipPath, exchangeSetDownloadPath);
+            ZipStructureComparer.CompareZipFilesExactMatch(sourceZipPath, exchangeSetDownloadPath);
         }
 
         [Fact]
