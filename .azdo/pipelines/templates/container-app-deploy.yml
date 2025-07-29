@@ -20,7 +20,7 @@ parameters:
 steps:
 - task: AzureCLI@2
   displayName: Deploy ${{ parameters.AppName }}
-  condition: eq('${{ parameters.DeployApp }}', true)
+  condition: and(succeeded(), eq('${{ parameters.DeployApp }}', true))
   inputs:
     azureSubscription: ${{ parameters.AzureSubscription }}
     workingDirectory: $(Build.SourcesDirectory)/efs

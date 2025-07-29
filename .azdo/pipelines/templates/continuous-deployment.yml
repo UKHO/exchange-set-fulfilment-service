@@ -83,7 +83,7 @@ jobs:
             displayName: Destroy infrastructure
             inputs:
               azureSubscription: ${{ variables.AzureSubscription }}
-              workingDirectory: $(Build.SourcesDirectory)/efs
+              workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
               scriptType: bash
               scriptLocation: inlineScript
               ${{ if eq(parameters.AdditionalDebugging, true) }}:
@@ -115,7 +115,7 @@ jobs:
             displayName: Package application
             inputs:
               azureSubscription: ${{ variables.AzureSubscription }}
-              workingDirectory: $(Build.SourcesDirectory)/efs
+              workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
               scriptType: bash
               scriptLocation: inlineScript
               ${{ if eq(parameters.AdditionalDebugging, true) }}:
@@ -134,7 +134,7 @@ jobs:
             displayName: Provision infrastructure
             inputs:
               azureSubscription: ${{ variables.AzureSubscription }}
-              workingDirectory: $(Build.SourcesDirectory)/efs
+              workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
               scriptType: bash
               scriptLocation: inlineScript
               ${{ if eq(parameters.AdditionalDebugging, true) }}:
@@ -153,7 +153,7 @@ jobs:
             displayName: Run configuration seeder
             inputs:
               azureSubscription: ${{ variables.AzureSubscription }}
-              workingDirectory: $(Build.SourcesDirectory)/efs
+              workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
@@ -183,7 +183,7 @@ jobs:
             displayName: Deploy adds-configuration
             inputs:
               azureSubscription: ${{ variables.AzureSubscription }}
-              workingDirectory: $(Build.SourcesDirectory)/efs
+              workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
               scriptType: bash
               scriptLocation: inlineScript
               ${{ if eq(parameters.AdditionalDebugging, true) }}:
@@ -202,7 +202,7 @@ jobs:
             displayName: Deploy adds-mocks-efs
             inputs:
               azureSubscription: ${{ variables.AzureSubscription }}
-              workingDirectory: $(Build.SourcesDirectory)/efs
+              workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
               scriptType: bash
               scriptLocation: inlineScript
               ${{ if eq(parameters.AdditionalDebugging, true) }}:
@@ -221,7 +221,7 @@ jobs:
             displayName: Deploy efs-orchestrator
             inputs:
               azureSubscription: ${{ variables.AzureSubscription }}
-              workingDirectory: $(Build.SourcesDirectory)/efs
+              workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
               scriptType: bash
               scriptLocation: inlineScript
               ${{ if eq(parameters.AdditionalDebugging, true) }}:
@@ -240,7 +240,7 @@ jobs:
             displayName: Deploy efs-redis
             inputs:
               azureSubscription: ${{ variables.AzureSubscription }}
-              workingDirectory: $(Build.SourcesDirectory)/efs
+              workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
               scriptType: bash
               scriptLocation: inlineScript
               ${{ if eq(parameters.AdditionalDebugging, true) }}:
