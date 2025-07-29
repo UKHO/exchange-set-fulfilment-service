@@ -149,6 +149,24 @@ jobs:
               AZURE_LOCATION: $(AZURE_LOCATION)
               AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
 
+          - task: PowerShell@2
+            displayName: 'Inject EfsManagedIdentity client IDs into configuration.json'
+            inputs:
+              targetType: 'inline'
+              script: |
+                $configPath = "$(Build.SourcesDirectory)/efs/config/configuration.json"
+                $envName = "$(AZURE_ENV_NAME)"
+                $json = Get-Content $configPath | Out-String | ConvertFrom-Json
+                $json.$envName."UKHO.ADDS.EFS.Orchestrator".EfsManagedIdentity.EfsClientId = "$(EfsClientId)"
+                $json.$envName."UKHO.ADDS.EFS.Orchestrator".EfsManagedIdentity.FssClientId = "$(FssClientId)"
+                $json.$envName."UKHO.ADDS.EFS.Orchestrator".EfsManagedIdentity.ScsClientId = "$(ScsClientId)"
+                $json | ConvertTo-Json -Depth 100 | Set-Content $configPath
+
+                # Print the updated EfsManagedIdentity block
+                $updatedBlock = $json.$envName."UKHO.ADDS.EFS.Orchestrator".EfsManagedIdentity | ConvertTo-Json -Depth 10
+                Write-Host "Updated EfsManagedIdentity block for environment '$envName':"
+                Write-Host $updatedBlock
+
           - task: DotNetCoreCLI@2
             displayName: Run configuration seeder
             inputs:
