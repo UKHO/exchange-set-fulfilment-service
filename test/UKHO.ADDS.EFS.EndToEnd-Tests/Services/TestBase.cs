@@ -15,26 +15,18 @@ namespace UKHO.ADDS.EFS.EndToEndTests.Services
 
         public async Task InitializeAsync()
         {
-            try
+            var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.UKHO_ADDS_EFS_LocalHost>();
+            appHost.Services.ConfigureHttpClientDefaults(clientBuilder =>
             {
-                var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.UKHO_ADDS_EFS_LocalHost>();
-                appHost.Services.ConfigureHttpClientDefaults(clientBuilder =>
-                {
-                    clientBuilder.AddStandardResilienceHandler();
-                });
-                App = await appHost.BuildAsync();
+                clientBuilder.AddStandardResilienceHandler();
+            });
+            App = await appHost.BuildAsync();
 
-                var resourceNotificationService = App.Services.GetRequiredService<ResourceNotificationService>();
-                await App.StartAsync();
-                await resourceNotificationService
-                    .WaitForResourceAsync(ProcessNames.OrchestratorService, KnownResourceStates.Running)
-                    .WaitAsync(TimeSpan.FromSeconds(30));
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error during test initialization: {ex.Message}");
-            }
-
+            var resourceNotificationService = App.Services.GetRequiredService<ResourceNotificationService>();
+            await App.StartAsync();
+            await resourceNotificationService
+                .WaitForResourceAsync(ProcessNames.OrchestratorService, KnownResourceStates.Running)
+                .WaitAsync(TimeSpan.FromSeconds(30));
         }
 
         public async Task DisposeAsync()
