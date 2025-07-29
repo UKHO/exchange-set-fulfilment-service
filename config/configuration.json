@@ -84,7 +84,7 @@
             },
             "Endpoints": {
                 "S100FileShare": "https://adds-mocks-efs.orangesea-886b6e8e.uksouth.azurecontainerapps.io/fss/",
-                "S100SalesCatalogue": "https://salesCataloguedev.ukho.gov.uk/",
+                "S100SalesCatalogue": "https://adds-mocks-efs.orangesea-886b6e8e.uksouth.azurecontainerapps.io/scs/",
                 "S63FileShare": "https://adds-mocks-efs.orangesea-886b6e8e.uksouth.azurecontainerapps.io/fss6357/",
                 "S63SalesCatalogue": "https://adds-mocks-efs.orangesea-886b6e8e.uksouth.azurecontainerapps.io/scs6357/",
                 "S57FileShare": "https://adds-mocks-efs.orangesea-886b6e8e.uksouth.azurecontainerapps.io/fss6357/",

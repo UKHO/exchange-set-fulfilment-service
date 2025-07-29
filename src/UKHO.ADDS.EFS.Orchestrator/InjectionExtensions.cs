@@ -103,8 +103,8 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 var scsAuthToken = string.Empty;
                 var logger = provider.GetRequiredService<ILogger<Program>>();
 
-                if (builder.Environment.IsDevelopment())
-                {
+                //if (builder.Environment.IsDevelopment())
+                //{
                     logger.LogTokenGenerationSuccess("SalesCatalogueService", "started");
 
                     // Get the auth token for the SCS endpoint
@@ -112,7 +112,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     // Log success in dev environment for troubleshooting
 
                     logger.LogTokenGenerationSuccess("SalesCatalogueService", scsAuthToken[..5]);
-                }
+                //}
 
                 return factory.CreateClient(scsEndpoint.RemoveControlCharacters(), scsAuthToken);
             });
