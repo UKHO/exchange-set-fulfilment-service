@@ -58,8 +58,8 @@ jobs:
           path: s/pvtefs
 
         - script: |
-            cp "$(Build.SourcesDirectory)/pvtefs/root2.tar.gz" "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Builder.S100/root2.tar.gz"
-            cp "$(Build.SourcesDirectory)/pvtefs/xchg-2.7.war" "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Builder.S100/xchg-2.7.war"
+            cp "$(Build.SourcesDirectory)/pvtefs/root3.tar.gz" "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Builder.S100/root3.tar.gz"
+            cp "$(Build.SourcesDirectory)/pvtefs/xchg-7.3.war" "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Builder.S100/xchg-7.3.war"
           condition: eq('${{ parameters.DeployBuilderS100 }}', true)
           displayName: Copy S100 builder files
 
@@ -149,13 +149,35 @@ jobs:
               AZURE_LOCATION: $(AZURE_LOCATION)
               AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
 
-          - task: DotNetCoreCLI@2
+          - task: AzureCLI@2
             displayName: Run configuration seeder
             inputs:
               azureSubscription: ${{ variables.AzureSubscription }}
-              command: run
-              projects: '$(Build.SourcesDirectory)/efs/config/repo/src/UKHO.ADDS.Configuration.Seeder/UKHO.ADDS.Configuration.Seeder.csproj'
-              arguments: '--configuration Release --no-restore -- $(AZURE_ENV_NAME) $(Build.SourcesDirectory)/efs/config/configuration.json $(ConfigConnectionString)'
+              workingDirectory: $(Build.SourcesDirectory)/efs
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                echo "Reading azd variables..."
+                while IFS='=' read -r key value; do
+                    value=$(echo "$value" | sed 's/^"//' | sed 's/"$//')
+                    export "$key=$value"
+                done <<EOF
+                $(azd env get-values)
+                EOF
+
+                if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
+                  echo "Current environment variables:"
+                  echo "--------------------------------------------------------------------------------"
+                  env | sort
+                  echo "--------------------------------------------------------------------------------"
+                fi
+
+                dotnet run --project $(Build.SourcesDirectory)/efs/config/repo/src/UKHO.ADDS.Configuration.Seeder/UKHO.ADDS.Configuration.Seeder.csproj --configuration Release --no-restore -- "$(AZURE_ENV_NAME)" "$(Build.SourcesDirectory)/efs/config/configuration.json" "$ADDS_CON_WAS_TABLEENDPOINT"
+            env:
+              AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+              AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+              AZURE_LOCATION: $(AZURE_LOCATION)
+              AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
 
           - template: container-app-deploy.yml
             parameters:
