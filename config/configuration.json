@@ -67,8 +67,16 @@
             "S57RetryDelayMilliseconds": 10000 // Azure ENV var when deployed
         },
         "UKHO.ADDS.EFS.Trigger": {
-            "EfsGenerationSchedule": "* * * * *"
-            }
+            "Logging": {
+                "LogLevel": {
+                    "Default": "Information",
+                    "Microsoft.AspNetCore": "Warning",
+                    "Aspire.Hosting.Dcp": "Warning"
+                }
+            },
+            "EfsGenerationSchedule": "* * * * *",
+            "OrchestratorJobApiUrl": ""
+        }
         },
         "dev": {
             "UKHO.ADDS.EFS.Orchestrator": {

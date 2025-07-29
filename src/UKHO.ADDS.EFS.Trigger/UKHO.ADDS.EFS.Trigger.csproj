@@ -24,6 +24,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\config\repo\src\UKHO.ADDS.Configuration.Client\UKHO.ADDS.Configuration.Client.csproj" />
+    <ProjectReference Include="..\..\config\repo\src\UKHO.ADDS.Configuration\UKHO.ADDS.Configuration.csproj" />
+    <ProjectReference Include="..\UKHO.ADDS.EFS.Analyzers\UKHO.ADDS.EFS.Analyzers.csproj" />
     <ProjectReference Include="..\UKHO.ADDS.EFS.Aspire\UKHO.ADDS.EFS.Aspire.csproj" />
     <ProjectReference Include="..\UKHO.ADDS.EFS.Domain\UKHO.ADDS.EFS.Domain.csproj" />
   </ItemGroup>

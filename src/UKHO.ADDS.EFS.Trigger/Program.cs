@@ -34,9 +34,8 @@ namespace UKHO.ADDS.EFS.Trigger
 
             builder.Configuration.AddConfigurationService("UKHO.ADDS.EFS.Trigger");
 
-            builder.AddServiceDefaults();
-
-            builder.Services.AddHttpClient();
+            //builder.AddServiceDefaults();
+            builder.Services.AddHttpClient<OrchestratorJobClient>();
 
             builder.Build().Run();
         }
