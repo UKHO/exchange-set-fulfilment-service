@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using UKHO.ADDS.EFS.Builder.S100.IIC;
+using UKHO.ADDS.EFS.Builder.S100.Infrastructure;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Create.Logging;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
@@ -11,6 +12,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
     /// </summary>
     internal class AddContentExchangeSetNode : S100ExchangeSetPipelineNode
     {
+        private readonly IFileSystemWrapper _fileSystemWrapper;
+
+        public AddContentExchangeSetNode(IFileSystemWrapper fileSystemWrapper = null)
+        {
+            _fileSystemWrapper = fileSystemWrapper ?? new FileSystemWrapper();
+        }
+
         /// <summary>
         /// Executes the node logic to add content to the exchange set by processing the dataset and support files paths.
         /// Returns <see cref="NodeResultStatus.Succeeded"/> if all content is added successfully; otherwise, returns <see cref="NodeResultStatus.Failed"/>.
@@ -33,11 +41,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
                     (Path: context.Subject.WorkSpaceSpoolDataSetFilesPath, FullPath: datasetFilesPath),
                     (Path: context.Subject.WorkSpaceSpoolSupportFilesPath, FullPath: supportFilesPath)
                 }
-                .Where(x => Directory.Exists(x.FullPath))
+                .Where(x => _fileSystemWrapper.DirectoryExists(x.FullPath))
                 .Select(x => x.Path)
                 .ToArray();
 
-            
             if (validContentPaths.Length == 0)
             {
                 return NodeResultStatus.Failed;

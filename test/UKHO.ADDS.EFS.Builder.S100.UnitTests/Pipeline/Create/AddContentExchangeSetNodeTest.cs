@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.IIC.Models;
+using UKHO.ADDS.EFS.Builder.S100.Infrastructure;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Create;
 using UKHO.ADDS.EFS.Builds.S100;
@@ -16,6 +17,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
     internal class AddContentExchangeSetNodeTest
     {
         private IToolClient _toolClient;
+        private IFileSystemWrapper _fileSystemWrapper;
         private AddContentExchangeSetNode _addContentExchangeSetNode;
         private IExecutionContext<S100ExchangeSetPipelineContext> _executionContext;
         private ILoggerFactory _loggerFactory;
@@ -26,7 +28,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         public void OneTimeSetUp()
         {
             _toolClient = A.Fake<IToolClient>();
-            _addContentExchangeSetNode = new AddContentExchangeSetNode();
+            _fileSystemWrapper = A.Fake<IFileSystemWrapper>();
+            _addContentExchangeSetNode = new AddContentExchangeSetNode(_fileSystemWrapper);
             _executionContext = A.Fake<IExecutionContext<S100ExchangeSetPipelineContext>>();
             _loggerFactory = A.Fake<ILoggerFactory>();
             _logger = A.Fake<ILogger<AddContentExchangeSetNode>>();
@@ -85,6 +88,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
             A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<string>._, A<string>._, A<string>._))
                 .Returns(Task.FromResult(fakeResult));
 
+            A.CallTo(() => _fileSystemWrapper.DirectoryExists(A<string>._)).Returns(true);
+
             var result = await _addContentExchangeSetNode.ExecuteAsync(_executionContext);
 
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
@@ -95,6 +100,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         {
             A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<string>._, A<string>._, A<string>._))
                 .Returns(Result.Failure<OperationResponse>("error"));
+
+            A.CallTo(() => _fileSystemWrapper.DirectoryExists(A<string>._)).Returns(true);
 
             var result = await _addContentExchangeSetNode.ExecuteAsync(_executionContext);
 
