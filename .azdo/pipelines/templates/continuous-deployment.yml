@@ -179,29 +179,105 @@ jobs:
               AZURE_LOCATION: $(AZURE_LOCATION)
               AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
 
-          - template: container-app-deploy.yml
-            parameters:
-              AzureSubscription: ${{ variables.AzureSubscription }}
-              AppName: adds-configuration
-              ProjectPath: $(Build.SourcesDirectory)/efs/config/repo/src/UKHO.ADDS.Configuration/UKHO.ADDS.Configuration.csproj
-              AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
-              DeployApp: ${{ parameters.DeployConfiguration }}
+          - task: AzureCLI@2
+            displayName: Deploy adds-configuration
+            inputs:
+              azureSubscription: ${{ variables.AzureSubscription }}
+              workingDirectory: $(Build.SourcesDirectory)/efs
+              scriptType: bash
+              scriptLocation: inlineScript
+              ${{ if eq(parameters.AdditionalDebugging, true) }}:
+                inlineScript: |
+                  azd deploy adds-configuration --no-prompt --debug
+              ${{ else }}:
+                inlineScript: |
+                  azd deploy adds-configuration --no-prompt
+            env:
+              AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+              AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+              AZURE_LOCATION: $(AZURE_LOCATION)
+              AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
 
-          - template: container-app-deploy.yml
-            parameters:
-              AzureSubscription: ${{ variables.AzureSubscription }}
-              AppName: adds-mocks-efs
-              ProjectPath: $(Build.SourcesDirectory)/efs/mock/UKHO.ADDS.Mocks.EFS/UKHO.ADDS.Mocks.EFS.csproj
-              AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
-              DeployApp: ${{ parameters.DeployAddsMock }}
+          - task: AzureCLI@2
+            displayName: Deploy adds-mocks-efs
+            inputs:
+              azureSubscription: ${{ variables.AzureSubscription }}
+              workingDirectory: $(Build.SourcesDirectory)/efs
+              scriptType: bash
+              scriptLocation: inlineScript
+              ${{ if eq(parameters.AdditionalDebugging, true) }}:
+                inlineScript: |
+                  azd deploy adds-mocks-efs --no-prompt --debug
+              ${{ else }}:
+                inlineScript: |
+                  azd deploy adds-mocks-efs --no-prompt
+            env:
+              AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+              AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+              AZURE_LOCATION: $(AZURE_LOCATION)
+              AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
 
-          - template: container-app-deploy.yml
-            parameters:
-              AzureSubscription: ${{ variables.AzureSubscription }}
-              AppName: efs-orchestrator
-              ProjectPath: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Orchestrator/UKHO.ADDS.EFS.Orchestrator.csproj
-              AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
-              DeployApp: ${{ parameters.DeployOrchestrator }}
+          - task: AzureCLI@2
+            displayName: Deploy efs-orchestrator
+            inputs:
+              azureSubscription: ${{ variables.AzureSubscription }}
+              workingDirectory: $(Build.SourcesDirectory)/efs
+              scriptType: bash
+              scriptLocation: inlineScript
+              ${{ if eq(parameters.AdditionalDebugging, true) }}:
+                inlineScript: |
+                  azd deploy efs-orchestrator --no-prompt --debug
+              ${{ else }}:
+                inlineScript: |
+                  azd deploy efs-orchestrator --no-prompt
+            env:
+              AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+              AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+              AZURE_LOCATION: $(AZURE_LOCATION)
+              AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
+
+          - task: AzureCLI@2
+            displayName: Deploy efs-redis
+            inputs:
+              azureSubscription: ${{ variables.AzureSubscription }}
+              workingDirectory: $(Build.SourcesDirectory)/efs
+              scriptType: bash
+              scriptLocation: inlineScript
+              ${{ if eq(parameters.AdditionalDebugging, true) }}:
+                inlineScript: |
+                  azd deploy efs-redis --no-prompt --debug
+              ${{ else }}:
+                inlineScript: |
+                  azd deploy efs-redis --no-prompt
+            env:
+              AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+              AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+              AZURE_LOCATION: $(AZURE_LOCATION)
+              AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
+
+          # - template: container-app-deploy.yml
+          #   parameters:
+          #     AzureSubscription: ${{ variables.AzureSubscription }}
+          #     AppName: adds-configuration
+          #     ProjectPath: $(Build.SourcesDirectory)/efs/config/repo/src/UKHO.ADDS.Configuration/UKHO.ADDS.Configuration.csproj
+          #     AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+          #     DeployApp: ${{ parameters.DeployConfiguration }}
+
+          # - template: container-app-deploy.yml
+          #   parameters:
+          #     AzureSubscription: ${{ variables.AzureSubscription }}
+          #     AppName: adds-mocks-efs
+          #     ProjectPath: $(Build.SourcesDirectory)/efs/mock/UKHO.ADDS.Mocks.EFS/UKHO.ADDS.Mocks.EFS.csproj
+          #     AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+          #     DeployApp: ${{ parameters.DeployAddsMock }}
+
+          # - template: container-app-deploy.yml
+          #   parameters:
+          #     AzureSubscription: ${{ variables.AzureSubscription }}
+          #     AppName: efs-orchestrator
+          #     ProjectPath: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Orchestrator/UKHO.ADDS.EFS.Orchestrator.csproj
+          #     AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+          #     DeployApp: ${{ parameters.DeployOrchestrator }}
 
           - template: container-app-job-deploy.yml
             parameters:
