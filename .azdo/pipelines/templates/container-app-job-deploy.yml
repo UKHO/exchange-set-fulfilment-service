@@ -62,7 +62,7 @@ steps:
       docker push $CONTAINER_IMAGE
 
       echo "Deploying app job..."
-      cd "$(Build.SourcesDirectory)/efs/infra/${{ parameters.AppName }}"
+      cd "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost/infra/${{ parameters.AppName }}"
 
       if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
         az deployment group create --name ${{ parameters.AppName }}-$DEPLOYMENT_NUMBER --resource-group $RESOURCE_GROUP --parameters ${{ parameters.AppName }}.tmpl.bicepparam --debug
