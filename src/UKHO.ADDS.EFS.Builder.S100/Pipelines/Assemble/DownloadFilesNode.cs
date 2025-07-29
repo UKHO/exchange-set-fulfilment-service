@@ -51,6 +51,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         {
             _logger = context.Subject.LoggerFactory.CreateLogger<DownloadFilesNode>();
 
+            // Log that DownloadFilesNode execution has started
+            _logger.LogError("DownloadFilesNode execution started");
+
             try
             {
                 var downloadPath = Path.Combine(context.Subject.WorkSpaceRootPath, context.Subject.WorkSpaceSpoolPath);

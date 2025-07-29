@@ -190,5 +190,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 
         [LoggerMessage(SalesCatalogueProductsNotReturnedId, LogLevel.Warning, "Sales Catalogue products not returned: {@salesCatalogueLog}", EventName = nameof(SalesCatalogueProductsNotReturned))]
         public static partial void LogSalesCatalogueProductsNotReturned(this ILogger logger, [LogProperties] SalesCatalogServiceProductsNotReturnedView salesCatalogueLog);
+
+        [LoggerMessage(10500, LogLevel.Error, "GetS100ProductNamesNode execution started for JobId: {JobId}", EventName = "GetS100ProductNamesNodeStarted")]
+        public static partial void LogGetS100ProductNamesNodeStarted(this ILogger logger, string JobId);
     }
 }

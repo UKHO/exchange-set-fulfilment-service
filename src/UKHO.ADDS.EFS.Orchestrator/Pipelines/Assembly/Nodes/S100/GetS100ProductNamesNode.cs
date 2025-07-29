@@ -30,6 +30,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
         {
+            _logger.LogGetS100ProductNamesNodeStarted(context.Subject.Job.Id);
+
             var job = context.Subject.Job;
             var build = context.Subject.Build;
 
