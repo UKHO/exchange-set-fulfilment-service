@@ -50,7 +50,7 @@
         },
         "UKHO.ADDS.EFS.Builder.S63": {
             "Endpoints": {
-                "S63BuilderFileShare": "{{s63buildermockfss}},", // Local dynamic fss mock address from aspire with host adjusted for docker, set in LocalHost
+                "S63BuilderFileShare": "{{s63buildermockfss}}", // Local dynamic fss mock address from aspire with host adjusted for docker, set in LocalHost
                 "S63BuilderFileShareHealth": "{{s63buildermockfss}}health"
             },
             "S63ExchangeSetNameTemplate": "V01X01_S63_[jobid].zip", // Template for naming an exchange set: options are "jobid", "date"
@@ -112,7 +112,7 @@
         },
         "UKHO.ADDS.EFS.Builder.S63": {
             "Endpoints": {
-                "S63BuilderFileShare": "{{s63buildermockfss}},", // Local dynamic fss mock address from aspire with host adjusted for docker, set in LocalHost
+                "S63BuilderFileShare": "{{s63buildermockfss}}", // Local dynamic fss mock address from aspire with host adjusted for docker, set in LocalHost
                 "S63BuilderFileShareHealth": "{{s63buildermockfss}}health"
             },
             "S63ExchangeSetNameTemplate": "V01X01_S63_[jobid].zip" // Template for naming an exchange set: options are "jobid", "date"
@@ -170,7 +170,7 @@
         },
         "UKHO.ADDS.EFS.Builder.S63": {
             "Endpoints": {
-                "S63BuilderFileShare": "{{s63buildermockfss}},", // Local dynamic fss mock address from aspire with host adjusted for docker, set in LocalHost
+                "S63BuilderFileShare": "{{s63buildermockfss}}", // Local dynamic fss mock address from aspire with host adjusted for docker, set in LocalHost
                 "S63BuilderFileShareHealth": "{{s63buildermockfss}}health"
             },
             "S63ExchangeSetNameTemplate": "V01X01_S63_[jobid].zip" // Template for naming an exchange set: options are "jobid", "date"
@@ -228,7 +228,7 @@
         },
         "UKHO.ADDS.EFS.Builder.S63": {
             "Endpoints": {
-                "S63BuilderFileShare": "{{s63buildermockfss}},", // Local dynamic fss mock address from aspire with host adjusted for docker, set in LocalHost
+                "S63BuilderFileShare": "{{s63buildermockfss}}", // Local dynamic fss mock address from aspire with host adjusted for docker, set in LocalHost
                 "S63BuilderFileShareHealth": "{{s63buildermockfss}}health"
             },
             "S63ExchangeSetNameTemplate": "V01X01_S63_[jobid].zip" // Template for naming an exchange set: options are "jobid", "date"
@@ -286,7 +286,7 @@
         },
         "UKHO.ADDS.EFS.Builder.S63": {
             "Endpoints": {
-                "S63BuilderFileShare": "{{s63buildermockfss}},", // Local dynamic fss mock address from aspire with host adjusted for docker, set in LocalHost
+                "S63BuilderFileShare": "{{s63buildermockfss}}", // Local dynamic fss mock address from aspire with host adjusted for docker, set in LocalHost
                 "S63BuilderFileShareHealth": "{{s63buildermockfss}}health"
             },
             "S63ExchangeSetNameTemplate": "V01X01_S63_[jobid].zip" // Template for naming an exchange set: options are "jobid", "date"
