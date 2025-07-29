@@ -107,10 +107,10 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             // Orchestrator
             var orchestratorService = builder.AddProject<UKHO_ADDS_EFS_Orchestrator>(ProcessNames.OrchestratorService)
-                //.WaitFor(appInsights)
-                //.WithReference(appInsights)
-                //.WaitFor(eventHubs)
-                //.WithReference(appInsights)
+                .WaitFor(appInsights)
+                .WithReference(appInsights)
+                .WaitFor(eventHubs)
+                .WithReference(appInsights)
                 .WithReference(storageQueue)
                 .WaitFor(storageQueue)
                 .WithReference(storageTable)
