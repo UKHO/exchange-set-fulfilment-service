@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using Azure.Core;
 using Azure.Provisioning;
 using Azure.Provisioning.AppContainers;
+using Azure.Provisioning.EventHubs;
 using Azure.Provisioning.Storage;
 using CliWrap;
 using Docker.DotNet;
@@ -33,10 +34,16 @@ namespace UKHO.ADDS.EFS.LocalHost
             builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());
 
             // app insights
-            var appInsights = builder.AddAzureApplicationInsights(ServiceConfiguration.AppInsightsService);
-            
+            var appInsights = builder.AddAzureApplicationInsights(ServiceConfiguration.AppInsightsName);
+
             // Event Hubs
-            var eventHubs = builder.AddAzureEventHubs(ServiceConfiguration.EventHubNamespace);
+            var eventHubs = builder.AddAzureEventHubs(ServiceConfiguration.EventHubNamespaceName);
+            eventHubs.ConfigureInfrastructure(config =>
+            {
+                var eventHubNamespace = config.GetProvisionableResources().OfType<EventHubsNamespace>().Single();
+                eventHubNamespace.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
+                eventHubNamespace.Tags.Add("aspire-resource-name", ServiceConfiguration.EventHubNamespaceName);
+            });
             eventHubs.AddHub(ServiceConfiguration.EventHubName);
 
             // Get parameters
@@ -82,8 +89,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             // ADDS Mock
             var mockService = builder.AddProject<UKHO_ADDS_Mocks_EFS>(ProcessNames.MockService)
                 .WithDashboard("Dashboard")
-                .WithExternalHttpEndpoints()
-                .WithReference(appInsights);
+                .WithExternalHttpEndpoints();
 
             // Build Request Monitor
             IResourceBuilder<ProjectResource>? requestMonitor = null;
@@ -97,11 +103,14 @@ namespace UKHO.ADDS.EFS.LocalHost
                     .WaitFor(mockService)
                     .WithReference(storageBlob)
                     .WaitFor(storageBlob);
-
             }
 
             // Orchestrator
             var orchestratorService = builder.AddProject<UKHO_ADDS_EFS_Orchestrator>(ProcessNames.OrchestratorService)
+                .WaitFor(appInsights)
+                .WithReference(appInsights)
+                .WaitFor(eventHubs)
+                .WithReference(appInsights)
                 .WithReference(storageQueue)
                 .WaitFor(storageQueue)
                 .WithReference(storageTable)
@@ -113,9 +122,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WithReference(redisCache)
                 .WaitFor(redisCache)
                 .WithExternalHttpEndpoints()
-                .WithScalar("API Browser")
-                .WithReference(appInsights)
-                .WithReference(eventHubs);
+                .WithScalar("API Browser");
 
             if (builder.Environment.IsDevelopment())
             {
@@ -140,8 +147,6 @@ namespace UKHO.ADDS.EFS.LocalHost
             .WithExternalHttpEndpoints();
 
             orchestratorService.WithConfiguration(configurationService);
-            
-
 
             if (builder.Environment.IsDevelopment())
             {
