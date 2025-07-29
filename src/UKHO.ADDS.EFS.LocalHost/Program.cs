@@ -41,8 +41,8 @@ namespace UKHO.ADDS.EFS.LocalHost
             eventHubs.ConfigureInfrastructure(config =>
             {
                 var eventHubNamespace = config.GetProvisionableResources().OfType<EventHubsNamespace>().Single();
-                eventHubNamespace.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
-                eventHubNamespace.Tags.Add("aspire-resource-name", ServiceConfiguration.EventHubNamespaceName);
+                //eventHubNamespace.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
+                //eventHubNamespace.Tags.Add("aspire-resource-name", ServiceConfiguration.EventHubNamespaceName);
             });
             eventHubs.AddHub(ServiceConfiguration.EventHubName);
 
@@ -107,10 +107,10 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             // Orchestrator
             var orchestratorService = builder.AddProject<UKHO_ADDS_EFS_Orchestrator>(ProcessNames.OrchestratorService)
-                .WaitFor(appInsights)
-                .WithReference(appInsights)
-                .WaitFor(eventHubs)
-                .WithReference(appInsights)
+                //.WaitFor(appInsights)
+                //.WithReference(appInsights)
+                //.WaitFor(eventHubs)
+                //.WithReference(appInsights)
                 .WithReference(storageQueue)
                 .WaitFor(storageQueue)
                 .WithReference(storageTable)

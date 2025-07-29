@@ -1,14 +1,17 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+using Azure.Identity;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
 using UKHO.ADDS.Configuration.Client;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
+using UKHO.ADDS.EFS.Constants;
 using UKHO.ADDS.EFS.Orchestrator.Api;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Middleware;
 using UKHO.ADDS.EFS.Orchestrator.Services.Storage;
+using UKHO.Logging.EventHubLogProvider.Serilog;
 
 namespace UKHO.ADDS.EFS.Orchestrator
 {
@@ -29,7 +32,18 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                 var builder = WebApplication.CreateBuilder(args);
 
+
+
+                builder.Configuration.AddConfigurationService("UKHO.ADDS.EFS.Orchestrator", "UKHO.ADDS.EFS.Builder.S100", "UKHO.ADDS.EFS.Builder.S63", "UKHO.ADDS.EFS.Builder.S57");
+
+                builder.AddServiceDefaults().AddOrchestratorServices();
+
+                builder.AddRedisDistributedCache(ProcessNames.RedisCache);
+
                 var oltpEndpoint = builder.Configuration[GlobalEnvironmentVariables.OtlpEndpoint]!;
+
+                //var eventHubConnectionString = "";
+                //var eventHubName = "";
 
                 builder.Services.AddSerilog((services, lc) => lc
                     .ReadFrom.Configuration(builder.Configuration)
@@ -37,7 +51,28 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     .Enrich.FromLogContext()
                     .WriteTo.OpenTelemetry(o => { o.Endpoint = oltpEndpoint; })
                     .WriteTo.Console()
-                    .WriteTo.Sink(new EventHubSerilogSink())
+                    .WriteTo.EventHub(options =>
+                    {
+                        options.Environment = "Development";
+                        options.System = ServiceConfiguration.ServiceName;
+                        options.Service = ServiceConfiguration.ServiceName;
+                        options.NodeName = "Azure";
+                        //options.EventHubConnectionString = eventHubConnectionString;
+                        //options.EventHubEntityPath = eventHubName;
+                        options.TokenCredential = new DefaultAzureCredential();
+                        options.AdditionalValuesProvider = additionalValues =>
+                        {
+                            var httpContext = services.GetRequiredService<IHttpContextAccessor>().HttpContext;
+                            if (httpContext != null)
+                            {
+                                additionalValues["_RemoteIPAddress"] = httpContext.Connection.RemoteIpAddress!.ToString();
+                                additionalValues["_User-Agent"] = httpContext.Request.Headers.UserAgent.FirstOrDefault() ?? string.Empty;
+                                additionalValues["_AssemblyVersion"] = Assembly.GetExecutingAssembly().GetCustomAttributes<AssemblyFileVersionAttribute>().Single().Version;
+                                additionalValues["_X-Correlation-ID"] =
+                                    httpContext.Request.Headers?[ApiHeaderKeys.XCorrelationIdHeaderKey].FirstOrDefault() ?? string.Empty;
+                            }
+                        };
+                    })
                     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
                     .MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Error)
                     .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Error)
@@ -51,13 +86,6 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     .MinimumLevel.Override("Azure.Messaging.EventHubs.EventHubProducerClient", LogEventLevel.Fatal)
                     .MinimumLevel.Override("Azure.Messaging.EventHubs.Producer", LogEventLevel.Fatal)
                     .MinimumLevel.Override("Azure.Identity", LogEventLevel.Fatal));
-
-
-                builder.Configuration.AddConfigurationService("UKHO.ADDS.EFS.Orchestrator", "UKHO.ADDS.EFS.Builder.S100", "UKHO.ADDS.EFS.Builder.S63", "UKHO.ADDS.EFS.Builder.S57");
-
-                builder.AddServiceDefaults().AddOrchestratorServices();
-
-                builder.AddRedisDistributedCache(ProcessNames.RedisCache);
 
                 var app = builder.Build();
 
