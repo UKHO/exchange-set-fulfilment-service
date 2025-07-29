@@ -4,7 +4,7 @@ parameters:
   - name: DisableStryker
     displayName: "Disable Stryker"
     type: boolean
-    default: true
+    default: false
   - name: SnykOnlyFailIfFixable
     displayName: "Snyk - fail only if an issue has an available fix"
     type: boolean
@@ -16,15 +16,15 @@ parameters:
   - name: DeployOrchestrator
     displayName: "Deploy orchestrator"
     type: boolean
-    default: false
+    default: true
   - name: DeployConfiguration
     displayName: "Deploy configuration"
     type: boolean
-    default: false
+    default: true
   - name: DeployBuilderS100
     displayName: "Deploy S100 builder"
     type: boolean
-    default: false
+    default: true
   - name: DeployAddsMock
     displayName: "Deploy ADDS mock"
     type: boolean
@@ -150,9 +150,9 @@ stages:
     - template: templates/test.yml
 
   - stage: DevDeploy
-    dependsOn: []
-    # - VulnerabilityChecks
-    # - Test
+    dependsOn:
+    - VulnerabilityChecks
+    - Test
     displayName: Dev deploy
     jobs:
     - template: templates/continuous-deployment.yml
