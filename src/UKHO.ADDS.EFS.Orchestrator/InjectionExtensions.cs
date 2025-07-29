@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
+using Quartz;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.SalesCatalogueService;
 using UKHO.ADDS.EFS.Builds;
@@ -25,6 +26,7 @@ using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Services;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Services.Implementation;
+using UKHO.ADDS.EFS.Orchestrator.SchedulerJob;
 using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Services.Storage;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
@@ -102,6 +104,24 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             builder.Services.AddSingleton<IOrchestratorSalesCatalogueClient, OrchestratorSalesCatalogueClient>();
             builder.Services.AddSingleton<IOrchestratorFileShareClient, OrchestratorFileShareClient>();
+
+            //Added Dependencies for EfsGenerationBackgroundTask
+            builder.Services.AddQuartz(q =>
+            {
+                var efsGenerationSchedule = configuration["EfsSchedulerJob:EfsGenerationSchedule"];
+                var jobKey = new JobKey(nameof(EfsSchedulerJob));
+                q.AddJob<EfsSchedulerJob>(opts => opts.WithIdentity(jobKey));
+
+                q.AddTrigger(opts => opts
+                    .ForJob(jobKey)
+                    .WithCronSchedule(efsGenerationSchedule!, x => x.WithMisfireHandlingInstructionDoNothing())
+                );
+            });
+
+            builder.Services.AddQuartzHostedService(options =>
+            {
+                options.WaitForJobsToComplete = true;
+            });
 
             return builder;
         }

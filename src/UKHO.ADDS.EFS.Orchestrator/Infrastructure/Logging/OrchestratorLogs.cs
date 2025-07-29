@@ -30,7 +30,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         private const int ContainerStartFailedId = BaseEventId + 13;
         private const int ContainerRemovedId = BaseEventId + 14;
 
-
         private const int JobCreationFailedId = BaseEventId + 15;
 
         private const int QueueServiceMessageReadFailedId = BaseEventId + 16;
@@ -43,37 +42,34 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         private const int FileShareServiceOperationFailedId = BaseEventId + 21;
         private const int SalesCatalogueProductsNotReturnedId = BaseEventId + 22;
 
+        private const int EfsSchedulerJobStartedId = BaseEventId + 23;
+        private const int EfsSchedulerJobExceptionId = BaseEventId + 24;
+        private const int EfsSchedulerJobCompletedId = BaseEventId + 25;
+        private const int EfsSchedulerJobNextRunId = BaseEventId + 26;
+
         // An unhandled HTTP error has occurred
         public static readonly EventId UnhandledHttpError = new(UnhandledHttpErrorId, nameof(UnhandledHttpError));
-
 
         // An assembly pipeline has been started
         public static readonly EventId AssemblyPipelineStarted = new(AssemblyPipelineStartedId, nameof(AssemblyPipelineStarted));
 
-
         // An assembly pipeline failed to start from an API request
         public static readonly EventId AssemblyPipelineFailed = new(AssemblyPipelineFailedId, nameof(AssemblyPipelineFailed));
-
 
         // A status post to the Orchestrator from a builder container has failed
         public static readonly EventId PostedStatusUpdateFromBuilderFailed = new(PostedStatusUpdateFromBuilderFailedId, nameof(PostedStatusUpdateFromBuilderFailed));
 
-
         // A request for the job from a builder container has failed
         public static readonly EventId GetJobRequestFailed = new(GetJobRequestFailedId, nameof(GetJobRequestFailed));
-
 
         // A job has been created
         public static readonly EventId JobCreated = new(JobCreatedId, nameof(JobCreated));
 
-
         // A job has been updated
         public static readonly EventId JobUpdated = new(JobUpdatedId, nameof(JobUpdated));
 
-
         // A job has been completed
         public static readonly EventId JobCompleted = new(JobCompletedId, nameof(JobCompleted));
-
 
         // SCS has returned an error
         public static readonly EventId SalesCatalogueError = new(SalesCatalogueErrorId, nameof(SalesCatalogueError));
@@ -81,38 +77,29 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         // SCS has returned an Unexpected status Code
         public static readonly EventId SalesCatalogueUnexpectedStatusCode = new(SalesCatalogueUnexpectedStatusCodeId, nameof(SalesCatalogueUnexpectedStatusCode));
 
-
         // The container execution failed
         public static readonly EventId ContainerExecutionFailed = new(ContainerExecutionFailedId, nameof(ContainerExecutionFailed));
-
 
         // The container start failed
         public static readonly EventId ContainerStartFailed = new(ContainerStartFailedId, nameof(ContainerStartFailed));
 
-
         // The container wait failed
         public static readonly EventId ContainerWaitFailed = new(ContainerWaitFailedId, nameof(ContainerWaitFailed));
-
 
         // The container was removed
         public static readonly EventId ContainerRemoved = new(ContainerRemovedId, nameof(ContainerRemoved));
 
-
         // The job creation failed
         public static readonly EventId JobCreationFailed = new(JobCreationFailedId, nameof(JobCreationFailed));
-
 
         // The builder container timed out
         public static readonly EventId ContainerTimeout = new(ContainerTimeoutId, nameof(ContainerTimeout));
 
-
         // The Queue service failed to read a message
         public static readonly EventId QueueServiceMessageReadFailed = new(ContainerTimeoutId, nameof(QueueServiceMessageReadFailed));
 
-
         // The log forwarder failed to parse a message
         public static readonly EventId LogForwardParseFailed = new(LogForwardParseFailedId, nameof(LogForwardParseFailed));
-
 
         // The log forwarder failed to parse a message (null)
         public static readonly EventId LogForwardParseNull = new(LogForwardParseNullId, nameof(LogForwardParseNull));
@@ -190,5 +177,18 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 
         [LoggerMessage(SalesCatalogueProductsNotReturnedId, LogLevel.Warning, "Sales Catalogue products not returned: {@salesCatalogueLog}", EventName = nameof(SalesCatalogueProductsNotReturned))]
         public static partial void LogSalesCatalogueProductsNotReturned(this ILogger logger, [LogProperties] SalesCatalogServiceProductsNotReturnedView salesCatalogueLog);
+
+        [LoggerMessage(EfsSchedulerJobStartedId, LogLevel.Information, "EfsGenerationBackgroundTask started at: {Time}", EventName = nameof(LogEfsSchedulerJobStarted))]
+        public static partial void LogEfsSchedulerJobStarted(this ILogger logger, DateTime? time);
+
+        [LoggerMessage(EfsSchedulerJobExceptionId, LogLevel.Error, "Exception occurred in EfsSchedulerJob.", EventName = nameof(LogEfsSchedulerJobException))]
+        public static partial void LogEfsSchedulerJobException(this ILogger logger, Exception exception);
+
+        [LoggerMessage(EfsSchedulerJobCompletedId, LogLevel.Information, "EfsSchedulerJob completed for CorrelationId: {CorrelationId}, Result: {@result}", EventName = nameof(LogEfsSchedulerJobCompleted))]
+        public static partial void LogEfsSchedulerJobCompleted(this ILogger logger, string correlationId, [LogProperties] AssemblyPipelineResponse result);
+
+        [LoggerMessage(EfsSchedulerJobNextRunId, LogLevel.Information, "Next scheduled run at: {NextRun}", EventName = nameof(LogEfsSchedulerJobNextRun))]
+        public static partial void LogEfsSchedulerJobNextRun(this ILogger logger, DateTime? nextRun);
+
     }
 }
