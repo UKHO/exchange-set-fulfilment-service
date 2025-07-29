@@ -5,9 +5,6 @@ parameters:
 # The name of the container app to deploy.
 - name: AppName
   type: string
-# The path of the app project to deploy.
-- name: ProjectPath
-  type: string
 # If true, additional debugging will be enabled.
 - name: AdditionalDebugging
   type: boolean
@@ -23,45 +20,17 @@ steps:
   condition: and(succeeded(), eq('${{ parameters.DeployApp }}', true))
   inputs:
     azureSubscription: ${{ parameters.AzureSubscription }}
-    workingDirectory: $(Build.SourcesDirectory)/efs
+    workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
     scriptType: bash
     scriptLocation: inlineScript
-    inlineScript: |
-      echo "Setting variables..."
-      DEPLOYMENT_NUMBER=$EPOCHSECONDS
-      DEPLOYMENT_TAG=az-deploy-$DEPLOYMENT_NUMBER
-      echo "Deployment tag - $DEPLOYMENT_TAG"
-      export CONTAINER_IMAGE="$(AcrName).azurecr.io/exchange-set-fulfilment-service/${{ parameters.AppName }}-$(AZURE_ENV_NAME):$DEPLOYMENT_TAG"
-      export CONTAINER_PORT=8080 # TODO: get this value from output of dotnet publish below (this is what azd does).
-      RESOURCE_GROUP="efs-$(AZURE_ENV_NAME)-rg"
-
-      echo "Reading azd variables..."
-      while IFS='=' read -r key value; do
-          value=$(echo "$value" | sed 's/^"//' | sed 's/"$//')
-          export "$key=$value"
-      done <<EOF
-      $(azd env get-values)
-      EOF
-
-      if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
-        echo "Current environment variables:"
-        echo "--------------------------------------------------------------------------------"
-        env
-        echo "--------------------------------------------------------------------------------"
-      fi
-
-      echo "Logging in to Azure Container Registry..."
-      az acr login --name $(AcrName)
-
-      echo "Publishing image..."
-      dotnet publish "${{ parameters.ProjectPath }}" -r linux-x64 -c Release /t:PublishContainer -p:ContainerRepository=exchange-set-fulfilment-service/${{ parameters.AppName }}-dev -p:ContainerImageTag=$DEPLOYMENT_TAG -p:ContainerRegistry=$(AcrName).azurecr.io --getProperty:GeneratedContainerConfiguration
-
-      echo "Deploying app..."
-      cp "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost/infra/${{ parameters.AppName }}/${{ parameters.AppName }}.tmpl.bicepparam" "$(Build.SourcesDirectory)/efs/infra/${{ parameters.AppName }}/${{ parameters.AppName }}.tmpl.bicepparam"
-      cd "$(Build.SourcesDirectory)/efs/infra/${{ parameters.AppName }}"
-
-      if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
-        az deployment group create --name ${{ parameters.AppName }}-$DEPLOYMENT_NUMBER --resource-group $RESOURCE_GROUP --parameters ${{ parameters.AppName }}.tmpl.bicepparam --debug
-      else
-        az deployment group create --name ${{ parameters.AppName }}-$DEPLOYMENT_NUMBER --resource-group $RESOURCE_GROUP --parameters ${{ parameters.AppName }}.tmpl.bicepparam
-      fi
+    ${{ if eq(parameters.AdditionalDebugging, true) }}:
+      inlineScript: |
+        azd deploy ${{ parameters.AppName }} --no-prompt --debug
+    ${{ else }}:
+      inlineScript: |
+        azd deploy ${{ parameters.AppName }} --no-prompt
+  env:
+    AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+    AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+    AZURE_LOCATION: $(AZURE_LOCATION)
+    AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)

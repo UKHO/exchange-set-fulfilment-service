@@ -29,6 +29,10 @@ parameters:
     displayName: "Deploy ADDS mock"
     type: boolean
     default: true
+  - name: DeployRedis
+    displayName: "Deploy redis"
+    type: boolean
+    default: true
   - name: DestroyResourcesDev
     displayName: "Destroy dev environment"
     type: boolean
@@ -165,3 +169,4 @@ stages:
         DeployConfiguration: ${{ parameters.DeployConfiguration }}
         DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
         DeployAddsMock: ${{ parameters.DeployAddsMock }}
+        DeployRedis: ${{ parameters.DeployRedis }}

@@ -23,7 +23,7 @@ steps:
   condition: and(succeeded(), eq('${{ parameters.DeployApp }}', true))
   inputs:
     azureSubscription: ${{ parameters.AzureSubscription }}
-    workingDirectory: $(Build.SourcesDirectory)/efs
+    workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
     scriptType: bash
     scriptLocation: inlineScript
     inlineScript: |
