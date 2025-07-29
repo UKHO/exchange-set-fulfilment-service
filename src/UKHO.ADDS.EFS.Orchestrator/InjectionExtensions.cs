@@ -105,9 +105,12 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                 if (builder.Environment.IsDevelopment())
                 {
+                    logger.LogTokenGenerationSuccess("SalesCatalogueService", "started");
+
                     // Get the auth token for the SCS endpoint
                     scsAuthToken = authTokenProvider.GetManagedIdentityAuthAsync(scsClientId).GetAwaiter().GetResult();
                     // Log success in dev environment for troubleshooting
+
                     logger.LogTokenGenerationSuccess("SalesCatalogueService", scsAuthToken[..5]);
                 }
 
@@ -128,6 +131,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                 if (builder.Environment.IsDevelopment())
                 {
+                    logger.LogTokenGenerationSuccess("FileShareService", "started");
                     // Get the auth token for the FSS endpoint
                     fssAuthToken = authTokenProvider.GetManagedIdentityAuthAsync(fssClientId).GetAwaiter().GetResult();
                     // Log success in dev environment for troubleshooting

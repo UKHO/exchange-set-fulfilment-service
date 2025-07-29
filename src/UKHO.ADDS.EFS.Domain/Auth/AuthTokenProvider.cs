@@ -2,6 +2,7 @@
 using Azure.Core;
 using Azure.Identity;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using UKHO.ADDS.EFS.Configuration.Authentication;
 
@@ -11,12 +12,17 @@ namespace UKHO.ADDS.EFS.Auth
     {
         private readonly IOptions<EfsManagedIdentityConfiguration> _efsManagedIdentityConfiguration;
         private readonly IDistributedCache _cache;
+        private readonly ILogger<AuthTokenProvider> _logger;
         private static readonly object _lock = new object();
 
-        public AuthTokenProvider(IOptions<EfsManagedIdentityConfiguration> efsManagedIdentityConfiguration, IDistributedCache cache)
+        public AuthTokenProvider(
+            IOptions<EfsManagedIdentityConfiguration> efsManagedIdentityConfiguration, 
+            IDistributedCache cache,
+            ILogger<AuthTokenProvider> logger)
         {
             _efsManagedIdentityConfiguration = efsManagedIdentityConfiguration ?? throw new ArgumentNullException(nameof(efsManagedIdentityConfiguration));
-            _cache = cache;
+            _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<string> GetManagedIdentityAuthAsync(string resource)
@@ -25,13 +31,24 @@ namespace UKHO.ADDS.EFS.Auth
 
             if (accessToken != null && accessToken.AccessToken != null && accessToken.ExpiresIn > DateTime.UtcNow)
             {
+                _logger.LogDebug("Token retrieved from cache for resource: {ResourceId}", resource);
                 return accessToken.AccessToken;
             }
 
-            var newAccessToken = await GetNewAuthToken(resource);
-            AddAuthTokenToCache(resource, newAccessToken);
-
-            return newAccessToken.AccessToken;
+            try
+            {
+                var newAccessToken = await GetNewAuthToken(resource);
+                AddAuthTokenToCache(resource, newAccessToken);
+                
+                _logger.LogInformation("Token generated successfully for resource: {ResourceId}. Token expires at: {ExpiresAt}", 
+                    resource, newAccessToken.ExpiresIn);
+                return newAccessToken.AccessToken;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to generate token for resource: {ResourceId}", resource);
+                throw;
+            }
         }
 
         private async Task<AccessTokenItem> GetNewAuthToken(string resource)
