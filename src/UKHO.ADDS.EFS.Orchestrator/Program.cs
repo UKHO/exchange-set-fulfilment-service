@@ -6,6 +6,7 @@ using UKHO.ADDS.Configuration.Client;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Orchestrator.Api;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Middleware;
 using UKHO.ADDS.EFS.Orchestrator.Services.Storage;
 
@@ -65,8 +66,8 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 // Configure the HTTP request pipeline.
                 //if (app.Environment.IsDevelopment())
                 //{
-                    app.MapOpenApi();
-                    app.MapScalarApiReference(_ => _.Servers = []); // Stop OpenAPI specifying the wrong port in the generated OpenAPI doc
+                app.MapOpenApi();
+                app.MapScalarApiReference(_ => _.Servers = []); // Stop OpenAPI specifying the wrong port in the generated OpenAPI doc
                 //}
 
                 app.UseMiddleware<CorrelationIdMiddleware>();
