@@ -15,6 +15,5 @@
         public const string RedisCache = "efs-redis";
 
         public const string RequestMonitorService = "efs-local-request-monitor";
-
     }
 }
