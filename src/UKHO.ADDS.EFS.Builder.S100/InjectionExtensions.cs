@@ -132,7 +132,6 @@ namespace UKHO.ADDS.EFS.Builder.S100
             services.AddDistributedMemoryCache();
 
             services.AddSingleton<IAuthFssTokenProvider, AuthFssTokenProvider>();
-            services.AddSingleton<IAuthScsTokenProvider, AuthScsTokenProvider>();
 
             // Read-Write Client
             services.AddSingleton<IFileShareReadWriteClientFactory>(provider =>
