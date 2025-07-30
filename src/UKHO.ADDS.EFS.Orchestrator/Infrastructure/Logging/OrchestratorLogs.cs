@@ -178,13 +178,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         [LoggerMessage(SalesCatalogueProductsNotReturnedId, LogLevel.Warning, "Sales Catalogue products not returned: {@salesCatalogueLog}", EventName = nameof(SalesCatalogueProductsNotReturned))]
         public static partial void LogSalesCatalogueProductsNotReturned(this ILogger logger, [LogProperties] SalesCatalogServiceProductsNotReturnedView salesCatalogueLog);
 
-        [LoggerMessage(EfsSchedulerJobStartedId, LogLevel.Information, "EfsGenerationBackgroundTask started at: {Time}", EventName = nameof(LogEfsSchedulerJobStarted))]
-        public static partial void LogEfsSchedulerJobStarted(this ILogger logger, DateTime? time);
+        [LoggerMessage(EfsSchedulerJobStartedId, LogLevel.Information, "EfsSchedulerJob started for correlationId - {CorrelationId} at: {Time}", EventName = nameof(LogEfsSchedulerJobStarted))]
+        public static partial void LogEfsSchedulerJobStarted(this ILogger logger, string correlationId, DateTime? time);
 
         [LoggerMessage(EfsSchedulerJobExceptionId, LogLevel.Error, "Exception occurred in EfsSchedulerJob.", EventName = nameof(LogEfsSchedulerJobException))]
         public static partial void LogEfsSchedulerJobException(this ILogger logger, Exception exception);
 
-        [LoggerMessage(EfsSchedulerJobCompletedId, LogLevel.Information, "EfsSchedulerJob completed for CorrelationId: {CorrelationId}, Result: {@result}", EventName = nameof(LogEfsSchedulerJobCompleted))]
+        [LoggerMessage(EfsSchedulerJobCompletedId, LogLevel.Information, "EfsSchedulerJob completed for correlationId: {CorrelationId}, Result: {@result}", EventName = nameof(LogEfsSchedulerJobCompleted))]
         public static partial void LogEfsSchedulerJobCompleted(this ILogger logger, string correlationId, [LogProperties] AssemblyPipelineResponse result);
 
         [LoggerMessage(EfsSchedulerJobNextRunId, LogLevel.Information, "Next scheduled run at: {NextRun}", EventName = nameof(LogEfsSchedulerJobNextRun))]

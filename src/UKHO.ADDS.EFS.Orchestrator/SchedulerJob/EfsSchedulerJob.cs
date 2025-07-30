@@ -25,9 +25,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.SchedulerJob
             {
                 var pipelineFactory = _serviceProvider.GetRequiredService<AssemblyPipelineFactory>();
 
-                _logger.LogEfsSchedulerJobStarted(DateTime.UtcNow);
-
                 var correlationId = $"job-{Guid.NewGuid():N}";
+
+                _logger.LogEfsSchedulerJobStarted(correlationId, DateTime.UtcNow);
 
                 var message = new JobRequestApiMessage
                 {

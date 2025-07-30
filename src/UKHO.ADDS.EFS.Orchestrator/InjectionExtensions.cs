@@ -105,7 +105,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddSingleton<IOrchestratorSalesCatalogueClient, OrchestratorSalesCatalogueClient>();
             builder.Services.AddSingleton<IOrchestratorFileShareClient, OrchestratorFileShareClient>();
 
-            //Added Dependencies for EfsGenerationBackgroundTask
+            //Added Dependencies for EfsSchedulerJob
             builder.Services.AddQuartz(q =>
             {
                 var efsGenerationSchedule = configuration["EfsSchedulerJob:EfsGenerationSchedule"];
