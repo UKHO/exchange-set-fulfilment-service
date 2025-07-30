@@ -1,24 +1,26 @@
-﻿using UKHO.ADDS.EFS.Builds.S100;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
+﻿using System.Text;
+using Microsoft.Extensions.Caching.Distributed;
+using UKHO.ADDS.EFS.Builds.S100;
 using UKHO.ADDS.EFS.Orchestrator.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Services;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
+using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 {
     internal class CheckFingerprintNode : AssemblyPipelineNode<S100Build>
     {
+        private readonly IDistributedCache _distributedCache;
         private readonly IHashingService _hashingService;
-        private readonly ITable<BuildFingerprint> _buildFingerprintTable;
 
-        public CheckFingerprintNode(AssemblyNodeEnvironment nodeEnvironment, ITable<BuildFingerprint> buildFingerprintTable, IHashingService hashingService)
+        public CheckFingerprintNode(AssemblyNodeEnvironment nodeEnvironment, IDistributedCache distributedCache, IHashingService hashingService)
             : base(nodeEnvironment)
         {
+            _distributedCache = distributedCache;
             _hashingService = hashingService;
-            _buildFingerprintTable = buildFingerprintTable;
         }
 
         public override Task<bool> ShouldExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
@@ -29,26 +31,20 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
         {
-            var expiry = Environment.Configuration.GetValue<TimeSpan>("DeduplicationExpiry");
-
             var job = context.Subject.Job;
             var build = context.Subject.Build;
 
             var discriminant = build.GetProductDiscriminant();
             var discriminantHash = _hashingService.CalculateHash(discriminant);
 
-            var hasDuplicateResult = await _buildFingerprintTable.GetUniqueAsync(discriminantHash);
+            var cacheResult = await _distributedCache.GetAsync(discriminantHash);
 
-            if (hasDuplicateResult.IsSuccess(out var duplicate))
+            if (cacheResult != null)
             {
-                var expiryThreshold = DateTime.UtcNow - expiry;
+                var duplicate = JsonCodec.Decode<BuildFingerprint>(Encoding.UTF8.GetString(cacheResult))!;
+                job.BatchId = duplicate.BatchId;
 
-                if (duplicate.Timestamp > expiryThreshold)
-                {
-                    job.BatchId = duplicate.BatchId;
-
-                    await context.Subject.SignalBuildDuplicated();
-                }
+                await context.Subject.SignalBuildDuplicated();
             }
 
             return NodeResultStatus.Succeeded;
