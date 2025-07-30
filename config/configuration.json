@@ -35,6 +35,12 @@
                     "BatchSize": 1,
                     "PollingIntervalSeconds": 1
                 }
+            },
+            "EfsManagedIdentity": {
+                "EfsClientId": "",
+                "FssClientId": "",
+                "ScsClientId": "",
+                "DeductTokenExpiryMinutes": 1
             }
         },
         "UKHO.ADDS.EFS.Builder.S100": {
@@ -103,6 +109,12 @@
                     "BatchSize": 1,
                     "PollingIntervalSeconds": 1
                 }
+            },
+            "EfsManagedIdentity": {
+                "EfsClientId": "",
+                "FssClientId": "",
+                "ScsClientId": "",
+                "DeductTokenExpiryMinutes": 1
             }
         },
         "UKHO.ADDS.EFS.Builder.S100": {

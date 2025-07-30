@@ -5,6 +5,7 @@ using Serilog.Events;
 using Serilog.Formatting.Json;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
+using UKHO.ADDS.EFS.Auth;
 using UKHO.ADDS.EFS.Builder.Common.Factories;
 using UKHO.ADDS.EFS.Builder.Common.Logging;
 using UKHO.ADDS.EFS.Builder.S100.IIC;
@@ -127,6 +128,12 @@ namespace UKHO.ADDS.EFS.Builder.S100
         {
             var fileShareEndpoint = configuration[BuilderEnvironmentVariables.FileShareEndpoint] ?? configuration["DebugEndpoints:FileShareService"]!;
 
+            // Add distributed cache for token caching
+            services.AddDistributedMemoryCache();
+
+            services.AddSingleton<IAuthFssTokenProvider, AuthFssTokenProvider>();
+            services.AddSingleton<IAuthScsTokenProvider, AuthScsTokenProvider>();
+
             // Read-Write Client
             services.AddSingleton<IFileShareReadWriteClientFactory>(provider =>
                 new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
@@ -134,6 +141,11 @@ namespace UKHO.ADDS.EFS.Builder.S100
             services.AddSingleton(provider =>
             {
                 var factory = provider.GetRequiredService<IFileShareReadWriteClientFactory>();
+                var authTokenProvider = provider.GetRequiredService<IAuthFssTokenProvider>();
+
+                // Get the auth token for the fss endpoint
+                //var authToken = authTokenProvider.GetManagedIdentityAuthAsync(fssClientId).GetAwaiter().GetResult();
+
                 return factory.CreateClient(fileShareEndpoint.RemoveControlCharacters(), string.Empty);
             });
 
@@ -144,6 +156,11 @@ namespace UKHO.ADDS.EFS.Builder.S100
             services.AddSingleton(provider =>
             {
                 var factory = provider.GetRequiredService<IFileShareReadOnlyClientFactory>();
+                var authTokenProvider = provider.GetRequiredService<IAuthFssTokenProvider>();
+
+                // Get the auth token for the fss endpoint
+                //var authToken = authTokenProvider.GetManagedIdentityAuthAsync(fssClientId).GetAwaiter().GetResult();
+
                 return factory.CreateClient(fileShareEndpoint.RemoveControlCharacters(), string.Empty);
             });
 
