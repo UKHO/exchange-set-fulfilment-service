@@ -198,6 +198,7 @@ stages:
         DeployConfiguration: ${{ parameters.DeployConfiguration }}
         DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
         DeployAddsMock: false
+        DeployRedis: ${{ parameters.DeployRedis }}
 
   - stage: vnexte2eDeploy
     dependsOn:
@@ -214,6 +215,7 @@ stages:
         DeployConfiguration: ${{ parameters.DeployConfiguration }}
         DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
         DeployAddsMock: false
+        DeployRedis: ${{ parameters.DeployRedis }}
 
   - stage: iatDeploy
     dependsOn:
@@ -230,3 +232,4 @@ stages:
         DeployConfiguration: ${{ parameters.DeployConfiguration }}
         DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
         DeployAddsMock: false
+        DeployRedis: ${{ parameters.DeployRedis }}
