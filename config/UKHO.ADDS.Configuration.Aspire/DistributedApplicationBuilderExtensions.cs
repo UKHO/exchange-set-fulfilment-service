@@ -1,19 +1,16 @@
-﻿using System.Dynamic;
-using Azure.Provisioning.KeyVault;
+﻿using Azure.Provisioning.KeyVault;
 using Azure.Provisioning.Storage;
 using AzureKeyVaultEmulator.Aspire.Hosting;
-using HandlebarsDotNet;
 using Microsoft.Extensions.Hosting;
 using Projects;
 using UKHO.ADDS.Configuration.Aspire.Extensions;
-using UKHO.ADDS.Configuration.Extensions;
 using UKHO.ADDS.Configuration.Schema;
 
 namespace UKHO.ADDS.Configuration.Aspire
 {
     public static class DistributedApplicationBuilderExtensions
     {
-        public static IResourceBuilder<ProjectResource> AddConfiguration(this IDistributedApplicationBuilder builder, string configJsonPath, Action<EndpointTemplateBuilder> templateCallback, string externalServiceDiscoPath, IEnumerable<IResourceBuilder<ProjectResource>> externalServiceMocks, string? serviceNameTag = null)
+        public static IResourceBuilder<ProjectResource> AddConfiguration(this IDistributedApplicationBuilder builder, string configJsonPath, string externalServiceDiscoPath, IEnumerable<IResourceBuilder<ProjectResource>> externalServiceMocks, string? serviceNameTag = null)
         {
             var storage = builder.AddAzureStorage(WellKnownConfigurationName.ConfigurationServiceStorageName).RunAsEmulator(e => { e.WithDataVolume(); });
 
@@ -41,10 +38,6 @@ namespace UKHO.ADDS.Configuration.Aspire
             var configOriginalPath = Path.GetFullPath(configJsonPath);
             var configFilePath = CopyToTempFile(configOriginalPath);
 
-            var configJsonRaw = File.ReadAllText(configFilePath);
-            var configJson = configJsonRaw.StripJsonComments();
-
-
             var externalServiceDiscoOriginalPath = Path.GetFullPath(externalServiceDiscoPath);
             var externalServiceDiscoFilePath = CopyToTempFile(externalServiceDiscoOriginalPath);
 
@@ -52,11 +45,6 @@ namespace UKHO.ADDS.Configuration.Aspire
 
             if (builder.Environment.IsDevelopment())
             {
-                var template = Handlebars.Compile(configJson);
-                var context = new ExpandoObject();
-
-                var templateBuilder = new EndpointTemplateBuilder();
-
                 // Only add the seeder service in local development environment
                 seederService = builder.AddProject<UKHO_ADDS_Configuration_Seeder>(WellKnownConfigurationName.ConfigurationSeederName)
                     .WithReference(storageTable)
@@ -65,34 +53,6 @@ namespace UKHO.ADDS.Configuration.Aspire
                     {
                         x.EnvironmentVariables.Add(WellKnownConfigurationName.ConfigurationFilePath, configFilePath);
                         x.EnvironmentVariables.Add(WellKnownConfigurationName.ExternalServiceDiscoFilePath, externalServiceDiscoFilePath);
-
-                        // TODO Remove after config upgrade
-
-                        templateCallback(templateBuilder);
-
-                        foreach (var endpoint in templateBuilder.Templates)
-                        {
-                            var url = endpoint.Resource.GetEndpoint(endpoint.UseHttps ? "https" : "http").Url;
-                            var urlBuilder = new UriBuilder(url);
-
-                            if (!string.IsNullOrEmpty(endpoint.Hostname))
-                            {
-                                urlBuilder.Host = endpoint.Hostname;
-                            }
-
-                            var path = endpoint.Path;
-
-                            if (path != null && !path.EndsWith("/"))
-                            {
-                                path = string.Concat(path, "/");
-                                urlBuilder.Path = path;
-                            }
-
-                            context.TryAdd(endpoint.Name, urlBuilder.ToString());
-                        }
-
-                        var resultJson = template(context);
-                        File.WriteAllText(configFilePath, resultJson);
                     });
 
                 foreach (var mock in externalServiceMocks)

@@ -112,21 +112,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             }
 
             // Configuration
-            var configurationService = builder.AddConfiguration(@"../../config/configuration.json", tb =>
-                    {
-                        tb.AddEndpoint("s100mockfss", mockService, false, null, "fss");
-                        tb.AddEndpoint("s100mockscs", mockService, false, null, "scs");
-                        tb.AddEndpoint("s100buildermockfss", mockService, false, "host.docker.internal", "fss");
-
-                        tb.AddEndpoint("s63mockfss", mockService, false, null, "fss6357");
-                        tb.AddEndpoint("s63mockscs", mockService, false, null, "scs6357");
-                        tb.AddEndpoint("s63buildermockfss", mockService, false, "host.docker.internal", "fss6357");
-
-                        tb.AddEndpoint("s57mockfss", mockService, false, null, "fss6357");
-                        tb.AddEndpoint("s57mockscs", mockService, false, null, "scs6357");
-                        tb.AddEndpoint("s57buildermockfss", mockService, false, "host.docker.internal", "fss6357");
-                    },
-                    @"../../config/external-service-disco.json",
+            var configurationService = builder.AddConfiguration(@"../../config/configuration.json", @"../../config/external-service-disco.json",
                     [mockService],
                     ServiceConfiguration.ServiceName)
                 .WithExternalHttpEndpoints();
