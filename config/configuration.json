@@ -8,14 +8,6 @@
                     "Aspire.Hosting.Dcp": "Warning"
                 }
             },
-            "Endpoints": {
-                "S100FileShare": "{{s100mockfss}}", // Local dynamic fss mock address from aspire, set in LocalHost
-                "S100SalesCatalogue": "{{s100mockscs}}", // Local dynamic scs mock address from aspire, set in LocalHost
-                "S63FileShare": "{{s63mockfss}}", // Local dynamic fss mock address from aspire, set in LocalHost
-                "S63SalesCatalogue": "{{s63mockscs}}", // Local dynamic scs mock address from aspire, set in LocalHost
-                "S57FileShare": "{{s57mockfss}}", // Local dynamic fss mock address from aspire, set in LocalHost
-                "S57SalesCatalogue": "{{s57mockscs}}" // Local dynamic scs mock address from aspire, set in LocalHost
-            },
             "AllowedHosts": "*",
             "DeduplicationEnabled": false, // Enable deduplication of requests
             "DeduplicationExpiry": "23:00:00", // The timeframe for deduplication from first generation to expiry
@@ -38,10 +30,6 @@
             }
         },
         "UKHO.ADDS.EFS.Builder.S100": {
-            "Endpoints": {
-                "S100BuilderFileShare": "{{s100buildermockfss}}", // Local dynamic fss mock address from aspire with host adjusted for docker, set in LocalHost
-                "S100BuilderFileShareHealth": "{{s100buildermockfss}}health"
-            },
             "IICWorkspaceKey": "D89D11D265B19CA5C2BE97A7FCB1EF21", // Secret has literal value in local environment only
             "S100ExchangeSetNameTemplate": "V01X01_[jobid].zip", // Template for naming an exchange set: options are "jobid", "date"
             "S100MaxRetries": 3, // Azure ENV var when deployed
@@ -49,19 +37,11 @@
             "S100ConcurrentDownloadLimitCount": 4 // Number of concurrent downloads to allow
         },
         "UKHO.ADDS.EFS.Builder.S63": {
-            "Endpoints": {
-                "S63BuilderFileShare": "{{s63buildermockfss}},", // Local dynamic fss mock address from aspire with host adjusted for docker, set in LocalHost
-                "S63BuilderFileShareHealth": "{{s63buildermockfss}}health"
-            },
             "S63ExchangeSetNameTemplate": "V01X01_S63_[jobid].zip", // Template for naming an exchange set: options are "jobid", "date"
             "S63MaxRetries": 3, // Azure ENV var when deployed
             "S63RetryDelayMilliseconds": 10000 // Azure ENV var when deployed
         },
         "UKHO.ADDS.EFS.Builder.S57": {
-            "Endpoints": {
-                "S57BuilderFileShare": "{{s57buildermockfss}}", // Local dynamic fss mock address from aspire with host adjusted for docker, set in LocalHost
-                "S57BuilderFileShareHealth": "{{s57buildermockfss}}health"
-            },
             "S57ExchangeSetNameTemplate": "V01X01_S57_[jobid].zip", // Template for naming an exchange set: options are "jobid", "date"
             "S57MaxRetries": 3, // Azure ENV var when deployed
             "S57RetryDelayMilliseconds": 10000 // Azure ENV var when deployed
@@ -75,14 +55,6 @@
                     "Microsoft.AspNetCore": "Warning",
                     "Aspire.Hosting.Dcp": "Warning"
                 }
-            },
-            "Endpoints": {
-                "S100FileShare": "https://adds-mocks-efs.orangesea-886b6e8e.uksouth.azurecontainerapps.io/fss/",
-                "S100SalesCatalogue": "https://adds-mocks-efs.orangesea-886b6e8e.uksouth.azurecontainerapps.io/scs/",
-                "S63FileShare": "https://adds-mocks-efs.orangesea-886b6e8e.uksouth.azurecontainerapps.io/fss6357/",
-                "S63SalesCatalogue": "https://adds-mocks-efs.orangesea-886b6e8e.uksouth.azurecontainerapps.io/scs6357/",
-                "S57FileShare": "https://adds-mocks-efs.orangesea-886b6e8e.uksouth.azurecontainerapps.io/fss6357/",
-                "S57SalesCatalogue": "https://adds-mocks-efs.orangesea-886b6e8e.uksouth.azurecontainerapps.io/scs6357/"
             },
             "AllowedHosts": "*",
             "EnableDeduplication": false, // Enable deduplication of requests
@@ -111,31 +83,13 @@
             "S100ConcurrentDownloadLimitCount": 4
         },
         "UKHO.ADDS.EFS.Builder.S63": {
-            "Endpoints": {
-                "S63BuilderFileShare": "{{s63buildermockfss}},", // Local dynamic fss mock address from aspire with host adjusted for docker, set in LocalHost
-                "S63BuilderFileShareHealth": "{{s63buildermockfss}}health"
-            },
             "S63ExchangeSetNameTemplate": "V01X01_S63_[jobid].zip" // Template for naming an exchange set: options are "jobid", "date"
         },
         "UKHO.ADDS.EFS.Builder.S57": {
-            "Endpoints": {
-                "S57BuilderFileShare": "{{s57buildermockfss}}", // Local dynamic fss mock address from aspire with host adjusted for docker, set in LocalHost
-                "S57BuilderFileShareHealth": "{{s57buildermockfss}}health"
-            },
             "S57ExchangeSetNameTemplate": "V01X01_S57_[jobid].zip" // Template for naming an exchange set: options are "jobid", "date"
         }
     },
     "_schema": {
-        "UKHO.ADDS.EFS.Orchestrator": {
-            "Endpoints:S100FileShare": {
-                "type": "string",
-                "required": true
-            },
-            "Endpoints:S100SalesCatalogue": {
-                "type": "string",
-                "required": true
-            }
-        },
         "UKHO.ADDS.EFS.Builder.S100": {
             "IICWorkspaceKey": {
                 "type": "string",

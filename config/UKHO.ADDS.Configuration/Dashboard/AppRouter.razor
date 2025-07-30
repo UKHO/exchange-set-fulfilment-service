@@ -1,0 +1,15 @@
+﻿<Router AppAssembly="typeof(App).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="routeData" DefaultLayout="typeof(DashboardLayout)"/>
+    </Found>
+    <NotFound>
+        <LayoutView Layout="typeof(DashboardLayout)">
+            <RadzenText TextStyle="TextStyle.DisplayH1" TagName="TagName.H1" class="rz-my-12">
+                Page not found
+            </RadzenText>
+            <RadzenText TextStyle="TextStyle.DisplayH5" class="rz-my-12">
+                Sorry, but there's nothing here!
+            </RadzenText>
+        </LayoutView>
+    </NotFound>
+</Router>

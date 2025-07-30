@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Sdk Name="Aspire.AppHost.Sdk" Version="9.3.0" />
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="9.3.1" />
+    <PackageReference Include="Aspire.Hosting.Azure.Storage" Version="9.3.1" />
+    <PackageReference Include="AzureKeyVaultEmulator.Aspire.Hosting" Version="2.3.2" />
+    <PackageReference Include="AzureKeyVaultEmulator.Client" Version="2.3.0" />
+    <PackageReference Include="Handlebars.Net" Version="2.1.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\UKHO.ADDS.Configuration.Seeder\UKHO.ADDS.Configuration.Seeder.csproj" />
+    <ProjectReference Include="..\UKHO.ADDS.Configuration.Domain\UKHO.ADDS.Configuration.Domain.csproj" IsAspireProjectResource="false" />
+    <ProjectReference Include="..\UKHO.ADDS.Configuration\UKHO.ADDS.Configuration.csproj" />
+  </ItemGroup>
+
+</Project>

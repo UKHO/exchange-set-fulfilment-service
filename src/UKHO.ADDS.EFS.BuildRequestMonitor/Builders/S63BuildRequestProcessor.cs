@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.Configuration.Schema;
+﻿using UKHO.ADDS.Configuration.Client;
+using UKHO.ADDS.Configuration.Schema;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Services;
 using UKHO.ADDS.EFS.Builds.S63;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
@@ -12,11 +13,13 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
 
         private readonly BuilderContainerService _containerService;
         private readonly IConfiguration _configuration;
+        private readonly IExternalServiceRegistry _externalServiceRegistry;
 
-        public S63BuildRequestProcessor(BuilderContainerService bcs, IConfiguration configuration)
+        public S63BuildRequestProcessor(BuilderContainerService bcs, IConfiguration configuration, IExternalServiceRegistry externalServiceRegistry)
         {
             _containerService = bcs;
             _configuration = configuration;
+            _externalServiceRegistry = externalServiceRegistry;
         }
 
         /// <summary>
@@ -35,6 +38,9 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
             var queuePort = ExtractPort(queueConnectionString, "QueueEndpoint");
             var blobPort = ExtractPort(blobConnectionString, "BlobEndpoint");
 
+            var s63FileShareUri = await _externalServiceRegistry.GetExternalServiceEndpointAsync(ProcessNames.S63FileShareService, useDockerHost: true);
+            var s63FileShareHealthUri = new Uri(s63FileShareUri!, "health");
+
             // Set the environment variables for the container - in production, these are set from the Azure environment (via the pipeline)
             var containerId = await _containerService.CreateContainerAsync(ProcessNames.S63Builder, containerName, _command, request, env =>
             {
@@ -43,8 +49,8 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
                 env.ResponseQueueName = StorageConfiguration.S63BuildResponseQueueName;
                 env.QueueConnectionString = $"http://host.docker.internal:{queuePort}/devstoreaccount1"; 
                 env.BlobConnectionString = $"http://host.docker.internal:{blobPort}/devstoreaccount1";
-                env.FileShareEndpoint = _configuration["Endpoints:S63BuilderFileShare"]!;
-                env.FileShareHealthEndpoint = _configuration["Endpoints:S63BuilderFileShareHealth"]!;
+                env.FileShareEndpoint = s63FileShareUri!.ToString();
+                env.FileShareHealthEndpoint = s63FileShareHealthUri!.ToString();
                 env.BlobContainerName = StorageConfiguration.S63BuildContainer;
                 env.MaxRetryAttempts = int.Parse(_configuration["S63MaxRetries"]!); 
                 env.RetryDelayMilliseconds = int.Parse(_configuration["S63RetryDelayMilliseconds"]!); 
