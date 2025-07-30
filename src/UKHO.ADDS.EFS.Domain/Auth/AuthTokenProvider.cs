@@ -46,7 +46,7 @@ namespace UKHO.ADDS.EFS.Auth
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to generate token for resource: {ResourceId}", resource);
+                _logger.LogError(ex, "Failed to generate token for resource: {ResourceId} & efsresource: {EfsClientId}", resource, _efsManagedIdentityConfiguration.Value.EfsClientId);
                 throw;
             }
         }
