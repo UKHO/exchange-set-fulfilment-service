@@ -56,7 +56,7 @@ namespace UKHO.ADDS.Configuration.Seeder
                 Console.WriteLine($"Reading configuration from: {configFilePath}");
                 var configJson = await File.ReadAllTextAsync(configFilePath);
 
-                var discoFilePath = args[1];
+                var discoFilePath = args[2];
 
                 if (!File.Exists(discoFilePath))
                 {
