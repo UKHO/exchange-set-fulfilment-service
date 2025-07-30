@@ -5,7 +5,7 @@ namespace UKHO.ADDS.EFS.EndToEndTests.Services
 {
     public class OrchestratorJobHelper
     {
-        public static async Task<string> SubmitJobAsync(HttpClient httpClient, string filter = "", int jobNumber = 1)
+        public static async Task<string> SubmitJobAsync(HttpClient httpClient, string filter = "", int jobNumber = 1, string expectedJobStatus = "submitted", string expectedBuildStatus = "scheduled")
         {
             var requestId = $"job-000{jobNumber}-" + Guid.NewGuid();
             var payload = new { version = 1, dataStandard = "s100", products = "", filter = $"{filter}" };
@@ -22,8 +22,8 @@ namespace UKHO.ADDS.EFS.EndToEndTests.Services
             var jobStatus = responseJson.RootElement.GetProperty("jobStatus").GetString();
             var buildStatus = responseJson.RootElement.GetProperty("buildStatus").GetString();
 
-            Assert.Equal("submitted", jobStatus);
-            Assert.Equal("scheduled", buildStatus);
+            Assert.Equal(expectedJobStatus, jobStatus);
+            Assert.Equal(expectedBuildStatus, buildStatus);
 
             return requestId!;
         }

@@ -25,6 +25,8 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
         [InlineData("startswith(ProductName, '111')", "StartWithS111Products.zip")]
         [InlineData("ProductName eq '101GB004DEVQK' or startswith(ProductName, '104')", "SingleProductAndStartWithS104Products.zip")]
         [InlineData("startswith(ProductName , '111') or startswith(ProductName,'101')", "StartWithS101AndS111.zip")]
+        [InlineData("startswith(ProductName, '101') or startswith(ProductName, '102') or startswith(ProductName, '104') or startswith(ProductName, '111')", "AllProducts.zip")]
+        [InlineData("startswith(ProductName, '111') or startswith(ProductName, '121')", "StartWithS111Products.zip")]
         [InlineData("", "WithoutFilter.zip")]
         public async Task S100EndToEnd(string filter, string zipFileName)
         {
@@ -40,6 +42,17 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
             var sourceZipPath = Path.Combine(ProjectDirectory!, "TestData", zipFileName);
 
             ZipStructureComparer.CompareZipFilesExactMatch(sourceZipPath, exchangeSetDownloadPath);
+        }
+
+        //Negative scenarios
+        [Fact]
+        [InlineData("startswith(ProductName, '121')")]
+        [InlineData("ProductName eq '131GB004DEVQK'")]
+        public async Task S100EndToEnd_FilterWithInvalidIdentifier(string filter)
+        {
+            var httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
+
+            await OrchestratorJobHelper.SubmitJobAsync(httpClient, filter, expectedJobStatus: "upToDate", expectedBuildStatus: "none");
         }
 
         [Fact]
