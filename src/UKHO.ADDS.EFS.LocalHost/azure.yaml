@@ -1,8 +1,8 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
 
-name: exchange-set-fulfilment-service
+name: ukho-adds-efs-localhost
 services:  
   app:
     language: dotnet
-    project: ./src/UKHO.ADDS.EFS.LocalHost/UKHO.ADDS.EFS.LocalHost.csproj
+    project: ./UKHO.ADDS.EFS.LocalHost.csproj
     host: containerapp

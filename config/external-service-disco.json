@@ -1,0 +1,43 @@
+{
+    "local": {
+        "s100FileShare": "http://{{adds-mocks-efs}}/fss/",
+        "s100SalesCatalogue": "http://{{adds-mocks-efs}}/scs/",
+        "s63FileShare": "http://{{adds-mocks-efs}}/fss6357/",
+        "s63SalesCatalogue": "http://{{adds-mocks-efs}}/scs6357/",
+        "s57FileShare": "http://{{adds-mocks-efs}}/fss6357/",
+        "s57SalesCatalogue": "http://{{adds-mocks-efs}}/scs6357/"
+    },
+    "dev": {
+        "s100FileShare": "https://adds-mocks-efs.orangesea-886b6e8e.uksouth.azurecontainerapps.io/fss/",
+        "s100SalesCatalogue": "https://adds-mocks-efs.orangesea-886b6e8e.uksouth.azurecontainerapps.io/scs/",
+        "s63FileShare": "https://adds-mocks-efs.orangesea-886b6e8e.uksouth.azurecontainerapps.io/fss6357/",
+        "s63SalesCatalogue": "https://adds-mocks-efs.orangesea-886b6e8e.uksouth.azurecontainerapps.io/scs6357/",
+        "s57FileShare": "https://adds-mocks-efs.orangesea-886b6e8e.uksouth.azurecontainerapps.io/fss6357/",
+        "s57SalesCatalogue": "https://adds-mocks-efs.orangesea-886b6e8e.uksouth.azurecontainerapps.io/scs6357/"
+    },
+    "vni": {
+        "S100FileShare": "https://filesvnextiat.admiralty.co.uk",
+        "S100SalesCatalogue": "https://salesCataloguevNextIAT.ukho.gov.uk",
+        "S63FileShare": "https://filesvnextiat.admiralty.co.uk",
+        "S63SalesCatalogue": "https://salesCataloguevNextIAT.ukho.gov.uk",
+        "S57FileShare": "https://filesvnextiat.admiralty.co.uk",
+        "S57SalesCatalogue": "https://salesCataloguevNextIAT.ukho.gov.uk"
+    },
+    "vne": {
+        "S100FileShare": "https://filesvnexte2e.admiralty.co.uk",
+        "S100SalesCatalogue": "https://salesCataloguevNextE2E.ukho.gov.uk",
+        "S63FileShare": "https://filesvnexte2e.admiralty.co.uk",
+        "S63SalesCatalogue": "https://salesCataloguevNextE2E.ukho.gov.uk",
+        "S57FileShare": "https://filesvnexte2e.admiralty.co.uk",
+        "S57SalesCatalogue": "https://salesCataloguevNextE2E.ukho.gov.uk"
+    },
+    "iat": {
+        "S100FileShare": "https://filesiat.admiralty.co.uk",
+        "S100SalesCatalogue": "https://salesCatalogueIAT.ukho.gov.uk",
+        "S63FileShare": "https://filesiat.admiralty.co.uk",
+        "S63SalesCatalogue": "https://salesCatalogueIAT.ukho.gov.uk",
+        "S57FileShare": "https://filesiat.admiralty.co.uk",
+        "S57SalesCatalogue": "https://salesCatalogueIAT.ukho.gov.uk"
+    }
+
+}

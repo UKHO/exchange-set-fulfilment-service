@@ -34,6 +34,8 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor
 
             builder.AddAzureQueueClient(StorageConfiguration.QueuesName);
 
+            builder.Services.AddExternalServiceDiscovery();
+
             builder.Services.AddTransient<BuilderContainerService>();
 
             builder.Services.AddTransient<S100BuildRequestProcessor>();

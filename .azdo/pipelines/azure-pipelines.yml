@@ -29,6 +29,10 @@ parameters:
     displayName: "Deploy ADDS mock"
     type: boolean
     default: true
+  - name: DeployRedis
+    displayName: "Deploy Redis"
+    type: boolean
+    default: true
   - name: DestroyResourcesDev
     displayName: "Destroy dev environment"
     type: boolean
@@ -69,7 +73,7 @@ variables:
   - name: UkhoAssemblyProduct
     value: "ESS Fulfilment Service"
   - name: UKHOAssemblyCopyright
-    value: "Copyright © UK Hydrographic Office"
+    value: "Copyright � UK Hydrographic Office"
   - name: SdkVersion
     value: "9.0.x"
   - name: WindowsPool
@@ -177,6 +181,7 @@ stages:
         DeployConfiguration: ${{ parameters.DeployConfiguration }}
         DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
         DeployAddsMock: ${{ parameters.DeployAddsMock }}
+        DeployRedis: ${{ parameters.DeployRedis }}
 
   - stage: vnextiatDeploy
     dependsOn:
