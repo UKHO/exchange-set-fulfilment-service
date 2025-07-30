@@ -42,8 +42,10 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                 var oltpEndpoint = builder.Configuration[GlobalEnvironmentVariables.OtlpEndpoint]!;
 
-                //var eventHubConnectionString = "";
-                //var eventHubName = "";
+                var eventHubConnectionString = builder.Configuration["ConnectionStrings__efs-events-namespace"];
+                var eventHubName = builder.Configuration["EVENTHUB_NAME"];
+                if (string.IsNullOrWhiteSpace(eventHubConnectionString) || string.IsNullOrWhiteSpace(eventHubName))
+                    throw new InvalidOperationException("Missing Event Hub connection string or event hub name.");
 
                 builder.Services.AddSerilog((services, lc) => lc
                     .ReadFrom.Configuration(builder.Configuration)
@@ -57,8 +59,8 @@ namespace UKHO.ADDS.EFS.Orchestrator
                         options.System = ServiceConfiguration.ServiceName;
                         options.Service = ServiceConfiguration.ServiceName;
                         options.NodeName = "Azure";
-                        //options.EventHubConnectionString = eventHubConnectionString;
-                        //options.EventHubEntityPath = eventHubName;
+                        options.EventHubConnectionString = eventHubConnectionString;
+                        options.EventHubEntityPath = eventHubName;
                         options.TokenCredential = new DefaultAzureCredential();
                         options.AdditionalValuesProvider = additionalValues =>
                         {
