@@ -117,6 +117,18 @@ namespace UKHO.ADDS.EFS.LocalHost
                     ServiceConfiguration.ServiceName)
                 .WithExternalHttpEndpoints();
 
+            if (builder.Environment.IsDevelopment())
+            {
+                var aacEmulator = builder.AddProject<UKHO_ADDS_Configuration_AACEmulator>(ProcessNames.ConfigurationService);
+                orchestratorService.WithReference(aacEmulator)
+                    .WaitFor(aacEmulator);
+            }
+            else
+            {
+                var appConfig = builder.AddAzureAppConfiguration(ProcessNames.ConfigurationService);
+                orchestratorService.WithReference(appConfig);
+            }
+
             orchestratorService.WithConfiguration(configurationService);
 
             if (builder.Environment.IsDevelopment())
