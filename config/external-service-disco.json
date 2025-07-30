@@ -1,0 +1,18 @@
+{
+    "local": {
+        "s100FileShare": "http://{{adds-mocks-efs}}/fss/", 
+        "s100SalesCatalogue": "http://{{adds-mocks-efs}}/scs/", 
+        "s63FileShare": "http://{{adds-mocks-efs}}/fss6357/", 
+        "s63SalesCatalogue": "http://{{adds-mocks-efs}}/scs6357/", 
+        "s57FileShare": "http://{{adds-mocks-efs}}/fss6357/", 
+        "s57SalesCatalogue": "http://{{adds-mocks-efs}}/scs6357/" 
+    },
+    "dev": {
+        "s100FileShare": "https://adds-mocks-efs.orangesea-886b6e8e.uksouth.azurecontainerapps.io/fss/",
+        "s100SalesCatalogue": "https://adds-mocks-efs.orangesea-886b6e8e.uksouth.azurecontainerapps.io/scs/",
+        "s63FileShare": "https://adds-mocks-efs.orangesea-886b6e8e.uksouth.azurecontainerapps.io/fss6357/",
+        "s63SalesCatalogue": "https://adds-mocks-efs.orangesea-886b6e8e.uksouth.azurecontainerapps.io/scs6357/",
+        "s57FileShare": "https://adds-mocks-efs.orangesea-886b6e8e.uksouth.azurecontainerapps.io/fss6357/",
+        "s57SalesCatalogue": "https://adds-mocks-efs.orangesea-886b6e8e.uksouth.azurecontainerapps.io/scs6357/"
+    }
+}
