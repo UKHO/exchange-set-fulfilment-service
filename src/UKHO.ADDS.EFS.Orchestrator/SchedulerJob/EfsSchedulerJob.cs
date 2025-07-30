@@ -6,6 +6,7 @@ using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 
 namespace UKHO.ADDS.EFS.Orchestrator.SchedulerJob
 {
+    [DisallowConcurrentExecution]
     public class EfsSchedulerJob : IJob
     {
         private readonly ILogger<EfsSchedulerJob> _logger;

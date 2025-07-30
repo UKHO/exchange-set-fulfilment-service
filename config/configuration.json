@@ -37,7 +37,7 @@
                 }
             },
             "EfsSchedulerJob": {
-                "EfsGenerationSchedule": "0 0/5 * * * ?" // Cron expression for scheduling EFS generation
+                "EfsGenerationSchedule": "0 0/5 * * * ?" //Quartz Cron expression for scheduling EFS generation
             }
         },
         "UKHO.ADDS.EFS.Builder.S100": {
@@ -108,7 +108,7 @@
                 }
             },
             "EfsSchedulerJob": {
-                "EfsGenerationSchedule": "0 0/5 * * * ?" // Cron expression for scheduling EFS generation
+                "EfsGenerationSchedule": "0 0/5 * * * ?" //Quartz Cron expression for scheduling EFS generation
             }
         },
         "UKHO.ADDS.EFS.Builder.S100": {
