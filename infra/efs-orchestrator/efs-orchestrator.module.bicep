@@ -15,17 +15,15 @@ param efs_orchestrator_identity_outputs_id string
 
 param efs_orchestrator_containerport string
 
+param efs_app_insights_outputs_appinsightsconnectionstring string
+
+param efs_events_namespace_outputs_eventhubsendpoint string
+
 param efs_storage_outputs_queueendpoint string
 
 param efs_storage_outputs_tableendpoint string
 
 param efs_storage_outputs_blobendpoint string
-
-param efs_app_insights_outputs_appinsightsconnectionstring string
-
-param efs_events_namespace_outputs_eventhubsendpoint string
-
-param efs_events_hub_outputs_name string
 
 param efs_orchestrator_identity_outputs_clientid string
 
@@ -78,6 +76,14 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2024-03-01' = {
               value: efs_orchestrator_containerport
             }
             {
+              name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+              value: efs_app_insights_outputs_appinsightsconnectionstring
+            }
+            {
+              name: 'ConnectionStrings__efs-events-namespace'
+              value: efs_events_namespace_outputs_eventhubsendpoint
+            }
+            {
               name: 'ConnectionStrings__efs-queues'
               value: efs_storage_outputs_queueendpoint
             }
@@ -96,18 +102,6 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2024-03-01' = {
             {
               name: 'services__adds-mocks-efs__https__0'
               value: 'https://adds-mocks-efs.${efs_cae_outputs_azure_container_apps_environment_default_domain}'
-            }
-            {
-              name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-              value: efs_app_insights_outputs_appinsightsconnectionstring
-            }
-            {
-              name: 'ConnectionStrings__efs-events-namespace'
-              value: efs_events_namespace_outputs_eventhubsendpoint
-            }
-            {
-              name: 'EVENTHUB_NAME'
-              value: efs_events_hub_outputs_name
             }
             {
               name: 'services__adds-configuration__http__0'

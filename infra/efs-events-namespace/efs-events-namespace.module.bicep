@@ -21,5 +21,5 @@ resource efs_events_hub 'Microsoft.EventHub/namespaces/eventhubs@2024-01-01' = {
 }
 
 output eventHubsEndpoint string = efs_events_namespace.properties.serviceBusEndpoint
+
 output name string = efs_events_namespace.name
-output eventhubname string = efs_events_hub.name

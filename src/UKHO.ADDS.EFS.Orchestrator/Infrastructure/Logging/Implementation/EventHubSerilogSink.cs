@@ -7,6 +7,7 @@ using Serilog.Core;
 using Serilog.Events;
 using Serilog.Formatting;
 using Serilog.Formatting.Json;
+using UKHO.ADDS.EFS.Configuration.Namespaces;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
 {
@@ -48,7 +49,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
         {
             // Read Event Hub namespace (FQDN) and hub name from environment
             connectionString ??= Environment.GetEnvironmentVariable("ConnectionStrings__efs-events-namespace");
-            var eventHubName = Environment.GetEnvironmentVariable("EVENTHUB_NAME");
+            var eventHubName = ServiceConfiguration.EventHubName;
 
             if (string.IsNullOrWhiteSpace(connectionString) || string.IsNullOrWhiteSpace(eventHubName))
                 throw new InvalidOperationException("Missing Event Hub connection string or event hub name.");

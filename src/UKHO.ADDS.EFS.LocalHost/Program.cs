@@ -110,7 +110,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WaitFor(appInsights)
                 .WithReference(appInsights)
                 .WaitFor(eventHubs)
-                .WithReference(appInsights)
+                .WithReference(eventHubs)
                 .WithReference(storageQueue)
                 .WaitFor(storageQueue)
                 .WithReference(storageTable)

@@ -114,7 +114,6 @@ module efs_orchestrator_roles_efs_storage 'efs-orchestrator-roles-efs-storage/ef
     principalId: efs_orchestrator_identity.outputs.principalId
   }
 }
-
 module efs_storage 'efs-storage/efs-storage.module.bicep' = {
   name: 'efs-storage'
   scope: rg
@@ -133,11 +132,10 @@ output EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN string = efs_cae.
 output EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_ID string = efs_cae.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_ID
 output EFS_CAE_AZURE_CONTAINER_REGISTRY_ENDPOINT string = efs_cae.outputs.AZURE_CONTAINER_REGISTRY_ENDPOINT
 output EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID string = efs_cae.outputs.AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID
-output EFS_EVENTS_NAMESPACE_ENDPOINT string = efs_events_namespace.outputs.eventHubsEndpoint
+output EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT string = efs_events_namespace.outputs.eventHubsEndpoint
 output EFS_ORCHESTRATOR_IDENTITY_CLIENTID string = efs_orchestrator_identity.outputs.clientId
 output EFS_ORCHESTRATOR_IDENTITY_ID string = efs_orchestrator_identity.outputs.id
 output EFS_STORAGE_BLOBENDPOINT string = efs_storage.outputs.blobEndpoint
 output EFS_STORAGE_QUEUEENDPOINT string = efs_storage.outputs.queueEndpoint
 output EFS_STORAGE_TABLEENDPOINT string = efs_storage.outputs.tableEndpoint
 output EFS_STORAGE_NAME string = efs_storage.outputs.name
-output EFS_EVENT_HUBNAME string = efs_events_namespace.outputs.eventhubname
