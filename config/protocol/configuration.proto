@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+option csharp_namespace = "UKHO.ADDS.Configuration.Grpc";
+
+package configuration;
+
+service ConfigurationService {
+  rpc GetConfiguration (ServiceConfigurationRequest) returns (ServiceConfigurationResponse);
+}
+
+message ServiceConfigurationRequest {
+  repeated string serviceNames = 1;
+}
+
+message ServiceConfigurationResponse {
+  repeated Property properties = 1;
+}
+
+message Property {
+  string path = 1;
+  string value = 2;
+}

@@ -1,0 +1,116 @@
+﻿@using System.Globalization
+@using UKHO.ADDS.Configuration.Dashboard.Models
+@using UKHO.ADDS.Configuration.Dashboard.Services
+@inherits LayoutComponentBase
+@inject DashboardPageService DashboardPageService
+@inject NavigationManager UriHelper
+
+<RadzenComponents/>
+
+<RadzenLayout Style="grid-template-columns: auto 1fr auto; grid-template-areas: 'rz-header rz-header rz-header' 'rz-sidebar rz-body rz-config-sidebar'">
+    <RadzenHeader>
+        <ChildContent>
+            <RadzenRow AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Start" Gap="0px">
+                <RadzenColumn Size="5">
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+                        <RadzenSidebarToggle Click="@(() => _sidebarExpanded = !_sidebarExpanded)"/>
+                        <span style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">UKHO ADDS Configuration Dashboard</span>
+                    </RadzenStack>
+                </RadzenColumn>
+                <RadzenColumn Size="7">
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End">
+                        <div class="rz-display-none rz-display-sm-inline-flex align-items-center">
+                            <RadzenLink Path="https://github.com/UKHO/UKHO.ADDS.Mocks" Text="GitHub" title="ADDS Configuration on GitHub" class="rz-text-nowrap rz-mx-2 rz-mx-lg-4" target="_blank"/>
+                        </div>
+                    </RadzenStack>
+                </RadzenColumn>
+            </RadzenRow>
+        </ChildContent>
+    </RadzenHeader>
+    <RadzenBody @ref="@_body0" style="background-color: #15171C;">
+        <ChildContent>
+            <RadzenContentContainer Name="main" style="width: 100%; height: 100%; border: none; margin: 0; padding: 0; overflow: hidden;">
+                @Body
+            </RadzenContentContainer>
+        </ChildContent>
+    </RadzenBody>
+    <RadzenSidebar @ref="_sidebar0" @bind-Expanded="@_sidebarExpanded" class="demos-sidebar" style="display: flex; flex-direction: column">
+        <div style="flex: 1; overflow: auto">
+            <RadzenPanelMenu Match="NavLinkMatch.Prefix">
+                @foreach (var category in _pages)
+                {
+                    <NavigationItem @key=category @bind-Expanded=@category.Expanded Page=@category>
+                        @if (category.Children != null)
+                        {
+                            @foreach (var example in category.Children)
+                            {
+                                if (example.Children != null)
+                                {
+                                    <NavigationItem @key=example @bind-Expanded=@example.Expanded Page=@example>
+                                        @foreach (var child in example.Children)
+                                        {
+                                            <NavigationItem @key=child @bind-Expanded=@child.Expanded Page=@child/>
+                                        }
+                                    </NavigationItem>
+                                }
+                                else
+                                {
+                                    <NavigationItem @key=example @bind-Expanded=@example.Expanded Page=@example/>
+                                }
+                            }
+                        }
+                    </NavigationItem>
+                }
+            </RadzenPanelMenu>
+        </div>
+    </RadzenSidebar>
+</RadzenLayout>
+
+@if (!_rendered)
+{
+    <div class="rz-app-loading">
+        <div class="logo-loading"></div>
+    </div>
+}
+
+@code {
+    RadzenSidebar _sidebar0;
+    RadzenBody _body0;
+    bool _sidebarExpanded = true;
+    bool _rendered;
+
+    IEnumerable<DashboardPage> _pages;
+    DashboardPage _page;
+
+    protected override void OnInitialized()
+    {
+        _pages = DashboardPageService.Pages;
+
+        UriHelper.LocationChanged += OnLocationChanged;
+
+        _page = DashboardPageService.FindCurrent(new Uri(UriHelper.Uri));
+
+        Thread.CurrentThread.CurrentCulture = new CultureInfo("en-GB");
+    }
+
+    void OnLocationChanged(object sender, LocationChangedEventArgs args)
+    {
+        var currentExample = DashboardPageService.FindCurrent(new Uri(args.Location));
+
+        if (currentExample != _page)
+        {
+            _page = currentExample;
+
+            StateHasChanged();
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _rendered = true;
+        }
+    }
+
+}
