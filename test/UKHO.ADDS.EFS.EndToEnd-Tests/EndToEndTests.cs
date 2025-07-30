@@ -45,7 +45,7 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
         }
 
         //Negative scenarios
-        [Fact]
+        [Theory]
         [InlineData("startswith(ProductName, '121')")]
         [InlineData("ProductName eq '131GB004DEVQK'")]
         public async Task S100EndToEnd_FilterWithInvalidIdentifier(string filter)
