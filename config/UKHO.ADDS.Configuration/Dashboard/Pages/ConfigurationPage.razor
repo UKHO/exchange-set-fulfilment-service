@@ -1,0 +1,99 @@
+﻿@layout DashboardLayout
+@page "/"
+@page "/_dashboard/"
+@using UKHO.ADDS.Configuration.Services
+
+@inject ConfigurationStore ConfigurationStore
+
+<table class="rz-table rz-striped rz-hoverable rz-grid-table rz-mb-4"
+       style="width: 100%; border-collapse: separate; border-spacing: 0;">
+    <thead style="position: sticky; top: 0; background-color: var(--rz-panel-background-color); z-index: 10;">
+        <tr>
+            <th style="width: 30%; font-size: 1.15rem; font-weight: 500; padding: 0.4rem 0 0.6rem 1.0rem;">Path</th>
+            <th style="width: 35%; font-size: 1.15rem; font-weight: 500; padding: 0.4rem 0 0.6rem 1.0rem;">Value</th>
+            <th style="width: 15%; font-size: 1.15rem; font-weight: 500; padding: 0.4rem 0 0.6rem 1.0rem;">Type</th>
+            <th style="width: 20%; font-size: 1.15rem; font-weight: 500; padding: 0.4rem 0 0.6rem 1.0rem;">Properties</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var service in ConfigurationStore.Configuration)
+        {
+            var isExpanded = _expanded.Contains(service.ServiceName);
+            var toggleIcon = isExpanded ? "expand_less" : "expand_more";
+
+            <tr>
+                <td colspan="4" style="background: transparent; border-top: 1px solid var(--rz-border-color); padding-top: 1rem;">
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                        <RadzenButton Icon="@toggleIcon"
+                                      ButtonStyle="ButtonStyle.Light"
+                                      Size="ButtonSize.Small"
+                                      Style="min-width: unset;"
+                                      Click="() => ToggleExpand(service.ServiceName)" />
+
+                        <RadzenText Style="font-size: 1.15rem; font-weight: 500; margin-bottom: 0.5rem;">
+                            @service.ServiceName
+                        </RadzenText>
+                    </RadzenStack>
+                </td>
+            </tr>
+
+            @if (isExpanded)
+            {
+                foreach (var entry in service.Properties.OrderBy(p => p.Key))
+                {
+                    <tr>
+                        <td>@entry.Key</td>
+                        <td>
+                            @if (entry.Value.Secret && !ConfigurationStore.IsLocal)
+                            {
+                                <em>🔒 (secret)</em>
+                            }
+                            else
+                            {
+                                @entry.Value.Value
+                            }
+                        </td>
+                        <td>@entry.Value.Type</td>
+                        <td>
+                            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
+                                @if (entry.Value.Required)
+                                {
+                                    <RadzenBadge Text="Required" BadgeStyle="BadgeStyle.Info" />
+                                }
+                                @if (entry.Value.Secret)
+                                {
+                                    <RadzenBadge Text="Secret" BadgeStyle="BadgeStyle.Danger" />
+                                }
+                            </RadzenStack>
+                        </td>
+                    </tr>
+                }
+            }
+        }
+    </tbody>
+</table>
+
+@code {
+    private HashSet<string> _expanded = new();
+
+    protected override void OnInitialized()
+    {
+        if (ConfigurationStore.Configuration.Count > 0)
+        {
+            _expanded.Add(ConfigurationStore.Configuration[0].ServiceName);
+        }
+    }
+
+    private void ToggleExpand(string serviceName)
+    {
+        if (_expanded.Contains(serviceName))
+        {
+            _expanded.Remove(serviceName);
+        }
+        else
+        {
+            _expanded.Add(serviceName);
+        }
+    }
+}
