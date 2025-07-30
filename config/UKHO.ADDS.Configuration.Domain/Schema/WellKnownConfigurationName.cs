@@ -19,5 +19,7 @@
         public const string ConfigurationServiceTableStorageName = "adds-con-was-ts";
 
         public const string ConfigurationServiceTableName = "configurations";
+
+        public const string ExternalServiceDiscoTableName = "externalsvcdisco";
     }
 }

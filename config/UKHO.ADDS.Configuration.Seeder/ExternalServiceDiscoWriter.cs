@@ -1,11 +1,11 @@
 ﻿using System.Text.Json;
 using Azure.Data.Tables;
+using UKHO.ADDS.Configuration.Schema;
 
 namespace UKHO.ADDS.Configuration.Seeder
 {
     public class ExternalServiceDiscoWriter
     {
-        private const string TableName = "externalsvcdisco";
         private readonly TableServiceClient _tableServiceClient;
 
         public ExternalServiceDiscoWriter(TableServiceClient tableServiceClient) =>
@@ -13,7 +13,7 @@ namespace UKHO.ADDS.Configuration.Seeder
 
         public async Task WriteExternalServiceDiscoAsync(IEnumerable<DiscoEndpointTemplate> templates)
         {
-            var tableClient = _tableServiceClient.GetTableClient(TableName);
+            var tableClient = _tableServiceClient.GetTableClient(WellKnownConfigurationName.ExternalServiceDiscoTableName);
             await tableClient.CreateIfNotExistsAsync();
 
             foreach (var template in templates)

@@ -92,6 +92,13 @@ namespace UKHO.ADDS.Configuration
             })
             .WithName("GetConfiguration");
 
+            app.MapGet("/services", (HttpContext httpContext, ConfigurationStore configurationService) =>
+            {
+                return configurationService.Services;
+            })
+            .WithName("GetServices");
+
+
             // TODO Reinstate when reverting to gRPC
             //app.MapWhen(context => context.Request.ContentType?.StartsWith("application/grpc") == true, grpcApp =>
             //{
