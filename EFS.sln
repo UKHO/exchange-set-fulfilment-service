@@ -69,6 +69,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.ADDS.Configuration.Asp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.ADDS.Configuration.Client", "config\UKHO.ADDS.Configuration.Client\UKHO.ADDS.Configuration.Client.csproj", "{6E864D5D-85F0-4065-81AB-DBB0E7F7B3C2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.ADDS.Configuration.AACEmulator", "config\UKHO.ADDS.Configuration.AACEmulator\UKHO.ADDS.Configuration.AACEmulator.csproj", "{4AAC8135-96E0-4F98-804F-3D569FFB9EBE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -163,6 +165,10 @@ Global
 		{6E864D5D-85F0-4065-81AB-DBB0E7F7B3C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6E864D5D-85F0-4065-81AB-DBB0E7F7B3C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6E864D5D-85F0-4065-81AB-DBB0E7F7B3C2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4AAC8135-96E0-4F98-804F-3D569FFB9EBE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4AAC8135-96E0-4F98-804F-3D569FFB9EBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4AAC8135-96E0-4F98-804F-3D569FFB9EBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4AAC8135-96E0-4F98-804F-3D569FFB9EBE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -192,6 +198,7 @@ Global
 		{C3E9B7F5-6EF8-739E-E036-C0CF1AD49720} = {6B5B5410-BA91-4E7E-8B61-84FACDB162A0}
 		{9EB0DA31-41E0-8E57-09D4-8DD72CD6098C} = {6B5B5410-BA91-4E7E-8B61-84FACDB162A0}
 		{6E864D5D-85F0-4065-81AB-DBB0E7F7B3C2} = {6B5B5410-BA91-4E7E-8B61-84FACDB162A0}
+		{4AAC8135-96E0-4F98-804F-3D569FFB9EBE} = {80B96364-9D68-435D-9B5E-70E8E3F7504C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7F0CD4AD-9CFF-412C-AFA2-6A353CA3A42B}
