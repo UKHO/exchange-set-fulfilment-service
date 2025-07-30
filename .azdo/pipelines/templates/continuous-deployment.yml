@@ -11,22 +11,22 @@ parameters:
   default: false
 # Deploy the orchestrator container app.
 - name: DeployOrchestrator
-  displayName: "Deploy orchestrator"
   type: boolean
   default: false
 # Deploy the configuration container app.
 - name: DeployConfiguration
-  displayName: "Deploy configuration"
   type: boolean
   default: false
 # Deploy the S100 builder container app job.
 - name: DeployBuilderS100
-  displayName: "Deploy S100 builder"
   type: boolean
   default: false
 # Deploy the ADDS mock container app.
 - name: DeployAddsMock
-  displayName: "Deploy ADDS mock"
+  type: boolean
+  default: false
+# Deploy the Redis container app.
+- name: DeployRedis
   type: boolean
   default: false
 # If true, additional debugging will be enabled.
@@ -83,7 +83,7 @@ jobs:
             displayName: Destroy infrastructure
             inputs:
               azureSubscription: ${{ variables.AzureSubscription }}
-              workingDirectory: $(Build.SourcesDirectory)/efs
+              workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
               scriptType: bash
               scriptLocation: inlineScript
               ${{ if eq(parameters.AdditionalDebugging, true) }}:
@@ -115,7 +115,7 @@ jobs:
             displayName: Package application
             inputs:
               azureSubscription: ${{ variables.AzureSubscription }}
-              workingDirectory: $(Build.SourcesDirectory)/efs
+              workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
               scriptType: bash
               scriptLocation: inlineScript
               ${{ if eq(parameters.AdditionalDebugging, true) }}:
@@ -134,7 +134,7 @@ jobs:
             displayName: Provision infrastructure
             inputs:
               azureSubscription: ${{ variables.AzureSubscription }}
-              workingDirectory: $(Build.SourcesDirectory)/efs
+              workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
               scriptType: bash
               scriptLocation: inlineScript
               ${{ if eq(parameters.AdditionalDebugging, true) }}:
@@ -153,7 +153,7 @@ jobs:
             displayName: Run configuration seeder
             inputs:
               azureSubscription: ${{ variables.AzureSubscription }}
-              workingDirectory: $(Build.SourcesDirectory)/efs
+              workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
@@ -182,8 +182,14 @@ jobs:
           - template: container-app-deploy.yml
             parameters:
               AzureSubscription: ${{ variables.AzureSubscription }}
+              AppName: efs-redis
+              AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+              DeployApp: ${{ parameters.DeployRedis }}
+
+          - template: container-app-deploy.yml
+            parameters:
+              AzureSubscription: ${{ variables.AzureSubscription }}
               AppName: adds-configuration
-              ProjectPath: $(Build.SourcesDirectory)/efs/config/repo/src/UKHO.ADDS.Configuration/UKHO.ADDS.Configuration.csproj
               AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
               DeployApp: ${{ parameters.DeployConfiguration }}
 
@@ -191,7 +197,6 @@ jobs:
             parameters:
               AzureSubscription: ${{ variables.AzureSubscription }}
               AppName: adds-mocks-efs
-              ProjectPath: $(Build.SourcesDirectory)/efs/mock/UKHO.ADDS.Mocks.EFS/UKHO.ADDS.Mocks.EFS.csproj
               AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
               DeployApp: ${{ parameters.DeployAddsMock }}
 
@@ -199,7 +204,6 @@ jobs:
             parameters:
               AzureSubscription: ${{ variables.AzureSubscription }}
               AppName: efs-orchestrator
-              ProjectPath: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Orchestrator/UKHO.ADDS.EFS.Orchestrator.csproj
               AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
               DeployApp: ${{ parameters.DeployOrchestrator }}
 

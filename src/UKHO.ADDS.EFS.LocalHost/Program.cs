@@ -89,7 +89,6 @@ namespace UKHO.ADDS.EFS.LocalHost
                     .WaitFor(mockService)
                     .WithReference(storageBlob)
                     .WaitFor(storageBlob);
-
             }
 
             // Orchestrator
