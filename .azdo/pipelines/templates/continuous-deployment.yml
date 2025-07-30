@@ -101,7 +101,7 @@ jobs:
         - ${{ else }}:
 
           - task: AzureCLI@2
-            displayName: Package application
+            displayName: Deploy permanent infrastructure
             inputs:
               azureSubscription: ${{ variables.AzureSubscription }}
               workingDirectory: $(Build.SourcesDirectory)/efs
@@ -109,12 +109,12 @@ jobs:
               scriptLocation: inlineScript
               inlineScript: |
                 DEPLOYMENT_NUMBER=$EPOCHSECONDS
-                cd "$(Build.SourcesDirectory)/efs/infra-retain
+                cd "$(Build.SourcesDirectory)/efs/infra-retain"
 
                 if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
-                  az deployment sub create --name az-efs-retaing-$DEPLOYMENT_NUMBER --location $AZURE_LOCATION --no-prompt --parameters environmentName=$AZURE_ENV_NAME location=$AZURE_LOCATION --template-file main.bicep --debug
+                  az deployment sub create --name az-efs-retain-$DEPLOYMENT_NUMBER --location $AZURE_LOCATION --no-prompt --parameters environmentName=$AZURE_ENV_NAME location=$AZURE_LOCATION --template-file main.bicep --debug
                 else
-                  az deployment sub create --name az-efs-retaing-$DEPLOYMENT_NUMBER --location $AZURE_LOCATION --no-prompt --parameters environmentName=$AZURE_ENV_NAME location=$AZURE_LOCATION --template-file main.bicep
+                  az deployment sub create --name az-efs-retain-$DEPLOYMENT_NUMBER --location $AZURE_LOCATION --no-prompt --parameters environmentName=$AZURE_ENV_NAME location=$AZURE_LOCATION --template-file main.bicep
                 fi
             env:
               AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
