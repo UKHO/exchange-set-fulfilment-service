@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.EFS.Builds;
+﻿using UKHO.ADDS.Configuration.ExternalServices;
+using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Extensions;
@@ -16,10 +17,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             var logger = loggerFactory.CreateLogger("JobsApi");
             var jobsEndpoint = routeBuilder.MapGroup("/jobs");
 
-            jobsEndpoint.MapPost("/", async (JobRequestApiMessage message, IConfiguration configuration, AssemblyPipelineFactory pipelineFactory, HttpContext httpContext) =>
+            jobsEndpoint.MapPost("/", async (JobRequestApiMessage message, IConfiguration configuration, AssemblyPipelineFactory pipelineFactory, HttpContext httpContext, IExternalServiceRegistry extReg) =>
                 {
                     try
                     {
+                        var reg = extReg.GetExternalService("s100FileShare");
+
                         var correlationId = httpContext.GetCorrelationId();
 
                         var parameters = AssemblyPipelineParameters.CreateFrom(message, configuration, correlationId);
