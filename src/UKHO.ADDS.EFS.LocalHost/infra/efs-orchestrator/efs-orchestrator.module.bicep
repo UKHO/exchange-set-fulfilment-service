@@ -21,6 +21,9 @@ param efs_storage_outputs_tableendpoint string
 
 param efs_storage_outputs_blobendpoint string
 
+@secure()
+param efs_redis_password_value string
+
 param efs_orchestrator_identity_outputs_clientid string
 
 resource efs_orchestrator 'Microsoft.App/containerApps@2024-03-01' = {
@@ -31,6 +34,12 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2024-03-01' = {
   }
   properties: {
     configuration: {
+      secrets: [
+        {
+          name: 'connectionstrings--efs-redis'
+          value: 'efs-redis:6379,password=${efs_redis_password_value}'
+        }
+      ]
       activeRevisionsMode: 'Single'
       ingress: {
         external: true
@@ -90,6 +99,10 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2024-03-01' = {
             {
               name: 'services__adds-mocks-efs__https__0'
               value: 'https://adds-mocks-efs.${efs_cae_outputs_azure_container_apps_environment_default_domain}'
+            }
+            {
+              name: 'ConnectionStrings__efs-redis'
+              secretRef: 'connectionstrings--efs-redis'
             }
             {
               name: 'services__adds-configuration__http__0'

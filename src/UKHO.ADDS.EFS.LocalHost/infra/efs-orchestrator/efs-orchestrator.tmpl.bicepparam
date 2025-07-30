@@ -1,13 +1,14 @@
 using './efs-orchestrator.module.bicep'
 
-param efs_cae_outputs_azure_container_apps_environment_default_domain = readEnvironmentVariable('EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN')
-param efs_cae_outputs_azure_container_apps_environment_id = readEnvironmentVariable('EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_ID')
-param efs_cae_outputs_azure_container_registry_endpoint = readEnvironmentVariable('EFS_CAE_AZURE_CONTAINER_REGISTRY_ENDPOINT')
-param efs_cae_outputs_azure_container_registry_managed_identity_id = readEnvironmentVariable('EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID')
-param efs_orchestrator_containerimage = readEnvironmentVariable('CONTAINER_IMAGE')
-param efs_orchestrator_containerport = readEnvironmentVariable('CONTAINER_PORT')
-param efs_orchestrator_identity_outputs_clientid = readEnvironmentVariable('EFS_ORCHESTRATOR_IDENTITY_CLIENTID')
-param efs_orchestrator_identity_outputs_id = readEnvironmentVariable('EFS_ORCHESTRATOR_IDENTITY_ID')
-param efs_storage_outputs_blobendpoint = readEnvironmentVariable('EFS_STORAGE_BLOBENDPOINT')
-param efs_storage_outputs_queueendpoint = readEnvironmentVariable('EFS_STORAGE_QUEUEENDPOINT')
-param efs_storage_outputs_tableendpoint = readEnvironmentVariable('EFS_STORAGE_TABLEENDPOINT')
+param efs_cae_outputs_azure_container_apps_environment_default_domain = '{{ .Env.EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN }}'
+param efs_cae_outputs_azure_container_apps_environment_id = '{{ .Env.EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_ID }}'
+param efs_cae_outputs_azure_container_registry_endpoint = '{{ .Env.EFS_CAE_AZURE_CONTAINER_REGISTRY_ENDPOINT }}'
+param efs_cae_outputs_azure_container_registry_managed_identity_id = '{{ .Env.EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID }}'
+param efs_orchestrator_containerimage = '{{ .Image }}'
+param efs_orchestrator_containerport = '{{ targetPortOrDefault 8080 }}'
+param efs_orchestrator_identity_outputs_clientid = '{{ .Env.EFS_ORCHESTRATOR_IDENTITY_CLIENTID }}'
+param efs_orchestrator_identity_outputs_id = '{{ .Env.EFS_ORCHESTRATOR_IDENTITY_ID }}'
+param efs_redis_password_value = '{{ securedParameter "efs_redis_password" }}'
+param efs_storage_outputs_blobendpoint = '{{ .Env.EFS_STORAGE_BLOBENDPOINT }}'
+param efs_storage_outputs_queueendpoint = '{{ .Env.EFS_STORAGE_QUEUEENDPOINT }}'
+param efs_storage_outputs_tableendpoint = '{{ .Env.EFS_STORAGE_TABLEENDPOINT }}'
