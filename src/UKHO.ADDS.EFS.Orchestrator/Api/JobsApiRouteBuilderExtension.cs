@@ -22,7 +22,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                     {
                         var correlationId = httpContext.GetCorrelationId();
 
-                        logger.LogGetS100ProductNamesNodeStarted(correlationId);
+                        logger.LogJobExecutionNodeStarted(correlationId);
 
                         var parameters = AssemblyPipelineParameters.CreateFrom(message, configuration, correlationId);
                         var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);

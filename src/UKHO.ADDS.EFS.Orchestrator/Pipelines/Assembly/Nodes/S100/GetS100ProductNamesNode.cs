@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Builds.S100;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Jobs;
@@ -30,7 +29,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
         {
-            _logger.LogGetS100ProductNamesNodeStarted(context.Subject.Job.Id);
+            _logger.LogJobExecutionNodeStarted(context.Subject.Job.Id);
 
             var job = context.Subject.Job;
             var build = context.Subject.Build;
