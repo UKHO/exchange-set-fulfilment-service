@@ -5,6 +5,12 @@ namespace UKHO.ADDS.EFS.EndToEndTests.Services
 {
     public class OrchestratorJobHelper
     {
+        private const int WaitDurationMs = 2000;
+        private const double MaxWaitMinutes = 2;
+
+        /// <summary>
+        /// Submits a job and asserts the expected job and build status.
+        /// </summary>
         public static async Task<string> SubmitJobAsync(HttpClient httpClient, string filter = "", int jobNumber = 1, string expectedJobStatus = "submitted", string expectedBuildStatus = "scheduled")
         {
             var requestId = $"job-000{jobNumber}-" + Guid.NewGuid();
@@ -28,16 +34,17 @@ namespace UKHO.ADDS.EFS.EndToEndTests.Services
             return requestId!;
         }
 
+        /// <summary>
+        /// Waits for a job to complete and asserts the final state.
+        /// </summary>
         public static async Task WaitForJobCompletionAsync(HttpClient httpClient, string jobId)
         {
-            const int waitDurationMs = 2000;
-            const double maxWaitMinutes = 2;
             var startTime = DateTime.Now;
 
             string jobState, buildState;
             do
             {
-                var response = await httpClient.GetAsync($"/jobs/{jobId}");
+                using var response = await httpClient.GetAsync($"/jobs/{jobId}");
                 var responseJson = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
 
                 jobState = responseJson.RootElement.GetProperty("jobState").GetString() ?? string.Empty;
@@ -46,16 +53,19 @@ namespace UKHO.ADDS.EFS.EndToEndTests.Services
                 if (jobState is "completed" or "failed")
                     break;
 
-                await Task.Delay(waitDurationMs);
-            } while ((DateTime.Now - startTime).TotalMinutes < maxWaitMinutes);
+                await Task.Delay(WaitDurationMs);
+            } while ((DateTime.Now - startTime).TotalMinutes < MaxWaitMinutes);
 
             Assert.Equal("completed", jobState);
             Assert.Equal("succeeded", buildState);
         }
 
+        /// <summary>
+        /// Verifies the build status of a job.
+        /// </summary>
         public static async Task VerifyBuildStatusAsync(HttpClient httpClient, string jobId)
         {
-            var response = await httpClient.GetAsync($"/jobs/{jobId}/build");
+            using var response = await httpClient.GetAsync($"/jobs/{jobId}/build");
             Assert.True(response.IsSuccessStatusCode, $"Expected success status code but got: {response.StatusCode}");
 
             var responseJson = JsonDocument.Parse(await response.Content.ReadAsStringAsync());

@@ -6,6 +6,12 @@ namespace UKHO.ADDS.EFS.EndToEndTests.Services
 {
     public class ZipStructureComparer
     {
+        /// <summary>
+        /// Downloads a zip file for the given jobId from the mock service and saves it to the out directory.
+        /// </summary>
+        /// <param name="jobId">The job identifier.</param>
+        /// <param name="app">The distributed application instance.</param>
+        /// <returns>The file path of the downloaded zip.</returns>
         public static async Task<string> DownloadExchangeSetAsZipAsync(string jobId, DistributedApplication app)
         {
             var httpClientMock = app.CreateHttpClient(ProcessNames.MockService);
@@ -28,15 +34,26 @@ namespace UKHO.ADDS.EFS.EndToEndTests.Services
             return destinationFilePath;
         }
 
+        /// <summary>
+        /// Compares the directory structure of two zip files for an exact match.
+        /// </summary>
+        /// <param name="sourceZipPath">The path to the source zip file.</param>
+        /// <param name="targetZipPath">The path to the target zip file.</param>
         public static void CompareZipFilesExactMatch(string sourceZipPath, string targetZipPath)
         {
             using var archive1 = ZipFile.OpenRead(sourceZipPath);
             using var archive2 = ZipFile.OpenRead(targetZipPath);
 
-            var entries1 = archive1.Entries.Select(e => e.FullName.Substring(0, e.FullName.LastIndexOf("/"))).Distinct().OrderBy(e => e).ToList();
-            var entries2 = archive2.Entries.Select(e => e.FullName.Substring(0, e.FullName.LastIndexOf("/"))).Distinct().OrderBy(e => e).ToList();
+            static string? GetDirectory(string fullName)
+            {
+                var idx = fullName.LastIndexOf('/');
+                return idx > 0 ? fullName.Substring(0, idx) : fullName;
+            }
 
-            // Compare structure
+            var entries1 = archive1.Entries.Select(e => GetDirectory(e.FullName)).Distinct().OrderBy(e => e).ToList();
+            var entries2 = archive2.Entries.Select(e => GetDirectory(e.FullName)).Distinct().OrderBy(e => e).ToList();
+
+            //Compare the entries of both zip files
             Assert.Equal(entries1, entries2);
         }
     }
