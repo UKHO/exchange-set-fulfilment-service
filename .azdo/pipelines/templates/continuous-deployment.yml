@@ -154,8 +154,8 @@ jobs:
 
                 cd "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost"
                 azd env get-values
-                azd env set -value EFS_SERVICE_IDENTITY_CLIENTID $EFS_SERVICE_IDENTITY_CLIENTID
-                azd env set -value EFS_SERVICE_IDENTITY_ID $EFS_SERVICE_IDENTITY_ID
+                azd env set EFS_SERVICE_IDENTITY_CLIENTID $EFS_SERVICE_IDENTITY_CLIENTID
+                azd env set EFS_SERVICE_IDENTITY_ID $EFS_SERVICE_IDENTITY_ID
                 azd env get-values
             env:
               AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
