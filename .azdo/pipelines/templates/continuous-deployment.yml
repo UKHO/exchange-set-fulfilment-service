@@ -121,6 +121,9 @@ jobs:
                 echo $EFS_SERVICE_IDENTITY_CLIENTID
                 EFS_SERVICE_IDENTITY_ID=$(az deployment sub show --name $DEPLOYMENT_NAME --query properties.outputs.efS_SERVICE_IDENTITY_ID.value --output tsv)
                 echo $EFS_SERVICE_IDENTITY_ID
+
+                cd "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost"
+                azd env get-values
             env:
               AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
               AZURE_ENV_NAME: $(AZURE_ENV_NAME)
