@@ -3,8 +3,8 @@
     public class EfsManagedIdentityConfiguration
     {
         public required string EfsClientId { get; set; }
-        public required string FssClientId { get; set; }
-        public required string ScsClientId { get; set; }
+        public required string FssResourceId { get; set; }
+        public required string ScsResourceId { get; set; }
         public double DeductTokenExpiryMinutes { get; set; }
     }
 }
