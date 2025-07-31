@@ -10,8 +10,28 @@ namespace UKHO.ADDS.Configuration.Aspire
 {
     public static class DistributedApplicationBuilderExtensions
     {
-        public static IResourceBuilder<ProjectResource> AddConfiguration(this IDistributedApplicationBuilder builder, string configJsonPath, string externalServiceDiscoPath, IEnumerable<IResourceBuilder<ProjectResource>> externalServiceMocks, string? serviceNameTag = null)
+        public static IResourceBuilder<ProjectResource> AddConfiguration(this IDistributedApplicationBuilder builder,
+            string servicePrefix,
+            string configJsonPath,
+            string newConfigJsonPath,
+            string externalServiceDiscoPath,
+            IEnumerable<IResourceBuilder<ProjectResource>> externalServiceMocks,
+            out IResourceBuilder<ProjectResource>? localNewConfigurationService,
+            out IResourceBuilder<IResourceWithConnectionString>? deployedNewConfigurationService,
+            string? serviceNameTag = null)
         {
+            if (builder.Environment.IsDevelopment())
+            {
+                localNewConfigurationService = builder.AddProject<UKHO_ADDS_Configuration_AACEmulator>(WellKnownConfigurationName.AzureConfigurationServiceName);
+                deployedNewConfigurationService = null;
+            }
+            else
+            {
+                localNewConfigurationService = null;
+                deployedNewConfigurationService = builder.AddAzureAppConfiguration(WellKnownConfigurationName.AzureConfigurationServiceName);
+            }
+
+            // To remove
             var storage = builder.AddAzureStorage(WellKnownConfigurationName.ConfigurationServiceStorageName).RunAsEmulator(e => { e.WithDataVolume(); });
 
             if (!string.IsNullOrWhiteSpace(serviceNameTag))
@@ -23,6 +43,7 @@ namespace UKHO.ADDS.Configuration.Aspire
                 });
             }
 
+            // To remove
             var storageTable = storage.AddTables(WellKnownConfigurationName.ConfigurationServiceTableStorageName);
             var keyVault = builder.AddAzureKeyVaultEmulator(WellKnownConfigurationName.ConfigurationServiceKeyVaultName, new KeyVaultEmulatorOptions { Persist = false });
 
@@ -38,6 +59,9 @@ namespace UKHO.ADDS.Configuration.Aspire
             var configOriginalPath = Path.GetFullPath(configJsonPath);
             var configFilePath = CopyToTempFile(configOriginalPath);
 
+            var newConfigOriginalPath = Path.GetFullPath(newConfigJsonPath);
+            var newConfigFilePath = CopyToTempFile(newConfigOriginalPath);
+
             var externalServiceDiscoOriginalPath = Path.GetFullPath(externalServiceDiscoPath);
             var externalServiceDiscoFilePath = CopyToTempFile(externalServiceDiscoOriginalPath);
 
@@ -47,12 +71,16 @@ namespace UKHO.ADDS.Configuration.Aspire
             {
                 // Only add the seeder service in local development environment
                 seederService = builder.AddProject<UKHO_ADDS_Configuration_Seeder>(WellKnownConfigurationName.ConfigurationSeederName)
+                    .WithReference(localNewConfigurationService!)
+                    .WaitFor(localNewConfigurationService!)
                     .WithReference(storageTable)
                     .WaitFor(storageTable)
                     .WithEnvironment(x =>
                     {
                         x.EnvironmentVariables.Add(WellKnownConfigurationName.ConfigurationFilePath, configFilePath);
+                        x.EnvironmentVariables.Add(WellKnownConfigurationName.NewConfigurationFilePath, newConfigFilePath);
                         x.EnvironmentVariables.Add(WellKnownConfigurationName.ExternalServiceDiscoFilePath, externalServiceDiscoFilePath);
+                        x.EnvironmentVariables.Add(WellKnownConfigurationName.ServicePrefix, servicePrefix);
                     });
 
                 foreach (var mock in externalServiceMocks)
@@ -61,7 +89,7 @@ namespace UKHO.ADDS.Configuration.Aspire
                 }
             }
 
-            var configurationService = builder.AddProject<UKHO_ADDS_Configuration>(WellKnownConfigurationName.ConfigurationServiceName)
+            var configurationService = builder.AddProject<UKHO_ADDS_Configuration_OldService>(WellKnownConfigurationName.ConfigurationServiceName)
                 .WithReference(storageTable)
                 .WaitFor(storageTable)
                 .WithReference(keyVault)

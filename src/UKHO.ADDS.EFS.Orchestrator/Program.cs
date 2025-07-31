@@ -2,7 +2,9 @@ using System.Diagnostics.CodeAnalysis;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
+using UKHO.ADDS.Configuration;
 using UKHO.ADDS.Configuration.Client;
+using UKHO.ADDS.Configuration.Schema;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Orchestrator.Api;
@@ -48,11 +50,15 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                 builder.Configuration.AddConfigurationService("UKHO.ADDS.EFS.Orchestrator", "UKHO.ADDS.EFS.Builder.S100", "UKHO.ADDS.EFS.Builder.S63", "UKHO.ADDS.EFS.Builder.S57");
 
+                builder.Configuration.AddAppConfiguration(WellKnownConfigurationName.AzureConfigurationServiceName);
+
                 builder.AddServiceDefaults().AddOrchestratorServices();
 
                 builder.AddRedisDistributedCache(ProcessNames.RedisCache);
 
                 var app = builder.Build();
+
+                var cfg = app.Services.GetRequiredService<IConfiguration>();
 
                 app.UseSerilogRequestLogging();
 

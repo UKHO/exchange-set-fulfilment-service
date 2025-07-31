@@ -1,4 +1,5 @@
-﻿using Azure.Data.Tables;
+﻿using Azure.Data.AppConfiguration;
+using Azure.Data.Tables;
 using Azure.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -12,21 +13,35 @@ namespace UKHO.ADDS.Configuration.Seeder
         {
             if (args.Length == 0)
             {
+                // Local environment
+
                 var builder = Host.CreateApplicationBuilder(args);
 
                 var configFilePath = builder.Configuration[WellKnownConfigurationName.ConfigurationFilePath]!;
+                var newConfigFilePath = builder.Configuration[WellKnownConfigurationName.NewConfigurationFilePath]!;
                 var discoFilePath = builder.Configuration[WellKnownConfigurationName.ExternalServiceDiscoFilePath]!;
+
+                var servicePrefix = builder.Configuration[WellKnownConfigurationName.ServicePrefix]!;
 
                 builder.AddAzureTableClient(WellKnownConfigurationName.ConfigurationServiceTableStorageName);
                 builder.Services.AddSingleton<ConfigurationWriter>();
                 builder.Services.AddSingleton<ExternalServiceDiscoWriter>();
+
+                builder.Services.AddSingleton(x =>
+                {
+                    var serviceEnvironmentKey = $"services__{WellKnownConfigurationName.AzureConfigurationServiceName}__http__0";
+                    var url = Environment.GetEnvironmentVariable(serviceEnvironmentKey)!;
+
+                    var conStr = $"Endpoint={url};Id=abcd;Secret=c2VjcmV0;";
+                    return new ConfigurationClient(conStr);
+                });
 
                 builder.Services.AddHostedService(x =>
                 {
                     var configWriter = x.GetRequiredService<ConfigurationWriter>();
                     var discoWriter = x.GetRequiredService<ExternalServiceDiscoWriter>();
 
-                    return new LocalSeederService(x.GetRequiredService<IHostApplicationLifetime>(), configWriter, discoWriter, configFilePath, discoFilePath);
+                    return new LocalSeederService(x.GetRequiredService<IHostApplicationLifetime>(), servicePrefix, x.GetRequiredService<ConfigurationClient>(), configWriter, discoWriter, configFilePath, newConfigFilePath, discoFilePath);
                 });
 
                 var app = builder.Build();
@@ -35,6 +50,8 @@ namespace UKHO.ADDS.Configuration.Seeder
             }
             else
             {
+                // Deployed environment
+
                 if (args.Length != 4)
                 {
                     Console.WriteLine("Usage: <environment> <configFilePath> <discoFilePath> <tableUri>");

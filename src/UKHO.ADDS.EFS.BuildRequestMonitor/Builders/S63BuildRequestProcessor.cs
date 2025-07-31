@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.Configuration.Client;
+﻿using UKHO.ADDS.Configuration;
+using UKHO.ADDS.Configuration.Client;
 using UKHO.ADDS.Configuration.Schema;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Services;
 using UKHO.ADDS.EFS.Builds.S63;

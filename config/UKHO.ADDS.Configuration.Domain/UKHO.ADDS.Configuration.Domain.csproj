@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="UKHO.ADDS.Configuration" />
+    <InternalsVisibleTo Include="UKHO.ADDS.Configuration.OldService" />
     <InternalsVisibleTo Include="UKHO.ADDS.Configuration.Aspire" />
     <InternalsVisibleTo Include="UKHO.ADDS.Configuration.Client" />
     <InternalsVisibleTo Include="UKHO.ADDS.Configuration.Seeder" />
@@ -21,6 +21,10 @@
     <PackageReference Include="Aspire.Azure.Storage.Blobs" Version="9.3.1" />
     <PackageReference Include="AzureKeyVaultEmulator.Client" Version="2.3.0" />
 
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\UKHO.ADDS.Configuration\UKHO.ADDS.Configuration.csproj" />
   </ItemGroup>
 
 </Project>

@@ -2,8 +2,6 @@
 {
     public static class ProcessNames
     {
-        public const string ConfigurationService = "efs-aac";
-
         public const string OrchestratorService = "efs-orchestrator";
 
         public const string S100Builder = "efs-builder-s100";

@@ -112,21 +112,25 @@ namespace UKHO.ADDS.EFS.LocalHost
             }
 
             // Configuration
-            var configurationService = builder.AddConfiguration(@"../../config/configuration.json", @"../../config/external-service-disco.json",
+            var configurationService = builder.AddConfiguration(
+                    ServiceConfiguration.ServiceName.ToLowerInvariant(),
+                    @"../../config/configuration.json",
+                    @"../../config/new-configuration.json",
+                    @"../../config/external-service-disco.json",
                     [mockService],
+                    out var localConfigurationService,
+                    out var deployedConfigurationService,
                     ServiceConfiguration.ServiceName)
                 .WithExternalHttpEndpoints();
 
             if (builder.Environment.IsDevelopment())
             {
-                var aacEmulator = builder.AddProject<UKHO_ADDS_Configuration_AACEmulator>(ProcessNames.ConfigurationService);
-                orchestratorService.WithReference(aacEmulator)
-                    .WaitFor(aacEmulator);
+                orchestratorService.WithReference(localConfigurationService!);
+                orchestratorService.WaitFor(localConfigurationService!);
             }
             else
             {
-                var appConfig = builder.AddAzureAppConfiguration(ProcessNames.ConfigurationService);
-                orchestratorService.WithReference(appConfig);
+                orchestratorService.WithReference(deployedConfigurationService!);
             }
 
             orchestratorService.WithConfiguration(configurationService);
