@@ -25,8 +25,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
             var toolClient = context.Subject.ToolClient;
 
             // Paths to check directory exists
-            var datasetFilesPath = Path.Combine(context.Subject.WorkSpaceRootPath, context.Subject.WorkSpaceSpoolPath, context.Subject.WorkSpaceSpoolDataSetFilesPath);
-            var supportFilesPath = Path.Combine(context.Subject.WorkSpaceRootPath, context.Subject.WorkSpaceSpoolPath, context.Subject.WorkSpaceSpoolSupportFilesPath);
+            var datasetFilesPath = BuildWorkspacePath(context.Subject, context.Subject.WorkSpaceSpoolDataSetFilesPath);
+            var supportFilesPath = BuildWorkspacePath(context.Subject, context.Subject.WorkSpaceSpoolSupportFilesPath);
 
             // Validate the paths and filter out those that do not exist
             var validContentPaths = new[] {
@@ -52,6 +52,17 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
             }
 
             return NodeResultStatus.Succeeded;
+        }
+
+        /// <summary>
+        /// Builds a full workspace path by combining the root path, spool path, and the specified sub-path.
+        /// </summary>
+        /// <param name="context">The pipeline context containing workspace path information.</param>
+        /// <param name="subPath">The sub-path to combine with the workspace root and spool paths.</param>
+        /// <returns>A fully qualified workspace path.</returns>
+        private static string BuildWorkspacePath(S100ExchangeSetPipelineContext context, string subPath)
+        {
+            return Path.Combine(context.WorkSpaceRootPath, context.WorkSpaceSpoolPath, subPath);
         }
 
         private async Task<bool> AddContentForPathAsync(IToolClient toolClient, string path, string jobId, string authKey, ILogger logger)
