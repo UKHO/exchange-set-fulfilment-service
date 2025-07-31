@@ -33,18 +33,18 @@ namespace UKHO.ADDS.EFS.LocalHost
             var builder = DistributedApplication.CreateBuilder(args);
             builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());
 
-            // app insights
-            var appInsights = builder.AddAzureApplicationInsights(ServiceConfiguration.AppInsightsName);
+            //// app insights
+            //var appInsights = builder.AddAzureApplicationInsights(ServiceConfiguration.AppInsightsName);
 
-            // Event Hubs
-            var eventHubs = builder.AddAzureEventHubs(ServiceConfiguration.EventHubNamespaceName);
-            eventHubs.ConfigureInfrastructure(config =>
-            {
-                var eventHubNamespace = config.GetProvisionableResources().OfType<EventHubsNamespace>().Single();
-                eventHubNamespace.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
-                //eventHubNamespace.Tags.Add("aspire-resource-name", ServiceConfiguration.EventHubNamespaceName);
-            });
-            eventHubs.AddHub(ServiceConfiguration.EventHubName);
+            //// Event Hubs
+            //var eventHubs = builder.AddAzureEventHubs(ServiceConfiguration.EventHubNamespaceName);
+            //eventHubs.ConfigureInfrastructure(config =>
+            //{
+            //    var eventHubNamespace = config.GetProvisionableResources().OfType<EventHubsNamespace>().Single();
+            //    eventHubNamespace.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
+            //    //eventHubNamespace.Tags.Add("aspire-resource-name", ServiceConfiguration.EventHubNamespaceName);
+            //});
+            //eventHubs.AddHub(ServiceConfiguration.EventHubName);
 
             // Get parameters
             var subnetResourceId = builder.AddParameter("subnetResourceId");
@@ -107,10 +107,10 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             // Orchestrator
             var orchestratorService = builder.AddProject<UKHO_ADDS_EFS_Orchestrator>(ProcessNames.OrchestratorService)
-                .WaitFor(appInsights)
-                .WithReference(appInsights)
-                .WaitFor(eventHubs)
-                .WithReference(eventHubs)
+                //.WaitFor(appInsights)
+                //.WithReference(appInsights)
+                //.WaitFor(eventHubs)
+                //.WithReference(eventHubs)
                 .WithReference(storageQueue)
                 .WaitFor(storageQueue)
                 .WithReference(storageTable)
