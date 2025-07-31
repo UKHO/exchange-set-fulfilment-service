@@ -21,3 +21,4 @@ If we need to regenerate from scratch again then you can run the `azd regenerate
    - `efs-orchestrator`
    - `efs-orchestrator-identity`
    - `efs-redis`
+   - `efs-aac`

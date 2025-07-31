@@ -5,7 +5,7 @@ param adds_con_kv_outputs_name string
 
 param principalId string
 
-resource adds_con_kv 'Microsoft.KeyVault/vaults@2023-07-01' existing = {
+resource adds_con_kv 'Microsoft.KeyVault/vaults@2024-11-01' existing = {
   name: adds_con_kv_outputs_name
 }
 

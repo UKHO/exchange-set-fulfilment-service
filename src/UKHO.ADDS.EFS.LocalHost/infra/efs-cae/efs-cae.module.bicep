@@ -7,7 +7,7 @@ param subnetResourceId string
 
 param zoneRedundant bool
 
-resource efs_cae_mi 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+resource efs_cae_mi 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' = {
   name: take('efs_cae_mi-${uniqueString(resourceGroup().id)}', 128)
   location: location
   tags: {
