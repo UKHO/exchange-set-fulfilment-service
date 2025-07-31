@@ -24,7 +24,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
 
         public AppInsightsSerilogSink(string? connectionString = null, ITextFormatter? formatter = null)
         {
-            connectionString ??= "InstrumentationKey=c1f7b0b1-3fcb-4ce6-9e02-ffeeb6834261;IngestionEndpoint=https://eastus2-3.in.applicationinsights.azure.com/;LiveEndpoint=https://eastus2.livediagnostics.monitor.azure.com/;ApplicationId=8e904598-6eab-4c08-90e5-77f0e35492e2";
+            connectionString ??= Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING");
             if (string.IsNullOrWhiteSpace(connectionString))
                 throw new InvalidOperationException("Missing Application Insights connection string.");
 
