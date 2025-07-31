@@ -158,7 +158,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
                 var authTokenProvider = provider.GetRequiredService<IAuthFssTokenProvider>();
 
                 // Get the auth token for the fss endpoint
-                //var authToken = authTokenProvider.GetManagedIdentityAuthAsync(fssClientId).GetAwaiter().GetResult();
+                //var authToken = authTokenProvider.GetManagedIdentityAuthAsync(fssResourceId).GetAwaiter().GetResult();
 
                 return factory.CreateClient(fileShareEndpoint.RemoveControlCharacters(), string.Empty);
             });
