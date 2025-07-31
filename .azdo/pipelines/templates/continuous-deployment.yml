@@ -172,6 +172,9 @@ jobs:
                   echo "--------------------------------------------------------------------------------"
                 fi
 
+                sed -i "s/{{cae_domain}}/${AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN}/g" "$(Build.SourcesDirectory)/efs/config/external-service-disco.json"
+                cat "$(Build.SourcesDirectory)/efs/config/external-service-disco.json"
+
                 dotnet run --project $(Build.SourcesDirectory)/efs/config/UKHO.ADDS.Configuration.Seeder/UKHO.ADDS.Configuration.Seeder.csproj --configuration Release --no-restore -- "$(AZURE_ENV_NAME)" "$(Build.SourcesDirectory)/efs/config/configuration.json" "$(Build.SourcesDirectory)/efs/config/external-service-disco.json" "$ADDS_CON_WAS_TABLEENDPOINT"
             env:
               AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
