@@ -84,11 +84,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
         }
 
         [Test]
-        public async Task WhenShouldExecuteAsyncCalledWithFailedBuilderExitCodeAndBatchId_ThenReturnsTrue()
+        public async Task WhenExecuteAsyncCalledWithFailedBuilderExitCodeAndBatchId_ThenReturnsTrue()
         {
-            var shouldExecute = await _createErrorFileNode.ShouldExecuteAsync(_executionContext);
+            var result = await _createErrorFileNode.ShouldExecuteAsync(_executionContext);
 
-            Assert.That(shouldExecute, Is.True);
+            Assert.That(result, Is.True);
         }
 
         [Test]
@@ -97,9 +97,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
             var successEnvironment = new CompletionNodeEnvironment(_configuration, _cancellationToken, A.Fake<ILogger>(), BuilderExitCode.Success);
             var node = new CreateErrorFileNode(successEnvironment, _fileShareClient, _logger);
 
-            var shouldExecute = await node.ShouldExecuteAsync(_executionContext);
+            var result = await node.ShouldExecuteAsync(_executionContext);
 
-            Assert.That(shouldExecute, Is.False);
+            Assert.That(result, Is.False);
         }
 
         [Test]
@@ -108,9 +108,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
             var notRunEnvironment = new CompletionNodeEnvironment(_configuration, _cancellationToken, A.Fake<ILogger>(), BuilderExitCode.NotRun);
             var node = new CreateErrorFileNode(notRunEnvironment, _fileShareClient, _logger);
 
-            var shouldExecute = await node.ShouldExecuteAsync(_executionContext);
+            var result = await node.ShouldExecuteAsync(_executionContext);
 
-            Assert.That(shouldExecute, Is.False);
+            Assert.That(result, Is.False);
         }
 
         [Test]
@@ -118,9 +118,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
         {
             _pipelineContext.Job.BatchId = null;
 
-            var shouldExecute = await _createErrorFileNode.ShouldExecuteAsync(_executionContext);
+            var result = await _createErrorFileNode.ShouldExecuteAsync(_executionContext);
 
-            Assert.That(shouldExecute, Is.False);
+            Assert.That(result, Is.False);
         }
 
         [Test]
@@ -128,9 +128,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
         {
             _pipelineContext.Job.BatchId = string.Empty;
 
-            var shouldExecute = await _createErrorFileNode.ShouldExecuteAsync(_executionContext);
+            var result = await _createErrorFileNode.ShouldExecuteAsync(_executionContext);
 
-            Assert.That(shouldExecute, Is.False);
+            Assert.That(result, Is.False);
         }
 
         [Test]
@@ -138,9 +138,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
         {
             _pipelineContext.Job.BatchId = "   ";
 
-            var shouldExecute = await _createErrorFileNode.ShouldExecuteAsync(_executionContext);
+            var result = await _createErrorFileNode.ShouldExecuteAsync(_executionContext);
 
-            Assert.That(shouldExecute, Is.False);
+            Assert.That(result, Is.False);
         }
 
         [Test]
