@@ -138,6 +138,7 @@ jobs:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
+                echo "Deploying resources..."
                 DEPLOYMENT_NAME=$AZURE_ENV_NAME-retain-$EPOCHSECONDS
                 cd "$(Build.SourcesDirectory)/efs/infra-retain"
 
@@ -147,39 +148,41 @@ jobs:
                   az deployment sub create --name $DEPLOYMENT_NAME --location $AZURE_LOCATION --no-prompt --parameters environmentName=$AZURE_ENV_NAME location=$AZURE_LOCATION --template-file main.bicep
                 fi
 
+                echo "Retrieving outputs..."
                 EFS_SERVICE_IDENTITY_CLIENTID=$(az deployment sub show --name $DEPLOYMENT_NAME --query properties.outputs.efS_SERVICE_IDENTITY_CLIENTID.value --output tsv)
-                echo $EFS_SERVICE_IDENTITY_CLIENTID
                 EFS_SERVICE_IDENTITY_ID=$(az deployment sub show --name $DEPLOYMENT_NAME --query properties.outputs.efS_SERVICE_IDENTITY_ID.value --output tsv)
-                echo $EFS_SERVICE_IDENTITY_ID
 
+                echo "Storing azd variables..."
                 cd "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost"
-                azd env get-values
                 azd env set EFS_SERVICE_IDENTITY_CLIENTID $EFS_SERVICE_IDENTITY_CLIENTID
                 azd env set EFS_SERVICE_IDENTITY_ID $EFS_SERVICE_IDENTITY_ID
-                azd env get-values
+
+                if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
+                  azd env get-values
+                fi
             env:
               AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
               AZURE_ENV_NAME: $(AZURE_ENV_NAME)
               AZURE_LOCATION: $(AZURE_LOCATION)
 
-          # - task: AzureCLI@2
-          #   displayName: Provision infrastructure
-          #   inputs:
-          #     azureSubscription: ${{ variables.AzureSubscription }}
-          #     workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
-          #     scriptType: bash
-          #     scriptLocation: inlineScript
-          #     ${{ if eq(parameters.AdditionalDebugging, true) }}:
-          #       inlineScript: |
-          #         azd provision --no-prompt --debug
-          #     ${{ else }}:
-          #       inlineScript: |
-          #         azd provision --no-prompt
-          #   env:
-          #     AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-          #     AZURE_ENV_NAME: $(AZURE_ENV_NAME)
-          #     AZURE_LOCATION: $(AZURE_LOCATION)
-          #     AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
+          - task: AzureCLI@2
+            displayName: Provision infrastructure
+            inputs:
+              azureSubscription: ${{ variables.AzureSubscription }}
+              workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
+              scriptType: bash
+              scriptLocation: inlineScript
+              ${{ if eq(parameters.AdditionalDebugging, true) }}:
+                inlineScript: |
+                  azd provision --no-prompt --debug
+              ${{ else }}:
+                inlineScript: |
+                  azd provision --no-prompt
+            env:
+              AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+              AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+              AZURE_LOCATION: $(AZURE_LOCATION)
+              AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
 
           # - task: AzureCLI@2
           #   displayName: Run configuration seeder
