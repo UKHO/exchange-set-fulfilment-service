@@ -91,6 +91,132 @@
             "S57ExchangeSetNameTemplate": "V01X01_S57_[jobid].zip" // Template for naming an exchange set: options are "jobid", "date"
         }
     },
+    "vni": {
+        "UKHO.ADDS.EFS.Orchestrator": {
+            "Logging": {
+                "LogLevel": {
+                    "Default": "Information",
+                    "Microsoft.AspNetCore": "Warning",
+                    "Aspire.Hosting.Dcp": "Warning"
+                }
+            },
+            "AllowedHosts": "*",
+            "EnableDeduplication": false, // Enable deduplication of requests
+            "DeduplicationExpiry": "23:00:00", // The timeframe for deduplication from first generation to expiry
+            "Builders": {
+                "LogReplayLevel": "Information" // Log level for replaying builder logs
+            },
+            "Queues": {
+                "S100ResponseQueue": {
+                    "BatchSize": 1,
+                    "PollingIntervalSeconds": 1
+                },
+                "S63ResponseQueue": {
+                    "BatchSize": 1,
+                    "PollingIntervalSeconds": 1
+                },
+                "S57ResponseQueue": {
+                    "BatchSize": 1,
+                    "PollingIntervalSeconds": 1
+                }
+            }
+        },
+        "UKHO.ADDS.EFS.Builder.S100": {
+            "IICWorkspaceKey": "D89D11D265B19CA5C2BE97A7FCB1EF21",
+            "S100ExchangeSetNameTemplate": "V01X01_[jobid].zip", // Template for naming an exchange set: options are "jobid", "date"
+            "S100ConcurrentDownloadLimitCount": 4
+        },
+        "UKHO.ADDS.EFS.Builder.S63": {
+            "S63ExchangeSetNameTemplate": "V01X01_S63_[jobid].zip" // Template for naming an exchange set: options are "jobid", "date"
+        },
+        "UKHO.ADDS.EFS.Builder.S57": {
+            "S57ExchangeSetNameTemplate": "V01X01_S57_[jobid].zip" // Template for naming an exchange set: options are "jobid", "date"
+        }
+    },
+    "vne": {
+        "UKHO.ADDS.EFS.Orchestrator": {
+            "Logging": {
+                "LogLevel": {
+                    "Default": "Information",
+                    "Microsoft.AspNetCore": "Warning",
+                    "Aspire.Hosting.Dcp": "Warning"
+                }
+            },
+            "AllowedHosts": "*",
+            "EnableDeduplication": false, // Enable deduplication of requests
+            "DeduplicationExpiry": "23:00:00", // The timeframe for deduplication from first generation to expiry
+            "Builders": {
+                "LogReplayLevel": "Information" // Log level for replaying builder logs
+            },
+            "Queues": {
+                "S100ResponseQueue": {
+                    "BatchSize": 1,
+                    "PollingIntervalSeconds": 1
+                },
+                "S63ResponseQueue": {
+                    "BatchSize": 1,
+                    "PollingIntervalSeconds": 1
+                },
+                "S57ResponseQueue": {
+                    "BatchSize": 1,
+                    "PollingIntervalSeconds": 1
+                }
+            }
+        },
+        "UKHO.ADDS.EFS.Builder.S100": {
+            "IICWorkspaceKey": "D89D11D265B19CA5C2BE97A7FCB1EF21",
+            "S100ExchangeSetNameTemplate": "V01X01_[jobid].zip", // Template for naming an exchange set: options are "jobid", "date"
+            "S100ConcurrentDownloadLimitCount": 4
+        },
+        "UKHO.ADDS.EFS.Builder.S63": {
+            "S63ExchangeSetNameTemplate": "V01X01_S63_[jobid].zip" // Template for naming an exchange set: options are "jobid", "date"
+        },
+        "UKHO.ADDS.EFS.Builder.S57": {
+            "S57ExchangeSetNameTemplate": "V01X01_S57_[jobid].zip" // Template for naming an exchange set: options are "jobid", "date"
+        }
+    },
+    "iat": {
+        "UKHO.ADDS.EFS.Orchestrator": {
+            "Logging": {
+                "LogLevel": {
+                    "Default": "Information",
+                    "Microsoft.AspNetCore": "Warning",
+                    "Aspire.Hosting.Dcp": "Warning"
+                }
+            },
+            "AllowedHosts": "*",
+            "EnableDeduplication": false, // Enable deduplication of requests
+            "DeduplicationExpiry": "23:00:00", // The timeframe for deduplication from first generation to expiry
+            "Builders": {
+                "LogReplayLevel": "Information" // Log level for replaying builder logs
+            },
+            "Queues": {
+                "S100ResponseQueue": {
+                    "BatchSize": 1,
+                    "PollingIntervalSeconds": 1
+                },
+                "S63ResponseQueue": {
+                    "BatchSize": 1,
+                    "PollingIntervalSeconds": 1
+                },
+                "S57ResponseQueue": {
+                    "BatchSize": 1,
+                    "PollingIntervalSeconds": 1
+                }
+            }
+        },
+        "UKHO.ADDS.EFS.Builder.S100": {
+            "IICWorkspaceKey": "D89D11D265B19CA5C2BE97A7FCB1EF21",
+            "S100ExchangeSetNameTemplate": "V01X01_[jobid].zip", // Template for naming an exchange set: options are "jobid", "date"
+            "S100ConcurrentDownloadLimitCount": 4
+        },
+        "UKHO.ADDS.EFS.Builder.S63": {
+            "S63ExchangeSetNameTemplate": "V01X01_S63_[jobid].zip" // Template for naming an exchange set: options are "jobid", "date"
+        },
+        "UKHO.ADDS.EFS.Builder.S57": {
+            "S57ExchangeSetNameTemplate": "V01X01_S57_[jobid].zip" // Template for naming an exchange set: options are "jobid", "date"
+        }
+    },
     "_schema": {
         "UKHO.ADDS.EFS.Builder.S100": {
             "IICWorkspaceKey": {
