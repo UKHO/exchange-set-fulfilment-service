@@ -96,14 +96,14 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 var factory = provider.GetRequiredService<ISalesCatalogueClientFactory>();
                 var scsEndpoint = configuration["Endpoints:S100SalesCatalogue"]!;
 
-                var scsClientId = configuration["EfsManagedIdentity:ScsClientId"]!;
+                var scsResourceId = configuration["EfsManagedIdentity:ScsResourceId"]!;
                 var authTokenProvider = provider.GetRequiredService<IAuthScsTokenProvider>();
                 var scsAuthToken = string.Empty;
 
                 if (builder.Environment.IsDevelopment())
                 {
                     // Get the auth token for the SCS endpoint
-                    scsAuthToken = authTokenProvider.GetManagedIdentityAuthAsync(scsClientId).GetAwaiter().GetResult();
+                    scsAuthToken = authTokenProvider.GetManagedIdentityAuthAsync(scsResourceId).GetAwaiter().GetResult();
                 }
                 return factory.CreateClient(scsEndpoint.RemoveControlCharacters(), scsAuthToken);
             });
@@ -115,14 +115,14 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 var factory = provider.GetRequiredService<IFileShareReadWriteClientFactory>();
                 var fssEndpoint = configuration["Endpoints:S100FileShare"]!;
 
-                var fssClientId = configuration["EfsManagedIdentity:FssClientId"]!;
+                var fssResourceId = configuration["EfsManagedIdentity:FssResourceId"]!;
                 var authTokenProvider = provider.GetRequiredService<IAuthFssTokenProvider>();
                 var fssAuthToken = string.Empty;
 
                 if (builder.Environment.IsDevelopment())
                 {
                     // Get the auth token for the FSS endpoint
-                    fssAuthToken = authTokenProvider.GetManagedIdentityAuthAsync(fssClientId).GetAwaiter().GetResult();
+                    fssAuthToken = authTokenProvider.GetManagedIdentityAuthAsync(fssResourceId).GetAwaiter().GetResult();
                 }
 
                 return factory.CreateClient(fssEndpoint.RemoveControlCharacters(), fssAuthToken);
