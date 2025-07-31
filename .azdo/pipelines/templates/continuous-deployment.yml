@@ -100,6 +100,36 @@ jobs:
 
         - ${{ else }}:
 
+          - task: DotNetCoreCLI@2
+            displayName: NuGet restore for non test projects only
+            inputs:
+              command: restore
+              projects: |
+                **/*.csproj
+                !**/*Tests.csproj
+              feedsToUse: config
+              noCache: true
+              nugetConfigPath: '$(Build.SourcesDirectory)/efs/BuildNuget.config'
+
+          - task: AzureCLI@2
+            displayName: Package application
+            inputs:
+              azureSubscription: ${{ variables.AzureSubscription }}
+              workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
+              scriptType: bash
+              scriptLocation: inlineScript
+              ${{ if eq(parameters.AdditionalDebugging, true) }}:
+                inlineScript: |
+                  azd package --no-prompt --debug
+              ${{ else }}:
+                inlineScript: |
+                  azd package --no-prompt
+            env:
+              AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+              AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+              AZURE_LOCATION: $(AZURE_LOCATION)
+              AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
+
           - task: AzureCLI@2
             displayName: Deploy permanent infrastructure
             inputs:
@@ -124,40 +154,13 @@ jobs:
 
                 cd "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost"
                 azd env get-values
+                azd env set -value EFS_SERVICE_IDENTITY_CLIENTID $EFS_SERVICE_IDENTITY_CLIENTID
+                azd env set -value EFS_SERVICE_IDENTITY_ID $EFS_SERVICE_IDENTITY_ID
+                azd env get-values
             env:
               AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
               AZURE_ENV_NAME: $(AZURE_ENV_NAME)
               AZURE_LOCATION: $(AZURE_LOCATION)
-
-          # - task: DotNetCoreCLI@2
-          #   displayName: NuGet restore for non test projects only
-          #   inputs:
-          #     command: restore
-          #     projects: |
-          #       **/*.csproj
-          #       !**/*Tests.csproj
-          #     feedsToUse: config
-          #     noCache: true
-          #     nugetConfigPath: '$(Build.SourcesDirectory)/efs/BuildNuget.config'
-
-          # - task: AzureCLI@2
-          #   displayName: Package application
-          #   inputs:
-          #     azureSubscription: ${{ variables.AzureSubscription }}
-          #     workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
-          #     scriptType: bash
-          #     scriptLocation: inlineScript
-          #     ${{ if eq(parameters.AdditionalDebugging, true) }}:
-          #       inlineScript: |
-          #         azd package --no-prompt --debug
-          #     ${{ else }}:
-          #       inlineScript: |
-          #         azd package --no-prompt
-          #   env:
-          #     AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-          #     AZURE_ENV_NAME: $(AZURE_ENV_NAME)
-          #     AZURE_LOCATION: $(AZURE_LOCATION)
-          #     AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
 
           # - task: AzureCLI@2
           #   displayName: Provision infrastructure
