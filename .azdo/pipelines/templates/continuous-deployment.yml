@@ -172,7 +172,7 @@ jobs:
                   echo "--------------------------------------------------------------------------------"
                 fi
 
-                dotnet run --project $(Build.SourcesDirectory)/efs/config/repo/src/UKHO.ADDS.Configuration.Seeder/UKHO.ADDS.Configuration.Seeder.csproj --configuration Release --no-restore -- "$(AZURE_ENV_NAME)" "$(Build.SourcesDirectory)/efs/config/configuration.json" "$(Build.SourcesDirectory)/efs/config/external-service-disco.json" "$ADDS_CON_WAS_TABLEENDPOINT"
+                dotnet run --project $(Build.SourcesDirectory)/efs/config/UKHO.ADDS.Configuration.Seeder/UKHO.ADDS.Configuration.Seeder.csproj --configuration Release --no-restore -- "$(AZURE_ENV_NAME)" "$(Build.SourcesDirectory)/efs/config/configuration.json" "$(Build.SourcesDirectory)/efs/config/external-service-disco.json" "$ADDS_CON_WAS_TABLEENDPOINT"
             env:
               AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
               AZURE_ENV_NAME: $(AZURE_ENV_NAME)
