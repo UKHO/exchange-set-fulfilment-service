@@ -12,6 +12,13 @@ param location string
 @description('Id of the user or app to assign application roles')
 param principalId string = ''
 
+@metadata({azd: {
+  type: 'generate'
+  config: {length:22,noSpecial:true}
+  }
+})
+@secure()
+param efs_redis_password string
 param subnetResourceId string
 param zoneRedundant bool
 

@@ -2,6 +2,8 @@
 {
     public static class ProcessNames
     {
+        public const string ConfigurationService = "efs-aac";
+
         public const string OrchestratorService = "efs-orchestrator";
 
         public const string S100Builder = "efs-builder-s100";
@@ -15,5 +17,13 @@
         public const string RedisCache = "efs-redis";
 
         public const string RequestMonitorService = "efs-local-request-monitor";
+
+        public const string S100FileShareService = "s100FileShare"; // NB: Must agree with the key in external-service-disco.json
+
+        public const string S100SalesCatalogueService = "s100SalesCatalogue"; // NB: Must agree with the key in external-service-disco.json
+
+        public const string S57FileShareService = "s57FileShare"; // NB: Must agree with the key in external-service-disco.json
+
+        public const string S63FileShareService = "s63FileShare"; // NB: Must agree with the key in external-service-disco.json
     }
 }

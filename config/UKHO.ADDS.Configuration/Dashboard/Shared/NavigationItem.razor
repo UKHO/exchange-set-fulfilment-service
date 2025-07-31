@@ -1,0 +1,40 @@
+@using UKHO.ADDS.Configuration.Dashboard.Models
+@inject NavigationManager navigationManager;
+@if (!Page.New && !Page.Updated && !Page.Pro)
+{
+    <RadzenPanelMenuItem @bind-Expanded=@Expanded Text="@Page.Name" Path="@GetUrl()" Icon="@Page.Icon" aria-label="@Page.Name">
+        @ChildContent
+    </RadzenPanelMenuItem>
+}
+else
+{
+    <RadzenPanelMenuItem @bind-Expanded=@Expanded Text="@Page.Name" Path="@GetUrl()" Icon="@Page.Icon" aria-label="@Page.Name">
+        <Template>
+            @Page.Name
+            <RadzenBadge Text="Updated" Visible=@Page.Updated BadgeStyle="BadgeStyle.Info"/>
+            <RadzenBadge Text="New" Visible=@Page.New BadgeStyle="BadgeStyle.Success"/>
+            <RadzenBadge Text="Pro" Visible=@Page.Pro BadgeStyle="BadgeStyle.Danger"/>
+        </Template>
+        <ChildContent>@ChildContent</ChildContent>
+    </RadzenPanelMenuItem>
+}
+
+@code {
+    [Parameter] public DashboardPage Page { get; set; }
+
+    [Parameter] public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public bool Expanded
+    {
+        get => Page.Expanded;
+        set => Page.Expanded = value;
+    }
+
+    string GetUrl()
+    {
+        return Page.Path == null ? Page.Path : $"{Page.Path}{new Uri(navigationManager.Uri).Query}";
+    }
+
+    [Parameter] public EventCallback<bool> ExpandedChanged { get; set; }
+}
