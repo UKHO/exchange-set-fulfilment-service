@@ -9,14 +9,9 @@ param environmentName string
 @description('The location used for all deployed resources')
 param location string
 
-var tags = {
-  'azd-env-name': environmentName
-}
-
 resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
   name: 'efs-${environmentName}-retain-rg'
   location: location
-  tags: tags
 }
 
 module efs_service_identity 'efs-service-identity/efs-service-identity.module.bicep' = {
