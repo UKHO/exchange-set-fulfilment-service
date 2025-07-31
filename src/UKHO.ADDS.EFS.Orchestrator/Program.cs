@@ -38,6 +38,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     .WriteTo.OpenTelemetry(o => { o.Endpoint = oltpEndpoint; })
                     .WriteTo.Console()
                     .WriteTo.Sink(new EventHubSerilogSink())
+                    .WriteTo.Sink(new AppInsightsSerilogSink())
                     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
                     .MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Error)
                     .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Error)
