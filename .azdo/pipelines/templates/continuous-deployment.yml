@@ -119,7 +119,7 @@ jobs:
                 fi
 
                 echo "Deployment outputs"
-                echo $DEPLOY_OUTPUTS"
+                echo $DEPLOY_OUTPUTS
             env:
               AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
               AZURE_ENV_NAME: $(AZURE_ENV_NAME)
