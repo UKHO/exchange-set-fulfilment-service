@@ -100,6 +100,31 @@ jobs:
 
         - ${{ else }}:
 
+          - task: AzureCLI@2
+            displayName: Deploy permanent infrastructure
+            inputs:
+              azureSubscription: ${{ variables.AzureSubscription }}
+              workingDirectory: $(Build.SourcesDirectory)/efs
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                DEPLOYMENT_NAME=$AZURE_ENV_NAME-retain-$EPOCHSECONDS
+                DEPLOY_OUTPUTS=""
+                cd "$(Build.SourcesDirectory)/efs/infra-retain"
+
+                if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
+                  DEPLOY_OUTPUTS=`az deployment sub create --name $DEPLOYMENT_NAME --location $AZURE_LOCATION --no-prompt --parameters environmentName=$AZURE_ENV_NAME location=$AZURE_LOCATION --template-file main.bicep --debug`
+                else
+                  DEPLOY_OUTPUTS=`az deployment sub create --name $DEPLOYMENT_NAME --location $AZURE_LOCATION --no-prompt --parameters environmentName=$AZURE_ENV_NAME location=$AZURE_LOCATION --template-file main.bicep`
+                fi
+
+                echo "Deployment outputs"
+                echo $DEPLOY_OUTPUTS
+            env:
+              AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+              AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+              AZURE_LOCATION: $(AZURE_LOCATION)
+
           - task: DotNetCoreCLI@2
             displayName: NuGet restore for non test projects only
             inputs:
