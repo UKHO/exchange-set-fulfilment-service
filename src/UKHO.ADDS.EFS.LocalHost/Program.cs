@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using Aspire.Hosting.Azure;
 using Azure.Core;
 using Azure.Provisioning;
 using Azure.Provisioning.AppContainers;
@@ -35,6 +36,12 @@ namespace UKHO.ADDS.EFS.LocalHost
             // Get parameters
             var subnetResourceId = builder.AddParameter("subnetResourceId");
             var zoneRedundant = builder.AddParameter("zoneRedundant");
+            var efsServiceIdentityName = builder.AddParameter("efsServiceIdentityName");
+            var efsServiceIdentityResourceGroup = builder.AddParameter("efsServiceIdentityResourceGroup");
+
+            // Existing user managed identity
+            var efsServiceIdentity = builder.AddAzureUserAssignedIdentity(ServiceConfiguration.EfsServiceIdentity)
+                .PublishAsExisting(efsServiceIdentityName, efsServiceIdentityResourceGroup);
 
             // Container apps environment
             var acaEnv = builder.AddAzureContainerAppEnvironment(ServiceConfiguration.AcaEnvironmentName)
