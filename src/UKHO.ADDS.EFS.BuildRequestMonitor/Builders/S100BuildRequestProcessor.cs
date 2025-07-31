@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.Configuration.Schema;
+﻿using UKHO.ADDS.Configuration.Client;
+using UKHO.ADDS.Configuration.Schema;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Services;
 using UKHO.ADDS.EFS.Builds.S100;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
@@ -11,11 +12,13 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
 
         private readonly BuilderContainerService _containerService;
         private readonly IConfiguration _configuration;
+        private readonly IExternalServiceRegistry _externalServiceRegistry;
 
-        public S100BuildRequestProcessor(BuilderContainerService bcs, IConfiguration configuration)
+        public S100BuildRequestProcessor(BuilderContainerService bcs, IConfiguration configuration, IExternalServiceRegistry externalServiceRegistry)
         {
             _containerService = bcs;
             _configuration = configuration;
+            _externalServiceRegistry = externalServiceRegistry;
         }
 
         /// <summary>
@@ -33,7 +36,10 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
             
             var queuePort = ExtractPort(queueConnectionString, "QueueEndpoint");
             var blobPort = ExtractPort(blobConnectionString, "BlobEndpoint");
-            
+
+            var s100FileShareUri = await _externalServiceRegistry.GetExternalServiceEndpointAsync(ProcessNames.S100FileShareService, useDockerHost: true);
+            var s100FileShareHealthUri = new Uri(s100FileShareUri!, "health");
+
             // Set the environment variables for the container - in production, these are set from the Azure environment (via the pipeline)
             var containerId = await _containerService.CreateContainerAsync(ProcessNames.S100Builder, containerName, _command, request, env =>
             {
@@ -42,8 +48,8 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
                 env.ResponseQueueName = StorageConfiguration.S100BuildResponseQueueName;
                 env.QueueConnectionString = $"http://host.docker.internal:{queuePort}/devstoreaccount1"; 
                 env.BlobConnectionString = $"http://host.docker.internal:{blobPort}/devstoreaccount1";
-                env.FileShareEndpoint = _configuration["Endpoints:S100BuilderFileShare"]!;
-                env.FileShareHealthEndpoint = _configuration["Endpoints:S100BuilderFileShareHealth"]!;
+                env.FileShareEndpoint = s100FileShareUri!.ToString();
+                env.FileShareHealthEndpoint = s100FileShareHealthUri!.ToString();
                 env.BlobContainerName = StorageConfiguration.S100BuildContainer;
                 env.MaxRetryAttempts = int.Parse(_configuration["S100MaxRetries"]!); 
                 env.RetryDelayMilliseconds = int.Parse(_configuration["S100RetryDelayMilliseconds"]!);

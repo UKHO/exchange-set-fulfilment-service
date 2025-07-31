@@ -4,6 +4,7 @@ using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.SalesCatalogueService;
+using UKHO.ADDS.Configuration.Client;
 using UKHO.ADDS.EFS.Auth;
 using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Builds.S100;
@@ -51,6 +52,8 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddSingleton<IAuthFssTokenProvider, AuthFssTokenProvider>();
             builder.Services.AddSingleton<IAuthScsTokenProvider, AuthScsTokenProvider>();
 
+            builder.Services.AddExternalServiceDiscovery();
+
             builder.AddAzureQueueClient(StorageConfiguration.QueuesName);
             builder.AddAzureTableClient(StorageConfiguration.TablesName);
             builder.AddAzureBlobClient(StorageConfiguration.BlobsName);
@@ -94,8 +97,9 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddSingleton(provider =>
             {
                 var factory = provider.GetRequiredService<ISalesCatalogueClientFactory>();
-                var scsEndpoint = configuration["Endpoints:S100SalesCatalogue"]!;
+                var registry = provider.GetRequiredService<IExternalServiceRegistry>();
 
+                var scsEndpoint = registry.GetExternalServiceEndpointAsync(ProcessNames.S100SalesCatalogueService).GetAwaiter().GetResult();
                 var scsResourceId = configuration["EfsManagedIdentity:ScsResourceId"]!;
                 var authTokenProvider = provider.GetRequiredService<IAuthScsTokenProvider>();
                 var scsAuthToken = string.Empty;
@@ -105,7 +109,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     // Get the auth token for the SCS endpoint
                     scsAuthToken = authTokenProvider.GetManagedIdentityAuthAsync(scsResourceId).GetAwaiter().GetResult();
                 }
-                return factory.CreateClient(scsEndpoint.RemoveControlCharacters(), scsAuthToken);
+                return factory.CreateClient(scsEndpoint!.ToString(), scsAuthToken);
             });
 
             builder.Services.AddSingleton<IFileShareReadWriteClientFactory>(provider => new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
@@ -113,8 +117,9 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddSingleton(provider =>
             {
                 var factory = provider.GetRequiredService<IFileShareReadWriteClientFactory>();
-                var fssEndpoint = configuration["Endpoints:S100FileShare"]!;
+                var registry = provider.GetRequiredService<IExternalServiceRegistry>();
 
+                var fssEndpoint = registry.GetExternalServiceEndpointAsync(ProcessNames.S100FileShareService).GetAwaiter().GetResult();
                 var fssResourceId = configuration["EfsManagedIdentity:FssResourceId"]!;
                 var authTokenProvider = provider.GetRequiredService<IAuthFssTokenProvider>();
                 var fssAuthToken = string.Empty;
@@ -125,7 +130,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     fssAuthToken = authTokenProvider.GetManagedIdentityAuthAsync(fssResourceId).GetAwaiter().GetResult();
                 }
 
-                return factory.CreateClient(fssEndpoint.RemoveControlCharacters(), fssAuthToken);
+                return factory.CreateClient(fssEndpoint!.ToString(), fssAuthToken);
             });
 
             builder.Services.AddSingleton<IOrchestratorSalesCatalogueClient, OrchestratorSalesCatalogueClient>();
