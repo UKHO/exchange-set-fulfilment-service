@@ -148,7 +148,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
         {
             try
             {
-                EventDataBatch? currentBatch = await _producerClient.CreateBatchAsync(_cts.Token);
+                EventDataBatch currentBatch = await _producerClient.CreateBatchAsync(_cts.Token);
 
                 foreach (var evt in buffer)
                 {
