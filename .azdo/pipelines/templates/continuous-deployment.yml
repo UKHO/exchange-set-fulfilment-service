@@ -108,14 +108,17 @@ jobs:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
-                DEPLOYMENT_NUMBER=$EPOCHSECONDS
+                DEPLOYMENT_NAME=$AZURE_ENV_NAME-retain-$EPOCHSECONDS
                 cd "$(Build.SourcesDirectory)/efs/infra-retain"
 
                 if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
-                  az deployment sub create --name $AZURE_ENV_NAME-retain-$DEPLOYMENT_NUMBER --location $AZURE_LOCATION --no-prompt --parameters environmentName=$AZURE_ENV_NAME location=$AZURE_LOCATION --template-file main.bicep --debug
+                  DEPLOY_OUTPUTS=`az deployment sub create --name $DEPLOYMENT_NAME --location $AZURE_LOCATION --no-prompt --parameters environmentName=$AZURE_ENV_NAME location=$AZURE_LOCATION --template-file main.bicep --debug`
                 else
-                  az deployment sub create --name $AZURE_ENV_NAME-retain-$DEPLOYMENT_NUMBER --location $AZURE_LOCATION --no-prompt --parameters environmentName=$AZURE_ENV_NAME location=$AZURE_LOCATION --template-file main.bicep
+                  DEPLOY_OUTPUTS=`az deployment sub create --name $DEPLOYMENT_NAME --location $AZURE_LOCATION --no-prompt --parameters environmentName=$AZURE_ENV_NAME location=$AZURE_LOCATION --template-file main.bicep`
                 fi
+
+                echo "Deployment outputs"
+                echo $DEPLOY_OUTPUTS"
             env:
               AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
               AZURE_ENV_NAME: $(AZURE_ENV_NAME)
@@ -193,21 +196,21 @@ jobs:
           #         echo "--------------------------------------------------------------------------------"
           #       fi
 
-                sed -i "s/{{cae_domain}}/${AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN}/g" "$(Build.SourcesDirectory)/efs/config/external-service-disco.json"
+          #       sed -i "s/{{cae_domain}}/${AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN}/g" "$(Build.SourcesDirectory)/efs/config/external-service-disco.json"
 
-                if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
-                  echo "external-service-disco.json:"
-                  echo "--------------------------------------------------------------------------------"
-                  cat "$(Build.SourcesDirectory)/efs/config/external-service-disco.json"
-                  echo "--------------------------------------------------------------------------------"
-                fi
+          #       if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
+          #         echo "external-service-disco.json:"
+          #         echo "--------------------------------------------------------------------------------"
+          #         cat "$(Build.SourcesDirectory)/efs/config/external-service-disco.json"
+          #         echo "--------------------------------------------------------------------------------"
+          #       fi
 
-                dotnet run --project $(Build.SourcesDirectory)/efs/config/UKHO.ADDS.Configuration.Seeder/UKHO.ADDS.Configuration.Seeder.csproj --configuration Release --no-restore -- "$(AZURE_ENV_NAME)" "$(Build.SourcesDirectory)/efs/config/configuration.json" "$(Build.SourcesDirectory)/efs/config/external-service-disco.json" "$ADDS_CON_WAS_TABLEENDPOINT"
-            env:
-              AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-              AZURE_ENV_NAME: $(AZURE_ENV_NAME)
-              AZURE_LOCATION: $(AZURE_LOCATION)
-              AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
+          #       dotnet run --project $(Build.SourcesDirectory)/efs/config/UKHO.ADDS.Configuration.Seeder/UKHO.ADDS.Configuration.Seeder.csproj --configuration Release --no-restore -- "$(AZURE_ENV_NAME)" "$(Build.SourcesDirectory)/efs/config/configuration.json" "$(Build.SourcesDirectory)/efs/config/external-service-disco.json" "$ADDS_CON_WAS_TABLEENDPOINT"
+          #   env:
+          #     AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+          #     AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+          #     AZURE_LOCATION: $(AZURE_LOCATION)
+          #     AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
 
           # - template: container-app-deploy.yml
           #   parameters:
