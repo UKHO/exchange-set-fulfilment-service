@@ -1,11 +1,9 @@
-﻿using FakeItEasy;
+using FakeItEasy;
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
-using UKHO.ADDS.EFS.Jobs;
-using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
 using UKHO.ADDS.Infrastructure.Results;
 
@@ -281,6 +279,59 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
             Assert.That(result, Is.SameAs(fakeResult));
         }
 
+        [Test]
+        public async Task WhenAddFileToBatchAsyncIsCalled_ThenReturnsResultFromClient()
+        {
+            var expectedResult = A.Fake<IResult<AddFileToBatchResponse>>();
+            var fileStream = new MemoryStream();
+            const string fileName = "test.txt";
+            const string contentType = "text/plain";
+
+            A.CallTo(() => _fakeFileShareReadWriteClient.AddFileToBatchAsync(
+                A<BatchHandle>.That.Matches(b => b.BatchId == BatchId),
+                fileStream,
+                fileName,
+                contentType,
+                CorrelationId,
+                CancellationToken.None))
+                .Returns(Task.FromResult(expectedResult));
+
+            var result = await _fileShareService.AddFileToBatchAsync(BatchId, fileStream, fileName, contentType, CorrelationId, CancellationToken.None);
+
+            A.CallTo(() => _fakeFileShareReadWriteClient.AddFileToBatchAsync(
+                A<BatchHandle>.That.Matches(b => b.BatchId == BatchId),
+                fileStream,
+                fileName,
+                contentType,
+                CorrelationId,
+                CancellationToken.None)).MustHaveHappenedOnceExactly();
+
+            Assert.That(result, Is.SameAs(expectedResult));
+        }
+
+        [Test]
+        public async Task WhenAddFileToBatchAsyncFails_ThenLogsErrorAndReturnsFailure()
+        {
+            var fakeResult = A.Fake<IResult<AddFileToBatchResponse>>();
+            var fakeError = A.Fake<IError>();
+            AddFileToBatchResponse dummyResponse = null;
+            var fileStream = new MemoryStream();
+
+            A.CallTo(() => fakeResult.IsFailure(out fakeError, out dummyResponse)).Returns(true);
+            A.CallTo(() => _fakeFileShareReadWriteClient.AddFileToBatchAsync(
+                A<BatchHandle>._,
+                A<Stream>._,
+                A<string>._,
+                A<string>._,
+                CorrelationId,
+                CancellationToken.None))
+                .Returns(Task.FromResult(fakeResult));
+
+            var result = await _fileShareService.AddFileToBatchAsync(BatchId, fileStream, "test.txt", "text/plain", CorrelationId, CancellationToken.None);
+
+            A.CallTo(() => _logger.Log(A<LogLevel>._, A<EventId>._, A<LoggerMessageState>._, A<Exception>._,A<Func<LoggerMessageState, Exception?, string>>._)).MustHaveHappened();
+            Assert.That(result, Is.SameAs(fakeResult));
+        }
         private List<BatchDetails> CreateBatchDetailsList()
         {
             return new List<BatchDetails>

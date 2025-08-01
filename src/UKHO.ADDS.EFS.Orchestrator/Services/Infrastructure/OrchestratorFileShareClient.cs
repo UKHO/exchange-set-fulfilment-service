@@ -20,6 +20,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
         private const string SetExpiryDate = "SetExpiryDate";
         private const string CommitBatch = "CommitBatch";
         private const string CreateBatch = "CreateBatch";
+        private const string AddFileToBatch = "AddFileToBatch";
         private readonly IFileShareReadWriteClient _fileShareReadWriteClient;
         private readonly ILogger<OrchestratorFileShareClient> _logger;
 
@@ -129,6 +130,29 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
             }
 
             return lastResult;
+        }
+
+        /// <summary>
+        ///     Adds a file to the specified batch in the File Share Service.
+        /// </summary>
+        /// <param name="batchId">The batch identifier to add the file to.</param>
+        /// <param name="fileStream">The stream containing the file data.</param>
+        /// <param name="fileName">The name of the file.</param>
+        /// <param name="contentType">The content type of the file.</param>
+        /// <param name="correlationId">The correlation identifier for tracking the request.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A result containing the add file to batch response on success or error information on failure.</returns>
+        public async Task<IResult<AddFileToBatchResponse>> AddFileToBatchAsync(string batchId, Stream fileStream, string fileName, string contentType, string correlationId, CancellationToken cancellationToken)
+        {
+            var batchHandle = new BatchHandle(batchId);
+            var addFileResult = await _fileShareReadWriteClient.AddFileToBatchAsync(batchHandle, fileStream, fileName, contentType, correlationId, cancellationToken);
+
+            if (addFileResult.IsFailure(out var error, out _))
+            {
+                LogFileShareServiceError(correlationId, AddFileToBatch, error, correlationId, batchId);
+            }
+
+            return addFileResult;
         }
 
         /// <summary>

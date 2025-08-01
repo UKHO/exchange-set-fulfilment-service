@@ -1,7 +1,7 @@
 ﻿using System.Dynamic;
 using HandlebarsDotNet;
 
-namespace UKHO.ADDS.EFS.Builder.Common.Pipelines.Distribute
+namespace UKHO.ADDS.EFS.Utilities
 {
     public class FileNameGenerator
     {
