@@ -20,5 +20,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
         public Job Job => _job;
 
         public TBuild Build => _build;
+
+        public bool IsErrorFileCreated { get; set; }
     }
 }
