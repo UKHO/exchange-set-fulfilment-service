@@ -20,13 +20,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
 
         public override Task<bool> ShouldExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
         {
-            return Task.FromResult(!string.IsNullOrEmpty(context.Subject.Job.BatchId) && Environment.BuilderExitCode == BuilderExitCode.Success);
+            return Task.FromResult(!string.IsNullOrEmpty(context.Subject.Job.BatchId)
+                                   && (Environment.BuilderExitCode == BuilderExitCode.Success || context.Subject.IsErrorFileCreated));
         }
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
         {
             var job = context.Subject.Job!;
-
+            
             var commitBatchResult = await _fileShareClient.CommitBatchAsync(job.BatchId!, job.GetCorrelationId(), Environment.CancellationToken);
 
             if (!commitBatchResult.IsSuccess(out _, out _))

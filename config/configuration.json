@@ -11,6 +11,8 @@
             "AllowedHosts": "*",
             "DeduplicationEnabled": false, // Enable deduplication of requests
             "DeduplicationExpiry": "23:00:00", // The timeframe for deduplication from first generation to expiry
+            "S100ErrorFileNameTemplate": "error_[jobid].txt",
+            "S100ErrorFileMessageTemplate": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]",
             "Builders": {
                 "LogReplayLevel": "Information" // Log level for replaying builder logs
             },
@@ -59,6 +61,8 @@
             "AllowedHosts": "*",
             "EnableDeduplication": false, // Enable deduplication of requests
             "DeduplicationExpiry": "23:00:00", // The timeframe for deduplication from first generation to expiry
+            "S100ErrorFileNameTemplate": "error.txt",
+            "S100ErrorFileMessageTemplate": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]",
             "Builders": {
                 "LogReplayLevel": "Information" // Log level for replaying builder logs
             },
