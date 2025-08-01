@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.Clients.FileShareService.ReadOnly;
+﻿using System.Collections.Concurrent;
+using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
@@ -107,15 +108,20 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 workSpaceSpoolSupportFilesPath,
                 createdDirectories);
 
-            var downloadTasks = CreateDownloadTasks(
-                allFilesToProcess,
-                workSpaceRootPath,
-                workSpaceSpoolDataSetFilesPath,
-                workSpaceSpoolSupportFilesPath,
-                correlationId);
-
+            // Create a shared dictionary for file locks that will be used during download
+            // This dictionary is managed throughout the download process
+            var fileLocks = new ConcurrentDictionary<string, SemaphoreSlim>();
+            
             try
             {
+                var downloadTasks = CreateDownloadTasks(
+                    allFilesToProcess,
+                    workSpaceRootPath,
+                    workSpaceSpoolDataSetFilesPath,
+                    workSpaceSpoolSupportFilesPath,
+                    correlationId,
+                    fileLocks);
+
                 await Task.WhenAll(downloadTasks);
                 return NodeResultStatus.Succeeded;
             }
@@ -123,6 +129,15 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             {
                 _logger.LogDownloadFilesNodeFailed(ex);
                 return NodeResultStatus.Failed;
+            }
+            finally
+            {
+                // Clean up all semaphores AFTER all tasks have completed
+                foreach (var semaphore in fileLocks.Values)
+                {
+                    semaphore.Dispose();
+                }
+                fileLocks.Clear();
             }
         }
 
@@ -160,7 +175,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             string workSpaceRootPath,
             string workSpaceSpoolDataSetFilesPath,
             string workSpaceSpoolSupportFilesPath,
-            string correlationId)
+            string correlationId,
+            ConcurrentDictionary<string, SemaphoreSlim> fileLocks)
         {
             var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<Stream>(_logger, "DownloadFile");
 
@@ -176,22 +192,55 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                         workSpaceSpoolSupportFilesPath);
                     var downloadPath = Path.Combine(directoryPath, item.FileName);
 
-                    await using var outputFileStream = new FileStream(
-                        downloadPath,
-                        FileMode.Create,
-                        FileAccess.Write,
-                        FileShare.None,
-                        FileStreamBufferSize,
-                        FileOptions.Asynchronous);
+                    // Get or create a semaphore for this specific file to prevent concurrent access
+                    var fileLock = fileLocks.GetOrAdd(downloadPath, _ => new SemaphoreSlim(1, 1));
 
-                    var streamResult = await retryPolicy.ExecuteAsync(() =>
-                        _fileShareReadOnlyClient.DownloadFileAsync(
-                            item.Batch.BatchId, item.FileName, outputFileStream, correlationId, FileSizeInBytes));
-
-                    if (streamResult.IsFailure(out var error, out var value))
+                    await fileLock.WaitAsync();
+                    try
                     {
-                        LogFssDownloadFailed(item.Batch, item.FileName, error, correlationId);
-                        throw new Exception($"Failed to download {item.FileName}");
+                        // Check if file already exists and delete it to ensure clean state
+                        if (File.Exists(downloadPath))
+                        {
+                            File.Delete(downloadPath);
+                        }
+
+                        FileStream? outputFileStream = null;
+                        try
+                        {
+                            outputFileStream = new FileStream(
+                                downloadPath,
+                                FileMode.Create,
+                                FileAccess.Write,
+                                FileShare.None,
+                                FileStreamBufferSize,
+                                FileOptions.Asynchronous);
+
+                            var streamResult = await retryPolicy.ExecuteAsync(() =>
+                                _fileShareReadOnlyClient.DownloadFileAsync(
+                                    item.Batch.BatchId, item.FileName, outputFileStream, correlationId, FileSizeInBytes));
+
+                            if (streamResult.IsFailure(out var error, out var value))
+                            {
+                                LogFssDownloadFailed(item.Batch, item.FileName, error, correlationId);
+                                throw new Exception($"Failed to download {item.FileName}");
+                            }
+
+                            // Ensure all data is written to disk
+                            await outputFileStream.FlushAsync();
+                        }
+                        finally
+                        {
+                            // Dispose the file stream in finally block to ensure it's always closed
+                            if (outputFileStream != null)
+                            {
+                                await outputFileStream.DisposeAsync();
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        fileLock.Release();
+                        // DO NOT dispose the semaphore here - it will be disposed collectively at the end
                     }
                 }
                 finally
