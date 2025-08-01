@@ -1,5 +1,4 @@
-﻿using UKHO.ADDS.Configuration.Client;
-using UKHO.ADDS.EFS.Builds;
+﻿using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Extensions;
@@ -22,8 +21,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                     try
                     {
                         var correlationId = httpContext.GetCorrelationId();
-
-                        logger.LogJobExecutionNodeStarted(correlationId);
 
                         var parameters = AssemblyPipelineParameters.CreateFrom(message, configuration, correlationId);
                         var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);

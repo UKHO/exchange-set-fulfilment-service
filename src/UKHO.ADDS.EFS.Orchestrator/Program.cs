@@ -31,29 +31,15 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                 var oltpEndpoint = builder.Configuration[GlobalEnvironmentVariables.OtlpEndpoint]!;
 
-                builder.Services.AddSerilog((services, lc) => lc
-                    .ReadFrom.Configuration(builder.Configuration)
-                    .ReadFrom.Services(services)
-                    .Enrich.FromLogContext()
-                    .WriteTo.OpenTelemetry(o => { o.Endpoint = oltpEndpoint; })
-                    .WriteTo.Console()
-                    .WriteTo.Sink(new EventHubSerilogSink())
-                    .WriteTo.Sink(new AppInsightsSerilogSink())
-                    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-                    .MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Error)
-                    .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Error)
-                    .MinimumLevel.Override("Microsoft.AspNetCore.Mvc", LogEventLevel.Error)
-                    .MinimumLevel.Override("Microsoft.AspNetCore.Routing", LogEventLevel.Warning)
-                    .MinimumLevel.Override("Microsoft.AspNetCore.Hosting", LogEventLevel.Warning)
-                    .MinimumLevel.Override("Azure.Core", LogEventLevel.Fatal)
-                    .MinimumLevel.Override("Azure.Storage.Blobs", LogEventLevel.Fatal)
-                    .MinimumLevel.Override("Azure.Storage.Queues", LogEventLevel.Warning)
-                    .MinimumLevel.Override("Azure.Messaging.EventHubs", LogEventLevel.Fatal)
-                    .MinimumLevel.Override("Azure.Messaging.EventHubs.EventHubProducerClient", LogEventLevel.Fatal)
-                    .MinimumLevel.Override("Azure.Messaging.EventHubs.Producer", LogEventLevel.Fatal)
-                    .MinimumLevel.Override("Microsoft.ApplicationInsights", LogEventLevel.Fatal)
-                    .MinimumLevel.Override("Azure.Identity", LogEventLevel.Fatal));
-
+                if (builder.Environment.IsDevelopment())
+                {
+                    builder.Services.AddSerilog((services, lc) => ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint));
+                }
+                else
+                {
+                    builder.Services.AddSerilog((services, lc) => ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint)
+                        .WriteTo.Sink(new EventHubSerilogSink()));
+                }
 
                 builder.Configuration.AddConfigurationService("UKHO.ADDS.EFS.Orchestrator", "UKHO.ADDS.EFS.Builder.S100", "UKHO.ADDS.EFS.Builder.S63", "UKHO.ADDS.EFS.Builder.S57");
 
@@ -98,6 +84,35 @@ namespace UKHO.ADDS.EFS.Orchestrator
             {
                 await Log.CloseAndFlushAsync();
             }
+        }
+
+        // Helper method to configure common Serilog settings
+        static LoggerConfiguration ConfigureSerilog(
+            LoggerConfiguration loggerConfig,
+            IServiceProvider services,
+            IConfiguration configuration,
+            string oltpEndpoint)
+        {
+            return loggerConfig
+                .ReadFrom.Configuration(configuration)
+                .ReadFrom.Services(services)
+                .Enrich.FromLogContext()
+                .WriteTo.OpenTelemetry(o => { o.Endpoint = oltpEndpoint; })
+                .WriteTo.Console()
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                .MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Error)
+                .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Error)
+                .MinimumLevel.Override("Microsoft.AspNetCore.Mvc", LogEventLevel.Error)
+                .MinimumLevel.Override("Microsoft.AspNetCore.Routing", LogEventLevel.Warning)
+                .MinimumLevel.Override("Microsoft.AspNetCore.Hosting", LogEventLevel.Warning)
+                .MinimumLevel.Override("Azure.Core", LogEventLevel.Fatal)
+                .MinimumLevel.Override("Azure.Storage.Blobs", LogEventLevel.Fatal)
+                .MinimumLevel.Override("Azure.Storage.Queues", LogEventLevel.Warning)
+                .MinimumLevel.Override("Azure.Messaging.EventHubs", LogEventLevel.Fatal)
+                .MinimumLevel.Override("Azure.Messaging.EventHubs.EventHubProducerClient", LogEventLevel.Fatal)
+                .MinimumLevel.Override("Azure.Messaging.EventHubs.Producer", LogEventLevel.Fatal)
+                .MinimumLevel.Override("Microsoft.ApplicationInsights", LogEventLevel.Fatal)
+                .MinimumLevel.Override("Azure.Identity", LogEventLevel.Fatal);
         }
     }
 }

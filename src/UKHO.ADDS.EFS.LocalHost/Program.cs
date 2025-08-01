@@ -37,12 +37,12 @@ namespace UKHO.ADDS.EFS.LocalHost
             var appInsights = builder.AddAzureApplicationInsights(ServiceConfiguration.AppInsightsName);
 
             // Event Hubs
-            var eventHubs = builder.AddAzureEventHubs(ServiceConfiguration.EventHubNamespaceName);
+            var eventHubs = builder.AddAzureEventHubs(ServiceConfiguration.EventHubNamespaceName).RunAsEmulator();
             eventHubs.ConfigureInfrastructure(config =>
             {
                 var eventHubNamespace = config.GetProvisionableResources().OfType<EventHubsNamespace>().Single();
                 eventHubNamespace.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
-                //eventHubNamespace.Tags.Add("aspire-resource-name", ServiceConfiguration.EventHubNamespaceName);
+                eventHubNamespace.Tags.Add("aspire-resource-name", ServiceConfiguration.EventHubNamespaceName);
             });
             eventHubs.AddHub(ServiceConfiguration.EventHubName);
 
@@ -107,10 +107,6 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             // Orchestrator
             var orchestratorService = builder.AddProject<UKHO_ADDS_EFS_Orchestrator>(ProcessNames.OrchestratorService)
-                .WaitFor(appInsights)
-                .WithReference(appInsights)
-                .WaitFor(eventHubs)
-                .WithReference(eventHubs)
                 .WithReference(storageQueue)
                 .WaitFor(storageQueue)
                 .WithReference(storageTable)
@@ -123,6 +119,14 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WaitFor(redisCache)
                 .WithExternalHttpEndpoints()
                 .WithScalar("API Browser");
+
+            if (!builder.Environment.IsDevelopment())
+            {
+                orchestratorService.WithReference(appInsights);
+                orchestratorService.WaitFor(appInsights);
+                orchestratorService.WithReference(eventHubs);
+                orchestratorService.WaitFor(eventHubs);
+            }
 
             if (builder.Environment.IsDevelopment())
             {
