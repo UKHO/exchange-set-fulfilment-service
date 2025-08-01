@@ -1,4 +1,5 @@
-﻿using Azure.Provisioning.KeyVault;
+﻿using System.IO;
+using Azure.Provisioning.KeyVault;
 using Azure.Provisioning.Storage;
 using AzureKeyVaultEmulator.Aspire.Hosting;
 using Microsoft.Extensions.Hosting;
@@ -34,11 +35,10 @@ namespace UKHO.ADDS.Configuration.Aspire
                     keyVaultService.Tags.Add("hidden-title", serviceNameTag);
                 });
             }
-
-            var configOriginalPath = Path.GetFullPath(configJsonPath);
+            var configOriginalPath = Path.GetFullPath(configJsonPath, builder.Environment.ContentRootPath);
             var configFilePath = CopyToTempFile(configOriginalPath);
 
-            var externalServiceDiscoOriginalPath = Path.GetFullPath(externalServiceDiscoPath);
+            var externalServiceDiscoOriginalPath = Path.GetFullPath(externalServiceDiscoPath, builder.Environment.ContentRootPath);
             var externalServiceDiscoFilePath = CopyToTempFile(externalServiceDiscoOriginalPath);
 
             IResourceBuilder<ProjectResource> seederService = null!;
