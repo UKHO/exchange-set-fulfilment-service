@@ -71,6 +71,14 @@ module adds_configuration_roles_adds_con_was 'adds-configuration-roles-adds-con-
     principalId: adds_configuration_identity.outputs.principalId
   }
 }
+module efs_app_insights 'efs-app-insights/efs-app-insights.module.bicep' = {
+  name: 'efs-app-insights'
+  scope: rg
+  params: {
+    location: location
+    logAnalyticsWorkspaceId: efs_cae.outputs.AZURE_LOG_ANALYTICS_WORKSPACE_ID
+  }
+}
 module efs_cae 'efs-cae/efs-cae.module.bicep' = {
   name: 'efs-cae'
   scope: rg
@@ -81,11 +89,27 @@ module efs_cae 'efs-cae/efs-cae.module.bicep' = {
     zoneRedundant: zoneRedundant
   }
 }
+module efs_events_namespace 'efs-events-namespace/efs-events-namespace.module.bicep' = {
+  name: 'efs-events-namespace'
+  scope: rg
+  params: {
+    location: location
+  }
+}
 module efs_orchestrator_identity 'efs-orchestrator-identity/efs-orchestrator-identity.module.bicep' = {
   name: 'efs-orchestrator-identity'
   scope: rg
   params: {
     location: location
+  }
+}
+module efs_orchestrator_roles_efs_events_namespace 'efs-orchestrator-roles-efs-events-namespace/efs-orchestrator-roles-efs-events-namespace.module.bicep' = {
+  name: 'efs-orchestrator-roles-efs-events-namespace'
+  scope: rg
+  params: {
+    efs_events_namespace_outputs_name: efs_events_namespace.outputs.name
+    location: location
+    principalId: efs_orchestrator_identity.outputs.principalId
   }
 }
 module efs_orchestrator_roles_efs_storage 'efs-orchestrator-roles-efs-storage/efs-orchestrator-roles-efs-storage.module.bicep' = {
@@ -110,10 +134,12 @@ output ADDS_CONFIGURATION_IDENTITY_CLIENTID string = adds_configuration_identity
 output ADDS_CONFIGURATION_IDENTITY_ID string = adds_configuration_identity.outputs.id
 output AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN string = efs_cae.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN
 output AZURE_CONTAINER_REGISTRY_ENDPOINT string = efs_cae.outputs.AZURE_CONTAINER_REGISTRY_ENDPOINT
+output EFS_APP_INSIGHTS_APPINSIGHTSCONNECTIONSTRING string = efs_app_insights.outputs.appInsightsConnectionString
 output EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN string = efs_cae.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN
 output EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_ID string = efs_cae.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_ID
 output EFS_CAE_AZURE_CONTAINER_REGISTRY_ENDPOINT string = efs_cae.outputs.AZURE_CONTAINER_REGISTRY_ENDPOINT
 output EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID string = efs_cae.outputs.AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID
+output EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT string = efs_events_namespace.outputs.eventHubsEndpoint
 output EFS_ORCHESTRATOR_IDENTITY_CLIENTID string = efs_orchestrator_identity.outputs.clientId
 output EFS_ORCHESTRATOR_IDENTITY_ID string = efs_orchestrator_identity.outputs.id
 output EFS_STORAGE_BLOBENDPOINT string = efs_storage.outputs.blobEndpoint

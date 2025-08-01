@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using Azure.Core;
 using Azure.Provisioning;
 using Azure.Provisioning.AppContainers;
+using Azure.Provisioning.EventHubs;
 using Azure.Provisioning.Storage;
 using CliWrap;
 using Docker.DotNet;
@@ -31,6 +32,19 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             var builder = DistributedApplication.CreateBuilder(args);
             builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());
+
+            // app insights
+            var appInsights = builder.AddAzureApplicationInsights(ServiceConfiguration.AppInsightsName);
+
+            // Event Hubs
+            var eventHubs = builder.AddAzureEventHubs(ServiceConfiguration.EventHubNamespaceName).RunAsEmulator();
+            eventHubs.ConfigureInfrastructure(config =>
+            {
+                var eventHubNamespace = config.GetProvisionableResources().OfType<EventHubsNamespace>().Single();
+                eventHubNamespace.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
+                eventHubNamespace.Tags.Add("aspire-resource-name", ServiceConfiguration.EventHubNamespaceName);
+            });
+            eventHubs.AddHub(ServiceConfiguration.EventHubName);
 
             // Get parameters
             var subnetResourceId = builder.AddParameter("subnetResourceId");
@@ -105,6 +119,14 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WaitFor(redisCache)
                 .WithExternalHttpEndpoints()
                 .WithScalar("API Browser");
+
+            if (!builder.Environment.IsDevelopment())
+            {
+                orchestratorService.WithReference(appInsights);
+                orchestratorService.WaitFor(appInsights);
+                orchestratorService.WithReference(eventHubs);
+                orchestratorService.WaitFor(eventHubs);
+            }
 
             if (builder.Environment.IsDevelopment())
             {
