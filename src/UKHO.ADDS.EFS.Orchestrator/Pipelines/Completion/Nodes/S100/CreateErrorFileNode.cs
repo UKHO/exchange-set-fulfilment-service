@@ -20,6 +20,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
         private readonly IOrchestratorFileShareClient _fileShareClient;
         private readonly ILogger<CreateErrorFileNode> _logger;
         private const string S100ErrorFileNameTemplate = "S100ErrorFileNameTemplate";
+        private const string S100ErrorFileMessageTemplate = "S100ErrorFileMessageTemplate";
 
         public CreateErrorFileNode(CompletionNodeEnvironment nodeEnvironment, IOrchestratorFileShareClient fileShareClient, ILogger<CreateErrorFileNode> logger)
             : base(nodeEnvironment)
@@ -39,7 +40,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
 
             try
             {
-                var errorMessage = $"There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID {job.Id}";
+                var errorMessage = GetErrorFileMessage(job.Id);
                 await using var errorFileStream = new MemoryStream(Encoding.UTF8.GetBytes(errorMessage));
 
                 var fileName = GetErrorFileName(job.Id);
@@ -74,6 +75,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
         private string GetErrorFileName(string jobId)
         {
             return new FileNameGenerator(Environment.Configuration[S100ErrorFileNameTemplate]!).GenerateFileName(jobId);
+        }
+
+        private string GetErrorFileMessage(string jobId)
+        {
+            return Environment.Configuration[S100ErrorFileMessageTemplate]!.Replace("[jobid]", jobId);
         }
     }
 }

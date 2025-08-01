@@ -265,13 +265,16 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
             var capturedStream = new MemoryStream();
             var addFileResponse = new AddFileToBatchResponse();
 
+            A.CallTo(() => _configuration["S100ErrorFileMessageTemplate"])
+                .Returns("There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]");
+
             A.CallTo(() => _fileShareClient.AddFileToBatchAsync(
-                A<string>._,
-                A<Stream>._,
-                A<string>._,
-                A<string>._,
-                A<string>._,
-                A<CancellationToken>._))
+                    A<string>._,
+                    A<Stream>._,
+                    A<string>._,
+                    A<string>._,
+                    A<string>._,
+                    A<CancellationToken>._))
                 .Invokes((string batchId, Stream stream, string fileName, string contentType, string correlationId, CancellationToken ct) =>
                 {
                     stream.CopyTo(capturedStream);
