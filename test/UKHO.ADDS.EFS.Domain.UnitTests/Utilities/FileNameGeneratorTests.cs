@@ -1,6 +1,6 @@
-﻿using UKHO.ADDS.EFS.Builder.Common.Pipelines.Distribute;
+﻿using UKHO.ADDS.EFS.Utilities;
 
-namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
+namespace UKHO.ADDS.EFS.Domain.UnitTests.Utilities
 {
     [TestFixture]
     public class FileNameGeneratorTests
