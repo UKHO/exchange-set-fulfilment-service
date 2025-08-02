@@ -71,6 +71,13 @@ module adds_configuration_roles_adds_con_was 'adds-configuration-roles-adds-con-
     principalId: adds_configuration_identity.outputs.principalId
   }
 }
+module efs_appconfig 'efs-appconfig/efs-appconfig.module.bicep' = {
+  name: 'efs-appconfig'
+  scope: rg
+  params: {
+    location: location
+  }
+}
 module efs_cae 'efs-cae/efs-cae.module.bicep' = {
   name: 'efs-cae'
   scope: rg
@@ -86,6 +93,15 @@ module efs_orchestrator_identity 'efs-orchestrator-identity/efs-orchestrator-ide
   scope: rg
   params: {
     location: location
+  }
+}
+module efs_orchestrator_roles_efs_appconfig 'efs-orchestrator-roles-efs-appconfig/efs-orchestrator-roles-efs-appconfig.module.bicep' = {
+  name: 'efs-orchestrator-roles-efs-appconfig'
+  scope: rg
+  params: {
+    efs_appconfig_outputs_name: efs_appconfig.outputs.name
+    location: location
+    principalId: efs_orchestrator_identity.outputs.principalId
   }
 }
 module efs_orchestrator_roles_efs_storage 'efs-orchestrator-roles-efs-storage/efs-orchestrator-roles-efs-storage.module.bicep' = {

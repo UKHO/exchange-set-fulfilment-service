@@ -105,6 +105,10 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2024-03-01' = {
               secretRef: 'connectionstrings--efs-redis'
             }
             {
+              name: 'ConnectionStrings__efs-appconfig'
+              value: efs_appconfig_outputs_appconfigendpoint
+            }
+            {
               name: 'services__adds-configuration__http__0'
               value: 'http://adds-configuration.${efs_cae_outputs_azure_container_apps_environment_default_domain}'
             }
