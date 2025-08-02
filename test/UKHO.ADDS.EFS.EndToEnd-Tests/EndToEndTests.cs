@@ -2,7 +2,7 @@
 using UKHO.ADDS.EFS.EndToEndTests.Services;
 using Xunit.Abstractions;
 
-namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
+namespace UKHO.ADDS.EFS.EndToEndTests
 {
     public class EndToEndTests : TestBase
     {
@@ -32,11 +32,11 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
         {
             var httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
 
-            var jobId = await OrchestratorJobHelper.SubmitJobAsync(httpClient, filter);
+            var jobId = await OrchestratorCommands.SubmitJobAsync(httpClient, filter);
 
-            await OrchestratorJobHelper.WaitForJobCompletionAsync(httpClient, jobId);
+            await OrchestratorCommands.WaitForJobCompletionAsync(httpClient, jobId);
 
-            await OrchestratorJobHelper.VerifyBuildStatusAsync(httpClient, jobId);
+            await OrchestratorCommands.VerifyBuildStatusAsync(httpClient, jobId);
 
             var exchangeSetDownloadPath = await ZipStructureComparer.DownloadExchangeSetAsZipAsync(jobId, App!);
             var sourceZipPath = Path.Combine(ProjectDirectory!, "TestData", zipFileName);
@@ -52,7 +52,7 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
         {
             var httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
 
-            await OrchestratorJobHelper.SubmitJobAsync(httpClient, filter, expectedJobStatus: "upToDate", expectedBuildStatus: "none");
+            await OrchestratorCommands.SubmitJobAsync(httpClient, filter, expectedJobStatus: "upToDate", expectedBuildStatus: "none");
         }
 
         [Fact]
@@ -68,7 +68,7 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
             {
                 try
                 {
-                    var jobId = await OrchestratorJobHelper.SubmitJobAsync(httpClient, jobNumber: i);
+                    var jobId = await OrchestratorCommands.SubmitJobAsync(httpClient, jobNumber: i);
                     jobIds.Add(jobId);
                 }
                 catch (Exception e)
@@ -83,7 +83,7 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
             {
                 try
                 {
-                    await OrchestratorJobHelper.WaitForJobCompletionAsync(httpClient, jobId);
+                    await OrchestratorCommands.WaitForJobCompletionAsync(httpClient, jobId);
                 }
                 catch (Exception e)
                 {
@@ -98,7 +98,7 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
             {
                 try
                 {
-                    await OrchestratorJobHelper.VerifyBuildStatusAsync(httpClient, jobId);
+                    await OrchestratorCommands.VerifyBuildStatusAsync(httpClient, jobId);
                 }
                 catch(Exception e)
                 {

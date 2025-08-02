@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace UKHO.ADDS.EFS.EndToEndTests.Services
 {
-    public class OrchestratorJobHelper
+    public class OrchestratorCommands
     {
         private const int WaitDurationMs = 2000;
         private const double MaxWaitMinutes = 2;
