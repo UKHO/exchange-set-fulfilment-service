@@ -24,6 +24,8 @@ param efs_storage_outputs_blobendpoint string
 @secure()
 param efs_redis_password_value string
 
+param efs_appconfig_outputs_appconfigendpoint string
+
 param efs_orchestrator_identity_outputs_clientid string
 
 resource efs_orchestrator 'Microsoft.App/containerApps@2024-03-01' = {
