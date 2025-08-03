@@ -1,0 +1,100 @@
+{
+    "local": {
+            "orchestrator": {
+                "Logging": {
+                    "LogLevel": {
+                        "Default": "Information",
+                        "Microsoft.AspNetCore": "Warning",
+                        "Aspire.Hosting.Dcp": "Warning"
+                    }
+                },
+                "AllowedHosts": "*",
+                "Deduplication": {
+                    "Enabled": false, // Enable deduplication of requests
+                    "Expiry": "23:00:00" // The timeframe for deduplication from first generation to expiry
+                },
+                "Builders": {
+                    "LogReplayLevel": "Information", // Log level for replaying builder logs
+                    "S100": {
+                        "IICWorkspaceKey": "D89D11D265B19CA5C2BE97A7FCB1EF21", // Temporary - to be removed
+                        "ExchangeSetNameTemplate": "V01X01_[jobid].zip", // Template for naming an exchange set: options are "jobid", "date"
+                        "MaxRetries": 3, // Azure ENV var when deployed
+                        "RetryDelayMilliseconds": 10000, // Azure ENV var when deployed
+                        "ConcurrentDownloadLimitCount": 4, // Number of concurrent downloads to allow
+                        "Responses": {
+                            "BatchSize": 1,
+                            "PollingIntervalSeconds": 1
+                        }
+                    },
+                    "S63": {
+                        "ExchangeSetNameTemplate": "V01X01_S63_[jobid].zip", // Template for naming an exchange set: options are "jobid", "date"
+                        "MaxRetries": 3, // Azure ENV var when deployed
+                        "RetryDelayMilliseconds": 10000, // Azure ENV var when deployed
+                        "Responses": {
+                            "BatchSize": 1,
+                            "PollingIntervalSeconds": 1
+                        }
+                    },
+                    "S57": {
+                        "ExchangeSetNameTemplate": "V01X01_S57_[jobid].zip", // Template for naming an exchange set: options are "jobid", "date"
+                        "MaxRetries": 3, // Azure ENV var when deployed
+                        "RetryDelayMilliseconds": 10000, // Azure ENV var when deployed
+                        "Responses": {
+                            "BatchSize": 1,
+                            "PollingIntervalSeconds": 1
+
+                        }
+                    }
+                }
+            }
+    },
+    "dev": {
+            "orchestrator": {
+                "Logging": {
+                    "LogLevel": {
+                        "Default": "Information",
+                        "Microsoft.AspNetCore": "Warning",
+                        "Aspire.Hosting.Dcp": "Warning"
+                    }
+                },
+                "AllowedHosts": "*",
+                "Deduplication": {
+                    "Enabled": false, // Enable deduplication of requests
+                    "Expiry": "23:00:00" // The timeframe for deduplication from first generation to expiry
+                },
+                "Builders": {
+                    "LogReplayLevel": "Information", // Log level for replaying builder logs
+                    "S100": {
+                        "IICWorkspaceKey": "D89D11D265B19CA5C2BE97A7FCB1EF21", // Temporary - to be removed
+                        "ExchangeSetNameTemplate": "V01X01_[jobid].zip", // Template for naming an exchange set: options are "jobid", "date"
+                        "MaxRetries": 3, // Azure ENV var when deployed
+                        "RetryDelayMilliseconds": 10000, // Azure ENV var when deployed
+                        "ConcurrentDownloadLimitCount": 4, // Number of concurrent downloads to allow
+                        "Responses": {
+                            "BatchSize": 1,
+                            "PollingIntervalSeconds": 1
+                        }
+                    },
+                    "S63": {
+                        "ExchangeSetNameTemplate": "V01X01_S63_[jobid].zip", // Template for naming an exchange set: options are "jobid", "date"
+                        "MaxRetries": 3, // Azure ENV var when deployed
+                        "RetryDelayMilliseconds": 10000, // Azure ENV var when deployed
+                        "Responses": {
+                            "BatchSize": 1,
+                            "PollingIntervalSeconds": 1
+                        }
+                    },
+                    "S57": {
+                        "ExchangeSetNameTemplate": "V01X01_S57_[jobid].zip", // Template for naming an exchange set: options are "jobid", "date"
+                        "MaxRetries": 3, // Azure ENV var when deployed
+                        "RetryDelayMilliseconds": 10000, // Azure ENV var when deployed
+                        "Responses": {
+                            "BatchSize": 1,
+                            "PollingIntervalSeconds": 1
+
+                        }
+                    }
+                }
+            }
+    }
+}

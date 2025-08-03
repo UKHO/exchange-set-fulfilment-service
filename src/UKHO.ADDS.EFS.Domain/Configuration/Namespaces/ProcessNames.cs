@@ -2,7 +2,7 @@
 {
     public static class ProcessNames
     {
-        public const string ConfigurationService = "efs-aac";
+        public const string ConfigurationService = "efs-appconfig";
 
         public const string OrchestratorService = "efs-orchestrator";
 

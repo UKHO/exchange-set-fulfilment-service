@@ -43,7 +43,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "@submodules", "@submodules"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "config", "config", "{6B5B5410-BA91-4E7E-8B61-84FACDB162A0}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "@configuration", "@configuration", "{BC930792-C901-4759-B042-9AA113865741}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "@oldconfig", "@oldconfig", "{BC930792-C901-4759-B042-9AA113865741}"
 	ProjectSection(SolutionItems) = preProject
 		config\configuration.json = config\configuration.json
 		config\external-service-disco.json = config\external-service-disco.json
@@ -70,6 +70,26 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.ADDS.Configuration.Client", "config\UKHO.ADDS.Configuration.Client\UKHO.ADDS.Configuration.Client.csproj", "{6E864D5D-85F0-4065-81AB-DBB0E7F7B3C2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.ADDS.Configuration.AACEmulator", "config\UKHO.ADDS.Configuration.AACEmulator\UKHO.ADDS.Configuration.AACEmulator.csproj", "{4AAC8135-96E0-4F98-804F-3D569FFB9EBE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "@configuration", "@configuration", "{C66F201B-043E-45A0-B347-4ADCBDC730B2}"
+	ProjectSection(SolutionItems) = preProject
+		configuration\external-services.json = configuration\external-services.json
+		configuration\new-configuration.json = configuration\new-configuration.json
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.ADDS.Aspire.Configuration", "configuration\UKHO.ADDS.Aspire.Configuration\UKHO.ADDS.Aspire.Configuration.csproj", "{CCFB2E09-AD4A-C0BA-D970-7658A1D7C1CD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.ADDS.Aspire.Configuration.Emulator", "configuration\UKHO.ADDS.Aspire.Configuration.Emulator\UKHO.ADDS.Aspire.Configuration.Emulator.csproj", "{60A72FDE-1355-8B31-3914-62B9CA63593D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.ADDS.Aspire.Configuration.Hosting", "configuration\UKHO.ADDS.Aspire.Configuration.Hosting\UKHO.ADDS.Aspire.Configuration.Hosting.csproj", "{456B7CEA-4777-9C8B-21F5-261E5F84A11A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.ADDS.Aspire.Configuration.Seeder", "configuration\UKHO.ADDS.Aspire.Configuration.Seeder\UKHO.ADDS.Aspire.Configuration.Seeder.csproj", "{68375CE9-2CBA-78CF-BFDD-95D1D83B2B37}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "@tests", "@tests", "{BEDE0556-12CC-4162-933C-17669ED60DF3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.ADDS.Aspire.Configuration.Emulator.Tests", "configuration\tests\UKHO.ADDS.Aspire.Configuration.Emulator.Tests\UKHO.ADDS.Aspire.Configuration.Emulator.Tests.csproj", "{DFB2BB80-1B7C-CDBF-20BB-67446078EF80}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.ADDS.Aspire.Configuration.Seeder.Tests", "configuration\tests\UKHO.ADDS.Aspire.Configuration.Seeder.Tests\UKHO.ADDS.Aspire.Configuration.Seeder.Tests.csproj", "{B7B8B0ED-B071-40EA-4CF8-D9009146DC07}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -169,6 +189,30 @@ Global
 		{4AAC8135-96E0-4F98-804F-3D569FFB9EBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4AAC8135-96E0-4F98-804F-3D569FFB9EBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4AAC8135-96E0-4F98-804F-3D569FFB9EBE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CCFB2E09-AD4A-C0BA-D970-7658A1D7C1CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CCFB2E09-AD4A-C0BA-D970-7658A1D7C1CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CCFB2E09-AD4A-C0BA-D970-7658A1D7C1CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CCFB2E09-AD4A-C0BA-D970-7658A1D7C1CD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{60A72FDE-1355-8B31-3914-62B9CA63593D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{60A72FDE-1355-8B31-3914-62B9CA63593D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{60A72FDE-1355-8B31-3914-62B9CA63593D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{60A72FDE-1355-8B31-3914-62B9CA63593D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{456B7CEA-4777-9C8B-21F5-261E5F84A11A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{456B7CEA-4777-9C8B-21F5-261E5F84A11A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{456B7CEA-4777-9C8B-21F5-261E5F84A11A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{456B7CEA-4777-9C8B-21F5-261E5F84A11A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{68375CE9-2CBA-78CF-BFDD-95D1D83B2B37}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{68375CE9-2CBA-78CF-BFDD-95D1D83B2B37}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{68375CE9-2CBA-78CF-BFDD-95D1D83B2B37}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{68375CE9-2CBA-78CF-BFDD-95D1D83B2B37}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DFB2BB80-1B7C-CDBF-20BB-67446078EF80}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DFB2BB80-1B7C-CDBF-20BB-67446078EF80}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DFB2BB80-1B7C-CDBF-20BB-67446078EF80}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DFB2BB80-1B7C-CDBF-20BB-67446078EF80}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7B8B0ED-B071-40EA-4CF8-D9009146DC07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7B8B0ED-B071-40EA-4CF8-D9009146DC07}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7B8B0ED-B071-40EA-4CF8-D9009146DC07}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7B8B0ED-B071-40EA-4CF8-D9009146DC07}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -199,6 +243,13 @@ Global
 		{9EB0DA31-41E0-8E57-09D4-8DD72CD6098C} = {6B5B5410-BA91-4E7E-8B61-84FACDB162A0}
 		{6E864D5D-85F0-4065-81AB-DBB0E7F7B3C2} = {6B5B5410-BA91-4E7E-8B61-84FACDB162A0}
 		{4AAC8135-96E0-4F98-804F-3D569FFB9EBE} = {80B96364-9D68-435D-9B5E-70E8E3F7504C}
+		{CCFB2E09-AD4A-C0BA-D970-7658A1D7C1CD} = {C66F201B-043E-45A0-B347-4ADCBDC730B2}
+		{60A72FDE-1355-8B31-3914-62B9CA63593D} = {C66F201B-043E-45A0-B347-4ADCBDC730B2}
+		{456B7CEA-4777-9C8B-21F5-261E5F84A11A} = {C66F201B-043E-45A0-B347-4ADCBDC730B2}
+		{68375CE9-2CBA-78CF-BFDD-95D1D83B2B37} = {C66F201B-043E-45A0-B347-4ADCBDC730B2}
+		{BEDE0556-12CC-4162-933C-17669ED60DF3} = {C66F201B-043E-45A0-B347-4ADCBDC730B2}
+		{DFB2BB80-1B7C-CDBF-20BB-67446078EF80} = {BEDE0556-12CC-4162-933C-17669ED60DF3}
+		{B7B8B0ED-B071-40EA-4CF8-D9009146DC07} = {BEDE0556-12CC-4162-933C-17669ED60DF3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7F0CD4AD-9CFF-412C-AFA2-6A353CA3A42B}

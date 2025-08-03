@@ -71,6 +71,13 @@ module adds_configuration_roles_adds_con_was 'adds-configuration-roles-adds-con-
     principalId: adds_configuration_identity.outputs.principalId
   }
 }
+module efs_appconfig 'efs-appconfig/efs-appconfig.module.bicep' = {
+  name: 'efs-appconfig'
+  scope: rg
+  params: {
+    location: location
+  }
+}
 module efs_cae 'efs-cae/efs-cae.module.bicep' = {
   name: 'efs-cae'
   scope: rg
@@ -86,6 +93,15 @@ module efs_orchestrator_identity 'efs-orchestrator-identity/efs-orchestrator-ide
   scope: rg
   params: {
     location: location
+  }
+}
+module efs_orchestrator_roles_efs_appconfig 'efs-orchestrator-roles-efs-appconfig/efs-orchestrator-roles-efs-appconfig.module.bicep' = {
+  name: 'efs-orchestrator-roles-efs-appconfig'
+  scope: rg
+  params: {
+    efs_appconfig_outputs_name: efs_appconfig.outputs.name
+    location: location
+    principalId: efs_orchestrator_identity.outputs.principalId
   }
 }
 module efs_orchestrator_roles_efs_storage 'efs-orchestrator-roles-efs-storage/efs-orchestrator-roles-efs-storage.module.bicep' = {
@@ -110,6 +126,7 @@ output ADDS_CONFIGURATION_IDENTITY_CLIENTID string = adds_configuration_identity
 output ADDS_CONFIGURATION_IDENTITY_ID string = adds_configuration_identity.outputs.id
 output AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN string = efs_cae.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN
 output AZURE_CONTAINER_REGISTRY_ENDPOINT string = efs_cae.outputs.AZURE_CONTAINER_REGISTRY_ENDPOINT
+output EFS_APPCONFIG_APPCONFIGENDPOINT string = efs_appconfig.outputs.appConfigEndpoint
 output EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN string = efs_cae.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN
 output EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_ID string = efs_cae.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_ID
 output EFS_CAE_AZURE_CONTAINER_REGISTRY_ENDPOINT string = efs_cae.outputs.AZURE_CONTAINER_REGISTRY_ENDPOINT

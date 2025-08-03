@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Projects;
 using Serilog;
+using UKHO.ADDS.Aspire.Configuration.Hosting;
 using UKHO.ADDS.Configuration.Aspire;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.LocalHost.Extensions;
@@ -32,6 +33,117 @@ namespace UKHO.ADDS.EFS.LocalHost
             var builder = DistributedApplication.CreateBuilder(args);
             builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());
 
+            //await LegacyConfiguration(builder);
+            await NewConfiguration(builder);
+
+            var application = builder.Build();
+
+            await application.RunAsync();
+
+            return 0;
+        }
+
+        private static async Task NewConfiguration(IDistributedApplicationBuilder builder)
+        {
+            // Get parameters
+            var subnetResourceId = builder.AddParameter("subnetResourceId");
+            var zoneRedundant = builder.AddParameter("zoneRedundant");
+
+            // Container apps environment
+            var acaEnv = builder.AddAzureContainerAppEnvironment(ServiceConfiguration.AcaEnvironmentName)
+                .WithParameter("subnetResourceId", subnetResourceId)
+                .WithParameter("zoneRedundant", zoneRedundant);
+
+            acaEnv.ConfigureInfrastructure(config =>
+            {
+                var containerEnvironment = config.GetProvisionableResources().OfType<ContainerAppManagedEnvironment>().Single();
+                containerEnvironment.VnetConfiguration = new ContainerAppVnetConfiguration
+                {
+                    InfrastructureSubnetId = new BicepValue<ResourceIdentifier>("subnetResourceId"),
+                    IsInternal = false
+                };
+                containerEnvironment.IsZoneRedundant = false;
+                // This doesn't seem to work at the moment so I've updated the bicep tags directly.
+                containerEnvironment.Tags.Add("aspire-resource-name", ServiceConfiguration.AcaEnvironmentName);
+                containerEnvironment.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
+            });
+
+            // Storage configuration
+            var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e => { e.WithDataVolume(); });
+            storage.ConfigureInfrastructure(config =>
+            {
+                var storageAccount = config.GetProvisionableResources().OfType<StorageAccount>().Single();
+                storageAccount.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
+                storageAccount.AllowSharedKeyAccess = true;
+            });
+
+            var storageQueue = storage.AddQueues(StorageConfiguration.QueuesName);
+            var storageTable = storage.AddTables(StorageConfiguration.TablesName);
+            var storageBlob = storage.AddBlobs(StorageConfiguration.BlobsName);
+
+            // Redis cache
+            var redisCache = builder.AddRedis(ProcessNames.RedisCache)
+                .WithRedisInsight();
+
+            // ADDS Mock
+            var mockService = builder.AddProject<UKHO_ADDS_Mocks_EFS>(ProcessNames.MockService)
+                .WithDashboard("Dashboard")
+                .WithExternalHttpEndpoints();
+
+            // Build Request Monitor
+            IResourceBuilder<ProjectResource>? requestMonitor = null;
+
+            if (builder.Environment.IsDevelopment())
+            {
+                requestMonitor = builder.AddProject<UKHO_ADDS_EFS_BuildRequestMonitor>(ProcessNames.RequestMonitorService)
+                    .WithReference(storageQueue)
+                    .WaitFor(storageQueue)
+                    .WithReference(mockService)
+                    .WaitFor(mockService)
+                    .WithReference(storageBlob)
+                    .WaitFor(storageBlob);
+            }
+
+            // Orchestrator
+            var orchestratorService = builder.AddProject<UKHO_ADDS_EFS_Orchestrator>(ProcessNames.OrchestratorService)
+                .WithReference(storageQueue)
+                .WaitFor(storageQueue)
+                .WithReference(storageTable)
+                .WaitFor(storageTable)
+                .WithReference(storageBlob)
+                .WaitFor(storageBlob)
+                .WithReference(mockService)
+                .WaitFor(mockService)
+                .WithReference(redisCache)
+                .WaitFor(redisCache)
+                .WithExternalHttpEndpoints()
+                .WithScalar("API Browser");
+
+            if (builder.Environment.IsDevelopment())
+            {
+                orchestratorService.WaitFor(requestMonitor!);
+            }
+
+            // Configuration
+            if (builder.Environment.IsDevelopment())
+            {
+                builder.AddConfigurationEmulator(ServiceConfiguration.ServiceName, [orchestratorService, requestMonitor!], [mockService], @"../../configuration/new-configuration.json", @"../../configuration/external-services.json");
+            }
+            else
+            {
+                builder.AddConfiguration([orchestratorService]);
+            }
+
+            if (builder.Environment.IsDevelopment())
+            {
+                await CreateBuilderContainerImages(ProcessNames.S100Builder, "latest", "UKHO.ADDS.EFS.Builder.S100");
+                await CreateBuilderContainerImages(ProcessNames.S63Builder, "latest", "UKHO.ADDS.EFS.Builder.S63");
+                await CreateBuilderContainerImages(ProcessNames.S57Builder, "latest", "UKHO.ADDS.EFS.Builder.S57");
+            }
+        }
+
+        private static async Task LegacyConfiguration(IDistributedApplicationBuilder builder)
+        {
             // Get parameters
             var subnetResourceId = builder.AddParameter("subnetResourceId");
             var zoneRedundant = builder.AddParameter("zoneRedundant");
@@ -142,12 +254,6 @@ namespace UKHO.ADDS.EFS.LocalHost
                 await CreateBuilderContainerImages(ProcessNames.S63Builder, "latest", "UKHO.ADDS.EFS.Builder.S63");
                 await CreateBuilderContainerImages(ProcessNames.S57Builder, "latest", "UKHO.ADDS.EFS.Builder.S57");
             }
-
-            var application = builder.Build();
-
-            await application.RunAsync();
-
-            return 0;
         }
 
         private static async Task CreateBuilderContainerImages(string name, string tag, string projectName)
