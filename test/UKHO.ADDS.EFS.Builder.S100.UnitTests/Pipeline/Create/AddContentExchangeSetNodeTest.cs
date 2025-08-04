@@ -20,6 +20,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         private IExecutionContext<S100ExchangeSetPipelineContext> _executionContext;
         private ILoggerFactory _loggerFactory;
         private ILogger _logger;
+        private string _testDirectory;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
@@ -29,12 +30,15 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
             _executionContext = A.Fake<IExecutionContext<S100ExchangeSetPipelineContext>>();
             _loggerFactory = A.Fake<ILoggerFactory>();
             _logger = A.Fake<ILogger<AddContentExchangeSetNode>>();
+            // Create a temporary directory for tests
+            _testDirectory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(_testDirectory);
         }
 
         [SetUp]
         public void Setup()
         {
-            var exchangeSetPipelineContext = new S100ExchangeSetPipelineContext(null,  _toolClient, null, null, _loggerFactory)
+            var exchangeSetPipelineContext = new S100ExchangeSetPipelineContext(null, _toolClient, null, null, _loggerFactory)
             {
                 Build = new S100Build
                 {
@@ -44,10 +48,29 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
                 },
                 JobId = "TestJobId",
                 WorkspaceAuthenticationKey = "Test123",
-                WorkSpaceRootPath = "rootPath"
+                WorkSpaceRootPath = _testDirectory // Use temp directory instead of hardcoded path
             };
+
+            // Create the required directory structure
+            var spoolPath = Path.Combine(_testDirectory, "spool");
+            var datasetFilesPath = Path.Combine(spoolPath, "dataSet_files");
+            var supportFilesPath = Path.Combine(spoolPath, "support_files");
+
+            Directory.CreateDirectory(datasetFilesPath);
+            Directory.CreateDirectory(supportFilesPath);
+
             A.CallTo(() => _executionContext.Subject).Returns(exchangeSetPipelineContext);
             A.CallTo(() => _loggerFactory.CreateLogger(typeof(AddContentExchangeSetNode).FullName!)).Returns(_logger);
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            // Clean up test directories after each test
+            if (Directory.Exists(_testDirectory))
+            {
+                Directory.Delete(_testDirectory, recursive: true);
+            }
         }
 
         [Test]
@@ -90,6 +113,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         public void OneTimeTearDown()
         {
             _loggerFactory?.Dispose();
+
+            // Final cleanup of temp directory
+            if (Directory.Exists(_testDirectory))
+            {
+                Directory.Delete(_testDirectory, recursive: true);
+            }
         }
     }
 }
