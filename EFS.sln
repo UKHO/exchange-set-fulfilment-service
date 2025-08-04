@@ -41,12 +41,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "services", "services", "{75
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "@submodules", "@submodules", "{80B96364-9D68-435D-9B5E-70E8E3F7504C}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "@oldconfig", "@oldconfig", "{BC930792-C901-4759-B042-9AA113865741}"
-	ProjectSection(SolutionItems) = preProject
-		config\configuration.json = config\configuration.json
-		config\external-service-disco.json = config\external-service-disco.json
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.ADDS.EFS.BuildRequestMonitor", "src\UKHO.ADDS.EFS.BuildRequestMonitor\UKHO.ADDS.EFS.BuildRequestMonitor.csproj", "{10D46CF7-68C3-A26D-9343-8EA766755D57}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.ADDS.EFS.Builder.Common", "src\UKHO.ADDS.EFS.Builder.Common\UKHO.ADDS.EFS.Builder.Common.csproj", "{63C373B6-4D23-77C4-BEB2-1AF02C656717}"
