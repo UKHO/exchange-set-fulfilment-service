@@ -223,3 +223,33 @@ jobs:
               ProjectFolder: UKHO.ADDS.EFS.Builder.S100
               AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
               DeployApp: ${{ parameters.DeployBuilderS100 }}
+
+- ${{ if eq(parameters.RunFunctionalTests, true) }}:
+  - job: ${{ parameters.ShortName }}FunctionalTests
+    dependsOn:
+      - ${{ parameters.ShortName }}DeployApp
+    pool: $(WindowsPool)
+    displayName: '${{ upper(parameters.ShortName) }} - functional tests'
+    variables:
+      - template: var/${{ lower(parameters.ShortName) }}-deploy.yml
+    workspace:
+      clean: all
+    steps:
+      - checkout: self
+        clean: true
+        submodules: true
+        path: s/efs
+
+      - task: UseDotNet@2
+        displayName: 'Use .NET SDK $(SdkVersion)'
+        inputs:
+          packageType: sdk
+          version: $(SdkVersion)
+
+      - task: DotNetCoreCLI@2
+        displayName: 'Run Functional Tests'
+        inputs:
+          command: test
+          projects: 'test/UKHO.ADDS.EFS.EndToEnd-Tests/UKHO.ADDS.EFS.EndToEnd-Tests.csproj'
+          #arguments: '--configuration Release --no-restore --logger trx'
+          workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost

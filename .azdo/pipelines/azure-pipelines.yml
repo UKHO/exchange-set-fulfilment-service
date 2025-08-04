@@ -53,6 +53,10 @@ parameters:
     displayName: "Enable optional pipeline debugging"
     type: boolean
     default: false
+  - name: RunFunctionalTests
+    displayName: "Run functional tests"
+    type: boolean
+    default: false
 
 trigger:
   - main
@@ -182,6 +186,7 @@ stages:
         DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
         DeployAddsMock: ${{ parameters.DeployAddsMock }}
         DeployRedis: ${{ parameters.DeployRedis }}
+        RunFunctionalTests: ${{ parameters.RunFunctionalTests }}
 
   - stage: vnextiatDeploy
     dependsOn:
