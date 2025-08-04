@@ -6,26 +6,33 @@ using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 
 namespace UKHO.ADDS.EFS.Orchestrator.SchedulerJob
 {
+    /// <summary>
+    ///     Quartz.NET scheduled job that automatically triggers S100 exchange set generation
+    ///     at configured intervals with comprehensive logging and error handling.
+    /// </summary>
     [DisallowConcurrentExecution]
     public class EfsSchedulerJob : IJob
     {
         private readonly ILogger<EfsSchedulerJob> _logger;
         private readonly IConfiguration _config;
-        private readonly IServiceProvider _serviceProvider;
+        private readonly IAssemblyPipelineFactory _pipelineFactory;
 
-        public EfsSchedulerJob(ILogger<EfsSchedulerJob> logger, IConfiguration config, IServiceProvider serviceProvider)
+        public EfsSchedulerJob(ILogger<EfsSchedulerJob> logger, IConfiguration config, IAssemblyPipelineFactory pipelineFactory)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _config = config ?? throw new ArgumentNullException(nameof(config));
-            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            _pipelineFactory = pipelineFactory ?? throw new ArgumentNullException(nameof(pipelineFactory));
         }
 
+        /// <summary>
+        ///     Executes scheduled S100 exchange set generation by creating and running an assembly pipeline.
+        /// </summary>
+        /// <param name="context">Quartz.NET job execution context containing trigger and scheduling information.</param>
+        /// <returns>Task representing the asynchronous job execution.</returns>
         public async Task Execute(IJobExecutionContext context)
         {
             try
             {
-                var pipelineFactory = _serviceProvider.GetRequiredService<AssemblyPipelineFactory>();
-
                 var correlationId = $"job-{Guid.NewGuid():N}";
 
                 _logger.LogEfsSchedulerJobStarted(correlationId, DateTime.UtcNow);
@@ -39,12 +46,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.SchedulerJob
                 };
 
                 var parameters = AssemblyPipelineParameters.CreateFrom(message, _config, correlationId);
-                var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
+                var pipeline = _pipelineFactory.CreateAssemblyPipeline(parameters);
 
                 var result = await pipeline.RunAsync(CancellationToken.None);
-             
+
                 _logger.LogEfsSchedulerJobCompleted(correlationId, result);
-                
+
                 _logger.LogEfsSchedulerJobNextRun(context.Trigger.GetNextFireTimeUtc()?.DateTime);
             }
             catch (Exception ex)

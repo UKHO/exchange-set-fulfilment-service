@@ -56,7 +56,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             builder.Services.ConfigureOpenApi();
 
-            builder.Services.AddTransient<AssemblyPipelineFactory>();
+            builder.Services.AddTransient<IAssemblyPipelineFactory, AssemblyPipelineFactory>();
             builder.Services.AddTransient<AssemblyPipelineNodeFactory>();
 
             builder.Services.AddTransient<CompletionPipelineFactory>();
