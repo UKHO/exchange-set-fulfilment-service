@@ -53,8 +53,8 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
                 env.FileShareEndpoint = s57FileShareUri!.ToString();
                 env.FileShareHealthEndpoint = s57FileShareHealthUri!.ToString();
                 env.BlobContainerName = StorageConfiguration.S57BuildContainer;
-                env.MaxRetryAttempts = int.Parse(_configuration["S57MaxRetries"]!); 
-                env.RetryDelayMilliseconds = int.Parse(_configuration["S57RetryDelayMilliseconds"]!); 
+                env.MaxRetryAttempts = int.Parse(_configuration["orchestrator:builders:s57:MaxRetries"]!); 
+                env.RetryDelayMilliseconds = int.Parse(_configuration["orchestrator:builders:s57:MaxRetriesRetryDelayMilliseconds"]!); 
             });
 
             await _containerService.StartContainerAsync(containerId);

@@ -89,8 +89,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                 var scsEndpoint = registry.GetServiceEndpointAsync(ProcessNames.SalesCatalogueService).GetAwaiter().GetResult();
 
-                return factory.CreateClient(scsEndpoint!.ToString(), string.Empty);
-                return null;
+                return factory.CreateClient(scsEndpoint.Uri!.ToString(), string.Empty);
             });
 
             builder.Services.AddSingleton<IFileShareReadWriteClientFactory>(provider => new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
@@ -102,8 +101,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                 var fssEndpoint = registry.GetServiceEndpointAsync(ProcessNames.FileShareService).GetAwaiter().GetResult();
 
-                return factory.CreateClient(fssEndpoint!.ToString(), string.Empty);
-                return null;
+                return factory.CreateClient(fssEndpoint.Uri!.ToString(), string.Empty);
             });
 
             builder.Services.AddSingleton<IOrchestratorSalesCatalogueClient, OrchestratorSalesCatalogueClient>();
