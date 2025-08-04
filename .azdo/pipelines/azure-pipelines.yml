@@ -17,10 +17,6 @@ parameters:
     displayName: "Deploy orchestrator"
     type: boolean
     default: true
-  - name: DeployConfiguration
-    displayName: "Deploy configuration"
-    type: boolean
-    default: true
   - name: DeployBuilderS100
     displayName: "Deploy S100 builder"
     type: boolean
@@ -178,7 +174,6 @@ stages:
         DestroyResources: ${{ parameters.DestroyResourcesDev }}
         AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
         DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
-        DeployConfiguration: ${{ parameters.DeployConfiguration }}
         DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
         DeployAddsMock: ${{ parameters.DeployAddsMock }}
         DeployRedis: ${{ parameters.DeployRedis }}
@@ -196,7 +191,6 @@ stages:
         DestroyResources: ${{ parameters.DestroyResourcesVnextIat }}
         AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
         DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
-        DeployConfiguration: ${{ parameters.DeployConfiguration }}
         DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
         DeployAddsMock: false
         DeployRedis: ${{ parameters.DeployRedis }}
@@ -214,7 +208,6 @@ stages:
         DestroyResources: ${{ parameters.DestroyResourcesVnextE2E }}
         AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
         DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
-        DeployConfiguration: ${{ parameters.DeployConfiguration }}
         DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
         DeployAddsMock: false
         DeployRedis: ${{ parameters.DeployRedis }}
@@ -232,7 +225,6 @@ stages:
         DestroyResources: ${{ parameters.DestroyResourcesIAT }}
         AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
         DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
-        DeployConfiguration: ${{ parameters.DeployConfiguration }}
         DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
         DeployAddsMock: false
         DeployRedis: ${{ parameters.DeployRedis }}
