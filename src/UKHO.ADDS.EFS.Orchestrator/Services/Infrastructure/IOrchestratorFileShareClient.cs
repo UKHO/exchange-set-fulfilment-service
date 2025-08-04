@@ -44,5 +44,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
         ///     If no valid batches are found, returns a success result with an empty response.
         /// </returns>
         Task<IResult<SetExpiryDateResponse>> SetExpiryDateAsync(List<BatchDetails> otherBatches, string correlationId, CancellationToken cancellationToken);
+
+        /// <summary>
+        ///     Adds a file to the specified batch in the File Share Service.
+        /// </summary>
+        /// <param name="batchId">The batch identifier to add the file to.</param>
+        /// <param name="fileStream">The stream containing the file data.</param>
+        /// <param name="fileName">The name of the file.</param>
+        /// <param name="contentType">The content type of the file.</param>
+        /// <param name="correlationId">The correlation identifier for tracking the request.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A result containing the add file to batch response on success or error information on failure.</returns>
+        Task<IResult<AddFileToBatchResponse>> AddFileToBatchAsync(string batchId, Stream fileStream, string fileName, string contentType, string correlationId, CancellationToken cancellationToken);
     }
 }
