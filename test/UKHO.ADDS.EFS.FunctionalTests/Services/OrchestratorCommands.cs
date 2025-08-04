@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using System.Text.Json;
 
-namespace UKHO.ADDS.EFS.EndToEndTests.Services
+namespace UKHO.ADDS.EFS.FunctionalTests.Services
 {
     public class OrchestratorCommands
     {

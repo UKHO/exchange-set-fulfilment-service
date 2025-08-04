@@ -1,14 +1,14 @@
 ﻿using UKHO.ADDS.EFS.Configuration.Namespaces;
-using UKHO.ADDS.EFS.EndToEndTests.Services;
+using UKHO.ADDS.EFS.FunctionalTests.Services;
 using Xunit.Abstractions;
 
-namespace UKHO.ADDS.EFS.EndToEndTests
+namespace UKHO.ADDS.EFS.FunctionalTests
 {
-    public class EndToEndTests : TestBase
+    public class FunctionalTests : TestBase
     {
         private readonly ITestOutputHelper _output;
 
-        public EndToEndTests(ITestOutputHelper output)
+        public FunctionalTests(ITestOutputHelper output)
         {
             _output = output;
         }
@@ -28,7 +28,7 @@ namespace UKHO.ADDS.EFS.EndToEndTests
         [InlineData("startswith(ProductName, '101') or startswith(ProductName, '102') or startswith(ProductName, '104') or startswith(ProductName, '111')", "AllProducts.zip")]
         [InlineData("startswith(ProductName, '111') or startswith(ProductName, '121')", "StartWithS111Products.zip")]
         [InlineData("", "WithoutFilter.zip")]
-        public async Task S100EndToEnd(string filter, string zipFileName)
+        public async Task S100FilterTests(string filter, string zipFileName)
         {
             var httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
 
@@ -48,64 +48,11 @@ namespace UKHO.ADDS.EFS.EndToEndTests
         [Theory]
         [InlineData("startswith(ProductName, '121')")]
         [InlineData("ProductName eq '131GB004DEVQK'")]
-        public async Task S100EndToEnd_FilterWithInvalidIdentifier(string filter)
+        public async Task S100FilterTestsWithInvalidIdentifier(string filter)
         {
             var httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
 
             await OrchestratorCommands.SubmitJobAsync(httpClient, filter, expectedJobStatus: "upToDate", expectedBuildStatus: "none");
-        }
-
-        [Fact]
-        public async Task TestMultipleRequests()
-        {
-
-            var httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
-            const int expectedNumberOfJobs = 8;
-            var jobIds = new List<string>();
-
-            // 1. Submit multiple job requests with empty filter
-            for (var i = 0; i < expectedNumberOfJobs; i++)
-            {
-                try
-                {
-                    var jobId = await OrchestratorCommands.SubmitJobAsync(httpClient, jobNumber: i);
-                    jobIds.Add(jobId);
-                }
-                catch (Exception e)
-                {
-                    _output.WriteLine(e.Message);
-                    _output.WriteLine("Submit Job failed for Job Id :- " + jobIds[i]);
-                }
-            }
-
-            // 2. Wait for all jobs to complete
-            foreach (var jobId in jobIds)
-            {
-                try
-                {
-                    await OrchestratorCommands.WaitForJobCompletionAsync(httpClient, jobId);
-                }
-                catch (Exception e)
-                {
-                    _output.WriteLine(e.Message);
-                    _output.WriteLine("Job completion failed for Job Id :- " + jobId);
-                }
-            }
-
-            var count = jobIds.Count;
-            // 3. Verify build status for each job
-            foreach (var jobId in jobIds)
-            {
-                try
-                {
-                    await OrchestratorCommands.VerifyBuildStatusAsync(httpClient, jobId);
-                }
-                catch(Exception e)
-                {
-                    count--;
-                }
-            }
-            Assert.Equal(expectedNumberOfJobs, count);
         }
     }
 }

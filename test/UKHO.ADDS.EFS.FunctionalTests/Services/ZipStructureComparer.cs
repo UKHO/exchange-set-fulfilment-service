@@ -2,7 +2,7 @@
 using Aspire.Hosting;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 
-namespace UKHO.ADDS.EFS.EndToEndTests.Services
+namespace UKHO.ADDS.EFS.FunctionalTests.Services
 {
     public class ZipStructureComparer
     {
