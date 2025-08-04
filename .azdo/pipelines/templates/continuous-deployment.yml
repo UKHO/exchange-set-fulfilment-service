@@ -13,10 +13,6 @@ parameters:
 - name: DeployOrchestrator
   type: boolean
   default: false
-# Deploy the configuration container app.
-- name: DeployConfiguration
-  type: boolean
-  default: false
 # Deploy the S100 builder container app job.
 - name: DeployBuilderS100
   type: boolean
@@ -194,13 +190,6 @@ jobs:
               AppName: efs-redis
               AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
               DeployApp: ${{ parameters.DeployRedis }}
-
-          - template: container-app-deploy.yml
-            parameters:
-              AzureSubscription: ${{ variables.AzureSubscription }}
-              AppName: adds-configuration
-              AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
-              DeployApp: ${{ parameters.DeployConfiguration }}
 
           - template: container-app-deploy.yml
             parameters:
