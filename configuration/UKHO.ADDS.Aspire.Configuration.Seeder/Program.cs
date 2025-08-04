@@ -1,4 +1,5 @@
-﻿using Azure.Data.AppConfiguration;
+﻿using System;
+using Azure.Data.AppConfiguration;
 using Azure.Identity;
 using CommandLine;
 using Microsoft.Extensions.DependencyInjection;
@@ -94,6 +95,8 @@ namespace UKHO.ADDS.Aspire.Configuration.Seeder
 
         private static void ValidateUri(string url, string name)
         {
+            Console.WriteLine($"URL is {name} : {url}");
+
             if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
             {
                 throw new ArgumentException($"Invalid URI: {url} ({name})");
@@ -102,6 +105,8 @@ namespace UKHO.ADDS.Aspire.Configuration.Seeder
 
         private static void ValidateFilePath(string path, string name)
         {
+            Console.WriteLine($"File path {name} : {path}");
+
             if (!File.Exists(path))
             {
                 throw new FileNotFoundException($"File not found: {path} ({name})");
