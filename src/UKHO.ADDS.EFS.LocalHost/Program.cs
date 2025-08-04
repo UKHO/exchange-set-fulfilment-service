@@ -42,7 +42,6 @@ namespace UKHO.ADDS.EFS.LocalHost
             {
                 var eventHubNamespace = config.GetProvisionableResources().OfType<EventHubsNamespace>().Single();
                 eventHubNamespace.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
-                eventHubNamespace.Tags.Add("aspire-resource-name", ServiceConfiguration.EventHubNamespaceName);
             });
             eventHubs.AddHub(ServiceConfiguration.EventHubName);
 
