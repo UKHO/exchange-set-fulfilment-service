@@ -42,10 +42,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         private const int FileShareServiceOperationFailedId = BaseEventId + 21;
         private const int SalesCatalogueProductsNotReturnedId = BaseEventId + 22;
 
-        private const int EfsSchedulerJobStartedId = BaseEventId + 23;
-        private const int EfsSchedulerJobExceptionId = BaseEventId + 24;
-        private const int EfsSchedulerJobCompletedId = BaseEventId + 25;
-        private const int EfsSchedulerJobNextRunId = BaseEventId + 26;
+        private const int EfsSchedulerJobStartedId = BaseEventId + 26;
+        private const int EfsSchedulerJobExceptionId = BaseEventId + 27;
+        private const int EfsSchedulerJobCompletedId = BaseEventId + 28;
+        private const int EfsSchedulerJobNextRunId = BaseEventId + 29;
 
         // An unhandled HTTP error has occurred
         public static readonly EventId UnhandledHttpError = new(UnhandledHttpErrorId, nameof(UnhandledHttpError));
