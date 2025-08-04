@@ -8,7 +8,7 @@ namespace UKHO.ADDS.Aspire.Configuration
 {
     public static class ConfigurationExtensions
     {
-        public static TBuilder AddConfiguration<TBuilder>(this TBuilder builder, string serviceName) where TBuilder : IHostApplicationBuilder
+        public static TBuilder AddConfiguration<TBuilder>(this TBuilder builder, string serviceName, int refreshIntervalSeconds = 30, string sentinelKeyName = "reloadsentinel") where TBuilder : IHostApplicationBuilder
         {
             var environment = AddsEnvironment.GetEnvironment();
 
@@ -16,13 +16,19 @@ namespace UKHO.ADDS.Aspire.Configuration
             {
                 builder.Configuration.AddAzureAppConfiguration(o =>
                 {
-                    var serviceEnvironmentKey = $"services__{WellKnownConfigurationName.ConfigurationServiceName}__http__0";
+                    const string serviceEnvironmentKey = $"services__{WellKnownConfigurationName.ConfigurationServiceName}__http__0";
+
                     var url = Environment.GetEnvironmentVariable(serviceEnvironmentKey)!;
 
                     var connectionString = $"Endpoint={url};Id=aac-credential;Secret=c2VjcmV0;";
 
                     o.Connect(connectionString)
-                        .Select("*", serviceName.ToLowerInvariant());
+                        .Select("*", serviceName.ToLowerInvariant())
+                        .ConfigureRefresh(refresh =>
+                        {
+                            refresh.Register(sentinelKeyName, refreshAll: true, label: serviceName.ToLowerInvariant())
+                                .SetRefreshInterval(TimeSpan.FromSeconds(refreshIntervalSeconds)); 
+                        });
                 });
             }
             else
@@ -33,7 +39,12 @@ namespace UKHO.ADDS.Aspire.Configuration
                     var connectionString = Environment.GetEnvironmentVariable(serviceConnectionStringKey)!;
 
                     o.Connect(connectionString)
-                        .Select("*", serviceName.ToLowerInvariant());
+                        .Select("*", serviceName.ToLowerInvariant())
+                        .ConfigureRefresh(refresh =>
+                        {
+                            refresh.Register(sentinelKeyName, refreshAll: true, label: serviceName.ToLowerInvariant())
+                                .SetRefreshInterval(TimeSpan.FromSeconds(refreshIntervalSeconds));
+                        });
                 });
             }
 

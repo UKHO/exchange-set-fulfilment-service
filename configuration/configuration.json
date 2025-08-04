@@ -1,5 +1,6 @@
 {
     "local": {
+        "reloadsentinel": 1,
         "buildRequestMonitor": {
             "S100": {
                 "MaxRetries": 3,
@@ -61,6 +62,7 @@
         }
     },
     "dev": {
+        "reloadsentinel": 1,
         "orchestrator": {
             "Logging": {
                 "LogLevel": {
