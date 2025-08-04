@@ -28,6 +28,18 @@ using UKHO.ADDS.EFS.Orchestrator.Pipelines.Services.Implementation;
 using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Services.Storage;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
+using Microsoft.Kiota.Abstractions;
+using Microsoft.Kiota.Abstractions.Authentication;
+using Microsoft.Kiota.Authentication.Azure;
+using Microsoft.Kiota.Http.HttpClientLibrary;
+using Microsoft.Kiota.Http.HttpClientLibrary.Middleware;
+using UKHO.ADDS.Clients.Kiota.SalesCatalogueService;
+using UKHO.ADDS.Clients.Common.MiddlewareExtensions;
+
+using System.Net.Sockets;
+using System.Reflection.PortableExecutable;
+using Azure.Identity;
+using Microsoft.Kiota.Http.HttpClientLibrary.Middleware.Options;
 
 namespace UKHO.ADDS.EFS.Orchestrator
 {
@@ -80,15 +92,33 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddSingleton<IBuilderLogForwarder, BuilderLogForwarder>();
             builder.Services.AddSingleton<StorageInitializerService>();
 
-            builder.Services.AddSingleton<ISalesCatalogueClientFactory>(provider => new SalesCatalogueClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
 
-            builder.Services.AddSingleton(provider =>
-            {
-                var factory = provider.GetRequiredService<ISalesCatalogueClientFactory>();
-                var scsEndpoint = configuration["Endpoints:S100SalesCatalogue"]!;
+            // Register Kiota Defaults and commong authentication provider
 
-                return factory.CreateClient(scsEndpoint.RemoveControlCharacters(), string.Empty);
-            });
+            builder.Services.AddKiotaHandlers();
+            builder.Services.AddKiotaDefaults(new AnonymousAuthenticationProvider());
+            // Uncomment the line below to use Azure Identity for authentication, if required
+            //builder.Services.AddKiotaDefaults(new AzureIdentityAuthenticationProvider(new DefaultAzureCredential()));
+
+
+            // Sales Catalogue Service Kiota
+            builder.Services.RegisterKiotaClient<KiotaSalesCatalogueService>("Endpoints:S100SalesCatalogue");
+
+            // Register the KiotaSalesCatalogueService through an adapter that implements our interface
+            builder.Services.AddSingleton<IKiotaSalesCatalogueService, KiotaSalesCatalogueServiceAdapter>();
+
+            // Register the HeadersInspectionHandlerOption through an adapter that implements our interface
+            builder.Services.AddSingleton<IHeadersInspectionHandlerOption, HeadersInspectionHandlerOptionAdapter>();
+
+            //builder.Services.AddSingleton<ISalesCatalogueClientFactory>(provider => new SalesCatalogueClientFactory(provider.GetRequiredService<IHttpClientFactory>));
+
+            //builder.Services.AddSingleton(provider =>
+            //{
+            //    var factory = provider.GetRequiredService<ISalesCatalogueClientFactory>();
+            //    var scsEndpoint = configuration["Endpoints:S100SalesCatalogue"]!;
+
+            //    return factory.CreateClient(scsEndpoint.RemoveControlCharacters(), string.Empty);
+            //});
 
             builder.Services.AddSingleton<IFileShareReadWriteClientFactory>(provider => new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
 
@@ -100,7 +130,19 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 return factory.CreateClient(fssEndpoint.RemoveControlCharacters(), string.Empty);
             });
 
-            builder.Services.AddSingleton<IOrchestratorSalesCatalogueClient, OrchestratorSalesCatalogueClient>();
+            // Register the OrchestratorSalesCatalogueClient factory
+            builder.Services.AddSingleton<IOrchestratorSalesCatalogueClientFactory, OrchestratorSalesCatalogueClientFactory>();
+
+            // Register the OrchestratorSalesCatalogueClient using the factory
+            builder.Services.AddSingleton<IOrchestratorSalesCatalogueClient>(provider =>
+            {
+                var factory = provider.GetRequiredService<IOrchestratorSalesCatalogueClientFactory>();
+                var kiotaService = provider.GetRequiredService<IKiotaSalesCatalogueService>();
+                var headersOption = provider.GetRequiredService<IHeadersInspectionHandlerOption>();
+
+                return factory.Create(kiotaService, headersOption);
+            });
+
             builder.Services.AddSingleton<IOrchestratorFileShareClient, OrchestratorFileShareClient>();
 
             return builder;
@@ -133,6 +175,40 @@ namespace UKHO.ADDS.EFS.Orchestrator
             });
 
             return serviceCollection;
+        }
+
+        public static IHttpClientBuilder AddConfiguredHttpClient2<TClient>(this IServiceCollection services, string endpointConfigKey,
+                                                                          IDictionary<string, string>? headers = null)
+            where TClient : class
+        {
+            string test = "";
+            var result = services.AddHttpClient<TClient>((provider, client) =>
+            {
+                var config = provider.GetRequiredService<IConfiguration>();
+                var endpoint = config[endpointConfigKey]!;
+                client.BaseAddress = new Uri(endpointConfigKey);
+                test = endpoint;
+                if (headers != null)
+                {
+                    foreach (var header in headers)
+                    {
+                        client.DefaultRequestHeaders.Add(header.Key, header.Value);
+                    }
+                }
+            });
+            return result;
+        }
+
+        public static IServiceCollection AddKiotaHandlers(this IServiceCollection services)
+        {
+            var kiotaHandlers = KiotaClientFactory.GetDefaultHandlerActivatableTypes();
+            //var kiotaHandlers2 = KiotaClientFactory.GetDefaultHandlerTypes();
+
+            foreach (var handler in kiotaHandlers)
+            {
+                services.AddTransient(handler);
+            }
+            return services;
         }
     }
 }
