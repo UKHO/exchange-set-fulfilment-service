@@ -33,6 +33,10 @@ parameters:
 - name: AdditionalDebugging
   type: boolean
   default: false
+# If true, functional tests will be run after deployment.
+- name: RunFunctionalTests
+  type: boolean
+  default: false
 
 jobs:
 - deployment: ${{ parameters.ShortName }}DeployApp
