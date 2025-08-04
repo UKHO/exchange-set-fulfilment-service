@@ -1,11 +1,11 @@
-using System.IO.Compression;
+﻿using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
 using Aspire.Hosting;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using Xunit.Abstractions;
 
-namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
+namespace UKHO.ADDS.EFS.EndToEndTests
 {
     public class EndToEndTests : IAsyncLifetime
     {
@@ -39,14 +39,14 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
             {
                 await _app.StopAsync();
                 await _app.DisposeAsync();
-            }                       
+            }
 
             //Clean up temporary files and directories
-            var outDir = Path.Combine(_projectDirectory, "out");           
-           
+            var outDir = Path.Combine(_projectDirectory, "out");
+
             if (Directory.Exists(outDir))
                 Array.ForEach(Directory.GetFiles(outDir, "*.zip"), File.Delete);
-           
+
         }
 
 
@@ -117,7 +117,7 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
             Assert.Equal("success", builderExitCode.GetString());
 
             // 4.Download Exchange Set, call to the Admin API for downloading the exchange set
-            var exchangeSetDownloadPath = await DownloadExchangeSetAsZipAsync(jobId.ToString());           
+            var exchangeSetDownloadPath = await DownloadExchangeSetAsZipAsync(jobId.ToString());
 
             var sourceZipPath = Path.Combine(_projectDirectory, "TestData/exchangeSet-25Products.testzip");
 
@@ -161,7 +161,7 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
                 var responseJson = JsonDocument.Parse(responseContent);
                 responseJson.RootElement.TryGetProperty("jobId", out var jobId);
                 var jobIdValue = jobId.GetString();
-                if(!string.IsNullOrEmpty(jobIdValue))
+                if (!string.IsNullOrEmpty(jobIdValue))
                 {
                     jobs.Add(jobIdValue);
                 }
@@ -173,7 +173,8 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
             var waitDuration = 2000; // 2 seconds
             var maxTimeToWait = 3; // 3 minutes
             TimeOnly startTime = TimeOnly.FromDateTime(DateTime.Now);
-            do { 
+            do
+            {
                 foreach (var jobId in jobs)
                 {
                     if (completedJobs.Contains(jobId)) continue; // Skip if job already completed
@@ -213,13 +214,13 @@ namespace UKHO.ADDS.EFS.EndToEnd_Tests.Tests
         public async Task<string> DownloadExchangeSetAsZipAsync(string jobId)
         {
             var httpClientMock = _app.CreateHttpClient(ProcessNames.MockService);
-            var mockResponse = await httpClientMock.GetAsync($"/_admin/files/FSS/V01X01_{jobId}.zip");
+            var mockResponse = await httpClientMock.GetAsync($"/_admin/files/FSS/S100-ExchangeSets/V01X01_{jobId}.zip");
             mockResponse.EnsureSuccessStatusCode();
 
             var zipResponse = await mockResponse.Content.ReadAsStringAsync();
 
             await using var zipStream = await mockResponse.Content.ReadAsStreamAsync();
-                        
+
             var destinationFilePath = Path.Combine(_projectDirectory, "out", $"V01X01_{jobId}.zip");
 
             // Ensure the directory exists
