@@ -61,7 +61,7 @@ namespace UKHO.ADDS.Aspire.Configuration.Seeder
                     var configFilePath = builder.Configuration[WellKnownConfigurationName.ConfigurationFilePath]!;
                     var serviceFilePath = builder.Configuration[WellKnownConfigurationName.ExternalServicesFilePath]!;
 
-                    var servicePrefix = builder.Configuration[WellKnownConfigurationName.ServicePrefix]!;
+                    var serviceName = builder.Configuration[WellKnownConfigurationName.ServiceName]!;
 
                     builder.Services.AddSingleton<ConfigurationService>();
 
@@ -79,7 +79,7 @@ namespace UKHO.ADDS.Aspire.Configuration.Seeder
                         var hostedLifetime = x.GetRequiredService<IHostApplicationLifetime>();
                         var configService = x.GetRequiredService<ConfigurationService>();
 
-                        return new LocalSeederService(hostedLifetime, configService, servicePrefix, x.GetRequiredService<ConfigurationClient>(), configFilePath, serviceFilePath);
+                        return new LocalSeederService(hostedLifetime, configService, serviceName, x.GetRequiredService<ConfigurationClient>(), configFilePath, serviceFilePath);
                     });
 
                     var app = builder.Build();

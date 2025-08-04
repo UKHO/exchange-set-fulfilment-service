@@ -24,12 +24,12 @@ namespace UKHO.ADDS.Aspire.Configuration.Seeder.Services
             var externalServiceJson = await File.ReadAllTextAsync(servicesFilePath, cancellationToken);
             var externalServiceJsonCleaned = JsonStripper.StripJsonComments(externalServiceJson);
 
-            var externalServices = await ExternalServiceDiscoParser.ParseAndResolveAsync(environment, externalServiceJsonCleaned);
+            var externalServices = await ExternalServiceDefinitionParser.ParseAndResolveAsync(environment, externalServiceJsonCleaned);
 
             foreach (var externalService in externalServices)
             {
                 var json = JsonCodec.Encode(externalService);
-                var key = $"extsvc:{externalService.Service}";
+                var key = $"{WellKnownConfigurationName.ExternalServiceKeyPrefix}:{externalService.Service}";
 
                 await configurationClient.SetConfigurationSettingAsync(key, json, label, cancellationToken);
             }

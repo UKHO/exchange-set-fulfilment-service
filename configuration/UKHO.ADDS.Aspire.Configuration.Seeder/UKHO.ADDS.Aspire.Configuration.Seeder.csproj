@@ -17,4 +17,8 @@
     <ProjectReference Include="..\UKHO.ADDS.Aspire.Configuration\UKHO.ADDS.Aspire.Configuration.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="UKHO.ADDS.Aspire.Configuration.Seeder.Tests" />
+  </ItemGroup>
+
 </Project>

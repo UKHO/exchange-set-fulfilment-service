@@ -12,6 +12,8 @@
 
         public const string ConfigurationSeederName = "adds-configuration-local-seeder";
 
-        public const string ServicePrefix = "adds-configuration-service-prefix";
+        public const string ServiceName = "adds-configuration-host-service-name";
+
+        public const string ExternalServiceKeyPrefix = "externalservice";
     }
 }

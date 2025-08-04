@@ -18,7 +18,7 @@ namespace UKHO.ADDS.Aspire.Configuration.Hosting
             return appConfig;
         }
 
-        public static IResourceBuilder<ProjectResource> AddConfigurationEmulator(this IDistributedApplicationBuilder builder, string servicePrefix, IEnumerable<IResourceBuilder<ProjectResource>> configurationAwareProjects, IEnumerable<IResourceBuilder<ProjectResource>> externalServiceMocks, string configJsonPath, string externalServicesPath)
+        public static IResourceBuilder<ProjectResource> AddConfigurationEmulator(this IDistributedApplicationBuilder builder, string serviceName, IEnumerable<IResourceBuilder<ProjectResource>> configurationAwareProjects, IEnumerable<IResourceBuilder<ProjectResource>> externalServiceMocks, string configJsonPath, string externalServicesPath)
         {
             var configResolvedPath = Path.GetFullPath(configJsonPath, builder.Environment.ContentRootPath);
             var configFilePath = CopyToTempFile(configResolvedPath);
@@ -39,7 +39,7 @@ namespace UKHO.ADDS.Aspire.Configuration.Hosting
 
                     x.EnvironmentVariables.Add(WellKnownConfigurationName.ConfigurationFilePath, configFilePath);
                     x.EnvironmentVariables.Add(WellKnownConfigurationName.ExternalServicesFilePath, externalServicesFilePath);
-                    x.EnvironmentVariables.Add(WellKnownConfigurationName.ServicePrefix, servicePrefix);
+                    x.EnvironmentVariables.Add(WellKnownConfigurationName.ServiceName, serviceName);
                 });
 
             foreach (var mock in externalServiceMocks)

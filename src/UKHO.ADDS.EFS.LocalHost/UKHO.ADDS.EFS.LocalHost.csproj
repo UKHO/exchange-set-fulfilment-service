@@ -11,12 +11,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="..\..\configuration\external-services.json" Link="external-services.json" />
-    <Content Include="..\..\configuration\new-configuration.json" Link="new-configuration.json" />
-    <Content Include="..\..\config\configuration.json" Link="configuration.json">
+    <Content Include="..\..\configuration\configuration.json" Link="configuration.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\config\external-service-disco.json" Link="external-service-disco.json">
+    <Content Include="..\..\configuration\external-services.json" Link="external-services.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -34,8 +32,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\configuration\UKHO.ADDS.Aspire.Configuration.Hosting\UKHO.ADDS.Aspire.Configuration.Hosting.csproj" IsAspireProjectResource="false" />
-    <ProjectReference Include="..\..\config\UKHO.ADDS.Configuration.AACEmulator\UKHO.ADDS.Configuration.AACEmulator.csproj" />
-    <ProjectReference Include="..\..\config\UKHO.ADDS.Configuration.Aspire\UKHO.ADDS.Configuration.Aspire.csproj" IsAspireProjectResource="false" />
     <ProjectReference Include="..\..\mock\UKHO.ADDS.Mocks.EFS\UKHO.ADDS.Mocks.EFS.csproj" />
     <ProjectReference Include="..\UKHO.ADDS.EFS.BuildRequestMonitor\UKHO.ADDS.EFS.BuildRequestMonitor.csproj" />
     <ProjectReference Include="..\UKHO.ADDS.EFS.Domain\UKHO.ADDS.EFS.Domain.csproj" IsAspireProjectResource="false" />

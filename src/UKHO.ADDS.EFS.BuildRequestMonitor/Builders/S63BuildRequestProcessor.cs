@@ -1,5 +1,5 @@
-﻿using UKHO.ADDS.Configuration.Client;
-using UKHO.ADDS.Configuration.Schema;
+﻿using UKHO.ADDS.Aspire.Configuration;
+using UKHO.ADDS.Aspire.Configuration.Remote;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Services;
 using UKHO.ADDS.EFS.Builds.S63;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
@@ -38,7 +38,9 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
             var queuePort = ExtractPort(queueConnectionString, "QueueEndpoint");
             var blobPort = ExtractPort(blobConnectionString, "BlobEndpoint");
 
-            var s63FileShareUri = await _externalServiceRegistry.GetExternalServiceEndpointAsync(ProcessNames.S63FileShareService, useDockerHost: true);
+            var s63FileShareEndpoint = await _externalServiceRegistry.GetServiceEndpointAsync(ProcessNames.FileShareService, "legacy", EndpointHostSubstitution.Docker);
+            var s63FileShareUri = s63FileShareEndpoint.Uri;
+
             var s63FileShareHealthUri = new Uri(s63FileShareUri!, "health");
 
             // Set the environment variables for the container - in production, these are set from the Azure environment (via the pipeline)

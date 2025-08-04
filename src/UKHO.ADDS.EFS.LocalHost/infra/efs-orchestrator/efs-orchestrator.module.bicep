@@ -111,14 +111,6 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2024-03-01' = {
               value: efs_appconfig_outputs_appconfigendpoint
             }
             {
-              name: 'services__adds-configuration__http__0'
-              value: 'http://adds-configuration.${efs_cae_outputs_azure_container_apps_environment_default_domain}'
-            }
-            {
-              name: 'services__adds-configuration__https__0'
-              value: 'https://adds-configuration.${efs_cae_outputs_azure_container_apps_environment_default_domain}'
-            }
-            {
               name: 'adds-environment'
               value: 'local'
             }
