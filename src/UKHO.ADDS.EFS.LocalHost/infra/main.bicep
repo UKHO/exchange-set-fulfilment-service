@@ -81,10 +81,6 @@ module efs_storage 'efs-storage/efs-storage.module.bicep' = {
     location: location
   }
 }
-output ADDS_CON_KV_VAULTURI string = adds_con_kv.outputs.vaultUri
-output ADDS_CON_WAS_TABLEENDPOINT string = adds_con_was.outputs.tableEndpoint
-output ADDS_CONFIGURATION_IDENTITY_CLIENTID string = adds_configuration_identity.outputs.clientId
-output ADDS_CONFIGURATION_IDENTITY_ID string = adds_configuration_identity.outputs.id
 output AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN string = efs_cae.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN
 output AZURE_CONTAINER_REGISTRY_ENDPOINT string = efs_cae.outputs.AZURE_CONTAINER_REGISTRY_ENDPOINT
 output EFS_APPCONFIG_APPCONFIGENDPOINT string = efs_appconfig.outputs.appConfigEndpoint
