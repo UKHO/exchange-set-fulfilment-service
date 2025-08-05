@@ -8,7 +8,7 @@ namespace UKHO.ADDS.Aspire.Configuration
 {
     public static class ConfigurationExtensions
     {
-        public static TBuilder AddConfiguration<TBuilder>(this TBuilder builder, string serviceName, int refreshIntervalSeconds = 30) where TBuilder : IHostApplicationBuilder
+        public static TBuilder AddConfiguration<TBuilder>(this TBuilder builder, string serviceName, string componentName, int refreshIntervalSeconds = 30) where TBuilder : IHostApplicationBuilder
         {
             var environment = AddsEnvironment.GetEnvironment();
 
@@ -35,7 +35,7 @@ namespace UKHO.ADDS.Aspire.Configuration
             {
                 builder.Configuration.AddAzureAppConfiguration(o =>
                 {
-                    var serviceConnectionStringKey = $"CONNECTIONSTRINGS__{WellKnownConfigurationName.ConfigurationServiceName.ToUpperInvariant()}";
+                    var serviceConnectionStringKey = $"ConnectionStrings__{componentName.ToLowerInvariant()}";
                     var connectionString = Environment.GetEnvironmentVariable(serviceConnectionStringKey)!;
 
                     o.Connect(connectionString)

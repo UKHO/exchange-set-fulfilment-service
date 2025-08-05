@@ -27,7 +27,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor
 
             var builder = Host.CreateApplicationBuilder(args);
 
-            builder.AddConfiguration(ServiceConfiguration.ServiceName);
+            builder.AddConfiguration(ServiceConfiguration.ServiceName, ProcessNames.ConfigurationService);
 
             builder.Logging.ClearProviders();
             builder.Logging.AddSerilog(Log.Logger, dispose: true);
