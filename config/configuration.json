@@ -30,7 +30,7 @@
                     "PollingIntervalSeconds": 1
                 }
             },
-            "EfsSchedulerJob": {
+            "SchedulerJob": {
                 "ExchangeSetGenerationSchedule": "0 0/5 * * * ?" //Quartz Cron expression for scheduling ExchangeSet generation
             }
         },
@@ -83,7 +83,7 @@
                     "PollingIntervalSeconds": 1
                 }
             },
-            "EfsSchedulerJob": {
+            "SchedulerJob": {
                 "ExchangeSetGenerationSchedule": "0 0/5 * * * ?" //Quartz Cron expression for scheduling ExchangeSet generation
             }
         },

@@ -27,7 +27,7 @@ using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Services;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Services.Implementation;
-using UKHO.ADDS.EFS.Orchestrator.SchedulerJob;
+using UKHO.ADDS.EFS.Orchestrator.Schedule;
 using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Services.Storage;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
@@ -112,12 +112,12 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddSingleton<IOrchestratorSalesCatalogueClient, OrchestratorSalesCatalogueClient>();
             builder.Services.AddSingleton<IOrchestratorFileShareClient, OrchestratorFileShareClient>();
 
-            //Added Dependencies for EfsSchedulerJob
+            //Added Dependencies for SchedulerJob
             builder.Services.AddQuartz(q =>
             {
-                var exchangeSetGenerationSchedule = configuration["EfsSchedulerJob:ExchangeSetGenerationSchedule"];
-                var jobKey = new JobKey(nameof(EfsSchedulerJob));
-                q.AddJob<EfsSchedulerJob>(opts => opts.WithIdentity(jobKey));
+                var exchangeSetGenerationSchedule = configuration["SchedulerJob:ExchangeSetGenerationSchedule"];
+                var jobKey = new JobKey(nameof(SchedulerJob));
+                q.AddJob<SchedulerJob>(opts => opts.WithIdentity(jobKey));
 
                 q.AddTrigger(opts => opts
                     .ForJob(jobKey)

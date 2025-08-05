@@ -46,10 +46,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         private const int CreateErrorFileNodeFailedId = BaseEventId + 24;
         private const int CreateErrorFileAddFileFailedId = BaseEventId + 25;
 
-        private const int EfsSchedulerJobStartedId = BaseEventId + 26;
-        private const int EfsSchedulerJobExceptionId = BaseEventId + 27;
-        private const int EfsSchedulerJobCompletedId = BaseEventId + 28;
-        private const int EfsSchedulerJobNextRunId = BaseEventId + 29;
+        private const int SchedulerJobStartedId = BaseEventId + 26;
+        private const int SchedulerJobExceptionId = BaseEventId + 27;
+        private const int SchedulerJobCompletedId = BaseEventId + 28;
+        private const int SchedulerJobNextRunId = BaseEventId + 29;
 
         // An unhandled HTTP error has occurred
         public static readonly EventId UnhandledHttpError = new(UnhandledHttpErrorId, nameof(UnhandledHttpError));
@@ -196,17 +196,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         [LoggerMessage(CreateErrorFileAddFileFailedId, LogLevel.Error, "Failed to add error file to batch for correlation ID: {correlationId} | Timestamp: {timestamp} | Error: {@error}", EventName = nameof(CreateErrorFileAddFileFailed))]
         public static partial void LogCreateErrorFileAddFileFailed(this ILogger logger, string correlationId, DateTimeOffset timestamp, [LogProperties] IError error);
 
-        [LoggerMessage(EfsSchedulerJobStartedId, LogLevel.Information, "EfsSchedulerJob started for correlationId - {CorrelationId} at: {Time}", EventName = nameof(LogEfsSchedulerJobStarted))]
-        public static partial void LogEfsSchedulerJobStarted(this ILogger logger, string correlationId, DateTime? time);
+        [LoggerMessage(SchedulerJobStartedId, LogLevel.Information, "SchedulerJob started for correlationId - {CorrelationId} at: {Time}", EventName = nameof(LogSchedulerJobStarted))]
+        public static partial void LogSchedulerJobStarted(this ILogger logger, string correlationId, DateTime? time);
 
-        [LoggerMessage(EfsSchedulerJobExceptionId, LogLevel.Error, "Exception occurred in EfsSchedulerJob.", EventName = nameof(LogEfsSchedulerJobException))]
-        public static partial void LogEfsSchedulerJobException(this ILogger logger, Exception exception);
+        [LoggerMessage(SchedulerJobExceptionId, LogLevel.Error, "Exception occurred in SchedulerJob.", EventName = nameof(LogSchedulerJobException))]
+        public static partial void LogSchedulerJobException(this ILogger logger, Exception exception);
 
-        [LoggerMessage(EfsSchedulerJobCompletedId, LogLevel.Information, "EfsSchedulerJob completed for correlationId: {CorrelationId}, Result: {@result}", EventName = nameof(LogEfsSchedulerJobCompleted))]
-        public static partial void LogEfsSchedulerJobCompleted(this ILogger logger, string correlationId, [LogProperties] AssemblyPipelineResponse result);
+        [LoggerMessage(SchedulerJobCompletedId, LogLevel.Information, "SchedulerJob completed for correlationId: {CorrelationId}, Result: {@result}", EventName = nameof(LogSchedulerJobCompleted))]
+        public static partial void LogSchedulerJobCompleted(this ILogger logger, string correlationId, [LogProperties] AssemblyPipelineResponse result);
 
-        [LoggerMessage(EfsSchedulerJobNextRunId, LogLevel.Information, "Next scheduled run at: {NextRun}", EventName = nameof(LogEfsSchedulerJobNextRun))]
-        public static partial void LogEfsSchedulerJobNextRun(this ILogger logger, DateTime? nextRun);
+        [LoggerMessage(SchedulerJobNextRunId, LogLevel.Information, "Next scheduled run at: {NextRun}", EventName = nameof(LogSchedulerJobNextRun))]
+        public static partial void LogSchedulerJobNextRun(this ILogger logger, DateTime? nextRun);
 
     }
 }

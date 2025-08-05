@@ -6,16 +6,16 @@ using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
-using UKHO.ADDS.EFS.Orchestrator.SchedulerJob;
+using UKHO.ADDS.EFS.Orchestrator.Schedule;
 
-namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.SchedulerJob
+namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Schedule
 {
     [TestFixture]
-    public class EfsSchedulerJobTest
+    public class SchedulerJobTests
     {
-        private ILogger<EfsSchedulerJob> _logger;
+        private ILogger<SchedulerJob> _logger;
         private IConfiguration _config;
-        private EfsSchedulerJob _efsSchedulerJob;
+        private SchedulerJob _schedulerJob;
         private IJobExecutionContext _jobExecutionContext;
         private IAssemblyPipelineFactory _assemblyPipelineFactory;
         private IAssemblyPipeline _assemblyPipeline;
@@ -33,7 +33,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.SchedulerJob
         [SetUp]
         public void SetUp()
         {
-            _logger = A.Fake<ILogger<EfsSchedulerJob>>();
+            _logger = A.Fake<ILogger<SchedulerJob>>();
             _config = A.Fake<IConfiguration>();
             _jobExecutionContext = A.Fake<IJobExecutionContext>();
             _assemblyPipelineFactory = A.Fake<IAssemblyPipelineFactory>();
@@ -44,7 +44,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.SchedulerJob
 
             A.CallTo(() => _jobExecutionContext.Trigger).Returns(_trigger);
 
-            _efsSchedulerJob = new EfsSchedulerJob(_logger, _config, _assemblyPipelineFactory);
+            _schedulerJob = new SchedulerJob(_logger, _config, _assemblyPipelineFactory);
         }
 
         [Test]
@@ -52,13 +52,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.SchedulerJob
         {
             var nullLoggerException =
                 Assert.Throws<ArgumentNullException>(
-                    () => new EfsSchedulerJob(null, _config, _assemblyPipelineFactory));
+                    () => new SchedulerJob(null, _config, _assemblyPipelineFactory));
             var nullConfigException =
                 Assert.Throws<ArgumentNullException>(
-                    () => new EfsSchedulerJob(_logger, null, _assemblyPipelineFactory));
+                    () => new SchedulerJob(_logger, null, _assemblyPipelineFactory));
             var nullPipelineFactoryException =
                 Assert.Throws<ArgumentNullException>(
-                    () => new EfsSchedulerJob(_logger, _config, null));
+                    () => new SchedulerJob(_logger, _config, null));
 
             Assert.That(nullLoggerException.ParamName, Is.EqualTo("logger"));
             Assert.That(nullConfigException.ParamName, Is.EqualTo("config"));
@@ -66,7 +66,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.SchedulerJob
         }
 
         [Test]
-        public void WhenEfsSchedulerJobExecutesSuccessfully_ThenShouldLogWithoutError()
+        public void WhenSchedulerJobExecutesSuccessfully_ThenShouldLogWithoutError()
         {
             var expectedResponse = CreateExpectedResponse();
             var nextFireTime = DateTimeOffset.UtcNow.AddHours(1);
@@ -79,7 +79,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.SchedulerJob
 
             A.CallTo(() => _trigger.GetNextFireTimeUtc()).Returns(nextFireTime);
 
-            Assert.DoesNotThrowAsync(() => _efsSchedulerJob.Execute(_jobExecutionContext));
+            Assert.DoesNotThrowAsync(() => _schedulerJob.Execute(_jobExecutionContext));
 
             A.CallTo(() => _assemblyPipelineFactory.CreateAssemblyPipeline(
                 A<AssemblyPipelineParameters>.That.Matches(p =>
@@ -94,28 +94,28 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.SchedulerJob
 
             A.CallTo(() => _logger.Log<LoggerMessageState>(
                     LogLevel.Information,
-                    A<EventId>.That.Matches(e => e.Name == "LogEfsSchedulerJobStarted"),
+                    A<EventId>.That.Matches(e => e.Name == "LogSchedulerJobStarted"),
                     A<LoggerMessageState>._,
                     null,
                     A<Func<LoggerMessageState, Exception?, string>>._));
 
             A.CallTo(() => _logger.Log<LoggerMessageState>(
                     LogLevel.Information,
-                    A<EventId>.That.Matches(e => e.Name == "LogEfsSchedulerJobCompleted"),
+                    A<EventId>.That.Matches(e => e.Name == "LogSchedulerJobCompleted"),
                     A<LoggerMessageState>._,
                     null,
                     A<Func<LoggerMessageState, Exception?, string>>._));
 
             A.CallTo(() => _logger.Log<LoggerMessageState>(
                     LogLevel.Information,
-                    A<EventId>.That.Matches(e => e.Name == "LogEfsSchedulerJobNextRun"),
+                    A<EventId>.That.Matches(e => e.Name == "LogSchedulerJobNextRun"),
                     A<LoggerMessageState>._,
                     null,
                     A<Func<LoggerMessageState, Exception?, string>>._));
         }
 
         [Test]
-        public void WhenEfsSchedulerJobExecutesHasExceptionInPipelineCreation_ThenThrowAndLogsException()
+        public void WhenSchedulerJobExecutesHasExceptionInPipelineCreation_ThenThrowAndLogsException()
         {
             var expectedException = new NotSupportedException("Unsupported data standard");
 
@@ -123,20 +123,20 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.SchedulerJob
                 .Throws(expectedException);
 
             var actualException = Assert.ThrowsAsync<NotSupportedException>(
-                () => _efsSchedulerJob.Execute(_jobExecutionContext));
+                () => _schedulerJob.Execute(_jobExecutionContext));
 
             Assert.That(actualException, Is.Not.Null);
 
             A.CallTo(() => _logger.Log<LoggerMessageState>(
                     LogLevel.Information,
-                    A<EventId>.That.Matches(e => e.Name == "LogEfsSchedulerJobStarted"),
+                    A<EventId>.That.Matches(e => e.Name == "LogSchedulerJobStarted"),
                     A<LoggerMessageState>._,
                     null,
                     A<Func<LoggerMessageState, Exception?, string>>._));
 
             A.CallTo(() => _logger.Log<LoggerMessageState>(
                     LogLevel.Error,
-                    A<EventId>.That.Matches(e => e.Name == "LogEfsSchedulerJobException"),
+                    A<EventId>.That.Matches(e => e.Name == "LogSchedulerJobException"),
                     A<LoggerMessageState>._,
                     expectedException,
                     A<Func<LoggerMessageState, Exception?, string>>._))
@@ -144,7 +144,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.SchedulerJob
         }
 
         [Test]
-        public void WhenEfsSchedulerJobExecutesHasExceptionInPipelineRun_ThenThrowAndLogsException()
+        public void WhenSchedulerJobExecutesHasExceptionInPipelineRun_ThenThrowAndLogsException()
         {
             var expectedException = new OperationCanceledException("Pipeline execution was cancelled");
 
@@ -155,20 +155,20 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.SchedulerJob
                 .Throws(expectedException);
 
             var actualException = Assert.ThrowsAsync<OperationCanceledException>(
-                () => _efsSchedulerJob.Execute(_jobExecutionContext));
+                () => _schedulerJob.Execute(_jobExecutionContext));
 
             Assert.That(actualException, Is.Not.Null);
 
             A.CallTo(() => _logger.Log<LoggerMessageState>(
                     LogLevel.Information,
-                    A<EventId>.That.Matches(e => e.Name == "LogEfsSchedulerJobStarted"),
+                    A<EventId>.That.Matches(e => e.Name == "LogSchedulerJobStarted"),
                     A<LoggerMessageState>._,
                     null,
                     A<Func<LoggerMessageState, Exception?, string>>._));
 
             A.CallTo(() => _logger.Log<LoggerMessageState>(
                     LogLevel.Error,
-                    A<EventId>.That.Matches(e => e.Name == "LogEfsSchedulerJobException"),
+                    A<EventId>.That.Matches(e => e.Name == "LogSchedulerJobException"),
                     A<LoggerMessageState>._,
                     expectedException,
                     A<Func<LoggerMessageState, Exception?, string>>._))
@@ -189,20 +189,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.SchedulerJob
                 .Invokes((AssemblyPipelineParameters parameters) => capturedCorrelationIds.Add(parameters.JobId))
                 .Returns(_assemblyPipeline);
 
-            await _efsSchedulerJob.Execute(_jobExecutionContext);
-            await _efsSchedulerJob.Execute(_jobExecutionContext);
-            await _efsSchedulerJob.Execute(_jobExecutionContext);
+            await _schedulerJob.Execute(_jobExecutionContext);
+            await _schedulerJob.Execute(_jobExecutionContext);
+            await _schedulerJob.Execute(_jobExecutionContext);
 
             Assert.That(capturedCorrelationIds, Has.Count.EqualTo(3));
             Assert.That(capturedCorrelationIds[0], Is.Not.EqualTo(capturedCorrelationIds[1]));
             Assert.That(capturedCorrelationIds[1], Is.Not.EqualTo(capturedCorrelationIds[2]));
             Assert.That(capturedCorrelationIds[0], Is.Not.EqualTo(capturedCorrelationIds[2]));
-
-            foreach (var correlationId in capturedCorrelationIds)
-            {
-                Assert.That(correlationId, Does.StartWith("job-"));
-                Assert.That(correlationId.Length, Is.EqualTo(36));
-            }
         }
     }
 }

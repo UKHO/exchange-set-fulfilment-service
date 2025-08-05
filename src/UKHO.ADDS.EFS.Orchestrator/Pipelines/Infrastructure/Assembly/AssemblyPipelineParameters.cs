@@ -4,7 +4,7 @@ using UKHO.ADDS.EFS.Orchestrator.Jobs;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
 {
-    public class AssemblyPipelineParameters
+    internal class AssemblyPipelineParameters
     {
         public required int Version { get; init; }
 

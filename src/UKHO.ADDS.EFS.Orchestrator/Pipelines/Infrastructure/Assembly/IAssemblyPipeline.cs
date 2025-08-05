@@ -3,7 +3,7 @@
     /// <summary>
     ///     Contract for assembly pipelines that orchestrate exchange set generation workflows.
     /// </summary>
-    public interface IAssemblyPipeline
+    internal interface IAssemblyPipeline
     {
         /// <summary>
         ///     Executes the assembly pipeline workflow asynchronously.

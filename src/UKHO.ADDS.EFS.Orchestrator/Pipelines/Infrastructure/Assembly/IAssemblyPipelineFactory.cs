@@ -3,7 +3,7 @@
     /// <summary>
     ///     Factory for creating assembly pipelines based on data standard parameters.
     /// </summary>
-    public interface IAssemblyPipelineFactory
+    internal interface IAssemblyPipelineFactory
     {
         /// <summary>
         ///     Creates an assembly pipeline for the specified parameters and data standard.

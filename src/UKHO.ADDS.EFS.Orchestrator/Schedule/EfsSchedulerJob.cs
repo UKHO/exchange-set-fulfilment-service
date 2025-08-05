@@ -4,21 +4,21 @@ using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 
-namespace UKHO.ADDS.EFS.Orchestrator.SchedulerJob
+namespace UKHO.ADDS.EFS.Orchestrator.Schedule
 {
     /// <summary>
     ///     Quartz.NET scheduled job that automatically triggers S100 exchange set generation
     ///     at configured intervals with comprehensive logging and error handling.
     /// </summary>
     [DisallowConcurrentExecution]
-    public class EfsSchedulerJob : IJob
+    internal class SchedulerJob : IJob
     {
-        private readonly ILogger<EfsSchedulerJob> _logger;
+        private readonly ILogger<SchedulerJob> _logger;
         private readonly IConfiguration _config;
         private readonly IAssemblyPipelineFactory _pipelineFactory;
         private const string CorrelationIdPrefix = "job-";
 
-        public EfsSchedulerJob(ILogger<EfsSchedulerJob> logger, IConfiguration config, IAssemblyPipelineFactory pipelineFactory)
+        public SchedulerJob(ILogger<SchedulerJob> logger, IConfiguration config, IAssemblyPipelineFactory pipelineFactory)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _config = config ?? throw new ArgumentNullException(nameof(config));
@@ -36,7 +36,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.SchedulerJob
             {
                 var correlationId = $"{CorrelationIdPrefix}{Guid.NewGuid():N}";
 
-                _logger.LogEfsSchedulerJobStarted(correlationId, DateTime.UtcNow);
+                _logger.LogSchedulerJobStarted(correlationId, DateTime.UtcNow);
 
                 var message = new JobRequestApiMessage
                 {
@@ -51,13 +51,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.SchedulerJob
 
                 var result = await pipeline.RunAsync(CancellationToken.None);
 
-                _logger.LogEfsSchedulerJobCompleted(correlationId, result);
+                _logger.LogSchedulerJobCompleted(correlationId, result);
 
-                _logger.LogEfsSchedulerJobNextRun(context.Trigger.GetNextFireTimeUtc()?.DateTime);
+                _logger.LogSchedulerJobNextRun(context.Trigger.GetNextFireTimeUtc()?.DateTime);
             }
             catch (Exception ex)
             {
-                _logger.LogEfsSchedulerJobException(ex);
+                _logger.LogSchedulerJobException(ex);
                 throw;
             }
         }
