@@ -1,0 +1,26 @@
+{
+  "Base_URL": "https://localhost:58215",
+  "EFS_TENANT_ID": "",
+  "EFS_CLIENT_ID": "",
+  "EFS_RESOURCE": "",
+  "EFS_SCOPES": "",
+  "JobsEndpoint": "/jobs",
+  "JobStatusEndpoint": "/jobs/{jobId}",
+  "JobBuildEndpoint": "/jobs/{jobId}/build",
+  "MaxPollingTime": 900,
+  "PollingInterval": 5,
+  "ExtendedPollingTime": 1800,
+  "DownloadFlag": false,
+  "FilterData": {
+    "Small": [
+      "ProductName eq '101GB004DEVQK' ",
+      "startswith(ProductName, '101')"
+    ],
+    "Medium": [
+      "ProductName eq '102CA005N5040W00130'",
+      "startswith(ProductName, '102')",
+      "ProductName eq '111CA00_20241217T001500Z_GB3DEVQ0_dcf2' or ProductName eq '104CA00_20241103T001500Z_GB3DEVK0_dcf2'"
+    ]
+  },
+  "EFSToken": "<Token>"
+}
