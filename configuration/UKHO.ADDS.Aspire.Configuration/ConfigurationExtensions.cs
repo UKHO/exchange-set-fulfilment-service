@@ -3,6 +3,7 @@ using Azure.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Serilog;
 using UKHO.ADDS.Aspire.Configuration.Remote;
 
 namespace UKHO.ADDS.Aspire.Configuration
@@ -39,7 +40,9 @@ namespace UKHO.ADDS.Aspire.Configuration
                     var serviceConnectionStringKey = $"ConnectionStrings__{componentName.ToLowerInvariant()}";
                     var endpointString = Environment.GetEnvironmentVariable(serviceConnectionStringKey)!;
 
-                    o.Connect(new Uri(endpointString), new DefaultAzureCredential())
+                    Log.Error($"Adding APP CONFIG: {endpointString}");
+
+                    o.Connect(new Uri(endpointString), new ManagedIdentityCredential())
                         .Select("*", serviceName.ToLowerInvariant())
                         .ConfigureRefresh(refresh =>
                         {
