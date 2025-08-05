@@ -35,21 +35,31 @@ namespace UKHO.ADDS.Aspire.Configuration
             }
             else
             {
-                builder.Configuration.AddAzureAppConfiguration(o =>
+                builder.AddAzureAppConfiguration(componentName.ToLowerInvariant(),null, o =>
                 {
-                    var serviceConnectionStringKey = $"ConnectionStrings__{componentName.ToLowerInvariant()}";
-                    var endpointString = Environment.GetEnvironmentVariable(serviceConnectionStringKey)!;
-
-                    Log.Error($"Adding APP CONFIG: {endpointString}");
-
-                    o.Connect(new Uri(endpointString), new ManagedIdentityCredential())
-                        .Select("*", serviceName.ToLowerInvariant())
-                        .ConfigureRefresh(refresh =>
-                        {
-                            refresh.Register(WellKnownConfigurationName.ReloadSentinelKey, refreshAll: true, label: serviceName.ToLowerInvariant())
-                                .SetRefreshInterval(TimeSpan.FromSeconds(refreshIntervalSeconds));
-                        });
+                    o.Select("*", serviceName.ToLowerInvariant())
+                     .ConfigureRefresh(refresh =>
+                    {
+                        refresh.Register(WellKnownConfigurationName.ReloadSentinelKey, refreshAll: true, label: serviceName.ToLowerInvariant())
+                            .SetRefreshInterval(TimeSpan.FromSeconds(refreshIntervalSeconds));
+                    });
                 });
+
+                //builder.Configuration.AddAzureAppConfiguration(o =>
+                //{
+                //    var serviceConnectionStringKey = $"ConnectionStrings__{componentName.ToLowerInvariant()}";
+                //    var endpointString = Environment.GetEnvironmentVariable(serviceConnectionStringKey)!;
+
+                //    Log.Error($"Adding APP CONFIG: {endpointString}");
+
+                //    o.Connect(new Uri(endpointString), new ManagedIdentityCredential())
+                //        .Select("*", serviceName.ToLowerInvariant())
+                //        .ConfigureRefresh(refresh =>
+                //        {
+                //            refresh.Register(WellKnownConfigurationName.ReloadSentinelKey, refreshAll: true, label: serviceName.ToLowerInvariant())
+                //                .SetRefreshInterval(TimeSpan.FromSeconds(refreshIntervalSeconds));
+                //        });
+                //});
             }
 
             builder.Services.AddSingleton<IExternalServiceRegistry, ExternalServiceRegistry>();
