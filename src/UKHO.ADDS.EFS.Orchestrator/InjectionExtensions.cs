@@ -104,11 +104,12 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 var authTokenProvider = provider.GetRequiredService<IAuthScsTokenProvider>();
                 var scsAuthToken = string.Empty;
 
-                if (builder.Environment.IsDevelopment())
+                if (!builder.Environment.IsDevelopment())
                 {
                     // Get the auth token for the SCS endpoint
                     scsAuthToken = authTokenProvider.GetManagedIdentityAuthAsync(scsResourceId).GetAwaiter().GetResult();
                 }
+
                 return factory.CreateClient(scsEndpoint!.ToString(), scsAuthToken);
             });
 
@@ -124,7 +125,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 var authTokenProvider = provider.GetRequiredService<IAuthFssTokenProvider>();
                 var fssAuthToken = string.Empty;
 
-                if (builder.Environment.IsDevelopment())
+                if (!builder.Environment.IsDevelopment())
                 {
                     // Get the auth token for the FSS endpoint
                     fssAuthToken = authTokenProvider.GetManagedIdentityAuthAsync(fssResourceId).GetAwaiter().GetResult();
