@@ -50,7 +50,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S57
                     JobId = job.Id,
                     BatchId = job.BatchId!,
                     DataStandard = job.DataStandard,
-                    ExchangeSetNameTemplate = Environment.Configuration["S63ExchangeSetNameTemplate"]!
+                    ExchangeSetNameTemplate = Environment.Configuration["orchestrator:Builders:S63:ExchangeSetNameTemplate"]!
                 };
 
                 var messageJson = JsonCodec.Encode(request);

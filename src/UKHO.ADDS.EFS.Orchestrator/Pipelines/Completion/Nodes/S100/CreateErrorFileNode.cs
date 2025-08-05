@@ -19,8 +19,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
     {
         private readonly IOrchestratorFileShareClient _fileShareClient;
         private readonly ILogger<CreateErrorFileNode> _logger;
-        private const string S100ErrorFileNameTemplate = "S100ErrorFileNameTemplate";
-        private const string S100ErrorFileMessageTemplate = "S100ErrorFileMessageTemplate";
+        private const string S100ErrorFileNameTemplate = "orchestrator:Errors:FileNameTemplate";
+        private const string S100ErrorFileMessageTemplate = "orchestrator:Errors:Message";
 
         public CreateErrorFileNode(CompletionNodeEnvironment nodeEnvironment, IOrchestratorFileShareClient fileShareClient, ILogger<CreateErrorFileNode> logger)
             : base(nodeEnvironment)

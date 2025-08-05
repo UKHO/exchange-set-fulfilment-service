@@ -1,0 +1,86 @@
+@inject IDialogService DialogService
+@using System.Security.Cryptography
+@using System.Text
+@using UKHO.ADDS.Aspire.Configuration.Emulator.Common
+@using UKHO.ADDS.Aspire.Configuration.Emulator.ConfigurationSettings
+
+<AzureDialog>
+    <HeaderContent>
+        <AzureDialogHeader Subtitle="Edit the key-value." Title="Edit"/>
+    </HeaderContent>
+
+    <ChildContent>
+        <div class="flex flex-col gap-4 pb-4">
+            <label class="flex flex-col gap-1">
+                <div>Key</div>
+                <AzureInputText disabled name="@nameof(ConfigurationSetting.Key)" Value="@ConfigurationSetting.Key" ValueExpression="@(() => ConfigurationSetting.Key)"/>
+            </label>
+
+            <label class="flex flex-col gap-1">
+                <div>Value</div>
+                <div class="font-mono">
+                    <AzureInputTextArea @bind-Value="Input.Value" name="@nameof(Input.Value)" rows="10"/>
+                </div>
+            </label>
+
+            <label class="flex flex-col gap-1">
+                <div>Label</div>
+                <AzureInputText disabled name="@nameof(ConfigurationSetting.Label)" placeholder="(No label)" Value="@ConfigurationSetting.Label" ValueExpression="@(() => ConfigurationSetting.Label)"/>
+            </label>
+
+            <label class="flex flex-col gap-1">
+                <div>Content type</div>
+                <AzureInputText @bind-Value="Input.ContentType" name="@nameof(Input.ContentType)"/>
+            </label>
+        </div>
+    </ChildContent>
+
+    <FooterContent>
+        <AzureDialogFooter>
+            <AzureButton Appearance="AzureButton.AzureAppearance.Primary" @onclick="@HandleEditClick">Edit</AzureButton>
+        </AzureDialogFooter>
+    </FooterContent>
+</AzureDialog>
+
+@code {
+    [EditorRequired, Parameter] public ConfigurationSetting ConfigurationSetting { get; set; } = null!;
+
+    [CascadingParameter] public IDialogReference DialogReference { get; set; } = null!;
+
+    private InputModel Input { get; } = new();
+
+    protected override void OnParametersSet()
+    {
+        if (Input.Value != ConfigurationSetting.Value)
+        {
+            Input.Value = ConfigurationSetting.Value;
+            StateHasChanged();
+        }
+
+        if (Input.ContentType != ConfigurationSetting.ContentType)
+        {
+            Input.ContentType = ConfigurationSetting.ContentType;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleEditClick(MouseEventArgs args)
+    {
+        var date = DateTimeOffset.UtcNow;
+
+        ConfigurationSetting.Etag = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(date.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss"))));
+        ConfigurationSetting.LastModified = date;
+        ConfigurationSetting.ContentType = Input.ContentType;
+        ConfigurationSetting.Value = Input.Value;
+
+        await DialogService.Close(DialogReference, new DialogResult(ConfigurationSetting));
+    }
+
+    private class InputModel
+    {
+        public string? Value { get; set; }
+
+        public string? ContentType { get; set; }
+    }
+
+}

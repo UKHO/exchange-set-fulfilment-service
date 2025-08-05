@@ -11,18 +11,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="..\..\config\configuration.json" Link="configuration.json">
+    <Content Include="..\..\configuration\configuration.json" Link="configuration.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\config\external-service-disco.json" Link="external-service-disco.json">
+    <Content Include="..\..\configuration\external-services.json" Link="external-services.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting.AppHost" Version="9.3.1" />
-    <PackageReference Include="Aspire.Hosting.Azure.AppConfiguration" Version="9.4.0" />
     <PackageReference Include="Aspire.Hosting.Azure.AppContainers" Version="9.3.1" />
+    <PackageReference Include="Aspire.Hosting.Azure.AppConfiguration" Version="9.3.1" />
     <PackageReference Include="Aspire.Hosting.Azure.Storage" Version="9.3.1" />
     <PackageReference Include="Aspire.Hosting.Redis" Version="9.3.1" />
     <PackageReference Include="CliWrap" Version="3.9.0" />
@@ -31,8 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\config\UKHO.ADDS.Configuration.AACEmulator\UKHO.ADDS.Configuration.AACEmulator.csproj" />
-    <ProjectReference Include="..\..\config\UKHO.ADDS.Configuration.Aspire\UKHO.ADDS.Configuration.Aspire.csproj" IsAspireProjectResource="false" />
+    <ProjectReference Include="..\..\configuration\UKHO.ADDS.Aspire.Configuration.Hosting\UKHO.ADDS.Aspire.Configuration.Hosting.csproj" IsAspireProjectResource="false" />
     <ProjectReference Include="..\..\mock\UKHO.ADDS.Mocks.EFS\UKHO.ADDS.Mocks.EFS.csproj" />
     <ProjectReference Include="..\UKHO.ADDS.EFS.BuildRequestMonitor\UKHO.ADDS.EFS.BuildRequestMonitor.csproj" />
     <ProjectReference Include="..\UKHO.ADDS.EFS.Domain\UKHO.ADDS.EFS.Domain.csproj" IsAspireProjectResource="false" />
