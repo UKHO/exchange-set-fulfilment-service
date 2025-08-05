@@ -232,7 +232,8 @@ jobs:
   - job: ${{ parameters.ShortName }}FunctionalTests
     dependsOn:
       - ${{ parameters.ShortName }}DeployApp
-    pool: $(WindowsPool)
+    #pool: $(WindowsPool)
+    pool: $(LinuxPool)
     displayName: '${{ upper(parameters.ShortName) }} - functional tests'
     variables:
       - template: var/${{ lower(parameters.ShortName) }}-deploy.yml
