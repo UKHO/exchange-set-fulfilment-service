@@ -255,12 +255,16 @@ jobs:
         displayName: 'Restore NuGet packages for Functional Tests'
         inputs:
           command: restore
-          projects: 'test/UKHO.ADDS.EFS.EndToEnd-Tests/UKHO.ADDS.EFS.EndToEnd-Tests.csproj'
+          projects: 'UKHO.ADDS.EFS.EndToEnd-Tests.csproj'
+          feedsToUse: config
+          noCache: true
+          nugetConfigPath: '$(Build.SourcesDirectory)/efs/BuildNuget.config'
+          workingDirectory: '$(Build.SourcesDirectory)/efs/test/UKHO.ADDS.EFS.EndToEnd-Tests'
 
       - task: DotNetCoreCLI@2
         displayName: 'Run Functional Tests'
         inputs:
           command: test
-          projects: 'test/UKHO.ADDS.EFS.EndToEnd-Tests/UKHO.ADDS.EFS.EndToEnd-Tests.csproj'
+          projects: 'UKHO.ADDS.EFS.EndToEnd-Tests.csproj'
           arguments: '--configuration Release --no-restore --logger trx'
-          workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
+          workingDirectory: '$(Build.SourcesDirectory)/efs/test/UKHO.ADDS.EFS.EndToEnd-Tests'
