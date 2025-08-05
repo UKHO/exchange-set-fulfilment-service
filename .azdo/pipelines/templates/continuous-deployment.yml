@@ -250,8 +250,8 @@ jobs:
         inputs:
           targetType: 'inline'
           script: |
-            Write-Host "Listing folders in $(Build.SourcesDirectory)/efs/test"
-            Get-ChildItem -Path "$(Build.SourcesDirectory)/efs/test" -Directory | ForEach-Object { Write-Host $_.FullName }
+            Write-Host "Listing folders in $(Build.SourcesDirectory)/test"
+            Get-ChildItem -Path "$(Build.SourcesDirectory)/test" -Directory | ForEach-Object { Write-Host $_.FullName }
 
       - task: UseDotNet@2
         displayName: 'Use .NET SDK $(SdkVersion)'
@@ -266,8 +266,8 @@ jobs:
           projects: '**/*UKHO.ADDS.EFS.EndToEnd-Tests.csproj'
           feedsToUse: config
           noCache: true
-          nugetConfigPath: '$(Build.SourcesDirectory)/efs/BuildNuget.config'
-          workingDirectory: '$(Build.SourcesDirectory)/efs/test/UKHO.ADDS.EFS.EndToEnd-Tests'
+          nugetConfigPath: '$(Build.SourcesDirectory)/BuildNuget.config'
+          workingDirectory: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.EndToEnd-Tests'
 
       - task: DotNetCoreCLI@2
         displayName: 'Run Functional Tests'
@@ -275,4 +275,4 @@ jobs:
           command: test
           projects: '**/*UKHO.ADDS.EFS.EndToEnd-Tests.csproj'
           arguments: '--configuration Release --no-restore --logger trx'
-          workingDirectory: '$(Build.SourcesDirectory)/efs/test/UKHO.ADDS.EFS.EndToEnd-Tests'
+          workingDirectory: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.EndToEnd-Tests'
