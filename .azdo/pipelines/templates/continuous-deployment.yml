@@ -13,10 +13,6 @@ parameters:
 - name: DeployOrchestrator
   type: boolean
   default: false
-# Deploy the configuration container app.
-- name: DeployConfiguration
-  type: boolean
-  default: false
 # Deploy the S100 builder container app job.
 - name: DeployBuilderS100
   type: boolean
@@ -172,16 +168,16 @@ jobs:
                   echo "--------------------------------------------------------------------------------"
                 fi
 
-                sed -i "s/{{cae_domain}}/${AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN}/g" "$(Build.SourcesDirectory)/efs/config/external-service-disco.json"
+                sed -i "s/{{cae_domain}}/${AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN}/g" "$(Build.SourcesDirectory)/efs/configuration/external-services.json"
 
                 if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
-                  echo "external-service-disco.json:"
+                  echo "external-services.json:"
                   echo "--------------------------------------------------------------------------------"
-                  cat "$(Build.SourcesDirectory)/efs/config/external-service-disco.json"
+                  cat "$(Build.SourcesDirectory)/efs/configuration/external-services.json"
                   echo "--------------------------------------------------------------------------------"
                 fi
 
-                dotnet run --project $(Build.SourcesDirectory)/efs/config/UKHO.ADDS.Configuration.Seeder/UKHO.ADDS.Configuration.Seeder.csproj --configuration Release --no-restore -- "$(AZURE_ENV_NAME)" "$(Build.SourcesDirectory)/efs/config/configuration.json" "$(Build.SourcesDirectory)/efs/config/external-service-disco.json" "$ADDS_CON_WAS_TABLEENDPOINT"
+                dotnet run --project $(Build.SourcesDirectory)/efs/configuration/UKHO.ADDS.Aspire.Configuration.Seeder/UKHO.ADDS.Aspire.Configuration.Seeder.csproj --configuration Release --no-restore -- "efs" "$(AZURE_ENV_NAME)" "$(Build.SourcesDirectory)/efs/configuration/configuration.json" "$(Build.SourcesDirectory)/efs/configuration/external-services.json" "$EFS_APPCONFIG_APPCONFIGENDPOINT"
             env:
               AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
               AZURE_ENV_NAME: $(AZURE_ENV_NAME)
@@ -194,13 +190,6 @@ jobs:
               AppName: efs-redis
               AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
               DeployApp: ${{ parameters.DeployRedis }}
-
-          - template: container-app-deploy.yml
-            parameters:
-              AzureSubscription: ${{ variables.AzureSubscription }}
-              AppName: adds-configuration
-              AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
-              DeployApp: ${{ parameters.DeployConfiguration }}
 
           - template: container-app-deploy.yml
             parameters:

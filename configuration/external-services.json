@@ -1,0 +1,118 @@
+{
+    "local": {
+        "FileShare": {
+            "endpoints": [
+                {
+                    "url": "http://{{adds-mocks-efs}}/fss/",
+                    "tag": ""
+                },
+                {
+                    "url": "http://{{adds-mocks-efs}}/fss6357/",
+                    "tag": "legacy"
+                }
+            ],
+            "clientId": "mock"
+        },
+        "SalesCatalogue": {
+            "endpoints": [
+                {
+                    "url": "http://{{adds-mocks-efs}}/scs/",
+                    "tag": ""
+                },
+                {
+                    "url": "http://{{adds-mocks-efs}}/scs6357/",
+                    "tag": "legacy"
+                }
+            ],
+            "clientId": "mock"
+        }
+    },
+    "dev": {
+        "FileShare": {
+            "endpoints": [
+                {
+                    "url": "https://adds-mocks-efs.{{cae_domain}}/fss/",
+                    "tag": ""
+                },
+                {
+                    "url": "https://adds-mocks-efs.{{cae_domain}}/fss6357/",
+                    "tag": "legacy"
+                }
+            ],
+            "clientId": "mock"
+        },
+        "SalesCatalogue": {
+            "endpoints": [
+                {
+                    "url": "https://adds-mocks-efs.{{cae_domain}}/scs/",
+                    "tag": ""
+                },
+                {
+                    "url": "https://adds-mocks-efs.{{cae_domain}}/scs6357/",
+                    "tag": "legacy"
+                }
+            ],
+            "clientId": "mock"
+        }
+    },
+    "vni": {
+        "FileShare": {
+            "endpoints": [
+                {
+                    "url": "https://filesvnextiat.admiralty.co.uk",
+                    "tag": ""
+                }
+            ],
+            "clientId": "87158d61-0d84-40c1-af53-5dcebb2e8543"
+        },
+        "SalesCatalogue": {
+            "endpoints": [
+                {
+                    "url": "https://salescataloguevnextiat.ukho.gov.uk",
+                    "tag": ""
+                }
+            ],
+            "clientId": "95c022fd-c5ce-4439-b99a-3a4ec601deb0"
+        }
+    },
+    "vne": {
+        "FileShare": {
+            "endpoints": [
+                {
+                    "url": "https://filesvnexte2e.admiralty.co.uk",
+                    "tag": ""
+                }
+            ],
+            "clientId": "eea14877-aeec-46ef-88e5-2ec78478661e"
+        },
+        "SalesCatalogue": {
+            "endpoints": [
+                {
+                    "url": "https://salescataloguevnexte2e.ukho.gov.uk",
+                    "tag": ""
+                }
+            ],
+            "clientId": "a7578234-48fb-47d6-8d4e-b1dbd3760d6f"
+        }
+    },
+    "iat": {
+        "FileShare": {
+            "endpoints": [
+                {
+                    "url": "https://filesiat.admiralty.co.uk",
+                    "tag": ""
+                }
+            ],
+            "clientId": "9dd4dcc7-915a-4b8b-9d0d-12ec26f1d5a8"
+        },
+        "SalesCatalogue": {
+            "endpoints": [
+                {
+                    "url": "https://salescatalogueiat.ukho.gov.uk",
+                    "tag": ""
+                }
+            ],
+            "clientId": "c010ba76-361c-4f5a-9600-1d5411088937"
+        }
+    }
+}

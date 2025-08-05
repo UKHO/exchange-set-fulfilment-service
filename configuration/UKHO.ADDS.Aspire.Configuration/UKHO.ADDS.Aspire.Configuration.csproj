@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Microsoft.Extensions.Configuration.AzureAppConfiguration" Version="9.4.0-preview.1.25378.8" />
+    <PackageReference Include="UKHO.ADDS.Infrastructure.Serialization" Version="0.0.50326-alpha.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="UKHO.ADDS.Aspire.Configuration.Seeder" />
+    <InternalsVisibleTo Include="UKHO.ADDS.Aspire.Configuration.Seeder.Tests" />
+  </ItemGroup>
+
+</Project>

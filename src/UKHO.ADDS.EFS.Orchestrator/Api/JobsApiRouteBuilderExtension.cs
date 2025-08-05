@@ -1,5 +1,4 @@
-﻿using UKHO.ADDS.Configuration.Client;
-using UKHO.ADDS.EFS.Builds;
+﻿using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Extensions;
