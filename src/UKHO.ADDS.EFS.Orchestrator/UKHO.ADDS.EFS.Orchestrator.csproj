@@ -28,7 +28,6 @@
     <PackageReference Include="Aspire.StackExchange.Redis.DistributedCaching" Version="9.3.1" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.24.0" />
     <PackageReference Include="Konscious.Security.Cryptography.Blake2" Version="1.1.1" />
-    <PackageReference Include="Microsoft.ApplicationInsights" Version="2.23.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.3" />
     <PackageReference Include="Scalar.AspNetCore" Version="2.1.1" />
     <PackageReference Include="Docker.DotNet" Version="3.125.15" />
