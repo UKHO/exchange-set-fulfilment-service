@@ -17,10 +17,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
     /// </summary>
     public class EventHubSerilogSink : ILogEventSink, IAsyncDisposable
     {
-        private readonly EventHubProducerClient _producerClient;
-        private readonly ITextFormatter _formatter;
+        private readonly EventHubProducerClient _eventHubProducerClient;
+        private readonly ITextFormatter _textFormatter;
         private readonly Channel<LogEvent> _logChannel;
-        private readonly CancellationTokenSource _cts = new();
+        private readonly CancellationTokenSource _cancellationTokenSource = new();
         private readonly Task _processingTask;
 
         // Configuration Parameters
@@ -55,10 +55,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
                 throw new InvalidOperationException("Missing Event Hub connection string or event hub name.");
 
             // Use the provided or default JSON formatter
-            _formatter = formatter ?? new JsonFormatter();
+            _textFormatter = formatter ?? new JsonFormatter();
 
             // Instantiate EventHub client with DefaultAzureCredential (MSI-based auth) and WebSocket transport
-            _producerClient = new EventHubProducerClient(
+            _eventHubProducerClient = new EventHubProducerClient(
                 fullyQualifiedNamespace: connectionString,
                 eventHubName: eventHubName,
                 credential: new DefaultAzureCredential(),
@@ -103,12 +103,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
 
             try
             {
-                while (await _logChannel.Reader.WaitToReadAsync(_cts.Token))
+                while (await _logChannel.Reader.WaitToReadAsync(_cancellationTokenSource.Token))
                 {
                     while (_logChannel.Reader.TryRead(out var logEvent))
                     {
                         using var sw = new StringWriter();
-                        _formatter.Format(logEvent, sw);
+                        _textFormatter.Format(logEvent, sw);
                         var payload = Encoding.UTF8.GetBytes(sw.ToString());
                         buffer.Add(new EventData(payload));
 
@@ -120,7 +120,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
                     }
 
                     // Trigger timed flush
-                    if (await timer.WaitForNextTickAsync(_cts.Token) && buffer.Count > 0)
+                    if (await timer.WaitForNextTickAsync(_cancellationTokenSource.Token) && buffer.Count > 0)
                     {
                         await FlushAsync(buffer);
                     }
@@ -148,7 +148,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
         {
             try
             {
-                EventDataBatch currentBatch = await _producerClient.CreateBatchAsync(_cts.Token);
+                EventDataBatch currentBatch = await _eventHubProducerClient.CreateBatchAsync(_cancellationTokenSource.Token);
 
                 foreach (var evt in buffer)
                 {
@@ -158,7 +158,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
                         await SafeSendAsync(currentBatch);
                         currentBatch.Dispose();
 
-                        currentBatch = await _producerClient.CreateBatchAsync(_cts.Token);
+                        currentBatch = await _eventHubProducerClient.CreateBatchAsync(_cancellationTokenSource.Token);
 
                         // If event is too large to fit in an empty batch, drop it
                         if (!currentBatch.TryAdd(evt))
@@ -189,12 +189,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
         /// </summary>
         private async Task SafeSendAsync(EventDataBatch batch)
         {
-            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token);
+            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(_cancellationTokenSource.Token);
             timeoutCts.CancelAfter(SendTimeout);
 
             try
             {
-                await _producerClient.SendAsync(batch, timeoutCts.Token);
+                await _eventHubProducerClient.SendAsync(batch, timeoutCts.Token);
             }
             catch (Exception ex)
             {
@@ -209,7 +209,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
         {
             try
             {
-                _cts.Cancel(); // Signal cancellation
+                _cancellationTokenSource.Cancel(); // Signal cancellation
                 _logChannel.Writer.TryComplete(); // Complete channel
                 await _processingTask; // Wait for background loop to finish
             }
@@ -219,7 +219,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
             }
             finally
             {
-                await _producerClient.DisposeAsync(); // Cleanup Event Hub client
+                await _eventHubProducerClient.DisposeAsync(); // Cleanup Event Hub client
             }
         }
     }
