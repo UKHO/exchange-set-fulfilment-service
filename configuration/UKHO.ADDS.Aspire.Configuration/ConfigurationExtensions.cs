@@ -8,7 +8,7 @@ namespace UKHO.ADDS.Aspire.Configuration
 {
     public static class ConfigurationExtensions
     {
-        public static TBuilder AddConfiguration<TBuilder>(this TBuilder builder, string serviceName, int refreshIntervalSeconds = 30, string sentinelKeyName = "reloadsentinel") where TBuilder : IHostApplicationBuilder
+        public static TBuilder AddConfiguration<TBuilder>(this TBuilder builder, string serviceName, int refreshIntervalSeconds = 30) where TBuilder : IHostApplicationBuilder
         {
             var environment = AddsEnvironment.GetEnvironment();
 
@@ -26,7 +26,7 @@ namespace UKHO.ADDS.Aspire.Configuration
                         .Select("*", serviceName.ToLowerInvariant())
                         .ConfigureRefresh(refresh =>
                         {
-                            refresh.Register(sentinelKeyName, refreshAll: true, label: serviceName.ToLowerInvariant())
+                            refresh.Register(WellKnownConfigurationName.ReloadSentinelKey, refreshAll: true, label: serviceName.ToLowerInvariant())
                                 .SetRefreshInterval(TimeSpan.FromSeconds(refreshIntervalSeconds)); 
                         });
                 });
@@ -42,7 +42,7 @@ namespace UKHO.ADDS.Aspire.Configuration
                         .Select("*", serviceName.ToLowerInvariant())
                         .ConfigureRefresh(refresh =>
                         {
-                            refresh.Register(sentinelKeyName, refreshAll: true, label: serviceName.ToLowerInvariant())
+                            refresh.Register(WellKnownConfigurationName.ReloadSentinelKey, refreshAll: true, label: serviceName.ToLowerInvariant())
                                 .SetRefreshInterval(TimeSpan.FromSeconds(refreshIntervalSeconds));
                         });
                 });

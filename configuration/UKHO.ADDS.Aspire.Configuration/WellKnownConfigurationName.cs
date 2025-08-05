@@ -15,5 +15,7 @@
         public const string ServiceName = "adds-configuration-host-service-name";
 
         public const string ExternalServiceKeyPrefix = "externalservice";
+
+        public const string ReloadSentinelKey = "reloadsentinel";
     }
 }

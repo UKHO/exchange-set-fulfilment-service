@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using Azure.Data.AppConfiguration;
+﻿using Azure.Data.AppConfiguration;
 using UKHO.ADDS.Aspire.Configuration.Seeder.Json;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
@@ -15,6 +14,8 @@ namespace UKHO.ADDS.Aspire.Configuration.Seeder.Services
             var configJsonCleaned = JsonStripper.StripJsonComments(configJson);
 
             var flattenedConfig = JsonFlattener.Flatten(AddsEnvironment.Local, configJsonCleaned);
+
+            await configurationClient.SetConfigurationSettingAsync(WellKnownConfigurationName.ReloadSentinelKey, "1", label, cancellationToken);
 
             foreach (var value in flattenedConfig)
             {
