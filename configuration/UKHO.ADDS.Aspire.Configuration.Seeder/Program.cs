@@ -16,8 +16,6 @@ namespace UKHO.ADDS.Aspire.Configuration.Seeder
 
             if (string.IsNullOrEmpty(sentinel))
             {
-                var environment = AddsEnvironment.GetEnvironment();
-
                 var parseResult = Parser.Default.ParseArguments<CommandLineParameters>(args);
 
                 if (parseResult.Value == null)
@@ -35,8 +33,10 @@ namespace UKHO.ADDS.Aspire.Configuration.Seeder
                     var configService = new ConfigurationService();
                     var configClient = new ConfigurationClient(new Uri(parameters.AppConfigServiceUrl), new DefaultAzureCredential());
 
+                    var addsEnvironment = AddsEnvironment.Parse(parameters.EnvironmentName);
+
                     await configService.SeedConfigurationAsync(
-                        environment,
+                        addsEnvironment,
                         configClient,
                         parameters.ServiceName,
                         parameters.ConfigurationFilePath,
