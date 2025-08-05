@@ -177,7 +177,7 @@ jobs:
                   echo "--------------------------------------------------------------------------------"
                 fi
 
-                dotnet run --project $(Build.SourcesDirectory)/efs/configuration/UKHO.ADDS.Aspire.Configuration.Seeder/UKHO.ADDS.Aspire.Configuration.Seeder.csproj --configuration Release --no-restore -- "$(AZURE_ENV_NAME)" "$(Build.SourcesDirectory)/efs/configuration/configuration.json" "$(Build.SourcesDirectory)/efs/configuration/external-services.json" "$EFS_APPCONFIG_APPCONFIGENDPOINT"
+                dotnet run --project $(Build.SourcesDirectory)/efs/configuration/UKHO.ADDS.Aspire.Configuration.Seeder/UKHO.ADDS.Aspire.Configuration.Seeder.csproj --configuration Release --no-restore -- "efs" "$(AZURE_ENV_NAME)" "$(Build.SourcesDirectory)/efs/configuration/configuration.json" "$(Build.SourcesDirectory)/efs/configuration/external-services.json" "$EFS_APPCONFIG_APPCONFIGENDPOINT"
             env:
               AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
               AZURE_ENV_NAME: $(AZURE_ENV_NAME)
