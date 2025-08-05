@@ -35,15 +35,53 @@ namespace UKHO.ADDS.Aspire.Configuration
             }
             else
             {
-                builder.AddAzureAppConfiguration(componentName.ToLowerInvariant(),null, o =>
+                builder.Services.AddAzureAppConfiguration();
+
+                var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
                 {
-                    o.Select("*", serviceName.ToLowerInvariant())
-                     .ConfigureRefresh(refresh =>
+                    Retry =
                     {
-                        refresh.Register(WellKnownConfigurationName.ReloadSentinelKey, refreshAll: true, label: serviceName.ToLowerInvariant())
-                            .SetRefreshInterval(TimeSpan.FromSeconds(refreshIntervalSeconds));
-                    });
+                        MaxRetries = 10,
+                        Mode = Azure.Core.RetryMode.Exponential,
+                        Delay = TimeSpan.FromSeconds(2),
+                        MaxDelay = TimeSpan.FromSeconds(30)
+                    }
                 });
+
+                builder.Configuration.AddAzureAppConfiguration(options =>
+                {
+                    Log.Information("CONFIG Azure App Config");
+
+                    var key = $"ConnectionStrings__{componentName.ToLowerInvariant()}";
+                    var uriString = Environment.GetEnvironmentVariable(key)!;
+
+                    Log.Information($"CONFIG AAC URI : {uriString}");
+
+                    options.Connect(new Uri(uriString), credential)
+                        .Select("*", serviceName.ToLowerInvariant())
+                        .ConfigureRefresh(refresh =>
+                        {
+                            refresh.Register(
+                                    WellKnownConfigurationName.ReloadSentinelKey,
+                                    refreshAll: true,
+                                    label: serviceName.ToLowerInvariant())
+                                .SetRefreshInterval(TimeSpan.FromSeconds(refreshIntervalSeconds));
+                        });
+
+                    Log.Information("Connected");
+                });
+
+                //builder.AddAzureAppConfiguration(componentName.ToLowerInvariant(),null, o =>
+                //{
+                //    o.Select("*", serviceName.ToLowerInvariant())
+                //     .ConfigureRefresh(refresh =>
+                //    {
+                //        refresh.Register(WellKnownConfigurationName.ReloadSentinelKey, refreshAll: true, label: serviceName.ToLowerInvariant())
+                //            .SetRefreshInterval(TimeSpan.FromSeconds(refreshIntervalSeconds));
+                //    });
+
+
+                //});
             }
 
             builder.Services.AddSingleton<IExternalServiceRegistry, ExternalServiceRegistry>();
