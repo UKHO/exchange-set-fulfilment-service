@@ -1,4 +1,5 @@
 ﻿using Azure.Data.AppConfiguration;
+using Azure.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -36,9 +37,9 @@ namespace UKHO.ADDS.Aspire.Configuration
                 builder.Configuration.AddAzureAppConfiguration(o =>
                 {
                     var serviceConnectionStringKey = $"ConnectionStrings__{componentName.ToLowerInvariant()}";
-                    var connectionString = Environment.GetEnvironmentVariable(serviceConnectionStringKey)!;
+                    var endpointString = Environment.GetEnvironmentVariable(serviceConnectionStringKey)!;
 
-                    o.Connect(connectionString)
+                    o.Connect(new Uri(endpointString), new DefaultAzureCredential())
                         .Select("*", serviceName.ToLowerInvariant())
                         .ConfigureRefresh(refresh =>
                         {
