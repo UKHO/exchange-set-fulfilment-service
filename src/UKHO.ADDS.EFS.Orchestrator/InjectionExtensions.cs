@@ -115,13 +115,13 @@ namespace UKHO.ADDS.EFS.Orchestrator
             //Added Dependencies for EfsSchedulerJob
             builder.Services.AddQuartz(q =>
             {
-                var efsGenerationSchedule = configuration["EfsSchedulerJob:EfsGenerationSchedule"];
+                var exchangeSetGenerationSchedule = configuration["EfsSchedulerJob:ExchangeSetGenerationSchedule"];
                 var jobKey = new JobKey(nameof(EfsSchedulerJob));
                 q.AddJob<EfsSchedulerJob>(opts => opts.WithIdentity(jobKey));
 
                 q.AddTrigger(opts => opts
                     .ForJob(jobKey)
-                    .WithCronSchedule(efsGenerationSchedule!, x => x.WithMisfireHandlingInstructionDoNothing())
+                    .WithCronSchedule(exchangeSetGenerationSchedule!, x => x.WithMisfireHandlingInstructionDoNothing())
                 );
             });
 

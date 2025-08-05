@@ -16,6 +16,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.SchedulerJob
         private readonly ILogger<EfsSchedulerJob> _logger;
         private readonly IConfiguration _config;
         private readonly IAssemblyPipelineFactory _pipelineFactory;
+        private readonly string CorrelationIdPrefix = "job-";
 
         public EfsSchedulerJob(ILogger<EfsSchedulerJob> logger, IConfiguration config, IAssemblyPipelineFactory pipelineFactory)
         {
@@ -33,7 +34,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.SchedulerJob
         {
             try
             {
-                var correlationId = $"job-{Guid.NewGuid():N}";
+                var correlationId = $"{CorrelationIdPrefix}{Guid.NewGuid():N}";
 
                 _logger.LogEfsSchedulerJobStarted(correlationId, DateTime.UtcNow);
 
