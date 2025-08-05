@@ -15,12 +15,12 @@ namespace UKHO.ADDS.Aspire.Configuration.Seeder.Services
 
             var flattenedConfig = JsonFlattener.Flatten(AddsEnvironment.Local, configJsonCleaned);
 
-            await configurationClient.SetConfigurationSettingAsync(WellKnownConfigurationName.ReloadSentinelKey, "1", label, cancellationToken);
-
             foreach (var value in flattenedConfig)
             {
                 await configurationClient.SetConfigurationSettingAsync(value.Key, value.Value, label, cancellationToken);
             }
+
+            await configurationClient.SetConfigurationSettingAsync(WellKnownConfigurationName.ReloadSentinelKey, "change this value to reload all", label, cancellationToken);
 
             var externalServiceJson = await File.ReadAllTextAsync(servicesFilePath, cancellationToken);
             var externalServiceJsonCleaned = JsonStripper.StripJsonComments(externalServiceJson);

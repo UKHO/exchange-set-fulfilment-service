@@ -16,6 +16,6 @@
 
         public const string ExternalServiceKeyPrefix = "externalservice";
 
-        public const string ReloadSentinelKey = "reloadsentinel";
+        public const string ReloadSentinelKey = "auto.reload.sentinel";
     }
 }
