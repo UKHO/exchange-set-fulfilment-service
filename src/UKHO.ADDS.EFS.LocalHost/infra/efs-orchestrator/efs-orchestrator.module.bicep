@@ -123,7 +123,7 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2024-03-01' = {
       ]
       scale: {
         minReplicas: 1
-        maxReplicas: 20
+        maxReplicas: 10
         rules: [
           {
             name: 'cpu-rule'
