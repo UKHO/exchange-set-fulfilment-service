@@ -21,6 +21,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly
             AddPipelineNode<GetDataStandardTimestampNode>(cancellationToken);
             AddPipelineNode<GetProductsForDataStandardNode>(cancellationToken);
             AddPipelineNode<FilterProductsNode>(cancellationToken);
+            AddPipelineNode<FilterProductsListNode>(cancellationToken);
             AddPipelineNode<GetS100ProductNamesNode>(cancellationToken);
 
             AddPipelineNode<CheckFingerprintNode>(cancellationToken);
