@@ -129,7 +129,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             }
             else
             {
-                builder.AddConfiguration([orchestratorService]);
+                builder.AddConfiguration(ProcessNames.ConfigurationService, [orchestratorService]);
             }
 
             if (builder.Environment.IsDevelopment())
