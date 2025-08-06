@@ -102,4 +102,3 @@ output EFS_STORAGE_BLOBENDPOINT string = efs_storage.outputs.blobEndpoint
 output EFS_STORAGE_QUEUEENDPOINT string = efs_storage.outputs.queueEndpoint
 output EFS_STORAGE_TABLEENDPOINT string = efs_storage.outputs.tableEndpoint
 output EFS_STORAGE_NAME string = efs_storage.outputs.name
-output EFS_SERVICE_IDENTITY_ID string = efs_service_identity.outputs.id
