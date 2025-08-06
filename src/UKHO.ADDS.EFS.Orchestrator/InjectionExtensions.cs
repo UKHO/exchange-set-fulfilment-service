@@ -1,8 +1,15 @@
-﻿using System.Text.Json;
+﻿using System.Net;
+using System.Text.Json;
 using Microsoft.AspNetCore.Http.Json;
+using Microsoft.Kiota.Abstractions.Authentication;
+using Microsoft.Kiota.Http.HttpClientLibrary;
+using Microsoft.Kiota.Http.HttpClientLibrary.Middleware;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
+using Microsoft.Win32;
+using UKHO.ADDS.Clients.Common.MiddlewareExtensions;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
+using UKHO.ADDS.Clients.Kiota.SalesCatalogueService;
 using UKHO.ADDS.Clients.SalesCatalogueService;
 using UKHO.ADDS.Configuration.Client;
 using UKHO.ADDS.EFS.Builds;
@@ -83,16 +90,36 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddSingleton<IBuilderLogForwarder, BuilderLogForwarder>();
             builder.Services.AddSingleton<StorageInitializerService>();
 
-            builder.Services.AddSingleton<ISalesCatalogueClientFactory>(provider => new SalesCatalogueClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
+            //builder.Services.AddSingleton<ISalesCatalogueClientFactory>(provider => new SalesCatalogueClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
 
-            builder.Services.AddSingleton(provider =>
+            //builder.Services.AddSingleton(provider =>
+            //{
+            //    var factory = provider.GetRequiredService<ISalesCatalogueClientFactory>();
+            //    var registry = provider.GetRequiredService<IExternalServiceRegistry>();
+
+            //    var scsEndpoint = registry.GetExternalServiceEndpointAsync(ProcessNames.S100SalesCatalogueService).GetAwaiter().GetResult();
+
+            //    return factory.CreateClient(scsEndpoint!.ToString(), string.Empty);
+            //});
+            builder.Services.AddKiotaHandlers();
+
+            builder.Services.AddKiotaDefaults(new AnonymousAuthenticationProvider());
+
+            // Uncomment the line below to use Azure Identity for authentication, if required
+            //builder.Services.AddKiotaDefaults(new AzureIdentityAuthenticationProvider(new DefaultAzureCredential()));
+            builder.Services.AddTransient<HeadersInspectionHandler>();
+            builder.Services.AddHttpClient();
+            builder.Services.AddSingleton<Microsoft.Kiota.Abstractions.IRequestAdapter, HttpClientRequestAdapter>();
+            builder.Services.AddHttpClient<KiotaSalesCatalogueService>()
+        .AddHttpMessageHandler<HeadersInspectionHandler>();
+            // Sales Catalogue Service Kiota
+            builder.Services.AddSingleton<KiotaSalesCatalogueService>(provider =>
             {
-                var factory = provider.GetRequiredService<ISalesCatalogueClientFactory>();
                 var registry = provider.GetRequiredService<IExternalServiceRegistry>();
-
                 var scsEndpoint = registry.GetExternalServiceEndpointAsync(ProcessNames.S100SalesCatalogueService).GetAwaiter().GetResult();
-
-                return factory.CreateClient(scsEndpoint!.ToString(), string.Empty);
+                var requestAdapter = provider.GetRequiredService<Microsoft.Kiota.Abstractions.IRequestAdapter>();
+                requestAdapter.BaseUrl = scsEndpoint!.ToString();
+                return new KiotaSalesCatalogueService(requestAdapter);
             });
 
             builder.Services.AddSingleton<IFileShareReadWriteClientFactory>(provider => new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
@@ -111,6 +138,17 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddSingleton<IOrchestratorFileShareClient, OrchestratorFileShareClient>();
 
             return builder;
+        }
+        public static IServiceCollection AddKiotaHandlers(this IServiceCollection services)
+        {
+            var kiotaHandlers = KiotaClientFactory.GetDefaultHandlerActivatableTypes();
+            //var kiotaHandlers2 = KiotaClientFactory.GetDefaultHandlerTypes();
+
+            foreach (var handler in kiotaHandlers)
+            {
+                services.AddTransient(handler);
+            }
+            return services;
         }
 
         private static IServiceCollection ConfigureOpenApi(this IServiceCollection serviceCollection)

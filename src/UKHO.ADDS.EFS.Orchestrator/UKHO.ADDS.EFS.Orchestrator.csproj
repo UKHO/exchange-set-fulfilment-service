@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -42,9 +42,8 @@
     <PackageReference Include="StringToExpression" Version="2.2.0" />
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.3" />
-    <PackageReference Include="UKHO.ADDS.Clients.Common" Version="0.0.50701-alpha.2" />
     <PackageReference Include="UKHO.ADDS.Clients.FileShareService.ReadWrite" Version="0.0.50701-alpha.2" />
-    <PackageReference Include="UKHO.ADDS.Clients.SalesCatalogueService" Version="0.0.50701-alpha.2" />
+    <PackageReference Include="UKHO.ADDS.Clients.SalesCatalogueService" Version="0.0.50728-alpha.8" />
   </ItemGroup>
 
   <ItemGroup>
