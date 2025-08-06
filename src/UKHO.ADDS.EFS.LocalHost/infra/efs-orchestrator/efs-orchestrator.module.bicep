@@ -35,9 +35,6 @@ param efs_orchestrator_identity_outputs_clientid string
 resource efs_orchestrator 'Microsoft.App/containerApps@2024-03-01' = {
   name: 'efs-orchestrator'
   location: location
-  tags: {
-    'hidden-title': 'EFS'
-  }
   properties: {
     configuration: {
       secrets: [
@@ -144,5 +141,8 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2024-03-01' = {
       '${efs_orchestrator_identity_outputs_id}': { }
       '${efs_cae_outputs_azure_container_registry_managed_identity_id}': { }
     }
+  }
+  tags: {
+    'hidden-title': 'EFS'
   }
 }
