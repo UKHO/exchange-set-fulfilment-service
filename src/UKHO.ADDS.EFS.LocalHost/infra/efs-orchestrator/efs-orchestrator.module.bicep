@@ -123,6 +123,29 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2024-03-01' = {
       ]
       scale: {
         minReplicas: 1
+        maxReplicas: 20
+        rules: [
+          {
+            name: 'cpu-rule'
+            custom: {
+              type: 'cpu'
+              metadata: {
+                type: 'Utilization'
+                value: '60'
+              }
+            }
+          }
+          {
+            name: 'memory-rule'
+            custom: {
+              type: 'memory'
+              metadata: {
+                type: 'Utilization'
+                value: '70'
+              }
+            }
+          }
+        ]
       }
     }
   }

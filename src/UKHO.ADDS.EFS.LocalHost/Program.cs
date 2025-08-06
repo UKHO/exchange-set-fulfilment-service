@@ -115,7 +115,41 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WithReference(redisCache)
                 .WaitFor(redisCache)
                 .WithExternalHttpEndpoints()
-                .WithScalar("API Browser");
+                .WithScalar("API Browser")
+                .PublishAsAzureContainerApp((module, app) => {
+                    app.Template.Scale.MinReplicas = 1;
+                    app.Template.Scale.MaxReplicas = 10;
+
+                    // CPU Rule
+                    app.Template.Scale.Rules.Add(new ContainerAppScaleRule
+                    {
+                        Name = "cpu-rule",
+                        Custom = new ContainerAppCustomScaleRule
+                        {
+                            CustomScaleRuleType = "cpu",
+                            Metadata = new BicepDictionary<string>
+                            {
+                                { "type", "Utilization" },
+                                { "value", "60" }
+                            }
+                        }
+                    });
+
+                    // Memory Rule
+                    app.Template.Scale.Rules.Add(new ContainerAppScaleRule
+                    {
+                        Name = "memory-rule",
+                        Custom = new ContainerAppCustomScaleRule
+                        {
+                            CustomScaleRuleType = "memory",
+                            Metadata = new BicepDictionary<string>
+                            {
+                                { "type", "Utilization" },
+                                { "value", "70" }
+                            }
+                        }
+                    });
+                });
 
             if (builder.Environment.IsDevelopment())
             {
