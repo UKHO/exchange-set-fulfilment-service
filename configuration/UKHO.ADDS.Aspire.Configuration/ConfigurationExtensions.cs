@@ -37,7 +37,7 @@ namespace UKHO.ADDS.Aspire.Configuration
             {
                 builder.Services.AddAzureAppConfiguration();
 
-                var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
+                var credential = new ManagedIdentityCredential(new ManagedIdentityCredentialOptions
                 {
                     Retry =
                     {
