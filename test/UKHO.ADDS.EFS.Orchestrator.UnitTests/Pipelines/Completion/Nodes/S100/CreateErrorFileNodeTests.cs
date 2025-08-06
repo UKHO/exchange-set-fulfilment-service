@@ -30,7 +30,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
         private PipelineContext<S100Build> _pipelineContext;
         private IConfiguration _configuration;
         private readonly CancellationToken _cancellationToken = CancellationToken.None;
-        private const string S100ErrorFileNameTemplate = "S100ErrorFileNameTemplate";
+        private const string S100ErrorFileNameTemplate = "orchestrator:Errors:FileNameTemplate";
         private const string TestBatchId = "test-batch-id";
         private const string TestJobId = "test-job-id";
 
@@ -265,7 +265,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
             var capturedStream = new MemoryStream();
             var addFileResponse = new AddFileToBatchResponse();
 
-            A.CallTo(() => _configuration["S100ErrorFileMessageTemplate"])
+            A.CallTo(() => _configuration["orchestrator:Errors:Message"])
                 .Returns("There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]");
 
             A.CallTo(() => _fileShareClient.AddFileToBatchAsync(

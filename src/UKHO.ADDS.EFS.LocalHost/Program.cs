@@ -10,7 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Projects;
 using Serilog;
-using UKHO.ADDS.Configuration.Aspire;
+using UKHO.ADDS.Aspire.Configuration.Hosting;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.LocalHost.Extensions;
 
@@ -32,6 +32,17 @@ namespace UKHO.ADDS.EFS.LocalHost
             var builder = DistributedApplication.CreateBuilder(args);
             builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());
 
+            await BuildEfs(builder);
+
+            var application = builder.Build();
+
+            await application.RunAsync();
+
+            return 0;
+        }
+
+        private static async Task BuildEfs(IDistributedApplicationBuilder builder)
+        {
             // Get parameters
             var subnetResourceId = builder.AddParameter("subnetResourceId");
             var zoneRedundant = builder.AddParameter("zoneRedundant");
@@ -112,28 +123,13 @@ namespace UKHO.ADDS.EFS.LocalHost
             }
 
             // Configuration
-            var configurationService = builder.AddConfiguration(@"../../config/configuration.json", @"../../config/external-service-disco.json",
-                    [mockService],
-                    ServiceConfiguration.ServiceName)
-                .WithExternalHttpEndpoints();
-
             if (builder.Environment.IsDevelopment())
             {
-                var aacEmulator = builder.AddProject<UKHO_ADDS_Configuration_AACEmulator>(ProcessNames.ConfigurationService);
-                orchestratorService.WithReference(aacEmulator)
-                    .WaitFor(aacEmulator);
+                builder.AddConfigurationEmulator(ServiceConfiguration.ServiceName, [orchestratorService, requestMonitor!], [mockService], @"../../configuration/configuration.json", @"../../configuration/external-services.json");
             }
             else
             {
-                var appConfig = builder.AddAzureAppConfiguration(ProcessNames.ConfigurationService);
-                orchestratorService.WithReference(appConfig);
-            }
-
-            orchestratorService.WithConfiguration(configurationService);
-
-            if (builder.Environment.IsDevelopment())
-            {
-                requestMonitor!.WithConfiguration(configurationService);
+                builder.AddConfiguration([orchestratorService]);
             }
 
             if (builder.Environment.IsDevelopment())
@@ -142,12 +138,6 @@ namespace UKHO.ADDS.EFS.LocalHost
                 await CreateBuilderContainerImages(ProcessNames.S63Builder, "latest", "UKHO.ADDS.EFS.Builder.S63");
                 await CreateBuilderContainerImages(ProcessNames.S57Builder, "latest", "UKHO.ADDS.EFS.Builder.S57");
             }
-
-            var application = builder.Build();
-
-            await application.RunAsync();
-
-            return 0;
         }
 
         private static async Task CreateBuilderContainerImages(string name, string tag, string projectName)

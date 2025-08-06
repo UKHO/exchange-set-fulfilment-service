@@ -1,0 +1,78 @@
+@inject IOptionsMonitor<HmacOptions> HmacOptionsMonitor
+@inject IServer Server
+@page "/keys"
+@using Microsoft.AspNetCore.Hosting.Server
+@using Microsoft.AspNetCore.Hosting.Server.Features
+@using Microsoft.Extensions.Options
+@using UKHO.ADDS.Aspire.Configuration.Emulator.Authentication.Hmac
+
+<PageTitle>Access keys</PageTitle>
+
+<div class="flex flex-col">
+    <AzureToolbar>
+        <AzureToolbarButton Label="Values" OnClick="@HandleValuesClick"/>
+    </AzureToolbar>
+
+    <div class="p-5">
+        <div class="max-w-[728px]">
+            <div class="mb-1 text-2xl font-semibold">Access keys</div>
+
+            <div class="flex flex-row gap-2 items-stretch mb-3 w-full h-[36px]" role="tablist">
+                <div class="flex items-center text-lg font-semibold border-b-2 cursor-pointer border-b-lochmara dark:hover:bg-shark dark:active:bg-tuatara hover:bg-concrete active:bg-gallery" role="tab">
+                    <div class="px-2">Read-write keys</div>
+                </div>
+            </div>
+
+            <div class="px-2">
+                <div class="pb-6">
+                    <div class="flex flex-col gap-4 pb-4">
+                        <label class="flex flex-col gap-1">
+                            <div>Endpoint</div>
+                            <AzureInputText name="@nameof(Endpoint)" readonly Value="@Endpoint" ValueExpression="@(() => Endpoint)"/>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="pb-6">
+                    <div class="mb-1 text-lg">Primary key</div>
+
+                    <div class="flex flex-col gap-4 pb-4">
+                        <label class="flex flex-col gap-1">
+                            <div>Id (credential)</div>
+                            <AzureInputText name="@nameof(Credential)" readonly Value="@(Credential)" ValueExpression="@(() => Credential)"/>
+                        </label>
+
+                        <label class="flex flex-col gap-1">
+                            <div>Secret</div>
+                            <AzureInputText name="@nameof(Secret)" readonly Value="@(Secret)" ValueExpression="@(() => Secret)"/>
+                        </label>
+
+                        <label class="flex flex-col gap-1">
+                            <div>Connection string</div>
+                            <AzureInputText name="@nameof(ConnectionString)" readonly Value="@(ConnectionString)" ValueExpression="@(() => ConnectionString)"/>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string ConnectionString => IsHidden ? new string('•', 99) : $"Endpoint={Endpoint};Id={Credential};Secret={Secret}";
+
+    private string Credential => IsHidden ? new string('•', 99) : HmacOptionsMonitor.Get(HmacDefaults.AuthenticationScheme).Credential;
+
+    private string? Endpoint => Server.Features.Get<IServerAddressesFeature>()?.Addresses.FirstOrDefault();
+
+    private string Secret => IsHidden ? new string('•', 99) : HmacOptionsMonitor.Get(HmacDefaults.AuthenticationScheme).Secret;
+
+    private bool IsHidden { get; set; } = true;
+
+    private void HandleValuesClick(MouseEventArgs args)
+    {
+        IsHidden = !IsHidden;
+        StateHasChanged();
+    }
+
+}

@@ -26,7 +26,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
         public override Task<bool> ShouldExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
         {
-            var enabled = Environment.Configuration.GetValue<bool>("DeduplicationEnabled");
+            var enabled = Environment.Configuration.GetValue<bool>("orchestrator:Deduplication:Enabled");
             return Task.FromResult(enabled && context.Subject.Job.JobState == JobState.Submitted);
         }
 
@@ -51,7 +51,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
             var historyJson = JsonCodec.Encode(history);
 
-            var expiry = Environment.Configuration.GetValue<TimeSpan>("DeduplicationExpiry");
+            var expiry = Environment.Configuration.GetValue<TimeSpan>("orchestrator:Deduplication:Expiry");
 
             await _distributedCache.SetAsync(discriminantHash, Encoding.UTF8.GetBytes(historyJson), new DistributedCacheEntryOptions()
             {
