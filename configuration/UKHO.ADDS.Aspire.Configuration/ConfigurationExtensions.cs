@@ -35,9 +35,14 @@ namespace UKHO.ADDS.Aspire.Configuration
             }
             else
             {
+                var clientIdKey = $"AZURE_CLIENT_ID";
+                var clientId = Environment.GetEnvironmentVariable(clientIdKey)!;
+
+                Log.Information($"Using UAMI Client ID: {clientId}");
+
                 builder.Services.AddAzureAppConfiguration();
 
-                var credential = new ManagedIdentityCredential(new ManagedIdentityCredentialOptions
+                var credential = new ManagedIdentityCredential(clientId: clientId, new ManagedIdentityCredentialOptions()
                 {
                     Retry =
                     {
@@ -50,12 +55,12 @@ namespace UKHO.ADDS.Aspire.Configuration
 
                 builder.Configuration.AddAzureAppConfiguration(options =>
                 {
-                    Log.Information("CONFIG Azure App Config");
+                    Log.Information("About to configure Azure App Config");
 
                     var key = $"ConnectionStrings__{componentName.ToLowerInvariant()}";
                     var uriString = Environment.GetEnvironmentVariable(key)!;
 
-                    Log.Information($"CONFIG AAC URI : {uriString}");
+                    Log.Information($"Azure App Config URI: {uriString}");
 
                     options.Connect(new Uri(uriString), credential)
                         .Select("*", serviceName.ToLowerInvariant())
@@ -68,7 +73,7 @@ namespace UKHO.ADDS.Aspire.Configuration
                                 .SetRefreshInterval(TimeSpan.FromSeconds(refreshIntervalSeconds));
                         });
 
-                    Log.Information("Connected");
+                    Log.Information("Connected to Azure App Config");
                 });
 
                 //builder.AddAzureAppConfiguration(componentName.ToLowerInvariant(),null, o =>

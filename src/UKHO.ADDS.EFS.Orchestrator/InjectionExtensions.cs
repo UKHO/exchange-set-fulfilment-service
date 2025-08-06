@@ -78,7 +78,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddSingleton<ITable<BuildMemento>, BuildMementoTable>();
 
             builder.Services.AddSingleton<IBuilderLogForwarder, BuilderLogForwarder>();
-            //builder.Services.AddSingleton<StorageInitializerService>();
+            builder.Services.AddSingleton<StorageInitializerService>();
 
             builder.Services.AddSingleton<ISalesCatalogueClientFactory>(provider => new SalesCatalogueClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
 
