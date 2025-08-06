@@ -19,6 +19,13 @@ param principalId string = ''
 })
 @secure()
 param efs_redis_password string
+param efsServiceIdentityName string
+@metadata({azd: {
+  type: 'resourceGroup'
+  config: {}
+  }
+})
+param efsServiceIdentityResourceGroup string
 param subnetResourceId string
 param zoneRedundant bool
 
@@ -72,6 +79,14 @@ module efs_orchestrator_roles_efs_storage 'efs-orchestrator-roles-efs-storage/ef
     efs_storage_outputs_name: efs_storage.outputs.name
     location: location
     principalId: efs_orchestrator_identity.outputs.principalId
+  }
+}
+module efs_service_identity 'efs-service-identity/efs-service-identity.module.bicep' = {
+  name: 'efs-service-identity'
+  scope: resourceGroup(efsServiceIdentityResourceGroup)
+  params: {
+    efsServiceIdentityName: efsServiceIdentityName
+    location: location
   }
 }
 module efs_storage 'efs-storage/efs-storage.module.bicep' = {
