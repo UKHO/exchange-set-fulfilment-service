@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
-using UKHO.ADDS.Configuration.Client;
+using UKHO.ADDS.Aspire.Configuration;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Orchestrator.Api;
@@ -46,7 +46,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     .MinimumLevel.Override("Azure.Storage.Blobs", LogEventLevel.Fatal)
                     .MinimumLevel.Override("Azure.Storage.Queues", LogEventLevel.Warning));
 
-                builder.Configuration.AddConfigurationService("UKHO.ADDS.EFS.Orchestrator", "UKHO.ADDS.EFS.Builder.S100", "UKHO.ADDS.EFS.Builder.S63", "UKHO.ADDS.EFS.Builder.S57");
+                builder.AddConfiguration(ServiceConfiguration.ServiceName, ProcessNames.ConfigurationService);
 
                 builder.AddServiceDefaults().AddOrchestratorServices();
 

@@ -2,16 +2,15 @@
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
+using UKHO.ADDS.Aspire.Configuration.Remote;
 using Quartz;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.SalesCatalogueService;
-using UKHO.ADDS.Configuration.Client;
 using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Builds.S100;
 using UKHO.ADDS.EFS.Builds.S57;
 using UKHO.ADDS.EFS.Builds.S63;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
-using UKHO.ADDS.EFS.Extensions;
 using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
@@ -44,8 +43,6 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddHttpContextAccessor();
 
             builder.Services.Configure<JsonOptions>(options => JsonCodec.DefaultOptions.CopyTo(options.SerializerOptions));
-
-            builder.Services.AddExternalServiceDiscovery();
 
             builder.AddAzureQueueClient(StorageConfiguration.QueuesName);
             builder.AddAzureTableClient(StorageConfiguration.TablesName);
@@ -92,9 +89,9 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 var factory = provider.GetRequiredService<ISalesCatalogueClientFactory>();
                 var registry = provider.GetRequiredService<IExternalServiceRegistry>();
 
-                var scsEndpoint = registry.GetExternalServiceEndpointAsync(ProcessNames.S100SalesCatalogueService).GetAwaiter().GetResult();
+                var scsEndpoint = registry.GetServiceEndpointAsync(ProcessNames.SalesCatalogueService).GetAwaiter().GetResult();
 
-                return factory.CreateClient(scsEndpoint!.ToString(), string.Empty);
+                return factory.CreateClient(scsEndpoint.Uri!.ToString(), string.Empty);
             });
 
             builder.Services.AddSingleton<IFileShareReadWriteClientFactory>(provider => new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
@@ -104,9 +101,9 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 var factory = provider.GetRequiredService<IFileShareReadWriteClientFactory>();
                 var registry = provider.GetRequiredService<IExternalServiceRegistry>();
 
-                var fssEndpoint = registry.GetExternalServiceEndpointAsync(ProcessNames.S100FileShareService).GetAwaiter().GetResult();
+                var fssEndpoint = registry.GetServiceEndpointAsync(ProcessNames.FileShareService).GetAwaiter().GetResult();
 
-                return factory.CreateClient(fssEndpoint!.ToString(), string.Empty);
+                return factory.CreateClient(fssEndpoint.Uri!.ToString(), string.Empty);
             });
 
             builder.Services.AddSingleton<IOrchestratorSalesCatalogueClient, OrchestratorSalesCatalogueClient>();

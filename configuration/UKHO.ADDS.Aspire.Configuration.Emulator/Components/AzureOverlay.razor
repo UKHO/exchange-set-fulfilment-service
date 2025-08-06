@@ -1,0 +1,32 @@
+@if (Visible)
+{
+    <div class="fixed inset-0 w-full h-full cursor-auto z-9900" @onclick="@HandleClick" @oncontextmenu="@HandleClick" @oncontextmenu:preventDefault="true">
+        @ChildContent
+    </div>
+}
+
+@code {
+
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [Parameter] public bool Dismissible { get; set; } = true;
+
+    [Parameter] public EventCallback<MouseEventArgs> OnClose { get; set; }
+
+    [Parameter] public bool Visible { get; set; }
+
+    [Parameter] public EventCallback<bool> VisibleChanged { get; set; }
+
+    private async Task HandleClick(MouseEventArgs args)
+    {
+        if (Dismissible && Visible)
+        {
+            Visible = false;
+
+            await VisibleChanged.InvokeAsync(Visible);
+
+            await OnClose.InvokeAsync(args);
+        }
+    }
+
+}

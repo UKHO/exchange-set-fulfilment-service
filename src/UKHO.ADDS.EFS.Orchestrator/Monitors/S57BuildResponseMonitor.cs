@@ -11,7 +11,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Monitors
         private readonly CompletionPipelineFactory _pipelineFactory;
 
         public S57BuildResponseMonitor(CompletionPipelineFactory pipelineFactory, QueueServiceClient queueServiceClient, IConfiguration configuration, ILogger<S57BuildResponseMonitor> logger)
-            : base(StorageConfiguration.S57BuildResponseQueueName, "Queues:S57ResponseQueue:PollingIntervalSeconds", "Queues:S57ResponseQueue:BatchSize", queueServiceClient, configuration, logger) =>
+            : base(StorageConfiguration.S57BuildResponseQueueName, "orchestrator:Builders:S57:Responses:PollingIntervalSeconds", "orchestrator:Builders:S57:Responses:BatchSize", queueServiceClient, configuration, logger) =>
             _pipelineFactory = pipelineFactory;
 
         protected override async Task ProcessMessageAsync(BuildResponse messageInstance, CancellationToken stoppingToken)
