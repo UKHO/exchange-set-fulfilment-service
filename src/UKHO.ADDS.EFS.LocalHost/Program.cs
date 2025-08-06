@@ -1,6 +1,5 @@
 using System.Runtime.InteropServices;
-using Azure.Core;
-using Azure.Provisioning;
+using Azure.Provisioning.AppConfiguration;
 using Azure.Provisioning.AppContainers;
 using Azure.Provisioning.Storage;
 using CliWrap;
@@ -57,10 +56,10 @@ namespace UKHO.ADDS.EFS.LocalHost
                 var containerEnvironment = config.GetProvisionableResources().OfType<ContainerAppManagedEnvironment>().Single();
                 containerEnvironment.VnetConfiguration = new ContainerAppVnetConfiguration
                 {
-                    InfrastructureSubnetId = new BicepValue<ResourceIdentifier>("subnetResourceId"),
+                    InfrastructureSubnetId = subnetResourceId.AsProvisioningParameter(config),
                     IsInternal = false
                 };
-                containerEnvironment.IsZoneRedundant = false;
+                containerEnvironment.IsZoneRedundant = zoneRedundant.AsProvisioningParameter(config);
                 // This doesn't seem to work at the moment so I've updated the bicep tags directly.
                 containerEnvironment.Tags.Add("aspire-resource-name", ServiceConfiguration.AcaEnvironmentName);
                 containerEnvironment.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
@@ -81,12 +80,20 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             // Redis cache
             var redisCache = builder.AddRedis(ProcessNames.RedisCache)
-                .WithRedisInsight();
+                .WithRedisInsight()
+                .PublishAsAzureContainerApp((infra, app) =>
+                {
+                    app.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
+                });
 
             // ADDS Mock
             var mockService = builder.AddProject<UKHO_ADDS_Mocks_EFS>(ProcessNames.MockService)
                 .WithDashboard("Dashboard")
-                .WithExternalHttpEndpoints();
+                .WithExternalHttpEndpoints()
+                .PublishAsAzureContainerApp((infra, app) =>
+                {
+                    app.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
+                });
 
             // Build Request Monitor
             IResourceBuilder<ProjectResource>? requestMonitor = null;
@@ -115,7 +122,11 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WithReference(redisCache)
                 .WaitFor(redisCache)
                 .WithExternalHttpEndpoints()
-                .WithScalar("API Browser");
+                .WithScalar("API Browser")
+                .PublishAsAzureContainerApp((infra, app) =>
+                {
+                    app.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
+                });
 
             if (builder.Environment.IsDevelopment())
             {
@@ -129,7 +140,12 @@ namespace UKHO.ADDS.EFS.LocalHost
             }
             else
             {
-                builder.AddConfiguration(ProcessNames.ConfigurationService, [orchestratorService]);
+                var appConfig = builder.AddConfiguration(ProcessNames.ConfigurationService, [orchestratorService]);
+                appConfig.ConfigureInfrastructure(config =>
+                {
+                    var appConfigResource = config.GetProvisionableResources().OfType<AppConfigurationStore>().Single();
+                    appConfigResource.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
+                });
             }
 
             if (builder.Environment.IsDevelopment())
