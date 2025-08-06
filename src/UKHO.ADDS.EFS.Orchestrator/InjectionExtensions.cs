@@ -112,7 +112,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
             //Added Dependencies for SchedulerJob
             builder.Services.AddQuartz(q =>
             {
-                var exchangeSetGenerationSchedule = configuration["SchedulerJob:ExchangeSetGenerationSchedule"];
+                var exchangeSetGenerationSchedule = configuration["orchestrator:SchedulerJob:ExchangeSetGenerationSchedule"];
                 var jobKey = new JobKey(nameof(SchedulerJob));
                 q.AddJob<SchedulerJob>(opts => opts.WithIdentity(jobKey));
 
