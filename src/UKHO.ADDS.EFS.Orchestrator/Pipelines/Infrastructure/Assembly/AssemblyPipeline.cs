@@ -5,7 +5,7 @@ using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
 {
-    internal abstract class AssemblyPipeline
+    internal abstract class AssemblyPipeline : IAssemblyPipeline
     {
         public abstract Task<AssemblyPipelineResponse> RunAsync(CancellationToken cancellationToken);
     }
