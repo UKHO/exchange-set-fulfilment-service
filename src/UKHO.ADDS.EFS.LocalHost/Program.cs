@@ -1,7 +1,9 @@
 using System.Runtime.InteropServices;
 using Aspire.Hosting.Azure;
+using Azure.Provisioning;
 using Azure.Provisioning.AppConfiguration;
 using Azure.Provisioning.AppContainers;
+using Azure.Provisioning.Resources;
 using Azure.Provisioning.Storage;
 using CliWrap;
 using Docker.DotNet;
@@ -48,10 +50,14 @@ namespace UKHO.ADDS.EFS.LocalHost
             var zoneRedundant = builder.AddParameter("zoneRedundant");
             var efsServiceIdentityName = builder.AddParameter("efsServiceIdentityName");
             var efsServiceIdentityResourceGroup = builder.AddParameter("efsServiceIdentityResourceGroup");
+            //var efsServiceIdentityId = builder.AddParameter("efsServiceIdentityId");
 
-            // Existing user managed identity for SCS/FSS
+            // Existing user managed identity
             var efsServiceIdentity = builder.AddAzureUserAssignedIdentity(ServiceConfiguration.EfsServiceIdentity)
                 .PublishAsExisting(efsServiceIdentityName, efsServiceIdentityResourceGroup);
+
+            // Resource access identity
+            //var efsResourceIdentity = builder.AddAzureUserAssignedIdentity(ServiceConfiguration.EfsResourceIdentity);
 
             // Container apps environment
             var acaEnv = builder.AddAzureContainerAppEnvironment(ServiceConfiguration.AcaEnvironmentName)
@@ -84,6 +90,8 @@ namespace UKHO.ADDS.EFS.LocalHost
             var storageQueue = storage.AddQueues(StorageConfiguration.QueuesName);
             var storageTable = storage.AddTables(StorageConfiguration.TablesName);
             var storageBlob = storage.AddBlobs(StorageConfiguration.BlobsName);
+            //efsResourceIdentity.WithRoleAssignments(storage, StorageBuiltInRole.StorageQueueDataContributor, StorageBuiltInRole.StorageTableDataContributor, StorageBuiltInRole.StorageBlobDataContributor);
+            //efsServiceIdentity.WithRoleAssignments(storage, StorageBuiltInRole.StorageQueueDataContributor, StorageBuiltInRole.StorageTableDataContributor, StorageBuiltInRole.StorageBlobDataContributor);
 
             // Redis cache
             var redisCache = builder.AddRedis(ProcessNames.RedisCache)
@@ -128,11 +136,14 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WaitFor(mockService)
                 .WithReference(redisCache)
                 .WaitFor(redisCache)
+                //.WithAzureUserAssignedIdentity(efsResourceIdentity)
+                .WithAzureUserAssignedIdentity(efsServiceIdentity)
                 .WithExternalHttpEndpoints()
                 .WithScalar("API Browser")
                 .PublishAsAzureContainerApp((infra, app) =>
                 {
                     app.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
+                    //app.Identity.UserAssignedIdentities.Add($"${{{efsServiceIdentityId.AsProvisioningParameter(infra).BicepIdentifier}}}", new BicepValue<UserAssignedIdentityDetails>(new UserAssignedIdentityDetails()));
                 });
 
             if (builder.Environment.IsDevelopment())
@@ -153,6 +164,8 @@ namespace UKHO.ADDS.EFS.LocalHost
                     var appConfigResource = config.GetProvisionableResources().OfType<AppConfigurationStore>().Single();
                     appConfigResource.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
                 });
+                //efsResourceIdentity.WithRoleAssignments(appConfig, AppConfigurationBuiltInRole.AppConfigurationDataOwner);
+                //efsServiceIdentity.WithRoleAssignments(appConfig, AppConfigurationBuiltInRole.AppConfigurationDataOwner);
             }
 
             if (builder.Environment.IsDevelopment())
