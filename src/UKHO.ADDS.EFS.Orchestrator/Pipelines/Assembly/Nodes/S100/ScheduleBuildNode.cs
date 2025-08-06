@@ -50,8 +50,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                     JobId = job.Id,
                     BatchId = job.BatchId!,
                     DataStandard = job.DataStandard,
-                    WorkspaceKey = Environment.Configuration["IICWorkspaceKey"]!,
-                    ExchangeSetNameTemplate = Environment.Configuration["S100ExchangeSetNameTemplate"]!
+                    WorkspaceKey = Environment.Configuration["orchestrator:Builders:S100:IICWorkspaceKey"]!,
+                    ExchangeSetNameTemplate = Environment.Configuration["orchestrator:Builders:S100:ExchangeSetNameTemplate"]!
                 };
 
                 var messageJson = JsonCodec.Encode(request);

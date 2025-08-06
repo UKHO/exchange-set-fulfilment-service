@@ -28,6 +28,8 @@ param efs_storage_outputs_blobendpoint string
 @secure()
 param efs_redis_password_value string
 
+param efs_appconfig_outputs_appconfigendpoint string
+
 param efs_orchestrator_identity_outputs_clientid string
 
 resource efs_orchestrator 'Microsoft.App/containerApps@2024-03-01' = {
@@ -117,12 +119,8 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2024-03-01' = {
               secretRef: 'connectionstrings--efs-redis'
             }
             {
-              name: 'services__adds-configuration__http__0'
-              value: 'http://adds-configuration.${efs_cae_outputs_azure_container_apps_environment_default_domain}'
-            }
-            {
-              name: 'services__adds-configuration__https__0'
-              value: 'https://adds-configuration.${efs_cae_outputs_azure_container_apps_environment_default_domain}'
+              name: 'ConnectionStrings__efs-appconfig'
+              value: efs_appconfig_outputs_appconfigendpoint
             }
             {
               name: 'adds-environment'
