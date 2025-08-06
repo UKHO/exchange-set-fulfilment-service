@@ -117,6 +117,7 @@ jobs:
               ${{ if eq(parameters.AdditionalDebugging, true) }}:
                 inlineScript: |
                   azd package --no-prompt --debug
+                  azd env get-values
               ${{ else }}:
                 inlineScript: |
                   azd package --no-prompt
@@ -151,16 +152,19 @@ jobs:
                 #EFS_SERVICE_IDENTITY_ID=$(az deployment sub show --name $DEPLOYMENT_NAME --query properties.outputs.efS_SERVICE_IDENTITY_ID.value --output tsv)
 
                 echo "Storing variables..."
-                azd env set EFS_SERVICE_IDENTITY_RESOURCE_GROUP $EFS_SERVICE_IDENTITY_RESOURCE_GROUP
+                echo "##vso[task.setvariable variable=AZURE_EFS_SERVICE_IDENTITY_RESOURCE_GROUP]EFS_SERVICE_IDENTITY_RESOURCE_GROUP"
+                echo "##vso[task.setvariable variable=AZURE_EFS_SERVICE_IDENTITY_NAME]EFS_SERVICE_IDENTITY_NAME"
                 # cd "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost"
                 # azd env set EFS_SERVICE_IDENTITY_RESOURCE_GROUP $EFS_SERVICE_IDENTITY_RESOURCE_GROUP
                 # azd env set EFS_SERVICE_IDENTITY_CLIENTID $EFS_SERVICE_IDENTITY_CLIENTID
                 # azd env set EFS_SERVICE_IDENTITY_ID $EFS_SERVICE_IDENTITY_ID
                 # azd env set EFS_SERVICE_IDENTITY_NAME $EFS_SERVICE_IDENTITY_NAME
 
-                # if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
-                #   azd env get-values
-                # fi
+                if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
+                  #azd env get-values
+                  echo $EFS_SERVICE_IDENTITY_RESOURCE_GROUP
+                  echo $EFS_SERVICE_IDENTITY_NAME
+                fi
             env:
               AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
               AZURE_ENV_NAME: $(AZURE_ENV_NAME)
