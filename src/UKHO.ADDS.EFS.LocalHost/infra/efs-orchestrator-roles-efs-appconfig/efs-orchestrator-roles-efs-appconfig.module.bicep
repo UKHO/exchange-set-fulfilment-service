@@ -5,7 +5,7 @@ param efs_appconfig_outputs_name string
 
 param principalId string
 
-resource efs_appconfig 'Microsoft.AppConfiguration/configurationStores@2024-06-01' existing = {
+resource efs_appconfig 'Microsoft.AppConfiguration/configurationStores@2024-05-01' existing = {
   name: efs_appconfig_outputs_name
 }
 
