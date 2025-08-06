@@ -7,6 +7,8 @@ param efs_cae_outputs_azure_container_registry_endpoint string
 
 param efs_cae_outputs_azure_container_registry_managed_identity_id string
 
+param efs_service_identity_id string
+
 param efs_builder_s100_containerimage string
 
 param efs_storage_name string
@@ -34,6 +36,7 @@ resource efsbuilders100 'Microsoft.App/jobs@2025-01-01' = {
     type: 'UserAssigned'
     userAssignedIdentities: {
       '${efs_cae_outputs_azure_container_registry_managed_identity_id}': {}
+      '${efs_service_identity_id}': {}
     }
   }
   properties: {

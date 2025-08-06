@@ -116,6 +116,7 @@ jobs:
               scriptLocation: inlineScript
               ${{ if eq(parameters.AdditionalDebugging, true) }}:
                 inlineScript: |
+                  set -e
                   azd package --no-prompt --debug
 
                   echo "Current azd variables:"
@@ -139,6 +140,7 @@ jobs:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
+                set -e
                 echo "Deploying resources..."
                 DEPLOYMENT_NAME=$AZURE_ENV_NAME-retain-$EPOCHSECONDS
                 cd "$(Build.SourcesDirectory)/efs/infra-retain"
@@ -158,6 +160,7 @@ jobs:
                 echo "Storing variables..."
                 echo "##vso[task.setvariable variable=AZURE_EFS_SERVICE_IDENTITY_RESOURCE_GROUP;]$EFS_SERVICE_IDENTITY_RESOURCE_GROUP"
                 echo "##vso[task.setvariable variable=AZURE_EFS_SERVICE_IDENTITY_NAME;]$EFS_SERVICE_IDENTITY_NAME"
+                #echo "##vso[task.setvariable variable=AZURE_EFS_SERVICE_IDENTITY_ID;]$EFS_SERVICE_IDENTITY_ID"
                 # cd "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost"
                 # azd env set EFS_SERVICE_IDENTITY_RESOURCE_GROUP $EFS_SERVICE_IDENTITY_RESOURCE_GROUP
                 # azd env set EFS_SERVICE_IDENTITY_CLIENTID $EFS_SERVICE_IDENTITY_CLIENTID
@@ -169,6 +172,7 @@ jobs:
                   echo "--------------------------------------------------------------------------------"
                   echo $EFS_SERVICE_IDENTITY_RESOURCE_GROUP
                   echo $EFS_SERVICE_IDENTITY_NAME
+                  #echo $EFS_SERVICE_IDENTITY_ID
                   echo "--------------------------------------------------------------------------------"
                 fi
             env:
@@ -185,8 +189,7 @@ jobs:
               scriptLocation: inlineScript
               ${{ if eq(parameters.AdditionalDebugging, true) }}:
                 inlineScript: |
-                  echo $AZURE_EFS_SERVICE_IDENTITY_RESOURCE_GROUP
-                  echo $AZURE_EFS_SERVICE_IDENTITY_NAME
+                  set -e
                   azd provision --no-prompt --debug
 
                   echo "Current azd variables:"
@@ -212,6 +215,7 @@ jobs:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
+                set -e
                 echo "Reading azd variables..."
                 while IFS='=' read -r key value; do
                     value=$(echo "$value" | sed 's/^"//' | sed 's/"$//')

@@ -25,6 +25,7 @@ steps:
     scriptLocation: inlineScript
     ${{ if eq(parameters.AdditionalDebugging, true) }}:
       inlineScript: |
+        set -e
         azd deploy ${{ parameters.AppName }} --no-prompt --debug
 
         echo "Current azd variables:"
