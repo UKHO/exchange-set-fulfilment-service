@@ -2,7 +2,7 @@
 {
     public static class ProcessNames
     {
-        public const string ConfigurationService = "efs-aac";
+        public const string ConfigurationService = "efs-appconfig";
 
         public const string OrchestratorService = "efs-orchestrator";
 
@@ -18,12 +18,8 @@
 
         public const string RequestMonitorService = "efs-local-request-monitor";
 
-        public const string S100FileShareService = "s100FileShare"; // NB: Must agree with the key in external-service-disco.json
+        public const string FileShareService = "FileShare"; // NB: Must agree with the key in external-services.json
 
-        public const string S100SalesCatalogueService = "s100SalesCatalogue"; // NB: Must agree with the key in external-service-disco.json
-
-        public const string S57FileShareService = "s57FileShare"; // NB: Must agree with the key in external-service-disco.json
-
-        public const string S63FileShareService = "s63FileShare"; // NB: Must agree with the key in external-service-disco.json
+        public const string SalesCatalogueService = "SalesCatalogue"; // NB: Must agree with the key in external-services.json
     }
 }
