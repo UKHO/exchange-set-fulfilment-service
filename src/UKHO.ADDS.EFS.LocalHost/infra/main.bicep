@@ -39,38 +39,7 @@ module efs_appconfig 'efs-appconfig/efs-appconfig.module.bicep' = {
     location: location
   }
 }
-module adds_con_was 'adds-con-was/adds-con-was.module.bicep' = {
-  name: 'adds-con-was'
-  scope: rg
-  params: {
-    location: location
-  }
-}
-module adds_configuration_identity 'adds-configuration-identity/adds-configuration-identity.module.bicep' = {
-  name: 'adds-configuration-identity'
-  scope: rg
-  params: {
-    location: location
-  }
-}
-module adds_configuration_roles_adds_con_kv 'adds-configuration-roles-adds-con-kv/adds-configuration-roles-adds-con-kv.module.bicep' = {
-  name: 'adds-configuration-roles-adds-con-kv'
-  scope: rg
-  params: {
-    adds_con_kv_outputs_name: adds_con_kv.outputs.name
-    location: location
-    principalId: adds_configuration_identity.outputs.principalId
-  }
-}
-module adds_configuration_roles_adds_con_was 'adds-configuration-roles-adds-con-was/adds-configuration-roles-adds-con-was.module.bicep' = {
-  name: 'adds-configuration-roles-adds-con-was'
-  scope: rg
-  params: {
-    adds_con_was_outputs_name: adds_con_was.outputs.name
-    location: location
-    principalId: adds_configuration_identity.outputs.principalId
-  }
-}
+
 module efs_app_insights 'efs-app-insights/efs-app-insights.module.bicep' = {
   name: 'efs-app-insights'
   scope: rg
