@@ -116,7 +116,13 @@ jobs:
               scriptLocation: inlineScript
               ${{ if eq(parameters.AdditionalDebugging, true) }}:
                 inlineScript: |
+                  set -e
                   azd package --no-prompt --debug
+
+                  echo "Current azd variables:"
+                  echo "--------------------------------------------------------------------------------"
+                  azd env get-values
+                  echo "--------------------------------------------------------------------------------"
               ${{ else }}:
                 inlineScript: |
                   azd package --no-prompt
@@ -127,6 +133,54 @@ jobs:
               AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
 
           - task: AzureCLI@2
+            displayName: Deploy permanent infrastructure
+            inputs:
+              azureSubscription: ${{ variables.AzureSubscription }}
+              workingDirectory: $(Build.SourcesDirectory)/efs
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -e
+                echo "Deploying resources..."
+                DEPLOYMENT_NAME=$AZURE_ENV_NAME-retain-$EPOCHSECONDS
+                cd "$(Build.SourcesDirectory)/efs/infra-retain"
+
+                if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
+                  az deployment sub create --name $DEPLOYMENT_NAME --location $AZURE_LOCATION --no-prompt --parameters environmentName=$AZURE_ENV_NAME location=$AZURE_LOCATION --template-file main.bicep --debug
+                else
+                  az deployment sub create --name $DEPLOYMENT_NAME --location $AZURE_LOCATION --no-prompt --parameters environmentName=$AZURE_ENV_NAME location=$AZURE_LOCATION --template-file main.bicep
+                fi
+
+                echo "Retrieving outputs..."
+                EFS_SERVICE_IDENTITY_RESOURCE_GROUP=$(az deployment sub show --name $DEPLOYMENT_NAME --query properties.outputs.efS_SERVICE_IDENTITY_RESOURCE_GROUP.value --output tsv)
+                EFS_SERVICE_IDENTITY_NAME=$(az deployment sub show --name $DEPLOYMENT_NAME --query properties.outputs.efS_SERVICE_IDENTITY_NAME.value --output tsv)
+                #EFS_SERVICE_IDENTITY_CLIENTID=$(az deployment sub show --name $DEPLOYMENT_NAME --query properties.outputs.efS_SERVICE_IDENTITY_CLIENTID.value --output tsv)
+                #EFS_SERVICE_IDENTITY_ID=$(az deployment sub show --name $DEPLOYMENT_NAME --query properties.outputs.efS_SERVICE_IDENTITY_ID.value --output tsv)
+
+                echo "Storing variables..."
+                echo "##vso[task.setvariable variable=AZURE_EFS_SERVICE_IDENTITY_RESOURCE_GROUP;]$EFS_SERVICE_IDENTITY_RESOURCE_GROUP"
+                echo "##vso[task.setvariable variable=AZURE_EFS_SERVICE_IDENTITY_NAME;]$EFS_SERVICE_IDENTITY_NAME"
+                #echo "##vso[task.setvariable variable=AZURE_EFS_SERVICE_IDENTITY_ID;]$EFS_SERVICE_IDENTITY_ID"
+                # cd "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost"
+                # azd env set EFS_SERVICE_IDENTITY_RESOURCE_GROUP $EFS_SERVICE_IDENTITY_RESOURCE_GROUP
+                # azd env set EFS_SERVICE_IDENTITY_CLIENTID $EFS_SERVICE_IDENTITY_CLIENTID
+                # azd env set EFS_SERVICE_IDENTITY_ID $EFS_SERVICE_IDENTITY_ID
+                # azd env set EFS_SERVICE_IDENTITY_NAME $EFS_SERVICE_IDENTITY_NAME
+
+                if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
+                  echo "Job variables:"
+                  echo "--------------------------------------------------------------------------------"
+                  echo $EFS_SERVICE_IDENTITY_RESOURCE_GROUP
+                  echo $EFS_SERVICE_IDENTITY_NAME
+                  #echo $EFS_SERVICE_IDENTITY_ID
+                  echo "--------------------------------------------------------------------------------"
+                fi
+            env:
+              AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+              AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+              AZURE_LOCATION: $(AZURE_LOCATION)
+
+          - task: AzureCLI@2
             displayName: Provision infrastructure
             inputs:
               azureSubscription: ${{ variables.AzureSubscription }}
@@ -135,7 +189,13 @@ jobs:
               scriptLocation: inlineScript
               ${{ if eq(parameters.AdditionalDebugging, true) }}:
                 inlineScript: |
+                  set -e
                   azd provision --no-prompt --debug
+
+                  echo "Current azd variables:"
+                  echo "--------------------------------------------------------------------------------"
+                  azd env get-values
+                  echo "--------------------------------------------------------------------------------"
               ${{ else }}:
                 inlineScript: |
                   azd provision --no-prompt
@@ -144,6 +204,8 @@ jobs:
               AZURE_ENV_NAME: $(AZURE_ENV_NAME)
               AZURE_LOCATION: $(AZURE_LOCATION)
               AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
+              AZURE_EFS_SERVICE_IDENTITY_RESOURCE_GROUP: $(AZURE_EFS_SERVICE_IDENTITY_RESOURCE_GROUP)
+              AZURE_EFS_SERVICE_IDENTITY_NAME: $(AZURE_EFS_SERVICE_IDENTITY_NAME)
 
           - task: AzureCLI@2
             displayName: Run configuration seeder
@@ -153,6 +215,7 @@ jobs:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
+                set -e
                 echo "Reading azd variables..."
                 while IFS='=' read -r key value; do
                     value=$(echo "$value" | sed 's/^"//' | sed 's/"$//')
