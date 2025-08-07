@@ -22,11 +22,6 @@ resource efs_storage 'Microsoft.Storage/storageAccounts@2024-01-01' = {
   }
 }
 
-resource blobs 'Microsoft.Storage/storageAccounts/blobServices@2024-01-01' = {
-  name: 'default'
-  parent: efs_storage
-}
-
 output blobEndpoint string = efs_storage.properties.primaryEndpoints.blob
 
 output queueEndpoint string = efs_storage.properties.primaryEndpoints.queue
