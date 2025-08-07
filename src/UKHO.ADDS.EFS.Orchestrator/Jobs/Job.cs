@@ -54,7 +54,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Jobs
         /// <summary>
         ///     Gets the requested products for the job.
         /// </summary>
-        public required string RequestedProducts { get; init; }
+        public required string[] RequestedProducts { get; init; }
 
         /// <summary>
         ///     Gets the requested filter for the job.

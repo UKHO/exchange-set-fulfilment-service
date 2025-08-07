@@ -30,7 +30,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services.Infrastructure
                 Id = "test-job-id",
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = "products",
+                RequestedProducts = ["products"],
                 RequestedFilter = "filter",
                 DataStandardTimestamp = DateTime.UtcNow.AddDays(-1)
             };

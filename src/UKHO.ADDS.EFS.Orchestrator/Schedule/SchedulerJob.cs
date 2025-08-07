@@ -42,7 +42,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Schedule
                 {
                     Version = 1,
                     DataStandard = DataStandard.S100,
-                    Products = "",
+                    Products = [],
                     Filter = ""
                 };
 

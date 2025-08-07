@@ -35,13 +35,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
             string[] productNames;
 
-            if (!string.IsNullOrEmpty(job.RequestedProducts))
+            if (job.RequestedProducts?.Length != 0 && job.RequestedProducts != null)
             {
-                productNames = job.RequestedProducts
-                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                    .Select(name => name.Trim())
-                    .Where(name => !string.IsNullOrWhiteSpace(name))
-                    .ToArray();
+                productNames = job.RequestedProducts;                    
             }
             else
             {

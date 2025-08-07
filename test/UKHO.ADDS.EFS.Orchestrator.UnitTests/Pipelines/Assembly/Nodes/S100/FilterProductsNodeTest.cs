@@ -41,7 +41,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 Id = "test-job-id",
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = "",
+                RequestedProducts = [],
                 RequestedFilter = "productName eq '101GB004DEVQK'",
             };
 
@@ -85,7 +85,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 Id = "test-job-id",
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = "",
+                RequestedProducts = [],
                 RequestedFilter = string.Empty
             };
 
@@ -113,7 +113,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 Id = "test-job-id",
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = "",
+                RequestedProducts = [],
                 RequestedFilter = null!
             };
 
@@ -141,7 +141,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 Id = "test-job-id",
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = "",
+                RequestedProducts = [],
                 RequestedFilter = "productName eq '101GB004DEVQK'",
             };
 
@@ -166,7 +166,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 Id = "test-job-id",
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = "",
+                RequestedProducts = [],
                 RequestedFilter = "productName eq '101GB004DEVQK'",
             };
 
@@ -191,7 +191,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 Id = "test-job-id",
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = "",
+                RequestedProducts = [],
                 RequestedFilter = "startswith(ProductName, '102')",
             };
 
@@ -226,7 +226,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 Id = "test-job-id",
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = "product1,product2",
+                RequestedProducts = ["product1", "product2"],
                 RequestedFilter = "productName eq '101GB004DEVQP'",
             };
 
@@ -261,7 +261,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 Id = "test-job-id",
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = "product1,product2",
+                RequestedProducts = ["product1", "product2"],
                 RequestedFilter = "productName eq '101GB004DEVQK' or latestEditionNumber eq 2",
             };
 

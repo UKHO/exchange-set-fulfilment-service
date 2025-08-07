@@ -24,7 +24,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
         {
             var job = context.Subject.Job;
 
-            return Task.FromResult(context.Subject.Job.JobState == JobState.Created && string.IsNullOrEmpty(job.RequestedProducts));
+            return Task.FromResult(context.Subject.Job.JobState == JobState.Created && (job.RequestedProducts?.Length == 0 || job.RequestedProducts == null));
         }
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
