@@ -322,6 +322,7 @@ jobs:
 
       - task: DotNetCoreCLI@2
         displayName: 'Restore NuGet packages for Functional Tests'
+        condition: always()
         inputs:
           command: restore
           projects: '**/*UKHO.ADDS.EFS.FunctionalTests.csproj'
@@ -332,6 +333,7 @@ jobs:
 
       - task: DotNetCoreCLI@2
         displayName: 'Run Functional Tests'
+        condition: always()
         inputs:
           command: test
           projects: '**/*UKHO.ADDS.EFS.FunctionalTests.csproj'
