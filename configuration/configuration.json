@@ -110,5 +110,149 @@
                 "ExchangeSetGenerationSchedule": "0 0/5 * * * ?" //Quartz Cron expression for scheduling ExchangeSet generation
             }
         }
+    },
+    "vni": {
+        "orchestrator": {
+            "Logging": {
+                "LogLevel": {
+                    "Default": "Information",
+                    "Microsoft.AspNetCore": "Warning",
+                    "Aspire.Hosting.Dcp": "Warning"
+                }
+            },
+            "AllowedHosts": "*",
+            "Deduplication": {
+                "Enabled": false, // Enable deduplication of requests
+                "Expiry": "23:00:00" // The timeframe for deduplication from first generation to expiry
+            },
+            "Errors": {
+                "FileNameTemplate": "error_[jobid].txt", // Template for naming error files: options are "jobid", "date"
+                "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]"
+            },
+            "Builders": {
+                "LogReplayLevel": "Information", // Log level for replaying builder logs
+                "S100": {
+                    "IICWorkspaceKey": "D89D11D265B19CA5C2BE97A7FCB1EF21", // Temporary - to be removed
+                    "ExchangeSetNameTemplate": "V01X01_[jobid].zip", // Template for naming an exchange set: options are "jobid", "date"
+                    "Responses": {
+                        "BatchSize": 1,
+                        "PollingIntervalSeconds": 1
+                    }
+                },
+                "S63": {
+                    "ExchangeSetNameTemplate": "V01X01_S63_[jobid].zip", // Template for naming an exchange set: options are "jobid", "date"
+                    "Responses": {
+                        "BatchSize": 1,
+                        "PollingIntervalSeconds": 1
+                    }
+                },
+                "S57": {
+                    "ExchangeSetNameTemplate": "V01X01_S57_[jobid].zip", // Template for naming an exchange set: options are "jobid", "date"
+                    "Responses": {
+                        "BatchSize": 1,
+                        "PollingIntervalSeconds": 1
+                    }
+                }
+            },
+            "SchedulerJob": {
+                "ExchangeSetGenerationSchedule": "0 0/5 * * * ?" //Quartz Cron expression for scheduling ExchangeSet generation
+            }
+        }
+    },
+    "vne": {
+        "orchestrator": {
+            "Logging": {
+                "LogLevel": {
+                    "Default": "Information",
+                    "Microsoft.AspNetCore": "Warning",
+                    "Aspire.Hosting.Dcp": "Warning"
+                }
+            },
+            "AllowedHosts": "*",
+            "Deduplication": {
+                "Enabled": false, // Enable deduplication of requests
+                "Expiry": "23:00:00" // The timeframe for deduplication from first generation to expiry
+            },
+            "Errors": {
+                "FileNameTemplate": "error_[jobid].txt", // Template for naming error files: options are "jobid", "date"
+                "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]"
+            },
+            "Builders": {
+                "LogReplayLevel": "Information", // Log level for replaying builder logs
+                "S100": {
+                    "IICWorkspaceKey": "D89D11D265B19CA5C2BE97A7FCB1EF21", // Temporary - to be removed
+                    "ExchangeSetNameTemplate": "V01X01_[jobid].zip", // Template for naming an exchange set: options are "jobid", "date"
+                    "Responses": {
+                        "BatchSize": 1,
+                        "PollingIntervalSeconds": 1
+                    }
+                },
+                "S63": {
+                    "ExchangeSetNameTemplate": "V01X01_S63_[jobid].zip", // Template for naming an exchange set: options are "jobid", "date"
+                    "Responses": {
+                        "BatchSize": 1,
+                        "PollingIntervalSeconds": 1
+                    }
+                },
+                "S57": {
+                    "ExchangeSetNameTemplate": "V01X01_S57_[jobid].zip", // Template for naming an exchange set: options are "jobid", "date"
+                    "Responses": {
+                        "BatchSize": 1,
+                        "PollingIntervalSeconds": 1
+                    }
+                }
+            },
+            "SchedulerJob": {
+                "ExchangeSetGenerationSchedule": "0 0/5 * * * ?" //Quartz Cron expression for scheduling ExchangeSet generation
+            }
+        }
+    },
+    "iat": {
+        "orchestrator": {
+            "Logging": {
+                "LogLevel": {
+                    "Default": "Information",
+                    "Microsoft.AspNetCore": "Warning",
+                    "Aspire.Hosting.Dcp": "Warning"
+                }
+            },
+            "AllowedHosts": "*",
+            "Deduplication": {
+                "Enabled": false, // Enable deduplication of requests
+                "Expiry": "23:00:00" // The timeframe for deduplication from first generation to expiry
+            },
+            "Errors": {
+                "FileNameTemplate": "error_[jobid].txt", // Template for naming error files: options are "jobid", "date"
+                "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]"
+            },
+            "Builders": {
+                "LogReplayLevel": "Information", // Log level for replaying builder logs
+                "S100": {
+                    "IICWorkspaceKey": "D89D11D265B19CA5C2BE97A7FCB1EF21", // Temporary - to be removed
+                    "ExchangeSetNameTemplate": "V01X01_[jobid].zip", // Template for naming an exchange set: options are "jobid", "date"
+                    "Responses": {
+                        "BatchSize": 1,
+                        "PollingIntervalSeconds": 1
+                    }
+                },
+                "S63": {
+                    "ExchangeSetNameTemplate": "V01X01_S63_[jobid].zip", // Template for naming an exchange set: options are "jobid", "date"
+                    "Responses": {
+                        "BatchSize": 1,
+                        "PollingIntervalSeconds": 1
+                    }
+                },
+                "S57": {
+                    "ExchangeSetNameTemplate": "V01X01_S57_[jobid].zip", // Template for naming an exchange set: options are "jobid", "date"
+                    "Responses": {
+                        "BatchSize": 1,
+                        "PollingIntervalSeconds": 1
+                    }
+                }
+            },
+            "SchedulerJob": {
+                "ExchangeSetGenerationSchedule": "0 0/5 * * * ?" //Quartz Cron expression for scheduling ExchangeSet generation
+            }
+        }
     }
 }
