@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using Aspire.Hosting.Azure;
 using Azure.Provisioning.AppConfiguration;
 using Azure.Provisioning.AppContainers;
+using Azure.Provisioning;
 using Azure.Provisioning.Storage;
 using CliWrap;
 using Docker.DotNet;
@@ -144,7 +145,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                         Custom = new ContainerAppCustomScaleRule
                         {
                             CustomScaleRuleType = "cpu",
-                            Metadata = new BicepDictionary<string>
+                            Metadata = new BicepDictionary<string>  // Changed from BicepDictionary
                             {
                                 { "type", "Utilization" },
                                 { "value", "60" }
