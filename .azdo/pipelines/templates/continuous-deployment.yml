@@ -29,6 +29,9 @@ parameters:
 - name: AdditionalDebugging
   type: boolean
   default: false
+- name: RunFunctionalTests
+  type: boolean
+  default: false
 
 jobs:
 - deployment: ${{ parameters.ShortName }}DeployApp
