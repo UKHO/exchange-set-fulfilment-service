@@ -13,12 +13,9 @@ param adds_mocks_efs_containerimage string
 
 param adds_mocks_efs_containerport string
 
-resource adds_mocks_efs 'Microsoft.App/containerApps@2024-03-01' = {
+resource adds_mocks_efs 'Microsoft.App/containerApps@2025-02-02-preview' = {
   name: 'adds-mocks-efs'
   location: location
-  tags: {
-    'hidden-title': 'EFS'
-  }
   properties: {
     configuration: {
       activeRevisionsMode: 'Single'
@@ -33,6 +30,11 @@ resource adds_mocks_efs 'Microsoft.App/containerApps@2024-03-01' = {
           identity: efs_cae_outputs_azure_container_registry_managed_identity_id
         }
       ]
+      runtime: {
+        dotnet: {
+          autoConfigureDataProtection: true
+        }
+      }
     }
     environmentId: efs_cae_outputs_azure_container_apps_environment_id
     template: {
@@ -74,5 +76,8 @@ resource adds_mocks_efs 'Microsoft.App/containerApps@2024-03-01' = {
     userAssignedIdentities: {
       '${efs_cae_outputs_azure_container_registry_managed_identity_id}': { }
     }
+  }
+  tags: {
+    'hidden-title': 'EFS'
   }
 }

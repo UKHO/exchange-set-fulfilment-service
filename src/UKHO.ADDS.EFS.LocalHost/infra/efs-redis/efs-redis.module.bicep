@@ -8,12 +8,9 @@ param efs_cae_outputs_azure_container_apps_environment_id string
 @secure()
 param efs_redis_password_value string
 
-resource efs_redis 'Microsoft.App/containerApps@2024-03-01' = {
+resource efs_redis 'Microsoft.App/containerApps@2025-01-01' = {
   name: 'efs-redis'
   location: location
-  tags: {
-    'hidden-title': 'EFS'
-  }
   properties: {
     configuration: {
       secrets: [
@@ -54,5 +51,8 @@ resource efs_redis 'Microsoft.App/containerApps@2024-03-01' = {
         minReplicas: 1
       }
     }
+  }
+  tags: {
+    'hidden-title': 'EFS'
   }
 }
