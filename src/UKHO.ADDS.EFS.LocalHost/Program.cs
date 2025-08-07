@@ -147,6 +147,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                             CustomScaleRuleType = "cpu",
                             Metadata = new BicepDictionary<string>
                             {
+                                { "type", "Utilization" },
                                 { "value", "60" }
                             }
                         }
@@ -161,6 +162,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                             CustomScaleRuleType = "memory",
                             Metadata = new BicepDictionary<string>
                             {
+                                { "type", "Utilization" },
                                 { "value", "70" }
                             }
                         }
