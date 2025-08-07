@@ -134,8 +134,7 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2025-02-02-preview' = {
             custom: {
               type: 'cpu'
               metadata: {
-                type: 'Utilization'
-                value: '60'
+                Utilization: '60'
               }
             }
           }
@@ -144,8 +143,7 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2025-02-02-preview' = {
             custom: {
               type: 'memory'
               metadata: {
-                type: 'Utilization'
-                value: '70'
+                Utilization: '70'
               }
             }
           }

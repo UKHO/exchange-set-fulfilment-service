@@ -145,10 +145,9 @@ namespace UKHO.ADDS.EFS.LocalHost
                         Custom = new ContainerAppCustomScaleRule
                         {
                             CustomScaleRuleType = "cpu",
-                            Metadata = new BicepDictionary<string>  // Changed from BicepDictionary
+                            Metadata = new BicepDictionary<string>
                             {
-                                { "type", "Utilization" },
-                                { "value", "60" }
+                                { "Utilization", "60" }
                             }
                         }
                     });
@@ -162,8 +161,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                             CustomScaleRuleType = "memory",
                             Metadata = new BicepDictionary<string>
                             {
-                                { "type", "Utilization" },
-                                { "value", "70" }
+                                { "Utilization", "70" }
                             }
                         }
                     });
