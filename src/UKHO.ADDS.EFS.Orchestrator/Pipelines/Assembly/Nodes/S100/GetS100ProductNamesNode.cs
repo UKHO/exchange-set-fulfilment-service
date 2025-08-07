@@ -44,7 +44,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
             switch (s100SalesCatalogueData.ResponseCode)
             {
-                case HttpStatusCode.OK when s100SalesCatalogueData.Products.Any():
+                case HttpStatusCode.OK:
 
                     if (s100SalesCatalogueData.ProductCounts.ReturnedProductCount == 0)
                     {

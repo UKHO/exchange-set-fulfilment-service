@@ -80,7 +80,6 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
 
             if (state == "get-allinvalidproducts")
             {
-                // Mark ALL products as invalid - return no products and mark all as not returned
                 foreach (var productName in requestedProducts)
                 {
                     notReturnedArray.Add(CreateProductNotReturnedObject(productName, "invalidProduct"));
@@ -88,7 +87,6 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
             }
             else if (state == "get-invalidproducts" && requestedProducts.Count > 0)
             {
-                // Mark only the last product as invalid (existing behavior)
                 foreach (var productName in requestedProducts.Take(requestedProducts.Count - 1))
                     productsArray.Add(GenerateProductJson(productName));
 
@@ -97,7 +95,6 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
             }
             else
             {
-                // Default behavior - return all products
                 foreach (var productName in requestedProducts)
                     productsArray.Add(GenerateProductJson(productName));
             }
