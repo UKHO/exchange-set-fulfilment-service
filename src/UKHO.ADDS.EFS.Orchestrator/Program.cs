@@ -1,14 +1,18 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+using Azure.Identity;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
 using UKHO.ADDS.Aspire.Configuration;
+using UKHO.ADDS.Clients.Common.Constants;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Orchestrator.Api;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Middleware;
 using UKHO.ADDS.EFS.Orchestrator.Services.Storage;
+using UKHO.Logging.EventHubLogProvider.Serilog;
 
 namespace UKHO.ADDS.EFS.Orchestrator
 {
@@ -37,8 +41,32 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 }
                 else
                 {
+                    var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__efs-events-namespace");
+                    var eventHubName = Environment.GetEnvironmentVariable("EVENTHUB_NAME");
+
                     builder.Services.AddSerilog((services, lc) => ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint)
-                        .WriteTo.Sink(new EventHubSerilogSink()));
+                        .WriteTo.EventHub(options =>
+                        {
+                            options.Environment = "Development";
+                            options.System = ServiceConfiguration.ServiceName;
+                            options.Service = ServiceConfiguration.ServiceName;
+                            options.NodeName = "Azure";
+                            options.EventHubConnectionString = connectionString;
+                            options.EventHubEntityPath = eventHubName;
+                            options.TokenCredential = new DefaultAzureCredential();
+                            options.AdditionalValuesProvider = additionalValues =>
+                            {
+                                var httpContext = services.GetRequiredService<IHttpContextAccessor>().HttpContext;
+                                if (httpContext != null)
+                                {
+                                    additionalValues["_RemoteIPAddress"] = httpContext.Connection.RemoteIpAddress!.ToString();
+                                    additionalValues["_User-Agent"] = httpContext.Request.Headers.UserAgent.FirstOrDefault() ?? string.Empty;
+                                    additionalValues["_AssemblyVersion"] = Assembly.GetExecutingAssembly().GetCustomAttributes<AssemblyFileVersionAttribute>().Single().Version;
+                                    additionalValues["_X-Correlation-ID"] =
+                                        httpContext.Request.Headers?[ApiHeaderKeys.XCorrelationIdHeaderKey].FirstOrDefault() ?? string.Empty;
+                                }
+                            };
+                        }));
                 }
 
                 builder.AddConfiguration(ServiceConfiguration.ServiceName, ProcessNames.ConfigurationService);
