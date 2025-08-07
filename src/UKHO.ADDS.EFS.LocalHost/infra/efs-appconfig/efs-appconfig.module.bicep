@@ -1,7 +1,7 @@
 @description('The location for the resource(s) to be deployed.')
 param location string = resourceGroup().location
 
-resource efs_appconfig 'Microsoft.AppConfiguration/configurationStores@2024-06-01' = {
+resource efs_appconfig 'Microsoft.AppConfiguration/configurationStores@2024-05-01' = {
   name: take('efsappconfig-${uniqueString(resourceGroup().id)}', 50)
   location: location
   properties: {
