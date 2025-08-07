@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http.Json;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using UKHO.ADDS.Aspire.Configuration.Remote;
+using Quartz;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.SalesCatalogueService;
 using UKHO.ADDS.EFS.Builds;
@@ -25,6 +26,7 @@ using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Services;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Services.Implementation;
+using UKHO.ADDS.EFS.Orchestrator.Schedule;
 using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Services.Storage;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
@@ -51,7 +53,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             builder.Services.ConfigureOpenApi();
 
-            builder.Services.AddTransient<AssemblyPipelineFactory>();
+            builder.Services.AddTransient<IAssemblyPipelineFactory, AssemblyPipelineFactory>();
             builder.Services.AddTransient<AssemblyPipelineNodeFactory>();
 
             builder.Services.AddTransient<CompletionPipelineFactory>();
@@ -106,6 +108,24 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             builder.Services.AddSingleton<IOrchestratorSalesCatalogueClient, OrchestratorSalesCatalogueClient>();
             builder.Services.AddSingleton<IOrchestratorFileShareClient, OrchestratorFileShareClient>();
+
+            //Added Dependencies for SchedulerJob
+            builder.Services.AddQuartz(q =>
+            {
+                var exchangeSetGenerationSchedule = configuration["orchestrator:SchedulerJob:ExchangeSetGenerationSchedule"];
+                var jobKey = new JobKey(nameof(SchedulerJob));
+                q.AddJob<SchedulerJob>(opts => opts.WithIdentity(jobKey));
+
+                q.AddTrigger(opts => opts
+                    .ForJob(jobKey)
+                    .WithCronSchedule(exchangeSetGenerationSchedule!, x => x.WithMisfireHandlingInstructionDoNothing())
+                );
+            });
+
+            builder.Services.AddQuartzHostedService(options =>
+            {
+                options.WaitForJobsToComplete = true;
+            });
 
             return builder;
         }
