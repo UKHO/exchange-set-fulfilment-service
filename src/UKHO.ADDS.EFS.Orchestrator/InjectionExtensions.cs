@@ -89,7 +89,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 var factory = provider.GetRequiredService<ISalesCatalogueClientFactory>();
                 var registry = provider.GetRequiredService<IExternalServiceRegistry>();
 
-                var scsEndpoint = registry.GetServiceEndpointAsync(ProcessNames.SalesCatalogueService).GetAwaiter().GetResult();
+                var scsEndpoint = registry.GetServiceEndpoint(ProcessNames.SalesCatalogueService);
 
                 return factory.CreateClient(scsEndpoint.Uri!.ToString(), string.Empty);
             });
@@ -101,7 +101,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 var factory = provider.GetRequiredService<IFileShareReadWriteClientFactory>();
                 var registry = provider.GetRequiredService<IExternalServiceRegistry>();
 
-                var fssEndpoint = registry.GetServiceEndpointAsync(ProcessNames.FileShareService).GetAwaiter().GetResult();
+                var fssEndpoint = registry.GetServiceEndpoint(ProcessNames.FileShareService);
 
                 return factory.CreateClient(fssEndpoint.Uri!.ToString(), string.Empty);
             });
