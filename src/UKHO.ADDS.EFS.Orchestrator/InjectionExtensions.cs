@@ -1,5 +1,8 @@
 ﻿using System.Text.Json;
+using Azure.Identity;
 using Microsoft.AspNetCore.Http.Json;
+using Microsoft.Kiota.Abstractions.Authentication;
+using Microsoft.Kiota.Authentication.Azure;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using UKHO.ADDS.Aspire.Configuration.Remote;
@@ -30,6 +33,9 @@ using UKHO.ADDS.EFS.Orchestrator.Schedule;
 using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Services.Storage;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
+using UKHO.ADDS.Aspire.Configuration;
+using UKHO.ADDS.Clients.Common.MiddlewareExtensions;
+using UKHO.ADDS.Clients.Kiota.SalesCatalogueService;
 
 namespace UKHO.ADDS.EFS.Orchestrator
 {
@@ -82,17 +88,27 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddSingleton<IBuilderLogForwarder, BuilderLogForwarder>();
             builder.Services.AddSingleton<StorageInitializerService>();
 
-            builder.Services.AddSingleton<ISalesCatalogueClientFactory>(provider => new SalesCatalogueClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
+            var addsEnvironment = AddsEnvironment.GetEnvironment();
 
-            builder.Services.AddSingleton(provider =>
+            if (addsEnvironment.IsLocal() || addsEnvironment.IsDev())
             {
-                var factory = provider.GetRequiredService<ISalesCatalogueClientFactory>();
+                builder.Services.AddKiotaDefaults(new AnonymousAuthenticationProvider());
+            }
+            else
+            {
+                builder.Services.AddKiotaDefaults(new AzureIdentityAuthenticationProvider(new ManagedIdentityCredential()));
+            }
+
+            builder.Services.AddKiotaClient<KiotaSalesCatalogueService>(provider =>
+            {
                 var registry = provider.GetRequiredService<IExternalServiceRegistry>();
 
                 var scsEndpoint = registry.GetServiceEndpoint(ProcessNames.SalesCatalogueService);
 
-                return factory.CreateClient(scsEndpoint.Uri!.ToString(), string.Empty);
+                return scsEndpoint.Uri;
             });
+
+            // TODO Add file share
 
             builder.Services.AddSingleton<IFileShareReadWriteClientFactory>(provider => new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
 

@@ -63,6 +63,8 @@
 
         public bool IsLocal() => this == Local;
 
+        public bool IsDev() => this == Development;
+
         public override string ToString() => Value;
 
         public override bool Equals(object? obj) => Equals(obj as AddsEnvironment);
