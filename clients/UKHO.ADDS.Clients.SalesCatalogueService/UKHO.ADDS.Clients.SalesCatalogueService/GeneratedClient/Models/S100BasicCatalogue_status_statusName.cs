@@ -19,5 +19,9 @@ namespace UKHO.ADDS.Clients.Kiota.SalesCatalogueService.Models
         #pragma warning disable CS1591
         Cancellation,
         #pragma warning restore CS1591
+        [EnumMember(Value = "newDataset")]
+        #pragma warning disable CS1591
+        NewDataset,
+        #pragma warning restore CS1591
     }
 }

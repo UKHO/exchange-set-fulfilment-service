@@ -97,6 +97,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
                 var lastModified = headersOption.ResponseHeaders.TryGetValue("Last-Modified", out var values)
                     ? values.FirstOrDefault()
                     : null;
+                DateTime.TryParse(lastModified, out var lastModifiedActual);
 
                 if (s100BasicCatalogueResult != null)
                 {
@@ -106,9 +107,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
                         {
                             S100ProductStatus? parsedStatus = null;
 
-                            if (x.Status is not null && Enum.TryParse(typeof(S100ProductStatus), x.Status.ToString(), out var tempStatusObj))
+                            if (x.Status is not null && x.Status.StatusDate.HasValue)
                             {
-                                parsedStatus = tempStatusObj as S100ProductStatus;
+                                parsedStatus = new S100ProductStatus() { StatusDate = x.Status.StatusDate.Value.DateTime, StatusName = x.Status.StatusName.ToString() };
                             }
 
                             return new S100Products
@@ -119,7 +120,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
                                 Status = parsedStatus
                             };
                         }).ToList() ?? new List<S100Products>(),
-                        LastModified = sinceDateTime,
+                        LastModified = lastModifiedActual,
                         ResponseCode = HttpStatusCode.OK
                     };
 

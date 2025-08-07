@@ -952,6 +952,7 @@ components:
                   - newEdition
                   - update
                   - cancellation
+                  - newDataset 
               statusDate:
                 type: string
                 format: date-time

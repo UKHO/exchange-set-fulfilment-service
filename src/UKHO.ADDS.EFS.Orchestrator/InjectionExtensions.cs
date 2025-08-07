@@ -1,13 +1,17 @@
-﻿using System.Text.Json;
+﻿using System.Net.Sockets;
+using System.Text.Json;
 using Azure.Identity;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Kiota.Abstractions.Authentication;
 using Microsoft.Kiota.Authentication.Azure;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
-using UKHO.ADDS.Aspire.Configuration.Remote;
 using Quartz;
+using UKHO.ADDS.Aspire.Configuration;
+using UKHO.ADDS.Aspire.Configuration.Remote;
+using UKHO.ADDS.Clients.Common.MiddlewareExtensions;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
+using UKHO.ADDS.Clients.Kiota.SalesCatalogueService;
 using UKHO.ADDS.Clients.SalesCatalogueService;
 using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Builds.S100;
@@ -33,9 +37,6 @@ using UKHO.ADDS.EFS.Orchestrator.Schedule;
 using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Services.Storage;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
-using UKHO.ADDS.Aspire.Configuration;
-using UKHO.ADDS.Clients.Common.MiddlewareExtensions;
-using UKHO.ADDS.Clients.Kiota.SalesCatalogueService;
 
 namespace UKHO.ADDS.EFS.Orchestrator
 {
@@ -99,7 +100,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 builder.Services.AddKiotaDefaults(new AzureIdentityAuthenticationProvider(new ManagedIdentityCredential()));
             }
 
-            builder.Services.AddKiotaClient<KiotaSalesCatalogueService>(provider =>
+            builder.Services.RegisterKiotaClient<KiotaSalesCatalogueService>(provider =>
             {
                 var registry = provider.GetRequiredService<IExternalServiceRegistry>();
 
