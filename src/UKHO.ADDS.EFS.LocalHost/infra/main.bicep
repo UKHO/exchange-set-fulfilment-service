@@ -73,20 +73,13 @@ module efs_events_namespace 'efs-events-namespace/efs-events-namespace.module.bi
     location: location
   }
 }
-module efs_orchestrator_identity 'efs-orchestrator-identity/efs-orchestrator-identity.module.bicep' = {
-  name: 'efs-orchestrator-identity'
-  scope: rg
-  params: {
-    location: location
-  }
-}
 module efs_orchestrator_roles_efs_events_namespace 'efs-orchestrator-roles-efs-events-namespace/efs-orchestrator-roles-efs-events-namespace.module.bicep' = {
   name: 'efs-orchestrator-roles-efs-events-namespace'
   scope: rg
   params: {
     efs_events_namespace_outputs_name: efs_events_namespace.outputs.name
     location: location
-    principalId: efs_orchestrator_identity.outputs.principalId
+    principalId: efs_service_identity.outputs.principalId
   }
 }
 module efs_orchestrator_roles_efs_appconfig 'efs-orchestrator-roles-efs-appconfig/efs-orchestrator-roles-efs-appconfig.module.bicep' = {
