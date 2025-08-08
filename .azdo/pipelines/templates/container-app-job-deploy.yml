@@ -27,6 +27,7 @@ steps:
     scriptType: bash
     scriptLocation: inlineScript
     inlineScript: |
+      set -e
       echo "Setting variables..."
       DEPLOYMENT_NUMBER=$EPOCHSECONDS
       DEPLOYMENT_TAG=docker-deploy-$DEPLOYMENT_NUMBER
@@ -45,7 +46,7 @@ steps:
       if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
         echo "Current environment variables:"
         echo "--------------------------------------------------------------------------------"
-        env
+        env | sort
         echo "--------------------------------------------------------------------------------"
       fi
 

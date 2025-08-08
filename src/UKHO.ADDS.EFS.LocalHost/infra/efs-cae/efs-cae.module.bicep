@@ -7,7 +7,7 @@ param subnetResourceId string
 
 param zoneRedundant bool
 
-resource efs_cae_mi 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+resource efs_cae_mi 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' = {
   name: take('efs_cae_mi-${uniqueString(resourceGroup().id)}', 128)
   location: location
   tags: {
@@ -16,7 +16,7 @@ resource efs_cae_mi 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31
   }
 }
 
-resource efs_cae_acr 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
+resource efs_cae_acr 'Microsoft.ContainerRegistry/registries@2025-04-01' = {
   name: take('efscaeacr${uniqueString(resourceGroup().id)}', 50)
   location: location
   sku: {
@@ -38,7 +38,7 @@ resource efs_cae_acr_efs_cae_mi_AcrPull 'Microsoft.Authorization/roleAssignments
   scope: efs_cae_acr
 }
 
-resource efs_cae_law 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
+resource efs_cae_law 'Microsoft.OperationalInsights/workspaces@2025-02-01' = {
   name: take('efscaelaw-${uniqueString(resourceGroup().id)}', 63)
   location: location
   properties: {
@@ -52,7 +52,7 @@ resource efs_cae_law 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
   }
 }
 
-resource efs_cae 'Microsoft.App/managedEnvironments@2024-03-01' = {
+resource efs_cae 'Microsoft.App/managedEnvironments@2025-01-01' = {
   name: take('efscae${uniqueString(resourceGroup().id)}', 24)
   location: location
   properties: {
@@ -88,19 +88,6 @@ resource aspireDashboard 'Microsoft.App/managedEnvironments/dotNetComponents@202
   }
   parent: efs_cae
 }
-
-resource efs_cae_Contributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(efs_cae.id, userPrincipalId, subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c'))
-  properties: {
-    principalId: userPrincipalId
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')
-  }
-  scope: efs_cae
-}
-
-output MANAGED_IDENTITY_NAME string = efs_cae_mi.name
-
-output MANAGED_IDENTITY_PRINCIPAL_ID string = efs_cae_mi.properties.principalId
 
 output AZURE_LOG_ANALYTICS_WORKSPACE_NAME string = efs_cae_law.name
 

@@ -11,7 +11,7 @@ param efs_cae_outputs_azure_container_registry_managed_identity_id string
 
 param efs_orchestrator_containerimage string
 
-param efs_orchestrator_identity_outputs_id string
+param efs_service_identity_outputs_id string
 
 param efs_orchestrator_containerport string
 
@@ -30,9 +30,11 @@ param efs_redis_password_value string
 
 param efs_appconfig_outputs_appconfigendpoint string
 
-param efs_orchestrator_identity_outputs_clientid string
+param addsenvironment_value string
 
-resource efs_orchestrator 'Microsoft.App/containerApps@2024-03-01' = {
+param efs_service_identity_outputs_clientid string
+
+resource efs_orchestrator 'Microsoft.App/containerApps@2025-02-02-preview' = {
   name: 'efs-orchestrator'
   location: location
   properties: {
@@ -55,6 +57,11 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2024-03-01' = {
           identity: efs_cae_outputs_azure_container_registry_managed_identity_id
         }
       ]
+      runtime: {
+        dotnet: {
+          autoConfigureDataProtection: true
+        }
+      }
     }
     environmentId: efs_cae_outputs_azure_container_apps_environment_id
     template: {
@@ -121,11 +128,11 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2024-03-01' = {
             }
             {
               name: 'adds-environment'
-              value: 'local'
+              value: addsenvironment_value
             }
             {
               name: 'AZURE_CLIENT_ID'
-              value: efs_orchestrator_identity_outputs_clientid
+              value: efs_service_identity_outputs_clientid
             }
           ]
         }
@@ -138,7 +145,7 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2024-03-01' = {
   identity: {
     type: 'UserAssigned'
     userAssignedIdentities: {
-      '${efs_orchestrator_identity_outputs_id}': { }
+      '${efs_service_identity_outputs_id}': { }
       '${efs_cae_outputs_azure_container_registry_managed_identity_id}': { }
     }
   }
