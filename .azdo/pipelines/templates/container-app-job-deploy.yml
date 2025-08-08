@@ -31,7 +31,7 @@ steps:
   inputs:
     azureSubscription: ${{ parameters.AzureSubscription }}
     workingDirectory: $(Build.SourcesDirectory)
-    scriptType: pwsh
+    scriptType: pscore
     scriptLocation: inlineScript
     inlineScript: |
       $env:appConfigEndpoint = azd env get-value EFS_APPCONFIG_APPCONFIGENDPOINT
