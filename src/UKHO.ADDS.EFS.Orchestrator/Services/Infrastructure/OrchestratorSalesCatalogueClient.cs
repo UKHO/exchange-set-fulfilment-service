@@ -1,4 +1,6 @@
 ﻿using System.Net;
+using System.Text.Json;
+using Azure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Kiota.Abstractions;
 using Microsoft.Kiota.Http.HttpClientLibrary.Middleware.Options;
@@ -10,6 +12,7 @@ using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Jobs;
 using UKHO.ADDS.EFS.RetryPolicy;
 using UKHO.ADDS.Infrastructure.Results;
+using ProductCounts = UKHO.ADDS.Clients.Kiota.SalesCatalogueService.Models.ProductCounts;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
 {
@@ -24,34 +27,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
         {
             _kiotaClient = kiotaClient ?? throw new ArgumentNullException(nameof(kiotaClient));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
-
-        public static async Task<IResult<T>> KiotaRunnerAsync<T>(Func<Task<T>> kiotaTask, string correlationId)
-        {
-            try
-            {
-                var result = await kiotaTask();
-                return Result.Success(result);
-            }
-            catch (ApiException ex)
-            {
-                var correlationIdProperty = ex.GetType().GetProperty("correlationId");
-                if (correlationIdProperty != null)
-                {
-                    correlationId = correlationIdProperty.GetValue(ex)?.ToString();
-                }
-
-                if ((HttpStatusCode)ex.ResponseStatusCode == HttpStatusCode.NotModified)
-                {
-                    // If the response is NotModified, we can return a success result with null data
-                    return Result.Success<T>(default);
-                }
-
-                return Result.Failure<T>(ErrorFactory.CreateError(
-                    (HttpStatusCode)ex.ResponseStatusCode,
-                    ex.Message,
-                    ErrorFactory.CreateProperties(correlationId)));
-            }
         }
 
         // Fix for CS1061: Replace the incorrect usage of 'IsSuccess' with proper null checks and error handling.
@@ -82,7 +57,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
                         ResponseBody = s100BasicCatalogueResult.Select(x =>
                         {
                             S100ProductStatus? parsedStatus = null;
-                            if (x.Status is not null && Enum.TryParse(typeof(S100ProductStatus), x.Status.ToString(), out var tempStatusObj))
+                            if (x.Status is not null && Enum.TryParse(typeof(S100BasicCatalogue_status_statusName), x.Status.ToString(), out var tempStatusObj))
                             {
                                 parsedStatus = tempStatusObj as S100ProductStatus;
                             }
@@ -121,63 +96,115 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
             }
         }
 
-
         public async Task<S100ProductNamesResponse> GetS100ProductNamesAsync(IEnumerable<string> productNames, Job job, CancellationToken cancellationToken)
         {
             try
             {
-                var response = await _kiotaClient.V2
-                    .Products
-                    .S100
-                    .ProductNames
-                    .PostAsync(productNames.ToList(), requestConfiguration =>
-                    {
-                        requestConfiguration.Headers.Add("X-Correlation-Id", job.GetCorrelationId());
-                    }, cancellationToken);
+                var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<S100ProductResponse>(_logger, nameof(GetS100ProductNamesAsync));
+                var s100ProductResponseResult = await retryPolicy.ExecuteAsync(async () =>
+                {
+                    var response = await _kiotaClient.V2
+                        .Products
+                        .S100
+                        .ProductNames
+                        .PostAsync(productNames.ToList(), requestConfiguration =>
+                        {
+                            requestConfiguration.Headers.Add("X-Correlation-Id", job.GetCorrelationId());
+                        }, cancellationToken);
 
-                return new S100ProductNamesResponse
-                {
-                    Products = response?.Products?.Select(x => new S100ProductNames
+                    if (response is S100ProductResponse s100ProductResponse)
                     {
-                        ProductName = x.ProductName,
-                        EditionNumber = x.EditionNumber ?? 0,
-                        UpdateNumbers = x.UpdateNumbers != null ? x.UpdateNumbers.Where(i => i.HasValue).Select(i => i.Value).ToList() : new List<int>(),
-                        Dates = x.Dates?.Select(d => new S100ProductDate
+                        // Manual mapping for ProductCounts
+                        UKHO.ADDS.Clients.SalesCatalogueService.Models.ProductCounts? mappedProductCounts = null;
+                        if (s100ProductResponse.ProductCounts != null)
                         {
-                            // Map properties as needed
-                        }).ToList() ?? new List<S100ProductDate>(),
-                        FileSize = x.FileSize ?? 0,
-                        Cancellation = x.Cancellation is null ? null : new S100ProductCancellation
-                        {
-                            // Map properties as needed
+                            mappedProductCounts = new UKHO.ADDS.Clients.SalesCatalogueService.Models.ProductCounts
+                            {
+                                RequestedProductCount = s100ProductResponse.ProductCounts.RequestedProductCount,
+                                ReturnedProductCount = s100ProductResponse.ProductCounts.ReturnedProductCount,
+                                RequestedProductsAlreadyUpToDateCount = s100ProductResponse.ProductCounts.RequestedProductsAlreadyUpToDateCount,
+                                RequestedProductsNotReturned = s100ProductResponse.ProductCounts.RequestedProductsNotReturned?
+                                    .Select(x => new UKHO.ADDS.Clients.SalesCatalogueService.Models.RequestedProductsNotReturned
+                                    {
+                                        ProductName = x.ProductName,
+                                        //Reason = x.Reason
+                                        // Map other properties if needed
+                                    }).ToList()
+                            };
                         }
-                    }).ToList() ?? new List<S100ProductNames>(),
-                    ProductCounts = response?.ProductCounts is null ? null : new UKHO.ADDS.Clients.SalesCatalogueService.Models.ProductCounts
-                    {
-                        RequestedProductCount = response.ProductCounts.RequestedProductCount,
-                        ReturnedProductCount = response.ProductCounts.ReturnedProductCount,
-                        RequestedProductsAlreadyUpToDateCount = response.ProductCounts.RequestedProductsAlreadyUpToDateCount,
-                        RequestedProductsNotReturned = response.ProductCounts.RequestedProductsNotReturned?.Select(r => new RequestedProductsNotReturned
+
+                        // JSON mapping for Products
+                        string productsJson = JsonSerializer.Serialize(s100ProductResponse.Products);
+                        var mappedProducts = JsonSerializer.Deserialize<List<S100ProductNames>>(productsJson);
+
+                        var result = new S100ProductNamesResponse
                         {
-                            // Map properties as needed
-                        }).ToList() ?? new List<RequestedProductsNotReturned>()
-                    },
-                    ResponseCode = HttpStatusCode.OK
-                };
-            }
-            catch (ApiException ex) when (ex.ResponseStatusCode == (int)HttpStatusCode.NotModified)
-            {
-                return new S100ProductNamesResponse
+                            ProductCounts = mappedProductCounts,
+                            Products = mappedProducts ?? new List<S100ProductNames>()
+                        };
+
+                        // Return as S100ProductResponse for retry policy
+                        return Result.Success(s100ProductResponse);
+                    }
+                    else
+                    {
+                        return Result.Failure<S100ProductResponse>(new Error("Null or invalid response from Sales Catalogue Service."));
+                    }
+                });
+
+                if (s100ProductResponseResult.IsSuccess(out var s100ProductResponse, out var error))
                 {
-                    Products = new List<S100ProductNames>(),
-                    ProductCounts = new UKHO.ADDS.Clients.SalesCatalogueService.Models.ProductCounts(),
-                    ResponseCode = HttpStatusCode.NotModified
-                };
+                    // Manual mapping for ProductCounts
+                    UKHO.ADDS.Clients.SalesCatalogueService.Models.ProductCounts? mappedProductCounts = null;
+                    if (s100ProductResponse.ProductCounts != null)
+                    {
+                        mappedProductCounts = new UKHO.ADDS.Clients.SalesCatalogueService.Models.ProductCounts
+                        {
+                            RequestedProductCount = s100ProductResponse.ProductCounts.RequestedProductCount,
+                            ReturnedProductCount = s100ProductResponse.ProductCounts.ReturnedProductCount,
+                            RequestedProductsAlreadyUpToDateCount = s100ProductResponse.ProductCounts.RequestedProductsAlreadyUpToDateCount,
+                            RequestedProductsNotReturned = s100ProductResponse.ProductCounts.RequestedProductsNotReturned?
+                                .Select(x => new UKHO.ADDS.Clients.SalesCatalogueService.Models.RequestedProductsNotReturned
+                                {
+                                    ProductName = x.ProductName,
+                                    // Reason = x.Reason
+                                    // Map other properties if needed
+                                }).ToList()
+                        };
+                    }
+
+                    // JSON mapping for Products
+                    string productsJson = JsonSerializer.Serialize(s100ProductResponse.Products);
+                    var mappedProducts = JsonSerializer.Deserialize<List<S100ProductNames>>(productsJson);
+
+                    var result = new S100ProductNamesResponse
+                    {
+                        ProductCounts = mappedProductCounts,
+                        Products = mappedProducts ?? new List<S100ProductNames>()
+                    };
+
+                    return result;
+                }
+
+                _logger.LogSalesCatalogueApiError(error, SalesCatalogApiErrorLogView.Create(job));
+                return new S100ProductNamesResponse();
             }
             catch (Exception ex)
             {
-                _logger.LogSalesCatalogueApiError(null, SalesCatalogApiErrorLogView.Create(job));
                 return new S100ProductNamesResponse();
+            }
+        }
+
+        public static class JsonResponseHelper
+        {
+            public static string ToJson<T>(T response)
+            {
+                var options = new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                };
+                return JsonSerializer.Serialize(response, options);
             }
         }
     }
