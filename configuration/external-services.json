@@ -11,7 +11,7 @@
                     "tag": "legacy"
                 }
             ],
-            "clientId": "mock"
+            "clientId": "mockfss"
         },
         "SalesCatalogue": {
             "endpoints": [
@@ -24,7 +24,7 @@
                     "tag": "legacy"
                 }
             ],
-            "clientId": "mock"
+            "clientId": "mockscs"
         }
     },
     "dev": {
@@ -39,7 +39,7 @@
                     "tag": "legacy"
                 }
             ],
-            "clientId": "mock"
+            "clientId": "mockfss"
         },
         "SalesCatalogue": {
             "endpoints": [
@@ -52,7 +52,7 @@
                     "tag": "legacy"
                 }
             ],
-            "clientId": "mock"
+            "clientId": "mockscs"
         }
     },
     "vni": {
