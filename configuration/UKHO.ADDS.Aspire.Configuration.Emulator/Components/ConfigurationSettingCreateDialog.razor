@@ -1,0 +1,70 @@
+@using UKHO.ADDS.Aspire.Configuration.Emulator.Common
+@using UKHO.ADDS.Aspire.Configuration.Emulator.ConfigurationSettings
+@inject IConfigurationSettingFactory ConfigurationSettingFactory
+@inject IDialogService DialogService
+
+<AzureDialog>
+    <HeaderContent>
+        <AzureDialogHeader Subtitle="Create a new key-value." Title="Create"/>
+    </HeaderContent>
+
+    <ChildContent>
+        <div class="flex flex-col gap-4 pb-4">
+            <label class="flex flex-col gap-1">
+                <div>Key <span class="text-alizarin-crimson">*</span></div>
+                <AzureInputText @bind-Value="Input.Key" name="@nameof(Input.Key)" required/>
+            </label>
+
+            <label class="flex flex-col gap-1">
+                <div>Value</div>
+                <div class="font-mono">
+                    <AzureInputTextArea @bind-Value="Input.Value" name="@nameof(Input.Value)" rows="10"/>
+                </div>
+            </label>
+
+            <label class="flex flex-col gap-1">
+                <div>Label</div>
+                <AzureInputText @bind-Value="Input.Label" name="@nameof(Input.Label)" placeholder="(No label)"/>
+            </label>
+
+            <label class="flex flex-col gap-1">
+                <div>Content type</div>
+                <AzureInputText @bind-Value="Input.ContentType" name="@nameof(Input.ContentType)"/>
+            </label>
+        </div>
+    </ChildContent>
+
+    <FooterContent>
+        <AzureDialogFooter>
+            <AzureButton Appearance="AzureButton.AzureAppearance.Primary" disabled="@string.IsNullOrEmpty(Input.Key)" @onclick="@HandleCreateClick">Create</AzureButton>
+        </AzureDialogFooter>
+    </FooterContent>
+</AzureDialog>
+
+@code {
+    [CascadingParameter] public IDialogReference DialogReference { get; set; } = null!;
+
+    private InputModel Input { get; } = new();
+
+    private async Task HandleCreateClick(MouseEventArgs args)
+    {
+        if (!string.IsNullOrEmpty(Input.Key))
+        {
+            var setting = ConfigurationSettingFactory.Create(Input.Key, Input.Label, Input.ContentType, Input.Value);
+
+            await DialogService.Close(DialogReference, new DialogResult(setting));
+        }
+    }
+
+    private class InputModel
+    {
+        public string? Key { get; set; }
+
+        public string? Value { get; set; }
+
+        public string? Label { get; set; }
+
+        public string? ContentType { get; set; }
+    }
+
+}

@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\config\UKHO.ADDS.Configuration.Client\UKHO.ADDS.Configuration.Client.csproj" />
+    <ProjectReference Include="..\..\configuration\UKHO.ADDS.Aspire.Configuration\UKHO.ADDS.Aspire.Configuration.csproj" />
     <ProjectReference Include="..\UKHO.ADDS.EFS.Domain\UKHO.ADDS.EFS.Domain.csproj" />
   </ItemGroup>
 </Project>

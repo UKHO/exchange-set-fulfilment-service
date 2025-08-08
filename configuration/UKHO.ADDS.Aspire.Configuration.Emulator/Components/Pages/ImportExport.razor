@@ -1,0 +1,549 @@
+@implements IAsyncDisposable
+@inject IConfigurationSettingFactory ConfigurationSettingFactory
+@inject IConfigurationSettingRepository ConfigurationSettingRepository
+@inject IJSRuntime JS
+@inject IKeyValuePairJsonDecoder KeyValuePairJsonDecoder
+@inject IKeyValuePairJsonEncoder KeyValuePairJsonEncoder
+@page "/kvdata"
+@using System.Net
+@using System.Security.Cryptography
+@using System.Text
+@using System.Text.Json
+@using OpenTelemetry.Trace
+@using UKHO.ADDS.Aspire.Configuration.Emulator.Authentication.Hmac
+@using UKHO.ADDS.Aspire.Configuration.Emulator.Common
+@using UKHO.ADDS.Aspire.Configuration.Emulator.ConfigurationSettings
+
+<PageTitle>Import/export</PageTitle>
+
+<div class="flex flex-col">
+    <AzureToolbar>
+        <div class="h-[36px]"></div>
+    </AzureToolbar>
+
+    <div class="p-5">
+        <EditForm class="flex flex-col gap-10" Model="@Model" OnSubmit="@HandleSubmit">
+            @switch (Model?.Operation)
+            {
+                case ImportExportOperationInputRadioGroup.Operation.Export:
+                    <div class="flex flex-col gap-3">
+                        <ImportExportOperationInputRadioGroup name="@nameof(Model.Operation)" Value="@Model.Operation" ValueChanged="@HandleOperationChanged" ValueExpression="@(() => Model.Operation)"/>
+
+                        <label class="flex flex-row items-center">
+                            <div class="w-[200px]">Target type</div>
+                            <div class="flex-1 max-w-[600px]">
+                                <ImportExportTargetTypeInputSelect @bind-Value="@Model.TargetType" name="@nameof(Model.TargetType)"/>
+                            </div>
+                        </label>
+                    </div>
+
+                    switch (Model.TargetType)
+                    {
+                        case ImportExportTargetTypeInputSelect.TargetType.AzureAppConfiguration:
+                            <div class="flex flex-col gap-3">
+                                <div class="text-lg font-bold">Select key-values</div>
+
+                                <label class="flex flex-row items-center">
+                                    <div class="w-[200px]">Key filter</div>
+                                    <div class="flex-1 max-w-[600px]">
+                                        <AzureInputText @bind-Value="@Model.KeyFilter" name="@nameof(Model.KeyFilter)" placeholder="abc | abc,xyz,..."/>
+                                    </div>
+                                </label>
+
+                                <label class="flex flex-row items-center">
+                                    <div class="w-[200px]">At a specific time</div>
+                                    <div class="flex-1 max-w-[600px]">
+                                        <AzureInputDate @bind-Value="@Model.Moment" name="@nameof(Model.Moment)" Type="@InputDateType.DateTimeLocal"/>
+                                    </div>
+                                </label>
+
+                                <label class="flex flex-row items-center">
+                                    <div class="w-[200px]">From label</div>
+                                    <div class="flex-1 max-w-[600px]">
+                                        <ImportExportLabelFilterInputSelect @bind-Value="@Model.LabelFilter" Labels="@Labels" name="@nameof(Model.LabelFilter)"/>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="flex flex-col gap-3">
+                                <div class="text-lg font-bold">Select target</div>
+
+                                <label class="flex flex-row items-center">
+                                    <div class="w-[200px]">Connection string <span class="text-alizarin-crimson">*</span></div>
+                                    <div class="flex-1 max-w-[600px]">
+                                        <AzureInputText @bind-Value="@Model.TargetConnectionString" name="@nameof(Model.TargetConnectionString)" required/>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="flex flex-col gap-3">
+                                <div class="text-lg font-bold">Apply changes to key-values</div>
+
+                                <label class="flex flex-row items-center">
+                                    <div class="w-[200px]">Remove prefix</div>
+                                    <div class="flex-1 max-w-[600px]">
+                                        <AzureInputText @bind-Value="@Model.Prefix" name="@nameof(Model.Prefix)"/>
+                                    </div>
+                                </label>
+                            </div>
+
+                            if (!string.IsNullOrEmpty(Model.TargetConnectionString))
+                            {
+                                <div>
+                                    <AzureButton Appearance="AzureButton.AzureAppearance.Primary" type="submit">Export</AzureButton>
+                                </div>
+                            }
+
+                            break;
+                        case ImportExportTargetTypeInputSelect.TargetType.ConfigurationFile:
+                            <div class="flex flex-col gap-3">
+                                <div class="text-lg font-bold">Export options</div>
+
+                                <label class="flex flex-row items-center">
+                                    <div class="w-[200px]">File format</div>
+                                    <div class="flex-1 max-w-[600px]">
+                                        <ImportExportFileFormatInputSelect @bind-Value="@Model.FileFormat" name="@nameof(Model.FileFormat)"/>
+                                    </div>
+                                </label>
+                            </div>
+
+                            if (Model.FileFormat is not null)
+                            {
+                                <div class="flex flex-col gap-3">
+                                    <div class="text-lg font-bold">Apply changes to key-values</div>
+
+                                    <label class="flex flex-row items-center">
+                                        <div class="w-[200px]">Separator</div>
+                                        <div class="flex-1 max-w-[600px]">
+                                            <ImportExportSeparatorInputSelect @bind-Value="@Model.Separator" name="@nameof(Model.Separator)"/>
+                                        </div>
+                                    </label>
+
+                                    <label class="flex flex-row items-center">
+                                        <div class="w-[200px]">Remove prefix</div>
+                                        <div class="flex-1 max-w-[600px]">
+                                            <AzureInputText @bind-Value="@Model.Prefix" name="@nameof(Model.Prefix)"/>
+                                        </div>
+                                    </label>
+                                </div>
+
+                                <div>
+                                    <AzureButton Appearance="AzureButton.AzureAppearance.Primary" type="submit">Export</AzureButton>
+                                </div>
+                            }
+
+                            break;
+                    }
+
+                    break;
+                case ImportExportOperationInputRadioGroup.Operation.Import:
+                    <div class="flex flex-col gap-3">
+                        <ImportExportOperationInputRadioGroup name="@nameof(Model.Operation)" Value="@Model.Operation" ValueChanged="@HandleOperationChanged" ValueExpression="@(() => Model.Operation)"/>
+
+                        <label class="flex flex-row items-center">
+                            <div class="w-[200px]">Source type</div>
+                            <div class="flex-1 max-w-[600px]">
+                                <ImportExportSourceTypeInputSelect @bind-Value="@Model.SourceType" name="@nameof(Model.SourceType)"/>
+                            </div>
+                        </label>
+                    </div>
+
+                    switch (Model.SourceType)
+                    {
+                        case ImportExportSourceTypeInputSelect.SourceType.AzureAppConfiguration:
+                            <div class="flex flex-col gap-3">
+                                <div class="text-lg font-bold">Select source</div>
+
+                                <label class="flex flex-row items-center">
+                                    <div class="w-[200px]">Connection string <span class="text-alizarin-crimson">*</span></div>
+                                    <div class="flex-1 max-w-[600px]">
+                                        <AzureInputText name="@nameof(Model.SourceConnectionString)" Value="@Model.SourceConnectionString" ValueChanged="@HandleSourceConnectionStringChanged" ValueExpression="@(() => Model.SourceConnectionString)" required/>
+                                    </div>
+                                </label>
+                            </div>
+
+                            if (!string.IsNullOrEmpty(Model.SourceConnectionString) && Labels is { Count: > 0 })
+                            {
+                                <div class="flex flex-col gap-3">
+                                    <div class="text-lg font-bold">Select key-values</div>
+
+                                    <label class="flex flex-row items-center">
+                                        <div class="w-[200px]">Key filter</div>
+                                        <div class="flex-1 max-w-[600px]">
+                                            <AzureInputText @bind-Value="@Model.KeyFilter" name="@nameof(Model.KeyFilter)" placeholder="abc | abc,xyz,..."/>
+                                        </div>
+                                    </label>
+
+                                    <label class="flex flex-row items-center">
+                                        <div class="w-[200px]">At a specific time</div>
+                                        <div class="flex-1 max-w-[600px]">
+                                            <AzureInputDate @bind-Value="@Model.Moment" name="@nameof(Model.Moment)" Type="@InputDateType.DateTimeLocal"/>
+                                        </div>
+                                    </label>
+
+                                    <label class="flex flex-row items-center">
+                                        <div class="w-[200px]">From label</div>
+                                        <div class="flex-1 max-w-[600px]">
+                                            <ImportExportLabelFilterInputSelect @bind-Value="@Model.LabelFilter" Labels="@Labels" name="@nameof(Model.LabelFilter)"/>
+                                        </div>
+                                    </label>
+                                </div>
+
+                                <div class="flex flex-col gap-3">
+                                    <div class="text-lg font-bold">Apply changes to key-values</div>
+
+                                    <label class="flex flex-row items-center">
+                                        <div class="w-[200px]">Add prefix</div>
+                                        <div class="flex-1 max-w-[600px]">
+                                            <AzureInputText @bind-Value="@Model.Prefix" name="@nameof(Model.Prefix)"/>
+                                        </div>
+                                    </label>
+                                </div>
+
+                                <div>
+                                    <AzureButton Appearance="AzureButton.AzureAppearance.Primary" type="submit">Import</AzureButton>
+                                </div>
+                            }
+
+                            break;
+                        case ImportExportSourceTypeInputSelect.SourceType.ConfigurationFile:
+                            <div class="flex flex-col gap-3">
+                                <div class="text-lg font-bold">Select source</div>
+
+                                <label class="flex flex-row items-center">
+                                    <div class="w-[200px]">File format</div>
+                                    <div class="flex-1 max-w-[600px]">
+                                        <ImportExportFileFormatInputSelect @bind-Value="@Model.FileFormat" name="@nameof(Model.FileFormat)"/>
+                                    </div>
+                                </label>
+
+                                @if (Model.FileFormat is not null)
+                                {
+                                    <label class="flex flex-row items-center">
+                                        <div class="w-[200px]">Source file</div>
+                                        <div class="flex-1 max-w-[600px]">
+                                            <AzureInputFile accept="@Model.FileFormat" name="@nameof(Model.SourceFile)" OnChange="args => Model.SourceFile = args.File"/>
+                                        </div>
+                                    </label>
+                                }
+                            </div>
+
+                            if (Model.SourceFile is not null)
+                            {
+                                <div class="flex flex-col gap-3">
+                                    <div class="text-lg font-bold">Apply changes to key-values</div>
+
+                                    <label class="flex flex-row items-center">
+                                        <div class="w-[200px]">Separator</div>
+                                        <div class="flex-1 max-w-[600px]">
+                                            <ImportExportSeparatorInputSelect @bind-Value="@Model.Separator" name="@nameof(Model.Separator)"/>
+                                        </div>
+                                    </label>
+
+                                    <label class="flex flex-row items-center">
+                                        <div class="w-[200px]">Add prefix</div>
+                                        <div class="flex-1 max-w-[600px]">
+                                            <AzureInputText @bind-Value="@Model.Prefix" name="@nameof(Model.Prefix)"/>
+                                        </div>
+                                    </label>
+
+                                    <label class="flex flex-row items-center">
+                                        <div class="w-[200px]">Add label</div>
+                                        <div class="flex-1 max-w-[600px]">
+                                            <AzureInputText @bind-Value="@Model.Label" name="@nameof(Model.Label)"/>
+                                        </div>
+                                    </label>
+
+                                    <label class="flex flex-row items-center">
+                                        <div class="w-[200px]">Add content type</div>
+                                        <div class="flex-1 max-w-[600px]">
+                                            <ImportExportContentTypeInputSelect @bind-Value="@Model.ContentType" name="@nameof(Model.ContentType)"/>
+                                        </div>
+                                    </label>
+                                </div>
+
+                                <div>
+                                    <AzureButton Appearance="AzureButton.AzureAppearance.Primary" type="submit">Import</AzureButton>
+                                </div>
+                            }
+
+                            break;
+                    }
+
+                    break;
+            }
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromForm] public InputModel? Model { get; set; }
+
+    private ICollection<string?> Labels { get; } = [];
+
+    private IJSObjectReference? Module { get; set; }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (Module is not null)
+        {
+            await Module.DisposeAsync();
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            Module = await JS.InvokeAsync<IJSObjectReference>("import", "./Components/Pages/ImportExport.razor.js");
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        Model ??= new InputModel();
+    }
+
+    private async Task HandleOperationChanged(string operation)
+    {
+        using var activity = Telemetry.ActivitySource.StartActivity($"{nameof(ImportExport)}.{nameof(HandleOperationChanged)}");
+
+        if (Model is not null)
+        {
+            Model.Operation = operation;
+            StateHasChanged();
+
+            Labels.Clear();
+            StateHasChanged();
+
+            if (operation is ImportExportOperationInputRadioGroup.Operation.Export)
+            {
+                await foreach (var label in ConfigurationSettingRepository.Get().Select(setting => setting.Label))
+                {
+                    Labels.Add(label);
+                    StateHasChanged();
+                }
+            }
+        }
+    }
+
+    private async Task HandleSourceConnectionStringChanged(string? connectionString)
+    {
+        using var activity = Telemetry.ActivitySource.StartActivity($"{nameof(ImportExport)}.{nameof(HandleSourceConnectionStringChanged)}");
+
+        if (Model is not null)
+        {
+            Model.SourceConnectionString = connectionString;
+            StateHasChanged();
+
+            Labels.Clear();
+            StateHasChanged();
+
+            if (!string.IsNullOrEmpty(connectionString))
+            {
+                try
+                {
+                    var dictionary = connectionString.Split(';').Select(s => s.Split('=', 2)).ToDictionary(s => s[0], s => s[1]);
+                    var endpoint = dictionary["Endpoint"];
+                    var credential = dictionary["Id"];
+                    var secret = dictionary["Secret"];
+
+                    using var httpMessageHandler = new HmacAuthenticatingHttpMessageHandler(credential, secret);
+                    httpMessageHandler.InnerHandler = new HttpClientHandler();
+
+                    using var httpClient = new HttpClient(httpMessageHandler);
+                    httpClient.BaseAddress = new Uri(endpoint, UriKind.Absolute);
+
+                    await foreach (var label in new ConfigurationClient(httpClient, ConfigurationSettingFactory).GetLabels())
+                    {
+                        Labels.Add(label);
+                        StateHasChanged();
+                    }
+                }
+                catch (Exception e)
+                {
+                    activity?.RecordException(e);
+                }
+            }
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        using var activity = Telemetry.ActivitySource.StartActivity($"{nameof(ImportExport)}.{nameof(HandleSubmit)}");
+
+        switch (Model?.Operation)
+        {
+            case ImportExportOperationInputRadioGroup.Operation.Export:
+            {
+                switch (Model?.TargetType)
+                {
+                    case ImportExportTargetTypeInputSelect.TargetType.AzureAppConfiguration:
+                    {
+                        var dictionary = Model.TargetConnectionString!.Split(';').Select(s => s.Split('=', 2)).ToDictionary(s => s[0], s => s[1]);
+                        var endpoint = dictionary["Endpoint"];
+                        var credential = dictionary["Id"];
+                        var secret = dictionary["Secret"];
+
+                        using var httpMessageHandler = new HmacAuthenticatingHttpMessageHandler(credential, secret);
+                        httpMessageHandler.InnerHandler = new HttpClientHandler();
+
+                        using var httpClient = new HttpClient(httpMessageHandler);
+                        httpClient.BaseAddress = new Uri(endpoint, UriKind.Absolute);
+
+                        var configurationClient = new ConfigurationClient(httpClient, ConfigurationSettingFactory);
+
+                        await foreach (var sourceSetting in ConfigurationSettingRepository.Get(Model.KeyFilter ?? KeyFilter.Any, LabelFilter.Any, Model.Moment))
+                        {
+                            if (!Model.LabelFilter.Contains(sourceSetting.Label))
+                            {
+                                continue;
+                            }
+
+                            await configurationClient.SetConfigurationSetting(sourceSetting);
+                        }
+
+                        Model = new InputModel();
+
+                        break;
+                    }
+                    case ImportExportTargetTypeInputSelect.TargetType.ConfigurationFile:
+                    {
+                        using var document = KeyValuePairJsonEncoder.Encode(await ConfigurationSettingRepository.Get().Where(setting => setting is not FeatureFlagConfigurationSetting).ToDictionaryAsync(setting => setting.Key, setting => setting.Value), Model.Prefix, Model.Separator);
+
+                        if (Module is not null)
+                        {
+                            await Module.InvokeVoidAsync("download", $"{Dns.GetHostName()}-{DateTimeOffset.UtcNow:yyyy-MM-dd}.json", Convert.ToBase64String(JsonSerializer.SerializeToUtf8Bytes(document)));
+                        }
+
+                        Model = new InputModel();
+
+                        break;
+                    }
+                }
+
+                break;
+            }
+            case ImportExportOperationInputRadioGroup.Operation.Import:
+            {
+                switch (Model?.SourceType)
+                {
+                    case ImportExportSourceTypeInputSelect.SourceType.AzureAppConfiguration:
+                    {
+                        var dictionary = Model.SourceConnectionString!.Split(';').Select(s => s.Split('=', 2)).ToDictionary(s => s[0], s => s[1]);
+                        var endpoint = dictionary["Endpoint"];
+                        var credential = dictionary["Id"];
+                        var secret = dictionary["Secret"];
+
+                        using var httpMessageHandler = new HmacAuthenticatingHttpMessageHandler(credential, secret);
+                        httpMessageHandler.InnerHandler = new HttpClientHandler();
+
+                        using var httpClient = new HttpClient(httpMessageHandler);
+                        httpClient.BaseAddress = new Uri(endpoint, UriKind.Absolute);
+
+                        await foreach (var sourceSetting in new ConfigurationClient(httpClient, ConfigurationSettingFactory).GetConfigurationSettings(Model.KeyFilter ?? KeyFilter.Any, LabelFilter.Any, Model.Moment))
+                        {
+                            if (!Model.LabelFilter.Contains(sourceSetting.Label))
+                            {
+                                continue;
+                            }
+
+                            if (await ConfigurationSettingRepository.Get(sourceSetting.Key, sourceSetting.Label ?? LabelFilter.Null).SingleOrDefaultAsync() is { } destinationSetting)
+                            {
+                                var date = DateTimeOffset.UtcNow;
+
+                                destinationSetting.Etag = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(date.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss"))));
+                                destinationSetting.LastModified = date;
+                                destinationSetting.ContentType = sourceSetting.ContentType;
+                                destinationSetting.Value = sourceSetting.Value;
+                                destinationSetting.Locked = sourceSetting.Locked;
+                                destinationSetting.Tags = sourceSetting.Tags;
+
+                                await ConfigurationSettingRepository.Update(destinationSetting);
+                            }
+                            else
+                            {
+                                var date = DateTimeOffset.UtcNow;
+
+                                destinationSetting = ConfigurationSettingFactory.Create(Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(date.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss")))), sourceSetting.Key, date, sourceSetting.Locked, sourceSetting.Label, sourceSetting.ContentType, sourceSetting.Value, sourceSetting.Tags);
+
+                                await ConfigurationSettingRepository.Add(destinationSetting);
+                            }
+                        }
+
+                        Model = new InputModel();
+
+                        break;
+                    }
+                    case ImportExportSourceTypeInputSelect.SourceType.ConfigurationFile:
+                    {
+                        await using var stream = Model.SourceFile!.OpenReadStream();
+
+                        using var document = await JsonDocument.ParseAsync(stream);
+
+                        foreach (var (sourceKey, sourceValue) in KeyValuePairJsonDecoder.Decode(document, Model.Prefix, Model.Separator))
+                        {
+                            if (await ConfigurationSettingRepository.Get(sourceKey, Model.Label ?? LabelFilter.Null).SingleOrDefaultAsync() is { } destinationSetting)
+                            {
+                                var date = DateTimeOffset.UtcNow;
+
+                                destinationSetting.Etag = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(date.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss"))));
+                                destinationSetting.LastModified = date;
+                                destinationSetting.ContentType = Model.ContentType;
+                                destinationSetting.Value = sourceValue;
+
+                                await ConfigurationSettingRepository.Update(destinationSetting);
+                            }
+                            else
+                            {
+                                var date = DateTimeOffset.UtcNow;
+
+                                destinationSetting = ConfigurationSettingFactory.Create(Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(date.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss")))), sourceKey, date, false, Model.Label, Model.ContentType, sourceValue, null);
+
+                                await ConfigurationSettingRepository.Add(destinationSetting);
+                            }
+                        }
+
+                        Model = new InputModel();
+
+                        break;
+                    }
+                }
+
+                break;
+            }
+        }
+    }
+
+    public class InputModel
+    {
+        public string? ContentType { get; set; }
+
+        public string? FileFormat { get; set; }
+
+        public string? KeyFilter { get; set; }
+
+        public string? Label { get; set; }
+
+        public string?[] LabelFilter { get; set; } = [];
+
+        public DateTimeOffset? Moment { get; set; }
+
+        public string Operation { get; set; } = ImportExportOperationInputRadioGroup.Operation.Import;
+
+        public string? Prefix { get; set; }
+
+        public string? Separator { get; set; }
+
+        public string? SourceConnectionString { get; set; }
+
+        public IBrowserFile? SourceFile { get; set; }
+
+        public string? SourceType { get; set; }
+
+        public string? TargetConnectionString { get; set; }
+
+        public string? TargetType { get; set; }
+    }
+
+}

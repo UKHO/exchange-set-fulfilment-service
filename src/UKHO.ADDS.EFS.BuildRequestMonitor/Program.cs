@@ -1,6 +1,6 @@
 using Serilog;
 using Serilog.Events;
-using UKHO.ADDS.Configuration.Client;
+using UKHO.ADDS.Aspire.Configuration;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Builders;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Monitors;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Services;
@@ -27,14 +27,12 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor
 
             var builder = Host.CreateApplicationBuilder(args);
 
-            builder.Configuration.AddConfigurationService("UKHO.ADDS.EFS.Builder.S100", "UKHO.ADDS.EFS.Builder.S63", "UKHO.ADDS.EFS.Builder.S57");
+            builder.AddConfiguration(ServiceConfiguration.ServiceName, ProcessNames.ConfigurationService);
 
             builder.Logging.ClearProviders();
             builder.Logging.AddSerilog(Log.Logger, dispose: true);
 
             builder.AddAzureQueueClient(StorageConfiguration.QueuesName);
-
-            builder.Services.AddExternalServiceDiscovery();
 
             builder.Services.AddTransient<BuilderContainerService>();
 

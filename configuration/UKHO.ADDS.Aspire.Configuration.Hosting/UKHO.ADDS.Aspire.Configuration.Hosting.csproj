@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="9.3.1" />
+    <PackageReference Include="Aspire.Hosting.Azure.AppConfiguration" Version="9.3.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\UKHO.ADDS.Aspire.Configuration.Emulator\UKHO.ADDS.Aspire.Configuration.Emulator.csproj" IsAspireProjectResource="true" />
+    <ProjectReference Include="..\UKHO.ADDS.Aspire.Configuration.Seeder\UKHO.ADDS.Aspire.Configuration.Seeder.csproj" IsAspireProjectResource="true" />
+    <ProjectReference Include="..\UKHO.ADDS.Aspire.Configuration\UKHO.ADDS.Aspire.Configuration.csproj" IsAspireProjectResource="false" />
+  </ItemGroup>
+
+</Project>

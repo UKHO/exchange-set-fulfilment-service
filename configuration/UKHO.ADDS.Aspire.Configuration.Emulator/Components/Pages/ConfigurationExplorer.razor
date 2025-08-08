@@ -1,0 +1,144 @@
+@attribute [StreamRendering]
+@inject IConfigurationSettingRepository ConfigurationSettingRepository
+@inject IDialogService DialogService
+@page "/kvs"
+@using UKHO.ADDS.Aspire.Configuration.Emulator.Common
+@using UKHO.ADDS.Aspire.Configuration.Emulator.ConfigurationSettings
+
+<PageTitle>Configuration explorer</PageTitle>
+
+<div class="flex flex-col">
+    <AzureToolbar>
+        <AzureToolbarButton Label="Create" OnClick="@HandleCreateClick"/>
+        <AzureToolbarButton Label="Refresh" OnClick="@HandleRefreshClick"/>
+
+        <AzureToolbarDivider/>
+
+        <AzureToolbarButton IsDisabled="true" Label="Manage view"/>
+        <AzureToolbarButton IsDisabled="true" Label="Collapse"/>
+        <AzureToolbarButton IsDisabled="true" Label="Expand"/>
+        <AzureToolbarButton Label="Values" OnClick="@HandleValuesClick"/>
+
+        <AzureToolbarDivider/>
+
+        <AzureToolbarButton IsDisabled="@(SelectedConfigurationSettings is not { Count: 1 })" Label="Edit" OnClick="@(() => HandleEditClick(SelectedConfigurationSettings.Single()))"/>
+        <AzureToolbarButton IsDisabled="@(SelectedConfigurationSettings is { Count: 0 })" Label="Delete" OnClick="@(() => HandleDeleteClick(SelectedConfigurationSettings.ToArray()))"/>
+    </AzureToolbar>
+
+    <div class="p-5">
+        <div class="flex flex-row mb-6">
+            <div class="mt-1">Filter all key-values:</div>
+
+            <AzureFilterChip Key="Keys" Value="Select key"/>
+            <AzureFilterChip Key="Labels" Value="Select label"/>
+            <AzureFilterChip Key="Date" Value="Select date"/>
+        </div>
+
+        <div class="mb-6 max-w-[300px]">
+            <AzureInputText @bind-Value="@SearchQuery" placeholder="Search displayed key-values"/>
+        </div>
+
+        <div>Loaded @FilteredConfigurationSettings.Count() key-values with @FilteredConfigurationSettings.Select(setting => setting.Key).Distinct().Count() unique keys.</div>
+    </div>
+
+    <div class="mx-5">
+        <ConfigurationSettingTable @bind-SelectedConfigurationSettings="@SelectedConfigurationSettings" ConfigurationSettings="@FilteredConfigurationSettings" IsValuesHidden="@IsValuesHidden" OnDeleteClick="@(setting => HandleDeleteClick(setting))" OnEditClick="@(setting => HandleEditClick(setting))"/>
+    </div>
+</div>
+
+@code {
+    private List<ConfigurationSetting> ConfigurationSettings { get; } = [];
+
+    private List<ConfigurationSetting> FilteredConfigurationSettings => ConfigurationSettings.Where(setting => string.IsNullOrEmpty(SearchQuery) || setting.Key.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) || setting.Label?.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) == true || setting.Value?.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) == true).OrderBy(setting => setting.Key).ToList();
+
+    private bool IsValuesHidden { get; set; } = true;
+
+    private string? SearchQuery { get; set; }
+
+    private ICollection<ConfigurationSetting> SelectedConfigurationSettings { get; set; } = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await foreach (var setting in ConfigurationSettingRepository.Get())
+        {
+            if (setting is not FeatureFlagConfigurationSetting)
+            {
+                ConfigurationSettings.Add(setting);
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async Task HandleCreateClick()
+    {
+        var reference = await DialogService.Show<ConfigurationSettingCreateDialog>();
+        var result = await reference.Result;
+        if (result is { Data: ConfigurationSetting setting })
+        {
+            await ConfigurationSettingRepository.Add(setting);
+
+            ConfigurationSettings.Add(setting);
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleEditClick(ConfigurationSetting setting)
+    {
+        var parameters = new Dictionary<string, object?>
+        {
+            {
+                nameof(ConfigurationSettingEditDialog.ConfigurationSetting),
+                setting
+            }
+        };
+
+        var reference = await DialogService.Show<ConfigurationSettingEditDialog>(parameters);
+        var result = await reference.Result;
+        if (result is { Data: ConfigurationSetting data })
+        {
+            await ConfigurationSettingRepository.Update(data);
+
+            if (ConfigurationSettings.IndexOf(setting) is var index and not -1)
+            {
+                ConfigurationSettings.RemoveAt(index);
+                ConfigurationSettings.Insert(index, data);
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async Task HandleDeleteClick(params ConfigurationSetting[] settings)
+    {
+        foreach (var setting in settings)
+        {
+            await ConfigurationSettingRepository.Remove(setting);
+
+            if (ConfigurationSettings.Remove(setting) && SelectedConfigurationSettings.Remove(setting))
+            {
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async Task HandleRefreshClick()
+    {
+        ConfigurationSettings.Clear();
+        StateHasChanged();
+
+        await foreach (var setting in ConfigurationSettingRepository.Get())
+        {
+            if (setting is not FeatureFlagConfigurationSetting)
+            {
+                ConfigurationSettings.Add(setting);
+                StateHasChanged();
+            }
+        }
+    }
+
+    private void HandleValuesClick()
+    {
+        IsValuesHidden = !IsValuesHidden;
+        StateHasChanged();
+    }
+
+}
