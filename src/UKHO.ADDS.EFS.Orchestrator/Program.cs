@@ -49,7 +49,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     builder.Services.AddSerilog((services, lc) => ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint)
                         .WriteTo.EventHub(options =>
                         {
-                            options.Environment = "Development";
+                            options.Environment = builder.Environment.EnvironmentName;
                             options.System = ServiceConfiguration.ServiceName;
                             options.Service = ServiceConfiguration.ServiceName;
                             options.NodeName = "Azure";
