@@ -30,12 +30,12 @@ steps:
   condition: and(succeeded(), eq('${{ parameters.DeployApp }}', true))
   inputs:
     azureSubscription: ${{ parameters.AzureSubscription }}
-    workingDirectory: $(Build.SourcesDirectory)
+    workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
     scriptType: pscore
     scriptLocation: inlineScript
     inlineScript: |
       $env:appConfigEndpoint = azd env get-value EFS_APPCONFIG_APPCONFIGENDPOINT
-      $env:fssJson = "$(Build.SourcesDirectory)\${{ parameters.BuilderType }}_fss.json"
+      $env:fssJson = "$(Build.SourcesDirectory)/${{ parameters.BuilderType }}_fss.json"
       az appconfig kv list --endpoint $env:appConfigEndpoint --key "externalservice:FileShare" --fields value --output tsv --auth-mode login | Out-File -FilePath $env:fssJson
       $jsonData = Get-Content -Path $env:fssJson -Raw | ConvertFrom-Json
       $env:fssEndpoint = ($jsonData.endpoints | Where-Object { $_.tag -eq "" }).resolvedUrl + "new"
