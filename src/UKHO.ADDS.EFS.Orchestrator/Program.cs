@@ -35,6 +35,8 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                 var oltpEndpoint = builder.Configuration[GlobalEnvironmentVariables.OtlpEndpoint]!;
 
+                builder.Services.AddHttpContextAccessor();
+
                 if (builder.Environment.IsDevelopment())
                 {
                     builder.Services.AddSerilog((services, lc) => ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint));
