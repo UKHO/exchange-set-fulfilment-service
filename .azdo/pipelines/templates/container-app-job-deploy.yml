@@ -43,7 +43,7 @@ steps:
       $env:fssEndpointHealth = $env:fssEndpoint + "health/new"
       Write-Host "##vso[task.setvariable variable=${{ parameters.BuilderType }}_FSS_ENDPOINT;]$env:fssEndpoint"
       Write-Host "##vso[task.setvariable variable=${{ parameters.BuilderType }}_FSS_ENDPOINT_HEALTH;]$env:fssEndpointHealth"
-      ls env:
+      gci env:
 
 - task: AzureCLI@2
   displayName: Deploy ${{ parameters.AppName }}
