@@ -48,6 +48,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             var zoneRedundant = builder.AddParameter("zoneRedundant");
             var efsServiceIdentityName = builder.AddParameter("efsServiceIdentityName");
             var efsServiceIdentityResourceGroup = builder.AddParameter("efsServiceIdentityResourceGroup");
+            var addsEnvironment = builder.AddParameter("addsEnvironment");
 
             // Existing user managed identity
             var efsServiceIdentity = builder.AddAzureUserAssignedIdentity(ServiceConfiguration.EfsServiceIdentity)
@@ -148,7 +149,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             }
             else
             {
-                var appConfig = builder.AddConfiguration(ProcessNames.ConfigurationService, [orchestratorService]);
+                var appConfig = builder.AddConfiguration(ProcessNames.ConfigurationService, addsEnvironment, [orchestratorService]);
                 appConfig.ConfigureInfrastructure(config =>
                 {
                     var appConfigResource = config.GetProvisionableResources().OfType<AppConfigurationStore>().Single();
