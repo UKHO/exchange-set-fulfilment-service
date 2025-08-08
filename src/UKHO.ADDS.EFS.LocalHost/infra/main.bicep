@@ -47,6 +47,15 @@ module efs_appconfig 'efs-appconfig/efs-appconfig.module.bicep' = {
     location: location
   }
 }
+
+module efs_app_insights 'efs-app-insights/efs-app-insights.module.bicep' = {
+  name: 'efs-app-insights'
+  scope: rg
+  params: {
+    location: location
+    logAnalyticsWorkspaceId: efs_cae.outputs.AZURE_LOG_ANALYTICS_WORKSPACE_ID
+  }
+}
 module efs_cae 'efs-cae/efs-cae.module.bicep' = {
   name: 'efs-cae'
   scope: rg
@@ -55,6 +64,22 @@ module efs_cae 'efs-cae/efs-cae.module.bicep' = {
     subnetResourceId: subnetResourceId
     userPrincipalId: principalId
     zoneRedundant: zoneRedundant
+  }
+}
+module efs_events_namespace 'efs-events-namespace/efs-events-namespace.module.bicep' = {
+  name: 'efs-events-namespace'
+  scope: rg
+  params: {
+    location: location
+  }
+}
+module efs_orchestrator_roles_efs_events_namespace 'efs-orchestrator-roles-efs-events-namespace/efs-orchestrator-roles-efs-events-namespace.module.bicep' = {
+  name: 'efs-orchestrator-roles-efs-events-namespace'
+  scope: rg
+  params: {
+    efs_events_namespace_outputs_name: efs_events_namespace.outputs.name
+    location: location
+    principalId: efs_service_identity.outputs.principalId
   }
 }
 module efs_orchestrator_roles_efs_appconfig 'efs-orchestrator-roles-efs-appconfig/efs-orchestrator-roles-efs-appconfig.module.bicep' = {
@@ -92,6 +117,7 @@ module efs_storage 'efs-storage/efs-storage.module.bicep' = {
 }
 output AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN string = efs_cae.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN
 output AZURE_CONTAINER_REGISTRY_ENDPOINT string = efs_cae.outputs.AZURE_CONTAINER_REGISTRY_ENDPOINT
+output EFS_APP_INSIGHTS_APPINSIGHTSCONNECTIONSTRING string = efs_app_insights.outputs.appInsightsConnectionString
 output EFS_APPCONFIG_APPCONFIGENDPOINT string = efs_appconfig.outputs.appConfigEndpoint
 output EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN string = efs_cae.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN
 output EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_ID string = efs_cae.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_ID
@@ -103,3 +129,4 @@ output EFS_STORAGE_BLOBENDPOINT string = efs_storage.outputs.blobEndpoint
 output EFS_STORAGE_QUEUEENDPOINT string = efs_storage.outputs.queueEndpoint
 output EFS_STORAGE_TABLEENDPOINT string = efs_storage.outputs.tableEndpoint
 output EFS_STORAGE_NAME string = efs_storage.outputs.name
+output EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT string = efs_events_namespace.outputs.eventHubsEndpoint
