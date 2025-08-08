@@ -5,24 +5,24 @@ import { Trend } from 'k6/metrics';
 const config = JSON.parse(open('../Config.json'));
 
 // Trends for tracking job metrics
-export const SmallJobCreationTime = new Trend('SmallJobCreationTime');
-export const MediumJobCreationTime = new Trend('MediumJobCreationTime');
+export const SmallJobCreateResponseTime = new Trend('SmallJobCreateResponseTime');
+export const MediumJobCreateResponseTime = new Trend('MediumJobCreateResponseTime');
 
-export const SmallJobBuildTime = new Trend('SmallJobBuildTime');
-export const MediumJobBuildTime = new Trend('MediumJobBuildTime');
+export const SmallJobDurationTime = new Trend('SmallJobDurationTime');
+export const MediumJobDurationTime = new Trend('MediumJobDurationTime');
 
-export const SmallJobTotalTime = new Trend('SmallJobTotalTime');
-export const MediumJobTotalTime = new Trend('MediumJobTotalTime');
+export const SmallJobStatusResponseTime = new Trend('SmallJobStatusResponseTime');
+export const MediumJobStatusResponseTime = new Trend('MediumJobStatusResponseTime');
 
 // Trends for tracking API response times
 export const JobCreateResponseTime = new Trend('JobCreateResponseTime');
 export const JobStatusResponseTime = new Trend('JobStatusResponseTime');
-export const JobBuildResponseTime = new Trend('JobBuildResponseTime');
+export const JobDurationTime = new Trend('JobDurationTime');
 
 /**
 * Creates a job with the given filter
 * @param {string} filter - The filter to use for job creation
-* @param {string} jobSize - The size category of the job (Small, Medium, Large)
+* @param {string} jobSize - The size category of the job (Small, Medium)
 * @returns {Object} - Response object with job details
 */
 export function createJob(filter, jobSize) {
@@ -52,6 +52,16 @@ export function createJob(filter, jobSize) {
 
   JobCreateResponseTime.add(response.timings.duration);
 
+  // Record job creation time
+  switch(jobSize) {
+    case 'Small':
+      SmallJobCreateResponseTime.add(response.timings.duration);
+      break;
+    case 'Medium':
+      MediumJobCreateResponseTime.add(response.timings.duration);
+      break;
+  }
+
   return {
     jobId: response.json().jobId,
     correlationId: correlationId,
@@ -63,8 +73,9 @@ export function createJob(filter, jobSize) {
 * Gets the status of a job
 * @param {string} jobId - The ID of the job
 * @returns {Object} - Response object with job status
+* @param {string} jobSize - The size category of the job (Small, Medium)
 */
-export function getJobStatus(jobId) {
+export function getJobStatus(jobId, jobSize) {
   const url = `${config.Base_URL}${config.JobStatusEndpoint.replace('{jobId}', jobId)}`;
 
   const params = {
@@ -81,38 +92,19 @@ export function getJobStatus(jobId) {
 
   JobStatusResponseTime.add(response.timings.duration);
 
+  // Record job creation time
+  switch(jobSize) {
+    case 'Small':
+      SmallJobStatusResponseTime.add(response.timings.duration);
+      break;
+    case 'Medium':
+      MediumJobStatusResponseTime.add(response.timings.duration);
+      break;
+  }
+
   return {
     status: response.json().jobState,
     buildStatus: response.json().buildState,
-    response: response
-  };
-}
-
-/**
-* Gets the build details of a job
-* @param {string} jobId - The ID of the job
-* @returns {Object} - Response object with build details
-*/
-export function getJobBuild(jobId) {
-  const url = `${config.Base_URL}${config.JobBuildEndpoint.replace('{jobId}', jobId)}`;
-
-  const params = {
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  };
-
-  const response = http.get(url, params);
-
-  check(response, {
-    'Build details retrieved successfully': (r) => r.status === 200
-  });
-
-  JobBuildResponseTime.add(response.timings.duration);
-
-  return {
-    builderExitCode: response.json().builderExitCode,
-    builderSteps: response.json().builderSteps,
     response: response
   };
 }
@@ -133,25 +125,4 @@ export function generateCorrelationId(prefix) {
   ).join('');
 
   return `job-${prefix.toLowerCase()}-${timestamp}-${random}`;
-}
-
-/**
-* Get the duration of a function execution within a group
-* @param {string} groupName - Name of the group
-* @param {Function} fn - Function to execute
-* @returns {number} - Duration in milliseconds
-*/
-export function getGroupDuration(groupName, fn) {
-  const start = new Date();
-  group(groupName, fn);
-  return new Date() - start;
-}
-
-/**
-* Calculate total build time from builder steps
-* @param {Array} builderSteps - Array of builder steps
-* @returns {number} - Total build time in milliseconds
-*/
-export function calculateBuildTime(builderSteps) {
-  return builderSteps.reduce((total, step) => total + step.elapsedMilliseconds, 0);
 }

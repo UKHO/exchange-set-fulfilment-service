@@ -1,10 +1,10 @@
 import { check } from 'k6';
 
 import { 
-  createJob, 
-  getGroupDuration,
-  SmallJobCreationTime,
-  MediumJobCreationTime
+  createJob,
+  SmallJobDurationTime,
+  MediumJobDurationTime,
+  JobDurationTime
 } from '../Helper/ClientHelper.js';
 import { monitorJob } from '../Helper/JobMonitor.js';
 
@@ -15,23 +15,10 @@ import { monitorJob } from '../Helper/JobMonitor.js';
 * @returns {Object} - Object with job details and monitoring results
 */
 export function createAndMonitorJob(filter, jobSize) {
-  let jobCreationDuration = 0;
   let jobResult = {};
+  let startTime = new Date().getTime();
 
-  // Create job and measure duration
-  jobCreationDuration = getGroupDuration(`${jobSize}JobCreation`, () => {
-    jobResult = createJob(filter, jobSize);
-  });
-
-  // Record job creation time
-  switch(jobSize) {
-    case 'Small':
-      SmallJobCreationTime.add(jobCreationDuration);
-      break;
-    case 'Medium':
-      MediumJobCreationTime.add(jobCreationDuration);
-      break;
-  }
+  jobResult = createJob(filter, jobSize);
 
   // Check job creation result
   if (!check(jobResult, {
@@ -45,12 +32,23 @@ export function createAndMonitorJob(filter, jobSize) {
     };
   }
 
-  const startTime = new Date().getTime();
   console.log(`Created ${jobSize} job with ID: ${jobResult.jobId}`);
 
   // Monitor job until completion
   const monitorResult = monitorJob(jobResult.jobId, jobSize, startTime);
+  const jobDuration = (new Date().getTime() - startTime); // in seconds
 
+  JobDurationTime.add(jobDuration);
+
+  // Record job creation time
+  switch(jobSize) {
+    case 'Small':
+      SmallJobDurationTime.add(jobDuration);
+      break;
+    case 'Medium':
+      MediumJobDurationTime.add(jobDuration);
+      break;
+  }
   return Object.assign({
     jobId: jobResult.jobId,
     correlationId: jobResult.correlationId,

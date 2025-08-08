@@ -6,9 +6,8 @@ import http from 'k6/http';
  * @param  {string} tenantId - Directory ID in Azure
  * @param  {string} clientId - Application ID in Azure
  * @param  {string} scope - Space-separated list of scopes (permissions) that are already given consent to by admin
- * @param  {string} resource - a resource ID (as string) 
  */
-export function authenticateUsingAzure(tenantId, clientId, scope, resource) {
+export function authenticateUsingAzure(tenantId, clientId, scope) {
   let url;
   const requestBody = {
     client_id: clientId,
@@ -16,14 +15,14 @@ export function authenticateUsingAzure(tenantId, clientId, scope, resource) {
   };
 
   if (typeof resource == 'string') {
-    url = `https://login.microsoftonline.com/${tenantId}/oauth2/token`;
+    url = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize`;
       requestBody['grant_type'] = 'implicit';
-    requestBody['resource'] = resource;
   } else {
-    throw 'resource should be either a string or an object containing username and password';
+    throw 'The Authorization credentials are not valid. Please check the tenantId, clientId, and scope.';
   }
 
   let response = http.post(url, requestBody);
+  console.log(response.json());
 
   return response.json();
 }

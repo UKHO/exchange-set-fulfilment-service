@@ -4,8 +4,7 @@
   "description": "Contains K6 code for Exchange Set Fulfillment Service performance testing",
   "main": "jobCreationLoadTest.js",
   "scripts": {
-    "test": "k6 run jobCreationLoadTest.js",
-    "stress": "k6 run ./TestCase/EFSStressTest.js"
+    "test": "k6 run jobCreationLoadTest.js"
   },
   "keywords": [
     "EFS",

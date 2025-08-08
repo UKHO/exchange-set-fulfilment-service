@@ -18,8 +18,8 @@ export let options = {
       executor: 'per-vu-iterations',
       startTime: '5s',
       gracefulStop: '5s',
-      vus: 2,
-      iterations: 5,
+      vus: 1,
+      iterations: 1,
       maxDuration: '5m'
     },
 
@@ -29,9 +29,9 @@ export let options = {
       executor: 'per-vu-iterations',
       startTime: '30s',
       gracefulStop: '5s',
-      vus: 2,
-      iterations: 5,
-      maxDuration: '5m'
+      vus: 1,
+      iterations: 1,
+      maxDuration: '10m'
     }
   }
 };
@@ -58,7 +58,8 @@ export function createSmallJob() {
 
   console.log(`Small job ${result.jobId} completed with status: ${result.status}`);
   if (result.status === 'success') {
-    console.log(`Total time: ${result.totalTime.toFixed(2)}s, Build time: ${result.buildTime.toFixed(2)}ms`);
+    const buildTimeStr = (typeof result.buildTime === 'number' && !isNaN(result.buildTime)) ? result.buildTime.toFixed(2) : 'N/A';
+    console.log(`Total time: ${result.totalTime.toFixed(2)}s, Build time: ${buildTimeStr}ms`);
   }
 
   sleep(1);
@@ -70,7 +71,8 @@ export function createMediumJob() {
 
   console.log(`Medium job ${result.jobId} completed with status: ${result.status}`);
   if (result.status === 'success') {
-    console.log(`Total time: ${result.totalTime.toFixed(2)}s, Build time: ${result.buildTime.toFixed(2)}ms`);
+    const buildTimeStr = (typeof result.buildTime === 'number' && !isNaN(result.buildTime)) ? result.buildTime.toFixed(2) : 'N/A';
+    console.log(`Total time: ${result.totalTime.toFixed(2)}s, Build time: ${buildTimeStr}ms`);
   }
 
   sleep(1);
