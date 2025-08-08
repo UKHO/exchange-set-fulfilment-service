@@ -34,14 +34,13 @@ steps:
     scriptType: pscore
     scriptLocation: inlineScript
     inlineScript: |
-      #$env:appConfigEndpoint = azd env get-value EFS_APPCONFIG_APPCONFIGENDPOINT
-      $env:appConfigEndpoint = "https://efsappconfig-mibbklhczujzi.azconfig.io"
+      $env:appConfigEndpoint = azd env get-value EFS_APPCONFIG_APPCONFIGENDPOINT
 
       $env:fssJson = "$(Build.SourcesDirectory)/${{ parameters.BuilderType }}_fss.json"
       az appconfig kv list --endpoint $env:appConfigEndpoint --key "externalservice:FileShare" --fields value --output tsv --auth-mode login | Out-File -FilePath $env:fssJson
       $jsonData = Get-Content -Path $env:fssJson -Raw | ConvertFrom-Json
-      $env:fssEndpoint = ($jsonData.endpoints | Where-Object { $_.tag -eq "" }).resolvedUrl + "new"
-      $env:fssEndpointHealth = $env:fssEndpoint + "health/new"
+      $env:fssEndpoint = ($jsonData.endpoints | Where-Object { $_.tag -eq "" }).resolvedUrl
+      $env:fssEndpointHealth = $env:fssEndpoint
       Write-Host "##vso[task.setvariable variable=${{ parameters.BuilderType }}_FSS_ENDPOINT;]$env:fssEndpoint"
       Write-Host "##vso[task.setvariable variable=${{ parameters.BuilderType }}_FSS_ENDPOINT_HEALTH;]$env:fssEndpointHealth"
 
@@ -50,8 +49,6 @@ steps:
 
       $env:retryDelay = az appconfig kv list --endpoint $env:appConfigEndpoint --key "buildRequestMonitor:${{ parameters.BuilderType }}:RetryDelayMilliseconds" --fields value --output tsv --auth-mode login
       Write-Host "##vso[task.setvariable variable=${{ parameters.BuilderType }}_RETRY_DELAY;]$env:retryDelay"
-
-      gci env:
 
 - task: AzureCLI@2
   displayName: Deploy ${{ parameters.AppName }}
@@ -62,53 +59,48 @@ steps:
     scriptType: bash
     scriptLocation: inlineScript
     inlineScript: |
-      env | sort
-      # set -e
-      # echo "Setting variables..."
-      # DEPLOYMENT_NUMBER=$EPOCHSECONDS
-      # DEPLOYMENT_TAG=docker-deploy-$DEPLOYMENT_NUMBER
-      # echo "Deployment tag - $DEPLOYMENT_TAG"
-      # export CONTAINER_IMAGE="$(AcrName).azurecr.io/exchange-set-fulfilment-service/${{ parameters.AppName }}-$(AZURE_ENV_NAME):$DEPLOYMENT_TAG"
-      # RESOURCE_GROUP="efs-$(AZURE_ENV_NAME)-rg"
+      set -e
+      echo "Setting variables..."
+      DEPLOYMENT_NUMBER=$EPOCHSECONDS
+      DEPLOYMENT_TAG=docker-deploy-$DEPLOYMENT_NUMBER
+      echo "Deployment tag - $DEPLOYMENT_TAG"
+      export CONTAINER_IMAGE="$(AcrName).azurecr.io/exchange-set-fulfilment-service/${{ parameters.AppName }}-$(AZURE_ENV_NAME):$DEPLOYMENT_TAG"
+      RESOURCE_GROUP="efs-$(AZURE_ENV_NAME)-rg"
 
-      # echo "Reading azd variables..."
-      # while IFS='=' read -r key value; do
-      #     value=$(echo "$value" | sed 's/^"//' | sed 's/"$//')
-      #     export "$key=$value"
-      # done <<EOF
-      # $(azd env get-values)
-      # EOF
+      echo "Reading azd variables..."
+      while IFS='=' read -r key value; do
+          value=$(echo "$value" | sed 's/^"//' | sed 's/"$//')
+          export "$key=$value"
+      done <<EOF
+      $(azd env get-values)
+      EOF
 
-      # if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
-      #   echo "Current environment variables:"
-      #   echo "--------------------------------------------------------------------------------"
-      #   env | sort
-      #   echo "--------------------------------------------------------------------------------"
-      # fi
+      if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
+        echo "Current environment variables:"
+        echo "--------------------------------------------------------------------------------"
+        env | sort
+        echo "--------------------------------------------------------------------------------"
+      fi
 
-      # echo "Logging in to Azure Container Registry..."
-      # az acr login --name $(AcrName)
+      echo "Logging in to Azure Container Registry..."
+      az acr login --name $(AcrName)
 
-      # echo "Changing directory..."
-      # cd $(Build.SourcesDirectory)/efs/src
+      echo "Changing directory..."
+      cd $(Build.SourcesDirectory)/efs/src
 
-      # echo "Building Docker image..."
-      # docker build -t $CONTAINER_IMAGE -f ${{ parameters.ProjectFolder }}/Dockerfile-Release .
+      echo "Building Docker image..."
+      docker build -t $CONTAINER_IMAGE -f ${{ parameters.ProjectFolder }}/Dockerfile-Release .
 
-      # echo "Pushing Docker image to Azure Container Registry..."
-      # docker push $CONTAINER_IMAGE
+      echo "Pushing Docker image to Azure Container Registry..."
+      docker push $CONTAINER_IMAGE
 
-      # echo "Deploying app job..."
-      # cd "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost/infra/${{ parameters.AppName }}"
+      echo "Deploying app job..."
+      cd "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost/infra/${{ parameters.AppName }}"
 
-      # if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
-      #   az deployment group create --name ${{ parameters.AppName }}-$DEPLOYMENT_NUMBER --resource-group $RESOURCE_GROUP --parameters ${{ parameters.AppName }}.tmpl.bicepparam --debug
-      # else
-      #   az deployment group create --name ${{ parameters.AppName }}-$DEPLOYMENT_NUMBER --resource-group $RESOURCE_GROUP --parameters ${{ parameters.AppName }}.tmpl.bicepparam
-      # fi
+      if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
+        az deployment group create --name ${{ parameters.AppName }}-$DEPLOYMENT_NUMBER --resource-group $RESOURCE_GROUP --parameters ${{ parameters.AppName }}.tmpl.bicepparam --debug
+      else
+        az deployment group create --name ${{ parameters.AppName }}-$DEPLOYMENT_NUMBER --resource-group $RESOURCE_GROUP --parameters ${{ parameters.AppName }}.tmpl.bicepparam
+      fi
   env:
     EFS_STORAGE_CONNECTION_STRING: $(EFS_STORAGE_CONNECTION_STRING)
-    FSS_ENDPOINT: $(${{ parameters.BuilderType }}_FSS_ENDPOINT)
-    FSS_ENDPOINT_HEALTH: $(${{ parameters.BuilderType }}_FSS_ENDPOINT_HEALTH)
-    MAX_RETRY_ATTEMPTS: $(MAX_RETRY_ATTEMPTS)
-    RETRY_DELAY_MS: $(RETRY_DELAY_MS)
