@@ -87,7 +87,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
             }
             else if (state == "get-invalidproducts" && requestedProducts.Count > 0)
             {
-                foreach (var productName in requestedProducts.Take(requestedProducts.Count - 1))
+                foreach (var productName in requestedProducts.SkipLast(1))
                     productsArray.Add(GenerateProductJson(productName));
 
                 var lastProduct = requestedProducts.Last();
@@ -104,7 +104,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
                 ["productCounts"] = new JsonObject
                 {
                     ["requestedProductCount"] = requestedProducts.Count,
-                    ["returnedProductCount"] = productsArray.Count,
+                    ["returnedProductCount"] = (state == "get-invalidproducts" && requestedProducts.Count > 0) ? requestedProducts.Count - notReturnedArray.Count : productsArray.Count,
                     ["requestedProductsAlreadyUpToDateCount"] = 0,
                     ["requestedProductsNotReturned"] = notReturnedArray
                 },
