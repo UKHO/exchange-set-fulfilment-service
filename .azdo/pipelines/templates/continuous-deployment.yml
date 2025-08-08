@@ -277,6 +277,8 @@ jobs:
               inputs:
                 targetType: 'inline'
                 script: |
+                  Write-Host "Listing folders in $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Builder"
+                  Get-ChildItem -Path "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Builder.S100" | ForEach-Object { Write-Host $_.FullName }
                   Write-Host "Listing folders in $(Build.SourcesDirectory)/efs/test"
                   Get-ChildItem -Path "$(Build.SourcesDirectory)/efs/test" -Directory | ForEach-Object { Write-Host $_.FullName }
 
