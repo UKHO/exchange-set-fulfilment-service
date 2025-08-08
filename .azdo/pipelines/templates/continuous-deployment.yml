@@ -277,8 +277,8 @@ jobs:
               inputs:
                 targetType: 'inline'
                 script: |
-                  Write-Host "Listing folders in $(Build.SourcesDirectory)/test"
-                  Get-ChildItem -Path "$(Build.SourcesDirectory)/test" -Directory | ForEach-Object { Write-Host $_.FullName }
+                  Write-Host "Listing folders in $(Build.SourcesDirectory)/efs/test"
+                  Get-ChildItem -Path "$(Build.SourcesDirectory)/efs/test" -Directory | ForEach-Object { Write-Host $_.FullName }
 
             - task: UseDotNet@2
               displayName: 'Use .NET SDK $(SdkVersion)'
@@ -294,7 +294,7 @@ jobs:
                 feedsToUse: config
                 noCache: true
                 nugetConfigPath: '$(Build.SourcesDirectory)/BuildNuget.config'
-                workingDirectory: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.EndToEndTests'
+                workingDirectory: '$(Build.SourcesDirectory)/efs/test/UKHO.ADDS.EFS.EndToEndTests'
 
             - task: DotNetCoreCLI@2
               displayName: 'Run EndToEnd(Functional) Tests'
@@ -302,7 +302,7 @@ jobs:
                 command: test
                 projects: '**/*UKHO.ADDS.EFS.EndToEndTests.csproj'
                 arguments: '--configuration Release --no-restore --logger trx'
-                workingDirectory: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.EndToEndTests'
+                workingDirectory: '$(Build.SourcesDirectory)/efs/test/UKHO.ADDS.EFS.EndToEndTests'
 
             - task: DotNetCoreCLI@2
               displayName: 'Restore NuGet packages for Functional Tests'
@@ -313,7 +313,7 @@ jobs:
                 feedsToUse: config
                 noCache: true
                 nugetConfigPath: '$(Build.SourcesDirectory)/BuildNuget.config'
-                workingDirectory: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.FunctionalTests'
+                workingDirectory: '$(Build.SourcesDirectory)/efs/test/UKHO.ADDS.EFS.FunctionalTests'
 
             - task: DotNetCoreCLI@2
               displayName: 'Run Functional Tests'
@@ -322,7 +322,7 @@ jobs:
                 command: test
                 projects: '**/*UKHO.ADDS.EFS.FunctionalTests.csproj'
                 arguments: '--configuration Release --no-restore --logger trx'
-                workingDirectory: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.FunctionalTests'
+                workingDirectory: '$(Build.SourcesDirectory)/efs/test/UKHO.ADDS.EFS.FunctionalTests'
 
 # - ${{ if eq(parameters.RunFunctionalTests, true) }}:
 #   - job: ${{ parameters.ShortName }}FunctionalTests
