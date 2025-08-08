@@ -16,9 +16,9 @@
 // OF SUCH DAMAGE.
 
 using Azure.Storage.Blobs;
-using UKHO.Logging.EventHubLogProvider.AzureStorageEventLogging.Models;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.AzureStorageEventLogging.Models;
 
-namespace UKHO.Logging.EventHubLogProvider.AzureStorageEventLogging.Interfaces
+namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.AzureStorageEventLogging.Interfaces
 {
     /// <summary>
     ///     The Azure storage blob container builder interface

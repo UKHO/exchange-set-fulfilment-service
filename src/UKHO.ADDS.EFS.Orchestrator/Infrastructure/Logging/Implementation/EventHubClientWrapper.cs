@@ -15,17 +15,13 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
 // OF SUCH DAMAGE.
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading.Tasks;
 using Azure.Core;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.AzureStorageEventLogging.Models;
 
-using UKHO.Logging.EventHubLogProvider.AzureStorageEventLogging.Models;
-
-namespace UKHO.Logging.EventHubLogProvider
+namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
 {
     //Wrapper for the external library so we can test things.
     internal interface IEventHubClientWrapper : IDisposable

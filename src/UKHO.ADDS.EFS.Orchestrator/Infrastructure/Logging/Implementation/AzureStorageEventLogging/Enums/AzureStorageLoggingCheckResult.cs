@@ -1,4 +1,4 @@
-﻿namespace UKHO.Logging.EventHubLogProvider.AzureStorageEventLogging.Enums
+﻿namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.AzureStorageEventLogging.Enums
 {
     /// <summary>
     ///     The Azure Storage Logging Check Result enumeration

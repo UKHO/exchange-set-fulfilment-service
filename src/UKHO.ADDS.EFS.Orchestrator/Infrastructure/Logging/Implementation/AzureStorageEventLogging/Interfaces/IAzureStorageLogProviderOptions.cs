@@ -14,12 +14,9 @@
 // CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
 // OF SUCH DAMAGE.
-
-using System;
-
 using Azure.Core;
 
-namespace UKHO.Logging.EventHubLogProvider.AzureStorageEventLogging.Interfaces
+namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.AzureStorageEventLogging.Interfaces
 {
     /// <summary>
     /// The azure storage log provider options interface

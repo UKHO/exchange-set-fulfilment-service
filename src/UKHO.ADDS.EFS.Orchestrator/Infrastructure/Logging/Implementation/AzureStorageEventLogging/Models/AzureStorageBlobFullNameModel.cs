@@ -1,6 +1,5 @@
-﻿using System;
-
-namespace UKHO.Logging.EventHubLogProvider.AzureStorageEventLogging.Models
+﻿
+namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.AzureStorageEventLogging.Models
 {
     /// <summary>
     ///     The Blob Full Name Model

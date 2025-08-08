@@ -18,7 +18,7 @@
 using System.Text.Json.Serialization;
 using Serilog.Formatting;
 
-namespace UKHO.Logging.EventHubLogProvider.Serilog
+namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Serilog
 {
     /// <summary>
     /// Configuration options for the EventHub Serilog sink

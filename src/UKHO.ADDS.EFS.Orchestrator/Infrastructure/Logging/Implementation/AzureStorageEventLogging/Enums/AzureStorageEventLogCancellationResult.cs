@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace UKHO.Logging.EventHubLogProvider.AzureStorageEventLogging.Enums
+namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.AzureStorageEventLogging.Enums
 {
     /// <summary>
     ///     The Cancellation Result enumeration

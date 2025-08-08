@@ -1,17 +1,13 @@
-﻿using System;
-using System.IO;
-using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Net;
 using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
-using UKHO.Logging.EventHubLogProvider.AzureStorageEventLogging.Models;
-using UKHO.Logging.EventHubLogProvider.AzureStorageEventLogging.Enums;
-using UKHO.Logging.EventHubLogProvider.AzureStorageEventLogging.Extensions;
-using UKHO.Logging.EventHubLogProvider.AzureStorageEventLogging.Interfaces;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.AzureStorageEventLogging.Enums;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.AzureStorageEventLogging.Extensions;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.AzureStorageEventLogging.Interfaces;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.AzureStorageEventLogging.Models;
 
-namespace UKHO.Logging.EventHubLogProvider.AzureStorageEventLogging
+namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.AzureStorageEventLogging
 {
     /// <summary>
     ///     The Azure storage event logger model

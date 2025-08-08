@@ -1,11 +1,11 @@
 ﻿using System.Text;
 using System.Text.Json;
 using Azure;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.AzureStorageEventLogging.Enums;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.AzureStorageEventLogging.Models;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
-using UKHO.Logging.EventHubLogProvider.AzureStorageEventLogging.Enums;
-using UKHO.Logging.EventHubLogProvider.AzureStorageEventLogging.Models;
 
-namespace UKHO.Logging.EventHubLogProvider.AzureStorageEventLogging.Extensions
+namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.AzureStorageEventLogging.Extensions
 {
     /// <summary>
     ///     The Azure storage event logger extensions
@@ -36,7 +36,7 @@ namespace UKHO.Logging.EventHubLogProvider.AzureStorageEventLogging.Extensions
                                                     int mbs)
         {
 
-            bool isLongMessage = IsLongMessage(message, mbs);
+            var isLongMessage = message.IsLongMessage(mbs);
 
             if (isLongMessage == true)
             {
@@ -64,7 +64,7 @@ namespace UKHO.Logging.EventHubLogProvider.AzureStorageEventLogging.Extensions
         /// <returns>Warning message</returns>
         public static string ToLongMessageWarning(this LogEntry logEntry, JsonSerializerOptions serializerSettings)
         {
-            string template = $"A log over 1MB was submitted with part of the message template: {logEntry.MessageTemplate.Substring(0, 256)}. Please enable the Azure Storage Event Logging feature to store details of oversize logs.";
+            var template = $"A log over 1MB was submitted with part of the message template: {logEntry.MessageTemplate.Substring(0, 256)}. Please enable the Azure Storage Event Logging feature to store details of oversize logs.";
 
             logEntry.Exception = new Exception(template);
             logEntry.MessageTemplate = "A log over 1MB was submitted with a message of template: {MessageTemplate}. Please enable the Azure Storage Event Logging feature to store details of oversize logs.";
@@ -80,9 +80,9 @@ namespace UKHO.Logging.EventHubLogProvider.AzureStorageEventLogging.Extensions
         /// <returns>The value</returns>
         public static string GetLogEntryPropertyValue(this Dictionary<string, object> set, string key)
         {
-            var keyExists = set.TryGetValue(key, out object value);
+            var keyExists = set.TryGetValue(key, out var value);
 
-            return keyExists & (value != null) ? value.ToString() : null;
+            return keyExists & value != null ? value.ToString() : null;
         }
 
         /// <summary>
@@ -175,7 +175,7 @@ namespace UKHO.Logging.EventHubLogProvider.AzureStorageEventLogging.Extensions
 
             response.Headers.TryGetValue("Date", out var date);
 
-            return date == null ? null : (DateTime?)DateTime.Parse(date);
+            return date == null ? null : DateTime.Parse(date);
         }
     }
 }

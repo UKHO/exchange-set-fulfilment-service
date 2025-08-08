@@ -17,8 +17,7 @@
 
 using System.Text.Json.Serialization;
 
-
-namespace UKHO.Logging.EventHubLogProvider
+namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
 {
 
     public class LogEntry

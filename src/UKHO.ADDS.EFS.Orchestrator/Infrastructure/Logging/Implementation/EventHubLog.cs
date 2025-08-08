@@ -19,12 +19,12 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Azure.Messaging.EventHubs;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.AzureStorageEventLogging;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.AzureStorageEventLogging.Enums;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.AzureStorageEventLogging.Extensions;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.AzureStorageEventLogging.Models;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
-
-using UKHO.Logging.EventHubLogProvider.AzureStorageEventLogging;
-using UKHO.Logging.EventHubLogProvider.AzureStorageEventLogging.Enums;
-using UKHO.Logging.EventHubLogProvider.AzureStorageEventLogging.Extensions;
-using UKHO.Logging.EventHubLogProvider.AzureStorageEventLogging.Models;
 
 namespace UKHO.Logging.EventHubLogProvider
 {
@@ -43,20 +43,6 @@ namespace UKHO.Logging.EventHubLogProvider
         public EventHubLog(IEventHubClientWrapper eventHubClientWrapper, IEnumerable<JsonConverter> customConverters)
         {
             this.eventHubClientWrapper = eventHubClientWrapper;
-            //settings = new JsonSerializerSettings
-            //           {
-            //               Formatting = Formatting.Indented,
-            //               ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-            //               ContractResolver = new NullPropertyResolver(),
-            //               Converters = customConverters.ToList()
-            //           };
-            //errorSettings = new JsonSerializerSettings
-            //                {
-            //                    Formatting = Formatting.Indented,
-            //                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-            //                    ContractResolver = settings.ContractResolver
-            //                };
-
 
             // Common options
             var settings = new JsonSerializerOptions

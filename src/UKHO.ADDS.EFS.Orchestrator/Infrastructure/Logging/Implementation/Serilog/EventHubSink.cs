@@ -25,7 +25,7 @@ using Serilog.Events;
 using Serilog.Formatting;
 using Serilog.Formatting.Json;
 
-namespace UKHO.Logging.EventHubLogProvider.Serilog
+namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Serilog
 {
     public class EventHubSink : ILogEventSink, IDisposable
     {

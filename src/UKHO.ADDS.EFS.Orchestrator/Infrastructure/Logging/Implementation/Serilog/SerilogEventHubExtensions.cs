@@ -22,8 +22,9 @@ using Serilog.Configuration;
 using Serilog.Core;
 using Serilog.Events;
 using Serilog.Sinks.PeriodicBatching;
+using UKHO.Logging.EventHubLogProvider;
 
-namespace UKHO.Logging.EventHubLogProvider.Serilog
+namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Serilog
 {
     /// <summary>
     /// Extends Serilog with methods to add Azure Event Hub sinks

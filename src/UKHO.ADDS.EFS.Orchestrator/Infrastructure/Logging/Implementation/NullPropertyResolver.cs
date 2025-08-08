@@ -19,7 +19,7 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace UKHO.Logging.EventHubLogProvider
+namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
 {
     internal class NullPropertyResolver : JsonConverterFactory
     {
@@ -59,7 +59,7 @@ namespace UKHO.Logging.EventHubLogProvider
                         continue;
 
                     object? propValue = null;
-                    bool shouldSerialize = false;
+                    var shouldSerialize = false;
 
                     try
                     {

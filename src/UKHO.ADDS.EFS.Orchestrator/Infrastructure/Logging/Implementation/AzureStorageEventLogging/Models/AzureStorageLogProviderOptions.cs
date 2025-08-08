@@ -1,8 +1,7 @@
-﻿using System;
-using Azure.Core;
-using UKHO.Logging.EventHubLogProvider.AzureStorageEventLogging.Interfaces;
+﻿using Azure.Core;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.AzureStorageEventLogging.Interfaces;
 
-namespace UKHO.Logging.EventHubLogProvider.AzureStorageEventLogging.Models
+namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.AzureStorageEventLogging.Models
 {
     /// <summary>
     ///     The storage provider options model

@@ -19,7 +19,7 @@ using Serilog.Events;
 using Serilog.Formatting;
 using Serilog.Sinks.PeriodicBatching;
 
-namespace UKHO.Logging.EventHubLogProvider.Serilog
+namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Serilog
 {
     public class EventHubBatchedSink : IBatchedLogEventSink, IDisposable
     {

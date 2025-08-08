@@ -1,6 +1,4 @@
-using System;
-
-namespace UKHO.Logging.EventHubLogProvider
+namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
 {
     public interface IEventHubLog : IDisposable
     {

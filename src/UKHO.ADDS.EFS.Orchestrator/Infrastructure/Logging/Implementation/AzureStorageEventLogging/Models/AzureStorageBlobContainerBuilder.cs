@@ -1,8 +1,8 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Azure.Storage.Blobs;
-using UKHO.Logging.EventHubLogProvider.AzureStorageEventLogging.Interfaces;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.AzureStorageEventLogging.Interfaces;
 
-namespace UKHO.Logging.EventHubLogProvider.AzureStorageEventLogging.Models
+namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.AzureStorageEventLogging.Models
 {
     /// <summary>
     ///     The Azure storage blob container builder model
