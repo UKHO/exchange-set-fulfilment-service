@@ -184,6 +184,34 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         }
 
         [Test]
+        public async Task WhenShouldExecuteAsyncIsCalledAndRequestedProductsAndRequestedFilterEmpty_ThenReturnsFalse()
+        {
+            var job = new Job
+            {
+                Id = "test-job-id",
+                Timestamp = DateTime.UtcNow,
+                DataStandard = DataStandard.S100,
+                RequestedProducts = [],
+                RequestedFilter = "",
+            };
+
+            var build = new S100Build
+            {
+                Products =
+                [
+                    new() { ProductName = "101GB004DEVQK" }
+                ]
+            };
+
+            var pipelineContext = new PipelineContext<S100Build>(job, build, _storageService);
+            A.CallTo(() => _executionContext.Subject).Returns(pipelineContext);
+
+            var result = await _filterProductsNode.ShouldExecuteAsync(_executionContext);
+
+            Assert.That(result, Is.False);
+        }
+
+        [Test]
         public async Task WhenPerformExecuteAsyncIsCalledAndFilterMatchesProducts_ThenFiltersProductsAndReturnsSucceeded()
         {
             _job = new Job
@@ -226,7 +254,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 Id = "test-job-id",
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = ["product1", "product2"],
+                RequestedProducts = [],
                 RequestedFilter = "productName eq '101GB004DEVQP'",
             };
 
@@ -261,7 +289,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 Id = "test-job-id",
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = ["product1", "product2"],
+                RequestedProducts = [],
                 RequestedFilter = "productName eq '101GB004DEVQK' or latestEditionNumber eq 2",
             };
 
