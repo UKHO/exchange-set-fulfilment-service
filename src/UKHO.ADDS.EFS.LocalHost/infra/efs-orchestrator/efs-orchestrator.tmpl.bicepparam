@@ -1,5 +1,6 @@
 using './efs-orchestrator.module.bicep'
 
+param addsenvironment_value = '{{ parameter "addsEnvironment" }}'
 param efs_appconfig_outputs_appconfigendpoint = '{{ .Env.EFS_APPCONFIG_APPCONFIGENDPOINT }}'
 param efs_cae_outputs_azure_container_apps_environment_default_domain = '{{ .Env.EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN }}'
 param efs_cae_outputs_azure_container_apps_environment_id = '{{ .Env.EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_ID }}'
@@ -7,9 +8,9 @@ param efs_cae_outputs_azure_container_registry_endpoint = '{{ .Env.EFS_CAE_AZURE
 param efs_cae_outputs_azure_container_registry_managed_identity_id = '{{ .Env.EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID }}'
 param efs_orchestrator_containerimage = '{{ .Image }}'
 param efs_orchestrator_containerport = '{{ targetPortOrDefault 8080 }}'
-param efs_orchestrator_identity_outputs_clientid = '{{ .Env.EFS_ORCHESTRATOR_IDENTITY_CLIENTID }}'
-param efs_orchestrator_identity_outputs_id = '{{ .Env.EFS_ORCHESTRATOR_IDENTITY_ID }}'
 param efs_redis_password_value = '{{ securedParameter "efs_redis_password" }}'
+param efs_service_identity_outputs_clientid = '{{ .Env.EFS_SERVICE_IDENTITY_CLIENTID }}'
+param efs_service_identity_outputs_id = '{{ .Env.EFS_SERVICE_IDENTITY_ID }}'
 param efs_storage_outputs_blobendpoint = '{{ .Env.EFS_STORAGE_BLOBENDPOINT }}'
 param efs_storage_outputs_queueendpoint = '{{ .Env.EFS_STORAGE_QUEUEENDPOINT }}'
 param efs_storage_outputs_tableendpoint = '{{ .Env.EFS_STORAGE_TABLEENDPOINT }}'

@@ -5,8 +5,17 @@
       "principalId": {
         "value": "${AZURE_PRINCIPAL_ID}"
       },
+      "addsEnvironment": {
+        "value": "${AZURE_ADDS_ENVIRONMENT}"
+      },
       "efs_redis_password": {
         "value": "${AZURE_EFS_REDIS_PASSWORD}"
+      },
+      "efsServiceIdentityName": {
+        "value": "${AZURE_EFS_SERVICE_IDENTITY_NAME}"
+      },
+      "efsServiceIdentityResourceGroup": {
+        "value": "${AZURE_EFS_SERVICE_IDENTITY_RESOURCE_GROUP}"
       },
       "subnetResourceId": {
         "value": "${AZURE_SUBNET_RESOURCE_ID}"
