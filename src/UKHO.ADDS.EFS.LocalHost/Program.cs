@@ -148,7 +148,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                             Metadata = new BicepDictionary<string>
                             {
                                 { "type", "Utilization" },
-                                { "value", "60" }
+                                { "value", "70" }
                             }
                         }
                     });
@@ -163,7 +163,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                             Metadata = new BicepDictionary<string>
                             {
                                 { "type", "Utilization" },
-                                { "value", "70" }
+                                { "value", "75" }
                             }
                         }
                     });
