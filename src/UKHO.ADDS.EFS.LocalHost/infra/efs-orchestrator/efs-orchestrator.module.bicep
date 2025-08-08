@@ -26,6 +26,8 @@ param efs_redis_password_value string
 
 param efs_appconfig_outputs_appconfigendpoint string
 
+param addsenvironment_value string
+
 param efs_service_identity_outputs_clientid string
 
 resource efs_orchestrator 'Microsoft.App/containerApps@2025-02-02-preview' = {
@@ -114,7 +116,7 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2025-02-02-preview' = {
             }
             {
               name: 'adds-environment'
-              value: 'local'
+              value: addsenvironment_value
             }
             {
               name: 'AZURE_CLIENT_ID'
