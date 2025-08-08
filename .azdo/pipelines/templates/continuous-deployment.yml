@@ -293,7 +293,7 @@ jobs:
                 projects: '**/*UKHO.ADDS.EFS.EndToEndTests.csproj'
                 feedsToUse: config
                 noCache: true
-                nugetConfigPath: '$(Build.SourcesDirectory)/BuildNuget.config'
+                nugetConfigPath: '$(Build.SourcesDirectory)/efs/BuildNuget.config'
                 workingDirectory: '$(Build.SourcesDirectory)/efs/test/UKHO.ADDS.EFS.EndToEndTests'
 
             - task: DotNetCoreCLI@2
@@ -312,7 +312,7 @@ jobs:
                 projects: '**/*UKHO.ADDS.EFS.FunctionalTests.csproj'
                 feedsToUse: config
                 noCache: true
-                nugetConfigPath: '$(Build.SourcesDirectory)/BuildNuget.config'
+                nugetConfigPath: '$(Build.SourcesDirectory)/efs/BuildNuget.config'
                 workingDirectory: '$(Build.SourcesDirectory)/efs/test/UKHO.ADDS.EFS.FunctionalTests'
 
             - task: DotNetCoreCLI@2
