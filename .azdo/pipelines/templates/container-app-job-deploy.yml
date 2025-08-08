@@ -34,7 +34,8 @@ steps:
     scriptType: pscore
     scriptLocation: inlineScript
     inlineScript: |
-      $env:appConfigEndpoint = azd env get-value EFS_APPCONFIG_APPCONFIGENDPOINT
+      #$env:appConfigEndpoint = azd env get-value EFS_APPCONFIG_APPCONFIGENDPOINT
+      $env:appConfigEndpoint = https://efsappconfig-mibbklhczujzi.azconfig.io
       $env:fssJson = "$(Build.SourcesDirectory)/${{ parameters.BuilderType }}_fss.json"
       az appconfig kv list --endpoint $env:appConfigEndpoint --key "externalservice:FileShare" --fields value --output tsv --auth-mode login | Out-File -FilePath $env:fssJson
       $jsonData = Get-Content -Path $env:fssJson -Raw | ConvertFrom-Json
@@ -42,6 +43,7 @@ steps:
       $env:fssEndpointHealth = $env:fssEndpoint + "health/new"
       Write-Host "##vso[task.setvariable variable=${{ parameters.BuilderType }}_FSS_ENDPOINT;]$env:fssEndpoint"
       Write-Host "##vso[task.setvariable variable=${{ parameters.BuilderType }}_FSS_ENDPOINT_HEALTH;]$env:fssEndpointHealth"
+      ls env:
 
 - task: AzureCLI@2
   displayName: Deploy ${{ parameters.AppName }}
