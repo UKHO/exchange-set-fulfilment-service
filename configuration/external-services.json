@@ -10,7 +10,8 @@
                     "url": "http://{{adds-mocks-efs}}/fss6357/",
                     "tag": "legacy"
                 }
-            ]
+            ],
+            "clientId": "mockfss"
         },
         "SalesCatalogue": {
             "endpoints": [
@@ -22,7 +23,8 @@
                     "url": "http://{{adds-mocks-efs}}/scs6357/",
                     "tag": "legacy"
                 }
-            ]
+            ],
+            "clientId": "mockscs"
         }
     },
     "dev": {
@@ -36,7 +38,8 @@
                     "url": "https://adds-mocks-efs.{{cae_domain}}/fss6357/",
                     "tag": "legacy"
                 }
-            ]
+            ],
+            "clientId": "mockfss"
         },
         "SalesCatalogue": {
             "endpoints": [
@@ -48,7 +51,8 @@
                     "url": "https://adds-mocks-efs.{{cae_domain}}/scs6357/",
                     "tag": "legacy"
                 }
-            ]
+            ],
+            "clientId": "mockscs"
         }
     },
     "vni": {
@@ -67,7 +71,8 @@
                     "url": "https://salescataloguevnextiat.ukho.gov.uk",
                     "tag": ""
                 }
-            ]
+            ],
+            "clientId": "87158d61-0d84-40c1-af53-5dcebb2e8543"
         }
     },
     "vne": {
@@ -86,7 +91,8 @@
                     "url": "https://salescataloguevnexte2e.ukho.gov.uk",
                     "tag": ""
                 }
-            ]
+            ],
+            "clientId": "87158d61-0d84-40c1-af53-5dcebb2e8543"
         }
     },
     "iat": {
@@ -105,7 +111,8 @@
                     "url": "https://salescatalogueiat.ukho.gov.uk",
                     "tag": ""
                 }
-            ]
+            ],
+            "clientId": "87158d61-0d84-40c1-af53-5dcebb2e8543"
         }
     }
 }
