@@ -148,7 +148,7 @@ jobs:
           - task: AzureCLI@2
             displayName: Get Orchestrator URL
             inputs:
-              azureSubscription: $(AZURE_SUBSCRIPTION_ID)
+              azureSubscription: ${{ variables.AzureSubscription }}
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
@@ -226,7 +226,7 @@ jobs:
 
           - template: healthcheck_validation.yml
             parameters:
-              AzureSubscription: $(AZURE_SUBSCRIPTION_ID)
+              AzureSubscription: ${{ variables.AzureSubscription }}
               AppBaseUrl: "https://$(ORCHESTRATOR_URL)"
               AzureEnvName: $(AZURE_ENV_NAME)
               HealthCheckTimeoutMinutes: 5         # or your preferred timeout
