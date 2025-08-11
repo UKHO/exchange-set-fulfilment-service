@@ -73,7 +73,7 @@ jobs:
             packageType: sdk
             version: $(SdkVersion)
 
-        - template: get-retain-resource-group-name.yml
+        - template: get-retained-resource-details.yml
 
         - task: AzureCLI@2
           displayName: Get permanent infrastructure details
@@ -85,7 +85,7 @@ jobs:
             inlineScript: |
               set -e
               echo "Getting  managed identity name..."
-              EFS_SERVICE_IDENTITY_NAME=$(az identity list --resource-group $EFS_RETAIN_RESOURCE_GROUP --query "[?starts_with(name, 'efs_service_identity-')].name" --output tsv)
+              EFS_SERVICE_IDENTITY_NAME=$(az identity list --resource-group $EFS_RETAIN_RESOURCE_GROUP --query "[?starts_with(name, '$(EFS_SERVICE_IDENTITY_PARTIAL_NAME)')].name" --output tsv)
 
               echo "Storing variables..."
               echo "##vso[task.setvariable variable=AZURE_EFS_SERVICE_IDENTITY_RESOURCE_GROUP;]EFS_RETAIN_RESOURCE_GROUP"
@@ -98,10 +98,6 @@ jobs:
                 echo $EFS_SERVICE_IDENTITY_NAME
                 echo "--------------------------------------------------------------------------------"
               fi
-          # env:
-          #   AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-          #   AZURE_ENV_NAME: $(AZURE_ENV_NAME)
-          #   AZURE_LOCATION: $(AZURE_LOCATION)
 
         # - ${{ if eq(parameters.DestroyResources, true) }}:
 
