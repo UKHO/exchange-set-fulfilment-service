@@ -134,3 +134,5 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2024-03-01' = {
     }
   }
 }
+
+output orchestratorUrl string = efs_orchestrator.properties.configuration.ingress.fqdn
