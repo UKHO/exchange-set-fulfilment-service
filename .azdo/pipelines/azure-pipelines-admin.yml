@@ -41,6 +41,8 @@ pool: "Mare Nectaris"
 variables:
 - name: BuildCounter
   value: $[counter(format('{0:yyyyMMdd}', pipeline.startTime), 1)]
+- name: SdkVersion
+  value: "9.0.x"
 - name: WindowsPool
   value: "Mare Nubium"
 
