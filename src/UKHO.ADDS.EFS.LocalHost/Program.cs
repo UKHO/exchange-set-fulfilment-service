@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using Aspire.Hosting.Azure;
 using Azure.Provisioning.AppConfiguration;
 using Azure.Provisioning.AppContainers;
+using Azure.Provisioning.ApplicationInsights;
 using Azure.Provisioning.EventHubs;
 using Azure.Provisioning.Storage;
 using CliWrap;
@@ -89,6 +90,11 @@ namespace UKHO.ADDS.EFS.LocalHost
             
             // app insights
             var appInsights = builder.AddAzureApplicationInsights(ServiceConfiguration.AppInsightsName);
+            appInsights.ConfigureInfrastructure(config =>
+            {
+                var appInsightsResource = config.GetProvisionableResources().OfType<ApplicationInsightsComponent>().Single();
+                appInsightsResource.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
+            });
 
             // Event Hubs
             var eventHubs = builder.AddAzureEventHubs(ServiceConfiguration.EventHubNamespaceName).RunAsEmulator();
