@@ -1,0 +1,4 @@
+steps:
+- script: |
+    echo "##vso[task.setvariable variable=EFS_RETAIN_RESOURCE_GROUP;]efs-$(AZURE_ENV_NAME)-retain-rg"
+  displayName: Set retained resource group variable
