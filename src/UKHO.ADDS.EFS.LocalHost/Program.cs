@@ -139,34 +139,10 @@ namespace UKHO.ADDS.EFS.LocalHost
                     app.Template.Scale.MaxReplicas = 10;
 
                     // CPU Rule
-                    app.Template.Scale.Rules.Add(new ContainerAppScaleRule
-                    {
-                        Name = "cpu-rule",
-                        Custom = new ContainerAppCustomScaleRule
-                        {
-                            CustomScaleRuleType = "cpu",
-                            Metadata = new BicepDictionary<string>
-                            {
-                                { "type", "Utilization" },
-                                { "value", "70" }
-                            }
-                        }
-                    });
+                    app.Template.Scale.Rules.Add(GetCpuRules());
 
                     // Memory Rule
-                    app.Template.Scale.Rules.Add(new ContainerAppScaleRule
-                    {
-                        Name = "memory-rule",
-                        Custom = new ContainerAppCustomScaleRule
-                        {
-                            CustomScaleRuleType = "memory",
-                            Metadata = new BicepDictionary<string>
-                            {
-                                { "type", "Utilization" },
-                                { "value", "75" }
-                            }
-                        }
-                    });
+                    app.Template.Scale.Rules.Add(GetMemoryRules());
                 });
 
             if (builder.Environment.IsDevelopment())
@@ -247,5 +223,33 @@ namespace UKHO.ADDS.EFS.LocalHost
         private static Uri GetDockerEndpoint() => RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? new Uri("npipe://./pipe/docker_engine")
             : new Uri("unix:///var/run/docker.sock");
+        
+        private static ContainerAppScaleRule GetCpuRules() => new ContainerAppScaleRule
+                    {
+                        Name = "cpu-rule",
+                        Custom = new ContainerAppCustomScaleRule
+                        {
+                            CustomScaleRuleType = "cpu",
+                            Metadata = new BicepDictionary<string>
+                            {
+                                { "type", "Utilization" },
+                                { "value", "70" }
+                            }
+                        }
+                    };
+        
+        private static ContainerAppScaleRule GetMemoryRules() => new ContainerAppScaleRule
+                    {
+                        Name = "memory-rule",
+                        Custom = new ContainerAppCustomScaleRule
+                        {
+                            CustomScaleRuleType = "memory",
+                            Metadata = new BicepDictionary<string>
+                            {
+                                { "type", "Utilization" },
+                                { "value", "75" }
+                            }
+                        }
+                    };
     }
 }
