@@ -38,6 +38,12 @@ trigger: none
 
 pool: "Mare Nectaris"
 
+variables:
+- name: BuildCounter
+  value: $[counter(format('{0:yyyyMMdd}', pipeline.startTime), 1)]
+- name: WindowsPool
+  value: "Mare Nubium"
+
 stages:
 - stage: VulnerabilityChecks
   displayName: "Snyk Checks"
