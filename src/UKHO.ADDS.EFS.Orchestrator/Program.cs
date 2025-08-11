@@ -54,6 +54,8 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                 var app = builder.Build();
 
+                app.MapDefaultEndpoints();
+
                 app.UseSerilogRequestLogging();
 
                 // Configure the HTTP request pipeline.
