@@ -41,10 +41,9 @@ jobs:
             workingDirectory: $(Build.SourcesDirectory)/src/UKHO.ADDS.EFS.LocalHost
             scriptType: bash
             scriptLocation: inlineScript
-            inlineScript: echo ------------down-----------------
-            # ${{ if eq(parameters.AdditionalDebugging, true) }}:
-            #   inlineScript: |
-            #     azd down --no-prompt --force --purge --debug
-            # ${{ else }}:
-            #   inlineScript: |
-            #     azd down --no-prompt --force --purge
+            ${{ if eq(parameters.AdditionalDebugging, true) }}:
+              inlineScript: |
+                azd down --no-prompt --force --purge --debug
+            ${{ else }}:
+              inlineScript: |
+                azd down --no-prompt --force --purge
