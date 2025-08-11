@@ -42,19 +42,18 @@ jobs:
               echo "Deploying resources..."
               DEPLOYMENT_NAME=$AZURE_ENV_NAME-retain-$EPOCHSECONDS
               cd "$(Build.SourcesDirectory)/infra-retain"
-              env | sort
-              # if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
-              #   echo "Current environment variables:"
-              #   echo "--------------------------------------------------------------------------------"
-              #   env | sort
-              #   echo "--------------------------------------------------------------------------------"
-              #   az deployment sub create --name $DEPLOYMENT_NAME --location $AZURE_LOCATION --no-prompt --parameters resourceGroupName=$EFS_RETAIN_RESOURCE_GROUP efsServiceIdentityPartialName=$EFS_SERVICE_IDENTITY_PARTIAL_NAME location=$AZURE_LOCATION --template-file main.bicep --debug
-              # else
-              #   az deployment sub create --name $DEPLOYMENT_NAME --location $AZURE_LOCATION --no-prompt --parameters resourceGroupName=$EFS_RETAIN_RESOURCE_GROUP efsServiceIdentityPartialName=$EFS_SERVICE_IDENTITY_PARTIAL_NAME location=$AZURE_LOCATION --template-file main.bicep
-              # fi
-          env:
-            AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-            AZURE_ENV_NAME: $(AZURE_ENV_NAME)
-            AZURE_LOCATION: $(AZURE_LOCATION)
-            EFS_RETAIN_RESOURCE_GROUP: $(EFS_RETAIN_RESOURCE_GROUP)
-            EFS_SERVICE_IDENTITY_PARTIAL_NAME: $(EFS_SERVICE_IDENTITY_PARTIAL_NAME)
+
+              if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
+                echo "Current environment variables:"
+                echo "--------------------------------------------------------------------------------"
+                env | sort
+                echo "--------------------------------------------------------------------------------"
+                echo az deployment sub create --name $DEPLOYMENT_NAME --location $AZURE_LOCATION --no-prompt --parameters resourceGroupName=$EFS_RETAIN_RESOURCE_GROUP efsServiceIdentityPartialName=$EFS_SERVICE_IDENTITY_PARTIAL_NAME location=$AZURE_LOCATION --template-file main.bicep --debug
+              else
+                echo az deployment sub create --name $DEPLOYMENT_NAME --location $AZURE_LOCATION --no-prompt --parameters resourceGroupName=$EFS_RETAIN_RESOURCE_GROUP efsServiceIdentityPartialName=$EFS_SERVICE_IDENTITY_PARTIAL_NAME location=$AZURE_LOCATION --template-file main.bicep
+              fi
+          # env:
+          #   AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+          #   AZURE_LOCATION: $(AZURE_LOCATION)
+          #   EFS_RETAIN_RESOURCE_GROUP: $(EFS_RETAIN_RESOURCE_GROUP)
+          #   EFS_SERVICE_IDENTITY_PARTIAL_NAME: $(EFS_SERVICE_IDENTITY_PARTIAL_NAME)
