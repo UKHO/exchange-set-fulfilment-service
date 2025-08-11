@@ -41,10 +41,10 @@ pool: "Mare Nectaris"
 variables:
 - name: BuildCounter
   value: $[counter(format('{0:yyyyMMdd}', pipeline.startTime), 1)]
-- name: SdkVersion
-  value: "9.0.x"
 - name: WindowsPool
   value: "Mare Nubium"
+- name: snykAbzuOrganizationId
+  value: aeb7543b-8394-457c-8334-a31493d8910d
 
 stages:
 - stage: VulnerabilityChecks
@@ -55,6 +55,7 @@ stages:
     parameters:
       SnykOnlyFailIfFixable: ${{ parameters.SnykOnlyFailIfFixable }}
       SnykPassOnIssues: ${{ parameters.SnykPassOnIssues }}
+      IacOnly: true
 
 - ${{ if eq(parameters.DeployPermanentResources, true) }}:
 
