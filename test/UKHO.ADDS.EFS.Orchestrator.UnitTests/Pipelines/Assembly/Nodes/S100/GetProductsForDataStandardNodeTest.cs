@@ -14,7 +14,6 @@ using UKHO.ADDS.EFS.Orchestrator.Pipelines.Services;
 using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
-//using UKHO.ADDS.Infrastructure.Storage;
 
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
 {
@@ -41,14 +40,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             _executionContext = A.Fake<IExecutionContext<PipelineContext<S100Build>>>();
         }
 
-        [SetUp]
-        public void Setup()
+        [Test]
+        public void WhenSalesCatalogueClientIsNull_ThenThrowsArgumentNullException()
         {
-            //A.CallTo(_salesCatalogueClient).CallsTo(x => x.GetS100ProductsFromSpecificDateAsync(A<DateTime?>._, A<Job>._))
-            //    .Returns(Task.FromResult((
-            //        new S100SalesCatalogueResponse { ResponseCode = HttpStatusCode.OK, ResponseBody = [] },
-            //        (DateTime?)DateTime.UtcNow
-            //    )));
+            Assert.Throws<ArgumentNullException>(() =>
+                new GetProductsForDataStandardNode(_nodeEnvironment, null!));
         }
 
         [Test]
@@ -278,7 +274,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
             Assert.That(job.BuildState, Is.EqualTo(BuildState.None));
             Assert.That(job.JobState, Is.EqualTo(JobState.Failed));
-
         }
 
         [Test]
