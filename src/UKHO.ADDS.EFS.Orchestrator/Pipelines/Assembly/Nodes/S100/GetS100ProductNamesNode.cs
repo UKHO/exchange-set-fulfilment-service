@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Builds.S100;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Jobs;
@@ -53,7 +52,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
             switch (s100SalesCatalogueData.ResponseCode)
             {
-                case HttpStatusCode.OK when s100SalesCatalogueData.Products.Any():
+                case HttpStatusCode.OK:
 
                     if (s100SalesCatalogueData.ProductCounts.ReturnedProductCount == 0)
                     {
