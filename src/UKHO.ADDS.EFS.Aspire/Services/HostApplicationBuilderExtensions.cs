@@ -22,7 +22,7 @@ namespace Microsoft.Extensions.Hosting
         {
             builder.ConfigureOpenTelemetry();
 
-            builder.AddDefaultHealthChecks();
+            //builder.AddDefaultHealthChecks();
 
             builder.Services.AddServiceDiscovery();
 
@@ -106,11 +106,11 @@ namespace Microsoft.Extensions.Hosting
                 .AddUrlGroup(
                     new Uri(fssEndpoint),
                     name: "FileShareService",
-                    timeout: TimeSpan.FromSeconds(10))
+                    timeout: TimeSpan.FromSeconds(1))
                 .AddUrlGroup(
                     new Uri(scsEndpoint),
                     name: "SalesCatalogueService",
-                    timeout: TimeSpan.FromSeconds(10));
+                    timeout: TimeSpan.FromSeconds(1));
 
             return builder;
         }
