@@ -48,12 +48,7 @@ jobs:
                 echo "--------------------------------------------------------------------------------"
                 env | sort
                 echo "--------------------------------------------------------------------------------"
-                echo az deployment sub create --name $DEPLOYMENT_NAME --location $AZURE_LOCATION --no-prompt --parameters resourceGroupName=$EFS_RETAIN_RESOURCE_GROUP efsServiceIdentityPartialName=$EFS_SERVICE_IDENTITY_PARTIAL_NAME location=$AZURE_LOCATION --template-file main.bicep --debug
+                az deployment sub create --name $DEPLOYMENT_NAME --location $AZURE_LOCATION --no-prompt --parameters resourceGroupName=$EFS_RETAIN_RESOURCE_GROUP efsServiceIdentityPartialName=$EFS_SERVICE_IDENTITY_PARTIAL_NAME location=$AZURE_LOCATION --template-file main.bicep --debug
               else
-                echo az deployment sub create --name $DEPLOYMENT_NAME --location $AZURE_LOCATION --no-prompt --parameters resourceGroupName=$EFS_RETAIN_RESOURCE_GROUP efsServiceIdentityPartialName=$EFS_SERVICE_IDENTITY_PARTIAL_NAME location=$AZURE_LOCATION --template-file main.bicep
+                az deployment sub create --name $DEPLOYMENT_NAME --location $AZURE_LOCATION --no-prompt --parameters resourceGroupName=$EFS_RETAIN_RESOURCE_GROUP efsServiceIdentityPartialName=$EFS_SERVICE_IDENTITY_PARTIAL_NAME location=$AZURE_LOCATION --template-file main.bicep
               fi
-          # env:
-          #   AZURE_ENV_NAME: $(AZURE_ENV_NAME)
-          #   AZURE_LOCATION: $(AZURE_LOCATION)
-          #   EFS_RETAIN_RESOURCE_GROUP: $(EFS_RETAIN_RESOURCE_GROUP)
-          #   EFS_SERVICE_IDENTITY_PARTIAL_NAME: $(EFS_SERVICE_IDENTITY_PARTIAL_NAME)

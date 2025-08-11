@@ -17,18 +17,26 @@ parameters:
   displayName: "Destroy dev environment"
   type: boolean
   default: false
-- name: DestroyResourcesVnextIat
+- name: DestroyResourcesVni
   displayName: "Destroy vNext IAT environment"
   type: boolean
   default: false
-- name: DestroyResourcesVnextE2E
+- name: DestroyResourcesVne
   displayName: "Destroy vNext E2E environment"
   type: boolean
   default: false
-- name: DestroyResourcesIAT
+- name: DestroyResourcesIat
   displayName: "Destroy IAT environment"
   type: boolean
   default: false
+- name: DestroyResourcesPreProd
+  displayName: "Destroy PreProd environment (enter \"iamsure\" to destroy)"
+  type: string
+  default: "No"
+- name: DestroyResourcesLive
+  displayName: "Destroy Live environment (enter \"iamreallysure\" to destroy)"
+  type: string
+  default: "No"
 - name: AdditionalDebugging
   displayName: "Enable optional pipeline debugging"
   type: boolean
@@ -101,6 +109,58 @@ stages:
     condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')))
     jobs:
     - template: templates/continuous-deployment-retain.yml
+      parameters:
+        AzureDevOpsEnvironment: Ess-Iat
+        ShortName: iat
+        AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+
+- ${{ if eq(parameters.DestroyResourcesDev, true) }}:
+
+  - stage: DevDestroy
+    dependsOn:
+    - VulnerabilityChecks
+    displayName: Dev destroy
+    jobs:
+    - template: templates/destroy-infrastructure.yml
+      parameters:
+        AzureDevOpsEnvironment: Ess-Dev
+        ShortName: dev
+        AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+
+- ${{ if eq(parameters.DestroyResourcesVni, true) }}:
+
+  - stage: vNextIatDestroy
+    dependsOn:
+    - VulnerabilityChecks
+    displayName: vNext IAT destroy
+    jobs:
+    - template: templates/destroy-infrastructure.yml
+      parameters:
+        AzureDevOpsEnvironment: Ess-vnextiat
+        ShortName: vnextiat
+        AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+
+- ${{ if eq(parameters.DestroyResourcesVne, true) }}:
+
+  - stage: vNextE2eDestroy
+    dependsOn:
+    - VulnerabilityChecks
+    displayName: vNext E2E destroy
+    jobs:
+    - template: templates/destroy-infrastructure.yml
+      parameters:
+        AzureDevOpsEnvironment: Ess-vnexte2e
+        ShortName: vnexte2e
+        AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+
+- ${{ if eq(parameters.DestroyResourcesIat, true) }}:
+
+  - stage: IatDestroy
+    dependsOn:
+    - VulnerabilityChecks
+    displayName: IAT destroy
+    jobs:
+    - template: templates/destroy-infrastructure.yml
       parameters:
         AzureDevOpsEnvironment: Ess-Iat
         ShortName: iat
