@@ -52,7 +52,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                             options.Environment = builder.Environment.EnvironmentName;
                             options.System = ServiceConfiguration.ServiceName;
                             options.Service = ServiceConfiguration.ServiceName;
-                            options.NodeName = "Azure";
+                            options.NodeName = ServiceConfiguration.NodeName;
                             options.EventHubConnectionString = connectionString;
                             options.EventHubEntityPath = eventHubName;
                             options.TokenCredential = new DefaultAzureCredential();

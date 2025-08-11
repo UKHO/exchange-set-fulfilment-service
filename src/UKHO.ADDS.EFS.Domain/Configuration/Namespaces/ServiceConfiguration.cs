@@ -7,5 +7,6 @@
         public const string AppInsightsName = "efs-app-insights";
         public const string EventHubNamespaceName = "efs-events-namespace";
         public const string EventHubName = "efs-events-hub";
+        public const string NodeName = "Azure";
     }
 }
