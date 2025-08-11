@@ -85,7 +85,7 @@ jobs:
             inlineScript: |
               set -e
               echo "Getting  managed identity name..."
-              EFS_SERVICE_IDENTITY_NAME = $(az identity list --resource-group $EFS_RETAIN_RESOURCE_GROUP --query "[?starts_with(name, 'efs_service_identity-')].name" --output tsv)
+              EFS_SERVICE_IDENTITY_NAME=$(az identity list --resource-group $EFS_RETAIN_RESOURCE_GROUP --query "[?starts_with(name, 'efs_service_identity-')].name" --output tsv)
 
               echo "Storing variables..."
               echo "##vso[task.setvariable variable=AZURE_EFS_SERVICE_IDENTITY_RESOURCE_GROUP;]EFS_RETAIN_RESOURCE_GROUP"
