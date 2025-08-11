@@ -1,11 +1,13 @@
 using './efs-orchestrator.module.bicep'
 
 param addsenvironment_value = '{{ parameter "addsEnvironment" }}'
+param efs_app_insights_outputs_appinsightsconnectionstring = '{{ .Env.EFS_APP_INSIGHTS_APPINSIGHTSCONNECTIONSTRING }}'
 param efs_appconfig_outputs_appconfigendpoint = '{{ .Env.EFS_APPCONFIG_APPCONFIGENDPOINT }}'
 param efs_cae_outputs_azure_container_apps_environment_default_domain = '{{ .Env.EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN }}'
 param efs_cae_outputs_azure_container_apps_environment_id = '{{ .Env.EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_ID }}'
 param efs_cae_outputs_azure_container_registry_endpoint = '{{ .Env.EFS_CAE_AZURE_CONTAINER_REGISTRY_ENDPOINT }}'
 param efs_cae_outputs_azure_container_registry_managed_identity_id = '{{ .Env.EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID }}'
+param efs_events_namespace_outputs_eventhubsendpoint = '{{ .Env.EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT }}'
 param efs_orchestrator_containerimage = '{{ .Image }}'
 param efs_orchestrator_containerport = '{{ targetPortOrDefault 8080 }}'
 param efs_redis_password_value = '{{ securedParameter "efs_redis_password" }}'
