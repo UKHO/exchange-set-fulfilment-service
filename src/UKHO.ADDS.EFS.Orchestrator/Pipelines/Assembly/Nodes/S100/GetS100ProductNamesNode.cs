@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Builds.S100;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Jobs;
