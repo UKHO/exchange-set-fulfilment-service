@@ -11,5 +11,5 @@ param efs_storage_connection_string = readEnvironmentVariable('EFS_STORAGE_CONNE
 param fss_endpoint = readEnvironmentVariable('S100_FSS_ENDPOINT')
 param fss_endpoint_health = readEnvironmentVariable('S100_FSS_ENDPOINT_HEALTH')
 param azure_env_name = readEnvironmentVariable('AZURE_ENV_NAME')
-param max_retry_attempts = readEnvironmentVariable('S100_MAX_RETRIES')
-param retry_delay_ms = readEnvironmentVariable('S100_RETRY_DELAY')
+param max_retry_attempts = readEnvironmentVariable('S100_MAX_RETRY_ATTEMPTS')
+param retry_delay_ms = readEnvironmentVariable('S100_RETRY_DELAY_MS')

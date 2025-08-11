@@ -45,10 +45,10 @@ steps:
       Write-Host "##vso[task.setvariable variable=${{ parameters.BuilderType }}_FSS_ENDPOINT_HEALTH;]$env:fssEndpointHealth"
 
       $env:maxRetries = az appconfig kv list --endpoint $env:appConfigEndpoint --key "buildRequestMonitor:${{ parameters.BuilderType }}:MaxRetries" --fields value --output tsv --auth-mode login
-      Write-Host "##vso[task.setvariable variable=${{ parameters.BuilderType }}_MAX_RETRIES;]$env:maxRetries"
+      Write-Host "##vso[task.setvariable variable=${{ parameters.BuilderType }}_MAX_RETRY_ATTEMPTS;]$env:maxRetries"
 
-      $env:retryDelay = az appconfig kv list --endpoint $env:appConfigEndpoint --key "buildRequestMonitor:${{ parameters.BuilderType }}:RetryDelayMilliseconds" --fields value --output tsv --auth-mode login
-      Write-Host "##vso[task.setvariable variable=${{ parameters.BuilderType }}_RETRY_DELAY;]$env:retryDelay"
+      $env:retryDelayMilliseconds = az appconfig kv list --endpoint $env:appConfigEndpoint --key "buildRequestMonitor:${{ parameters.BuilderType }}:RetryDelayMilliseconds" --fields value --output tsv --auth-mode login
+      Write-Host "##vso[task.setvariable variable=${{ parameters.BuilderType }}_RETRY_DELAY_MS;]$env:retryDelayMilliseconds"
 
 - task: AzureCLI@2
   displayName: Deploy ${{ parameters.AppName }}
