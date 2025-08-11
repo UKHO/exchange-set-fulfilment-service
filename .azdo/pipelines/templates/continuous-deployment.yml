@@ -265,5 +265,6 @@ jobs:
               AzureSubscription: ${{ variables.AzureSubscription }}
               AppName: efs-builder-s100
               ProjectFolder: UKHO.ADDS.EFS.Builder.S100
+              BuilderType: S100
               AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
               DeployApp: ${{ parameters.DeployBuilderS100 }}
