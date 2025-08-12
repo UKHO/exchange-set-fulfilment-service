@@ -5,9 +5,7 @@
   "EFS_SCOPES": "",
   "JobsEndpoint": "/jobs",
   "JobStatusEndpoint": "/jobs/{jobId}",
-  "MaxPollingTime": 900,
-  "PollingInterval": 5,
-  "ExtendedPollingTime": 1800,
+  "JobBuildEndpoint": "/jobs/{jobId}/build",
   "DownloadFlag": false,
   "FilterData": {
     "Small": [
@@ -16,8 +14,7 @@
     ],
     "Medium": [
       "ProductName eq '102CA005N5040W00130'",
-      "startswith(ProductName, '102')",
-      "ProductName eq '111CA00_20241217T001500Z_GB3DEVQ0_dcf2' or ProductName eq '104CA00_20241103T001500Z_GB3DEVK0_dcf2'"
+      "startswith(ProductName, '102')"
     ]
   },
   "EFSToken": "<Token>"

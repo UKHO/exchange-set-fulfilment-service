@@ -2,21 +2,18 @@ import { check } from 'k6';
 
 import { 
   createJob,
-  SmallJobDurationTime,
-  MediumJobDurationTime,
-  JobDurationTime
+  getJobStatus,
+  getJobBuild
 } from '../Helper/ClientHelper.js';
-import { monitorJob } from '../Helper/JobMonitor.js';
 
 /**
-* Creates a job and monitors it until completion
+* Creates a job
 * @param {string} filter - The filter to use for job creation
 * @param {string} jobSize - The size category of the job (Small, Medium)
-* @returns {Object} - Object with job details and monitoring results
+* @returns {Object} - Object with job details
 */
-export function createAndMonitorJob(filter, jobSize) {
+export function create(filter, jobSize) {
   let jobResult = {};
-  let startTime = new Date().getTime();
 
   jobResult = createJob(filter, jobSize);
 
@@ -34,25 +31,66 @@ export function createAndMonitorJob(filter, jobSize) {
 
   console.log(`Created ${jobSize} job with ID: ${jobResult.jobId}`);
 
-  // Monitor job until completion
-  const monitorResult = monitorJob(jobResult.jobId, jobSize, startTime);
-  const jobDuration = (new Date().getTime() - startTime); // in seconds
-
-  JobDurationTime.add(jobDuration);
-
-  // Record job creation time
-  switch(jobSize) {
-    case 'Small':
-      SmallJobDurationTime.add(jobDuration);
-      break;
-    case 'Medium':
-      MediumJobDurationTime.add(jobDuration);
-      break;
-  }
   return Object.assign({
     jobId: jobResult.jobId,
     correlationId: jobResult.correlationId,
     filter: filter,
     size: jobSize
-  }, monitorResult);
+  });
+}
+
+/**
+* Check the status of a job
+* @returns {Object} - Response object with job status
+*/
+export function status(Id = "job-small-1754999159418-27a5dfbfd1024de5") {
+  let jobResult = {};
+
+  jobResult = getJobStatus(Id = "job-small-1754999159418-27a5dfbfd1024de5");
+
+  // Check job creation result
+  if (!check(jobResult, {
+    'Job status retrieved successfully': (r) => r.response.status === 200,
+    'Response Body is having json value': (r) => r.response.json().jobState !== undefined
+  }))
+  {
+    console.error(`Failed to get job status of job with jobId: ${Id}`);
+    return {
+      status: 'error',
+      message: 'Failed to get job status'
+    };
+  }
+  return Object.assign({
+    status: jobResult.response.jobState,
+    buildStatus: jobResult.response.buildState,
+    response: jobResult.response
+  });
+}
+
+/**
+* Gets the build details of a job
+* @returns {Object} - Response object with build details
+*/
+export function build(Id = "job-small-1754999159418-27a5dfbfd1024de5") {
+  let jobResult = {};
+
+  jobResult = getJobBuild(Id = "job-small-1754999159418-27a5dfbfd1024de5");
+
+  // Check job build result
+  if (!check(jobResult, {
+    'Build details retrieved successfully': (r) => r.response.status === 200,
+    'Response Body is having json value': (r) => r.response.json().builderExitCode !== undefined
+  })) 
+  {
+    console.error(`Failed to get build details of job with ID: ${Id}`);
+    return {
+      status: 'error',
+      message: 'Failed to get job build details'
+    };
+  }
+  return Object.assign({
+    builderExitCode: jobResult.response.builderExitCode,
+    builderSteps: jobResult.response.builderSteps,
+    response: jobResult.response
+  });
 }

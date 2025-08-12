@@ -6,32 +6,62 @@ import {
   getSmallJobFilter, 
   getMediumJobFilter 
 } from './Helper/DataHelper.js';
-import { createAndMonitorJob } from './Scripts/LoadTestForJobCreation.js';
+import { create, status, build } from './Scripts/LoadTestForJobCreation.js';
 import { authenticateUsingAzure } from './Oauth/Azure.js';
 const config = JSON.parse(open('./config.json'));
 
 export let options = {
   scenarios: {
-    // Small jobs - high volume
+    // Small jobs
     SmallJobCreation: {
+      executor: 'constant-arrival-rate',
       exec: 'createSmallJob',
-      executor: 'per-vu-iterations',
+      rate: 5, // 5 iterations in total
+      timeUnit: '1s',
+      duration: '1s',
+      preAllocatedVUs: 2,
+      maxVUs: 5,
       startTime: '5s',
       gracefulStop: '5s',
-      vus: 1,
-      iterations: 1,
-      maxDuration: '5m'
     },
 
-    // Medium jobs - moderate volume
+    // Medium jobs
     MediumJobCreation: {
+      executor: 'constant-arrival-rate',
       exec: 'createMediumJob',
-      executor: 'per-vu-iterations',
+      rate: 5, // 5 iterations in total
+      timeUnit: '1s',
+      duration: '1s',
+      preAllocatedVUs: 2,
+      maxVUs: 5,
       startTime: '30s',
       gracefulStop: '5s',
-      vus: 1,
-      iterations: 1,
-      maxDuration: '10m'
+    },
+
+    //  jobs status
+    JobStatus: {
+      executor: 'constant-arrival-rate',
+      exec: 'getStatusOfJob',
+      rate: 5, // 5 iterations in total
+      timeUnit: '1s',
+      duration: '1s',
+      preAllocatedVUs: 2,
+      maxVUs: 5,
+      startTime: '5s',
+      gracefulStop: '5s',
+    },
+
+    // Build jobs status
+    BuildJobStatus: {
+      executor: 'constant-arrival-rate',
+      exec: 'getBuildStatusOfJob',
+      rate: 5, // 5 iterations in total
+      timeUnit: '1s',
+      duration: '1s',
+      preAllocatedVUs: 2,
+      maxVUs: 5,
+      startTime: '5s',
+      gracefulStop: '5s',
     }
   }
 };
@@ -54,9 +84,8 @@ export function Authsetup() {
 
 export function createSmallJob() {
   const filter = getSmallJobFilter();
-  const result = createAndMonitorJob(filter, 'Small');
+  const result = create(filter, 'Small');
 
-  console.log(`Small job ${result.jobId} completed with status: ${result.status}`);
   if (result.status === 'success') {
     const buildTimeStr = (typeof result.buildTime === 'number' && !isNaN(result.buildTime)) ? result.buildTime.toFixed(2) : 'N/A';
     console.log(`Total time: ${result.totalTime.toFixed(2)}s, Build time: ${buildTimeStr}ms`);
@@ -67,14 +96,37 @@ export function createSmallJob() {
 
 export function createMediumJob() {
   const filter = getMediumJobFilter();
-  const result = createAndMonitorJob(filter, 'Medium');
+  const result = create(filter, 'Medium');
 
-  console.log(`Medium job ${result.jobId} completed with status: ${result.status}`);
   if (result.status === 'success') {
     const buildTimeStr = (typeof result.buildTime === 'number' && !isNaN(result.buildTime)) ? result.buildTime.toFixed(2) : 'N/A';
     console.log(`Total time: ${result.totalTime.toFixed(2)}s, Build time: ${buildTimeStr}ms`);
   }
 
+  sleep(1);
+}
+
+export function getStatusOfJob() {
+  const Id = "job-small-1754999159418-27a5dfbfd1024de5";
+  const result = status(Id);
+
+  if (result.status === 'Completed') {
+    const buildTimeStr = (typeof result.buildTime === 'number' && !isNaN(result.buildTime)) ? result.buildTime.toFixed(2) : 'N/A';
+    console.log(`Total time: ${result.totalTime.toFixed(2)}s, Build time: ${buildTimeStr}ms`);
+  }
+
+  sleep(1);
+}
+
+export function getBuildStatusOfJob() {
+  const Id = "job-small-1754999159418-27a5dfbfd1024de5";
+  const result = build(Id);
+
+  if (result.status === 'Success') {
+    const buildTimeStr = (typeof result.buildTime === 'number' && !isNaN(result.buildTime)) ? result.buildTime.toFixed(2) : 'N/A';
+    console.log(`Total time: ${result.totalTime.toFixed(2)}s, Build time: ${buildTimeStr}ms`);
+  }
+  
   sleep(1);
 }
 

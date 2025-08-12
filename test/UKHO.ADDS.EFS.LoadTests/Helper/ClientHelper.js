@@ -1,5 +1,5 @@
 import http from 'k6/http';
-import { check, group } from 'k6';
+import { check } from 'k6';
 import { Trend } from 'k6/metrics';
 
 const config = JSON.parse(open('../Config.json'));
@@ -8,16 +8,10 @@ const config = JSON.parse(open('../Config.json'));
 export const SmallJobCreateResponseTime = new Trend('SmallJobCreateResponseTime');
 export const MediumJobCreateResponseTime = new Trend('MediumJobCreateResponseTime');
 
-export const SmallJobDurationTime = new Trend('SmallJobDurationTime');
-export const MediumJobDurationTime = new Trend('MediumJobDurationTime');
-
-export const SmallJobStatusResponseTime = new Trend('SmallJobStatusResponseTime');
-export const MediumJobStatusResponseTime = new Trend('MediumJobStatusResponseTime');
-
 // Trends for tracking API response times
 export const JobCreateResponseTime = new Trend('JobCreateResponseTime');
 export const JobStatusResponseTime = new Trend('JobStatusResponseTime');
-export const JobDurationTime = new Trend('JobDurationTime');
+export const JobBuildResponseTime = new Trend('JobBuildResponseTime');
 
 /**
 * Creates a job with the given filter
@@ -71,12 +65,11 @@ export function createJob(filter, jobSize) {
 
 /**
 * Gets the status of a job
-* @param {string} jobId - The ID of the job
+* @param {string} Id - The ID of the job
 * @returns {Object} - Response object with job status
-* @param {string} jobSize - The size category of the job (Small, Medium)
 */
-export function getJobStatus(jobId, jobSize) {
-  const url = `${config.Base_URL}${config.JobStatusEndpoint.replace('{jobId}', jobId)}`;
+export function getJobStatus(Id = "job-small-1754999159418-27a5dfbfd1024de5") {
+  const url = `${config.Base_URL}${config.JobStatusEndpoint.replace('{jobId}', Id)}`;
 
   const params = {
     headers: {
@@ -86,25 +79,32 @@ export function getJobStatus(jobId, jobSize) {
 
   const response = http.get(url, params);
 
-  check(response, {
-    'Job status retrieved successfully': (r) => r.status === 200
-  });
-
   JobStatusResponseTime.add(response.timings.duration);
 
-  // Record job creation time
-  switch(jobSize) {
-    case 'Small':
-      SmallJobStatusResponseTime.add(response.timings.duration);
-      break;
-    case 'Medium':
-      MediumJobStatusResponseTime.add(response.timings.duration);
-      break;
-  }
-
   return {
-    status: response.json().jobState,
-    buildStatus: response.json().buildState,
+    response: response
+  };
+}
+
+/**
+* Gets the build details of a job
+* @param {string} Id - The ID of the job
+* @returns {Object} - Response object with build details
+*/
+export function getJobBuild(Id = "job-small-1754999159418-27a5dfbfd1024de5") {
+  const url = `${config.Base_URL}${config.JobBuildEndpoint.replace('{jobId}', Id)}`;
+
+  const params = {
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  };
+
+  const response = http.get(url, params);
+
+  JobBuildResponseTime.add(response.timings.duration);
+  
+  return {
     response: response
   };
 }
