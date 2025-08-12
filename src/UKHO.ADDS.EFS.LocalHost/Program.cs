@@ -1,6 +1,8 @@
 using System.Runtime.InteropServices;
+using Aspire.Hosting.Azure;
 using Azure.Provisioning.AppConfiguration;
 using Azure.Provisioning.AppContainers;
+using Azure.Provisioning.ApplicationInsights;
 using Azure.Provisioning.EventHubs;
 using Azure.Provisioning.Storage;
 using CliWrap;
@@ -46,6 +48,13 @@ namespace UKHO.ADDS.EFS.LocalHost
             // Get parameters
             var subnetResourceId = builder.AddParameter("subnetResourceId");
             var zoneRedundant = builder.AddParameter("zoneRedundant");
+            var efsServiceIdentityName = builder.AddParameter("efsServiceIdentityName");
+            var efsServiceIdentityResourceGroup = builder.AddParameter("efsServiceIdentityResourceGroup");
+            var addsEnvironment = builder.AddParameter("addsEnvironment");
+
+            // Existing user managed identity
+            var efsServiceIdentity = builder.AddAzureUserAssignedIdentity(ServiceConfiguration.EfsServiceIdentity)
+                .PublishAsExisting(efsServiceIdentityName, efsServiceIdentityResourceGroup);
 
             // Container apps environment
             var acaEnv = builder.AddAzureContainerAppEnvironment(ServiceConfiguration.AcaEnvironmentName)
@@ -81,6 +90,11 @@ namespace UKHO.ADDS.EFS.LocalHost
             
             // app insights
             var appInsights = builder.AddAzureApplicationInsights(ServiceConfiguration.AppInsightsName);
+            appInsights.ConfigureInfrastructure(config =>
+            {
+                var appInsightsResource = config.GetProvisionableResources().OfType<ApplicationInsightsComponent>().Single();
+                appInsightsResource.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
+            });
 
             // Event Hubs
             var eventHubs = builder.AddAzureEventHubs(ServiceConfiguration.EventHubNamespaceName).RunAsEmulator();
@@ -134,6 +148,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WaitFor(mockService)
                 .WithReference(redisCache)
                 .WaitFor(redisCache)
+                .WithAzureUserAssignedIdentity(efsServiceIdentity)
                 .WithExternalHttpEndpoints()
                 .WithScalar("API Browser")
                 .PublishAsAzureContainerApp((infra, app) =>
@@ -161,7 +176,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             }
             else
             {
-                var appConfig = builder.AddConfiguration(ProcessNames.ConfigurationService, [orchestratorService]);
+                var appConfig = builder.AddConfiguration(ProcessNames.ConfigurationService, addsEnvironment, [orchestratorService]);
                 appConfig.ConfigureInfrastructure(config =>
                 {
                     var appConfigResource = config.GetProvisionableResources().OfType<AppConfigurationStore>().Single();
