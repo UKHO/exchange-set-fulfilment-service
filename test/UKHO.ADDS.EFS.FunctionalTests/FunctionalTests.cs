@@ -54,5 +54,24 @@ namespace UKHO.ADDS.EFS.FunctionalTests
 
             await OrchestratorCommands.SubmitJobAsync(httpClient, filter, expectedJobStatus: "upToDate", expectedBuildStatus: "none");
         }
+
+        [Fact]
+        public async Task S100ProductsTests()
+        {
+            var httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
+
+            var products = new string[] { "104CA00_20241103T001500Z_GB3DEVK0_dcf2", "101GB004DEVQP", "101FR005DEVQG" };
+
+            var jobId = await OrchestratorCommands.SubmitJobAsync(httpClient, products: products);
+
+            await OrchestratorCommands.WaitForJobCompletionAsync(httpClient, jobId);
+
+            await OrchestratorCommands.VerifyBuildStatusAsync(httpClient, jobId);
+
+            var exchangeSetDownloadPath = await ZipStructureComparer.DownloadExchangeSetAsZipAsync(jobId, App!);
+            var sourceZipPath = Path.Combine(ProjectDirectory!, "TestData", "SelectedProducts.zip");
+
+            ZipStructureComparer.CompareZipFilesExactMatch(sourceZipPath, exchangeSetDownloadPath, products);
+        }
     }
 }

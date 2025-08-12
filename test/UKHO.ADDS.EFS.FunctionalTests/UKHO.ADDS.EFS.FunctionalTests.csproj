@@ -32,6 +32,9 @@
     <None Update="TestData\MultipleProducts.zip">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="TestData\SelectedProducts.zip">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="TestData\Single101Product.zip">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
