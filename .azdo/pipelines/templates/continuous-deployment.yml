@@ -199,21 +199,21 @@ jobs:
               AZURE_EFS_SERVICE_IDENTITY_RESOURCE_GROUP: $(AZURE_EFS_SERVICE_IDENTITY_RESOURCE_GROUP)
               AZURE_EFS_SERVICE_IDENTITY_NAME: $(AZURE_EFS_SERVICE_IDENTITY_NAME)
 
-          - task: AzureCLI@2
-            displayName: Get Orchestrator URL
-            inputs:
-              azureSubscription: ${{ variables.AzureSubscription }}
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-               # Query the output from the deployment
-                orchestratorUrl=$(az deployment group show --name $(DEPLOYMENT_NAME) --query "properties.outputs.orchestratorUrl.value" -o tsv)
-                echo "Orchestrator URL: $orchestratorUrl"
-                echo "##vso[task.setvariable variable=ORCHESTRATOR_URL]$orchestratorUrl"
-            env:
-              AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-              AZURE_ENV_NAME: $(AZURE_ENV_NAME)
-              AZURE_LOCATION: $(AZURE_LOCATION)
+          # - task: AzureCLI@2
+          #   displayName: Get Orchestrator URL
+          #   inputs:
+          #     azureSubscription: ${{ variables.AzureSubscription }}
+          #     scriptType: bash
+          #     scriptLocation: inlineScript
+          #     inlineScript: |
+          #      # Query the output from the deployment
+          #       #orchestratorUrl=$(az deployment group show --name $(DEPLOYMENT_NAME) --query "properties.outputs.orchestratorUrl.value" -o tsv)
+          #       #echo "Orchestrator URL: $orchestratorUrl"
+          #       echo "##vso[task.setvariable variable=ORCHESTRATOR_URL]$orchestratorUrl"
+          #   env:
+          #     AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+          #     AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+          #     AZURE_LOCATION: $(AZURE_LOCATION)
 
           - task: AzureCLI@2
             displayName: Run configuration seeder
@@ -287,7 +287,7 @@ jobs:
           - template: healthcheck_validation.yml
             parameters:
               AzureSubscription: ${{ variables.AzureSubscription }}
-              AppBaseUrl: "https://$(ORCHESTRATOR_URL)"
+              AppBaseUrl: "https://efs-orchestrator.${AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN}"
               AzureEnvName: $(AZURE_ENV_NAME)
               HealthCheckTimeoutMinutes: 5         # or your preferred timeout
               SleepTimeSeconds: 10                 # or your preferred interval
