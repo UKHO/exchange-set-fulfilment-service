@@ -54,8 +54,8 @@ steps:
         eval $(azd env get-values | sed 's/^/export /')
 
         if [ -n "$AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN" ]; then
-          #BASE_URL="https://efs-orchestrator--$ENV_NAME.$AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN"
-           BASE_URL= "https://adds-mocks-efs.ashymushroom-d9976f65.uksouth.azurecontainerapps.io/fss"
+          BASE_URL="https://efs-orchestrator--$ENV_NAME.$AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN"
+           #BASE_URL= "https://adds-mocks-efs.ashymushroom-d9976f65.uksouth.azurecontainerapps.io/fss"
           echo "Constructed base URL: $BASE_URL"
         else
           echo "No AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN found. Trying Azure CLI fallback..."

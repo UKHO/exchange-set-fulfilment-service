@@ -308,7 +308,8 @@ jobs:
           - template: healthcheck_validation.yml
             parameters:
               AzureSubscription: ${{ variables.AzureSubscription }}
-              AppBaseUrl: "$(ORCHESTRATOR_URL)"
+              #AppBaseUrl: "$(ORCHESTRATOR_URL)"
+              AppBaseUrl: "https://adds-mocks-efs.ashymushroom-d9976f65.uksouth.azurecontainerapps.io/fss"
               AzureEnvName: $(AZURE_ENV_NAME)
               HealthCheckTimeoutMinutes: 5
               SleepTimeSeconds: 30
