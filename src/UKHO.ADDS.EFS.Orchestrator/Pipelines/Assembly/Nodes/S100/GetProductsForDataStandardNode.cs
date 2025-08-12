@@ -6,7 +6,6 @@ using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
-using static Quartz.Logging.OperationName;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 {
@@ -24,7 +23,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
         {
             var job = context.Subject.Job;
 
-            return Task.FromResult(context.Subject.Job.JobState == JobState.Created && (job.RequestedProducts?.Length == 0 || job.RequestedProducts == null));
+            return Task.FromResult(context.Subject.Job.JobState == JobState.Created && (job.RequestedProducts == null || job.RequestedProducts?.Length == 0));
         }
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)

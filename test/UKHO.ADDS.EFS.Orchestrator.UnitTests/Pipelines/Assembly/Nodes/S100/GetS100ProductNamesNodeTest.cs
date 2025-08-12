@@ -205,9 +205,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 RequestedFilter = "",
             };
 
-            _pipelineContext = new PipelineContext<S100Build>(_job, _build, _storageService);
-            A.CallTo(() => _executionContext.Subject).Returns(_pipelineContext);
-
             var expectedProductNames = new[] { "101GB004DEVQK", "101GB00510210" };
 
             _pipelineContext = new PipelineContext<S100Build>(_job, _build, _storageService);

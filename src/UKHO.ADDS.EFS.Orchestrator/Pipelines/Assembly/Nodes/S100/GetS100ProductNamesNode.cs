@@ -34,9 +34,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
             string[] productNames;
 
-            if (job.RequestedProducts?.Length != 0 && job.RequestedProducts != null)
+            if (job.RequestedProducts != null && job.RequestedProducts?.Length != 0)
             {
-                productNames = job.RequestedProducts;                    
+                productNames = job.RequestedProducts!;
             }
             else
             {
