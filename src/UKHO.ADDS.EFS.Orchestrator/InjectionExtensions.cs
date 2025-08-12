@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using Microsoft.AspNetCore.Http.Json;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using UKHO.ADDS.Aspire.Configuration.Remote;
@@ -13,6 +14,7 @@ using UKHO.ADDS.EFS.Builds.S63;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
+using UKHO.ADDS.EFS.Orchestrator.HealthCheck;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
@@ -108,6 +110,8 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             builder.Services.AddSingleton<IOrchestratorSalesCatalogueClient, OrchestratorSalesCatalogueClient>();
             builder.Services.AddSingleton<IOrchestratorFileShareClient, OrchestratorFileShareClient>();
+
+            HealthCheckConfigurator.Configure(builder);
 
             //Added Dependencies for SchedulerJob
             builder.Services.AddQuartz(q =>
