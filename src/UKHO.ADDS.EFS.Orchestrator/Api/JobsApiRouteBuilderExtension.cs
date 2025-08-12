@@ -16,7 +16,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             var logger = loggerFactory.CreateLogger("JobsApi");
             var jobsEndpoint = routeBuilder.MapGroup("/jobs");
 
-            jobsEndpoint.MapPost("/", async (JobRequestApiMessage message, IConfiguration configuration, AssemblyPipelineFactory pipelineFactory, HttpContext httpContext) =>
+            jobsEndpoint.MapPost("/", async (JobRequestApiMessage message, IConfiguration configuration, IAssemblyPipelineFactory pipelineFactory, HttpContext httpContext) =>
                 {
                     try
                     {

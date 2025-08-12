@@ -11,7 +11,7 @@
                     "tag": "legacy"
                 }
             ],
-            "clientId": "mock"
+            "clientId": "mockfss"
         },
         "SalesCatalogue": {
             "endpoints": [
@@ -24,7 +24,7 @@
                     "tag": "legacy"
                 }
             ],
-            "clientId": "mock"
+            "clientId": "mockscs"
         }
     },
     "dev": {
@@ -39,7 +39,7 @@
                     "tag": "legacy"
                 }
             ],
-            "clientId": "mock"
+            "clientId": "mockfss"
         },
         "SalesCatalogue": {
             "endpoints": [
@@ -52,7 +52,7 @@
                     "tag": "legacy"
                 }
             ],
-            "clientId": "mock"
+            "clientId": "mockscs"
         }
     },
     "vni": {
@@ -72,7 +72,7 @@
                     "tag": ""
                 }
             ],
-            "clientId": "95c022fd-c5ce-4439-b99a-3a4ec601deb0"
+            "clientId": "87158d61-0d84-40c1-af53-5dcebb2e8543"
         }
     },
     "vne": {
@@ -92,7 +92,7 @@
                     "tag": ""
                 }
             ],
-            "clientId": "a7578234-48fb-47d6-8d4e-b1dbd3760d6f"
+            "clientId": "87158d61-0d84-40c1-af53-5dcebb2e8543"
         }
     },
     "iat": {
@@ -112,7 +112,7 @@
                     "tag": ""
                 }
             ],
-            "clientId": "c010ba76-361c-4f5a-9600-1d5411088937"
+            "clientId": "87158d61-0d84-40c1-af53-5dcebb2e8543"
         }
     }
 }
