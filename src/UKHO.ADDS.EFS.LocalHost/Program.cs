@@ -2,6 +2,8 @@ using System.Runtime.InteropServices;
 using Aspire.Hosting.Azure;
 using Azure.Provisioning.AppConfiguration;
 using Azure.Provisioning.AppContainers;
+using Azure.Provisioning.ApplicationInsights;
+using Azure.Provisioning.EventHubs;
 using Azure.Provisioning.Storage;
 using CliWrap;
 using Docker.DotNet;
@@ -85,6 +87,23 @@ namespace UKHO.ADDS.EFS.LocalHost
             var storageQueue = storage.AddQueues(StorageConfiguration.QueuesName);
             var storageTable = storage.AddTables(StorageConfiguration.TablesName);
             var storageBlob = storage.AddBlobs(StorageConfiguration.BlobsName);
+            
+            // app insights
+            var appInsights = builder.AddAzureApplicationInsights(ServiceConfiguration.AppInsightsName);
+            appInsights.ConfigureInfrastructure(config =>
+            {
+                var appInsightsResource = config.GetProvisionableResources().OfType<ApplicationInsightsComponent>().Single();
+                appInsightsResource.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
+            });
+
+            // Event Hubs
+            var eventHubs = builder.AddAzureEventHubs(ServiceConfiguration.EventHubNamespaceName).RunAsEmulator();
+            eventHubs.ConfigureInfrastructure(config =>
+            {
+                var eventHubNamespace = config.GetProvisionableResources().OfType<EventHubsNamespace>().Single();
+                eventHubNamespace.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
+            });
+            eventHubs.AddHub(ServiceConfiguration.EventHubName);
 
             // Redis cache
             var redisCache = builder.AddRedis(ProcessNames.RedisCache)
@@ -136,6 +155,14 @@ namespace UKHO.ADDS.EFS.LocalHost
                 {
                     app.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
                 });
+
+            if (!builder.Environment.IsDevelopment())
+            {
+                orchestratorService.WithReference(appInsights);
+                orchestratorService.WaitFor(appInsights);
+                orchestratorService.WithReference(eventHubs);
+                orchestratorService.WaitFor(eventHubs);
+            }
 
             if (builder.Environment.IsDevelopment())
             {

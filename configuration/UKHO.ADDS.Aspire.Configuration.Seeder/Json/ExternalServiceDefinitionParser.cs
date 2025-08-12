@@ -31,6 +31,13 @@ namespace UKHO.ADDS.Aspire.Configuration.Seeder.Json
                     throw new InvalidDataException($"Service '{serviceName}' must have at least one endpoint.");
                 }
 
+                if (!serviceObject.TryGetProperty("clientId", out var clientIdElement))
+                {
+                    throw new InvalidDataException($"Service '{serviceName}' is missing required 'clientId' field.");
+                }
+
+                var clientId = clientIdElement.GetString() ?? throw new InvalidDataException($"clientId for '{serviceName}' is null");
+
                 var serviceEndpoints = new List<ExternalEndpointTemplate>();
                 var hasDefaultTag = false;
 
@@ -99,7 +106,8 @@ namespace UKHO.ADDS.Aspire.Configuration.Seeder.Json
                 results.Add(new ExternalServiceDefinition
                 {
                     Service = serviceName,
-                    Endpoints = serviceEndpoints
+                    Endpoints = serviceEndpoints,
+                    ClientId = clientId
                 });
             }
 

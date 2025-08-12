@@ -6,6 +6,7 @@ using UKHO.ADDS.Aspire.Configuration;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Orchestrator.Api;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Middleware;
 using UKHO.ADDS.EFS.Orchestrator.Services.Storage;
 
@@ -30,21 +31,15 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                 var oltpEndpoint = builder.Configuration[GlobalEnvironmentVariables.OtlpEndpoint]!;
 
-                builder.Services.AddSerilog((services, lc) => lc
-                    .ReadFrom.Configuration(builder.Configuration)
-                    .ReadFrom.Services(services)
-                    .Enrich.FromLogContext()
-                    .WriteTo.OpenTelemetry(o => { o.Endpoint = oltpEndpoint; })
-                    .WriteTo.Console()
-                    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-                    .MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Error)
-                    .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Error)
-                    .MinimumLevel.Override("Microsoft.AspNetCore.Mvc", LogEventLevel.Error)
-                    .MinimumLevel.Override("Microsoft.AspNetCore.Routing", LogEventLevel.Warning)
-                    .MinimumLevel.Override("Microsoft.AspNetCore.Hosting", LogEventLevel.Warning)
-                    .MinimumLevel.Override("Azure.Core", LogEventLevel.Fatal)
-                    .MinimumLevel.Override("Azure.Storage.Blobs", LogEventLevel.Fatal)
-                    .MinimumLevel.Override("Azure.Storage.Queues", LogEventLevel.Warning));
+                if (builder.Environment.IsDevelopment())
+                {
+                    builder.Services.AddSerilog((services, lc) => ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint));
+                }
+                else
+                {
+                    builder.Services.AddSerilog((services, lc) => ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint)
+                        .WriteTo.Sink(new EventHubSerilogSink()));
+                }
 
                 builder.AddConfiguration(ServiceConfiguration.ServiceName, ProcessNames.ConfigurationService);
 
@@ -59,8 +54,8 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 // Configure the HTTP request pipeline.
                 //if (app.Environment.IsDevelopment())
                 //{
-                    app.MapOpenApi();
-                    app.MapScalarApiReference(_ => _.Servers = []); // Stop OpenAPI specifying the wrong port in the generated OpenAPI doc
+                app.MapOpenApi();
+                app.MapScalarApiReference(_ => _.Servers = []); // Stop OpenAPI specifying the wrong port in the generated OpenAPI doc
                 //}
 
                 app.UseMiddleware<CorrelationIdMiddleware>();
@@ -89,6 +84,35 @@ namespace UKHO.ADDS.EFS.Orchestrator
             {
                 await Log.CloseAndFlushAsync();
             }
+        }
+
+        // Helper method to configure common Serilog settings
+        static LoggerConfiguration ConfigureSerilog(
+            LoggerConfiguration loggerConfig,
+            IServiceProvider services,
+            IConfiguration configuration,
+            string oltpEndpoint)
+        {
+            return loggerConfig
+                .ReadFrom.Configuration(configuration)
+                .ReadFrom.Services(services)
+                .Enrich.FromLogContext()
+                .WriteTo.OpenTelemetry(o => { o.Endpoint = oltpEndpoint; })
+                .WriteTo.Console()
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                .MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Error)
+                .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Error)
+                .MinimumLevel.Override("Microsoft.AspNetCore.Mvc", LogEventLevel.Error)
+                .MinimumLevel.Override("Microsoft.AspNetCore.Routing", LogEventLevel.Warning)
+                .MinimumLevel.Override("Microsoft.AspNetCore.Hosting", LogEventLevel.Warning)
+                .MinimumLevel.Override("Azure.Core", LogEventLevel.Fatal)
+                .MinimumLevel.Override("Azure.Storage.Blobs", LogEventLevel.Fatal)
+                .MinimumLevel.Override("Azure.Storage.Queues", LogEventLevel.Warning)
+                .MinimumLevel.Override("Azure.Messaging.EventHubs", LogEventLevel.Fatal)
+                .MinimumLevel.Override("Azure.Messaging.EventHubs.EventHubProducerClient", LogEventLevel.Fatal)
+                .MinimumLevel.Override("Azure.Messaging.EventHubs.Producer", LogEventLevel.Fatal)
+                .MinimumLevel.Override("Microsoft.ApplicationInsights", LogEventLevel.Fatal)
+                .MinimumLevel.Override("Azure.Identity", LogEventLevel.Fatal);
         }
     }
 }
