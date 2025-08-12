@@ -284,10 +284,20 @@ jobs:
               AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
               DeployApp: ${{ parameters.DeployBuilderS100 }}
 
+          - task: PowerShell@2
+            displayName: 'Set Orchestrator Endpoint Variable'
+            inputs:
+              targetType: 'inline'
+              script: |
+                $domain = "$(AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN)"
+                $url = "https://efs-orchestrator.$domain"
+                Write-Host "Orchestrator Endpoint: $url"
+                Write-Host "##vso[task.setvariable variable=ORCHESTRATOR_ENDPOINT]$url"
+
           - template: healthcheck_validation.yml
             parameters:
               AzureSubscription: ${{ variables.AzureSubscription }}
-              AppBaseUrl: "https://efs-orchestrator.${AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN}"
+              AppBaseUrl: $(ORCHESTRATOR_ENDPOINT)
               AzureEnvName: $(AZURE_ENV_NAME)
               HealthCheckTimeoutMinutes: 5         # or your preferred timeout
               SleepTimeSeconds: 10                 # or your preferred interval
