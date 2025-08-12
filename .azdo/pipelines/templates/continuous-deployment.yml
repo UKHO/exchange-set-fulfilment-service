@@ -154,7 +154,7 @@ jobs:
                 echo "Retrieving outputs..."
                 EFS_SERVICE_IDENTITY_RESOURCE_GROUP=$(az deployment sub show --name $DEPLOYMENT_NAME --query properties.outputs.efS_SERVICE_IDENTITY_RESOURCE_GROUP.value --output tsv)
                 EFS_SERVICE_IDENTITY_NAME=$(az deployment sub show --name $DEPLOYMENT_NAME --query properties.outputs.efS_SERVICE_IDENTITY_NAME.value --output tsv)
-
+                orchestratorUrl=$(az deployment group show --name $(DEPLOYMENT_NAME) --query "properties.outputs.orchestratorUrl.value" -o tsv)
                 echo "Storing variables..."
                 echo "##vso[task.setvariable variable=AZURE_EFS_SERVICE_IDENTITY_RESOURCE_GROUP;]$EFS_SERVICE_IDENTITY_RESOURCE_GROUP"
                 echo "##vso[task.setvariable variable=AZURE_EFS_SERVICE_IDENTITY_NAME;]$EFS_SERVICE_IDENTITY_NAME"
@@ -208,6 +208,7 @@ jobs:
               inlineScript: |
                # Query the output from the deployment
                 orchestratorUrl=$(az deployment group show --name $(DEPLOYMENT_NAME) --query "properties.outputs.orchestratorUrl.value" -o tsv)
+                echo "Orchestrator URL: $orchestratorUrl"
                 echo "##vso[task.setvariable variable=ORCHESTRATOR_URL]$orchestratorUrl"
 
           - task: AzureCLI@2
