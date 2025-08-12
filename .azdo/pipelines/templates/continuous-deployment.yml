@@ -289,7 +289,15 @@ jobs:
             inputs:
               targetType: 'inline'
               script: |
-                $domain = "$(AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN)"
+                set -e
+                echo "Reading azd variables..."
+                while IFS='=' read -r key value; do
+                    value=$(echo "$value" | sed 's/^"//' | sed 's/"$//')
+                    export "$key=$value"
+                done <<EOF
+                $(azd env get-values)
+                EOF    
+                $domain = "${AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN}"
                 $url = "https://efs-orchestrator.$domain"
                 Write-Host "Orchestrator Endpoint: $url"
                 Write-Host "##vso[task.setvariable variable=ORCHESTRATOR_ENDPOINT]$url"
