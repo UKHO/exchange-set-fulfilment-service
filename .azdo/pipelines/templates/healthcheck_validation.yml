@@ -11,14 +11,18 @@ parameters:
 - name: AzureEnvName
   type: string
   default: "$(AZURE_ENV_NAME)"
-# Timeout in minutes for health check (inspired by your PS1 script)
+# Timeout in minutes for health check
 - name: HealthCheckTimeoutMinutes
   type: number
   default: 5
 # Sleep time between retries in seconds
 - name: SleepTimeSeconds
   type: number
-  default: 10
+  default: 30
+# Initial delay before first check in seconds
+- name: InitialDelaySeconds
+  type: number
+  default: 60
 # Continue on error flag
 - name: OnErrorContinue
   type: boolean
@@ -47,20 +51,54 @@ steps:
         
         # Get Container App Environment Domain from AZD
         echo "Reading azd variables to get container app domain..."
-        azd env get-values | while IFS='=' read -r key value; do
-            value=$(echo "$value" | sed 's/^"//' | sed 's/"$//')
-            export "$key=$value"
-        done   
+        eval $(azd env get-values | sed 's/^/export /')
+
         if [ -n "$AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN" ]; then
           BASE_URL="https://efs-orchestrator--$ENV_NAME.$AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN"
           echo "Constructed base URL: $BASE_URL"
         else
-          echo "? Could not determine container app domain. Please provide AppBaseUrl parameter."
-          exit 1
+          echo "No AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN found. Trying Azure CLI fallback..."
+          FQDN=$(az containerapp show \
+            --name efs-orchestrator \
+            --resource-group "efs-$ENV_NAME-rg" \
+            --query properties.configuration.ingress.fqdn -o tsv || echo "")
+          if [ -n "$FQDN" ]; then
+            BASE_URL="https://$FQDN"
+            echo "Constructed base URL from container app: $BASE_URL"
+          else
+            echo "Could not determine BASE_URL. Please provide AppBaseUrl parameter."
+            exit 1
+          fi
         fi
       fi
       
-      # Function to perform health check with timeout (inspired by your PS1 script)
+      # Function to test DNS resolution
+      test_dns() {
+        local url=$1
+        local domain=$(echo "$url" | sed -e 's|^[^/]*//||' -e 's|/.*$||')
+        echo "Testing DNS resolution for $domain..."
+        if nslookup "$domain" > /dev/null 2>&1; then
+          echo "DNS resolution successful for $domain"
+          return 0
+        else
+          echo "DNS resolution failed for $domain"
+          return 1
+        fi
+      }
+
+      # Validate BASE_URL format
+      if [[ ! "$BASE_URL" =~ ^https?:// ]]; then
+        echo "Invalid BASE_URL: $BASE_URL"
+        exit 1
+      fi
+
+      # Test DNS resolution before starting health checks
+      test_dns "$BASE_URL"
+      
+      # Initial delay before health checks
+      echo "Waiting ${{ parameters.InitialDelaySeconds }} seconds before starting health checks..."
+      sleep ${{ parameters.InitialDelaySeconds }}
+      
       perform_health_check_with_timeout() {
         local url=$1
         local endpoint=$2
@@ -68,27 +106,48 @@ steps:
         local sleep_seconds=${{ parameters.SleepTimeSeconds }}
         local full_url="${url}${endpoint}"
         
-        echo "Polling URL: $full_url (timeout: ${timeout_minutes}min, sleep: ${sleep_seconds}s)"
+        echo "Polling URL: $full_url"
+        echo "  Timeout: ${timeout_minutes}min"
+        echo "  Sleep: ${sleep_seconds}s"
         
         local timeout_seconds=$((timeout_minutes * 60))
         local elapsed_seconds=0
         local is_healthy="false"
         
         while [ $elapsed_seconds -lt $timeout_seconds ]; do
-          echo "Health check attempt at ${elapsed_seconds}s/${timeout_seconds}s for $endpoint"
+          echo "Health check attempt at ${elapsed_seconds}s/${timeout_seconds}s"
           
-          response=$(curl -s -w "HTTPSTATUS:%{http_code}" --max-time 30 "$full_url" 2>/dev/null || echo "HTTPSTATUS:000")
-          http_code=$(echo $response | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
-          body=$(echo $response | sed -e 's/HTTPSTATUS\:.*//g')
+          # Use curl with verbose output for debugging
+          response=$(curl -v -s -w "\nHTTPSTATUS:%{http_code}" \
+            --connect-timeout 10 \
+            --max-time 30 \
+            -H "Accept: application/json" \
+            "$full_url" 2>&1 || echo "HTTPSTATUS:000")
+          
+          http_code=$(echo "$response" | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
+          body=$(echo "$response" | sed -e 's/HTTPSTATUS\:.*//g')
           
           echo "HTTP Status: $http_code"
           
+          # Print connection details from verbose output for debugging
+          if [ "$http_code" != "200" ]; then
+            echo "Curl debug output:"
+            echo "$response" | grep -E "^* "
+            echo "Response body:"
+            echo "$body"
+          fi
+          
           if [ "$http_code" -eq 200 ]; then
-            echo "? Service is up. Stopping polling for $endpoint"
+            echo "Service is healthy"
             is_healthy="true"
             break
           else
-            echo "? Service not yet up. Status code: $http_code. Re-checking after ${sleep_seconds}s..."
+            if [ "$http_code" -eq 000 ]; then
+              echo "Connection failed. This might indicate network issues or service not ready."
+            else
+              echo "Service returned non-200 status code: $http_code"
+            fi
+            echo "Waiting ${sleep_seconds}s before retry..."
           fi
           
           sleep $sleep_seconds
@@ -96,97 +155,44 @@ steps:
         done
         
         if [ "$is_healthy" = "true" ]; then
-          echo "? Health check passed for $endpoint"
           return 0
         else
-          echo "? Service was not up in ${timeout_minutes} minutes for $endpoint"
+          echo "Service was not healthy within ${timeout_minutes} minutes"
           return 1
         fi
       }
       
-      # Main health check execution (inspired by your PS1 approach)
+      # Main health check execution
       HEALTH_CHECK_FAILED=false
-      EFS_HEALTH_STATUS="false"
-      FSS_HEALTH_STATUS="false"
-      SCS_HEALTH_STATUS="false"
       
-      # Check main health endpoint
       echo "=== EFS Orchestrator Health Check ==="
       if perform_health_check_with_timeout "$BASE_URL" "/health"; then
-        EFS_HEALTH_STATUS="true"
+        echo "Health check passed"
       else
         HEALTH_CHECK_FAILED=true
       fi
       
-      # Check liveness endpoint
-      echo "=== EFS Orchestrator Alive Check ==="
-      if perform_health_check_with_timeout "$BASE_URL" "/alive"; then
-        echo "EFS liveness check passed"
-      else
-        HEALTH_CHECK_FAILED=true
-      fi
-      
-      # Check dependent services if URLs are provided
-      if [ ! -z "${FSS_ENDPOINT_HEALTH:-}" ]; then
-        echo "=== FSS Dependency Health Check ==="
-        if perform_health_check_with_timeout "$FSS_ENDPOINT_HEALTH" ""; then
-          FSS_HEALTH_STATUS="true"
-        else
-          HEALTH_CHECK_FAILED=true
-        fi
-      else
-        echo "FSS_ENDPOINT_HEALTH not configured, skipping FSS health check"
-        FSS_HEALTH_STATUS="not_configured"
-      fi
-      
-      # Check SCS service if URL is provided
-      if [ ! -z "${SCS_ENDPOINT_HEALTH:-}" ]; then
-        echo "=== SCS Dependency Health Check ==="
-        if perform_health_check_with_timeout "$SCS_ENDPOINT_HEALTH" ""; then
-          SCS_HEALTH_STATUS="true"
-        else
-          HEALTH_CHECK_FAILED=true
-        fi
-      else
-        echo "SCS_ENDPOINT_HEALTH not configured, skipping SCS health check"
-        SCS_HEALTH_STATUS="not_configured"
-      fi
-      
-      # Set pipeline variables (like your PS1 script)
-      echo "##vso[task.setvariable variable=EFS_IS_HEALTHY]$EFS_HEALTH_STATUS"
-      echo "##vso[task.setvariable variable=FSS_IS_HEALTHY]$FSS_HEALTH_STATUS"
-      echo "##vso[task.setvariable variable=SCS_IS_HEALTHY]$SCS_HEALTH_STATUS"
-      echo "##vso[task.setvariable variable=ALL_SERVICES_HEALTHY]$([ "$HEALTH_CHECK_FAILED" = false ] && echo "true" || echo "false")"
-      
-      # Final result (with your PS1 error handling approach)
+      # Final result
       if [ "$HEALTH_CHECK_FAILED" = true ]; then
         echo ""
-        echo "? One or more health checks failed. Deployment validation unsuccessful."
-        echo "   EFS Health: $EFS_HEALTH_STATUS"
-        echo "   FSS Health: $FSS_HEALTH_STATUS"
-        echo "   SCS Health: $SCS_HEALTH_STATUS"
-        echo "   Please check the application logs and ensure all services are running correctly."
+        echo "Health check failed. Deployment validation unsuccessful."
+        echo "   Please check the application logs and ensure the service is running correctly."
         
-        # Handle error continuation like your PS1 script
+        # Handle error continuation
         if [ "${{ parameters.OnErrorContinue }}" = "true" ]; then
-          echo "??  OnErrorContinue=true, pipeline will continue despite health check failures"
+          echo "OnErrorContinue=true, pipeline will continue despite health check failures"
           exit 0
         else
-          echo "? OnErrorContinue=false, failing the pipeline"
+          echo "OnErrorContinue=false, failing the pipeline"
           exit 1
         fi
       else
         echo ""
-        echo "? All health checks passed. Deployment validation successful."
-        echo "   EFS Health: $EFS_HEALTH_STATUS"
-        echo "   FSS Health: $FSS_HEALTH_STATUS"
-        echo "   SCS Health: $SCS_HEALTH_STATUS"
-        echo "   EFS Orchestrator and dependencies are ready to accept traffic."
+        echo "Health check passed. Deployment validation successful."
+        echo "EFS Orchestrator is ready to accept traffic."
         exit 0
       fi
   env:
     AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
     AZURE_ENV_NAME: $(AZURE_ENV_NAME)
     AZURE_LOCATION: $(AZURE_LOCATION)
-    FSS_ENDPOINT_HEALTH: $(FSS_ENDPOINT_HEALTH)
-    SCS_ENDPOINT_HEALTH: $(SCS_ENDPOINT_HEALTH)

@@ -288,25 +288,39 @@ jobs:
             displayName: 'Set Orchestrator Endpoint Variable'
             inputs:
               targetType: 'inline'
+              pwsh: true
               script: |
-                set -e
-                echo "Reading azd variables..."
-                while IFS='=' read -r key value; do
-                    value=$(echo "$value" | sed 's/^"//' | sed 's/"$//')
-                    export "$key=$value"
-                done <<EOF
-                $(azd env get-values)
-                EOF    
-                $domain = "${AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN}"
-                $url = "https://efs-orchestrator.$domain"
-                Write-Host "Orchestrator Endpoint: $url"
-                Write-Host "##vso[task.setvariable variable=ORCHESTRATOR_ENDPOINT]$url"
+                # Get container app FQDN first using Azure CLI
+                $resourceGroup = "efs-$env:AZURE_ENV_NAME-rg"
+                $containerAppName = "efs-orchestrator"
+                
+                Write-Host "Getting container app FQDN from resource group: $resourceGroup"
+                
+                try {
+                    $fqdn = az containerapp show `
+                        --name $containerAppName `
+                        --resource-group $resourceGroup `
+                        --query "properties.configuration.ingress.fqdn" -o tsv
+                    
+                    if (-not $fqdn) {
+                        throw "Could not retrieve FQDN from container app"
+                    }
+                    
+                    $url = "https://$fqdn"
+                    Write-Host "Orchestrator URL: $url"
+                    Write-Host "##vso[task.setvariable variable=ORCHESTRATOR_URL]$url"
+                }
+                catch {
+                    Write-Error "Failed to get container app FQDN: $_"
+                    throw
+                }
 
           - template: healthcheck_validation.yml
             parameters:
               AzureSubscription: ${{ variables.AzureSubscription }}
-              AppBaseUrl: $(ORCHESTRATOR_ENDPOINT)
+              AppBaseUrl: "$(ORCHESTRATOR_URL)"
               AzureEnvName: $(AZURE_ENV_NAME)
-              HealthCheckTimeoutMinutes: 5         # or your preferred timeout
-              SleepTimeSeconds: 10                 # or your preferred interval
-              OnErrorContinue: false               # set to true if you want pipeline to continue on failure
+              HealthCheckTimeoutMinutes: 5
+              SleepTimeSeconds: 30
+              InitialDelaySeconds: 60
+              OnErrorContinue: false
