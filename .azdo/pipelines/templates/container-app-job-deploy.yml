@@ -41,8 +41,10 @@ steps:
       $jsonData = Get-Content -Path $env:fssJson -Raw | ConvertFrom-Json
       $env:fssEndpoint = ($jsonData.endpoints | Where-Object { $_.tag -eq "" }).resolvedUrl
       $env:fssEndpointHealth = $env:fssEndpoint + "health"
+      $env:fssClientId = $jsonData.clientId
       Write-Host "##vso[task.setvariable variable=${{ parameters.BuilderType }}_FSS_ENDPOINT;]$env:fssEndpoint"
       Write-Host "##vso[task.setvariable variable=${{ parameters.BuilderType }}_FSS_ENDPOINT_HEALTH;]$env:fssEndpointHealth"
+      Write-Host "##vso[task.setvariable variable=${{ parameters.BuilderType }}_FSS_CLIENT_ID;]$env:fssClientId"
 
       $env:maxRetries = az appconfig kv list --endpoint $env:appConfigEndpoint --key "buildRequestMonitor:${{ parameters.BuilderType }}:MaxRetries" --fields value --output tsv --auth-mode login
       Write-Host "##vso[task.setvariable variable=${{ parameters.BuilderType }}_MAX_RETRY_ATTEMPTS;]$env:maxRetries"
@@ -64,7 +66,6 @@ steps:
       DEPLOYMENT_NUMBER=$EPOCHSECONDS
       DEPLOYMENT_TAG=docker-deploy-$DEPLOYMENT_NUMBER
       echo "Deployment tag - $DEPLOYMENT_TAG"
-      export CONTAINER_IMAGE="$(AcrName).azurecr.io/exchange-set-fulfilment-service/${{ parameters.AppName }}-$(AZURE_ENV_NAME):$DEPLOYMENT_TAG"
       RESOURCE_GROUP="efs-$(AZURE_ENV_NAME)-rg"
 
       echo "Reading azd variables..."
@@ -83,7 +84,12 @@ steps:
       fi
 
       echo "Logging in to Azure Container Registry..."
-      az acr login --name $(AcrName)
+      ACR_NAME="${AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN%%.*}"
+      az acr login --name $ACR_NAME
+
+      echo "Generate container image name..."
+      export CONTAINER_IMAGE="${AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN}/exchange-set-fulfilment-service/${{ parameters.AppName }}-$(AZURE_ENV_NAME):$DEPLOYMENT_TAG"
+      echo $CONTAINER_IMAGE
 
       echo "Changing directory..."
       cd $(Build.SourcesDirectory)/efs/src
