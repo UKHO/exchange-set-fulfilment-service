@@ -47,13 +47,10 @@ steps:
         
         # Get Container App Environment Domain from AZD
         echo "Reading azd variables to get container app domain..."
-        while IFS='=' read -r key value; do
+        azd env get-values | while IFS='=' read -r key value; do
             value=$(echo "$value" | sed 's/^"//' | sed 's/"$//')
             export "$key=$value"
-        done <<EOF
-        $(azd env get-values)
-        EOF
-        
+        done   
         if [ -n "$AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN" ]; then
           BASE_URL="https://efs-orchestrator--$ENV_NAME.$AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN"
           echo "Constructed base URL: $BASE_URL"
