@@ -50,3 +50,50 @@ jobs:
       inputs:
         PathtoPublish: "$(Build.ArtifactStagingDirectory)/codecoveragereport"
         ArtifactName: codecoveragereport
+
+
+- job: FunctionalTests
+  pool: $(LinuxPool)
+  displayName: 'Run functional tests'
+  workspace:
+    clean: all
+  steps:
+    - checkout: self
+      clean: true
+      submodules: true
+      path: s/efs
+
+    - task: PowerShell@2
+      displayName: 'List folders in efs/test'
+      inputs:
+        targetType: 'inline'
+        script: |
+          Write-Host "Listing folders in $(Build.SourcesDirectory)/test"
+          Get-ChildItem -Path "$(Build.SourcesDirectory)/test" -Directory | ForEach-Object { Write-Host $_.FullName }
+
+    - task: UseDotNet@2
+      displayName: 'Use .NET SDK $(SdkVersion)'
+      inputs:
+        packageType: sdk
+        version: $(SdkVersion)
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Restore NuGet packages for Functional Tests'
+      condition: always()
+      inputs:
+        command: restore
+        projects: '**/*UKHO.ADDS.EFS.FunctionalTests.csproj'
+        feedsToUse: config
+        noCache: true
+        nugetConfigPath: '$(Build.SourcesDirectory)/BuildNuget.config'
+        workingDirectory: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.FunctionalTests'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Run Functional Tests'
+      condition: always()
+      inputs:
+        command: test
+        projects: '**/*UKHO.ADDS.EFS.FunctionalTests.csproj'
+        arguments: '--configuration Release --no-restore --logger trx'
+        workingDirectory: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.FunctionalTests'
+
