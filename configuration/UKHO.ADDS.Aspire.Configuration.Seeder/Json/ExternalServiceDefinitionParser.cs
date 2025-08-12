@@ -106,8 +106,8 @@ namespace UKHO.ADDS.Aspire.Configuration.Seeder.Json
                 results.Add(new ExternalServiceDefinition
                 {
                     Service = serviceName,
-                    ClientId = clientId,
-                    Endpoints = serviceEndpoints
+                    Endpoints = serviceEndpoints,
+                    ClientId = clientId
                 });
             }
 

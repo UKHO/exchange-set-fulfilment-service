@@ -3,13 +3,13 @@ using UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
 {
-    internal class AssemblyPipelineFactory
+    internal class AssemblyPipelineFactory : IAssemblyPipelineFactory
     {
         private readonly IServiceProvider _serviceProvider;
 
         public AssemblyPipelineFactory(IServiceProvider serviceProvider) => _serviceProvider = serviceProvider;
 
-        public AssemblyPipeline CreateAssemblyPipeline(AssemblyPipelineParameters parameters) =>
+        public IAssemblyPipeline CreateAssemblyPipeline(AssemblyPipelineParameters parameters) =>
             parameters.DataStandard switch
             {
                 DataStandard.S100 => ActivatorUtilities.CreateInstance<S100AssemblyPipeline>(_serviceProvider, parameters),
