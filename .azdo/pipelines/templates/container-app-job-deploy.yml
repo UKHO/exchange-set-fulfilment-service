@@ -84,11 +84,11 @@ steps:
       fi
 
       echo "Logging in to Azure Container Registry..."
-      ACR_NAME="${AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN%%.*}"
+      ACR_NAME="${AZURE_CONTAINER_REGISTRY_ENDPOINT%%.*}"
       az acr login --name $ACR_NAME
 
       echo "Generate container image name..."
-      export CONTAINER_IMAGE="${AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN}/exchange-set-fulfilment-service/${{ parameters.AppName }}-$(AZURE_ENV_NAME):$DEPLOYMENT_TAG"
+      export CONTAINER_IMAGE="${AZURE_CONTAINER_REGISTRY_ENDPOINT}/exchange-set-fulfilment-service/${{ parameters.AppName }}-$(AZURE_ENV_NAME):$DEPLOYMENT_TAG"
       echo $CONTAINER_IMAGE
 
       echo "Changing directory..."
