@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Text.Json;
+using Azure.Identity;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Kiota.Abstractions.Authentication;
 using Microsoft.Kiota.Http.HttpClientLibrary;
@@ -12,6 +13,7 @@ using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.Kiota.SalesCatalogueService;
 using UKHO.ADDS.Clients.SalesCatalogueService;
 using UKHO.ADDS.Configuration.Client;
+using UKHO.ADDS.Configuration.Schema;
 using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Builds.S100;
 using UKHO.ADDS.EFS.Builds.S57;
@@ -48,7 +50,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
             var configuration = builder.Configuration;
             builder.Services.AddHttpContextAccessor();
 
-            builder.Services.Configure<JsonOptions>(options => JsonCodec.DefaultOptions.CopyTo(options.SerializerOptions));
+             builder.Services.Configure<JsonOptions>(options => JsonCodec.DefaultOptions.CopyTo(options.SerializerOptions));
 
             builder.Services.AddExternalServiceDiscovery();
 
@@ -101,26 +103,16 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             //    return factory.CreateClient(scsEndpoint!.ToString(), string.Empty);
             //});
-            builder.Services.AddKiotaHandlers();
-
+            //var addsEnvironment = AddsEnvironment.GetEnvironment();
             builder.Services.AddKiotaDefaults(new AnonymousAuthenticationProvider());
 
-            // Uncomment the line below to use Azure Identity for authentication, if required
-            //builder.Services.AddKiotaDefaults(new AzureIdentityAuthenticationProvider(new DefaultAzureCredential()));
-            builder.Services.AddTransient<HeadersInspectionHandler>();
-            builder.Services.AddHttpClient();
-            builder.Services.AddSingleton<Microsoft.Kiota.Abstractions.IRequestAdapter, HttpClientRequestAdapter>();
-            builder.Services.AddHttpClient<KiotaSalesCatalogueService>()
-        .AddHttpMessageHandler<HeadersInspectionHandler>();
-            // Sales Catalogue Service Kiota
-            builder.Services.AddSingleton<KiotaSalesCatalogueService>(provider =>
+            builder.Services.RegisterKiotaClient<KiotaSalesCatalogueService>(provider =>
             {
                 var registry = provider.GetRequiredService<IExternalServiceRegistry>();
                 var scsEndpoint = registry.GetExternalServiceEndpointAsync(ProcessNames.S100SalesCatalogueService).GetAwaiter().GetResult();
-                var requestAdapter = provider.GetRequiredService<Microsoft.Kiota.Abstractions.IRequestAdapter>();
-                requestAdapter.BaseUrl = scsEndpoint!.ToString();
-                return new KiotaSalesCatalogueService(requestAdapter);
+                return scsEndpoint;
             });
+
 
             builder.Services.AddSingleton<IFileShareReadWriteClientFactory>(provider => new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
 

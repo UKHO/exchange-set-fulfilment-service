@@ -29,6 +29,8 @@
     <PackageReference Include="Azure.Storage.Blobs" Version="12.24.0" />
     <PackageReference Include="Konscious.Security.Cryptography.Blake2" Version="1.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.3" />
+    <PackageReference Include="Microsoft.Kiota.Http.HttpClientLibrary" Version="1.19.0" />
+    <PackageReference Include="Microsoft.Kiota.Serialization.Json" Version="1.19.0" />
     <PackageReference Include="Scalar.AspNetCore" Version="2.1.1" />
     <PackageReference Include="Docker.DotNet" Version="3.125.15" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.3" />
@@ -43,10 +45,11 @@
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.3" />
     <PackageReference Include="UKHO.ADDS.Clients.FileShareService.ReadWrite" Version="0.0.50701-alpha.2" />
-    <PackageReference Include="UKHO.ADDS.Clients.SalesCatalogueService" Version="0.0.50728-alpha.8" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\UKHO.ADDS.Clients\src\UKHO.ADDS.Clients.Common\UKHO.ADDS.Clients.Common.csproj" />
+    <ProjectReference Include="..\..\..\UKHO.ADDS.Clients\src\UKHO.ADDS.Clients.SalesCatalogueService\UKHO.ADDS.Clients.SalesCatalogueService.csproj" />
     <ProjectReference Include="..\..\config\UKHO.ADDS.Configuration.Client\UKHO.ADDS.Configuration.Client.csproj" />
     <ProjectReference Include="..\UKHO.ADDS.EFS.Analyzers\UKHO.ADDS.EFS.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\UKHO.ADDS.EFS.Aspire\UKHO.ADDS.EFS.Aspire.csproj" />
