@@ -15,10 +15,6 @@ param efs_service_identity_outputs_id string
 
 param efs_orchestrator_containerport string
 
-param efs_app_insights_outputs_appinsightsconnectionstring string
-
-param efs_events_namespace_outputs_eventhubsendpoint string
-
 param efs_storage_outputs_queueendpoint string
 
 param efs_storage_outputs_tableendpoint string
@@ -93,14 +89,6 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2025-02-02-preview' = {
             {
               name: 'HTTP_PORTS'
               value: efs_orchestrator_containerport
-            }
-            {
-              name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-              value: efs_app_insights_outputs_appinsightsconnectionstring
-            }
-            {
-              name: 'ConnectionStrings__efs-events-namespace'
-              value: efs_events_namespace_outputs_eventhubsendpoint
             }
             {
               name: 'ConnectionStrings__efs-queues'

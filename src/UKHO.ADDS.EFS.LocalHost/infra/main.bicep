@@ -54,15 +54,6 @@ module efs_appconfig 'efs-appconfig/efs-appconfig.module.bicep' = {
     location: location
   }
 }
-
-module efs_app_insights 'efs-app-insights/efs-app-insights.module.bicep' = {
-  name: 'efs-app-insights'
-  scope: rg
-  params: {
-    location: location
-    logAnalyticsWorkspaceId: efs_cae.outputs.AZURE_LOG_ANALYTICS_WORKSPACE_ID
-  }
-}
 module efs_cae 'efs-cae/efs-cae.module.bicep' = {
   name: 'efs-cae'
   scope: rg
@@ -78,15 +69,6 @@ module efs_events_namespace 'efs-events-namespace/efs-events-namespace.module.bi
   scope: rg
   params: {
     location: location
-  }
-}
-module efs_orchestrator_roles_efs_events_namespace 'efs-orchestrator-roles-efs-events-namespace/efs-orchestrator-roles-efs-events-namespace.module.bicep' = {
-  name: 'efs-orchestrator-roles-efs-events-namespace'
-  scope: rg
-  params: {
-    efs_events_namespace_outputs_name: efs_events_namespace.outputs.name
-    location: location
-    principalId: efs_orchestrator_identity.outputs.principalId
   }
 }
 module efs_orchestrator_roles_efs_appconfig 'efs-orchestrator-roles-efs-appconfig/efs-orchestrator-roles-efs-appconfig.module.bicep' = {
