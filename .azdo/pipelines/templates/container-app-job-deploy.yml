@@ -9,12 +9,12 @@ parameters:
 - name: ProjectFolder
   type: string
 # The type of builder being deployed.
-- name: BuilderType
-  type: string
-  values:
-  - 'S100'
-  - 'S57'
-  - 'S63'
+#- name: BuilderType
+ # type: string
+  #values:
+  #- 'S100'
+  #- 'S57'
+  #- 'S63'
 # If true, additional debugging will be enabled.
 - name: AdditionalDebugging
   type: boolean
