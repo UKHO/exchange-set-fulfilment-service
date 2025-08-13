@@ -25,16 +25,6 @@ namespace UKHO.ADDS.Clients.Common.MiddlewareExtensions
         }
 
         /// <summary>
-        /// Registers the default Kiota handlers, client factory.
-        /// </summary>
-        /// <typeparam name="T">The type of authentication provider to use with Kiota clients.</typeparam>
-        /// <param name="services">The service collection to register Kiota services with.</param>
-        public static void AddKiotaDefaults(this IServiceCollection services) 
-        {
-            services.AddSingleton<ClientFactory>();
-        }
-
-        /// <summary>
         /// Registers a Kiota client in the service collection, including its configured HTTP client and factory.
         /// </summary>
         /// <typeparam name="TClient">The Kiota client type to register.</typeparam>
