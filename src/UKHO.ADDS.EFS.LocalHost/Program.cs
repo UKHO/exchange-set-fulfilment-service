@@ -60,8 +60,8 @@ namespace UKHO.ADDS.EFS.LocalHost
             var laws = builder.AddAzureLogAnalyticsWorkspace(ServiceConfiguration.LogAnalyticsWorkspaceName);
             laws.ConfigureInfrastructure(config =>
             {
-                var logAnalyticsQueryPack = config.GetProvisionableResources().OfType<LogAnalyticsQueryPack>().Single();
-                logAnalyticsQueryPack.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
+                var operationalInsightsWorkspace = config.GetProvisionableResources().OfType<OperationalInsightsWorkspace>().Single();
+                operationalInsightsWorkspace.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
             });
 
             // Container apps environment
