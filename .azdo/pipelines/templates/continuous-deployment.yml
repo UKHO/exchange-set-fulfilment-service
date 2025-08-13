@@ -320,5 +320,5 @@ jobs:
           displayName: "Check the status of production slot after rollback"
           inputs:
             targetType: filePath
-            filePath: "$(Build.SourcesDirectory)/efs/pipelines/powershell/CheckServiceStatus.ps1"
+            filePath: "$(Build.SourcesDirectory)/efs/.azdo/pipelines/powershell/CheckServiceStatus.ps1"
             arguments: "-healthEndPointUrl $(ORCHESTRATOR_URL)/health -waitTimeInMinute 5 -onErrorContinue 0"
