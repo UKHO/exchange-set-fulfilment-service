@@ -2,15 +2,19 @@ targetScope = 'subscription'
 
 @minLength(1)
 @maxLength(64)
-@description('Name of the environment that can be used as part of naming resource convention. The name of the resource group for your application will include this name.')
-param environmentName string
+@description('Name of the resource group for fixed resources.')
+param resourceGroupName string
+
+@minLength(1)
+@description('The partial name (from the start) of the service identity resource.')
+param efsServiceIdentityPartialName string
 
 @minLength(1)
 @description('The location used for all deployed resources')
 param location string
 
 resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
-  name: 'efs-${environmentName}-retain-rg'
+  name: resourceGroupName
   location: location
 }
 
@@ -19,6 +23,7 @@ module efs_service_identity 'efs-service-identity/efs-service-identity.module.bi
   scope: rg
   params: {
     location: location
+    efsServiceIdentityPartialName: efsServiceIdentityPartialName
   }
 }
 
