@@ -154,7 +154,7 @@ jobs:
                 echo "Retrieving outputs..."
                 EFS_SERVICE_IDENTITY_RESOURCE_GROUP=$(az deployment sub show --name $DEPLOYMENT_NAME --query properties.outputs.efS_SERVICE_IDENTITY_RESOURCE_GROUP.value --output tsv)
                 EFS_SERVICE_IDENTITY_NAME=$(az deployment sub show --name $DEPLOYMENT_NAME --query properties.outputs.efS_SERVICE_IDENTITY_NAME.value --output tsv)
-
+                
                 echo "Storing variables..."
                 echo "##vso[task.setvariable variable=AZURE_EFS_SERVICE_IDENTITY_RESOURCE_GROUP;]$EFS_SERVICE_IDENTITY_RESOURCE_GROUP"
                 echo "##vso[task.setvariable variable=AZURE_EFS_SERVICE_IDENTITY_NAME;]$EFS_SERVICE_IDENTITY_NAME"
@@ -198,6 +198,22 @@ jobs:
               AZURE_ADDS_ENVIRONMENT: $(AZURE_ENV_NAME)
               AZURE_EFS_SERVICE_IDENTITY_RESOURCE_GROUP: $(AZURE_EFS_SERVICE_IDENTITY_RESOURCE_GROUP)
               AZURE_EFS_SERVICE_IDENTITY_NAME: $(AZURE_EFS_SERVICE_IDENTITY_NAME)
+
+          # - task: AzureCLI@2
+          #   displayName: Get Orchestrator URL
+          #   inputs:
+          #     azureSubscription: ${{ variables.AzureSubscription }}
+          #     scriptType: bash
+          #     scriptLocation: inlineScript
+          #     inlineScript: |
+          #      # Query the output from the deployment
+          #       #orchestratorUrl=$(az deployment group show --name $(DEPLOYMENT_NAME) --query "properties.outputs.orchestratorUrl.value" -o tsv)
+          #       #echo "Orchestrator URL: $orchestratorUrl"
+          #       echo "##vso[task.setvariable variable=ORCHESTRATOR_URL]$orchestratorUrl"
+          #   env:
+          #     AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+          #     AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+          #     AZURE_LOCATION: $(AZURE_LOCATION)
 
           - task: AzureCLI@2
             displayName: Run configuration seeder
@@ -265,6 +281,45 @@ jobs:
               AzureSubscription: ${{ variables.AzureSubscription }}
               AppName: efs-builder-s100
               ProjectFolder: UKHO.ADDS.EFS.Builder.S100
-              BuilderType: S100
               AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
               DeployApp: ${{ parameters.DeployBuilderS100 }}
+
+          - task: AzureCLI@2
+            displayName: 'Set Orchestrator Endpoint Variable'
+            inputs:
+              azureSubscription: ${{ variables.AzureSubscription }}
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                ENV_NAME="${AZURE_ENV_NAME}"
+                RESOURCE_GROUP="efs-$ENV_NAME-rg"
+                FQDN=$(az containerapp show \
+                  --name efs-orchestrator \
+                  --resource-group "$RESOURCE_GROUP" \
+                  --query properties.configuration.ingress.fqdn -o tsv)
+                if [ -z "$FQDN" ]; then
+                  echo "##vso[task.logissue type=error]Could not retrieve FQDN for efs-orchestrator"
+                  exit 1
+                fi
+                URL="https://$FQDN"
+                echo "Orchestrator Endpoint: $URL"
+                echo "##vso[task.setvariable variable=ORCHESTRATOR_URL]$URL"
+
+          # - template: healthcheck_validation.yml
+          #   parameters:
+          #     AzureSubscription: ${{ variables.AzureSubscription }}
+          #     #AppBaseUrl: "$(ORCHESTRATOR_URL)"
+          #     AppBaseUrl: "https://adds-mocks-efs.ashymushroom-d9976f65.uksouth.azurecontainerapps.io/fss"
+          #     AzureEnvName: $(AZURE_ENV_NAME)
+          #     HealthCheckTimeoutMinutes: 5
+          #     SleepTimeSeconds: 30
+          #     InitialDelaySeconds: 60
+          #     OnErrorContinue: false
+             
+          - task: PowerShell@2
+            displayName: "Check the status of production slot after rollback"
+            inputs:
+              targetType: filePath
+              filePath: "$(Build.SourcesDirectory)/efs/.azdo/pipelines/powershell/CheckServiceStatus.ps1"
+              arguments: "-healthEndPointUrl $(ORCHESTRATOR_URL)/health -waitTimeInMinute 2 -onErrorContinue 0"
+
