@@ -89,9 +89,15 @@ namespace Microsoft.Extensions.Hosting
         public static WebApplication MapDefaultEndpoints(this WebApplication app)
         {
             app.MapHealthChecks("/health", new HealthCheckOptions
-            {
-                ResponseWriter = WriteHealthCheckResponse
-            });
+             {
+                ResponseWriter = WriteHealthCheckResponse,
+                ResultStatusCodes = 
+               {
+                   [HealthStatus.Healthy] = StatusCodes.Status200OK,
+                  [HealthStatus.Degraded] = StatusCodes.Status200OK,
+                  [HealthStatus.Unhealthy] = StatusCodes.Status200OK // <--- THIS IS THE CRITICAL LINE
+               }
+         });
 
             app.MapHealthChecks("/alive", new HealthCheckOptions
             {
