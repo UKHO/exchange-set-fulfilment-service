@@ -1,0 +1,1063 @@
+openapi: "3.0.0"
+info:
+  version: "1.10"
+  title: Sales Catalogue Service API
+  description: |
+    This API is for Sales Catalogue Service
+  contact:
+    email: teamcalypso@ukho.gov.uk
+
+servers:
+  - url: https://salescatalogue.ukho.gov.uk
+security:
+  - jwtBearerAuth: []
+
+paths:
+  /v1/productData/{productType}/products:
+    get:
+      summary: Get all releasable changes to products since a date
+      operationId: getProducts
+      tags:
+        - Products v1
+      parameters:
+        - $ref: "#/components/parameters/productType"
+        - $ref: "#/components/parameters/sinceDateTime"
+
+      responses:
+        "200":
+          description: A JSON body of product objects
+          headers:
+            Last-Modified:
+              schema:
+                $ref: "#/components/schemas/Last-Modified"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/productResponse"
+
+        "304":
+          $ref: "#/components/responses/NotModifiedResponse"
+
+        "400":
+          $ref: "#/components/responses/BadRequestResponse"
+
+        "401":
+          $ref: "#/components/responses/UnauthorisedResponse"
+
+        "403":
+          $ref: "#/components/responses/ForbiddenResponse"
+
+        "404":
+          $ref: "#/components/responses/NotFoundResponse"
+
+        "500":
+          $ref: "#/components/responses/InternalServerErrorResponse"
+
+  /v1/productData/{productType}/products/productIdentifiers:
+    post:
+      summary: Get the latest baseline, releasable versions for requested products
+
+      operationId: postProductIdentifiers
+      tags:
+        - Products v1
+      parameters:
+        - $ref: "#/components/parameters/productType"
+
+      requestBody:
+        description: |
+          The JSON body containing an array of product identifiers.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/productIdentifiers"
+
+      responses:
+        "200":
+          description: A JSON body of product objects
+          headers:
+            Last-Modified:
+              schema:
+                $ref: "#/components/schemas/Last-Modified"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/productResponse"
+
+        "304":
+          $ref: "#/components/responses/NotModifiedResponse"
+
+        "400":
+          $ref: "#/components/responses/BadRequestResponse"
+
+        "401":
+          $ref: "#/components/responses/UnauthorisedResponse"
+
+        "403":
+          $ref: "#/components/responses/ForbiddenResponse"
+
+        "404":
+          $ref: "#/components/responses/NotFoundResponse"
+
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaTypeResponse"
+
+        "500":
+          $ref: "#/components/responses/InternalServerErrorResponse"
+
+  /v1/productData/{productType}/products/productVersions:
+    post:
+      summary: Get the latest baseline, releasable versions for requested products since a specified version
+
+      operationId: postProductVersions
+      tags:
+        - Products v1
+      parameters:
+        - $ref: "#/components/parameters/productType"
+
+      requestBody:
+        description: |
+          The JSON body containing product versions.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/productVersions"
+
+      responses:
+        "200":
+          description: A JSON body of product objects
+          headers:
+            Last-Modified:
+              schema:
+                $ref: "#/components/schemas/Last-Modified"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/productResponse"
+
+        "304":
+          $ref: "#/components/responses/NotModifiedResponse"
+
+        "400":
+          $ref: "#/components/responses/BadRequestResponse"
+
+        "401":
+          $ref: "#/components/responses/UnauthorisedResponse"
+
+        "403":
+          $ref: "#/components/responses/ForbiddenResponse"
+
+        "404":
+          $ref: "#/components/responses/NotFoundResponse"
+
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaTypeResponse"
+
+        "500":
+          $ref: "#/components/responses/InternalServerErrorResponse"
+
+  /v1/productData/{productType}/catalogue/{catalogueType}:
+    get:
+      summary: Get the data for a catalogue
+      operationId: getCatalogue
+      tags:
+        - Catalogue v1
+
+      parameters:
+        - $ref: "#/components/parameters/productType"
+        - $ref: "#/components/parameters/catalogueType"
+        - $ref: "#/components/parameters/If-Modified-Since"
+
+      responses:
+        "200":
+          description: A JSON body of data for the requested catalogue
+          headers:
+            Last-Modified:
+              schema:
+                $ref: "#/components/schemas/Last-Modified"
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/essData"
+                  - $ref: "#/components/schemas/products"
+
+        "304":
+          $ref: "#/components/responses/NotModifiedResponse"
+
+        "400":
+          $ref: "#/components/responses/BadRequestResponse"
+
+        "401":
+          $ref: "#/components/responses/UnauthorisedResponse"
+
+        "403":
+          $ref: "#/components/responses/ForbiddenResponse"
+
+        "404":
+          $ref: "#/components/responses/NotFoundResponse"
+
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaTypeResponse"
+
+        "500":
+          $ref: "#/components/responses/InternalServerErrorResponse"
+
+  /v2/products/s100/productNames:
+    post:
+      summary: Get the latest baseline, releasable versions for requested products
+
+      operationId: getS100ProductNames
+      tags:
+        - Products v2
+
+      requestBody:
+        description: |
+          The JSON body containing product names
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/s100ProductNames"
+
+      responses:
+        "200":
+          description: A JSON body of product objects
+          headers:
+            Last-Modified:
+              schema:
+                $ref: "#/components/schemas/Last-Modified"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/s100ProductResponse"
+              examples:
+                example1:
+                  summary: Example response for requested product names
+                  value:
+                    productCounts:
+                      requestedProductCount: 3
+                      returnedProductCount: 2
+                      requestedProductsAlreadyUpToDateCount: 1
+                      requestedProductsNotReturned: []
+                    products:
+                      - editionNumber: 34
+                        productName: "101GB01496A"
+                        updateNumbers:
+                          - 0
+                          - 1
+                        dates:
+                          - issueDate: "2022-06-10T00:00:00.0000000Z"
+                            updateApplicationDate: "2022-06-10T00:00:00.0000000Z"
+                            updateNumber: 0
+                          - issueDate: "2024-07-09T00:00:00.0000000Z"
+                            updateNumber: 1
+                        fileSize: 214136
+                      - editionNumber: 1
+                        productName: "101GB01569B"
+                        updateNumbers:
+                          - 0
+                        dates:
+                          - issueDate: "2024-07-09T00:00:00.0000000Z"
+                            updateApplicationDate: "2024-07-09T00:00:00.0000000Z"
+                            updateNumber: 0
+                        fileSize: 9888
+
+        "400":
+          $ref: "#/components/responses/BadRequestResponse"
+
+        "401":
+          $ref: "#/components/responses/UnauthorisedResponse"
+
+        "403":
+          $ref: "#/components/responses/ForbiddenResponse"
+
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaTypeResponse"
+
+        "500":
+          $ref: "#/components/responses/InternalServerErrorResponse"
+
+  /v2/products/s100/productVersions:
+    post:
+      summary: Get the latest baseline, releasable versions for requested products since a specified version
+
+      operationId: getS100ProductVersions
+      tags:
+        - Products v2
+
+      requestBody:
+        description: |
+          The JSON body containing product versions
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/s100ProductVersions"
+
+      responses:
+        "200":
+          description: A JSON body of product objects
+          headers:
+            Last-Modified:
+              schema:
+                $ref: "#/components/schemas/Last-Modified"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/s100ProductResponse"
+
+        "304":
+          description: Not modified. The 304 response indicates that the requested product versions have not been modified. This response is returned if all the products in the request are already at the latest edition and update numbers
+          headers:
+            Last-Modified:
+              schema:
+                $ref: "#/components/schemas/Last-Modified"
+
+        "400":
+          $ref: "#/components/responses/BadRequestResponse"
+
+        "401":
+          $ref: "#/components/responses/UnauthorisedResponse"
+
+        "403":
+          $ref: "#/components/responses/ForbiddenResponse"
+
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaTypeResponse"
+
+        "500":
+          $ref: "#/components/responses/InternalServerErrorResponse"
+
+  /v2/products/s100/updatesSince:
+    get:
+      summary: Get all releasable changes to products since a date
+      operationId: getS100Products
+      tags:
+        - Products v2
+      parameters:
+        - $ref: "#/components/parameters/sinceDateTime"
+        - $ref: "#/components/parameters/s100ProductIdentifier"
+
+      responses:
+        "200":
+          description: A JSON body of product objects
+          headers:
+            Last-Modified:
+              schema:
+                $ref: "#/components/schemas/Last-Modified"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/s100ProductResponse"
+
+        "304":
+          description: Not modified. The 304 response indicates that there has not been any updated after the requested sinceDateTime.
+          headers:
+            Last-Modified:
+              schema:
+                $ref: "#/components/schemas/Last-Modified"
+
+        "400":
+          $ref: "#/components/responses/BadRequestResponse"
+
+        "401":
+          $ref: "#/components/responses/UnauthorisedResponse"
+
+        "403":
+          $ref: "#/components/responses/ForbiddenResponse"
+
+        "404":
+          $ref: "#/components/responses/NotFoundResponse"
+
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaTypeResponse"
+
+        "500":
+          $ref: "#/components/responses/InternalServerErrorResponse"
+
+  /v2/catalogues/s100/basic:
+    get:
+      summary: Retrieve the latest S-100 basic catalogue data, including product names, editions, updates, and statuses
+      operationId: getS100Catalogue
+      tags:
+        - Catalogue v2
+
+      parameters:
+        - $ref: "#/components/parameters/If-Modified-Since"
+
+      responses:
+        "200":
+          description: A JSON body of data for the requested catalogue
+          headers:
+            Last-Modified:
+              schema:
+                $ref: "#/components/schemas/Last-Modified"
+          content:
+            application/json:
+              examples:
+                example1:
+                  summary: Example with new edition
+                  value:
+                    - productName: "101GB020111"
+                      latestEditionNumber: 3
+                      latestUpdateNumber: 0
+                      status:
+                        statusName: "newEdition"
+                        statusDate: "2024-12-04T05:43:41Z"
+                    - productName: "101GB010130"
+                      latestEditionNumber: 1
+                      latestUpdateNumber: 0
+                      status:
+                        statusName: "newDataset"
+                        statusDate: "2024-12-08T05:43:41Z"
+              schema:
+                $ref: "#/components/schemas/s100BasicCatalogue"
+
+        "304":
+          description: Not modified. The 304 response indicates that there has not been any updates to the catalogue after the requested If-Modified-Since.
+          headers:
+            Last-Modified:
+              schema:
+                $ref: "#/components/schemas/Last-Modified"
+
+        "400":
+          $ref: "#/components/responses/BadRequestResponse"
+
+        "401":
+          $ref: "#/components/responses/UnauthorisedResponse"
+
+        "403":
+          $ref: "#/components/responses/ForbiddenResponse"
+
+        "404":
+          $ref: "#/components/responses/NotFoundResponse"
+
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaTypeResponse"
+
+        "500":
+          $ref: "#/components/responses/InternalServerErrorResponse"
+
+components:
+  ################################################################################
+  #                              Parameter Definitions                           #
+  ################################################################################
+
+  parameters:
+    productType:
+      in: path
+      name: productType
+      required: true
+      description: |
+        The type of product
+      schema:
+        type: string
+      example: encS57, arcs, paperchart
+
+    s100ProductIdentifier:
+      in: query
+      name: productIdentifier
+      description: |
+        The specification of the S-100 standard that we are interested in.
+      schema:
+        type: string
+      example: "s101"
+
+    sinceDateTime:
+      in: query
+      name: sinceDateTime
+      required: true
+      description: |
+        The date and time from which changes are requested. Any changes since the date will be returned.
+      schema:
+        type: string
+        format: date-time
+      example: "2019-10-27T00:00:00Z"
+
+    If-Modified-Since:
+      in: header
+      name: If-Modified-Since
+      required: false
+      description: |
+        The date and time since items have changed.
+      schema:
+        type: string
+        format: date-time
+      example: "2019-10-27T00:00:00Z"
+
+    catalogueType:
+      in: path
+      name: catalogueType
+      required: true
+      description: |
+        The type of catalogue data requested
+      schema:
+        type: string
+      example: essData, avcsCatalogue
+
+  ################################################################################
+  #                              Object Definitions                              #
+  ################################################################################
+
+  schemas:
+    ####################################
+    #      Request Objects      #
+    ####################################
+
+    productIdentifiers:
+      type: array
+      items:
+        type: string
+      example: ["US2ARCGD", "CA379151", "DE110000"]
+
+    s100ProductNames:
+      type: array
+      items:
+        type: string
+      example: ["101GB01569B", "101GB01496A", "101GB01476C"]
+
+    productVersions:
+      type: array
+      items:
+        type: object
+        properties:
+          productName:
+            type: string
+            description: The unique product identifiers
+          editionNumber:
+            type: integer
+            description: The edition number
+          updateNumber:
+            type: integer
+            description: The update number
+      example:
+        [
+          { "productName": "AU895561", "editionNumber": 4, "updateNumber": 1 },
+          { "productName": "AU895562", "editionNumber": 2, "updateNumber": 1 },
+        ]
+
+    s100ProductVersions:
+      description: "An array of S-100 product version objects, each representing a unique product name, edition number, and update number for the S-100 standard."
+      type: array
+      items:
+        type: object
+        properties:
+          productName:
+            type: string
+            description: The unique product name
+          editionNumber:
+            type: integer
+            description: The edition number
+          updateNumber:
+            type: integer
+            description: The update number
+      example:
+        [
+          {
+            "productName": "101GB40079ABCDEFG",
+            "editionNumber": 1,
+            "updateNumber": 1,
+          },
+          {
+            "productName": "102NO32904820801012",
+            "editionNumber": 2,
+            "updateNumber": 2,
+          },
+          {
+            "productName": "104US00_CHES_TYPE1_20210630_0600",
+            "editionNumber": 3,
+            "updateNumber": 3,
+          },
+          {
+            "productName": "111US00_ches_dcf8_20190703T00Z",
+            "editionNumber": 4,
+            "updateNumber": 4,
+          },
+        ]
+
+    ####################################
+    #      Response Objects      #
+    ####################################
+
+    productResponse:
+      type: object
+      properties:
+        products:
+          $ref: "#/components/schemas/products"
+        productCounts:
+          $ref: "#/components/schemas/productCounts"
+
+    s100ProductResponse:
+      type: object
+      properties:
+        productCounts:
+          $ref: "#/components/schemas/s100ProductCounts"
+        products:
+          $ref: "#/components/schemas/s100Products"
+
+    products:
+      type: array
+      items:
+        type: object
+        properties:
+          productName:
+            type: string
+            description: The unique product identifier
+          editionNumber:
+            type: integer
+            description: The edition number
+          updateNumbers:
+            type: array
+            description: an array of update numbers
+            items:
+              type: integer
+              description: The update number
+              example: 0
+          dates:
+            type: array
+            items:
+              type: object
+              description: issue and update dates
+              properties:
+                updateNumber:
+                  type: integer
+                  description: The update number, including update 0 if relevant
+                updateApplicationDate:
+                  type: string
+                  format: date-time
+                  description: |
+                    The update application date for the catalog, corresponding to the 031 UADT data field.
+                    - Represents the base cell issue date or, for re-issues, the issue date of the previous update.
+                    - This field is optional and may be omitted if not relevant.
+                  example: "2019-10-27T00:00:00Z"
+                issueDate:
+                  type: string
+                  format: date-time
+                  description: |
+                    The issue date for the catalog.031 ISDT data field
+                  example: "2019-10-27T00:00:00Z"
+
+          cancellation:
+            type: object
+            description: The details of the cancellation, if one exists
+            properties:
+              editionNumber:
+                type: integer
+                description: The edition number of the cancellation, i.e. 0
+              updateNumber:
+                type: integer
+                description: The cancellation update number
+            example: { "editionNumber": 0, "updateNumber": 8 }
+          fileSize:
+            type: integer
+            description: the total file size in bytes of all the files for this product
+          bundle:
+            type: array
+            description: |
+              Collection of physical bundles that are associated with the latest update of this product
+            items:
+              type: object
+              properties:
+                bundleType:
+                  type: string
+                  description: |
+                    Media type of the bundle, which can be one of the following values:
+
+                    - DVD
+                  example: "DVD"
+                location:
+                  type: string
+                  description: |
+                    DVDs: This field is divided into two subfields delimited by a “;” (semi colon). 
+                    The first subfield contains the media number ID and the second the exchange set number. 
+                    The Media ID is designated with a “M” followed by a number.
+
+                    Examples: 
+                    - base cell: "M1;B3", 
+                    - updates: "M2;U1"
+                  example: "M1;B3"
+
+    s100Products:
+      type: array
+      items:
+        type: object
+        properties:
+          productName:
+            type: string
+            description: The unique product names
+            example: "101GB40079ABCDEFG"
+          editionNumber:
+            type: integer
+            description: The edition number
+          updateNumbers:
+            type: array
+            description: An array of update numbers
+            items:
+              type: integer
+              description: The update number, including update 0 if relevant
+          dates:
+            type: array
+            items:
+              type: object
+              description: An array of objects representing the issue and update dates for a product. Each entry corresponds to a specific update number.
+              properties:
+                updateNumber:
+                  type: integer
+                  description: The update number
+                updateApplicationDate:
+                  type: string
+                  format: date-time
+                  description: |
+                    The update application date for the catalog, corresponding to the 031 UADT data field.
+                    - Represents the base cell issue date or, for re-issues, the issue date of the previous update.
+                    - This field is optional and will only be returned displayed only when the status is "newEdition," "newDataset," or "reissue".
+                  example: "2019-10-27T00:00:00Z"
+                issueDate:
+                  type: string
+                  format: date-time
+                  description: |
+                    The issue date for the catalog.031 ISDT data field
+                  example: "2019-10-27T00:00:00Z"
+
+          cancellation:
+            type: object
+            description: The details of the cancellation, if one exists
+            properties:
+              editionNumber:
+                type: integer
+                description: The edition number of the cancellation.
+                example: 0
+              updateNumber:
+                type: integer
+                description: The cancellation update number
+            example: { "editionNumber": 0, "updateNumber": 8 }
+          fileSize:
+            type: integer
+            description: The total file size in bytes of all the files for this product
+
+    productCounts:
+      type: object
+      properties:
+        requestedProductCount:
+          type: integer
+          description: number of products explicitly requested.
+        returnedProductCount:
+          type: integer
+          description: number of products that have data included in the produced exchange set.
+        requestedProductsAlreadyUpToDateCount:
+          type: integer
+          description: The count of requested products that are already up to date.
+        requestedProductsNotReturned:
+          type: array
+          description: |
+            Where a requested product is not included in the response, the product will be listed in the requestedProductNotReturned portion of the response along with a reason. The reason will be one of:
+               * productWithdrawn (the product has been withdrawn from the AVCS service)
+               * invalidProduct (the product is not part of the AVCS Service, i.e. is an invalid or unknown ENC)
+               * noDataAvailableForCancelledProduct (the product has been cancelled, and is beyond the retention period. Cancelled cells within the retention period will be returned with the cancellation data in the exchange set)
+               * duplicateProduct (the product was included in the request more than once)
+          items:
+            type: object
+            required:
+              - "productName"
+              - "reason"
+            properties:
+              productName:
+                type: string
+              reason:
+                type: string
+                enum:
+                  [
+                    productWithdrawn,
+                    invalidProduct,
+                    noDataAvailableForCancelledProduct,
+                    duplicateProduct,
+                  ]
+
+    s100ProductCounts:
+      description: Represents the count of S-100 products in the exchange set service.
+      type: object
+      properties:
+        requestedProductCount:
+          type: integer
+          description: The number of products explicitly requested
+          example: 3
+        returnedProductCount:
+          type: integer
+          description: The number of products that have data included in the produced exchange set
+          example: 2
+        requestedProductsAlreadyUpToDateCount:
+          type: integer
+          description: The number of products that are already up to date
+          example: 1
+        requestedProductsNotReturned:
+          type: array
+          description: |
+            Where a requested product is not included in the return, the product will be listed in the requestedProductNotReturned portion of the response along with a reason. The reason will be one of:
+               * productWithdrawn (the product has been withdrawn )
+               * invalidProduct (the product is not part of the S-100 Service, i.e. is an invalid or unknown dataset)
+               * noDataAvailableForCancelledProduct (the product has been cancelled, and is beyond the retention period. Cancelled cells within the retention period will be returned with the cancellation data in the exchange set)
+               * duplicateProduct (the product was included in the request more than once)
+          items:
+            type: object
+            required:
+              - "productName"
+              - "reason"
+            properties:
+              productName:
+                type: string
+                example: "102NO32904820801012"
+              reason:
+                type: string
+                enum:
+                  - productWithdrawn
+                  - invalidProduct
+                  - noDataAvailableForCancelledProduct
+                  - duplicateProduct
+
+    essData:
+      type: array
+      items:
+        type: object
+        properties:
+          productName:
+            type: string
+            description: |
+              Name of product
+            example: "GB202400"
+          baseCellIssueDate:
+            type: string
+            format: date
+            description: |
+              The date that a base cell (new cell, new edition or re-issue) was issued.
+            example: "2005-02-22"
+          baseCellEditionNumber:
+            type: integer
+            description: The edition number
+          issueDateLatestUpdate:
+            type: string
+            format: date
+            description: |
+              The date that the latest update was issued.
+            example: "2005-02-22"
+          latestUpdateNumber:
+            type: integer
+            description: |
+              The update number of the latest update.  Blank when no update.
+            example: 4
+          fileSize:
+            type: integer
+            description: |
+              The total file size in kilobytes for all files issued for the product.
+              Currently blank.
+          cellLimitSouthernmostLatitude:
+            type: number
+            description: |
+              Southernmost latitude of data coverage in the ENC product.
+            example: 49.898773299986
+          cellLimitWesternmostLatitude:
+            type: number
+            description: |
+              Westernmost longitude of data coverage in the ENC product.
+            example: -1.927277300003
+          cellLimitNorthernmostLatitude:
+            type: number
+            description: |
+              Northernmost latitude of data coverage in the ENC product.
+            example: 50.922828000014
+          cellLimitEasternmostLatitude:
+            type: number
+            description: |
+              Easternmost longitude of data coverage in the ENC product
+            example: 0.000166700008
+          dataCoverageCoordinates:
+            type: array
+            items:
+              type: object
+              properties:
+                latitude:
+                  type: number
+                longitude:
+                  type: number
+            description: |
+              Optional. Currently blank.
+              10 coordinate pairs can be supplied to indicate the data coverage within the ENC cell. It will be provided as repeating Y-coordinate and X-coordinate pairs.
+          compression:
+            type: boolean
+            description: |
+              Indicator of compression of dataset.
+            example: true
+          encryption:
+            type: boolean
+            description: |
+              Indicator of encryption of dataset.
+            example: true
+          baseCellUpdateNumber:
+            type: integer
+            description: |
+              The update number current at the time of a cell reissue. If a cell edition does not have a re-issue then this field is blank or zero filled
+            example: 1
+          lastUpdateNumberPreviousEdition:
+            type: integer
+            description: |
+              Last update number of previous edition, if previous editions are available.  
+              Currently blank.
+          baseCellLocation:
+            type: string
+            description: |
+              DVDs This field is divided into two subfields delimited by a “;” (semi colon). The first subfield contains the media number ID and the second the exchange set number. The Media ID is designated with a “M” followed by a number.
+            example: base cell “M1;B3”, Updates “M2;U1”
+          cancelledCellReplacements:
+            type: array
+            items:
+              type: string
+            description: |
+              List of replacement cells, if relevant, when a cell is cancelled.  Semi-colon separated.
+            example: ["FR312345", "FR323456"]
+          issueDatePreviousUpdate:
+            type: string
+            format: date
+            description: |
+              The date that the previous update was issued when the current update is a re-issue.
+            example: "2005-02-22"
+          cancelledEditionNumber:
+            type: integer
+            description: |
+              For a cancellation, this is the latest edition number prior to the cancellation update
+            example: 5
+
+    s100BasicCatalogue:
+      description: "An array of S-100 basic catalogue entries, each providing the product name, its latest edition number, latest update number, and current status."
+      type: array
+      items:
+        type: object
+        properties:
+          productName:
+            type: string
+            description: Name of the product, including details such as geographic coverage or specific identifiers.
+            example: "101GB40079ABCDEFG"
+          latestEditionNumber:
+            type: integer
+            description: The latest edition number of the product.
+            example: 4
+          latestUpdateNumber:
+            type: integer
+            description: The latest update number of the product.
+            example: 4
+          status:
+            type: object
+            properties:
+              statusName:
+                type: string
+                description: Current status of the product. Can be one of `newEdition`, `update`, or `cancellation`.
+                example: "newEdition"
+                enum:
+                  - newEdition
+                  - update
+                  - cancellation
+                  - newDataset 
+              statusDate:
+                type: string
+                format: date-time
+                description: The date and time when the status was assigned.
+                example: "2024-07-20T19:20:30.45+01:00"
+
+    Last-Modified:
+      type: string
+      format: date-time
+      example: "2019-10-27T00:00:00Z"
+
+    ####################################
+    #      Error Response Objects      #
+    ####################################
+
+    DefaultErrorResponse:
+      type: object
+      title: Error
+      properties:
+        correlationId:
+          type: string
+        detail:
+          type: string
+
+    unsupportedMediaTypeError:
+      type: object
+      title: RFC 7807
+      properties:
+        type:
+          type: string
+          example: "https://tools.ietf.org/html/rfc9110#section-15.5.16"
+        title:
+          type: string
+          example: "Unsupported Media Type"
+        status:
+          type: integer
+          example: 415
+        traceId:
+          type: string
+          example: "00-495f6c643d57a14da134952727dffbcc-fee4ec71f2fc8a62-01"
+
+    errorDescription:
+      type: object
+      properties:
+        correlationId:
+          type: string
+        errors:
+          type: array
+          items:
+            $ref: "#/components/schemas/fieldError"
+
+    fieldError:
+      type: object
+      properties:
+        source:
+          type: string
+        description:
+          type: string
+
+  ####################################
+  #      Error Responses             #
+  ####################################
+
+  responses:
+    UnauthorisedResponse:
+      description: Unauthorised.
+    ForbiddenResponse:
+      description: Forbidden.
+    NotFoundResponse:
+      description: Not found.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/DefaultErrorResponse"
+    InternalServerErrorResponse:
+      description: Internal Server Error.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/DefaultErrorResponse"
+    BadRequestResponse:
+      description: Bad request.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/errorDescription"
+    NotModifiedResponse:
+      description: Not modified.
+      headers:
+        Last-Modified:
+          schema:
+            $ref: "#/components/schemas/Last-Modified"
+    UnsupportedMediaTypeResponse:
+      description: The request entity has a media type which the server or resource does not support.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/unsupportedMediaTypeError"
+
+  ####################################
+  #      Security Objects      #
+  ####################################
+
+  securitySchemes:
+    jwtBearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
