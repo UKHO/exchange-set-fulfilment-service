@@ -1,0 +1,56 @@
+parameters:
+# The name of the service connection for deployment.
+- name: AzureSubscription
+  type: string
+# The name of the container app to check.
+- name: AppName
+  type: string
+# Maximum length of time to wait, in minutes.
+- name: MaxWaitTime
+  type: int
+  default: 1
+
+steps:
+- task: AzureCLI@2
+  displayName: Check ${{ parameters.AppName }}
+  inputs:
+    azureSubscription: ${{ parameters.AzureSubscription }}
+    workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
+    scriptType: pscore
+    scriptLocation: inlineScript
+    inlineScript: |
+      Write-Host "Getting latest revision..."
+      $revision = az containerapp revision list --name ${{ parameters.AppName }} --resource-group efs-$env:AZURE_ENV_NAME-rg --query "sort_by([], &properties.createdTime)[-1].name" --output tsv
+      Write-Host "Found $revision"
+
+      $runningState = "Check"
+      $sleepTimeInSeconds = 10
+      $isServiceActive = 'false'
+      $stopWatch = New-Object -TypeName System.Diagnostics.Stopwatch
+      $timeSpan = New-TimeSpan -Minutes ${{ parameters.MaxWaitTime }}
+      $stopWatch.Start()
+
+      do
+      {
+        Write-Host "Checking running state..."
+        $runningState = az containerapp revision show --name ${{ parameters.AppName }} --resource-group efs-$env:AZURE_ENV_NAME-rg --revision $revision --query "properties.runningState" --output tsv
+
+        if ($runningState -eq "Running" ) {
+          Write-Host "Container is running"
+          $isServiceActive = 'true'
+          break
+        }
+        else {
+          Write-Host "Not yet running ($runningState)"
+          Start-Sleep -Seconds $sleepTimeInSeconds
+        }
+      }
+      until ($stopWatch.Elapsed -ge $timeSpan)
+
+      if ($isServiceActive -eq 'true' ) {
+        Write-Host "Service is running"
+      }
+      else {
+        Write-Error "ERROR - service was not running after ${{ parameters.MaxWaitTime }} minutes"
+        break
+      }
