@@ -87,23 +87,28 @@ namespace UKHO.ADDS.EFS.LocalHost
             var storageQueue = storage.AddQueues(StorageConfiguration.QueuesName);
             var storageTable = storage.AddTables(StorageConfiguration.TablesName);
             var storageBlob = storage.AddBlobs(StorageConfiguration.BlobsName);
-            
-            // app insights
-            var appInsights = builder.AddAzureApplicationInsights(ServiceConfiguration.AppInsightsName);
-            appInsights.ConfigureInfrastructure(config =>
-            {
-                var appInsightsResource = config.GetProvisionableResources().OfType<ApplicationInsightsComponent>().Single();
-                appInsightsResource.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
-            });
 
-            // Event Hubs
-            var eventHubs = builder.AddAzureEventHubs(ServiceConfiguration.EventHubNamespaceName).RunAsEmulator();
-            eventHubs.ConfigureInfrastructure(config =>
+
+            IResourceBuilder<AzureApplicationInsightsResource>? appInsights = null;
+            IResourceBuilder<AzureEventHubsResource>? eventHubs = null;
+            if (builder.ExecutionContext.IsPublishMode)
             {
-                var eventHubNamespace = config.GetProvisionableResources().OfType<EventHubsNamespace>().Single();
-                eventHubNamespace.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
-            });
-            eventHubs.AddHub(ServiceConfiguration.EventHubName);
+                appInsights = builder.AddAzureApplicationInsights(ServiceConfiguration.AppInsightsName);
+                appInsights.ConfigureInfrastructure(config =>
+                {
+                    var appInsightsResource = config.GetProvisionableResources().OfType<ApplicationInsightsComponent>().Single();
+                    appInsightsResource.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
+                });
+
+                eventHubs = builder.AddAzureEventHubs(ServiceConfiguration.EventHubNamespaceName).RunAsEmulator();
+                eventHubs.ConfigureInfrastructure(config =>
+                {
+                    var eventHubNamespace = config.GetProvisionableResources().OfType<EventHubsNamespace>().Single();
+                    eventHubNamespace.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
+                });
+                eventHubs.AddHub(ServiceConfiguration.EventHubName);
+            }
+
 
             // Redis cache
             var redisCache = builder.AddRedis(ProcessNames.RedisCache)
@@ -125,7 +130,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             // Build Request Monitor
             IResourceBuilder<ProjectResource>? requestMonitor = null;
 
-            if (builder.Environment.IsDevelopment())
+            if (builder.ExecutionContext.IsRunMode)
             {
                 requestMonitor = builder.AddProject<UKHO_ADDS_EFS_BuildRequestMonitor>(ProcessNames.RequestMonitorService)
                     .WithReference(storageQueue)
@@ -156,21 +161,21 @@ namespace UKHO.ADDS.EFS.LocalHost
                     app.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
                 });
 
-            if (!builder.Environment.IsDevelopment())
+            if (builder.ExecutionContext.IsPublishMode)
             {
-                orchestratorService.WithReference(appInsights);
-                orchestratorService.WaitFor(appInsights);
-                orchestratorService.WithReference(eventHubs);
-                orchestratorService.WaitFor(eventHubs);
+                orchestratorService.WithReference(appInsights!);
+                orchestratorService.WaitFor(appInsights!);
+                orchestratorService.WithReference(eventHubs!);
+                orchestratorService.WaitFor(eventHubs!);
             }
 
-            if (builder.Environment.IsDevelopment())
+            if (builder.ExecutionContext.IsRunMode)
             {
                 orchestratorService.WaitFor(requestMonitor!);
             }
 
             // Configuration
-            if (builder.Environment.IsDevelopment())
+            if (builder.ExecutionContext.IsRunMode)
             {
                 builder.AddConfigurationEmulator(ServiceConfiguration.ServiceName, [orchestratorService, requestMonitor!], [mockService], @"../../configuration/configuration.json", @"../../configuration/external-services.json");
             }
@@ -184,15 +189,16 @@ namespace UKHO.ADDS.EFS.LocalHost
                 });
             }
 
-            if (builder.Environment.IsDevelopment())
+            if (builder.ExecutionContext.IsRunMode)
             {
-                await CreateBuilderContainerImages(ProcessNames.S100Builder, "latest", "UKHO.ADDS.EFS.Builder.S100");
-                await CreateBuilderContainerImages(ProcessNames.S63Builder, "latest", "UKHO.ADDS.EFS.Builder.S63");
-                await CreateBuilderContainerImages(ProcessNames.S57Builder, "latest", "UKHO.ADDS.EFS.Builder.S57");
+                var appRootPath = builder.Environment.ContentRootPath;
+                await CreateBuilderContainerImages(ProcessNames.S100Builder, "latest", "UKHO.ADDS.EFS.Builder.S100", appRootPath);
+                await CreateBuilderContainerImages(ProcessNames.S63Builder, "latest", "UKHO.ADDS.EFS.Builder.S63", appRootPath);
+                await CreateBuilderContainerImages(ProcessNames.S57Builder, "latest", "UKHO.ADDS.EFS.Builder.S57", appRootPath);
             }
         }
 
-        private static async Task CreateBuilderContainerImages(string name, string tag, string projectName)
+        private static async Task CreateBuilderContainerImages(string name, string tag, string projectName, string appRootDirectory)
         {
             // Check to see if we need to build any images
             var reference = $"{name}:{tag}";
@@ -214,8 +220,7 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             Log.Information($"Creating {name} builder container image...");
 
-            var localHostDirectory = Directory.GetCurrentDirectory();
-            var srcDirectory = Directory.GetParent(localHostDirectory)?.FullName!;
+            var srcDirectory = Directory.GetParent(appRootDirectory)?.FullName!;
 
             var arguments = $"build -t {name} -f ./{projectName}/Dockerfile .";
 

@@ -145,8 +145,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         [LoggerMessage(JobCompletedId, LogLevel.Information, "Job completed: {@job}", EventName = nameof(JobCompleted))]
         public static partial void LogJobCompleted(this ILogger logger, [LogProperties] EFSJobLogView job);
 
-        [LoggerMessage(SalesCatalogueErrorId, LogLevel.Error, "Sales Catalogue error: {@error} {@message}", EventName = nameof(SalesCatalogueError))]
-        public static partial void LogSalesCatalogueApiError(this ILogger logger, [LogProperties] IError error, [LogProperties] SalesCatalogApiErrorLogView message);
+        [LoggerMessage(SalesCatalogueErrorId, LogLevel.Error, "Sales Catalogue error: {@message}", EventName = nameof(SalesCatalogueError))]
+        public static partial void LogSalesCatalogueApiError(this ILogger logger, [LogProperties] SalesCatalogApiErrorLogView message);
 
         [LoggerMessage(SalesCatalogueUnexpectedStatusCodeId, LogLevel.Error, "Sales Catalogue Unexpected Status Code: {@salesCatalogueLog}", EventName = nameof(SalesCatalogueUnexpectedStatusCode))]
         public static partial void LogUnexpectedSalesCatalogueStatusCode(this ILogger logger, SalesCatalogUnexpectedStatusLogView salesCatalogueLog);

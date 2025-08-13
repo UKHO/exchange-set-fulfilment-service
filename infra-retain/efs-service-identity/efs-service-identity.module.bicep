@@ -1,8 +1,12 @@
 @description('The location for the resource(s) to be deployed.')
 param location string = resourceGroup().location
 
+@minLength(1)
+@description('The partial name (from the start) of the service identity resource.')
+param efsServiceIdentityPartialName string
+
 resource efs_service_identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
-  name: take('efs_service_identity-${uniqueString(resourceGroup().id)}', 128)
+  name: take('${efsServiceIdentityPartialName}-${uniqueString(resourceGroup().id)}', 128)
   location: location
   tags: {
     'hidden-title': 'EFS'

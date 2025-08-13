@@ -22,6 +22,8 @@ param fss_endpoint string
 
 param fss_endpoint_health string
 
+param fss_client_id string
+
 param azure_env_name string
 
 param max_retry_attempts string
@@ -101,6 +103,10 @@ resource efsbuilders100 'Microsoft.App/jobs@2025-01-01' = {
             {
               name: 'FSS_ENDPOINT_HEALTH'
               value: fss_endpoint_health
+            }
+            {
+              name: 'FSS_CLIENT_ID'
+              value: fss_client_id
             }
             {
               name: 'REQUEST_QUEUE_NAME'

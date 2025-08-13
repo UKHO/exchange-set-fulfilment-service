@@ -29,22 +29,6 @@ parameters:
     displayName: "Deploy Redis"
     type: boolean
     default: true
-  - name: DestroyResourcesDev
-    displayName: "Destroy dev environment"
-    type: boolean
-    default: false
-  - name: DestroyResourcesVnextIat
-    displayName: "Destroy VnextIat environment"
-    type: boolean
-    default: false
-  - name: DestroyResourcesVnextE2E
-    displayName: "Destroy VnextE2e environment"
-    type: boolean
-    default: false
-  - name: DestroyResourcesIAT
-    displayName: "Destroy IAT environment"
-    type: boolean
-    default: false
   - name: AdditionalDebugging
     displayName: "Enable optional pipeline debugging"
     type: boolean
@@ -175,7 +159,6 @@ stages:
       parameters:
         AzureDevOpsEnvironment: Ess-Dev
         ShortName: dev
-        DestroyResources: ${{ parameters.DestroyResourcesDev }}
         AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
         DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
         DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
@@ -192,7 +175,6 @@ stages:
       parameters:
         AzureDevOpsEnvironment: Ess-vnextiat
         ShortName: vnextiat
-        DestroyResources: ${{ parameters.DestroyResourcesVnextIat }}
         AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
         DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
         DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
@@ -209,7 +191,6 @@ stages:
       parameters:
         AzureDevOpsEnvironment: Ess-vnexte2e
         ShortName: vnexte2e
-        DestroyResources: ${{ parameters.DestroyResourcesVnextE2E }}
         AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
         DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
         DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
@@ -226,7 +207,6 @@ stages:
       parameters:
         AzureDevOpsEnvironment: Ess-iat
         ShortName: iat
-        DestroyResources: ${{ parameters.DestroyResourcesIAT }}
         AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
         DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
         DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}

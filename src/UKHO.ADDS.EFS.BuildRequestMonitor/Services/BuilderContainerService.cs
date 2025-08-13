@@ -43,6 +43,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
                     $"{BuilderEnvironmentVariables.BlobContainerName}={environment.BlobContainerName}",
                     $"{BuilderEnvironmentVariables.FileShareEndpoint}={environment.FileShareEndpoint}",
                     $"{BuilderEnvironmentVariables.FileShareHealthEndpoint}={environment.FileShareHealthEndpoint}",
+                    $"{BuilderEnvironmentVariables.FileShareClientId}={string.Empty}",
                     $"{BuilderEnvironmentVariables.AddsEnvironment}={environment.AddsEnvironment}",
                     $"{BuilderEnvironmentVariables.MaxRetryAttempts}={environment.MaxRetryAttempts}",
                     $"{BuilderEnvironmentVariables.RetryDelayMilliseconds}={environment.RetryDelayMilliseconds}",
