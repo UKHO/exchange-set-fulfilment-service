@@ -7,7 +7,7 @@ parameters:
   type: string
 # Maximum length of time to wait, in minutes.
 - name: MaxWaitTime
-  type: int
+  type: number
   default: 1
 
 steps:
