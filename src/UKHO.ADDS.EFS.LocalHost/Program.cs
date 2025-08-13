@@ -9,7 +9,6 @@ using CliWrap;
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 using Projects;
 using Serilog;
 using UKHO.ADDS.Aspire.Configuration.Hosting;

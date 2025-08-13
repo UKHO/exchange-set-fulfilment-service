@@ -28,17 +28,17 @@
     <PackageReference Include="Aspire.StackExchange.Redis.DistributedCaching" Version="9.3.1" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.24.0" />
     <PackageReference Include="Konscious.Security.Cryptography.Blake2" Version="1.1.1" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8" />
     <PackageReference Include="Quartz" Version="3.14.0" />
     <PackageReference Include="Quartz.Extensions.DependencyInjection" Version="3.14.0" />
     <PackageReference Include="Quartz.Extensions.Hosting" Version="3.14.0" />
-    <PackageReference Include="Scalar.AspNetCore" Version="2.1.1" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.6.8" />
     <PackageReference Include="Docker.DotNet" Version="3.125.15" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.6" />
     <PackageReference Include="Serilog" Version="4.3.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageReference Include="Serilog.Expressions" Version="5.0.0" />
-    <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.1.1" />
+    <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.2.0" />
     <PackageReference Include="Aspire.Azure.Data.Tables" Version="9.3.1" />
     <PackageReference Include="Aspire.Azure.Storage.Queues" Version="9.3.1" />
     <PackageReference Include="Aspire.Azure.Storage.Blobs" Version="9.3.1" />

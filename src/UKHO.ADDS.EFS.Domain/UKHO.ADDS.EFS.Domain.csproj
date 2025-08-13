@@ -18,7 +18,7 @@
   <ItemGroup>
     <PackageReference Include="Handlebars.Net" Version="2.1.6" />
     <PackageReference Include="Polly" Version="8.6.0" />
-    <PackageReference Include="Serilog" Version="4.2.0" />
+    <PackageReference Include="Serilog" Version="4.3.0" />
     <PackageReference Include="UKHO.ADDS.Clients.FileShareService.ReadOnly" Version="0.0.50701-alpha.2" />
     <PackageReference Include="UKHO.ADDS.Clients.SalesCatalogueService" Version="0.0.50701-alpha.2" />
     <PackageReference Include="UKHO.ADDS.Infrastructure.Results" Version="0.0.50322-alpha.2" />
