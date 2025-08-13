@@ -38,7 +38,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
             var queuePort = ExtractPort(queueConnectionString, "QueueEndpoint");
             var blobPort = ExtractPort(blobConnectionString, "BlobEndpoint");
 
-            var s63FileShareEndpoint = await _externalServiceRegistry.GetServiceEndpointAsync(ProcessNames.FileShareService, "legacy", EndpointHostSubstitution.Docker);
+            var s63FileShareEndpoint = _externalServiceRegistry.GetServiceEndpoint(ProcessNames.FileShareService, "legacy", EndpointHostSubstitution.Docker);
             var s63FileShareUri = s63FileShareEndpoint.Uri;
 
             var s63FileShareHealthUri = new Uri(s63FileShareUri!, "health");
