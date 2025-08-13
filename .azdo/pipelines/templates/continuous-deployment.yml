@@ -315,10 +315,3 @@ jobs:
               SleepTimeSeconds: 30
               InitialDelaySeconds: 60
               OnErrorContinue: false
-
-        - task: PowerShell@2
-          displayName: "Check the status of production slot after rollback"
-          inputs:
-            targetType: filePath
-            filePath: "$(Build.SourcesDirectory)/efs/.azdo/pipelines/powershell/CheckServiceStatus.ps1"
-            arguments: "-healthEndPointUrl $(ORCHESTRATOR_URL)/health -waitTimeInMinute 5 -onErrorContinue 0"

@@ -73,29 +73,12 @@ steps:
         fi
       fi
       
-      # Function to test DNS resolution
-      test_dns() {
-        local url=$1
-        local domain=$(echo "$url" | sed -e 's|^[^/]*//||' -e 's|/.*$||')
-        echo "Testing DNS resolution for $domain..."
-        if nslookup "$domain" > /dev/null 2>&1; then
-          echo "DNS resolution successful for $domain"
-          return 0
-        else
-          echo "DNS resolution failed for $domain"
-          return 1
-        fi
-      }
-
       # Validate BASE_URL format
       if [[ ! "$BASE_URL" =~ ^https?:// ]]; then
         echo "Invalid BASE_URL: $BASE_URL"
         exit 1
       fi
 
-      # Test DNS resolution before starting health checks
-      test_dns "$BASE_URL"
-      
       # Initial delay before health checks
       echo "Waiting ${{ parameters.InitialDelaySeconds }} seconds before starting health checks..."
       sleep ${{ parameters.InitialDelaySeconds }}
