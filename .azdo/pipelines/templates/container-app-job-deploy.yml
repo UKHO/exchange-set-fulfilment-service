@@ -8,13 +8,6 @@ parameters:
 # The name of the folder under src containing the Dockerfile.
 - name: ProjectFolder
   type: string
-# The type of builder being deployed.
-#- name: BuilderType
- # type: string
-  #values:
-  #- 'S100'
-  #- 'S57'
-  #- 'S63'
 # If true, additional debugging will be enabled.
 - name: AdditionalDebugging
   type: boolean
@@ -25,31 +18,6 @@ parameters:
   default: true
 
 steps:
-- task: AzureCLI@2
-  displayName: Get ${{ parameters.BuilderType }} app config values
-  condition: and(succeeded(), eq('${{ parameters.DeployApp }}', true))
-  inputs:
-    azureSubscription: ${{ parameters.AzureSubscription }}
-    workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
-    scriptType: pscore
-    scriptLocation: inlineScript
-    inlineScript: |
-      $env:appConfigEndpoint = azd env get-value EFS_APPCONFIG_APPCONFIGENDPOINT
-
-      $env:fssJson = "$(Build.SourcesDirectory)/${{ parameters.BuilderType }}_fss.json"
-      az appconfig kv list --endpoint $env:appConfigEndpoint --key "externalservice:FileShare" --fields value --output tsv --auth-mode login | Out-File -FilePath $env:fssJson
-      $jsonData = Get-Content -Path $env:fssJson -Raw | ConvertFrom-Json
-      $env:fssEndpoint = ($jsonData.endpoints | Where-Object { $_.tag -eq "" }).resolvedUrl
-      $env:fssEndpointHealth = $env:fssEndpoint + "health"
-      Write-Host "##vso[task.setvariable variable=${{ parameters.BuilderType }}_FSS_ENDPOINT;]$env:fssEndpoint"
-      Write-Host "##vso[task.setvariable variable=${{ parameters.BuilderType }}_FSS_ENDPOINT_HEALTH;]$env:fssEndpointHealth"
-
-      $env:maxRetries = az appconfig kv list --endpoint $env:appConfigEndpoint --key "buildRequestMonitor:${{ parameters.BuilderType }}:MaxRetries" --fields value --output tsv --auth-mode login
-      Write-Host "##vso[task.setvariable variable=${{ parameters.BuilderType }}_MAX_RETRY_ATTEMPTS;]$env:maxRetries"
-
-      $env:retryDelayMilliseconds = az appconfig kv list --endpoint $env:appConfigEndpoint --key "buildRequestMonitor:${{ parameters.BuilderType }}:RetryDelayMilliseconds" --fields value --output tsv --auth-mode login
-      Write-Host "##vso[task.setvariable variable=${{ parameters.BuilderType }}_RETRY_DELAY_MS;]$env:retryDelayMilliseconds"
-
 - task: AzureCLI@2
   displayName: Deploy ${{ parameters.AppName }}
   condition: and(succeeded(), eq('${{ parameters.DeployApp }}', true))
@@ -104,3 +72,7 @@ steps:
       fi
   env:
     EFS_STORAGE_CONNECTION_STRING: $(EFS_STORAGE_CONNECTION_STRING)
+    FSS_ENDPOINT: $(FSS_ENDPOINT)
+    FSS_ENDPOINT_HEALTH: $(FSS_ENDPOINT_HEALTH)
+    MAX_RETRY_ATTEMPTS: $(MAX_RETRY_ATTEMPTS)
+    RETRY_DELAY_MS: $(RETRY_DELAY_MS)
