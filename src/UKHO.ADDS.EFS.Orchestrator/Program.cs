@@ -66,6 +66,9 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
 
                 app.RegisterJobsApi(loggerFactory);
+                
+                // Map health check endpoints for all environments
+                app.MapDefaultEndpoints();
 
                 var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
 

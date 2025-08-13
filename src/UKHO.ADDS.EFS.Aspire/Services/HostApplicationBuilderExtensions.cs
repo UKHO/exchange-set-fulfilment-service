@@ -1,13 +1,15 @@
+using System.Text;
+using System.Text.Json;
 using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
-using Serilog;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.Hosting
@@ -102,18 +104,73 @@ namespace Microsoft.Extensions.Hosting
 
         public static WebApplication MapDefaultEndpoints(this WebApplication app)
         {
-            // Adding health checks endpoints to applications in non-development environments has security implications.
-            // See https://aka.ms/dotnet/aspire/healthchecks for details before enabling these endpoints in non-development environments.
-            if (app.Environment.IsDevelopment())
+            // Health check endpoints are now available in all environments
+            // Note: Previously this was restricted to development environments only
+            
+            // All health checks must pass for app to be considered ready to accept traffic after starting
+            app.MapHealthChecks("/health", new HealthCheckOptions
             {
-                // All health checks must pass for app to be considered ready to accept traffic after starting
-                app.MapHealthChecks("/health");
+                ResponseWriter = WriteHealthCheckResponse
+            });
 
-                // Only health checks tagged with the "live" tag must pass for app to be considered alive
-                app.MapHealthChecks("/alive", new HealthCheckOptions { Predicate = r => r.Tags.Contains("live") });
+            // Only health checks tagged with the "live" tag must pass for app to be considered alive
+            app.MapHealthChecks("/alive", new HealthCheckOptions { Predicate = r => r.Tags.Contains("live"),
+                ResponseWriter = WriteHealthCheckResponse
+            });
+            
+            return app;
+        }
+
+        private static Task WriteHealthCheckResponse(HttpContext context, HealthReport report)
+        {
+            context.Response.ContentType = "application/json; charset=utf-8";
+
+            var options = new JsonWriterOptions { Indented = true };
+
+            using var memoryStream = new MemoryStream();
+            using (var jsonWriter = new Utf8JsonWriter(memoryStream, options))
+            {
+                jsonWriter.WriteStartObject();
+                jsonWriter.WriteString("status", report.Status.ToString());
+                jsonWriter.WriteNumber("totalDuration", report.TotalDuration.TotalMilliseconds);
+
+                jsonWriter.WriteStartObject("results");
+
+                foreach (var healthCheck in report.Entries)
+                {
+                    jsonWriter.WriteStartObject(healthCheck.Key);
+
+                    jsonWriter.WriteString("status", healthCheck.Value.Status.ToString());
+                    jsonWriter.WriteNumber("duration", healthCheck.Value.Duration.TotalMilliseconds);
+
+                    if (healthCheck.Value.Exception != null)
+                    {
+                        jsonWriter.WriteStartObject("error");
+                        jsonWriter.WriteString("message", healthCheck.Value.Exception.Message);
+                        jsonWriter.WriteString("stackTrace", healthCheck.Value.Exception.StackTrace);
+                        jsonWriter.WriteEndObject();
+                    }
+
+                    if (healthCheck.Value.Data.Count > 0)
+                    {
+                        jsonWriter.WriteStartObject("data");
+                        foreach (var item in healthCheck.Value.Data)
+                        {
+                            jsonWriter.WritePropertyName(item.Key);
+                            JsonSerializer.Serialize(jsonWriter, item.Value);
+                        }
+                        jsonWriter.WriteEndObject();
+                    }
+
+                    jsonWriter.WriteEndObject();
+                }
+
+                jsonWriter.WriteEndObject();
+                jsonWriter.WriteEndObject();
             }
 
-            return app;
+            return context.Response.WriteAsync(
+                Encoding.UTF8.GetString(memoryStream.ToArray()));
         }
     }
 }
