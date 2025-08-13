@@ -10,58 +10,69 @@ import { create, status, build } from './Scripts/LoadTestForJobCreation.js';
 import { authenticateUsingAzure } from './Oauth/Azure.js';
 const config = JSON.parse(open('./config.json'));
 
+// Define request counts that can be easily adjusted for future cycles
+const CYCLE = {
+  SMALL_JOBS: 950,   // 95% of 1000
+  MEDIUM_JOBS: 50,   // 5% of 1000
+  STATUS_CHECKS: 1000,
+  BUILD_CHECKS: 1000
+};
+
+// Test duration in seconds (1 hour)
+const TEST_DURATION = 3600;
+
 export let options = {
   scenarios: {
-    // Small jobs
+    // Small jobs (95% of job creation requests)
     SmallJobCreation: {
       executor: 'constant-arrival-rate',
       exec: 'createSmallJob',
-      rate: 5, // 5 iterations in total
+      rate: CYCLE.SMALL_JOBS / TEST_DURATION,
       timeUnit: '1s',
-      duration: '1s',
-      preAllocatedVUs: 2,
-      maxVUs: 5,
-      startTime: '5s',
-      gracefulStop: '5s',
+      duration: `${TEST_DURATION}s`,
+      preAllocatedVUs: 5,
+      maxVUs: 16,
+      startTime: '0s',
+      gracefulStop: '30s',
     },
 
-    // Medium jobs
+    // Medium jobs (5% of job creation requests)
     MediumJobCreation: {
       executor: 'constant-arrival-rate',
       exec: 'createMediumJob',
-      rate: 5, // 5 iterations in total
+      rate: CYCLE.MEDIUM_JOBS / TEST_DURATION,
       timeUnit: '1s',
-      duration: '1s',
-      preAllocatedVUs: 2,
-      maxVUs: 5,
+      duration: `${TEST_DURATION}s`,
+      preAllocatedVUs: 1,
+      maxVUs: 2,
       startTime: '30s',
-      gracefulStop: '5s',
+      gracefulStop: '30s',
     },
 
-    //  jobs status
+    //  Job status checks
     JobStatus: {
       executor: 'constant-arrival-rate',
       exec: 'getStatusOfJob',
-      rate: 5, // 5 iterations in total
+      rate: CYCLE.STATUS_CHECKS / TEST_DURATION,
       timeUnit: '1s',
-      duration: '1s',
-      preAllocatedVUs: 2,
-      maxVUs: 5,
-      startTime: '5s',
-      gracefulStop: '5s',
+      duration: `${TEST_DURATION}s`,
+      preAllocatedVUs: 5,
+      maxVUs: 16,
+      startTime: '120s', // Start after some jobs have been created
+      gracefulStop: '30s',
     },
 
-    // Build jobs status
+    // Build job status checks
     BuildJobStatus: {
       executor: 'constant-arrival-rate',
       exec: 'getBuildStatusOfJob',
-      rate: 5, // 5 iterations in total
+      rate: CYCLE.BUILD_CHECKS / TEST_DURATION,
       timeUnit: '1s',
-      duration: '1s',
-      preAllocatedVUs: 2,
-      maxVUs: 5,
-      startTime: '5s',
-      gracefulStop: '5s',
+      duration: `${TEST_DURATION}s`,
+      preAllocatedVUs: 5,
+      maxVUs: 16,
+      startTime: '120s', // Start after some jobs have been created
+      gracefulStop: '30s',
     }
   }
 };
