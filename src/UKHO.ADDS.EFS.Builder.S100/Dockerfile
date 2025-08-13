@@ -187,6 +187,9 @@ WORKDIR /dotnet
 COPY ["UKHO.ADDS.EFS.Builder.S100/UKHO.ADDS.EFS.Builder.S100.csproj", "UKHO.ADDS.EFS.Builder.S100/"]
 COPY ["UKHO.ADDS.EFS.Domain/UKHO.ADDS.EFS.Domain.csproj", "UKHO.ADDS.EFS.Domain/"]
 COPY ["UKHO.ADDS.EFS.Builder.Common/UKHO.ADDS.EFS.Builder.Common.csproj", "UKHO.ADDS.EFS.Builder.Common/"]
+COPY ["UKHO.ADDS.Clients.Common/UKHO.ADDS.Clients.Common.csproj", "UKHO.ADDS.Clients.Common/"]
+COPY ["UKHO.ADDS.Clients.FileShareService.ReadOnly/UKHO.ADDS.Clients.FileShareService.ReadOnly.csproj", "UKHO.ADDS.Clients.FileShareService.ReadOnly/"]
+COPY ["UKHO.ADDS.Clients.FileShareService.ReadWrite/UKHO.ADDS.Clients.FileShareService.ReadWrite.csproj", "UKHO.ADDS.Clients.FileShareService.ReadWrite/"]
 RUN dotnet restore UKHO.ADDS.EFS.Builder.S100/UKHO.ADDS.EFS.Builder.S100.csproj
 
 # Copy remaining files and build
