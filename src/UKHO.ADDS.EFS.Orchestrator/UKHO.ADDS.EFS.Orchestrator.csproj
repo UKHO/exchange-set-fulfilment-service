@@ -7,19 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Infrastructure\Tables\BuildStatusTable.cs" />
-    <Compile Remove="Infrastructure\Tables\ExchangeSetJobTypeTable.cs" />
-    <Compile Remove="Infrastructure\Tables\S100\S100BuildSummaryTable.cs" />
-    <Compile Remove="Infrastructure\Tables\S100\S100ExchangeSetJobTable.cs" />
-    <Compile Remove="Infrastructure\Tables\S57\S57BuildSummaryTable.cs" />
-    <Compile Remove="Infrastructure\Tables\S57\S57ExchangeSetJobTable.cs" />
-    <Compile Remove="Infrastructure\Tables\S63\S63BuildSummaryTable.cs" />
-    <Compile Remove="Infrastructure\Tables\S63\S63ExchangeSetJobTable.cs" />
-    <Compile Remove="Services\Infrastructure\IFileShareService.cs" />
-    <Compile Remove="Services\Infrastructure\ISalesCatalogueService.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <InternalsVisibleTo Include="UKHO.ADDS.EFS.Orchestrator.UnitTests" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
@@ -45,9 +32,6 @@
     <PackageReference Include="StringToExpression" Version="2.2.0" />
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.3" />
-    <PackageReference Include="UKHO.ADDS.Clients.Common" Version="0.0.50701-alpha.2" />
-    <PackageReference Include="UKHO.ADDS.Clients.FileShareService.ReadWrite" Version="0.0.50701-alpha.2" />
-    <PackageReference Include="UKHO.ADDS.Clients.SalesCatalogueService" Version="0.0.50701-alpha.2" />
     <PackageReference Include="Azure.Messaging.EventHubs" Version="5.12.2" />
   </ItemGroup>
 
@@ -55,7 +39,7 @@
     <ProjectReference Include="..\..\configuration\UKHO.ADDS.Aspire.Configuration\UKHO.ADDS.Aspire.Configuration.csproj" />
     <ProjectReference Include="..\UKHO.ADDS.EFS.Analyzers\UKHO.ADDS.EFS.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\UKHO.ADDS.EFS.Aspire\UKHO.ADDS.EFS.Aspire.csproj" />
-    <ProjectReference Include="..\UKHO.ADDS.EFS.Domain\UKHO.ADDS.EFS.Domain.csproj" />
+    <ProjectReference Include="..\UKHO.ADDS.EFS.Domain.Adapters\UKHO.ADDS.EFS.Domain.Adapters.csproj" />
   </ItemGroup>
 
 </Project>
