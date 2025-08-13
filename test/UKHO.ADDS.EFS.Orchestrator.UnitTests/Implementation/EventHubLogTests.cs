@@ -142,6 +142,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Implementation
             Assert.That(jObject["Exception"]?["Source"]?.ToString(), Is.EqualTo("Newtonsoft.Json"));
         }
         */
+
+        [TearDown]
+        public void TearDown()
+        {
+            _eventHubLog?.Dispose();
+            _fakeEventHubClient?.Dispose();
+        }
     }
 
     // Custom exception converter to handle serialization/deserialization of exceptions

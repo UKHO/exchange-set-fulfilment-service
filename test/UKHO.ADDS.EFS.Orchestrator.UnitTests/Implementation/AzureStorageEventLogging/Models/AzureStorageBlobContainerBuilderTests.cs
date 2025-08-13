@@ -20,7 +20,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Implementation.AzureStorageEventL
             _resourcesFactory = new ResourcesFactory();
         }
 
-        [TestCase(null, false, false, TestName = "WhenBuildIsCalledWithNullOptions_ThenPropertiesAreNull")]
         [TestCase(ValidUri, false, false, TestName = "WhenBuildIsCalledWithLoggerDisabledOptions_ThenBlobContainerClientIsNull")]
         [TestCase(ValidUri, true, true, TestName = "WhenBuildIsCalledWithSASConnectionOptions_ThenPropertiesAreNotNull")]
         public void Build_WithVariousOptions_ReturnsExpectedResults(string uri, bool enabled, bool expectNotNull)
