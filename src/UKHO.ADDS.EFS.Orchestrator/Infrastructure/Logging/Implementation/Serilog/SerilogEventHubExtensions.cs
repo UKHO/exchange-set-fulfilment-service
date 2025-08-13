@@ -15,14 +15,10 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
 // OF SUCH DAMAGE.
 
-using System;
-using System.Collections.Generic;
 using Serilog;
 using Serilog.Configuration;
-using Serilog.Core;
 using Serilog.Events;
 using Serilog.Sinks.PeriodicBatching;
-using UKHO.Logging.EventHubLogProvider;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Serilog
 {
@@ -100,66 +96,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Seril
                 restrictedToMinimumLevel);
         }
 
-        /// <summary>
-        /// Adds a non-batched Azure Event Hub sink to the Serilog configuration
-        /// Use this when you want to control your own batching or don't need batching.
-        /// </summary>
-        /// <param name="loggerConfiguration">The Serilog logger configuration</param>
-        /// <param name="configureOptions">A callback to configure the EventHub sink options</param>
-        /// <param name="restrictedToMinimumLevel">The minimum log event level required to write an event to the sink</param>
-        /// <returns>Logger configuration, allowing configuration to continue.</returns>
-        public static LoggerConfiguration EventHubDirect(
-            this LoggerSinkConfiguration loggerConfiguration,
-            Action<EventHubSinkOptions> configureOptions,
-            LogEventLevel restrictedToMinimumLevel = LogEventLevel.Verbose)
-        {
-            if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
-            if (configureOptions == null) throw new ArgumentNullException(nameof(configureOptions));
-
-            var options = new EventHubSinkOptions();
-            configureOptions(options);
-            
-            // Create the EventHubClientWrapper based on options
-            IEventHubClientWrapper clientWrapper;
-            if (IsUsingManagedIdentity(options))
-            {
-                ValidateManagedIdentityOptions(options);
-                clientWrapper = new EventHubClientWrapper(
-                    options.EventHubFullyQualifiedNamespace, 
-                    options.EventHubEntityPath, 
-                    options.TokenCredential, 
-                    options.AzureStorageLogProviderOptions);
-            }
-            else
-            {
-                ValidateConnectionStringOptions(options);
-                clientWrapper = new EventHubClientWrapper(
-                    options.EventHubConnectionString, 
-                    options.EventHubEntityPath, 
-                    options.AzureStorageLogProviderOptions);
-            }
-
-            // Validate connection if requested
-            if (options.EnableConnectionValidation)
-            {
-                clientWrapper.ValidateConnection();
-            }
-
-            // Create the EventHubLog
-            var eventHubLog = new EventHubLog(clientWrapper, options.CustomLogSerializerConverters);
-
-            // Create the direct sink without batching
-            var sink = new EventHubSink(
-                eventHubLog,
-                options.Environment,
-                options.System,
-                options.Service,
-                options.NodeName,
-                options.AdditionalValuesProvider,
-                options.Formatter);
-
-            return loggerConfiguration.Sink(sink, restrictedToMinimumLevel);
-        }
 
         private static bool IsUsingManagedIdentity(EventHubSinkOptions options)
         {

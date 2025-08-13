@@ -26,7 +26,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Seril
     public class EventHubSinkOptions
     {
         private const string HashMachineName = "#MachineName";
-        private string nodeName = HashMachineName;
+        private string _nodeName = HashMachineName;
 
         /// <summary>
         /// The connection string for Event Hub
@@ -70,9 +70,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Seril
         {
             get
             {
-                return nodeName == HashMachineName ? global::System.Environment.MachineName : nodeName;
+                return _nodeName == HashMachineName ? global::System.Environment.MachineName : _nodeName;
             }
-            set { nodeName = value; }
+            set { _nodeName = value; }
         }
 
         /// <summary>

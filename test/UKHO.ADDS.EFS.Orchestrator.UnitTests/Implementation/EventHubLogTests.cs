@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation;
-using UKHO.Logging.EventHubLogProvider;
 
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Implementation
 {

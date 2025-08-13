@@ -15,11 +15,6 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
 // OF SUCH DAMAGE.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Microsoft.Extensions.Logging;
 using Serilog.Core;
 using Serilog.Events;
 using Serilog.Formatting;
@@ -29,13 +24,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Seril
 {
     public class EventHubSink : ILogEventSink, IDisposable
     {
-        private readonly IEventHubLog eventHubLog;
-        private readonly string environment;
-        private readonly string system;
-        private readonly string service;
-        private readonly string nodeName;
+        private readonly IEventHubLog _eventHubLog;
+        private readonly string _environment;
+        private readonly string _system;
+        private readonly string _service;
+        private readonly string _nodeName;
         private readonly Action<IDictionary<string, object>> additionalValuesProvider;
-        private readonly ITextFormatter formatter;
+        private readonly ITextFormatter _formatter;
 
         public EventHubSink(
             IEventHubLog eventHubLog,
@@ -46,13 +41,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Seril
             Action<IDictionary<string, object>> additionalValuesProvider = null,
             ITextFormatter formatter = null)
         {
-            this.eventHubLog = eventHubLog ?? throw new ArgumentNullException(nameof(eventHubLog));
-            this.environment = environment ?? throw new ArgumentNullException(nameof(environment));
-            this.system = system ?? throw new ArgumentNullException(nameof(system));
-            this.service = service ?? throw new ArgumentNullException(nameof(service));
-            this.nodeName = nodeName ?? throw new ArgumentNullException(nameof(nodeName));
+            this._eventHubLog = eventHubLog ?? throw new ArgumentNullException(nameof(eventHubLog));
+            this._environment = environment ?? throw new ArgumentNullException(nameof(environment));
+            this._system = system ?? throw new ArgumentNullException(nameof(system));
+            this._service = service ?? throw new ArgumentNullException(nameof(service));
+            this._nodeName = nodeName ?? throw new ArgumentNullException(nameof(nodeName));
             this.additionalValuesProvider = additionalValuesProvider ?? (d => { });
-            this.formatter = formatter ?? new JsonFormatter();
+            this._formatter = formatter ?? new JsonFormatter();
         }
 
         public void Emit(LogEvent logEvent)
@@ -65,10 +60,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Seril
             // Create properties dictionary with standard values
             var properties = new Dictionary<string, object>
             {
-                { "_Environment", environment },
-                { "_System", system },
-                { "_Service", service },
-                { "_NodeName", nodeName },
+                { "_Environment", _environment },
+                { "_System", _system },
+                { "_Service", _service },
+                { "_NodeName", _nodeName },
                 { "_ComponentName", logEvent.Properties.ContainsKey("SourceContext") 
                                    ? logEvent.Properties["SourceContext"].ToString().Trim('"')
                                    : "Unknown" }
@@ -106,7 +101,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Seril
             };
 
             // Send to EventHub
-            eventHubLog.Log(logEntry);
+            _eventHubLog.Log(logEntry);
         }
 
         private static LogLevel ConvertSerilogLevelToMicrosoftLevel(LogEventLevel level)
@@ -173,7 +168,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Seril
 
         public void Dispose()
         {
-            eventHubLog?.Dispose();
+            _eventHubLog?.Dispose();
         }
     }
 }

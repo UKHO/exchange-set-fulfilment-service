@@ -14,9 +14,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Azure
     /// </summary>
     public class AzureStorageEventLogger : IAzureStorageEventLogger
     {
-        private readonly BlobContainerClient containerClient;
-        private CancellationToken cancellationToken;
-        private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        private readonly BlobContainerClient _containerClient;
+        private CancellationToken _cancellationToken;
+        private CancellationTokenSource _cancellationTokenSource = new();
 
         /// <summary>
         ///     Constructor
@@ -24,8 +24,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Azure
         /// <param name="containerClient">The container client</param>
         public AzureStorageEventLogger(BlobContainerClient containerClient)
         {
-            this.containerClient = containerClient;
-            cancellationToken = new CancellationToken();
+            _containerClient = containerClient;
+            _cancellationToken = new CancellationToken();
         }
 
         /// <summary>
@@ -87,10 +87,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Azure
         /// <returns>AzureStorageEventLogCancellationResult</returns>
         public AzureStorageEventLogCancellationResult CancelLogFileStoringOperation()
         {
-            if (cancellationToken.CanBeCanceled)
+            if (_cancellationToken.CanBeCanceled)
                 try
                 {
-                    cancellationTokenSource.Cancel();
+                    _cancellationTokenSource.Cancel();
                     return AzureStorageEventLogCancellationResult.Successful;
                 }
                 catch (Exception)
@@ -113,12 +113,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Azure
             var binaryData = new BinaryData(model.Data);
 
             if (withCancellation)
-                cancellationToken = cancellationTokenSource.Token;
+                _cancellationToken = _cancellationTokenSource.Token;
 
             Response<BlobContentInfo> uploadBlobResponse;
             try
             {
-                uploadBlobResponse = containerClient.UploadBlob(model.FileFullName, binaryData, cancellationToken);
+                uploadBlobResponse = _containerClient.UploadBlob(model.FileFullName, binaryData, _cancellationToken);
             }
             catch (Exception uploadBlobException)
             {
@@ -157,12 +157,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Azure
             var binaryData = new BinaryData(model.Data);
 
             if (withCancellation)
-                cancellationToken = cancellationTokenSource.Token;
+                _cancellationToken = _cancellationTokenSource.Token;
 
             Response<BlobContentInfo> uploadBlobResponse;
             try
             {
-                uploadBlobResponse = await containerClient.UploadBlobAsync(model.FileFullName, binaryData, cancellationToken);
+                uploadBlobResponse = await _containerClient.UploadBlobAsync(model.FileFullName, binaryData, _cancellationToken);
             }
             catch (Exception uploadBlobException)
             {
@@ -194,7 +194,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Azure
         /// </summary>
         public void NullifyTokenSource()
         {
-            cancellationTokenSource = null;
+            _cancellationTokenSource = null;
         }
     }
 }
