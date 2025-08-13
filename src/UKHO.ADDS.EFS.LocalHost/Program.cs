@@ -220,7 +220,6 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             Log.Information($"Creating {name} builder container image...");
 
-            //rhz: var localHostDirectory = Directory.GetCurrentDirectory();
             var srcDirectory = Directory.GetParent(appRootDirectory)?.FullName!;
 
             var arguments = $"build -t {name} -f ./{projectName}/Dockerfile .";
