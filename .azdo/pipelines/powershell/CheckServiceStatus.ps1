@@ -1,158 +1,58 @@
-name: $(BuildDefinitionName)_$(SourceBranchName)_$(Date:yyyyMMdd).$(BuildCounter)
+Param(
+	[Parameter(mandatory=$true)][string]$healthEndPointUrl,
+    [Parameter(mandatory=$true)][string]$waitTimeInMinute,
+    [Parameter(mandatory=$true)][boolean]$onErrorContinue
+)
 
-parameters:
-  - name: DisableStryker
-    displayName: "Disable Stryker"
-    type: boolean
-    default: false
-  - name: SnykOnlyFailIfFixable
-    displayName: "Snyk - fail only if an issue has an available fix"
-    type: boolean
-    default: false
-  - name: SnykPassOnIssues
-    displayName: "Snyk - don't fail if issues found"
-    type: boolean
-    default: false
-  - name: DeployOrchestrator
-    displayName: "Deploy orchestrator"
-    type: boolean
-    default: true
-  - name: DeployBuilderS100
-    displayName: "Deploy S100 builder"
-    type: boolean
-    default: true
-  - name: DeployAddsMock
-    displayName: "Deploy ADDS mock"
-    type: boolean
-    default: true
-  - name: DeployRedis
-    displayName: "Deploy Redis"
-    type: boolean
-    default: true
-  - name: DestroyResourcesDev
-    displayName: "Destroy dev environment"
-    type: boolean
-    default: false
-  - name: DestroyResourcesVnextIat
-    displayName: "Destroy VnextIat environment"
-    type: boolean
-    default: false
-  - name: DestroyResourcesVnextE2E
-    displayName: "Destroy VnextE2e environment"
-    type: boolean
-    default: false
-  - name: DestroyResourcesIAT
-    displayName: "Destroy IAT environment"
-    type: boolean
-    default: false
-  - name: AdditionalDebugging
-    displayName: "Enable optional pipeline debugging"
-    type: boolean
-    default: false
+$sleepTimeInSecond = 10
+$isServiceActive = 'false'
 
-trigger:
-  - main
+$stopWatch = New-Object -TypeName System.Diagnostics.Stopwatch
+$timeSpan = New-TimeSpan -Minutes $waitTimeInMinute
+$stopWatch.Start()
 
-pool: NautilusBuild
+do
+{
+    Write-Host "Polling url: $healthEndPointUrl ..."
+    try{
+        $HttpRequest  = [System.Net.WebRequest]::Create("$healthEndPointUrl")
+        $HttpResponse = $HttpRequest.GetResponse() 
+        $HttpStatus   = $HttpResponse.StatusCode
+        Write-Host "Status code of web is $HttpStatus ..."
+    
+        If ($HttpStatus -eq 200 ) {
+            Write-Host "Service is up. Stopping Polling ..."
+            $isServiceActive = 'true'
+            break
+        }
+        Else {
+            Write-Host "Service not yet Up. Status code: $HttpStatus re-checking after $sleepTimeInSecond sec ..."
+        }
+    }
+    catch [System.Net.WebException]
+    {
+        $HttpStatus = $_.Exception.Response.StatusCode
+        Write-Host "Service not yet Up.Status: $HttpStatus re-checking after $sleepTimeInSecond sec ..."
+    }    
+    
+    Start-Sleep -Seconds $sleepTimeInSecond
+}
+until ($stopWatch.Elapsed -ge $timeSpan)
 
-variables:
-  - name: BuildConfiguration
-    value: "Release"
-  - name: BuildPlatform
-    value: "any cpu"
-  - name: BuildCounter
-    value: $[counter(format('{0:yyyyMMdd}', pipeline.startTime), 1)]
-  - name: UkhoAssemblyCompany
-    value: "UK Hydrographic Office"
-  - name: UkhoAssemblyVersionPrefix
-    value: "1.0."
-  - name: UkhoAssemblyProduct
-    value: "ESS Fulfilment Service"
-  - name: UKHOAssemblyCopyright
-    value: "Copyright � UK Hydrographic Office"
-  - name: SdkVersion
-    value: "9.0.x"
-  - name: WindowsPool
-    value: "Mare Nubium"
-  - name: LinuxPool
-    value: "Mare Nectaris"
-  - name: snykAbzuOrganizationId
-    value: aeb7543b-8394-457c-8334-a31493d8910d
 
-resources:
-  repositories:
-  - repository: PrivateEfs
-    endpoint: UKHO
-    name: UKHO/exchange-set-fulfilment-service-pvt
-    ref: refs/heads/main
-    type: github
+If ($HttpResponse -ne $null) { 
+    $HttpResponse.Close() 
+}
 
-stages:
-   
-  - stage: DevDeploy
-    #dependsOn:
-    #- VulnerabilityChecks
-    #- Test
-    displayName: Dev deploy
-    jobs:
-    - template: templates/continuous-deployment.yml
-      parameters:
-        AzureDevOpsEnvironment: Ess-Dev
-        ShortName: dev
-        DestroyResources: ${{ parameters.DestroyResourcesDev }}
-        AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
-        DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
-        DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
-        DeployAddsMock: ${{ parameters.DeployAddsMock }}
-        DeployRedis: ${{ parameters.DeployRedis }}
+Write-Host "##vso[task.setvariable variable=IS_HEALTHY]$($isServiceActive)"
 
-  - stage: vnextiatDeploy
-    dependsOn:
-    - DevDeploy
-    displayName: vNext IAT Deploy
-    condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/dev/')))
-    jobs:
-    - template: templates/continuous-deployment.yml
-      parameters:
-        AzureDevOpsEnvironment: Ess-vnextiat
-        ShortName: vnextiat
-        DestroyResources: ${{ parameters.DestroyResourcesVnextIat }}
-        AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
-        DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
-        DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
-        DeployAddsMock: false
-        DeployRedis: ${{ parameters.DeployRedis }}
+if ($isServiceActive -eq 'true' ) {
+    Write-Host "Service is up returning from script ..."    
+}
+Else { 
+    Write-Error "Service was not up in $waitTimeInMinute, error while deployment ..."
 
-  - stage: vnexte2eDeploy
-    dependsOn:
-    - vnextiatDeploy
-    displayName: vNext E2E Deploy
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
-    jobs:
-    - template: templates/continuous-deployment.yml
-      parameters:
-        AzureDevOpsEnvironment: Ess-vnexte2e
-        ShortName: vnexte2e
-        DestroyResources: ${{ parameters.DestroyResourcesVnextE2E }}
-        AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
-        DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
-        DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
-        DeployAddsMock: false
-        DeployRedis: ${{ parameters.DeployRedis }}
-
-  - stage: iatDeploy
-    dependsOn:
-    - DevDeploy
-    displayName: IAT Deploy
-    condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')))
-    jobs:
-    - template: templates/continuous-deployment.yml
-      parameters:
-        AzureDevOpsEnvironment: Ess-iat
-        ShortName: iat
-        DestroyResources: ${{ parameters.DestroyResourcesIAT }}
-        AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
-        DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
-        DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
-        DeployAddsMock: false
-        DeployRedis: ${{ parameters.DeployRedis }}
+    if(!$onErrorContinue) {
+        throw "Error"
+    }
+}
