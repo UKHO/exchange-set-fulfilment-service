@@ -73,5 +73,25 @@ namespace UKHO.ADDS.EFS.FunctionalTests
 
             ZipStructureComparer.CompareZipFilesExactMatch(sourceZipPath, exchangeSetDownloadPath, products);
         }
+
+        //If both a filter and specific products are provided, the system should generate the Exchange Set based on the given products.
+        [Fact]
+        public async Task S100ProductsAndFilterTests()
+        {
+            var httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
+
+            var products = new string[] { "104CA00_20241103T001500Z_GB3DEVK0_dcf2", "101GB004DEVQP", "101FR005DEVQG" };
+
+            var jobId = await OrchestratorCommands.SubmitJobAsync(httpClient, filter: "startswith(ProductName, '101')", products: products);
+
+            await OrchestratorCommands.WaitForJobCompletionAsync(httpClient, jobId);
+
+            await OrchestratorCommands.VerifyBuildStatusAsync(httpClient, jobId);
+
+            var exchangeSetDownloadPath = await ZipStructureComparer.DownloadExchangeSetAsZipAsync(jobId, App!);
+            var sourceZipPath = Path.Combine(ProjectDirectory!, "TestData", "SelectedProductsOnly.zip");
+
+            ZipStructureComparer.CompareZipFilesExactMatch(sourceZipPath, exchangeSetDownloadPath, products);
+        }
     }
 }
