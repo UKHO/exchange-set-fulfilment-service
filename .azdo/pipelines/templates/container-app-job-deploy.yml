@@ -16,6 +16,9 @@ parameters:
 - name: DeployApp
   type: boolean
   default: true
+# The name of the BuilderType to deploy.
+- name: BuilderType
+  type: string
 
 steps:
 - task: AzureCLI@2
