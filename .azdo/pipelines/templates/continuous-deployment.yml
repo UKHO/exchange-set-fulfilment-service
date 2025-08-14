@@ -262,7 +262,7 @@ jobs:
         #     OnErrorContinue: false
              
         - task: PowerShell@2
-          displayName: "Check the status of production slot after rollback"
+          displayName: "healthcheck_validation"
           inputs:
             targetType: filePath
             filePath: "$(Build.SourcesDirectory)/efs/.azdo/pipelines/powershell/CheckServiceStatus.ps1"
