@@ -57,18 +57,27 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .PublishAsExisting(efsServiceIdentityName, efsServiceIdentityResourceGroup);
 
             // Log analytics workspace
-            var laws = builder.AddAzureLogAnalyticsWorkspace(ServiceConfiguration.LogAnalyticsWorkspaceName);
-            laws.ConfigureInfrastructure(config =>
+            IResourceBuilder<AzureLogAnalyticsWorkspaceResource>? laws = null;
+
+            if (builder.ExecutionContext.IsPublishMode)
             {
-                var operationalInsightsWorkspace = config.GetProvisionableResources().OfType<OperationalInsightsWorkspace>().Single();
-                operationalInsightsWorkspace.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
-            });
+                laws = builder.AddAzureLogAnalyticsWorkspace(ServiceConfiguration.LogAnalyticsWorkspaceName);
+                laws.ConfigureInfrastructure(config =>
+                {
+                    var operationalInsightsWorkspace = config.GetProvisionableResources().OfType<OperationalInsightsWorkspace>().Single();
+                    operationalInsightsWorkspace.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
+                });
+            }
 
             // Container apps environment
             var acaEnv = builder.AddAzureContainerAppEnvironment(ServiceConfiguration.AcaEnvironmentName)
                 .WithParameter("subnetResourceId", subnetResourceId)
-                .WithParameter("zoneRedundant", zoneRedundant)
-                .WithAzureLogAnalyticsWorkspace(laws);
+                .WithParameter("zoneRedundant", zoneRedundant);
+
+            if (builder.ExecutionContext.IsPublishMode)
+            {
+                acaEnv.WithAzureLogAnalyticsWorkspace(laws!);
+            }
 
             acaEnv.ConfigureInfrastructure(config =>
             {
@@ -103,7 +112,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             if (builder.ExecutionContext.IsPublishMode)
             {
                 appInsights = builder.AddAzureApplicationInsights(ServiceConfiguration.AppInsightsName)
-                    .WithLogAnalyticsWorkspace(laws);
+                    .WithLogAnalyticsWorkspace(laws!);
                 appInsights.ConfigureInfrastructure(config =>
                 {
                     var appInsightsResource = config.GetProvisionableResources().OfType<ApplicationInsightsComponent>().Single();
