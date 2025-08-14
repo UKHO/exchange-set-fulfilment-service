@@ -1,6 +1,6 @@
 ﻿using Quartz;
-using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Messages;
+using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 
@@ -42,7 +42,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Schedule
                 {
                     Version = 1,
                     DataStandard = DataStandard.S100,
-                    Products = [],
+                    Products = new ProductNameList(),
                     Filter = ""
                 };
 
