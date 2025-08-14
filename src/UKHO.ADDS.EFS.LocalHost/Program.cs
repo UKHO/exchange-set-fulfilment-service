@@ -191,13 +191,14 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             if (builder.ExecutionContext.IsRunMode)
             {
-                await CreateBuilderContainerImages(ProcessNames.S100Builder, "latest", "UKHO.ADDS.EFS.Builder.S100");
-                await CreateBuilderContainerImages(ProcessNames.S63Builder, "latest", "UKHO.ADDS.EFS.Builder.S63");
-                await CreateBuilderContainerImages(ProcessNames.S57Builder, "latest", "UKHO.ADDS.EFS.Builder.S57");
+                var appRootPath = builder.Environment.ContentRootPath;
+                await CreateBuilderContainerImages(ProcessNames.S100Builder, "latest", "UKHO.ADDS.EFS.Builder.S100", appRootPath);
+                await CreateBuilderContainerImages(ProcessNames.S63Builder, "latest", "UKHO.ADDS.EFS.Builder.S63", appRootPath);
+                await CreateBuilderContainerImages(ProcessNames.S57Builder, "latest", "UKHO.ADDS.EFS.Builder.S57", appRootPath);
             }
         }
 
-        private static async Task CreateBuilderContainerImages(string name, string tag, string projectName)
+        private static async Task CreateBuilderContainerImages(string name, string tag, string projectName, string appRootDirectory)
         {
             // Check to see if we need to build any images
             var reference = $"{name}:{tag}";
@@ -219,8 +220,7 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             Log.Information($"Creating {name} builder container image...");
 
-            var localHostDirectory = Directory.GetCurrentDirectory();
-            var srcDirectory = Directory.GetParent(localHostDirectory)?.FullName!;
+            var srcDirectory = Directory.GetParent(appRootDirectory)?.FullName!;
 
             var arguments = $"build -t {name} -f ./{projectName}/Dockerfile .";
 
