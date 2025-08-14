@@ -21,6 +21,10 @@ parameters:
 - name: DeployRedis
   type: boolean
   default: false
+# Only check containers are activated if set to true.
+- name: WaitForContainersAfterDeploy
+  type: boolean
+  default: false
 # If true, additional debugging will be enabled.
 - name: AdditionalDebugging
   type: boolean
@@ -228,3 +232,23 @@ jobs:
             BuilderType: S100
             AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
             DeployApp: ${{ parameters.DeployBuilderS100 }}
+
+        - ${{ if eq(parameters.WaitForContainersAfterDeploy, true) }}:
+
+          - template: check-container.yml
+            parameters:
+              AzureSubscription: ${{ variables.AzureSubscription }}
+              AppName: efs-orchestrator
+              MaxWaitTime: 1
+
+          - template: check-container.yml
+            parameters:
+              AzureSubscription: ${{ variables.AzureSubscription }}
+              AppName: adds-mocks-efs
+              MaxWaitTime: 1
+
+          - template: check-container.yml
+            parameters:
+              AzureSubscription: ${{ variables.AzureSubscription }}
+              AppName: efs-redis
+              MaxWaitTime: 1

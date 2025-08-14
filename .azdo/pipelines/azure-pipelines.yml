@@ -29,6 +29,10 @@ parameters:
     displayName: "Deploy Redis"
     type: boolean
     default: true
+  - name: WaitForContainersAfterDeploy
+    displayName: "Wait for containers to activate after deployment (temporary option)"
+    type: boolean
+    default: false
   - name: AdditionalDebugging
     displayName: "Enable optional pipeline debugging"
     type: boolean
@@ -160,6 +164,7 @@ stages:
         DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
         DeployAddsMock: ${{ parameters.DeployAddsMock }}
         DeployRedis: ${{ parameters.DeployRedis }}
+        WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
 
   - stage: vnextiatDeploy
     dependsOn:
@@ -176,6 +181,7 @@ stages:
         DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
         DeployAddsMock: false
         DeployRedis: ${{ parameters.DeployRedis }}
+        WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
 
   - stage: vnexte2eDeploy
     dependsOn:
@@ -192,6 +198,7 @@ stages:
         DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
         DeployAddsMock: false
         DeployRedis: ${{ parameters.DeployRedis }}
+        WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
 
   - stage: iatDeploy
     dependsOn:
@@ -208,3 +215,4 @@ stages:
         DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
         DeployAddsMock: false
         DeployRedis: ${{ parameters.DeployRedis }}
+        WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
