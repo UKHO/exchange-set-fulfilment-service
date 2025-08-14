@@ -63,6 +63,17 @@ jobs:
       submodules: true
       path: s/efs
 
+    - checkout: PrivateEfs
+      #condition: eq('${{ parameters.DeployBuilderS100 }}', true)
+      clean: true
+      path: s/pvtefs
+
+    - script: |
+        cp "$(Build.SourcesDirectory)/pvtefs/root3.tar.gz" "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Builder.S100/root3.tar.gz"
+        cp "$(Build.SourcesDirectory)/pvtefs/xchg-7.4.war" "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Builder.S100/xchg-7.4.war"
+      condition: eq('${{ parameters.DeployBuilderS100 }}', true)
+      displayName: Copy S100 builder files
+
     - task: PowerShell@2
       displayName: 'List folders in efs/test'
       inputs:
