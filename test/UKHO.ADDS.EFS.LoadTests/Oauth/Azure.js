@@ -1,28 +1,46 @@
 import http from 'k6/http';
+import { check } from 'k6';
+
+// Track token expiration (most Azure tokens expire in 1 hour)
+const TOKEN_LIFETIME_MS = 50 * 60 * 1000; // 50 minutes to be safe
+let tokenInfo = {
+  token: null,
+  expiresAt: 0
+};
 
 /**
- * Authenticate using OAuth against Azure Active Directory
- * @function
- * @param  {string} tenantId - Directory ID in Azure
- * @param  {string} clientId - Application ID in Azure
- * @param  {string} scope - Space-separated list of scopes (permissions) that are already given consent to by admin
- */
-export function authenticateUsingAzure(tenantId, clientId, scope) {
-  let url;
-  const requestBody = {
-    client_id: clientId,
-    scope: scope,
-  };
+* Gets an authentication token for API requests with automatic refresh
+* @param {Object} config - Authentication configuration
+* @param {boolean} forceRefresh - Force token refresh regardless of expiration
+* @returns {string} - The auth token
+*/
+export function authenticateUsingAzure(config, forceRefresh = false) {
+  const now = Date.now();
 
-  if (typeof resource == 'string') {
-    url = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize`;
-      requestBody['grant_type'] = 'implicit';
-  } else {
-    throw 'The Authorization credentials are not valid. Please check the tenantId, clientId, and scope.';
+  if (!forceRefresh && tokenInfo.token && now < tokenInfo.expiresAt) {
+    return tokenInfo.token;
   }
 
-  let response = http.post(url, requestBody);
-  console.log(response.json());
+  const url = `https://login.microsoftonline.com/${config.EFS_TENANT_ID}/oauth2/v2.0/token`;
 
-  return response.json();
+  const payload = {
+    client_id: config.EFS_CLIENT_ID,
+    client_secret: config.EFS_CLIENT_SECRET,
+    grant_type: 'client_credentials',
+    resource: config.EFS_RESOURCE
+  };
+
+  const response = http.post(url, payload, params);
+  const success = check(response, {
+    'Authentication successful': (r) => r.status === 200,
+    'Token received': (r) => r.json().access_token !== undefined
+  });
+
+  if (success) {
+    tokenInfo.token = response.json().access_token;
+    tokenInfo.expiresAt = now + TOKEN_LIFETIME_MS;
+    return tokenInfo.token;
+  } else {
+    return null;
+  }
 }

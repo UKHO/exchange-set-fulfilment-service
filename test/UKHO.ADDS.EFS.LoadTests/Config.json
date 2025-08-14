@@ -3,6 +3,7 @@
   "EFS_TENANT_ID": "",
   "EFS_CLIENT_ID": "",
   "EFS_SCOPES": "",
+  "EFS_RESOURCE": "",
   "JobsEndpoint": "/jobs",
   "JobStatusEndpoint": "/jobs/{jobId}",
   "JobBuildEndpoint": "/jobs/{jobId}/build",
