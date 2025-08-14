@@ -163,6 +163,7 @@ stages:
         DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
         DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
         DeployAddsMock: ${{ parameters.DeployAddsMock }}
+        IncludeAddsMock: true
         DeployRedis: ${{ parameters.DeployRedis }}
         WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
 
@@ -179,7 +180,8 @@ stages:
         AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
         DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
         DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
-        DeployAddsMock: false
+        DeployAddsMock: ${{ parameters.DeployAddsMock }}
+        IncludeAddsMock: false
         DeployRedis: ${{ parameters.DeployRedis }}
         WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
 
@@ -196,7 +198,8 @@ stages:
         AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
         DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
         DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
-        DeployAddsMock: false
+        DeployAddsMock: ${{ parameters.DeployAddsMock }}
+        IncludeAddsMock: false
         DeployRedis: ${{ parameters.DeployRedis }}
         WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
 
@@ -213,6 +216,7 @@ stages:
         AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
         DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
         DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
-        DeployAddsMock: false
+        DeployAddsMock: ${{ parameters.DeployAddsMock }}
+        IncludeAddsMock: false
         DeployRedis: ${{ parameters.DeployRedis }}
         WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}

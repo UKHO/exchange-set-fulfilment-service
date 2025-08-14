@@ -17,6 +17,10 @@ parameters:
 - name: DeployAddsMock
   type: boolean
   default: false
+# Include the ADDS mock container app in the deployment.
+- name: IncludeAddsMock
+  type: boolean
+  default: false
 # Deploy the Redis container app.
 - name: DeployRedis
   type: boolean
@@ -210,12 +214,14 @@ jobs:
             AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
             DeployApp: ${{ parameters.DeployRedis }}
 
-        - template: container-app-deploy.yml
-          parameters:
-            AzureSubscription: ${{ variables.AzureSubscription }}
-            AppName: adds-mocks-efs
-            AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
-            DeployApp: ${{ parameters.DeployAddsMock }}
+        - ${{ if eq(parameters.IncludeAddsMock, true) }}:
+
+          - template: container-app-deploy.yml
+            parameters:
+              AzureSubscription: ${{ variables.AzureSubscription }}
+              AppName: adds-mocks-efs
+              AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+              DeployApp: ${{ parameters.DeployAddsMock }}
 
         - template: container-app-deploy.yml
           parameters:
@@ -241,11 +247,13 @@ jobs:
               AppName: efs-orchestrator
               MaxWaitTime: 1
 
-          - template: check-container.yml
-            parameters:
-              AzureSubscription: ${{ variables.AzureSubscription }}
-              AppName: adds-mocks-efs
-              MaxWaitTime: 1
+          - ${{ if eq(parameters.IncludeAddsMock, true) }}:
+
+            - template: check-container.yml
+              parameters:
+                AzureSubscription: ${{ variables.AzureSubscription }}
+                AppName: adds-mocks-efs
+                MaxWaitTime: 1
 
           - template: check-container.yml
             parameters:
