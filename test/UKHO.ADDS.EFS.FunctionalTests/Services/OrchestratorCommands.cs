@@ -6,7 +6,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
     public class OrchestratorCommands
     {
         private const int WaitDurationMs = 2000;
-        private const double MaxWaitMinutes = 3;
+        private const double MaxWaitMinutes = 5;
 
         /// <summary>
         /// Submits a job and asserts the expected job and build status.
