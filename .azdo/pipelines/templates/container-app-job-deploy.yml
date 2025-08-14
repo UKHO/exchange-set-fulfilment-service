@@ -8,6 +8,13 @@ parameters:
 # The name of the folder under src containing the Dockerfile.
 - name: ProjectFolder
   type: string
+# The type of builder being deployed.
+- name: BuilderType
+  type: string
+  values:
+  - 'S100'
+  - 'S57'
+  - 'S63'
 # If true, additional debugging will be enabled.
 - name: AdditionalDebugging
   type: boolean
@@ -16,9 +23,6 @@ parameters:
 - name: DeployApp
   type: boolean
   default: true
-# The name of the BuilderType to deploy.
-- name: BuilderType
-  type: string
 
 steps:
 - task: AzureCLI@2
@@ -106,7 +110,3 @@ steps:
       fi
   env:
     EFS_STORAGE_CONNECTION_STRING: $(EFS_STORAGE_CONNECTION_STRING)
-    FSS_ENDPOINT: $(FSS_ENDPOINT)
-    FSS_ENDPOINT_HEALTH: $(FSS_ENDPOINT_HEALTH)
-    MAX_RETRY_ATTEMPTS: $(MAX_RETRY_ATTEMPTS)
-    RETRY_DELAY_MS: $(RETRY_DELAY_MS)
