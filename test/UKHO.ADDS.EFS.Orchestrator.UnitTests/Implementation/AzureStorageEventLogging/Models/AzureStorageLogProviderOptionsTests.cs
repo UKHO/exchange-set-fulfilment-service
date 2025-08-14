@@ -18,15 +18,16 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Implementation.AzureStorageEventL
         [Test]
         public void WhenValidatingSasUrlWithInvalidUrl_ThenThrowsUriFormatException()
         {
-            //Act
             var exception = Assert.Throws<UriFormatException>(() => new AzureStorageLogProviderOptions(_invalidUrl,
                 true,
                 resourcesFactory.SuccessTemplateMessage,
                 resourcesFactory.FailureTemplateMessage));
+            Assert.Multiple(() =>
+            {
+                Assert.That(exception, Is.Not.Null);
+                Assert.That(exception.Message, Is.EqualTo("Invalid sas url."));
+            });
 
-            //Assert
-            Assert.That(exception, Is.Not.Null);
-            Assert.That(exception.Message, Is.EqualTo("Invalid sas url."));
         }
 
         [Test]
@@ -34,14 +35,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Implementation.AzureStorageEventL
         {
             string url = null;
 
-            //Act
             var exception = Assert.Throws<NullReferenceException>(() =>
                                                                     new AzureStorageLogProviderOptions(url,
                                                                     true,
                                                                     resourcesFactory.SuccessTemplateMessage,
                                                                     resourcesFactory.FailureTemplateMessage));
 
-            //Assert
             Assert.That(exception, Is.Not.Null);
             Assert.That(exception.Message, Is.EqualTo("The Azure storage container sas url cannot be null or empty when Azure storage option is set to enabled"));
         }
@@ -51,42 +50,48 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Implementation.AzureStorageEventL
         {
             var result = new AzureStorageLogProviderOptions(_validUrl, true, resourcesFactory.SuccessTemplateMessage, resourcesFactory.FailureTemplateMessage);
 
-            Assert.That(result.AzureStorageContainerSasUrl, Is.Not.Null);
-            Assert.That(result.AzureStorageContainerSasUrl.AbsoluteUri, Is.EqualTo(_validUrl));
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.AzureStorageContainerSasUrl, Is.Not.Null);
+                Assert.That(result.AzureStorageContainerSasUrl.AbsoluteUri, Is.EqualTo(_validUrl));
+            });
+
         }
 
         [Test]
         public void WhenUsingManagedIdentity_WithInvalidUri_ThrowsException()
         {
-            //Arrange
             var tokenCredential = A.Fake<TokenCredential>();
 
-            //Act
             var exception = Assert.Throws<UriFormatException>(() => new AzureStorageLogProviderOptions(new Uri(_invalidUrl),
                                                                                                         tokenCredential,
                                                                                                         true,
                                                                                                         resourcesFactory.SuccessTemplateMessage,
                                                                                                         resourcesFactory.FailureTemplateMessage));
-            //Assert
-            Assert.That(exception, Is.Not.Null);
-            Assert.That(exception.Message, Is.EqualTo("Invalid URI: The format of the URI could not be determined."));
+            Assert.Multiple(() =>
+            {
+                Assert.That(exception, Is.Not.Null);
+                Assert.That(exception.Message, Is.EqualTo("Invalid URI: The format of the URI could not be determined."));
+            });
+
         }
 
         [Test]
         public void WhenUsingManagedIdentity_WithValidUriAndTokenCredentials_ThenSucceeds()
         {
-            //Arrange
             var tokenCredential = A.Fake<TokenCredential>();
 
-            //Act
             var result = new AzureStorageLogProviderOptions(new Uri(_validUrl),
                                                             tokenCredential,
                                                             true,
                                                             resourcesFactory.SuccessTemplateMessage,
                                                             resourcesFactory.FailureTemplateMessage);
-            //Assert
-            Assert.That(result.AzureStorageBlobContainerUri, Is.Not.Null);
-            Assert.That(result.AzureStorageBlobContainerUri.AbsoluteUri, Is.EqualTo(_validUrl));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.AzureStorageBlobContainerUri, Is.Not.Null);
+                Assert.That(result.AzureStorageBlobContainerUri.AbsoluteUri, Is.EqualTo(_validUrl));
+            });
         }
 
         [Test]
@@ -94,15 +99,16 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Implementation.AzureStorageEventL
         {
             TokenCredential tokenCredentials = null;
 
-            //Act
             var exception = Assert.Throws<NullReferenceException>(() => new AzureStorageLogProviderOptions(new Uri(_validUrl),
                                                                 tokenCredentials,
                                                                 true,
                                                                 resourcesFactory.SuccessTemplateMessage,
                                                                 resourcesFactory.FailureTemplateMessage));
-            //Assert
-            Assert.That(exception, Is.Not.Null);
-            Assert.That(exception.Message, Is.EqualTo("The credential cannot be null when Azure storage option is set to enabled"));
+            Assert.Multiple(() =>
+            {
+                Assert.That(exception, Is.Not.Null);
+                Assert.That(exception.Message, Is.EqualTo("The credential cannot be null when Azure storage option is set to enabled"));
+            });
         }
 
         [Test]
@@ -110,8 +116,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Implementation.AzureStorageEventL
         {
             TokenCredential tokenCredentials = null;
 
-            //Act
-            //Assert
             Assert.DoesNotThrow(() => new AzureStorageLogProviderOptions(new Uri(_validUrl),
                                                                 tokenCredentials,
                                                                 false,
