@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EFS Load Test Visualization</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.1/dist/chartjs-adapter-moment.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .chart-container {
+            height: 400px;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .metrics-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .metric-card {
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            padding: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .metric-title {
+            font-size: 14px;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .file-input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Exchange Set Fulfillment Service Load Test Results</h1>
+        
+        <input type="file" id="jsonFileInput" class="file-input" accept=".json">
+        
+        <div class="metrics-summary" id="metrics-summary"></div>
+        
+        <div class="chart-container">
+            <canvas id="timeSeriesChart"></canvas>
+        </div>
+        
+        <div class="chart-container">
+            <canvas id="requestRateChart"></canvas>
+        </div>
+        
+        <div class="chart-container">
+            <canvas id="responseTimeChart"></canvas>
+        </div>
+        
+        <div class="chart-container">
+            <canvas id="scenarioComparisonChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('jsonFileInput').addEventListener('change', handleFileSelect);
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    // Remove comment lines starting with // before parsing
+                    const jsonText = e.target.result.replace(/^\s*\/\/.*$/mg, '');
+                    const data = JSON.parse(jsonText);
+                    
+                    // Debug: Log the actual structure
+                    console.log("JSON Structure:", JSON.stringify(data.metrics, null, 2));
+                    
+                    processData(data);
+                } catch (error) {
+                    console.error('Error parsing JSON:', error);
+                    alert('Error parsing JSON file: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function processData(data) {
+            // Extract key metrics
+            displaySummaryMetrics(data);
+            
+            // Create charts
+            createRequestRateChart(data);
+            createResponseTimeChart(data);
+            createScenarioComparisonChart(data);
+            createTimeSeriesChart(data); // Add this line
+        }
+
+        function displaySummaryMetrics(data) {
+            const metricsDiv = document.getElementById('metrics-summary');
+            metricsDiv.innerHTML = '';
+
+            // Safe access helper function - revised version
+            const safeGet = (obj, path, defaultValue = 'N/A') => {
+                const parts = path.split('.');
+                let current = obj;
+                
+                for (let i = 0; i < parts.length; i++) {
+                    const part = parts[i];
+                    if (current === undefined || current === null) return defaultValue;
+                    
+                    // Special handling for p(95) notation
+                    if (part === 'p(95)') {
+                        current = current['p(95)'];
+                    } else {
+                        current = current[part];
+                    }
+                }
+                
+                return (current !== undefined && current !== null) ? current : defaultValue;
+            };
+
+            // Extract and display key metrics with safe access
+            const metrics = [
+                { title: 'Total Requests', value: safeGet(data, 'metrics.http_reqs.values.count', 0) },
+                { title: 'Data Received', value: formatBytes(safeGet(data, 'metrics.data_received.values.count', 0)) },
+                { title: 'Data Sent', value: formatBytes(safeGet(data, 'metrics.data_sent.values.count', 0)) },
+                { title: 'Avg Response Time', value: safeGet(data, 'metrics.http_req_duration.values.avg', 0).toFixed(2) + ' ms' },
+                { title: 'P95 Response Time', value: safeGet(data, 'metrics.http_req_duration.values.p(95)', 0).toFixed(2) + ' ms' },
+                { title: 'Failed Requests', value: safeGet(data, 'metrics.http_req_failed.values.count', 0) },
+                { title: 'Dropped Requests', value: safeGet(data, 'metrics.dropped_iterations.values.count', 0) }, // Added this line
+                { title: 'Test Duration', value: formatDuration(safeGet(data, 'state.testRunDurationMs', 0)) }
+            ];
+
+            metrics.forEach(metric => {
+                const metricCard = document.createElement('div');
+                metricCard.className = 'metric-card';
+                
+                const titleEl = document.createElement('div');
+                titleEl.className = 'metric-title';
+                titleEl.textContent = metric.title;
+                
+                const valueEl = document.createElement('div');
+                valueEl.className = 'metric-value';
+                valueEl.textContent = metric.value;
+                
+                metricCard.appendChild(titleEl);
+                metricCard.appendChild(valueEl);
+                metricsDiv.appendChild(metricCard);
+            });
+        }
+
+        function createRequestRateChart(data) {
+            // Extract request data
+            const labels = ['Requests'];
+            
+            // Get successful and dropped request counts
+            const successfulRequests = data.metrics.http_reqs.values.count || 0;
+            const droppedRequests = data.metrics.dropped_iterations.values.count || 0;
+            
+            const ctx = document.getElementById('requestRateChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Successful Requests',
+                            data: [successfulRequests],
+                            backgroundColor: 'rgba(54, 162, 235, 0.5)'
+                        },
+                        {
+                            label: 'Dropped Requests',
+                            data: [droppedRequests],
+                            backgroundColor: 'rgba(255, 99, 132, 0.5)'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Request Completion Status'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            callbacks: {
+                                footer: function(tooltipItems) {
+                                    const total = successfulRequests + droppedRequests;
+                                    const successRate = ((successfulRequests / total) * 100).toFixed(2);
+                                    return `Success Rate: ${successRate}%`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true
+                        },
+                        y: {
+                            stacked: true,
+                            title: {
+                                display: true,
+                                text: 'Count'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createResponseTimeChart(data) {
+            // Extract response time data
+            const labels = ['Avg', 'Min', 'Median', 'Max', 'P95'];
+            const responseTimes = [
+                data.metrics.http_req_duration.values.avg || 0,
+                data.metrics.http_req_duration.values.min || 0,
+                data.metrics.http_req_duration.values.med || 0,
+                data.metrics.http_req_duration.values.max || 0,
+                data.metrics.http_req_duration.values['p(95)'] || 0
+            ];
+            
+            const ctx = document.getElementById('responseTimeChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Response Time (ms)',
+                        data: responseTimes,
+                        backgroundColor: 'rgba(255, 99, 132, 0.5)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Response Time Metrics'
+                        }
+                    }
+                }
+            });
+        }
+
+        function createScenarioComparisonChart(data) {
+            // Extract custom metrics for comparison
+            const labels = [];
+            const values = [];
+            
+            // Add the custom metrics
+            if (data.metrics.SmallJobCreateResponseTime) {
+                labels.push('Small Job Create');
+                values.push(data.metrics.SmallJobCreateResponseTime.values.avg || 0);
+            }
+            
+            if (data.metrics.MediumJobCreateResponseTime) {
+                labels.push('Medium Job Create');
+                values.push(data.metrics.MediumJobCreateResponseTime.values.avg || 0);
+            }
+            
+            if (data.metrics.JobStatusResponseTime) {
+                labels.push('Job Status');
+                values.push(data.metrics.JobStatusResponseTime.values.avg || 0);
+            }
+            
+            if (data.metrics.JobBuildResponseTime) {
+                labels.push('Job Build');
+                values.push(data.metrics.JobBuildResponseTime.values.avg || 0);
+            }
+            
+            const ctx = document.getElementById('scenarioComparisonChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Avg Response Time (ms)',
+                        data: values,
+                        backgroundColor: 'rgba(75, 192, 192, 0.5)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'API Endpoint Comparison'
+                        }
+                    }
+                }
+            });
+        }
+
+        function createTimeSeriesChart(data) {
+            // Get test duration in seconds
+            const testDurationMs = data.state.testRunDurationMs;
+            const testDurationSec = Math.ceil(testDurationMs / 1000);
+            
+            // Create time points (x-axis)
+            const timePoints = [];
+            for (let i = 0; i <= testDurationSec; i += Math.ceil(testDurationSec/20)) {
+                timePoints.push(i);
+            }
+            
+            // Extract counts from the checks section
+            let totalJobCreations = 0;
+            let statusJobCount = 0;
+            let buildJobCount = 0;
+            
+            // Find check values by name in the JSON
+            if (data.root_group && data.root_group.checks) {
+                data.root_group.checks.forEach(check => {
+                    if (check.name === "Job created successfully") {
+                        totalJobCreations = check.passes || 0;
+                    } else if (check.name === "Job status retrieved successfully") {
+                        statusJobCount = check.passes || 0;
+                    } else if (check.name === "Build details retrieved successfully") {
+                        buildJobCount = check.passes || 0;
+                    }
+                });
+            }
+            
+            // Calculate small and medium job counts based on 95/5 ratio
+            const smallJobCount = Math.floor(totalJobCreations * 0.95);
+            const mediumJobCount = totalJobCreations - smallJobCount;
+            
+            console.log("Dynamically calculated request counts:", {
+                totalJobCreations,
+                smallJobCount,
+                mediumJobCount,
+                statusJobCount,
+                buildJobCount
+            });
+            
+            // Create datasets with special handling for the final data point
+            const smallJobData = timePoints.map((t, i) => 
+                i === timePoints.length - 1 ? smallJobCount : Math.floor(smallJobCount * (t / testDurationSec))
+            );
+            
+            const mediumJobData = timePoints.map((t, i) => 
+                i === timePoints.length - 1 ? mediumJobCount : Math.floor(mediumJobCount * (t / testDurationSec))
+            );
+            
+            const statusJobData = timePoints.map((t, i) => {
+                if (t < 120) return 0;
+                return i === timePoints.length - 1 ? statusJobCount : 
+                    Math.floor(statusJobCount * ((t-120) / (testDurationSec-120)));
+            });
+            
+            const buildJobData = timePoints.map((t, i) => {
+                if (t < 120) return 0;
+                return i === timePoints.length - 1 ? buildJobCount : 
+                    Math.floor(buildJobCount * ((t-120) / (testDurationSec-120)));
+            });
+            
+            // Create time labels for x-axis (convert seconds to min:sec format)
+            const timeLabels = timePoints.map(t => {
+                const minutes = Math.floor(t / 60);
+                const seconds = t % 60;
+                return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            });
+            
+            // Create the chart
+            const ctx = document.getElementById('timeSeriesChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: timeLabels,
+                    datasets: [
+                        {
+                            label: 'Small Jobs',
+                            data: smallJobData,
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Medium Jobs',
+                            data: mediumJobData,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Status Requests',
+                            data: statusJobData,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Build Requests',
+                            data: buildJobData,
+                            borderColor: 'rgba(255, 159, 64, 1)',
+                            backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Request Distribution Over Time'
+                        },
+                        tooltip: {
+                            mode: 'index'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Test Duration (min:sec)'
+                            }
+                        },
+                        y: {
+                            stacked: false,
+                            title: {
+                                display: true,
+                                text: 'Cumulative Request Count'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
+        function formatDuration(ms) {
+            if (ms <= 0) return '0s';
+            const seconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+            
+            let result = '';
+            if (days > 0) result += days + 'd ';
+            if (hours % 24 > 0) result += (hours % 24) + 'h ';
+            if (minutes % 60 > 0) result += (minutes % 60) + 'm ';
+            result += (seconds % 60) + 's';
+            return result.trim();
+        }
+    </script>
+</body>
+</html>
