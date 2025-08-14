@@ -41,7 +41,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.HealthChecks
         {
             try
             {
-                var endpoint = await _externalServiceRegistry.GetServiceEndpointAsync(ProcessNames.FileShareService);
+                var endpoint = _externalServiceRegistry.GetServiceEndpoint(ProcessNames.FileShareService);
                 var healthEndpointUri = $"{endpoint.Uri!}health";
                 var httpClient = _httpClientFactory.CreateClient();
                 
