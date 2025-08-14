@@ -149,7 +149,7 @@ stages:
     jobs:
     - template: templates/test.yml
       parameters:
-      RunFunctionalTests: ${{ parameters.RunFunctionalTests }}
+        RunFunctionalTests: ${{ parameters.RunFunctionalTests }}
 
   - stage: DevDeploy
     dependsOn: []
