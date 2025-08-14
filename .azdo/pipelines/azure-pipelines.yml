@@ -30,7 +30,7 @@ parameters:
     type: boolean
     default: true
   - name: WaitForContainersAfterDeploy
-    displayName: "Wait for containers to activate after deployment (temporary option)"
+    displayName: "Wait for containers after deployment (temporary option)"
     type: boolean
     default: false
   - name: AdditionalDebugging
