@@ -58,7 +58,9 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
                 env.ConcurrentDownloadLimitCount = int.Parse(_configuration["buildRequestMonitor:S100:ConcurrentDownloadLimitCount"]!);
             });
 
+            Console.WriteLine($"Container {containerId} about started for S100 build request {request.JobId}.");  //rhz:
             await _containerService.StartContainerAsync(containerId);
+            Console.WriteLine($"Container {containerId} started for S100 build request {request.JobId}.");  //rhz:
         }
 
     }

@@ -28,7 +28,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         //[InlineData("startswith(ProductName, '101') or startswith(ProductName, '102') or startswith(ProductName, '104') or startswith(ProductName, '111')", "AllProducts.zip")]
         //[InlineData("startswith(ProductName, '111') or startswith(ProductName, '121')", "StartWithS111Products.zip")]
         //[InlineData("", "WithoutFilter.zip")]
-        //public async Task S100FilterTests(string filter, string zipFileName)
+        public async Task S100FilterTests(string filter, string zipFileName)
         {
             var httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
 
