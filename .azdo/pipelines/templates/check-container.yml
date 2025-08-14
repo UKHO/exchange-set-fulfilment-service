@@ -12,10 +12,9 @@ parameters:
 
 steps:
 - task: AzureCLI@2
-  displayName: Check ${{ parameters.AppName }}
+  displayName: Wait for ${{ parameters.AppName }}
   inputs:
     azureSubscription: ${{ parameters.AzureSubscription }}
-    workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
     scriptType: pscore
     scriptLocation: inlineScript
     inlineScript: |
