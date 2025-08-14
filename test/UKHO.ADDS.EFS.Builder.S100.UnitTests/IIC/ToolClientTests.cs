@@ -21,7 +21,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
         private const string CorrelationId = "Test Correlation Id";
         private const string ExceptionMessage = "Test ExceptionMessage";
         private const string DestinationPath = "xchg";
-        private const string IICBaseUrl = "http://localhost/xchg-7.3/v7.3/";
+        private const string IICBaseUrl = "http://localhost/xchg-7.4/v7.4/";
 
         [SetUp]
         public void SetUp()
@@ -66,7 +66,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
             SetupHttpResponse(HttpStatusCode.OK, JsonCodec.Encode(response));
             var result = await _toolClient.AddExchangeSetAsync(ExchangeSetId, AuthKey, CorrelationId);
             Assert.That(result.IsSuccess(out var value, out var error), Is.EqualTo(true));
-            Assert.That(value.Code, Is.EqualTo(200));
+            Assert.That(value?.Code, Is.EqualTo(200));
             Assert.That(_handler.LastRequestUri!.ToString(), Is.EqualTo($"{IICBaseUrl}addExchangeSet/working9/{ExchangeSetId}?authkey={AuthKey}"));
         }
 
@@ -76,7 +76,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
             SetupHttpResponse(HttpStatusCode.BadRequest, "{}");
             var result = await _toolClient.AddExchangeSetAsync(ExchangeSetId, AuthKey, CorrelationId);
             Assert.That(result.IsFailure(out var value, out var error), Is.EqualTo(true));
-            Assert.That(value.Message, Is.EqualTo("Bad request"));
+            Assert.That(value?.Message, Is.EqualTo("Bad request"));
         }
 
         [Test]
@@ -88,7 +88,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
                 .Throws(new Exception(ExceptionMessage));
             var result = await _toolClient.AddExchangeSetAsync(ExchangeSetId, AuthKey, CorrelationId);
             Assert.That(result.IsFailure(out var value, out var error), Is.EqualTo(true));
-            Assert.That(value.Message, Is.EqualTo(ExceptionMessage));
+            Assert.That(value?.Message, Is.EqualTo(ExceptionMessage));
         }
 
         [Test]
@@ -98,7 +98,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
             SetupHttpResponse(HttpStatusCode.OK, JsonCodec.Encode(response));
             var result = await _toolClient.AddContentAsync(ResourceLocation, ExchangeSetId, AuthKey, CorrelationId);
             Assert.That(result.IsSuccess(out var value, out var error), Is.EqualTo(true));
-            Assert.That(value.Code, Is.EqualTo(200));
+            Assert.That(value?.Code, Is.EqualTo(200));
             Assert.That(_handler.LastRequestUri!.ToString(), Is.EqualTo($"{IICBaseUrl}addContent/working9/{ExchangeSetId}?authkey={AuthKey}&resourceLocation={ResourceLocation}"));
         }
 
@@ -108,7 +108,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
             SetupHttpResponse(HttpStatusCode.BadRequest, "{}");
             var result = await _toolClient.AddContentAsync(ResourceLocation, ExchangeSetId, AuthKey, CorrelationId);
             Assert.That(result.IsFailure(out var value, out var error));
-            Assert.That(value.Message, Is.EqualTo("Bad request"));
+            Assert.That(value?.Message, Is.EqualTo("Bad request"));
         }
 
         [Test]
@@ -120,7 +120,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
                 .Throws(new Exception(ExceptionMessage));
             var result = await _toolClient.AddContentAsync(ResourceLocation, ExchangeSetId, AuthKey, CorrelationId);
             Assert.That(result.IsFailure(out var value, out var error));
-            Assert.That(value.Message, Is.EqualTo(ExceptionMessage));
+            Assert.That(value?.Message, Is.EqualTo(ExceptionMessage));
         }
 
         [Test]
@@ -147,7 +147,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
             SetupHttpResponse(HttpStatusCode.OK, JsonCodec.Encode(response));
             var result = await _toolClient.AddContentAsync(ResourceLocation, ExchangeSetId, AuthKey, CorrelationId);
             Assert.That(result.IsSuccess(out var value, out var error), Is.EqualTo(true));
-            Assert.That(value.Code, Is.EqualTo(200));
+            Assert.That(value?.Code, Is.EqualTo(200));
             Assert.That(_handler.LastRequestUri!.ToString(), Is.EqualTo($"{IICBaseUrl}addContent/working9/{ExchangeSetId}?authkey={AuthKey}&resourceLocation={ResourceLocation}"));
             Directory.Delete(subDir, true);
         }
@@ -163,7 +163,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
             SetupHttpResponse(HttpStatusCode.BadRequest, "{}");
             var result = await _toolClient.AddContentAsync(ResourceLocation, ExchangeSetId, AuthKey, CorrelationId);
             Assert.That(result.IsFailure(out var value, out var error), Is.EqualTo(true));
-            Assert.That(value.Message, Is.EqualTo("Bad request"));
+            Assert.That(value?.Message, Is.EqualTo("Bad request"));
             Directory.Delete(subDir, true);
         }
 
@@ -193,9 +193,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
             var result = await _toolClient.SignExchangeSetAsync(ExchangeSetId, AuthKey, CorrelationId);
 
             Assert.That(result.IsSuccess(out var value, out var error));
-            Assert.That(value.Certificate, Is.EqualTo("cert"));
-            Assert.That(value.SigningKey, Is.EqualTo("key"));
-            Assert.That(value.Status, Is.EqualTo("ok"));
+            Assert.That(value?.Certificate, Is.EqualTo("cert"));
+            Assert.That(value?.SigningKey, Is.EqualTo("key"));
+            Assert.That(value?.Status, Is.EqualTo("ok"));
             Assert.That(_handler.LastRequestUri!.ToString(), Is.EqualTo($"{IICBaseUrl}signExchangeSet/working9/{ExchangeSetId}?authkey={AuthKey}"));
         }
 
@@ -205,7 +205,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
             SetupHttpResponse(HttpStatusCode.BadRequest, "{}");
             var result = await _toolClient.SignExchangeSetAsync(ExchangeSetId, AuthKey, CorrelationId);
             Assert.That(result.IsFailure(out var value, out var error));
-            Assert.That(value.Message, Is.EqualTo("Bad request"));
+            Assert.That(value?.Message, Is.EqualTo("Bad request"));
         }
 
         [Test]
@@ -218,7 +218,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
 
             var result = await _toolClient.SignExchangeSetAsync(ExchangeSetId, AuthKey, CorrelationId);
             Assert.That(result.IsFailure(out var value, out var error), Is.EqualTo(true));
-            Assert.That(value.Message, Is.EqualTo(ExceptionMessage));
+            Assert.That(value?.Message, Is.EqualTo(ExceptionMessage));
         }
 
         [Test]
@@ -238,7 +238,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
             SetupHttpResponse(HttpStatusCode.BadRequest, "{}");
             var result = await _toolClient.ExtractExchangeSetAsync(ExchangeSetId, AuthKey, CorrelationId, DestinationPath);
             Assert.That(result.IsFailure(out var value, out var error), Is.EqualTo(true));
-            Assert.That(value.Message, Is.EqualTo("Bad request"));
+            Assert.That(value?.Message, Is.EqualTo("Bad request"));
         }
 
         [Test]
@@ -250,7 +250,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
                 .Throws(new Exception(ExceptionMessage));
             var result = await _toolClient.ExtractExchangeSetAsync(ExchangeSetId, AuthKey, CorrelationId, DestinationPath);
             Assert.That(result.IsFailure(out var value, out var error), Is.EqualTo(true));
-            Assert.That(value.Message, Is.EqualTo(ExceptionMessage));
+            Assert.That(value?.Message, Is.EqualTo(ExceptionMessage));
         }
 
         [Test]
@@ -269,7 +269,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
             SetupHttpResponse(HttpStatusCode.BadRequest, "{}");
             var result = await _toolClient.ListWorkspaceAsync(AuthKey);
             Assert.That(result.IsFailure(out var value, out var error), Is.EqualTo(true));
-            Assert.That(value.Message, Is.EqualTo("Bad request"));
+            Assert.That(value?.Message, Is.EqualTo("Bad request"));
         }
 
         [Test]
@@ -282,7 +282,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
 
             var result = await _toolClient.ListWorkspaceAsync(AuthKey);
             Assert.That(result.IsFailure(out var value, out var error), Is.EqualTo(true));
-            Assert.That(value.Message, Is.EqualTo(ExceptionMessage));
+            Assert.That(value?.Message, Is.EqualTo(ExceptionMessage));
         }
 
         private void SetupHttpResponse(HttpStatusCode statusCode, string content = "", Stream? stream = null)

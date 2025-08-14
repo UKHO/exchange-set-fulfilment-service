@@ -59,7 +59,7 @@
                 }
             },
             "SchedulerJob": {
-                "ExchangeSetGenerationSchedule": "0 0/5 * * * ?" //Quartz Cron expression for scheduling ExchangeSet generation
+                "ExchangeSetGenerationSchedule": "0 0 0 * * ?" //Quartz Cron expression for scheduling ExchangeSet generation
             }
         }
     },
@@ -107,7 +107,7 @@
                 }
             },
             "SchedulerJob": {
-                "ExchangeSetGenerationSchedule": "0 0/5 * * * ?" //Quartz Cron expression for scheduling ExchangeSet generation
+                "ExchangeSetGenerationSchedule": "0 0 0 * * ?" //Quartz Cron expression for scheduling ExchangeSet generation
             }
         }
     },
@@ -155,7 +155,7 @@
                 }
             },
             "SchedulerJob": {
-                "ExchangeSetGenerationSchedule": "0 0/5 * * * ?" //Quartz Cron expression for scheduling ExchangeSet generation
+                "ExchangeSetGenerationSchedule": "0 0 0 * * ?" //Quartz Cron expression for scheduling ExchangeSet generation
             }
         }
     },
@@ -203,7 +203,7 @@
                 }
             },
             "SchedulerJob": {
-                "ExchangeSetGenerationSchedule": "0 0/5 * * * ?" //Quartz Cron expression for scheduling ExchangeSet generation
+                "ExchangeSetGenerationSchedule": "0 0 0 * * ?" //Quartz Cron expression for scheduling ExchangeSet generation
             }
         }
     },
@@ -251,7 +251,7 @@
                 }
             },
             "SchedulerJob": {
-                "ExchangeSetGenerationSchedule": "0 0/5 * * * ?" //Quartz Cron expression for scheduling ExchangeSet generation
+                "ExchangeSetGenerationSchedule": "0 0 0 * * ?" //Quartz Cron expression for scheduling ExchangeSet generation
             }
         }
     }
