@@ -1,3 +1,9 @@
+parameters:
+# Run functional tests.
+- name: RunFunctionalTests
+  type: boolean
+  default: false
+
 jobs:
 - job: UnitTestsAndCodeCoverage
   workspace:
@@ -51,12 +57,12 @@ jobs:
         PathtoPublish: "$(Build.ArtifactStagingDirectory)/codecoveragereport"
         ArtifactName: codecoveragereport
 
-
 - job: FunctionalTests
   pool: $(LinuxPool)
   displayName: 'Run functional tests'
   workspace:
     clean: all
+  condition: eq('${{ parameters.RunFunctionalTests }}', true)
   steps:
     - checkout: self
       clean: true
@@ -64,14 +70,12 @@ jobs:
       path: s/efs
 
     - checkout: PrivateEfs
-      #condition: eq('${{ parameters.DeployBuilderS100 }}', true)
       clean: true
       path: s/pvtefs
 
     - script: |
         cp "$(Build.SourcesDirectory)/pvtefs/root3.tar.gz" "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Builder.S100/root3.tar.gz"
         cp "$(Build.SourcesDirectory)/pvtefs/xchg-7.4.war" "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Builder.S100/xchg-7.4.war"
-      #condition: eq('${{ parameters.DeployBuilderS100 }}', true)
       displayName: Copy S100 builder files
 
     - task: PowerShell@2

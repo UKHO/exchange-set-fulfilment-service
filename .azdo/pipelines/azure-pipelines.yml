@@ -33,10 +33,10 @@ parameters:
     displayName: "Enable optional pipeline debugging"
     type: boolean
     default: false
-  # - name: RunFunctionalTests
-  #   displayName: "Run functional tests"
-  #   type: boolean
-  #   default: false
+  - name: RunFunctionalTests
+    displayName: "Run functional tests"
+    type: boolean
+    default: false
 
 trigger:
   - main
@@ -148,6 +148,8 @@ stages:
     dependsOn: []
     jobs:
     - template: templates/test.yml
+      parameters:
+      RunFunctionalTests: ${{ parameters.RunFunctionalTests }}
 
   - stage: DevDeploy
     dependsOn: []
