@@ -1,12 +1,18 @@
 ﻿using System.Text.Json;
+using Azure.Identity;
 using Microsoft.AspNetCore.Http.Json;
+using Microsoft.Kiota.Abstractions.Authentication;
+using Microsoft.Kiota.Authentication.Azure;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using Quartz;
+using UKHO.ADDS.Aspire.Configuration;
 using UKHO.ADDS.Aspire.Configuration.Remote;
+using UKHO.ADDS.Clients.Common.Authentication;
+using UKHO.ADDS.Clients.Common.MiddlewareExtensions;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
-using UKHO.ADDS.Clients.SalesCatalogueService;
+using UKHO.ADDS.Clients.Kiota.SalesCatalogueService;
 using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Builds.S100;
 using UKHO.ADDS.EFS.Builds.S57;
@@ -84,28 +90,41 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddSingleton<IBuilderLogForwarder, BuilderLogForwarder>();
             builder.Services.AddSingleton<StorageInitializerService>();
 
-            builder.Services.AddSingleton<ISalesCatalogueClientFactory>(provider => new SalesCatalogueClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
+            var addsEnvironment = AddsEnvironment.GetEnvironment();
 
-            builder.Services.AddSingleton(provider =>
+            builder.Services.RegisterKiotaClient<KiotaSalesCatalogueService>(provider =>
             {
-                var factory = provider.GetRequiredService<ISalesCatalogueClientFactory>();
                 var registry = provider.GetRequiredService<IExternalServiceRegistry>();
+                var scsEndpoint = registry.GetServiceEndpoint(ProcessNames.SalesCatalogueService);
 
-                var scsEndpoint = registry.GetServiceEndpointAsync(ProcessNames.SalesCatalogueService).GetAwaiter().GetResult();
+                if (addsEnvironment.IsLocal() || addsEnvironment.IsDev())
+                {
+                    return (scsEndpoint.Uri, new AnonymousAuthenticationProvider());
+                }
 
-                return factory.CreateClient(scsEndpoint.Uri!.ToString(), string.Empty);
+                return (scsEndpoint.Uri, new AzureIdentityAuthenticationProvider(new ManagedIdentityCredential(), scopes: scsEndpoint.GetDefaultScope()));
             });
 
             builder.Services.AddSingleton<IFileShareReadWriteClientFactory>(provider => new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
 
-            builder.Services.AddSingleton(provider =>
+            builder.Services.AddSingleton(sp =>
             {
-                var factory = provider.GetRequiredService<IFileShareReadWriteClientFactory>();
-                var registry = provider.GetRequiredService<IExternalServiceRegistry>();
+                var registry = sp.GetRequiredService<IExternalServiceRegistry>();
+                var fssEndpoint = registry.GetServiceEndpoint(ProcessNames.FileShareService);
 
-                var fssEndpoint = registry.GetServiceEndpointAsync(ProcessNames.FileShareService).GetAwaiter().GetResult();
+                IAuthenticationTokenProvider? tokenProvider = null;
 
-                return factory.CreateClient(fssEndpoint.Uri!.ToString(), string.Empty);
+                if (addsEnvironment.IsLocal() || addsEnvironment.IsDev())
+                {
+                    tokenProvider = new AnonymousAuthenticationTokenProvider();
+                }
+                else
+                {
+                    tokenProvider = new TokenCredentialAuthenticationTokenProvider(new ManagedIdentityCredential(), [fssEndpoint.GetDefaultScope()]);
+                }
+
+                var factory = sp.GetRequiredService<IFileShareReadWriteClientFactory>();
+                return factory.CreateClient(fssEndpoint.Uri!.ToString(), tokenProvider);
             });
 
             builder.Services.AddSingleton<IOrchestratorSalesCatalogueClient, OrchestratorSalesCatalogueClient>();

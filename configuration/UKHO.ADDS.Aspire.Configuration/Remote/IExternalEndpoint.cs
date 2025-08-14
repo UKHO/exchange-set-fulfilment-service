@@ -7,5 +7,7 @@
         EndpointHostSubstitution Host { get; }
 
         Uri Uri { get; }
+
+        string GetDefaultScope();
     }
 }

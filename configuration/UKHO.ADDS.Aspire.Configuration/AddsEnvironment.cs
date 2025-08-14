@@ -61,7 +61,17 @@
             return Parse(env);
         }
 
+        /// <summary>
+        ///     The local environment.
+        /// </summary>
+        /// <returns></returns>
         public bool IsLocal() => this == Local;
+
+        /// <summary>
+        ///     The ADDS Azure Dev environment.
+        /// </summary>
+        /// <returns></returns>
+        public bool IsDev() => this == Development;
 
         public override string ToString() => Value;
 
