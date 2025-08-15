@@ -6,7 +6,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
     public class OrchestratorCommands
     {
         private const int WaitDurationMs = 2000;
-        private const double MaxWaitMinutes = 5;
+        private const double MaxWaitMinutes = 2; //rhz: was 5
 
         /// <summary>
         /// Submits a job and asserts the expected job and build status.
@@ -52,6 +52,11 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
 
                 if (jobState is "completed" or "failed")
                     break;
+
+                if (buildState is not "scheduled") //rhz:
+                {
+                    break;
+                }
 
                 await Task.Delay(WaitDurationMs);
             } while ((DateTime.Now - startTime).TotalMinutes < MaxWaitMinutes);
