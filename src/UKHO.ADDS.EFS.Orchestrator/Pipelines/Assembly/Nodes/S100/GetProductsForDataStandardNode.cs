@@ -16,12 +16,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
         public GetProductsForDataStandardNode(AssemblyNodeEnvironment nodeEnvironment, IOrchestratorSalesCatalogueClient salesCatalogueClient)
             : base(nodeEnvironment)
         {
-            _salesCatalogueClient = salesCatalogueClient;
+            _salesCatalogueClient = salesCatalogueClient ?? throw new ArgumentNullException(nameof(salesCatalogueClient));
         }
 
         public override Task<bool> ShouldExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
         {
-            return Task.FromResult(context.Subject.Job.JobState == JobState.Created);
+            var job = context.Subject.Job;
+
+            return Task.FromResult(context.Subject.Job.JobState == JobState.Created && (job.RequestedProducts == null || job.RequestedProducts?.Length == 0));
         }
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
