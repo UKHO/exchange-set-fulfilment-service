@@ -58,7 +58,18 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
                 env.ConcurrentDownloadLimitCount = int.Parse(_configuration["buildRequestMonitor:S100:ConcurrentDownloadLimitCount"]!);
             });
 
-            Console.WriteLine($"Container {containerId} about started for S100 build request {request.JobId}.");  //rhz:
+            Console.WriteLine($"Container {containerId} about to start for S100 build request {request.JobId}.");  //rhz:
+            Console.WriteLine($"Container Env AddsEnvironment:{AddsEnvironment.Local.Value} ");  //rhz:
+            Console.WriteLine($"Container Env RequestQueueName:{StorageConfiguration.S100BuildRequestQueueName} ");  //rhz:
+            Console.WriteLine($"Container Env ResponseQueueName:{StorageConfiguration.S100BuildResponseQueueName} ");  //rhz:
+            Console.WriteLine($"Container Env QueueConnectionString:http://host.docker.internal:{queuePort}/devstoreaccount1 ");  //rhz:
+            Console.WriteLine($"Container Env BlobConnectionString:http://host.docker.internal:{blobPort}/devstoreaccount1 ");  //rhz:
+            Console.WriteLine($"Container Env FileShareEndpoint:{s100FileShareUri!.ToString()} ");  //rhz:
+            Console.WriteLine($"Container Env FileShareHealthEndpoint:{s100FileShareHealthUri!.ToString()} ");  //rhz:
+            Console.WriteLine($"Container Env BlobContainerName:{StorageConfiguration.S100BuildContainer} ");  //rhz:
+            Console.WriteLine($"Container Env MaxRetryAttempts:{_configuration["buildRequestMonitor:S100:MaxRetries"]} ");  //rhz:
+            Console.WriteLine($"Container Env RetryDelayMilliseconds:{_configuration["buildRequestMonitor:S100:RetryDelayMilliseconds"]} ");  //rhz:
+            Console.WriteLine($"Container Env ConcurrentDownloadLimitCount:{_configuration["buildRequestMonitor:S100:ConcurrentDownloadLimitCount"]} ");  //rhz:
             await _containerService.StartContainerAsync(containerId);
             Console.WriteLine($"Container {containerId} started for S100 build request {request.JobId}.");  //rhz:
         }
