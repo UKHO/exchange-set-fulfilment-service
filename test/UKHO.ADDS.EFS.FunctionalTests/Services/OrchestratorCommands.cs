@@ -42,21 +42,27 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
             var startTime = DateTime.Now;
 
             string jobState, buildState;
+            var count = 0;  // rhz: Added to track the number of attempts
             do
             {
-                using var response = await httpClient.GetAsync($"/jobs/{jobId}");
-                var responseJson = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-
-                jobState = responseJson.RootElement.GetProperty("jobState").GetString() ?? string.Empty;
-                buildState = responseJson.RootElement.GetProperty("buildState").GetString() ?? string.Empty;
-
-                if (jobState is "completed" or "failed")
-                    break;
-
-                if (buildState is not "scheduled") //rhz:
+                count++;  // rhz: Increment the attempt counter
+                if (count == 1) // rhz: Limit checks to one.
                 {
-                    break;
+                    using var response = await httpClient.GetAsync($"/jobs/{jobId}");
+                    var responseJson = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
                 }
+
+                // thz: suspend functionality for debugging purposes
+                //jobState = responseJson.RootElement.GetProperty("jobState").GetString() ?? string.Empty;
+                //buildState = responseJson.RootElement.GetProperty("buildState").GetString() ?? string.Empty;
+
+                //if (jobState is "completed" or "failed")
+                //    break;
+
+                //if (buildState is not "scheduled") //rhz:
+                //{
+                //    break;
+                //}
 
                 await Task.Delay(WaitDurationMs);
             } while ((DateTime.Now - startTime).TotalMinutes < MaxWaitMinutes);
