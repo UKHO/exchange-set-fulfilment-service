@@ -6,6 +6,7 @@ using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Builds.S100;
 using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
@@ -77,7 +78,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 Id = "test-job-id",
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = null!,
+                RequestedProducts = [],
                 RequestedFilter = ""
             };
             job.ValidateAndSet(JobState.Created, BuildState.NotScheduled);
@@ -99,7 +100,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 Id = "test-job-id",
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = ["101GB004DEVQK", "101GB00510210"],
+                RequestedProducts = new ProductNameList([new ProductName("101GB004DEVQK"), new ProductName("101GB00510210")]),
                 RequestedFilter = ""
             };
             job.ValidateAndSet(JobState.Created, BuildState.NotScheduled);

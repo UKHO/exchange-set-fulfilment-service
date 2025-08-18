@@ -6,6 +6,7 @@ using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Builds.S100;
 using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
@@ -50,8 +51,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             {
                 Id = "test-job-id",
                 Timestamp = DateTime.UtcNow,
-                DataStandard = DataStandard.S100,
-                RequestedProducts = ["102CA005N5040W00130"],
+                DataStandard = DataStandard.S100,               
+                RequestedProducts = new ProductNameList([new ProductName("102CA005N5040W00130")]),
                 RequestedFilter = "",
             };
 
@@ -194,47 +195,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         }
 
         [Test]
-        public async Task WhenPerformExecuteAsyncIsCalledWithNullRequestedProducts_ThenUsesProductsFromBuild()
-        {
-            _job = new Job
-            {
-                Id = "test-job-id",
-                Timestamp = DateTime.UtcNow,
-                DataStandard = DataStandard.S100,
-                RequestedProducts = null!,
-                RequestedFilter = "",
-            };
-
-            var expectedProductNames = new[] { "101GB004DEVQK", "101GB00510210" };
-
-            _pipelineContext = new PipelineContext<S100Build>(_job, _build, _storageService);
-            A.CallTo(() => _executionContext.Subject).Returns(_pipelineContext);
-
-            var s100ProductNamesResponse = new S100ProductNamesResponse
-            {
-                ResponseCode = HttpStatusCode.OK,
-                Products = new List<S100ProductNames> { new() { ProductName = "101GB004DEVQK,101GB00510210" } },
-                ProductCounts = new ProductCounts
-                {
-                    RequestedProductCount = 2,
-                    ReturnedProductCount = 1,
-                    RequestedProductsAlreadyUpToDateCount = 0,
-                    RequestedProductsNotReturned = []
-                }
-            };
-
-            A.CallTo(() => _salesCatalogueClient.GetS100ProductNamesAsync(
-                A<IEnumerable<string>>.That.IsSameSequenceAs(expectedProductNames),
-                _job,
-                A<CancellationToken>._))
-                .Returns(Task.FromResult(s100ProductNamesResponse));
-
-            var result = await _getS100ProductNamesNode.ExecuteAsync(_executionContext);
-
-            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-        }
-
-        [Test]
         public async Task WhenPerformExecuteAsyncIsCalledWithNullBuildProducts_ThenUsesEmptyProductNames()
         {
             _job = new Job
@@ -286,7 +246,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 Id = "test-job-id",
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = null!,
+                RequestedProducts = [],
                 RequestedFilter = "",
             };
 

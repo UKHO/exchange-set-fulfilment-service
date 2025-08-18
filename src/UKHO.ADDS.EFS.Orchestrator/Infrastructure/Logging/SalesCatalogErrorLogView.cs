@@ -12,6 +12,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         public required string CorrelationId { get; init; }
 
         public static SalesCatalogApiErrorLogView Create(Job job) =>
-            new() { DataStandard = job.DataStandard, Products = string.Join(", ", job.RequestedProducts ?? []), CorrelationId = job.GetCorrelationId() };
+            new() { DataStandard = job.DataStandard, Products = job.RequestedProducts.ToString(), CorrelationId = job.GetCorrelationId() };
     }
 }
