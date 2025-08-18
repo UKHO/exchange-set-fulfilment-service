@@ -44,6 +44,7 @@ module efs_app_insights 'efs-app-insights/efs-app-insights.module.bicep' = {
   name: 'efs-app-insights'
   scope: rg
   params: {
+    efs_law_outputs_loganalyticsworkspaceid: efs_law.outputs.logAnalyticsWorkspaceId
     location: location
   }
 }
@@ -58,6 +59,7 @@ module efs_cae 'efs-cae/efs-cae.module.bicep' = {
   name: 'efs-cae'
   scope: rg
   params: {
+    efs_law_outputs_name: efs_law.outputs.name
     location: location
     subnetResourceId: subnetResourceId
     userPrincipalId: principalId
@@ -66,6 +68,13 @@ module efs_cae 'efs-cae/efs-cae.module.bicep' = {
 }
 module efs_events_namespace 'efs-events-namespace/efs-events-namespace.module.bicep' = {
   name: 'efs-events-namespace'
+  scope: rg
+  params: {
+    location: location
+  }
+}
+module efs_law 'efs-law/efs-law.module.bicep' = {
+  name: 'efs-law'
   scope: rg
   params: {
     location: location

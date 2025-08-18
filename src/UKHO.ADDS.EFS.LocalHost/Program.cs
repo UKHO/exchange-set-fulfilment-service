@@ -4,12 +4,12 @@ using Azure.Provisioning.AppConfiguration;
 using Azure.Provisioning.AppContainers;
 using Azure.Provisioning.ApplicationInsights;
 using Azure.Provisioning.EventHubs;
+using Azure.Provisioning.OperationalInsights;
 using Azure.Provisioning.Storage;
 using CliWrap;
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 using Projects;
 using Serilog;
 using UKHO.ADDS.Aspire.Configuration.Hosting;
@@ -56,10 +56,28 @@ namespace UKHO.ADDS.EFS.LocalHost
             var efsServiceIdentity = builder.AddAzureUserAssignedIdentity(ServiceConfiguration.EfsServiceIdentity)
                 .PublishAsExisting(efsServiceIdentityName, efsServiceIdentityResourceGroup);
 
+            // Log analytics workspace
+            IResourceBuilder<AzureLogAnalyticsWorkspaceResource>? laws = null;
+
+            if (builder.ExecutionContext.IsPublishMode)
+            {
+                laws = builder.AddAzureLogAnalyticsWorkspace(ServiceConfiguration.LogAnalyticsWorkspaceName);
+                laws.ConfigureInfrastructure(config =>
+                {
+                    var operationalInsightsWorkspace = config.GetProvisionableResources().OfType<OperationalInsightsWorkspace>().Single();
+                    operationalInsightsWorkspace.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
+                });
+            }
+
             // Container apps environment
             var acaEnv = builder.AddAzureContainerAppEnvironment(ServiceConfiguration.AcaEnvironmentName)
                 .WithParameter("subnetResourceId", subnetResourceId)
                 .WithParameter("zoneRedundant", zoneRedundant);
+
+            if (builder.ExecutionContext.IsPublishMode)
+            {
+                acaEnv.WithAzureLogAnalyticsWorkspace(laws!);
+            }
 
             acaEnv.ConfigureInfrastructure(config =>
             {
@@ -88,12 +106,13 @@ namespace UKHO.ADDS.EFS.LocalHost
             var storageTable = storage.AddTables(StorageConfiguration.TablesName);
             var storageBlob = storage.AddBlobs(StorageConfiguration.BlobsName);
 
-
             IResourceBuilder<AzureApplicationInsightsResource>? appInsights = null;
             IResourceBuilder<AzureEventHubsResource>? eventHubs = null;
+
             if (builder.ExecutionContext.IsPublishMode)
             {
-                appInsights = builder.AddAzureApplicationInsights(ServiceConfiguration.AppInsightsName);
+                appInsights = builder.AddAzureApplicationInsights(ServiceConfiguration.AppInsightsName)
+                    .WithLogAnalyticsWorkspace(laws!);
                 appInsights.ConfigureInfrastructure(config =>
                 {
                     var appInsightsResource = config.GetProvisionableResources().OfType<ApplicationInsightsComponent>().Single();
@@ -108,7 +127,6 @@ namespace UKHO.ADDS.EFS.LocalHost
                 });
                 eventHubs.AddHub(ServiceConfiguration.EventHubName);
             }
-
 
             // Redis cache
             var redisCache = builder.AddRedis(ProcessNames.RedisCache)

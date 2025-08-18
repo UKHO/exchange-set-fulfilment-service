@@ -3,6 +3,8 @@ param location string = resourceGroup().location
 
 param userPrincipalId string
 
+param efs_law_outputs_name string
+
 param subnetResourceId string
 
 param zoneRedundant bool
@@ -38,18 +40,8 @@ resource efs_cae_acr_efs_cae_mi_AcrPull 'Microsoft.Authorization/roleAssignments
   scope: efs_cae_acr
 }
 
-resource efs_cae_law 'Microsoft.OperationalInsights/workspaces@2025-02-01' = {
-  name: take('efscaelaw-${uniqueString(resourceGroup().id)}', 63)
-  location: location
-  properties: {
-    sku: {
-      name: 'PerGB2018'
-    }
-  }
-  tags: {
-    'aspire-resource-name': 'efs-cae-law'
-    'hidden-title': 'EFS'
-  }
+resource efs_law 'Microsoft.OperationalInsights/workspaces@2025-02-01' existing = {
+  name: efs_law_outputs_name
 }
 
 resource efs_cae 'Microsoft.App/managedEnvironments@2025-01-01' = {
@@ -59,8 +51,8 @@ resource efs_cae 'Microsoft.App/managedEnvironments@2025-01-01' = {
     appLogsConfiguration: {
       destination: 'log-analytics'
       logAnalyticsConfiguration: {
-        customerId: efs_cae_law.properties.customerId
-        sharedKey: efs_cae_law.listKeys().primarySharedKey
+        customerId: efs_law.properties.customerId
+        sharedKey: efs_law.listKeys().primarySharedKey
       }
     }
     zoneRedundant: zoneRedundant
@@ -89,9 +81,9 @@ resource aspireDashboard 'Microsoft.App/managedEnvironments/dotNetComponents@202
   parent: efs_cae
 }
 
-output AZURE_LOG_ANALYTICS_WORKSPACE_NAME string = efs_cae_law.name
+output AZURE_LOG_ANALYTICS_WORKSPACE_NAME string = efs_law_outputs_name
 
-output AZURE_LOG_ANALYTICS_WORKSPACE_ID string = efs_cae_law.id
+output AZURE_LOG_ANALYTICS_WORKSPACE_ID string = efs_law.id
 
 output AZURE_CONTAINER_REGISTRY_NAME string = efs_cae_acr.name
 

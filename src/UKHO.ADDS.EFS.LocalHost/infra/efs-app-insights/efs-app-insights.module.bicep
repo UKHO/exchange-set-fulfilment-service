@@ -5,19 +5,7 @@ param applicationType string = 'web'
 
 param kind string = 'web'
 
-resource law_efs_app_insights 'Microsoft.OperationalInsights/workspaces@2025-02-01' = {
-  name: take('lawefsappinsights-${uniqueString(resourceGroup().id)}', 63)
-  location: location
-  properties: {
-    sku: {
-      name: 'PerGB2018'
-    }
-  }
-  tags: {
-    'aspire-resource-name': 'law_efs_app_insights'
-    'hidden-title': 'EFS'
-  }
-}
+param efs_law_outputs_loganalyticsworkspaceid string
 
 resource efs_app_insights 'Microsoft.Insights/components@2020-02-02' = {
   name: take('efs_app_insights-${uniqueString(resourceGroup().id)}', 260)
@@ -25,7 +13,7 @@ resource efs_app_insights 'Microsoft.Insights/components@2020-02-02' = {
   location: location
   properties: {
     Application_Type: applicationType
-    WorkspaceResourceId: law_efs_app_insights.id
+    WorkspaceResourceId: efs_law_outputs_loganalyticsworkspaceid
   }
   tags: {
     'aspire-resource-name': 'efs-app-insights'
