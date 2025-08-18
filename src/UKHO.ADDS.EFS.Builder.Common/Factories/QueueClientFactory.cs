@@ -1,4 +1,5 @@
-﻿using Azure.Storage;
+﻿using Azure.Identity;
+using Azure.Storage;
 using Azure.Storage.Queues;
 using Microsoft.Extensions.Configuration;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
@@ -12,37 +13,31 @@ namespace UKHO.ADDS.EFS.Builder.Common.Factories
 
         public QueueClient CreateRequestQueueClient(IConfiguration configuration)
         {
-            var environment = configuration[BuilderEnvironmentVariables.AddsEnvironment]!;
-            var queueConnectionString = configuration[BuilderEnvironmentVariables.QueueConnectionString]!;
             var requestQueueName = configuration[BuilderEnvironmentVariables.RequestQueueName]!;
-
-            switch (environment)
-            {
-                case "local":
-                    // We need to construct the client using the "URL" method for running locally so that the container network can connect to Azurite using host.docker.internal
-                    var queueUri = new Uri($"{queueConnectionString}/{requestQueueName}");
-                    return new QueueClient(queueUri, new StorageSharedKeyCredential(AzuriteAccountName, AzuriteKey));
-
-                default:
-                    return new QueueClient(queueConnectionString, requestQueueName);
-            }
+            return CreateQueueClient(configuration, requestQueueName);
         }
 
         public QueueClient CreateResponseQueueClient(IConfiguration configuration)
         {
-            var environment = Environment.GetEnvironmentVariable(BuilderEnvironmentVariables.AddsEnvironment)!;
-            var queueConnectionString = configuration[BuilderEnvironmentVariables.QueueConnectionString]!;
             var responseQueueName = configuration[BuilderEnvironmentVariables.ResponseQueueName]!;
+            return CreateQueueClient(configuration, responseQueueName);
+        }
+
+        private static QueueClient CreateQueueClient(IConfiguration configuration, string queueName)
+        {
+            var environment = configuration[BuilderEnvironmentVariables.AddsEnvironment]!;
+            var queueEndpoint = configuration[BuilderEnvironmentVariables.QueueEndpoint]!;
+            var queueUri = new Uri($"{queueEndpoint}/{queueName}");
+            File.WriteAllText(@"C:\Users\ahugob\Desktop\EFS\queueUri.txt", $"{environment}|{queueName}|{queueEndpoint}|{queueUri}"); // For debugging purposes, to see the queue URI being used
 
             switch (environment)
             {
                 case "local":
-                    // We need to construct the client using the "URL" method for running locally so that the container network can connect to Azurite using host.docker.internal
-                    var queueUri = new Uri($"{queueConnectionString}/{responseQueueName}");
                     return new QueueClient(queueUri, new StorageSharedKeyCredential(AzuriteAccountName, AzuriteKey));
 
                 default:
-                    return new QueueClient(queueConnectionString, responseQueueName);
+                    var clientId = configuration[BuilderEnvironmentVariables.AzureClientId]!;
+                    return new QueueClient(queueUri, new ManagedIdentityCredential(ManagedIdentityId.FromUserAssignedClientId(clientId)));
             }
         }
     }

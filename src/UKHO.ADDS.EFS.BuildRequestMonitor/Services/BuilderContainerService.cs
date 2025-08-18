@@ -38,8 +38,8 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
                 {
                     $"{BuilderEnvironmentVariables.RequestQueueName}={environment.RequestQueueName}",
                     $"{BuilderEnvironmentVariables.ResponseQueueName}={environment.ResponseQueueName}",
-                    $"{BuilderEnvironmentVariables.QueueConnectionString}={environment.QueueConnectionString}",
-                    $"{BuilderEnvironmentVariables.BlobConnectionString}={environment.BlobConnectionString}",
+                    $"{BuilderEnvironmentVariables.QueueEndpoint}={environment.QueueEndpoint}",
+                    $"{BuilderEnvironmentVariables.BlobEndpoint}={environment.BlobEndpoint}",
                     $"{BuilderEnvironmentVariables.BlobContainerName}={environment.BlobContainerName}",
                     $"{BuilderEnvironmentVariables.FileShareEndpoint}={environment.FileShareEndpoint}",
                     $"{BuilderEnvironmentVariables.FileShareHealthEndpoint}={environment.FileShareHealthEndpoint}",
