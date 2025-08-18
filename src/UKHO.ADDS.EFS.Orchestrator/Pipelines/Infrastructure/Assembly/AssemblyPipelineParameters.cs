@@ -12,7 +12,7 @@ internal class AssemblyPipelineParameters
 
     public required DataStandard DataStandard { get; init; }
 
-    public required string[] Products { get; init; }
+    public required ProductNameList Products { get; init; }
 
     public required string Filter { get; init; }
 
@@ -22,17 +22,12 @@ internal class AssemblyPipelineParameters
 
     public Job CreateJob()
     {
-        // Validate and filter the products array, then create ProductNameList
-        var validatedProducts = Products?.Where(p => !string.IsNullOrWhiteSpace(p))
-            .Select(p => p.Trim())
-            .ToArray() ?? [];
-
         return new Job()
         {
             Id = JobId,
             Timestamp = Timestamp,
             DataStandard = DataStandard,
-            RequestedProducts = new ProductNameList(validatedProducts),
+            RequestedProducts = Products,
             RequestedFilter = Filter
         };
     }
@@ -43,7 +38,7 @@ internal class AssemblyPipelineParameters
             Version = message.Version,
             Timestamp = DateTime.UtcNow,
             DataStandard = message.DataStandard,
-            Products = message.Products.Products.Select(p => p.ToString()).ToArray(),
+            Products = message.Products,
             Filter = message.Filter,
             JobId = correlationId,
             Configuration = configuration

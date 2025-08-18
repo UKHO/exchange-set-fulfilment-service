@@ -85,7 +85,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Schedule
                 A<AssemblyPipelineParameters>.That.Matches(p =>
                     p.Version == 1 &&
                     p.DataStandard == DataStandard.S100 &&
-                    p.Products.Length == 0 &&
+                    !p.Products.HasProducts &&
                     p.Filter == "")))
                 .MustHaveHappenedOnceExactly();
 
