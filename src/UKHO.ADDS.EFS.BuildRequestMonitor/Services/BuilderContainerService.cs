@@ -20,9 +20,9 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
             _dockerClient = new DockerClientConfiguration(GetDockerEndpoint()).CreateClient();
         }
 
-        public async Task<string> CreateContainerAsync(string image, string name, string[] command, Func<BuilderEnvironment> func)
+        public async Task<string> CreateContainerAsync(string image, string name, string[] command, Func<BuilderEnvironment> getEnvironmentFunc)
         {
-            var environment = func?.Invoke();
+            var environment = getEnvironmentFunc?.Invoke();
 
             var response = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters
             {
