@@ -3,7 +3,6 @@ using Docker.DotNet;
 using Docker.DotNet.Models;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Builders;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Logging;
-using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 
 namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
@@ -21,10 +20,9 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
             _dockerClient = new DockerClientConfiguration(GetDockerEndpoint()).CreateClient();
         }
 
-        public async Task<string> CreateContainerAsync(string image, string name, string[] command, BuildRequest request, Action<BuilderEnvironment> setEnvironmentFunc)
+        public async Task<string> CreateContainerAsync(string image, string name, string[] command, Func<BuilderEnvironment> func)
         {
-            var environment = new BuilderEnvironment();
-            setEnvironmentFunc?.Invoke(environment);
+            var environment = func?.Invoke();
 
             var response = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters
             {
@@ -34,9 +32,9 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
                 AttachStdout = true,
                 AttachStderr = true,
                 Tty = false,
-                Env = new List<string>
-                {
-                    $"{BuilderEnvironmentVariables.RequestQueueName}={environment.RequestQueueName}",
+                Env =
+                [
+                    $"{BuilderEnvironmentVariables.RequestQueueName}={environment!.RequestQueueName}",
                     $"{BuilderEnvironmentVariables.ResponseQueueName}={environment.ResponseQueueName}",
                     $"{BuilderEnvironmentVariables.QueueEndpoint}={environment.QueueEndpoint}",
                     $"{BuilderEnvironmentVariables.BlobEndpoint}={environment.BlobEndpoint}",
@@ -48,7 +46,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
                     $"{BuilderEnvironmentVariables.MaxRetryAttempts}={environment.MaxRetryAttempts}",
                     $"{BuilderEnvironmentVariables.RetryDelayMilliseconds}={environment.RetryDelayMilliseconds}",
                     $"{BuilderEnvironmentVariables.ConcurrentDownloadLimitCount}={environment.ConcurrentDownloadLimitCount}",
-                }
+                ]
             });
 
             return response.ID;

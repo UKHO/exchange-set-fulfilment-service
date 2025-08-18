@@ -28,7 +28,6 @@ namespace UKHO.ADDS.EFS.Builder.Common.Factories
             var environment = configuration[BuilderEnvironmentVariables.AddsEnvironment]!;
             var queueEndpoint = configuration[BuilderEnvironmentVariables.QueueEndpoint]!;
             var queueUri = new Uri($"{queueEndpoint}/{queueName}");
-            File.WriteAllText(@"C:\Users\ahugob\Desktop\EFS\queueUri.txt", $"{environment}|{queueName}|{queueEndpoint}|{queueUri}"); // For debugging purposes, to see the queue URI being used
 
             switch (environment)
             {
