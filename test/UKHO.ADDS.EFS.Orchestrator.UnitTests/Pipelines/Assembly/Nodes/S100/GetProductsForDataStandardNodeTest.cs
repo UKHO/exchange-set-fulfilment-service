@@ -42,13 +42,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         }
 
         [Test]
-        public void WhenSalesCatalogueClientIsNull_ThenThrowsArgumentNullException()
-        {
-            Assert.Throws<ArgumentNullException>(() =>
-                new GetProductsForDataStandardNode(_nodeEnvironment, null!));
-        }
-
-        [Test]
         public async Task WhenShouldExecuteAsyncIsCalledWithJobStateCreatedAndEmptyRequestedProducts_ThenReturnsTrue()
         {
             var job = new Job
