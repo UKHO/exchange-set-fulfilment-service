@@ -29,6 +29,10 @@ parameters:
     displayName: "Deploy Redis"
     type: boolean
     default: true
+  - name: WaitForContainersAfterDeploy
+    displayName: "Wait for containers after deployment (temporary option)"
+    type: boolean
+    default: false
   - name: AdditionalDebugging
     displayName: "Enable optional pipeline debugging"
     type: boolean
@@ -145,21 +149,23 @@ stages:
   #   jobs:
   #   - template: templates/test.yml
 
-  # - stage: DevDeploy
-  #   # dependsOn:
-  #   # - VulnerabilityChecks
-  #   # - Test
-  #   displayName: Dev deploy
-  #   jobs:
-  #   - template: templates/continuous-deployment.yml
-  #     parameters:
-  #       AzureDevOpsEnvironment: Ess-Dev
-  #       ShortName: dev
-  #       AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
-  #       DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
-  #       DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
-  #       DeployAddsMock: ${{ parameters.DeployAddsMock }}
-  #       DeployRedis: ${{ parameters.DeployRedis }}
+  - stage: DevDeploy
+    dependsOn:
+    - VulnerabilityChecks
+    - Test
+    displayName: Dev deploy
+    jobs:
+    - template: templates/continuous-deployment.yml
+      parameters:
+        AzureDevOpsEnvironment: Ess-Dev
+        ShortName: dev
+        AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+        DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
+        DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
+        DeployAddsMock: ${{ parameters.DeployAddsMock }}
+        IncludeAddsMock: true
+        DeployRedis: ${{ parameters.DeployRedis }}
+        WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
 
   - stage: vnextiatDeploy
     # dependsOn: 
@@ -174,8 +180,10 @@ stages:
         AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
         DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
         DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
-        DeployAddsMock: false
+        DeployAddsMock: ${{ parameters.DeployAddsMock }}
+        IncludeAddsMock: false
         DeployRedis: ${{ parameters.DeployRedis }}
+        WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
 
   - stage: vnexte2eDeploy
     dependsOn:
@@ -190,8 +198,10 @@ stages:
         AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
         DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
         DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
-        DeployAddsMock: false
+        DeployAddsMock: ${{ parameters.DeployAddsMock }}
+        IncludeAddsMock: false
         DeployRedis: ${{ parameters.DeployRedis }}
+        WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
 
   - stage: iatDeploy
     # dependsOn:
@@ -206,5 +216,7 @@ stages:
         AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
         DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
         DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
-        DeployAddsMock: false
+        DeployAddsMock: ${{ parameters.DeployAddsMock }}
+        IncludeAddsMock: false
         DeployRedis: ${{ parameters.DeployRedis }}
+        WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}

@@ -72,12 +72,8 @@ resource efsbuilders100 'Microsoft.App/jobs@2025-01-01' = {
                 queueLength: '1'
                 queueName: 's100buildrequest'
               }
-              auth: [
-                {
-                  secretRef: 'connection-string-secret'
-                  triggerParameter: 'connection'
-                }
-              ]
+              auth: []
+              identity: efs_service_identity_id
             }
           ]
         }

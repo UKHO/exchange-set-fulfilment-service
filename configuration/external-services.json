@@ -83,7 +83,7 @@
                     "tag": ""
                 }
             ],
-            "clientId": "eea14877-aeec-46ef-88e5-2ec78478661e"
+            "clientId": "75024e65-2fbc-4740-b874-ac314df6a49e"
         },
         "SalesCatalogue": {
             "endpoints": [
@@ -92,7 +92,7 @@
                     "tag": ""
                 }
             ],
-            "clientId": "87158d61-0d84-40c1-af53-5dcebb2e8543"
+            "clientId": "85c4c85c-b4ea-4815-af51-b6f9b1194854"
         }
     },
     "iat": {
@@ -103,7 +103,7 @@
                     "tag": ""
                 }
             ],
-            "clientId": "9dd4dcc7-915a-4b8b-9d0d-12ec26f1d5a8"
+            "clientId": "d9be7099-e588-486f-93ef-7be49b8c2daf"
         },
         "SalesCatalogue": {
             "endpoints": [
@@ -112,7 +112,7 @@
                     "tag": ""
                 }
             ],
-            "clientId": "87158d61-0d84-40c1-af53-5dcebb2e8543"
+            "clientId": "0d7c4791-bf03-4f26-9c60-9a6c20de725b"
         }
     }
 }
