@@ -52,8 +52,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         {
             _logger = context.Subject.LoggerFactory.CreateLogger<DownloadFilesNode>();
 
-            _logger.LogDownloadFilesNodeNoFilesToProcessError("Test Error- Download File node called."+ context.Subject.Build.GetCorrelationId());
-
             try
             {
                 var downloadPath = Path.Combine(context.Subject.WorkSpaceRootPath, context.Subject.WorkSpaceSpoolPath);
