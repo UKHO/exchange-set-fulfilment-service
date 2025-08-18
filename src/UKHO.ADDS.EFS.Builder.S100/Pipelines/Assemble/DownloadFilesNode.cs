@@ -52,6 +52,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         {
             _logger = context.Subject.LoggerFactory.CreateLogger<DownloadFilesNode>();
 
+            _logger.LogDownloadFilesNodeNoFilesToProcessError("Test-Error-Added");
+
             try
             {
                 var downloadPath = Path.Combine(context.Subject.WorkSpaceRootPath, context.Subject.WorkSpaceSpoolPath);
