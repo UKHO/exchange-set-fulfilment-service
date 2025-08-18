@@ -83,7 +83,7 @@ namespace UKHO.ADDS.EFS.Builder.S63
             return configurationBuilder;
         }
 
-        public static IServiceCollection AddBuilderServices(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddS63BuilderServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddLogging(ConfigureLogging);
             services.AddHttpClient();
