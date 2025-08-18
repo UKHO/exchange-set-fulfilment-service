@@ -23,6 +23,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Implementation.AzureStorageEventL
         private const int SlightlyOverOneMegabyte = OneMegabyte + 1;
         private const int DefaultFileSize = 1024;
         private const int DefaultMbSize = 1;
+        private const string AzureStorageLoggingSuccessTemplate = "Azure Storage Logging: A blob with the error details was created at {{BlobFullName}}. Reason: ErrorMessageEqualOrGreaterTo1MB ResponseMessage: {{ReasonPhrase}} ResponseCode: {{StatusCode}} RequestId: {{RequestId}} Sha256: {{FileSHA}} FileSize(Bs): {{FileSize}} FileModifiedDate: {{ModifiedDate}}";
 
         private ResourcesFactory _resourcesFactory;
         private JsonSerializerOptions _jsonOptions;
@@ -74,26 +75,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Implementation.AzureStorageEventL
         [Test]
         public void WhenResponseIsNull_ThenGetFileSizeReturnsDefaultValue()
         {
-            // Arrange
             Response response = null;
-
-            // Act
             var result = response.GetFileSize(DefaultFileSize);
-
-            // Assert
             Assert.That(result, Is.EqualTo(DefaultFileSize));
         }
 
         [Test]
         public void WhenResponseStreamIsNull_ThenGetFileSizeReturnsDefaultValue()
         {
-            // Arrange
             var response = A.Fake<Response>();
 
-            // Act
             var result = response.GetFileSize(DefaultFileSize);
-
-            // Assert
             Assert.That(result, Is.EqualTo(DefaultFileSize));
         }
 
@@ -104,15 +96,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Implementation.AzureStorageEventL
         [Test]
         public void WhenKeyExists_ThenGetLogEntryPropertyValueReturnsValue()
         {
-            // Arrange
             var key = "test_key_exists";
             var expectedValue = "test_value";
             var dictionary = new Dictionary<string, object> { { key, expectedValue } };
 
-            // Act
             var result = dictionary.GetLogEntryPropertyValue(key);
 
-            // Assert
             Assert.Multiple(() =>
             {
                 Assert.That(result, Is.Not.Null);
@@ -123,13 +112,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Implementation.AzureStorageEventL
         [Test]
         public void WhenKeyDoesNotExist_ThenGetLogEntryPropertyValueReturnsNull()
         {
-            // Arrange
             var dictionary = new Dictionary<string, object> { { "test_key_not_exists", "test_value" } };
 
-            // Act
             var result = dictionary.GetLogEntryPropertyValue("test_key_exists");
 
-            // Assert
             Assert.That(result, Is.Null);
         }
 
@@ -140,26 +126,16 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Implementation.AzureStorageEventL
         [Test]
         public void WhenResponseHeaderIsNull_ThenGetModifiedDateReturnsNull()
         {
-            // Arrange
             Response response = null;
-
-            // Act
             var result = response.GetModifiedDate();
-
-            // Assert
             Assert.That(result, Is.Null);
         }
 
         [Test]
         public void WhenResponseStreamIsNull_ThenGetModifiedDateReturnsNull()
         {
-            // Arrange
             var response = A.Fake<Response>();
-
-            // Act
             var result = response.GetModifiedDate();
-
-            // Assert
             Assert.That(result, Is.Null);
         }
 
@@ -170,39 +146,24 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Implementation.AzureStorageEventL
         [Test]
         public void WhenMessageIsEqualToOneMb_ThenIsLongMessageReturnsTrue()
         {
-            // Arrange
             var message = GenerateTestMessage(OneMegabyte);
-
-            // Act
             var result = message.IsLongMessage(DefaultMbSize);
-
-            // Assert
             Assert.That(result, Is.True);
         }
 
         [Test]
         public void WhenMessageIsGreaterThanOneMb_ThenIsLongMessageReturnsTrue()
         {
-            // Arrange
             var message = GenerateTestMessage(SlightlyOverOneMegabyte);
-
-            // Act
             var result = message.IsLongMessage(DefaultMbSize);
-
-            // Assert
             Assert.That(result, Is.True);
         }
 
         [Test]
         public void WhenMessageIsLessThanOneMb_ThenIsLongMessageReturnsFalse()
         {
-            // Arrange
             var message = GenerateTestMessage(HalfMegabyte);
-
-            // Act
             var result = message.IsLongMessage(DefaultMbSize);
-
-            // Assert
             Assert.That(result, Is.False);
         }
 
@@ -214,15 +175,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Implementation.AzureStorageEventL
         [TestCase(false)]
         public void WhenAzureStorageLoggerIsDisabledAndMessageIsGreaterThanOneMb_ThenNeedsAzureStorageLoggingReturnsLogWarningNoStorage(bool isManagedIdentity)
         {
-            // Arrange
             var azureStorageBlobContainerBuilder = new AzureStorageBlobContainerBuilder(
                 GetAzureStorageLogProviderOptions(false, isManagedIdentity));
             var message = GenerateTestMessage(OneMegabyte);
-
-            // Act
             var result = azureStorageBlobContainerBuilder.NeedsAzureStorageLogging(message, DefaultMbSize);
-
-            // Assert
             Assert.That(result, Is.EqualTo(AzureStorageLoggingCheckResult.LogWarningNoStorage));
         }
 
@@ -230,43 +186,31 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Implementation.AzureStorageEventL
         [TestCase(false)]
         public void WhenAzureStorageLoggerIsEnabledAndMessageIsGreaterThanOneMb_ThenNeedsAzureStorageLoggingReturnsLogWarningAndStoreMessage(bool isManagedIdentity)
         {
-            // Arrange
             var azureStorageBlobContainerBuilder = new AzureStorageBlobContainerBuilder(
                 GetAzureStorageLogProviderOptions(true, isManagedIdentity));
             var message = GenerateTestMessage(OneMegabyte);
-
-            // Act
             var result = azureStorageBlobContainerBuilder.NeedsAzureStorageLogging(message, DefaultMbSize);
-
-            // Assert
             Assert.That(result, Is.EqualTo(AzureStorageLoggingCheckResult.LogWarningAndStoreMessage));
         }
 
         [Test]
         public void WhenAzureStorageLogProviderOptionsIsNullAndMessageIsGreaterThanOneMb_ThenNeedsAzureStorageLoggingReturnsLogWarningNoStorage()
         {
-            // Arrange
             var azureStorageBlobContainerBuilder = new AzureStorageBlobContainerBuilder(null);
             var message = GenerateTestMessage(OneMegabyte);
 
-            // Act
             var result = azureStorageBlobContainerBuilder.NeedsAzureStorageLogging(message, DefaultMbSize);
 
-            // Assert
             Assert.That(result, Is.EqualTo(AzureStorageLoggingCheckResult.LogWarningNoStorage));
         }
 
         [Test]
         public void WhenBuilderModelIsNullAndMessageIsGreaterThanOneMb_ThenNeedsAzureStorageLoggingReturnsLogWarningNoStorage()
         {
-            // Arrange
             AzureStorageBlobContainerBuilder azureStorageBlobContainerBuilder = null;
             var message = GenerateTestMessage(OneMegabyte);
 
-            // Act
             var result = azureStorageBlobContainerBuilder.NeedsAzureStorageLogging(message, DefaultMbSize);
-
-            // Assert
             Assert.That(result, Is.EqualTo(AzureStorageLoggingCheckResult.LogWarningNoStorage));
         }
 
@@ -274,15 +218,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Implementation.AzureStorageEventL
         [TestCase(false)]
         public void WhenMessageIsEqualToDefinedSize_ThenNeedsAzureStorageLoggingReturnsLogWarningAndStoreMessage(bool isManagedIdentity)
         {
-            // Arrange
             var azureStorageBlobContainerBuilder = new AzureStorageBlobContainerBuilder(
                 GetAzureStorageLogProviderOptions(true, isManagedIdentity));
             var message = GenerateTestMessage(OneMegabyte);
 
-            // Act
             var result = azureStorageBlobContainerBuilder.NeedsAzureStorageLogging(message, DefaultMbSize);
 
-            // Assert
             Assert.That(result, Is.EqualTo(AzureStorageLoggingCheckResult.LogWarningAndStoreMessage));
         }
 
@@ -290,15 +231,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Implementation.AzureStorageEventL
         [TestCase(false)]
         public void WhenMessageIsGreaterThanDefinedSize_ThenNeedsAzureStorageLoggingReturnsLogWarningAndStoreMessage(bool isManagedIdentity)
         {
-            // Arrange
             var azureStorageBlobContainerBuilder = new AzureStorageBlobContainerBuilder(
                 GetAzureStorageLogProviderOptions(true, isManagedIdentity));
             var message = GenerateTestMessage(SlightlyOverOneMegabyte);
 
-            // Act
             var result = azureStorageBlobContainerBuilder.NeedsAzureStorageLogging(message, DefaultMbSize);
 
-            // Assert
             Assert.That(result, Is.EqualTo(AzureStorageLoggingCheckResult.LogWarningAndStoreMessage));
         }
 
@@ -306,15 +244,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Implementation.AzureStorageEventL
         [TestCase(false)]
         public void WhenMessageIsLessThanDefinedSize_ThenNeedsAzureStorageLoggingReturnsNoLogging(bool isManagedIdentity)
         {
-            // Arrange
             var azureStorageBlobContainerBuilder = new AzureStorageBlobContainerBuilder(
                 GetAzureStorageLogProviderOptions(true, isManagedIdentity));
             var message = GenerateTestMessage(HalfMegabyte);
 
-            // Act
             var result = azureStorageBlobContainerBuilder.NeedsAzureStorageLogging(message, DefaultMbSize);
 
-            // Assert
             Assert.That(result, Is.EqualTo(AzureStorageLoggingCheckResult.NoLogging));
         }
 
@@ -322,15 +257,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Implementation.AzureStorageEventL
         [TestCase(false)]
         public void WhenStorageIsDisabledAndMessageIsLessThanDefinedSize_ThenNeedsAzureStorageLoggingReturnsNoLogging(bool isManagedIdentity)
         {
-            // Arrange
             var azureStorageBlobContainerBuilder = new AzureStorageBlobContainerBuilder(
                 GetAzureStorageLogProviderOptions(false, isManagedIdentity));
             var message = GenerateTestMessage(HalfMegabyte);
 
-            // Act
             var result = azureStorageBlobContainerBuilder.NeedsAzureStorageLogging(message, DefaultMbSize);
 
-            // Assert
             Assert.That(result, Is.EqualTo(AzureStorageLoggingCheckResult.NoLogging));
         }
 
@@ -338,15 +270,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Implementation.AzureStorageEventL
         [TestCase(false)]
         public void WhenStorageIsDisabledAndMessageIsGreaterThanDefinedSize_ThenNeedsAzureStorageLoggingReturnsLogWarningNoStorage(bool isManagedIdentity)
         {
-            // Arrange
             var azureStorageBlobContainerBuilder = new AzureStorageBlobContainerBuilder(
                 GetAzureStorageLogProviderOptions(false, isManagedIdentity));
             var message = GenerateTestMessage(SlightlyOverOneMegabyte);
 
-            // Act
             var result = azureStorageBlobContainerBuilder.NeedsAzureStorageLogging(message, DefaultMbSize);
 
-            // Assert
             Assert.That(result, Is.EqualTo(AzureStorageLoggingCheckResult.LogWarningNoStorage));
         }
 
@@ -354,15 +283,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Implementation.AzureStorageEventL
         [TestCase(false)]
         public void WhenStorageIsDisabledAndMessageIsEqualToDefinedSize_ThenNeedsAzureStorageLoggingReturnsLogWarningNoStorage(bool isManagedIdentity)
         {
-            // Arrange
             var azureStorageBlobContainerBuilder = new AzureStorageBlobContainerBuilder(
                 GetAzureStorageLogProviderOptions(false, isManagedIdentity));
             var message = GenerateTestMessage(OneMegabyte);
-
-            // Act
             var result = azureStorageBlobContainerBuilder.NeedsAzureStorageLogging(message, DefaultMbSize);
 
-            // Assert
             Assert.That(result, Is.EqualTo(AzureStorageLoggingCheckResult.LogWarningNoStorage));
         }
 
@@ -373,7 +298,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Implementation.AzureStorageEventL
         [Test]
         public void WhenLogEntryIsOverOneMb_ThenToLongMessageWarningReturnsFormattedWarningJson()
         {
-            // Arrange
             var longLogMessage = GenerateTestMessage(SlightlyOverOneMegabyte);
             var expectedMessage = $"A log over 1MB was submitted with part of the message template: {longLogMessage.Substring(0, 256)}. Please enable the Azure Storage Event Logging feature to store details of oversize logs.";
             var expectedTemplate = "A log over 1MB was submitted with a message of template: {MessageTemplate}. Please enable the Azure Storage Event Logging feature to store details of oversize logs.";
@@ -397,18 +321,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Implementation.AzureStorageEventL
                 EventId = new EventId(7000)
             };
 
-            // Act
             var warning = logEntry.ToLongMessageWarning(_jsonOptions);
             var expectedJsonString = JsonSerializer.Serialize(expectedLogEntry, _jsonOptions);
 
-            // Assert
             Assert.That(warning, Is.EqualTo(expectedJsonString));
         }
 
         [Test]
         public void WhenConvertingLogEntryToJson_ThenToJsonLogEntryStringReturnsExpectedFormat()
         {
-            // Arrange
             var requestId = Guid.NewGuid().ToString();
             var sha = Guid.NewGuid().ToString();
             var reasonPhrase = "Tested";
@@ -433,8 +354,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Implementation.AzureStorageEventL
                 EventId = new EventId(7437)
             };
 
-            var expectedTemplate =
-                "Azure Storage Logging: A blob with the error details was created at {{BlobFullName}}. Reason: ErrorMessageEqualOrGreaterTo1MB ResponseMessage: {{ReasonPhrase}} ResponseCode: {{StatusCode}} RequestId: {{RequestId}} Sha256: {{FileSHA}} FileSize(Bs): {{FileSize}} FileModifiedDate: {{ModifiedDate}}";
+            var expectedTemplate = AzureStorageLoggingSuccessTemplate;
 
             var expectedMessage =
                 $"Azure Storage Logging: A blob with the error details was created at {blobFullName}. Reason: ErrorMessageEqualOrGreaterTo1MB ResponseMessage: {reasonPhrase} ResponseCode: {statusCode} RequestId: {requestId} Sha256: {sha} FileSize(Bs): {fileSize} FileModifiedDate: {modifiedDate}";
@@ -447,19 +367,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Implementation.AzureStorageEventL
                 Timestamp = timestamp,
                 EventId = new EventId(7437)
             };
-
-            // Act
             var result = azureStorageEventLogResult.ToJsonLogEntryString(azureStorageLogProviderOptions, logEntry, _jsonOptions);
             var expectedJsonString = JsonSerializer.Serialize(expectedLogEntry, _jsonOptions);
 
-            // Assert
             Assert.That(result, Is.EqualTo(expectedJsonString));
         }
 
         [Test]
         public void WhenFormattingEventLogResult_ThenToLogMessageReturnsFormattedMessage()
         {
-            // Arrange
             var requestId = Guid.NewGuid().ToString();
             var sha = Guid.NewGuid().ToString();
             var reasonPhrase = "Tested";
@@ -474,23 +390,19 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Implementation.AzureStorageEventL
 
             var azureStorageLogProviderOptions = GetAzureStorageLogProviderOptions(true);
 
-            var template =
-                "Azure Storage Logging: A blob with the error details was created at {{BlobFullName}}. Reason: ErrorMessageEqualOrGreaterTo1MB ResponseMessage: {{ReasonPhrase}} ResponseCode: {{StatusCode}} RequestId: {{RequestId}} Sha256: {{FileSHA}} FileSize(Bs): {{FileSize}} FileModifiedDate: {{ModifiedDate}}";
+            var template = AzureStorageLoggingSuccessTemplate;
 
             var expected =
                 $"Azure Storage Logging: A blob with the error details was created at {blobFullName}. Reason: ErrorMessageEqualOrGreaterTo1MB ResponseMessage: {reasonPhrase} ResponseCode: {statusCode} RequestId: {requestId} Sha256: {sha} FileSize(Bs): {fileSize} FileModifiedDate: {modifiedDate}";
 
-            // Act
             var result = azureStorageEventLogResult.ToLogMessage(azureStorageLogProviderOptions, template);
 
-            // Assert
             Assert.That(result, Is.EqualTo(expected));
         }
 
         [Test]
         public void WhenStorageOperationFails_ThenToMessageTemplateReturnsFailedTemplate()
         {
-            // Arrange
             var options = GetAzureStorageLogProviderOptions(true);
             var requestId = Guid.NewGuid().ToString();
             var sha = Guid.NewGuid().ToString();
@@ -517,7 +429,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Implementation.AzureStorageEventL
         [Test]
         public void WhenStorageOperationSucceeds_ThenToMessageTemplateReturnsSuccessTemplate()
         {
-            // Arrange
             var options = GetAzureStorageLogProviderOptions(true);
             var requestId = Guid.NewGuid().ToString();
             var sha = Guid.NewGuid().ToString();
@@ -531,13 +442,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Implementation.AzureStorageEventL
             var azureStorageEventLogResult = CreateAzureStorageEventLogResult(
                 reasonPhrase, statusCode, requestId, sha, isStored, blobFullName, fileSize, modifiedDate);
 
-            var expected =
-                "Azure Storage Logging: A blob with the error details was created at {{BlobFullName}}. Reason: ErrorMessageEqualOrGreaterTo1MB ResponseMessage: {{ReasonPhrase}} ResponseCode: {{StatusCode}} RequestId: {{RequestId}} Sha256: {{FileSHA}} FileSize(Bs): {{FileSize}} FileModifiedDate: {{ModifiedDate}}";
+            var expected = AzureStorageLoggingSuccessTemplate;
 
-            // Act
             var result = azureStorageEventLogResult.ToMessageTemplate(options);
 
-            // Assert
             Assert.That(result, Is.EqualTo(expected));
         }
 

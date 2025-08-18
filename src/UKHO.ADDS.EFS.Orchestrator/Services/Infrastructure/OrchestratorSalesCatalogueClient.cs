@@ -1,9 +1,13 @@
 ﻿using System.Net;
-using UKHO.ADDS.Clients.SalesCatalogueService;
+using Microsoft.Kiota.Abstractions;
+using Microsoft.Kiota.Http.HttpClientLibrary.Middleware.Options;
+using UKHO.ADDS.Clients.Kiota.SalesCatalogueService;
+using UKHO.ADDS.Clients.Kiota.SalesCatalogueService.Models;
 using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Jobs;
 using UKHO.ADDS.EFS.RetryPolicy;
+using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
 {
@@ -12,17 +16,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
     /// </summary>
     internal class OrchestratorSalesCatalogueClient : IOrchestratorSalesCatalogueClient
     {
-        private const string ScsApiVersion = "v2";
-        private const string ProductType = "s100";
         private readonly ILogger<OrchestratorSalesCatalogueClient> _logger;
-        private readonly ISalesCatalogueClient _salesCatalogueClient;
+        private readonly KiotaSalesCatalogueService _salesCatalogueClient;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="OrchestratorSalesCatalogueClient" /> class.
         /// </summary>
         /// <param name="salesCatalogueClient">Client for interacting with the Sales Catalogue API.</param>
         /// <param name="logger">Logger for recording diagnostic information.</param>
-        public OrchestratorSalesCatalogueClient(ISalesCatalogueClient salesCatalogueClient, ILogger<OrchestratorSalesCatalogueClient> logger)
+        public OrchestratorSalesCatalogueClient(KiotaSalesCatalogueService salesCatalogueClient, ILogger<OrchestratorSalesCatalogueClient> logger)
         {
             _salesCatalogueClient = salesCatalogueClient ?? throw new ArgumentNullException(nameof(salesCatalogueClient));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -45,36 +47,74 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
         /// </remarks>
         public async Task<(S100SalesCatalogueResponse s100SalesCatalogueData, DateTime? LastModified)> GetS100ProductsFromSpecificDateAsync(DateTime? sinceDateTime, Job job)
         {
-            var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<S100SalesCatalogueResponse>(_logger, nameof(GetS100ProductsFromSpecificDateAsync));
-            var s100SalesCatalogueResult = await retryPolicy.ExecuteAsync(() =>
-                _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(ScsApiVersion, ProductType, sinceDateTime, job.GetCorrelationId()));
-
-            // Check if the API call was successful
-            if (s100SalesCatalogueResult.IsSuccess(out var s100SalesCatalogueData, out var error))
+            var headersOption = new HeadersInspectionHandlerOption { InspectResponseHeaders = true };
+            try
             {
-                // Process the response based on the HTTP status code
-                switch (s100SalesCatalogueData.ResponseCode)
+                var headerDateString = sinceDateTime?.ToString("R");
+                var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<List<S100BasicCatalogue>?>(_logger, nameof(GetS100ProductsFromSpecificDateAsync));
+                var s100BasicCatalogueResult = await retryPolicy.ExecuteAsync(async () =>
                 {
-                    case HttpStatusCode.OK:
-                        // Return the response data with the last modified timestamp from the API
-                        return (s100SalesCatalogueData, s100SalesCatalogueData.LastModified);
+                    var result = await _salesCatalogueClient.V2.Catalogues.S100.Basic.GetAsync(config =>
+                  {
+                      config.Headers.Add("If-Modified-Since", headerDateString!);
+                      config.Headers.Add("X-Correlation-Id", job.GetCorrelationId());
+                      config.Options.Add(headersOption);
+                  });
+                    return Result.Success(result);
+                });
 
-                    case HttpStatusCode.NotModified:
-                        // No changes since the provided timestamp, return the response data with the last modified timestamp from the API
-                        return (s100SalesCatalogueData, s100SalesCatalogueData.LastModified);
+                var lastModified = headersOption.ResponseHeaders.TryGetValue("Last-Modified", out var values)
+                    ? values.FirstOrDefault()
+                    : null;
 
+                DateTime.TryParse(lastModified, out var lastModifiedActual);
+
+                if (s100BasicCatalogueResult.IsSuccess(out var catalogueList) && catalogueList != null)
+                {
+                    var response = new S100SalesCatalogueResponse
+                    {
+                        ResponseBody = [.. catalogueList.Select(x =>
+                        {
+                            S100ProductStatus? parsedStatus = null;
+
+                            if (x.Status?.StatusDate != null)
+                            {
+                                parsedStatus = new S100ProductStatus() { StatusDate = x.Status.StatusDate.Value.DateTime, StatusName = x.Status.StatusName.ToString() };
+                            }
+                            return new S100Products
+                            {
+                                ProductName = x.ProductName,
+                                LatestEditionNumber = x.LatestEditionNumber,
+                                LatestUpdateNumber = x.LatestUpdateNumber,
+                                Status = parsedStatus
+                            };
+                        })],
+                        LastModified = lastModifiedActual,
+                        ResponseCode = HttpStatusCode.OK
+                    };
+                    return (response, response.LastModified);
+                }
+
+                _logger.LogSalesCatalogueApiError(SalesCatalogApiErrorLogView.Create(job));
+
+                return (new S100SalesCatalogueResponse(), sinceDateTime);
+            }
+
+            catch (ApiException apiException)
+            {
+                switch (apiException.ResponseStatusCode)
+                {
+
+                    case (int)HttpStatusCode.NotModified:
+                        var lastModified = headersOption.ResponseHeaders.TryGetValue("Last-Modified", out var values)
+                            ? values.FirstOrDefault()
+                            : null;
+                        return (new S100SalesCatalogueResponse() { ResponseCode = HttpStatusCode.NotModified }, DateTime.Parse(lastModified!));
                     default:
-                        // Unexpected status code, log a warning and return an empty response
-                        _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, s100SalesCatalogueData.ResponseCode));
+                        _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, (HttpStatusCode)apiException.ResponseStatusCode));
                         return (new S100SalesCatalogueResponse(), sinceDateTime);
                 }
             }
-
-            // API call failed, log the error 
-            _logger.LogSalesCatalogueApiError(error, SalesCatalogApiErrorLogView.Create(job));
-
-            // Return an empty response with the original timestamp in case of failure
-            return (new S100SalesCatalogueResponse(), sinceDateTime);
         }
 
         /// <summary>
@@ -92,29 +132,67 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
         /// </remarks>
         public async Task<S100ProductNamesResponse> GetS100ProductNamesAsync(IEnumerable<string> productNames, Job job, CancellationToken cancellationToken)
         {
-            var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<S100ProductNamesResponse>(_logger, nameof(GetS100ProductNamesAsync));
-            var s100SalesCatalogueResult = await retryPolicy.ExecuteAsync(() =>
-                _salesCatalogueClient.GetS100ProductNamesAsync(ScsApiVersion, ProductType, productNames, job.GetCorrelationId(), cancellationToken));
-
-            // Check if the API call was successful
-            if (s100SalesCatalogueResult.IsSuccess(out var s100SalesCatalogueData, out var error))
+            try
             {
-                switch (s100SalesCatalogueData.ResponseCode)
+                var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<S100ProductResponse?>(_logger, nameof(GetS100ProductNamesAsync));
+                var S100ProductNamesResult = await retryPolicy.ExecuteAsync(async () =>
                 {
-                    case HttpStatusCode.OK:
-                        return s100SalesCatalogueData;
-                    default:
-                        // Unexpected status code, log a warning and return an empty response
-                        _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, s100SalesCatalogueData.ResponseCode));
-                        return new S100ProductNamesResponse();
+                    var result = await _salesCatalogueClient.V2.Products.S100.ProductNames.PostAsync(productNames.ToList(), requestConfiguration =>
+                {
+                    requestConfiguration.Headers.Add("X-Correlation-Id", job.GetCorrelationId());
+
+                }, cancellationToken);
+                    return Result.Success(result);
+                });
+
+                if (S100ProductNamesResult.IsSuccess(out var response) && response != null)
+                {
+                    return new S100ProductNamesResponse
+                    {
+                        Products = response.Products?.Select(x => new S100ProductNames
+                        {
+                            ProductName = x.ProductName ?? string.Empty,
+                            EditionNumber = x.EditionNumber ?? 0,
+                            UpdateNumbers = x.UpdateNumbers != null ? x.UpdateNumbers.Where(i => i.HasValue).Select(i => i.Value).ToList() : new List<int>(),
+                            Dates = x.Dates?.Select(d => new S100ProductDate
+                            {
+                                IssueDate = d.IssueDate.HasValue ? d.IssueDate.Value.DateTime : default,
+                                UpdateApplicationDate = d.UpdateApplicationDate.HasValue ? d.UpdateApplicationDate.Value.DateTime : default,
+                                UpdateNumber = d.UpdateNumber ?? 0
+                            }).ToList() ?? new List<S100ProductDate>(),
+                            FileSize = x.FileSize ?? 0,
+                            Cancellation = x.Cancellation is null
+                                    ? null
+                                    : new S100ProductCancellation
+                                    {
+                                        EditionNumber = x.Cancellation?.EditionNumber ?? 0,
+                                        UpdateNumber = x.Cancellation?.UpdateNumber ?? 0
+                                    }
+
+                        }).ToList() ?? new List<S100ProductNames>(),
+                        ProductCounts = response?.ProductCounts is null ? null : new UKHO.ADDS.Clients.SalesCatalogueService.Models.ProductCounts
+                        {
+                            RequestedProductCount = response.ProductCounts.RequestedProductCount,
+                            ReturnedProductCount = response.ProductCounts.ReturnedProductCount,
+                            RequestedProductsAlreadyUpToDateCount = response.ProductCounts.RequestedProductsAlreadyUpToDateCount,
+                            RequestedProductsNotReturned = response.ProductCounts.RequestedProductsNotReturned?.Select(r => new RequestedProductsNotReturned
+                            {
+                                ProductName = r.ProductName ?? string.Empty,
+                                Reason = r.Reason?.ToString() ?? string.Empty
+                            }).ToList() ?? new List<RequestedProductsNotReturned>()
+                        },
+                        ResponseCode = HttpStatusCode.OK
+                    };
                 }
+                _logger.LogSalesCatalogueApiError(SalesCatalogApiErrorLogView.Create(job));
+                return new S100ProductNamesResponse();
             }
-
-            // API call failed, log the error
-            _logger.LogSalesCatalogueApiError(error, SalesCatalogApiErrorLogView.Create(job));
-
-            // Return an empty response with the original timestamp in case of failure
-            return new S100ProductNamesResponse();
+            catch (ApiException apiException)
+            {
+                _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, (HttpStatusCode)apiException.ResponseStatusCode));
+                return new S100ProductNamesResponse();
+            }
         }
+
     }
 }
