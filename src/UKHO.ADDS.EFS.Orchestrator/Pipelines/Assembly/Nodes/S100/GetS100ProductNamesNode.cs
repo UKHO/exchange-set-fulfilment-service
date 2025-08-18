@@ -29,8 +29,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
         {
-            _logger.LogSalesCatalogueProductsNotReturned(new SalesCatalogServiceProductsNotReturnedView());
-
             var job = context.Subject.Job;
             var build = context.Subject.Build;
 

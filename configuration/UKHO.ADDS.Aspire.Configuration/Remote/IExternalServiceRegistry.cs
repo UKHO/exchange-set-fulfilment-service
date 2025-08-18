@@ -2,6 +2,6 @@
 {
     public interface IExternalServiceRegistry
     {
-        Task<IExternalEndpoint> GetServiceEndpointAsync(string serviceName, string tag = "", EndpointHostSubstitution host = EndpointHostSubstitution.None);
+        IExternalEndpoint GetServiceEndpoint(string serviceName, string tag = "", EndpointHostSubstitution host = EndpointHostSubstitution.None);
     }
 }

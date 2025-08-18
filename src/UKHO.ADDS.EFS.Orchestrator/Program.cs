@@ -47,10 +47,6 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     var eventHubName = Environment.GetEnvironmentVariable("EVENTHUB_NAME");
 
                     builder.Services.AddSerilog((services, lc) => ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint)
-                        .Enrich.WithProperty("_Environment", builder.Environment.EnvironmentName)
-                        .Enrich.WithProperty("_System", ServiceConfiguration.ServiceName)
-                        .Enrich.WithProperty("_Service", ServiceConfiguration.ServiceName)
-                        .Enrich.WithProperty("_NodeName", ServiceConfiguration.NodeName)
                         .WriteTo.EventHub(options =>
                         {
                             options.Environment = builder.Environment.EnvironmentName;

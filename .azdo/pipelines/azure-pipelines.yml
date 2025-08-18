@@ -29,20 +29,8 @@ parameters:
     displayName: "Deploy Redis"
     type: boolean
     default: true
-  - name: DestroyResourcesDev
-    displayName: "Destroy dev environment"
-    type: boolean
-    default: false
-  - name: DestroyResourcesVnextIat
-    displayName: "Destroy VnextIat environment"
-    type: boolean
-    default: false
-  - name: DestroyResourcesVnextE2E
-    displayName: "Destroy VnextE2e environment"
-    type: boolean
-    default: false
-  - name: DestroyResourcesIAT
-    displayName: "Destroy IAT environment"
+  - name: WaitForContainersAfterDeploy
+    displayName: "Wait for containers after deployment (temporary option)"
     type: boolean
     default: false
   - name: AdditionalDebugging
@@ -171,12 +159,13 @@ stages:
       parameters:
         AzureDevOpsEnvironment: Ess-Dev
         ShortName: dev
-        DestroyResources: ${{ parameters.DestroyResourcesDev }}
         AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
         DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
         DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
         DeployAddsMock: ${{ parameters.DeployAddsMock }}
+        IncludeAddsMock: true
         DeployRedis: ${{ parameters.DeployRedis }}
+        WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
 
   - stage: vnextiatDeploy
     dependsOn:
@@ -188,12 +177,13 @@ stages:
       parameters:
         AzureDevOpsEnvironment: Ess-vnextiat
         ShortName: vnextiat
-        DestroyResources: ${{ parameters.DestroyResourcesVnextIat }}
         AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
         DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
         DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
-        DeployAddsMock: false
+        DeployAddsMock: ${{ parameters.DeployAddsMock }}
+        IncludeAddsMock: false
         DeployRedis: ${{ parameters.DeployRedis }}
+        WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
 
   - stage: vnexte2eDeploy
     dependsOn:
@@ -205,12 +195,13 @@ stages:
       parameters:
         AzureDevOpsEnvironment: Ess-vnexte2e
         ShortName: vnexte2e
-        DestroyResources: ${{ parameters.DestroyResourcesVnextE2E }}
         AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
         DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
         DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
-        DeployAddsMock: false
+        DeployAddsMock: ${{ parameters.DeployAddsMock }}
+        IncludeAddsMock: false
         DeployRedis: ${{ parameters.DeployRedis }}
+        WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
 
   - stage: iatDeploy
     dependsOn:
@@ -222,9 +213,10 @@ stages:
       parameters:
         AzureDevOpsEnvironment: Ess-iat
         ShortName: iat
-        DestroyResources: ${{ parameters.DestroyResourcesIAT }}
         AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
         DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
         DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
-        DeployAddsMock: false
+        DeployAddsMock: ${{ parameters.DeployAddsMock }}
+        IncludeAddsMock: false
         DeployRedis: ${{ parameters.DeployRedis }}
+        WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}

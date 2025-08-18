@@ -6,6 +6,8 @@
 
         public const string FileShareHealthEndpoint = "FSS_ENDPOINT_HEALTH";
 
+        public const string FileShareClientId = "FSS_CLIENT_ID";
+
         public const string RequestQueueName = "REQUEST_QUEUE_NAME";
 
         public const string ResponseQueueName = "RESPONSE_QUEUE_NAME";
