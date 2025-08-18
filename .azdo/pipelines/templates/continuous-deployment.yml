@@ -17,8 +17,16 @@ parameters:
 - name: DeployAddsMock
   type: boolean
   default: false
+# Include the ADDS mock container app in the deployment.
+- name: IncludeAddsMock
+  type: boolean
+  default: false
 # Deploy the Redis container app.
 - name: DeployRedis
+  type: boolean
+  default: false
+# Only check containers are activated if set to true.
+- name: WaitForContainersAfterDeploy
   type: boolean
   default: false
 # If true, additional debugging will be enabled.
@@ -206,12 +214,14 @@ jobs:
             AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
             DeployApp: ${{ parameters.DeployRedis }}
 
-        - template: container-app-deploy.yml
-          parameters:
-            AzureSubscription: ${{ variables.AzureSubscription }}
-            AppName: adds-mocks-efs
-            AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
-            DeployApp: ${{ parameters.DeployAddsMock }}
+        - ${{ if eq(parameters.IncludeAddsMock, true) }}:
+
+          - template: container-app-deploy.yml
+            parameters:
+              AzureSubscription: ${{ variables.AzureSubscription }}
+              AppName: adds-mocks-efs
+              AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+              DeployApp: ${{ parameters.DeployAddsMock }}
 
         - template: container-app-deploy.yml
           parameters:
@@ -228,3 +238,25 @@ jobs:
             BuilderType: S100
             AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
             DeployApp: ${{ parameters.DeployBuilderS100 }}
+
+        - ${{ if eq(parameters.WaitForContainersAfterDeploy, true) }}:
+
+          - template: check-container.yml
+            parameters:
+              AzureSubscription: ${{ variables.AzureSubscription }}
+              AppName: efs-orchestrator
+              MaxWaitTime: 1
+
+          - ${{ if eq(parameters.IncludeAddsMock, true) }}:
+
+            - template: check-container.yml
+              parameters:
+                AzureSubscription: ${{ variables.AzureSubscription }}
+                AppName: adds-mocks-efs
+                MaxWaitTime: 1
+
+          - template: check-container.yml
+            parameters:
+              AzureSubscription: ${{ variables.AzureSubscription }}
+              AppName: efs-redis
+              MaxWaitTime: 1
