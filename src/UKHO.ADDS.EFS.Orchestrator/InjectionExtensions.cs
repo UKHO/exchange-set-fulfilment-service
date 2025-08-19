@@ -127,6 +127,22 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 return factory.CreateClient(fssEndpoint.Uri!.ToString(), tokenProvider);
             });
 
+            // Register token provider for SalesCatalogueService health checks
+            builder.Services.AddSingleton<IAuthenticationTokenProvider>(sp =>
+            {
+                var registry = sp.GetRequiredService<IExternalServiceRegistry>();
+                var scsEndpoint = registry.GetServiceEndpoint(ProcessNames.SalesCatalogueService);
+
+                if (addsEnvironment.IsLocal() || addsEnvironment.IsDev())
+                {
+                    return new AnonymousAuthenticationTokenProvider();
+                }
+                else
+                {
+                    return new TokenCredentialAuthenticationTokenProvider(new ManagedIdentityCredential(), [scsEndpoint.GetDefaultScope()]);
+                }
+            });
+
             builder.Services.AddSingleton<IOrchestratorSalesCatalogueClient, OrchestratorSalesCatalogueClient>();
             builder.Services.AddSingleton<IOrchestratorFileShareClient, OrchestratorFileShareClient>();
 
