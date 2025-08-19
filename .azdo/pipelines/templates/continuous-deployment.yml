@@ -264,6 +264,7 @@ jobs:
 
         - task: AzureCLI@2
           displayName: 'Set Orchestrator Endpoint Variable'
+          condition: always()
           inputs:
             azureSubscription: ${{ variables.AzureSubscription }}
             scriptType: bash
@@ -296,6 +297,7 @@ jobs:
              
         - task: PowerShell@2
           displayName: "healthcheck_validation"
+          condition: always()
           inputs:
             targetType: filePath
             filePath: "$(Build.SourcesDirectory)/efs/.azdo/pipelines/powershell/CheckServiceStatus.ps1"
