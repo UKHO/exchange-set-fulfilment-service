@@ -1,8 +1,5 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using System.Net.Http.Headers;
 using UKHO.ADDS.Aspire.Configuration.Remote;
-using UKHO.ADDS.Clients.Common.Authentication;
-using UKHO.ADDS.Clients.Common.Constants;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 
@@ -16,7 +13,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.HealthChecks
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IExternalServiceRegistry _externalServiceRegistry;
         private readonly ILogger<FileShareServiceHealthCheck> _logger;
-        private readonly IAuthenticationTokenProvider _authenticationTokenProvider;
         private const string ServiceName = "File Share Service";
 
         /// <summary>
@@ -25,17 +21,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.HealthChecks
         /// <param name="httpClientFactory">HTTP client factory for creating HTTP clients.</param>
         /// <param name="externalServiceRegistry">Registry for retrieving service endpoint information.</param>
         /// <param name="logger">Logger for recording diagnostic information.</param>
-        /// <param name="authenticationTokenProvider">Provider for authentication tokens when making HTTP requests.</param>
         public FileShareServiceHealthCheck(
             IHttpClientFactory httpClientFactory,
             IExternalServiceRegistry externalServiceRegistry,
-            ILogger<FileShareServiceHealthCheck> logger,
-            IAuthenticationTokenProvider authenticationTokenProvider)
+            ILogger<FileShareServiceHealthCheck> logger)
         {
             _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
             _externalServiceRegistry = externalServiceRegistry ?? throw new ArgumentNullException(nameof(externalServiceRegistry));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _authenticationTokenProvider = authenticationTokenProvider ?? throw new ArgumentNullException(nameof(authenticationTokenProvider));
         }
 
         /// <summary>
@@ -51,13 +44,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.HealthChecks
                 var endpoint = _externalServiceRegistry.GetServiceEndpoint(ProcessNames.FileShareService);
                 var healthEndpointUri = $"{endpoint.Uri!}health";
                 var httpClient = _httpClientFactory.CreateClient();
-                
-                // Set authentication token in the request headers
-                var token = await _authenticationTokenProvider.GetTokenAsync();
-                if (!string.IsNullOrEmpty(token))
-                {
-                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(ApiHeaderKeys.BearerTokenHeaderKey, token);
-                }
                 
                 using var response = await httpClient.GetAsync(healthEndpointUri, cancellationToken);
                 

@@ -127,7 +127,6 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 return factory.CreateClient(fssEndpoint.Uri!.ToString(), tokenProvider);
             });
 
-            // Register token providers for health checks
             // Register token provider for SalesCatalogueService health check
             builder.Services.AddSingleton<IAuthenticationTokenProvider>(sp =>
             {
@@ -141,22 +140,6 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 else
                 {
                     return new TokenCredentialAuthenticationTokenProvider(new ManagedIdentityCredential(), [scsEndpoint.GetDefaultScope()]);
-                }
-            });
-
-            // Register token provider for FileShareService health check specifically
-            builder.Services.AddSingleton<IAuthenticationTokenProvider>(sp =>
-            {
-                var registry = sp.GetRequiredService<IExternalServiceRegistry>();
-                var fssEndpoint = registry.GetServiceEndpoint(ProcessNames.FileShareService);
-
-                if (addsEnvironment.IsLocal() || addsEnvironment.IsDev())
-                {
-                    return new AnonymousAuthenticationTokenProvider();
-                }
-                else
-                {
-                    return new TokenCredentialAuthenticationTokenProvider(new ManagedIdentityCredential(), [fssEndpoint.GetDefaultScope()]);
                 }
             });
 
