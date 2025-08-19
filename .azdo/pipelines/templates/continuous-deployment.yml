@@ -239,6 +239,29 @@ jobs:
             AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
             DeployApp: ${{ parameters.DeployBuilderS100 }}
 
+        - ${{ if eq(parameters.WaitForContainersAfterDeploy, true) }}:
+
+          - template: check-container.yml
+            parameters:
+              AzureSubscription: ${{ variables.AzureSubscription }}
+              AppName: efs-orchestrator
+              MaxWaitTime: 1
+
+          - ${{ if eq(parameters.IncludeAddsMock, true) }}:
+
+            - template: check-container.yml
+              parameters:
+                AzureSubscription: ${{ variables.AzureSubscription }}
+                AppName: adds-mocks-efs
+                MaxWaitTime: 1
+
+          - template: check-container.yml
+            parameters:
+              AzureSubscription: ${{ variables.AzureSubscription }}
+              AppName: efs-redis
+              MaxWaitTime: 1
+
+
         - task: AzureCLI@2
           displayName: 'Set Orchestrator Endpoint Variable'
           inputs:
