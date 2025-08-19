@@ -51,13 +51,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
                 };
 
                 logger.LogStartupConfiguration(configurationLogView);
-
+                Log.Information("Mark as completed"); //rhz:
                 return NodeResultStatus.Succeeded;
             }
             catch (Exception ex)
             {
 #pragma warning disable LOG001
-                Log.Fatal(ex, $"An unhandled exception occurred during execution (s100) : {ex.Message}");  //rhz: (s100)
+                Log.Fatal(ex, $"An unhandled exception occurred during execution (s100-rhz) : {ex.Message}");  //rhz: (s100-rhz)
 #pragma warning restore LOG001
 
                 return NodeResultStatus.Failed;
