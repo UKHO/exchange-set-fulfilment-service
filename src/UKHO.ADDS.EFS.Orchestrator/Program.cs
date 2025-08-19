@@ -39,36 +39,48 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                 if (builder.Environment.IsDevelopment())
                 {
-                    builder.Services.AddSerilog((services, lc) => ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint));
+                    builder.Services.AddSerilog((services, lc) => 
+                        ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint)
+                            .Enrich.WithProperty("Environment", builder.Environment.EnvironmentName)
+                            .Enrich.WithProperty("System", ServiceConfiguration.ServiceName)
+                            .Enrich.WithProperty("Service", ServiceConfiguration.ServiceName)
+                            .Enrich.WithProperty("NodeName", ServiceConfiguration.NodeName)
+                    );
                 }
                 else
                 {
                     var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__efs-events-namespace");
                     var eventHubName = Environment.GetEnvironmentVariable("EVENTHUB_NAME");
 
-                    builder.Services.AddSerilog((services, lc) => ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint)
-                        .WriteTo.EventHub(options =>
-                        {
-                            options.Environment = builder.Environment.EnvironmentName;
-                            options.System = ServiceConfiguration.ServiceName;
-                            options.Service = ServiceConfiguration.ServiceName;
-                            options.NodeName = ServiceConfiguration.NodeName;
-                            options.EventHubConnectionString = connectionString;
-                            options.EventHubEntityPath = eventHubName;
-                            options.TokenCredential = new DefaultAzureCredential();
-                            options.AdditionalValuesProvider = additionalValues =>
+                    builder.Services.AddSerilog((services, lc) =>
+                        ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint)
+                            .Enrich.WithProperty("Environment", builder.Environment.EnvironmentName)
+                            .Enrich.WithProperty("System", ServiceConfiguration.ServiceName)
+                            .Enrich.WithProperty("Service", ServiceConfiguration.ServiceName)
+                            .Enrich.WithProperty("NodeName", ServiceConfiguration.NodeName)
+                            .WriteTo.EventHub(options =>
                             {
-                                var httpContext = services.GetRequiredService<IHttpContextAccessor>().HttpContext;
-                                if (httpContext != null)
+                                options.Environment = builder.Environment.EnvironmentName;
+                                options.System = ServiceConfiguration.ServiceName;
+                                options.Service = ServiceConfiguration.ServiceName;
+                                options.NodeName = ServiceConfiguration.NodeName;
+                                options.EventHubConnectionString = connectionString;
+                                options.EventHubEntityPath = eventHubName;
+                                options.TokenCredential = new DefaultAzureCredential();
+                                options.AdditionalValuesProvider = additionalValues =>
                                 {
-                                    additionalValues["_RemoteIPAddress"] = httpContext.Connection.RemoteIpAddress!.ToString();
-                                    additionalValues["_User-Agent"] = httpContext.Request.Headers.UserAgent.FirstOrDefault() ?? string.Empty;
-                                    additionalValues["_AssemblyVersion"] = Assembly.GetExecutingAssembly().GetCustomAttributes<AssemblyFileVersionAttribute>().Single().Version;
-                                    additionalValues["_X-Correlation-ID"] =
-                                        httpContext.Request.Headers?[ApiHeaderKeys.XCorrelationIdHeaderKey].FirstOrDefault() ?? string.Empty;
-                                }
-                            };
-                        }));
+                                    var httpContext = services.GetRequiredService<IHttpContextAccessor>().HttpContext;
+                                    if (httpContext != null)
+                                    {
+                                        additionalValues["_RemoteIPAddress"] = httpContext.Connection.RemoteIpAddress!.ToString();
+                                        additionalValues["_User-Agent"] = httpContext.Request.Headers.UserAgent.FirstOrDefault() ?? string.Empty;
+                                        additionalValues["_AssemblyVersion"] = Assembly.GetExecutingAssembly().GetCustomAttributes<AssemblyFileVersionAttribute>().Single().Version;
+                                        additionalValues["_X-Correlation-ID"] =
+                                            httpContext.Request.Headers?[ApiHeaderKeys.XCorrelationIdHeaderKey].FirstOrDefault() ?? string.Empty;
+                                    }
+                                };
+                            })
+                    );
                 }
 
                 builder.AddConfiguration(ServiceConfiguration.ServiceName, ProcessNames.ConfigurationService);
