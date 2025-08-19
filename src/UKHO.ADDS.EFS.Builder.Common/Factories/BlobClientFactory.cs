@@ -16,7 +16,7 @@ namespace UKHO.ADDS.EFS.Builder.Common.Factories
             var environment = configuration[BuilderEnvironmentVariables.AddsEnvironment]!;
             var blobEndpoint = configuration[BuilderEnvironmentVariables.BlobEndpoint]!;
             var blobContainerName = configuration[BuilderEnvironmentVariables.BlobContainerName]!;
-            var blobUri = new Uri($"{blobEndpoint}/{blobContainerName}/{blobName}");
+            var blobUri = blobEndpoint.EndsWith('/') ? new Uri($"{blobEndpoint}{blobContainerName}/{blobName}") : new Uri($"{blobEndpoint}/{blobContainerName}/{blobName}");
 
             switch (environment)
             {

@@ -27,7 +27,7 @@ namespace UKHO.ADDS.EFS.Builder.Common.Factories
         {
             var environment = configuration[BuilderEnvironmentVariables.AddsEnvironment]!;
             var queueEndpoint = configuration[BuilderEnvironmentVariables.QueueEndpoint]!;
-            var queueUri = new Uri($"{queueEndpoint}/{queueName}");
+            var queueUri = queueEndpoint.EndsWith('/') ? new Uri($"{queueEndpoint}{queueName}") : new Uri($"{queueEndpoint}/{queueName}");
 
             switch (environment)
             {
