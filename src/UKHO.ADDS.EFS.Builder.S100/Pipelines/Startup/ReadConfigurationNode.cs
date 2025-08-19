@@ -51,7 +51,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
                 };
 
                 logger.LogStartupConfiguration(configurationLogView);
-                Log.Information("Mark as completed"); //rhz:
+               
                 return NodeResultStatus.Succeeded;
             }
             catch (Exception ex)
