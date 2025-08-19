@@ -1,9 +1,6 @@
-using System.Text;
-using System.Text.Json;
 using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
@@ -108,69 +105,14 @@ namespace Microsoft.Extensions.Hosting
             // Note: Previously this was restricted to development environments only
             
             // All health checks must pass for app to be considered ready to accept traffic after starting
-            app.MapHealthChecks("/health", new HealthCheckOptions
-            {
-                ResponseWriter = WriteHealthCheckResponse
-            });
+            app.MapHealthChecks("/health");
 
             // Only health checks tagged with the "live" tag must pass for app to be considered alive
-            app.MapHealthChecks("/alive", new HealthCheckOptions { Predicate = r => r.Tags.Contains("live"),
-                ResponseWriter = WriteHealthCheckResponse
+            app.MapHealthChecks("/alive", new HealthCheckOptions { 
+                Predicate = r => r.Tags.Contains("live")
             });
             
             return app;
-        }
-
-        private static Task WriteHealthCheckResponse(HttpContext context, HealthReport report)
-        {
-            context.Response.ContentType = "application/json; charset=utf-8";
-
-            var options = new JsonWriterOptions { Indented = true };
-
-            using var memoryStream = new MemoryStream();
-            using (var jsonWriter = new Utf8JsonWriter(memoryStream, options))
-            {
-                jsonWriter.WriteStartObject();
-                jsonWriter.WriteString("status", report.Status.ToString());
-                jsonWriter.WriteNumber("totalDuration", report.TotalDuration.TotalMilliseconds);
-
-                jsonWriter.WriteStartObject("results");
-
-                foreach (var healthCheck in report.Entries)
-                {
-                    jsonWriter.WriteStartObject(healthCheck.Key);
-
-                    jsonWriter.WriteString("status", healthCheck.Value.Status.ToString());
-                    jsonWriter.WriteNumber("duration", healthCheck.Value.Duration.TotalMilliseconds);
-
-                    if (healthCheck.Value.Exception != null)
-                    {
-                        jsonWriter.WriteStartObject("error");
-                        jsonWriter.WriteString("message", healthCheck.Value.Exception.Message);
-                        jsonWriter.WriteString("stackTrace", healthCheck.Value.Exception.StackTrace);
-                        jsonWriter.WriteEndObject();
-                    }
-
-                    if (healthCheck.Value.Data.Count > 0)
-                    {
-                        jsonWriter.WriteStartObject("data");
-                        foreach (var item in healthCheck.Value.Data)
-                        {
-                            jsonWriter.WritePropertyName(item.Key);
-                            JsonSerializer.Serialize(jsonWriter, item.Value);
-                        }
-                        jsonWriter.WriteEndObject();
-                    }
-
-                    jsonWriter.WriteEndObject();
-                }
-
-                jsonWriter.WriteEndObject();
-                jsonWriter.WriteEndObject();
-            }
-
-            return context.Response.WriteAsync(
-                Encoding.UTF8.GetString(memoryStream.ToArray()));
         }
     }
 }
