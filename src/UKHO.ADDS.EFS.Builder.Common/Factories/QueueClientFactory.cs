@@ -33,7 +33,6 @@ namespace UKHO.ADDS.EFS.Builder.Common.Factories
             {
                 case "local":
                     return new QueueClient(queueUri, new StorageSharedKeyCredential(AzuriteAccountName, AzuriteKey));
-
                 default:
                     var clientId = configuration[BuilderEnvironmentVariables.AzureClientId]!;
                     var credential = new ManagedIdentityCredential(clientId);
