@@ -35,8 +35,10 @@ namespace UKHO.ADDS.EFS.Builder.Common.Factories
                     return new QueueClient(queueUri, new StorageSharedKeyCredential(AzuriteAccountName, AzuriteKey));
 
                 default:
-                    var clientId = configuration[BuilderEnvironmentVariables.AzureClientId]!;
-                    return new QueueClient(queueUri, new ManagedIdentityCredential(ManagedIdentityId.FromUserAssignedClientId(clientId)));
+                    //var clientId = configuration[BuilderEnvironmentVariables.AzureClientId]!;
+                    //var credential = new ManagedIdentityCredential(ManagedIdentityId.FromUserAssignedClientId(clientId));
+                    var credential = new DefaultAzureCredential();
+                    return new QueueClient(queueUri, credential);
             }
         }
     }

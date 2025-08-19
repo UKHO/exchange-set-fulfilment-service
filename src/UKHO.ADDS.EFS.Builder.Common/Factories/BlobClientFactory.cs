@@ -23,8 +23,10 @@ namespace UKHO.ADDS.EFS.Builder.Common.Factories
                 case "local":
                     return new BlobClient(blobUri, new StorageSharedKeyCredential(AzuriteAccountName, AzuriteKey));
                 default:
-                    var clientId = configuration[BuilderEnvironmentVariables.AzureClientId]!;
-                    return new BlobClient(blobUri, new ManagedIdentityCredential(ManagedIdentityId.FromUserAssignedClientId(clientId)));
+                    //var clientId = configuration[BuilderEnvironmentVariables.AzureClientId]!;
+                    //var credential = new ManagedIdentityCredential(ManagedIdentityId.FromUserAssignedClientId(clientId));
+                    var credential = new DefaultAzureCredential();
+                    return new BlobClient(blobUri, credential);
             }
         }
     }
