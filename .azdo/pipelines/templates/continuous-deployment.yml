@@ -261,7 +261,6 @@ jobs:
               AppName: efs-redis
               MaxWaitTime: 1
 
-
         - task: AzureCLI@2
           displayName: 'Set Orchestrator Endpoint Variable'
           condition: always()
@@ -284,17 +283,6 @@ jobs:
               echo "Orchestrator Endpoint: $URL"
               echo "##vso[task.setvariable variable=ORCHESTRATOR_URL]$URL"
 
-        # - template: healthcheck_validation.yml
-        #   parameters:
-        #     AzureSubscription: ${{ variables.AzureSubscription }}
-        #     #AppBaseUrl: "$(ORCHESTRATOR_URL)"
-        #     AppBaseUrl: "https://adds-mocks-efs.ashymushroom-d9976f65.uksouth.azurecontainerapps.io/fss"
-        #     AzureEnvName: $(AZURE_ENV_NAME)
-        #     HealthCheckTimeoutMinutes: 5
-        #     SleepTimeSeconds: 30
-        #     InitialDelaySeconds: 60
-        #     OnErrorContinue: false
-             
         - task: PowerShell@2
           displayName: "healthcheck_validation"
           condition: always()
