@@ -17,8 +17,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
                 var logger = context.Subject.LoggerFactory.CreateLogger<ReadConfigurationNode>();
                 var configuration = context.Subject.Configuration;
 
+                Log.Information($"Accessing Factory for {context.Subject.Configuration[BuilderEnvironmentVariables.QueueConnectionString]} " ); // rhz:
+                Log.Information($"Accessing Factory for {context.Subject.Configuration[BuilderEnvironmentVariables.AddsEnvironment]} "); // rhz:
+                Log.Information($"Accessing Factory for {context.Subject.Configuration[BuilderEnvironmentVariables.RequestQueueName]} "); // rhz:
+
                 var requestQueue = context.Subject.QueueClientFactory.CreateRequestQueueClient(context.Subject.Configuration);
                 var requestMessage = await requestQueue.ReceiveMessageAsync();
+
+                Log.Information($"Received message from request queue: {requestMessage.Value.MessageId}"); // rhz:
 
                 var request = JsonCodec.Decode<S100BuildRequest>(requestMessage.Value.MessageText)!;
 
