@@ -22,7 +22,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
                 Log.Information($"Accessing Factory for {context.Subject.Configuration[BuilderEnvironmentVariables.RequestQueueName]} "); // rhz:
 
                 var requestQueue = context.Subject.QueueClientFactory.CreateRequestQueueClient(context.Subject.Configuration);
-                Log.Information($"Request queue client created for {requestQueue?.Name}..."); // rhz:
                 var requestMessage = await requestQueue.ReceiveMessageAsync();
 
                 var request = JsonCodec.Decode<S100BuildRequest>(requestMessage.Value.MessageText)!;

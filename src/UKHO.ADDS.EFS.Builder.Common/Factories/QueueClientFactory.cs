@@ -15,7 +15,7 @@ namespace UKHO.ADDS.EFS.Builder.Common.Factories
             var environment = configuration[BuilderEnvironmentVariables.AddsEnvironment]!;
             var queueConnectionString = configuration[BuilderEnvironmentVariables.QueueConnectionString]!;
             var requestQueueName = configuration[BuilderEnvironmentVariables.RequestQueueName]!;
-
+            Console.WriteLine($"Factory request Queue Client Start :{queueConnectionString}/{requestQueueName} "); // rhz:
             switch (environment)
             {
                 case "local":
@@ -37,7 +37,7 @@ namespace UKHO.ADDS.EFS.Builder.Common.Factories
             var environment = Environment.GetEnvironmentVariable(BuilderEnvironmentVariables.AddsEnvironment)!;
             var queueConnectionString = configuration[BuilderEnvironmentVariables.QueueConnectionString]!;
             var responseQueueName = configuration[BuilderEnvironmentVariables.ResponseQueueName]!;
-
+            Console.WriteLine($"Factory response Queue Client Start :{queueConnectionString}/{responseQueueName} "); // rhz:
             switch (environment)
             {
                 case "local":
