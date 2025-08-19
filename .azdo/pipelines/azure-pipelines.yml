@@ -76,78 +76,78 @@ resources:
     type: github
 
 stages:
-  # - stage: VulnerabilityChecks
-  #   displayName: "Snyk Checks"
-  #   dependsOn: []
-  #   jobs:
-  #   - template: templates/vulnerability-checks.yml
-  #     parameters:
-  #       SnykOnlyFailIfFixable: ${{ parameters.SnykOnlyFailIfFixable }}
-  #       SnykPassOnIssues: ${{ parameters.SnykPassOnIssues }}
+  - stage: VulnerabilityChecks
+    displayName: "Snyk Checks"
+    dependsOn: []
+    jobs:
+    - template: templates/vulnerability-checks.yml
+      parameters:
+        SnykOnlyFailIfFixable: ${{ parameters.SnykOnlyFailIfFixable }}
+        SnykPassOnIssues: ${{ parameters.SnykPassOnIssues }}
 
-  # - stage: Stryker_Mutator
-  #   displayName: "Stryker Mutator"
-  #   condition: eq('${{ parameters.DisableStryker }}', false)
-  #   dependsOn: []
-  #   jobs:
-  #   - job: Stryker
-  #     workspace:
-  #       clean: all
-  #     steps:
-  #       - checkout: self
-  #         clean: true
+  - stage: Stryker_Mutator
+    displayName: "Stryker Mutator"
+    condition: eq('${{ parameters.DisableStryker }}', false)
+    dependsOn: []
+    jobs:
+    - job: Stryker
+      workspace:
+        clean: all
+      steps:
+        - checkout: self
+          clean: true
 
-  #       - script: git submodule update --init --recursive
-  #         displayName: Restore mock submodule
-  #         workingDirectory: '$(Build.SourcesDirectory)'
+        - script: git submodule update --init --recursive
+          displayName: Restore mock submodule
+          workingDirectory: '$(Build.SourcesDirectory)'
 
-  #       - task: UseDotNet@2
-  #         displayName: 'Use .NET SDK for Stryker'
-  #         inputs:
-  #           packageType: sdk
-  #           version: $(SdkVersion)
+        - task: UseDotNet@2
+          displayName: 'Use .NET SDK for Stryker'
+          inputs:
+            packageType: sdk
+            version: $(SdkVersion)
 
-  #       - task: DotNetCoreCLI@2
-  #         displayName: "Install Stryker"
-  #         inputs:
-  #           command: custom
-  #           custom: tool
-  #           workingDirectory: $(Agent.TempDirectory)
-  #           arguments: install dotnet-stryker --tool-path $(Agent.BuildDirectory)/tools
+        - task: DotNetCoreCLI@2
+          displayName: "Install Stryker"
+          inputs:
+            command: custom
+            custom: tool
+            workingDirectory: $(Agent.TempDirectory)
+            arguments: install dotnet-stryker --tool-path $(Agent.BuildDirectory)/tools
 
-  #       - task: Powershell@2
-  #         displayName: "Run Stryker for EFS Orchestrator UnitTests"
-  #         inputs:
-  #           workingDirectory: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Orchestrator.UnitTests'
-  #           targetType: 'inline'
-  #           pwsh: true
-  #           script: $(Agent.BuildDirectory)/tools/dotnet-stryker --test-project $(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Orchestrator.UnitTests/UKHO.ADDS.EFS.Orchestrator.UnitTests.csproj --project UKHO.ADDS.EFS.Orchestrator.csproj
+        - task: Powershell@2
+          displayName: "Run Stryker for EFS Orchestrator UnitTests"
+          inputs:
+            workingDirectory: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Orchestrator.UnitTests'
+            targetType: 'inline'
+            pwsh: true
+            script: $(Agent.BuildDirectory)/tools/dotnet-stryker --test-project $(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Orchestrator.UnitTests/UKHO.ADDS.EFS.Orchestrator.UnitTests.csproj --project UKHO.ADDS.EFS.Orchestrator.csproj
 
-  #       - task: PublishMutationReport@0
-  #         displayName: 'Publish Strkyer Mutator Report'
-  #         inputs:
-  #           reportPattern: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Orchestrator.UnitTests/**/mutation-report.html'
-  #           reportDisplayName: 'EFS Orchestrator UnitTests'
+        - task: PublishMutationReport@0
+          displayName: 'Publish Strkyer Mutator Report'
+          inputs:
+            reportPattern: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Orchestrator.UnitTests/**/mutation-report.html'
+            reportDisplayName: 'EFS Orchestrator UnitTests'
 
-  #       - task: Powershell@2
-  #         displayName: "Run Stryker for EFS Builder S100 UnitTests"
-  #         inputs:
-  #           workingDirectory: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Builder.S100.UnitTests'
-  #           targetType: 'inline'
-  #           pwsh: true
-  #           script: $(Agent.BuildDirectory)/tools/dotnet-stryker --test-project $(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Builder.S100.UnitTests/UKHO.ADDS.EFS.Builder.S100.UnitTests.csproj --project UKHO.ADDS.EFS.Builder.S100.csproj
+        - task: Powershell@2
+          displayName: "Run Stryker for EFS Builder S100 UnitTests"
+          inputs:
+            workingDirectory: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Builder.S100.UnitTests'
+            targetType: 'inline'
+            pwsh: true
+            script: $(Agent.BuildDirectory)/tools/dotnet-stryker --test-project $(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Builder.S100.UnitTests/UKHO.ADDS.EFS.Builder.S100.UnitTests.csproj --project UKHO.ADDS.EFS.Builder.S100.csproj
 
-  #       - task: PublishMutationReport@0
-  #         displayName: 'Publish Strkyer Mutator Report'
-  #         inputs:
-  #           reportPattern: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Builder.S100.UnitTests/**/mutation-report.html'
-  #           reportDisplayName: 'EFS Builder S100 UnitTests'
+        - task: PublishMutationReport@0
+          displayName: 'Publish Strkyer Mutator Report'
+          inputs:
+            reportPattern: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Builder.S100.UnitTests/**/mutation-report.html'
+            reportDisplayName: 'EFS Builder S100 UnitTests'
 
-  # - stage: Test
-  #   displayName: Test
-  #   dependsOn: []
-  #   jobs:
-  #   - template: templates/test.yml
+  - stage: Test
+    displayName: Test
+    dependsOn: []
+    jobs:
+    - template: templates/test.yml
 
   - stage: DevDeploy
     dependsOn:
@@ -168,10 +168,10 @@ stages:
         WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
 
   - stage: vnextiatDeploy
-    # dependsOn: 
-    # - DevDeploy
+    dependsOn: 
+    - DevDeploy
     displayName: vNext IAT Deploy
-    #condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/dev/')))
+    condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/dev/')))
     jobs:
     - template: templates/continuous-deployment.yml
       parameters:
@@ -189,7 +189,7 @@ stages:
     dependsOn:
     - vnextiatDeploy
     displayName: vNext E2E Deploy
-    # condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
     jobs:
     - template: templates/continuous-deployment.yml
       parameters:
@@ -204,10 +204,10 @@ stages:
         WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
 
   - stage: iatDeploy
-    # dependsOn:
-    # - DevDeploy
+    dependsOn:
+    - DevDeploy
     displayName: IAT Deploy
-    # condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')))
+    condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')))
     jobs:
     - template: templates/continuous-deployment.yml
       parameters:
