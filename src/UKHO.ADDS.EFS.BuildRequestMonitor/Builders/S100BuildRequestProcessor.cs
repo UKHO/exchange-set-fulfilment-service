@@ -8,7 +8,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
 {
     internal class S100BuildRequestProcessor : BuildRequestMonitor
     {
-        private readonly string[] _command = ["sh", "-c", "echo Starting; sleep 5; echo Healthy now; sleep 5; echo Exiting..."];
+        private readonly string[] _command = ["sh", "--add-host=host.docker.internal:host-gateway ...","-c", "echo Starting; sleep 5; echo Healthy now; sleep 5; echo Exiting..."];
 
         private readonly BuilderContainerService _containerService;
         private readonly IConfiguration _configuration;
