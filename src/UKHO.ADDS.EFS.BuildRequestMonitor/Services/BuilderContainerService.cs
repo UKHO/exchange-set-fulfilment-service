@@ -34,6 +34,13 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
                 AttachStdout = true,
                 AttachStderr = true,
                 Tty = false,
+                HostConfig = new HostConfig
+                {
+                    ExtraHosts = new[]
+                    {
+                        "host.docker.internal:host-gateway"
+                    }
+                },
                 Env = new List<string>
                 {
                     $"{BuilderEnvironmentVariables.RequestQueueName}={environment.RequestQueueName}",
