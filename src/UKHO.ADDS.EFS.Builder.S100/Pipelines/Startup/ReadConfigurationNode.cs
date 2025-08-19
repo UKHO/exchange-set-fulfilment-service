@@ -53,7 +53,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
             catch (Exception ex)
             {
 #pragma warning disable LOG001
-                Log.Fatal(ex, $"An unhandled exception occurred during execution : {ex.Message}");
+                Log.Fatal(ex, $"An unhandled exception occurred during execution (s100) : {ex.Message}");  //rhz: (s100)
 #pragma warning restore LOG001
 
                 return NodeResultStatus.Failed;

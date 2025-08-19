@@ -91,7 +91,7 @@ namespace UKHO.ADDS.EFS.Builder.S63
             catch (Exception ex)
             {
 #pragma warning disable LOG001
-                Log.Fatal(ex, $"An unhandled exception occurred during execution : {ex.Message}");
+                Log.Fatal(ex, $"An unhandled exception occurred during execution (s63): {ex.Message}"); //rhz: (s63)
 #pragma warning restore LOG001
                 return (int)BuilderExitCode.Failed;
             }

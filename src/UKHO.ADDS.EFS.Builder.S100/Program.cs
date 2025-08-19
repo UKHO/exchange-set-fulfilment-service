@@ -91,7 +91,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
             catch (Exception ex)
             {
 #pragma warning disable LOG001
-                Log.Fatal(ex, $"An unhandled exception occurred during execution : {ex.Message}");
+                Log.Fatal(ex, $"An unhandled exception occurred during execution (Pgm Builder s100): {ex.Message}"); //rhz: (Pgm Builder s100)
 #pragma warning restore LOG001
                 return (int)BuilderExitCode.Failed;
             }
