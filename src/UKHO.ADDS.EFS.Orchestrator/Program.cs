@@ -6,6 +6,7 @@ using UKHO.ADDS.Aspire.Configuration;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Orchestrator.Api;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.HealthChecks;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Middleware;
 using UKHO.ADDS.EFS.Orchestrator.Services.Storage;
@@ -67,8 +68,15 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                 app.RegisterJobsApi(loggerFactory);
                 
-                // Map health check endpoints for all environments
-                app.MapDefaultEndpoints();
+                // Map health check endpoints with custom configuration to exclude Redis checks
+                app.MapHealthChecks("/health", HealthCheckConfiguration.CreateHealthCheckOptions(
+                    excludeServices: ["redis"]));
+
+                // Only health checks tagged with the "live" tag must pass for app to be considered alive
+                // Also exclude Redis checks
+                app.MapHealthChecks("/alive", HealthCheckConfiguration.CreateHealthCheckOptions(
+                    tagsFilter: ["live"],
+                    excludeServices: ["redis"]));
 
                 var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
 
