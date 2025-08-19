@@ -21,9 +21,13 @@ namespace UKHO.ADDS.EFS.Builder.Common.Factories
                 case "local":
                     // We need to construct the client using the "URL" method for running locally so that the container network can connect to Azurite using host.docker.internal
                     var queueUri = new Uri($"{queueConnectionString}/{requestQueueName}");
+
+                    Console.WriteLine($"Factory req queue uri (local) :{queueConnectionString}/{requestQueueName} "); // rhz:
+
                     return new QueueClient(queueUri, new StorageSharedKeyCredential(AzuriteAccountName, AzuriteKey));
 
                 default:
+                    Console.WriteLine($"Factory req queue params (default) :{queueConnectionString}, {requestQueueName} "); // rhz:
                     return new QueueClient(queueConnectionString, requestQueueName);
             }
         }
@@ -39,9 +43,11 @@ namespace UKHO.ADDS.EFS.Builder.Common.Factories
                 case "local":
                     // We need to construct the client using the "URL" method for running locally so that the container network can connect to Azurite using host.docker.internal
                     var queueUri = new Uri($"{queueConnectionString}/{responseQueueName}");
+                    Console.WriteLine($"Factory res queue uri (local) :{queueConnectionString}/{responseQueueName} "); // rhz:
                     return new QueueClient(queueUri, new StorageSharedKeyCredential(AzuriteAccountName, AzuriteKey));
 
                 default:
+                    Console.WriteLine($"Factory res queue params (default) :{queueConnectionString}, {responseQueueName} "); // rhz:
                     return new QueueClient(queueConnectionString, responseQueueName);
             }
         }
