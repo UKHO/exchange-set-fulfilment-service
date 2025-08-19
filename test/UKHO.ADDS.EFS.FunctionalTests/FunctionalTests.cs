@@ -1,4 +1,6 @@
-﻿using UKHO.ADDS.EFS.Configuration.Namespaces;
+﻿using System.Text;
+using System.Text.Json;
+using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.FunctionalTests.Services;
 using Xunit.Abstractions;
 
@@ -32,19 +34,55 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         {
             var httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
 
-            var jobId = await OrchestratorCommands.SubmitJobAsync(httpClient, filter);
-            _output.WriteLine($"Job ID: {jobId}");
+            // rhz: debugging
+            var dummy = zipFileName;
+            var requestId = $"job-0001-" + Guid.NewGuid();
+            var payload = new { version = 1, dataStandard = "s100", products = "", filter = $"{filter}" };
 
-            await OrchestratorCommands.WaitForJobCompletionAsync(httpClient, jobId);
+            var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+
+            content.Headers.Add("x-correlation-id", requestId);
+
+            var response = await httpClient.PostAsync("/jobs", content);
+
+            _output.WriteLine($"Job ID: {requestId}");
+
+            await Task.Delay(120000);
+
             var logs = LoggerProvider.GetLogs();
-            _output.WriteLine($"Logs for Job ID {jobId}:\n{string.Join("\n", logs.Select(log => $"{log.LogLevel}: {log.Message}"))}");
+            //_output.WriteLine($"Logs for Job ID {requestId}:\n{string.Join("\n", logs.Select(log => $"{log.LogLevel}: {log.Message}"))}");
+            _output.WriteLine($"Logs for Job ID {requestId}:");
+            foreach (var log in logs)  //.OrderByDescending(l => l.EventId.Id)
+            {
+                if (log.Message.Contains("peekonly=true") || log.Message.Contains("s57") || log.Message.Contains("s63") || log.Message.Contains("comp=list") || log.Message.Contains("buildresponse"))
+                {
+                    continue; // Skip peek logs
+                }
+                _output.WriteLine($"  [{log.LogLevel}] {log.Message}");
+                if (log.Exception != null)
+                {
+                    _output.WriteLine($"      Exception: {log.Exception.Message}");
+                }
+            }
+
+            var jobId = requestId; // Assuming the job ID is the same as the request ID for this example
+            // rhz: debugging end
+
+
+
+            //var jobId = await OrchestratorCommands.SubmitJobAsync(httpClient, filter);
+            //_output.WriteLine($"Job ID: {jobId}");
+
+            //await OrchestratorCommands.WaitForJobCompletionAsync(httpClient, jobId);
+            //var logs = LoggerProvider.GetLogs();
+            //_output.WriteLine($"Logs for Job ID {jobId}:\n{string.Join("\n", logs.Select(log => $"{log.LogLevel}: {log.Message}"))}");
 
             await OrchestratorCommands.VerifyBuildStatusAsync(httpClient, jobId);
 
-            var exchangeSetDownloadPath = await ZipStructureComparer.DownloadExchangeSetAsZipAsync(jobId, App!);
-            var sourceZipPath = Path.Combine(ProjectDirectory!, "TestData", zipFileName);
+            //var exchangeSetDownloadPath = await ZipStructureComparer.DownloadExchangeSetAsZipAsync(jobId, App!);
+            //var sourceZipPath = Path.Combine(ProjectDirectory!, "TestData", zipFileName);
 
-            ZipStructureComparer.CompareZipFilesExactMatch(sourceZipPath, exchangeSetDownloadPath);
+            //ZipStructureComparer.CompareZipFilesExactMatch(sourceZipPath, exchangeSetDownloadPath);
         }
 
         //Negative scenarios

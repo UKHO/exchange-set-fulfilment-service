@@ -42,33 +42,29 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
             var startTime = DateTime.Now;
 
             string jobState, buildState;
-            var count = 0;  // rhz: Added to track the number of attempts
+            
             do
             {
-                count++;  // rhz: Increment the attempt counter
-                if (count == 1) // rhz: Limit checks to one.
+                
+                using var response = await httpClient.GetAsync($"/jobs/{jobId}");
+                var responseJson = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+
+                jobState = responseJson.RootElement.GetProperty("jobState").GetString() ?? string.Empty;
+                buildState = responseJson.RootElement.GetProperty("buildState").GetString() ?? string.Empty;
+
+                if (jobState is "completed" or "failed")
+                    break;
+
+                if (buildState is not "scheduled") //rhz:
                 {
-                    using var response = await httpClient.GetAsync($"/jobs/{jobId}");
-                    var responseJson = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                    break;
                 }
-
-                // thz: suspend functionality for debugging purposes
-                //jobState = responseJson.RootElement.GetProperty("jobState").GetString() ?? string.Empty;
-                //buildState = responseJson.RootElement.GetProperty("buildState").GetString() ?? string.Empty;
-
-                //if (jobState is "completed" or "failed")
-                //    break;
-
-                //if (buildState is not "scheduled") //rhz:
-                //{
-                //    break;
-                //}
 
                 await Task.Delay(WaitDurationMs);
             } while ((DateTime.Now - startTime).TotalMinutes < MaxWaitMinutes);
 
-            //Assert.Equal("completed", jobState);  // rhz:
-            //Assert.Equal("succeeded", buildState);
+            Assert.Equal("completed", jobState);  // rhz:
+            Assert.Equal("succeeded", buildState);
         }
 
         /// <summary>
