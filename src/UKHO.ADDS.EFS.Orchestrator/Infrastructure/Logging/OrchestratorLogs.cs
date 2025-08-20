@@ -51,6 +51,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         private const int SchedulerJobCompletedId = BaseEventId + 28;
         private const int SchedulerJobNextRunId = BaseEventId + 29;
 
+        // S100 specific event IDs
+        private const int S100ProductNamesRequestFailedId = BaseEventId + 30;
+        private const int S100ProductVersionsRequestFailedId = BaseEventId + 31;
+        private const int S100UpdatesSinceRequestFailedId = BaseEventId + 32;
+
         // An unhandled HTTP error has occurred
         public static readonly EventId UnhandledHttpError = new(UnhandledHttpErrorId, nameof(UnhandledHttpError));
 
@@ -120,6 +125,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         public static readonly EventId CreateErrorFile = new(CreateErrorFileId, nameof(CreateErrorFile));
         public static readonly EventId CreateErrorFileNodeFailed = new(CreateErrorFileNodeFailedId, nameof(CreateErrorFileNodeFailed));
         public static readonly EventId CreateErrorFileAddFileFailed = new(CreateErrorFileAddFileFailedId, nameof(CreateErrorFileAddFileFailed));
+
+        // S100 specific events
+        public static readonly EventId S100ProductNamesRequestFailed = new(S100ProductNamesRequestFailedId, nameof(S100ProductNamesRequestFailed));
+        public static readonly EventId S100ProductVersionsRequestFailed = new(S100ProductVersionsRequestFailedId, nameof(S100ProductVersionsRequestFailed));
+        public static readonly EventId S100UpdatesSinceRequestFailed = new(S100UpdatesSinceRequestFailedId, nameof(S100UpdatesSinceRequestFailed));
 
         [LoggerMessage(UnhandledHttpErrorId, LogLevel.Error, "An unhandled exception was caught by the HTTP pipeline: {@message}", EventName = nameof(UnhandledHttpError))]
         public static partial void LogUnhandledHttpError(this ILogger logger, string message, Exception exception);
@@ -207,6 +217,16 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 
         [LoggerMessage(SchedulerJobNextRunId, LogLevel.Information, "Next scheduled run at: {NextRun}", EventName = nameof(LogSchedulerJobNextRun))]
         public static partial void LogSchedulerJobNextRun(this ILogger logger, DateTime? nextRun);
+
+        // S100 specific logging methods
+        [LoggerMessage(S100ProductNamesRequestFailedId, LogLevel.Error, "S100 Product Names request failed for correlation ID: {correlationId}", EventName = nameof(S100ProductNamesRequestFailed))]
+        private static partial void LogS100ProductNamesRequestFailed(this ILogger logger, string correlationId, Exception exception);
+
+        [LoggerMessage(S100ProductVersionsRequestFailedId, LogLevel.Error, "S100 Product Versions request failed for correlation ID: {correlationId}", EventName = nameof(S100ProductVersionsRequestFailed))]
+        private static partial void LogS100ProductVersionsRequestFailed(this ILogger logger, string correlationId, Exception exception);
+
+        [LoggerMessage(S100UpdatesSinceRequestFailedId, LogLevel.Error, "S100 Updates Since request failed for correlation ID: {correlationId}", EventName = nameof(S100UpdatesSinceRequestFailed))]
+        private static partial void LogS100UpdatesSinceRequestFailed(this ILogger logger, string correlationId, Exception exception);
 
     }
 }

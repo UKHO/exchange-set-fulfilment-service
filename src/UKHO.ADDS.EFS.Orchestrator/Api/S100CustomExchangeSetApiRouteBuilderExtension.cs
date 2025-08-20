@@ -1,0 +1,191 @@
+using UKHO.ADDS.EFS.Builds;
+using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.Messages;
+using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Extensions;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
+using UKHO.ADDS.EFS.Orchestrator.Jobs;
+using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
+
+namespace UKHO.ADDS.EFS.Orchestrator.Api;
+
+/// <summary>
+/// Extension methods for registering S100 Exchange Set API endpoints
+/// </summary>
+public static class S100CustomExchangeSetApiRouteBuilderExtension
+{
+    /// <summary>
+    /// Registers S100 Exchange Set API endpoints
+    /// </summary>
+    /// <param name="routeBuilder">The endpoint route builder</param>
+    /// <param name="loggerFactory">The logger factory</param>
+    public static void RegisterS100ExchangeSetApi(this IEndpointRouteBuilder routeBuilder, ILoggerFactory loggerFactory)
+    {
+        var logger = loggerFactory.CreateLogger("S100ExchangeSetApi");
+        var exchangeSetEndpoint = routeBuilder.MapGroup("/v2/exchangeSet/s100");
+
+        // POST /v2/exchangeSet/s100/productNames
+        exchangeSetEndpoint.MapPost("/productNames", async (
+            S100ProductNamesRequest request,
+            IConfiguration configuration,
+            IAssemblyPipelineFactory pipelineFactory,
+            HttpContext httpContext,
+            string? callbackUri = null) =>
+        {
+            try
+            {
+                var correlationId = httpContext.GetCorrelationId();
+
+                var parameters = AssemblyPipelineParameters.CreateFromS100ProductNames(request, configuration, correlationId);
+                var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
+
+                logger.LogAssemblyPipelineStarted(parameters);
+
+                var result = await pipeline.RunAsync(httpContext.RequestAborted);
+
+                // Convert to S100ExchangeSetResponse format
+                var response = new S100ExchangeSetResponse
+                {
+                    Links = new S100ExchangeSetLinks
+                    {
+                        ExchangeSetBatchStatusUri = new S100Link { Href = $"http://fss.ukho.gov.uk/batch/{result.BatchId}/status" },
+                        ExchangeSetBatchDetailsUri = new S100Link { Href = $"http://fss.ukho.gov.uk/batch/{result.BatchId}" },
+                        ExchangeSetFileUri = result.BatchId != null ? new S100Link { Href = $"http://fss.ukho.gov.uk/batch/{result.BatchId}/files/exchangeset.zip" } : null
+                    },
+                    ExchangeSetUrlExpiryDateTime = DateTime.UtcNow.AddDays(7), // TODO: Get from configuration
+                    RequestedProductCount = request.ProductNames.Count,
+                    ExchangeSetProductCount = 0, // TODO: Calculate from result
+                    RequestedProductsAlreadyUpToDateCount = 0, // TODO: Calculate from result
+                    FssBatchId = result.BatchId
+                };
+
+                return Results.Accepted($"/v2/exchangeSet/s100/status/{result.JobId}", response);
+            }
+            catch (Exception e)
+            {
+                //logger.LogS100ProductNamesRequestFailed(httpContext.GetCorrelationId(), e);
+                throw;
+            }
+        })
+        .Produces<S100ExchangeSetResponse>(202)
+        .WithRequiredHeader("x-correlation-id", "Correlation ID", $"job-{Guid.NewGuid():N}")
+        .WithDescription("Provide all the latest releasable baseline data for a specified set of S100 Products.");
+
+        // POST /v2/exchangeSet/s100/productVersions
+        exchangeSetEndpoint.MapPost("/productVersions", async (
+            S100ProductVersionsRequest request,
+            IConfiguration configuration,
+            IAssemblyPipelineFactory pipelineFactory,
+            HttpContext httpContext,
+            string? callbackUri = null) =>
+        {
+            try
+            {
+                var correlationId = httpContext.GetCorrelationId();
+
+                var parameters = AssemblyPipelineParameters.CreateFromS100ProductVersions(request, configuration, correlationId);
+                var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
+
+                logger.LogAssemblyPipelineStarted(parameters);
+
+                var result = await pipeline.RunAsync(httpContext.RequestAborted);
+
+                // Convert to S100ExchangeSetResponse format
+                var response = new S100ExchangeSetResponse
+                {
+                    Links = new S100ExchangeSetLinks
+                    {
+                        ExchangeSetBatchStatusUri = new S100Link { Href = $"http://fss.ukho.gov.uk/batch/{result.BatchId}/status" },
+                        ExchangeSetBatchDetailsUri = new S100Link { Href = $"http://fss.ukho.gov.uk/batch/{result.BatchId}" },
+                        ExchangeSetFileUri = result.BatchId != null ? new S100Link { Href = $"http://fss.ukho.gov.uk/batch/{result.BatchId}/files/exchangeset.zip" } : null
+                    },
+                    ExchangeSetUrlExpiryDateTime = DateTime.UtcNow.AddDays(7), // TODO: Get from configuration
+                    RequestedProductCount = request.ProductVersions.Count,
+                    ExchangeSetProductCount = 0, // TODO: Calculate from result
+                    RequestedProductsAlreadyUpToDateCount = 0, // TODO: Calculate from result
+                    FssBatchId = result.BatchId
+                };
+
+                return Results.Accepted($"/v2/exchangeSet/s100/status/{result.JobId}", response);
+            }
+            catch (Exception e)
+            {
+                //logger.LogS100ProductVersionsRequestFailed(httpContext.GetCorrelationId(), e);
+                throw;
+            }
+        })
+        .Produces<S100ExchangeSetResponse>(202)
+        .WithRequiredHeader("x-correlation-id", "Correlation ID", $"job-{Guid.NewGuid():N}")
+        .WithDescription("Given a set of S100 Product versions (e.g. Edition x Update y) provide any later releasable files.");
+
+        // POST /v2/exchangeSet/s100/updatesSince
+        exchangeSetEndpoint.MapPost("/updatesSince", async (
+            S100UpdatesSinceRequest request,
+            IConfiguration configuration,
+            IAssemblyPipelineFactory pipelineFactory,
+            HttpContext httpContext,
+            string? callbackUri = null,
+            string? productIdentifier = null) =>
+        {
+            try
+            {
+                var correlationId = httpContext.GetCorrelationId();
+
+                var parameters = AssemblyPipelineParameters.CreateFromS100UpdatesSince(request, configuration, correlationId, productIdentifier);
+                var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
+
+                logger.LogAssemblyPipelineStarted(parameters);
+
+                var result = await pipeline.RunAsync(httpContext.RequestAborted);
+
+                // Check if no updates since datetime - return 304 Not Modified
+                if (result.JobStatus == JobState.UpToDate)
+                {
+                    return Results.StatusCode(304);
+                }
+
+                // Convert to S100ExchangeSetResponse format
+                var response = new S100ExchangeSetResponse
+                {
+                    Links = new S100ExchangeSetLinks
+                    {
+                        ExchangeSetBatchStatusUri = new S100Link { Href = $"http://fss.ukho.gov.uk/batch/{result.BatchId}/status" },
+                        ExchangeSetBatchDetailsUri = new S100Link { Href = $"http://fss.ukho.gov.uk/batch/{result.BatchId}" },
+                        ExchangeSetFileUri = result.BatchId != null ? new S100Link { Href = $"http://fss.ukho.gov.uk/batch/{result.BatchId}/files/exchangeset.zip" } : null
+                    },
+                    ExchangeSetUrlExpiryDateTime = DateTime.UtcNow.AddDays(7), // TODO: Get from configuration
+                    RequestedProductCount = 0, // Will be calculated based on products found since datetime
+                    ExchangeSetProductCount = 0, // TODO: Calculate from result
+                    RequestedProductsAlreadyUpToDateCount = 0, // TODO: Calculate from result
+                    FssBatchId = result.BatchId
+                };
+
+                return Results.Accepted($"/v2/exchangeSet/s100/status/{result.JobId}", response);
+            }
+            catch (Exception e)
+            {
+                //logger.LogS100UpdatesSinceRequestFailed(httpContext.GetCorrelationId(), e);
+                throw;
+            }
+        })
+        .Produces<S100ExchangeSetResponse>(202)
+        .Produces(304)
+        .WithRequiredHeader("x-correlation-id", "Correlation ID", $"job-{Guid.NewGuid():N}")
+        .WithDescription("Provide all the releasable S100 data after a datetime.");
+
+        // GET /v2/exchangeSet/s100/status/{jobId} - for tracking job status
+        exchangeSetEndpoint.MapGet("/status/{jobId}", async (string jobId, ITable<Job> jobTable) =>
+        {
+            var jobResult = await jobTable.GetUniqueAsync(jobId);
+
+            if (jobResult.IsSuccess(out var job))
+            {
+                return Results.Ok(job);
+            }
+
+            logger.LogGetJobRequestFailed(jobId);
+            return Results.NotFound();
+        }).WithDescription("Gets the S100 exchange set job status for the given job id");
+    }
+}
