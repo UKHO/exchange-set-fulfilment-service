@@ -269,17 +269,21 @@ jobs:
             scriptType: bash
             scriptLocation: inlineScript
             inlineScript: |
-              ENV_NAME="${AZURE_ENV_NAME}"
-              RESOURCE_GROUP="efs-$ENV_NAME-rg"
-              FQDN=$(az containerapp show \
-                --name efs-orchestrator \
-                --resource-group "$RESOURCE_GROUP" \
-                --query properties.configuration.ingress.fqdn -o tsv)
-              if [ -z "$FQDN" ]; then
-                echo "##vso[task.logissue type=error]Could not retrieve FQDN for efs-orchestrator"
-                exit 1
-              fi
-              URL="https://$FQDN"
+              # ENV_NAME="${AZURE_ENV_NAME}"
+              # RESOURCE_GROUP="efs-$ENV_NAME-rg"
+              # FQDN=$(az containerapp show \
+              #   --name efs-orchestrator \
+              #   --resource-group "$RESOURCE_GROUP" \
+              #   --query properties.configuration.ingress.fqdn -o tsv)
+              # if [ -z "$FQDN" ]; then
+              #   echo "##vso[task.logissue type=error]Could not retrieve FQDN for efs-orchestrator"
+              #   exit 1
+              # fi
+              # URL="https://$FQDN"
+              # echo "Orchestrator Endpoint: $URL"
+              # echo "##vso[task.setvariable variable=ORCHESTRATOR_URL]$URL"
+              DOMAIN=$(azd env get-value EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN)
+              URL="https://efs-orchestrator.$DOMAIN"
               echo "Orchestrator Endpoint: $URL"
               echo "##vso[task.setvariable variable=ORCHESTRATOR_URL]$URL"
 
