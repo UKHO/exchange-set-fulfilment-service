@@ -265,6 +265,7 @@ jobs:
           displayName: 'Set Orchestrator Endpoint Variable'
           condition: always()
           inputs:
+            workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
             azureSubscription: ${{ variables.AzureSubscription }}
             scriptType: bash
             scriptLocation: inlineScript
