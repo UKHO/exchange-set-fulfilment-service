@@ -153,4 +153,3 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2025-02-02-preview' = {
     'hidden-title': 'EFS'
   }
 }
-output orchestratorUrl string = efs_orchestrator.properties.configuration.ingress.fqdn

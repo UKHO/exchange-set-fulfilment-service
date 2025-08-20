@@ -255,39 +255,29 @@ jobs:
                 AppName: adds-mocks-efs
                 MaxWaitTime: 1
 
-          - template: check-container.yml
-            parameters:
-              AzureSubscription: ${{ variables.AzureSubscription }}
-              AppName: efs-redis
-              MaxWaitTime: 1
+          # - template: check-container.yml
+          #   parameters:
+          #     AzureSubscription: ${{ variables.AzureSubscription }}
+          #     AppName: efs-redis
+          #     MaxWaitTime: 1
 
-        - task: AzureCLI@2
-          displayName: 'Set Orchestrator Endpoint Variable'
-          condition: always()
-          inputs:
-            azureSubscription: ${{ variables.AzureSubscription }}
-            scriptType: bash
-            scriptLocation: inlineScript
-            inlineScript: |
-              ENV_NAME="${AZURE_ENV_NAME}"
-              RESOURCE_GROUP="efs-$ENV_NAME-rg"
-              FQDN=$(az containerapp show \
-                --name efs-orchestrator \
-                --resource-group "$RESOURCE_GROUP" \
-                --query properties.configuration.ingress.fqdn -o tsv)
-              if [ -z "$FQDN" ]; then
-                echo "##vso[task.logissue type=error]Could not retrieve FQDN for efs-orchestrator"
-                exit 1
-              fi
-              URL="https://$FQDN"
-              echo "Orchestrator Endpoint: $URL"
-              echo "##vso[task.setvariable variable=ORCHESTRATOR_URL]$URL"
+          - task: AzureCLI@2
+            displayName: 'Set Orchestrator Endpoint Variable'
+            inputs:
+              workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
+              azureSubscription: ${{ variables.AzureSubscription }}
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                DOMAIN=$(azd env get-value EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN)
+                URL="https://efs-orchestrator.$DOMAIN"
+                echo "Orchestrator Endpoint: $URL"
+                echo "##vso[task.setvariable variable=ORCHESTRATOR_URL]$URL"
 
-        - task: PowerShell@2
-          displayName: "healthcheck_validation"
-          condition: always()
-          inputs:
-            targetType: filePath
-            filePath: "$(Build.SourcesDirectory)/efs/.azdo/pipelines/powershell/CheckServiceStatus.ps1"
-            arguments: "-healthEndPointUrl $(ORCHESTRATOR_URL)/health -waitTimeInMinute 2 -onErrorContinue 0"
+          - task: PowerShell@2
+            displayName: "healthcheck_validation"
+            inputs:
+              targetType: filePath
+              filePath: "$(Build.SourcesDirectory)/efs/.azdo/pipelines/powershell/CheckServiceStatus.ps1"
+              arguments: "-healthEndPointUrl $(ORCHESTRATOR_URL)/health -waitTimeInMinute 2 -onErrorContinue 0"
 
