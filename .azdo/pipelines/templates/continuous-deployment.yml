@@ -245,7 +245,7 @@ jobs:
             parameters:
               AzureSubscription: ${{ variables.AzureSubscription }}
               AppName: efs-orchestrator
-              MaxWaitTime: 1
+              MaxWaitTime: 15
 
           - ${{ if eq(parameters.IncludeAddsMock, true) }}:
 
