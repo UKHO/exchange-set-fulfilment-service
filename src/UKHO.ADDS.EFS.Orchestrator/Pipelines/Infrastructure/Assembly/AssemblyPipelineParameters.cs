@@ -23,7 +23,7 @@ internal class AssemblyPipelineParameters
     /// <summary>
     /// The original request type for S100 endpoints
     /// </summary>
-    public Messages.S100RequestType? S100RequestType { get; init; }
+    public Messages.RequestType? RequestType { get; init; }
 
     /// <summary>
     /// The callback URI for asynchronous notifications
@@ -72,7 +72,7 @@ internal class AssemblyPipelineParameters
             Filter = "productNames",
             JobId = correlationId,
             Configuration = configuration,
-            S100RequestType = Messages.S100RequestType.ProductNames
+            RequestType = Messages.RequestType.ProductNames
         };
 
     /// <summary>
@@ -88,7 +88,7 @@ internal class AssemblyPipelineParameters
             Filter = "productVersions",
             JobId = correlationId,
             Configuration = configuration,
-            S100RequestType = Messages.S100RequestType.ProductVersions
+            RequestType = Messages.RequestType.ProductVersions
         };
 
     /// <summary>
@@ -104,7 +104,7 @@ internal class AssemblyPipelineParameters
             Filter = $"updatesSince:{request.SinceDateTime:O}" + (productIdentifier != null ? $",productIdentifier:{productIdentifier}" : ""),
             JobId = correlationId,
             Configuration = configuration,
-            S100RequestType = Messages.S100RequestType.UpdatesSince,
+            RequestType = Messages.RequestType.UpdatesSince,
             ProductIdentifier = productIdentifier
         };
 }
