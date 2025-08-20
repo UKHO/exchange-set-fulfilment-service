@@ -42,7 +42,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.HealthChecks
             try
             {
                 var endpoint = _externalServiceRegistry.GetServiceEndpoint(ProcessNames.FileShareService);
-                var healthEndpointUri = $"{endpoint.Uri!}health";
+                var healthEndpointUri = $"https://filesiat.admiralty.co.uk/health";
                 var httpClient = _httpClientFactory.CreateClient();
                 
                 using var response = await httpClient.GetAsync(healthEndpointUri, cancellationToken);
