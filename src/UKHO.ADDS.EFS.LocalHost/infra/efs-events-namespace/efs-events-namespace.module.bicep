@@ -7,7 +7,7 @@ resource efs_events_namespace 'Microsoft.EventHub/namespaces@2024-01-01' = {
   name: take('efs-events-namespace-${uniqueString(resourceGroup().id)}', 256)
   location: location
   properties: {
-    disableLocalAuth: true
+    disableLocalAuth: false
   }
   sku: {
     name: sku
