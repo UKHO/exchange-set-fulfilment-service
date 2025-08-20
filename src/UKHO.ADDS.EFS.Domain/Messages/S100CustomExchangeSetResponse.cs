@@ -6,11 +6,6 @@ namespace UKHO.ADDS.EFS.Messages;
 public class S100CustomExchangeSetResponse
 {
     /// <summary>
-    /// Version of the response
-    /// </summary>
-    public int Version { get; init; } = 2;
-
-    /// <summary>
     /// Links to related resources
     /// </summary>
     public required S100ExchangeSetLinks Links { get; set; }
