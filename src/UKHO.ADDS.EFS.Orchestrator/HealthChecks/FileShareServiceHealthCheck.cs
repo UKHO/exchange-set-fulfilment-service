@@ -14,7 +14,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.HealthChecks
         private readonly IExternalServiceRegistry _externalServiceRegistry;
         private readonly ILogger<FileShareServiceHealthCheck> _logger;
         private const string ServiceName = "File Share Service";
-        private const int TimeoutSeconds = 5; // Reduced timeout to avoid long waits
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FileShareServiceHealthCheck"/> class.
@@ -43,15 +42,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.HealthChecks
             try
             {
                 var endpoint = _externalServiceRegistry.GetServiceEndpoint(ProcessNames.FileShareService);
-                var healthEndpointUri = $"{endpoint.Uri}health";
+                var healthEndpointUri = $"https://filesiat.admiralty.co.uk/health";
                 var httpClient = _httpClientFactory.CreateClient();
-                
-                // Create a timeout-specific cancellation token to prevent long-running requests
-                using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(TimeoutSeconds));
-                using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
-                
-                using var response = await httpClient.GetAsync(healthEndpointUri, linkedCts.Token);
-                
+
+                using var response = await httpClient.GetAsync(healthEndpointUri, cancellationToken);
+
                 if (response.IsSuccessStatusCode)
                 {
                     return HealthCheckResult.Healthy($"{ServiceName} responded with {response.StatusCode}");
@@ -60,15 +55,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.HealthChecks
                 {
                     var errorMessage = $"Service returned status code {response.StatusCode}";
                     _logger.LogHealthCheckFailedStatusCode(ServiceName, (int)response.StatusCode);
-                    return HealthCheckResult.Unhealthy($"{ServiceName} health check failed", 
+                    return HealthCheckResult.Unhealthy($"{ServiceName} health check failed",
                         new Exception(errorMessage));
                 }
-            }
-            catch (OperationCanceledException)
-            {
-                var timeoutException = new TimeoutException($"{ServiceName} health check timed out after {TimeoutSeconds} seconds");
-                _logger.LogHealthCheckError(ServiceName, timeoutException);
-                return HealthCheckResult.Unhealthy($"{ServiceName} health check timed out", timeoutException);
             }
             catch (Exception ex)
             {
