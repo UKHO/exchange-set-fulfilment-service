@@ -68,8 +68,8 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                 app.RegisterJobsApi(loggerFactory);
                 
-                // Map health check endpoints with custom configuration to exclude Redis checks
-                app.MapHealthChecks("/health", HealthCheckConfiguration.CreateHealthCheckOptions(
+                // Map health check endpoint with console output
+                app.MapHealthChecks("/health", HealthCheckConfiguration.CreateHealthCheckOptionsWithConsoleOutput(
                     excludeServices: ["redis"]));
 
                 // Only health checks tagged with the "live" tag must pass for app to be considered alive
