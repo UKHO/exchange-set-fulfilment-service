@@ -44,8 +44,8 @@ public static class S100CustomExchangeSetApiRouteBuilderExtension
 
                 var result = await pipeline.RunAsync(httpContext.RequestAborted);
 
-                // Convert to S100ExchangeSetResponse format
-                var response = new S100ExchangeSetResponse
+                // Convert to S100CustomExchangeSetResponse format
+                var response = new S100CustomExchangeSetResponse
                 {
                     Links = new S100ExchangeSetLinks
                     {
@@ -68,7 +68,7 @@ public static class S100CustomExchangeSetApiRouteBuilderExtension
                 throw;
             }
         })
-        .Produces<S100ExchangeSetResponse>(202)
+        .Produces<S100CustomExchangeSetResponse>(202)
         .WithRequiredHeader("x-correlation-id", "Correlation ID", $"job-{Guid.NewGuid():N}")
         .WithDescription("Provide all the latest releasable baseline data for a specified set of S100 Products.");
 
@@ -91,8 +91,8 @@ public static class S100CustomExchangeSetApiRouteBuilderExtension
 
                 var result = await pipeline.RunAsync(httpContext.RequestAborted);
 
-                // Convert to S100ExchangeSetResponse format
-                var response = new S100ExchangeSetResponse
+                // Convert to S100CustomExchangeSetResponse format
+                var response = new S100CustomExchangeSetResponse
                 {
                     Links = new S100ExchangeSetLinks
                     {
@@ -115,7 +115,7 @@ public static class S100CustomExchangeSetApiRouteBuilderExtension
                 throw;
             }
         })
-        .Produces<S100ExchangeSetResponse>(202)
+        .Produces<S100CustomExchangeSetResponse>(202)
         .WithRequiredHeader("x-correlation-id", "Correlation ID", $"job-{Guid.NewGuid():N}")
         .WithDescription("Given a set of S100 Product versions (e.g. Edition x Update y) provide any later releasable files.");
 
@@ -145,8 +145,8 @@ public static class S100CustomExchangeSetApiRouteBuilderExtension
                     return Results.StatusCode(304);
                 }
 
-                // Convert to S100ExchangeSetResponse format
-                var response = new S100ExchangeSetResponse
+                // Convert to S100CustomExchangeSetResponse format
+                var response = new S100CustomExchangeSetResponse
                 {
                     Links = new S100ExchangeSetLinks
                     {
@@ -169,7 +169,7 @@ public static class S100CustomExchangeSetApiRouteBuilderExtension
                 throw;
             }
         })
-        .Produces<S100ExchangeSetResponse>(202)
+        .Produces<S100CustomExchangeSetResponse>(202)
         .Produces(304)
         .WithRequiredHeader("x-correlation-id", "Correlation ID", $"job-{Guid.NewGuid():N}")
         .WithDescription("Provide all the releasable S100 data after a datetime.");

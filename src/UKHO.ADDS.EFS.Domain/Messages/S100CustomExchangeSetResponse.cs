@@ -3,7 +3,7 @@ namespace UKHO.ADDS.EFS.Messages;
 /// <summary>
 /// Response model for S100 exchange set endpoints
 /// </summary>
-public class S100ExchangeSetResponse
+public class S100CustomExchangeSetResponse
 {
     /// <summary>
     /// Version of the response
