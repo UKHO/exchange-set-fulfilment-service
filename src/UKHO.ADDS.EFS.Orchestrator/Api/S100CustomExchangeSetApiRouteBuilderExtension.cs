@@ -37,7 +37,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 }
             })
             .Produces<S100CustomExchangeSetResponse>(202)
-            .WithRequiredHeader("x-correlation-id", "Correlation ID", $"job-{Guid.NewGuid():N}")
+            .WithRequiredHeader("x-correlation-id", "Correlation ID", Guid.NewGuid().ToString("N"))
             .WithDescription("Provide all the latest releasable baseline data for a specified set of S100 Products.");
 
             // POST /v2/exchangeSet/s100/productVersions
@@ -58,7 +58,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 }
             })
             .Produces<S100CustomExchangeSetResponse>(202)
-            .WithRequiredHeader("x-correlation-id", "Correlation ID", $"job-{Guid.NewGuid():N}")
+            .WithRequiredHeader("x-correlation-id", "Correlation ID", Guid.NewGuid().ToString("N"))
             .WithDescription("Given a set of S100 Product versions (e.g. Edition x Update y) provide any later releasable files.");
 
             // POST /v2/exchangeSet/s100/updatesSince
@@ -81,7 +81,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             })
             .Produces<S100CustomExchangeSetResponse>(202)
             .Produces(304)
-            .WithRequiredHeader("x-correlation-id", "Correlation ID", $"job-{Guid.NewGuid():N}")
+            .WithRequiredHeader("x-correlation-id", "Correlation ID", Guid.NewGuid().ToString("N"))
             .WithDescription("Provide all the releasable S100 data after a datetime.");
         }
 
