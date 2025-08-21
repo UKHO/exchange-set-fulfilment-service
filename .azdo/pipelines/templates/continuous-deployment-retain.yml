@@ -39,7 +39,7 @@ jobs:
             scriptLocation: inlineScript
             inlineScript: |
               set -e
-              az role assignment list --assignee-object-id $PIPELINE-OBJECT-ID --role "Storage Blob Data Reader"
+              az role assignment list --assignee-object-id $(PIPELINE-OBJECT-ID) --role "Storage Blob Data Reader"
 
               echo "Deploying resources..."
               DEPLOY_SECONDS=$EPOCHSECONDS
