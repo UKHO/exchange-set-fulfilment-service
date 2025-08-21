@@ -52,3 +52,5 @@ jobs:
               else
                 az deployment sub create --name $DEPLOYMENT_NAME --location $AZURE_LOCATION --no-prompt --parameters main.bicepparam
               fi
+          env:
+            PIPELINE-OBJECT-ID: $(PIPELINE-OBJECT-ID)

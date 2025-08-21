@@ -13,6 +13,10 @@ param efsServiceIdentityPartialName string
 @description('The location used for all deployed resources')
 param location string
 
+@minLength(1)
+@description('The id of the pipeline service principal')
+param pipelineObjectId string
+
 resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
   name: resourceGroupName
   location: location
@@ -24,6 +28,13 @@ module efs_service_identity 'efs-service-identity/efs-service-identity.module.bi
   params: {
     location: location
     efsServiceIdentityPartialName: efsServiceIdentityPartialName
+  }
+}
+
+module pipeline_roles 'pipeline-roles/pipeline-roles.module.bicep' = {
+  name: 'pipeline-roles'
+  params: {
+    principalId: pipelineObjectId
   }
 }
 
