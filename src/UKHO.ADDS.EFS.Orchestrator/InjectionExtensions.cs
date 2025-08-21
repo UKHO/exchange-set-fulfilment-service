@@ -102,7 +102,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     return (scsEndpoint.Uri, new AnonymousAuthenticationProvider());
                 }
 
-                return (scsEndpoint.Uri, new AzureIdentityAuthenticationProvider(new ManagedIdentityCredential(clientId: "aeaa4b56-a70a-4fd4-8396-2860bc932c98"), scopes: scsEndpoint.GetDefaultScope()));
+                return (scsEndpoint.Uri, new AzureIdentityAuthenticationProvider(new ManagedIdentityCredential(clientId: "8d1e698b-6e93-49dc-9814-9154e02eb8a9"), scopes: scsEndpoint.GetDefaultScope()));
             });
 
             builder.Services.AddSingleton<IFileShareReadWriteClientFactory>(provider => new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
