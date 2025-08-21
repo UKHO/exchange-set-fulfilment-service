@@ -3,7 +3,7 @@ namespace UKHO.ADDS.EFS.Messages
     /// <summary>
     /// Represents a product that was requested but not included in the exchange set
     /// </summary>
-    public class S100ProductNotInExchangeSet
+    internal class S100ProductNotInExchangeSet
     {
         /// <summary>
         /// The product name

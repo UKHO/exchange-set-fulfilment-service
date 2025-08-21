@@ -3,7 +3,7 @@
     /// <summary>
     /// Request model for S100 product versions endpoint
     /// </summary>
-    public class S100ProductVersionsRequest
+    internal class S100ProductVersionsRequest
     {
         /// <summary>
         /// List of S100 product versions to request
