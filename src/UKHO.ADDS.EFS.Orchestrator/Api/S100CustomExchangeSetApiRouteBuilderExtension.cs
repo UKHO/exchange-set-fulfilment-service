@@ -113,7 +113,7 @@ public static class S100CustomExchangeSetApiRouteBuilderExtension
                     ProductName = "101GB40079ABCDEFG",
                     Reason = S100ProductNotIncludedReason.InvalidProduct
                 }
-            ], 
+            ],
             FssBatchId = batchId
         };
     }

@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using Azure.Identity;
+using FluentValidation;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Kiota.Abstractions.Authentication;
 using Microsoft.Kiota.Authentication.Azure;
@@ -35,6 +36,7 @@ using UKHO.ADDS.EFS.Orchestrator.Pipelines.Services.Implementation;
 using UKHO.ADDS.EFS.Orchestrator.Schedule;
 using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Services.Storage;
+using UKHO.ADDS.EFS.Orchestrator.Validators;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Orchestrator
@@ -49,6 +51,9 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddHttpContextAccessor();
 
             builder.Services.Configure<JsonOptions>(options => JsonCodec.DefaultOptions.CopyTo(options.SerializerOptions));
+
+            // Add FluentValidation
+            builder.Services.AddValidatorsFromAssemblyContaining<S100ProductNamesRequestValidator>();
 
             builder.AddAzureQueueClient(StorageConfiguration.QueuesName);
             builder.AddAzureTableClient(StorageConfiguration.TablesName);

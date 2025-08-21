@@ -51,6 +51,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         private const int SchedulerJobCompletedId = BaseEventId + 28;
         private const int SchedulerJobNextRunId = BaseEventId + 29;
 
+        // S100 Input validation events
+        private const int S100InputValidationSucceededId = BaseEventId + 30;
+        private const int S100InputValidationFailedId = BaseEventId + 31;
+        private const int S100InputValidationErrorId = BaseEventId + 32;
+
         // An unhandled HTTP error has occurred
         public static readonly EventId UnhandledHttpError = new(UnhandledHttpErrorId, nameof(UnhandledHttpError));
 
@@ -207,6 +212,16 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 
         [LoggerMessage(SchedulerJobNextRunId, LogLevel.Information, "Next scheduled run at: {NextRun}", EventName = nameof(LogSchedulerJobNextRun))]
         public static partial void LogSchedulerJobNextRun(this ILogger logger, DateTime? nextRun);
+
+        // S100 Input validation logging methods
+        [LoggerMessage(S100InputValidationSucceededId, LogLevel.Information, "S100 input validation succeeded for correlation ID: {correlationId} with {productCount} products", EventName = nameof(S100InputValidationSucceeded))]
+        public static partial void S100InputValidationSucceeded(this ILogger logger, string correlationId, int productCount);
+
+        [LoggerMessage(S100InputValidationFailedId, LogLevel.Warning, "S100 input validation failed for correlation ID: {correlationId} - Errors: {validationErrors}", EventName = nameof(S100InputValidationFailed))]
+        public static partial void S100InputValidationFailed(this ILogger logger, string correlationId, string validationErrors);
+
+        [LoggerMessage(S100InputValidationErrorId, LogLevel.Error, "S100 input validation error for correlation ID: {correlationId}", EventName = nameof(S100InputValidationError))]
+        public static partial void S100InputValidationError(this ILogger logger, string correlationId, Exception exception);
 
     }
 }

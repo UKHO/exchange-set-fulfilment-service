@@ -20,6 +20,21 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
 
         public required IConfiguration Configuration { get; init; }
 
+        /// <summary>
+        /// The original request type for S100 endpoints
+        /// </summary>
+        public Messages.RequestType? RequestType { get; init; }
+
+        /// <summary>
+        /// The callback URI for asynchronous notifications
+        /// </summary>
+        public string? CallbackUri { get; init; }
+
+        /// <summary>
+        /// Product identifier filter for S100 updates since requests (s101, s102, s104, s111)
+        /// </summary>
+        public string? ProductIdentifier { get; init; }
+
         public Job CreateJob()
         {
             return new Job()
@@ -42,6 +57,22 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 Filter = message.Filter,
                 JobId = correlationId,
                 Configuration = configuration
+            };
+
+        /// <summary>
+        /// Creates parameters from S100 Product Names request
+        /// </summary>
+        public static AssemblyPipelineParameters CreateFromS100ProductNames(S100ProductNamesRequest request, IConfiguration configuration, string correlationId) =>
+            new()
+            {
+                Version = 2,
+                Timestamp = DateTime.UtcNow,
+                DataStandard = DataStandard.S100,
+                Products = string.Join(",", request.ProductNames),
+                Filter = "productNames",
+                JobId = correlationId,
+                Configuration = configuration,
+                RequestType = Messages.RequestType.ProductNames
             };
     }
 }
