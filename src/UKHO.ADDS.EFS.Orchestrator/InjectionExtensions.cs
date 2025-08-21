@@ -102,7 +102,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     return (scsEndpoint.Uri, new AnonymousAuthenticationProvider());
                 }
 
-                return (scsEndpoint.Uri, new AzureIdentityAuthenticationProvider(new ManagedIdentityCredential(), scopes: scsEndpoint.GetDefaultScope()));
+                return (scsEndpoint.Uri, new AzureIdentityAuthenticationProvider(new ManagedIdentityCredential(clientId: "aeaa4b56-a70a-4fd4-8396-2860bc932c98"), scopes: scsEndpoint.GetDefaultScope()));
             });
 
             builder.Services.AddSingleton<IFileShareReadWriteClientFactory>(provider => new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
@@ -120,7 +120,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 }
                 else
                 {
-                    tokenProvider = new TokenCredentialAuthenticationTokenProvider(new ManagedIdentityCredential(), [fssEndpoint.GetDefaultScope()]);
+                    tokenProvider = new TokenCredentialAuthenticationTokenProvider(new ManagedIdentityCredential(clientId: "aeaa4b56-a70a-4fd4-8396-2860bc932c98"), [fssEndpoint.GetDefaultScope()]);
                 }
 
                 var factory = sp.GetRequiredService<IFileShareReadWriteClientFactory>();
