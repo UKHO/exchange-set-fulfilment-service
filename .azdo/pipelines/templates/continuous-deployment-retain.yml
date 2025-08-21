@@ -39,10 +39,6 @@ jobs:
             scriptLocation: inlineScript
             inlineScript: |
               set -e
-              az role assignment list --assignee-object-id $(PIPELINE-CLIENT-OBJECT-ID) --role "App Configuration Data Owner"
-              az role assignment delete --assignee-object-id $(PIPELINE-CLIENT-OBJECT-ID) --role "App Configuration Data Owner"
-              az role assignment list --assignee-object-id $(PIPELINE-CLIENT-OBJECT-ID) --role "App Configuration Data Owner"
-
               echo "Deploying resources..."
               DEPLOY_SECONDS=$EPOCHSECONDS
               DEPLOYMENT_NAME=$AZURE_ENV_NAME-retain-$DEPLOY_SECONDS
