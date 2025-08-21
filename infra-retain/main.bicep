@@ -19,7 +19,7 @@ param pipelineDeploymentName string
 
 @minLength(1)
 @description('The id of the pipeline service principal')
-param pipelineObjectId string
+param pipelineClientObjectId string
 
 resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
   name: resourceGroupName
@@ -38,7 +38,7 @@ module efs_service_identity 'efs-service-identity/efs-service-identity.module.bi
 module pipeline_roles 'pipeline-roles/pipeline-roles.module.bicep' = {
   name: pipelineDeploymentName
   params: {
-    principalId: pipelineObjectId
+    principalId: pipelineClientObjectId
   }
 }
 
