@@ -44,7 +44,7 @@ jobs:
               echo "Deploying resources..."
               DEPLOY_SECONDS=$EPOCHSECONDS
               DEPLOYMENT_NAME=$AZURE_ENV_NAME-retain-$DEPLOY_SECONDS
-              PIPELINE_DEPLOYMENT_NAME=$AZURE_ENV_NAME-pipeline-roles-$DEPLOY_SECONDS
+              export PIPELINE_DEPLOYMENT_NAME=$AZURE_ENV_NAME-pipeline-roles-$DEPLOY_SECONDS
               cd "$(Build.SourcesDirectory)/infra-retain"
 
               if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
