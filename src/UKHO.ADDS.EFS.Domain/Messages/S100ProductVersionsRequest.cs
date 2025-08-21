@@ -1,12 +1,13 @@
-﻿namespace UKHO.ADDS.EFS.Messages;
-
-/// <summary>
-/// Request model for S100 product versions endpoint
-/// </summary>
-public class S100ProductVersionsRequest
+﻿namespace UKHO.ADDS.EFS.Messages
 {
     /// <summary>
-    /// List of S100 product versions to request
+    /// Request model for S100 product versions endpoint
     /// </summary>
-    public required List<S100ProductVersion> ProductVersions { get; set; }
+    public class S100ProductVersionsRequest
+    {
+        /// <summary>
+        /// List of S100 product versions to request
+        /// </summary>
+        public required List<S100ProductVersion> ProductVersions { get; set; }
+    }
 }
