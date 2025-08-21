@@ -69,6 +69,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             builder.Services.AddTransient<CompletionPipelineFactory>();
             builder.Services.AddTransient<CompletionPipelineNodeFactory>();
+            builder.Services.AddTransient<S100ProductNamesRequestValidator>();
 
             builder.Services.AddSingleton<PipelineContextFactory<S100Build>>();
             builder.Services.AddSingleton<PipelineContextFactory<S63Build>>();
@@ -92,6 +93,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             builder.Services.AddSingleton<IBuilderLogForwarder, BuilderLogForwarder>();
             builder.Services.AddSingleton<StorageInitializerService>();
+
 
             var addsEnvironment = AddsEnvironment.GetEnvironment();
 
