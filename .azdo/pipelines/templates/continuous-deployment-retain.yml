@@ -40,21 +40,24 @@ jobs:
             inlineScript: |
               set -e
               az role assignment list --assignee-object-id $(PIPELINE-OBJECT-ID) --role "Storage Blob Data Reader"
+              az role assignment delete --assignee-object-id $(PIPELINE-OBJECT-ID) --role "Storage Blob Data Reader"
+              az role assignment list --assignee-object-id $(PIPELINE-OBJECT-ID) --role "Storage Blob Data Reader"
+              az role assignment list --assignee-object-id $(PIPELINE-OBJECT-ID) --role "App Configuration Data Owner"
 
-              echo "Deploying resources..."
-              DEPLOY_SECONDS=$EPOCHSECONDS
-              DEPLOYMENT_NAME=$AZURE_ENV_NAME-retain-$DEPLOY_SECONDS
-              export PIPELINE_DEPLOYMENT_NAME=$AZURE_ENV_NAME-pipeline-roles-$DEPLOY_SECONDS
-              cd "$(Build.SourcesDirectory)/infra-retain"
+              # echo "Deploying resources..."
+              # DEPLOY_SECONDS=$EPOCHSECONDS
+              # DEPLOYMENT_NAME=$AZURE_ENV_NAME-retain-$DEPLOY_SECONDS
+              # export PIPELINE_DEPLOYMENT_NAME=$AZURE_ENV_NAME-pipeline-roles-$DEPLOY_SECONDS
+              # cd "$(Build.SourcesDirectory)/infra-retain"
 
-              if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
-                echo "Current environment variables:"
-                echo "--------------------------------------------------------------------------------"
-                env | sort
-                echo "--------------------------------------------------------------------------------"
-                az deployment sub create --name $DEPLOYMENT_NAME --location $AZURE_LOCATION --no-prompt --parameters main.bicepparam --debug
-              else
-                az deployment sub create --name $DEPLOYMENT_NAME --location $AZURE_LOCATION --no-prompt --parameters main.bicepparam
-              fi
+              # if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
+              #   echo "Current environment variables:"
+              #   echo "--------------------------------------------------------------------------------"
+              #   env | sort
+              #   echo "--------------------------------------------------------------------------------"
+              #   az deployment sub create --name $DEPLOYMENT_NAME --location $AZURE_LOCATION --no-prompt --parameters main.bicepparam --debug
+              # else
+              #   az deployment sub create --name $DEPLOYMENT_NAME --location $AZURE_LOCATION --no-prompt --parameters main.bicepparam
+              # fi
           env:
             PIPELINE-OBJECT-ID: $(PIPELINE-OBJECT-ID)
