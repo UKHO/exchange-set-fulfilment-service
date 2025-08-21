@@ -1,22 +1,23 @@
-﻿namespace UKHO.ADDS.EFS.Messages;
-
-/// <summary>
-/// Enumeration of S100 request types for pipeline processing
-/// </summary>
-public enum RequestType
+﻿namespace UKHO.ADDS.EFS.Messages
 {
     /// <summary>
-    /// Request for specific product names
+    /// Enumeration of S100 request types for pipeline processing
     /// </summary>
-    ProductNames,
+    internal enum RequestType
+    {
+        /// <summary>
+        /// Request for specific product names
+        /// </summary>
+        ProductNames,
 
-    /// <summary>
-    /// Request for specific product versions
-    /// </summary>
-    ProductVersions,
+        /// <summary>
+        /// Request for specific product versions
+        /// </summary>
+        ProductVersions,
 
-    /// <summary>
-    /// Request for updates since a specific date/time
-    /// </summary>
-    UpdatesSince
+        /// <summary>
+        /// Request for updates since a specific date/time
+        /// </summary>
+        UpdatesSince
+    }
 }
