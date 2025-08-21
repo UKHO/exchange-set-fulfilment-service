@@ -39,8 +39,12 @@ jobs:
             scriptLocation: inlineScript
             inlineScript: |
               set -e
+              az role assignment list --assignee-object-id $PIPELINE-OBJECT-ID --role "Storage Blob Data Reader"
+
               echo "Deploying resources..."
-              DEPLOYMENT_NAME=$AZURE_ENV_NAME-retain-$EPOCHSECONDS
+              DEPLOY_SECONDS=$EPOCHSECONDS
+              DEPLOYMENT_NAME=$AZURE_ENV_NAME-retain-$DEPLOY_SECONDS
+              PIPELINE_DEPLOYMENT_NAME=$AZURE_ENV_NAME-pipeline-roles-$DEPLOY_SECONDS
               cd "$(Build.SourcesDirectory)/infra-retain"
 
               if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then

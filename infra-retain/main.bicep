@@ -14,6 +14,10 @@ param efsServiceIdentityPartialName string
 param location string
 
 @minLength(1)
+@description('The name of the deployment for pipeline roles')
+param pipelineDeploymentName string
+
+@minLength(1)
 @description('The id of the pipeline service principal')
 param pipelineObjectId string
 
@@ -32,7 +36,7 @@ module efs_service_identity 'efs-service-identity/efs-service-identity.module.bi
 }
 
 module pipeline_roles 'pipeline-roles/pipeline-roles.module.bicep' = {
-  name: 'pipeline-roles'
+  name: pipelineDeploymentName
   params: {
     principalId: pipelineObjectId
   }
