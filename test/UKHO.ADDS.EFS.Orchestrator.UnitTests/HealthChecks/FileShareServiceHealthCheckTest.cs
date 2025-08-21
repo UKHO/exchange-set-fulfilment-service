@@ -14,9 +14,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.HealthChecks
         private IHttpClientFactory _fakeHttpClientFactory;
         private IExternalServiceRegistry _fakeExternalServiceRegistry;
         private ILogger<FileShareServiceHealthCheck> _fakeLogger;
-        private FileShareServiceHealthCheck _healthCheck;
-        private IExternalEndpoint _externalEndpoint;
+        private IExternalEndpoint _fakeExternalEndpoint;
         private MockHttpMessageHandler _mockHttpMessageHandler;
+        private FileShareServiceHealthCheck _healthCheck;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
@@ -24,13 +24,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.HealthChecks
             _fakeHttpClientFactory = A.Fake<IHttpClientFactory>();
             _fakeExternalServiceRegistry = A.Fake<IExternalServiceRegistry>();
             _fakeLogger = A.Fake<ILogger<FileShareServiceHealthCheck>>();
-            _mockHttpMessageHandler = new MockHttpMessageHandler();
-            _externalEndpoint = A.Fake<IExternalEndpoint>();
-            _mockHttpMessageHandler = new MockHttpMessageHandler();
+            _fakeExternalEndpoint = A.Fake<IExternalEndpoint>();
         }
 
-        [OneTimeTearDown]
-        public void OneTimeTearDown()
+        [TearDown]
+        public void TearDown()
         {
             _mockHttpMessageHandler?.Dispose();
         }
@@ -38,11 +36,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.HealthChecks
         [SetUp]
         public void Setup()
         {
+            _mockHttpMessageHandler = new MockHttpMessageHandler();
             var fakeHttpClient = new HttpClient(_mockHttpMessageHandler);
+
             A.CallTo(() => _fakeHttpClientFactory.CreateClient(A<string>._)).Returns(fakeHttpClient);
-            A.CallTo(() => _externalEndpoint.Uri).Returns(new Uri("https://test-service.com/"));
+            A.CallTo(() => _fakeExternalEndpoint.Uri).Returns(new Uri("https://test-service.com/"));
             A.CallTo(() => _fakeExternalServiceRegistry.GetServiceEndpoint(ProcessNames.FileShareService, "", EndpointHostSubstitution.None))
-                .Returns(_externalEndpoint);
+                .Returns(_fakeExternalEndpoint);
 
             _healthCheck = new FileShareServiceHealthCheck(_fakeHttpClientFactory, _fakeExternalServiceRegistry, _fakeLogger);
         }
@@ -105,9 +105,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.HealthChecks
 
         public class MockHttpMessageHandler : HttpMessageHandler
         {
-            private readonly Dictionary<string, HttpResponseMessage> _responses = new();
-            private readonly Dictionary<string, Exception> _exceptions = new();
-            public CancellationToken LastCancellationToken { get; private set; }
+            private readonly Dictionary<string, HttpResponseMessage> _responses = [];
+            private readonly Dictionary<string, Exception> _exceptions = [];
+            public CancellationToken CancellationToken { get; private set; }
 
             public void SetResponse(string uri, HttpStatusCode statusCode)
             {
@@ -132,7 +132,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.HealthChecks
 
             protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
             {
-                LastCancellationToken = cancellationToken;
+                CancellationToken = cancellationToken;
                 var uri = request.RequestUri!.ToString();
 
                 if (_exceptions.TryGetValue(uri, out var exception))
