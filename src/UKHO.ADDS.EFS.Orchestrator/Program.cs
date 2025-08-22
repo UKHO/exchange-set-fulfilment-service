@@ -66,19 +66,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                                 options.NodeName = ServiceConfiguration.NodeName;
                                 options.EventHubConnectionString = connectionString;
                                 options.EventHubEntityPath = eventHubName;
-                                options.TokenCredential = new DefaultAzureCredential();
-                                options.AdditionalValuesProvider = additionalValues =>
-                                {
-                                    var httpContext = services.GetRequiredService<IHttpContextAccessor>().HttpContext;
-                                    if (httpContext != null)
-                                    {
-                                        additionalValues["_RemoteIPAddress"] = httpContext.Connection.RemoteIpAddress!.ToString();
-                                        additionalValues["_User-Agent"] = httpContext.Request.Headers.UserAgent.FirstOrDefault() ?? string.Empty;
-                                        additionalValues["_AssemblyVersion"] = Assembly.GetExecutingAssembly().GetCustomAttributes<AssemblyFileVersionAttribute>().Single().Version;
-                                        additionalValues["_X-Correlation-ID"] =
-                                            httpContext.Request.Headers?[ApiHeaderKeys.XCorrelationIdHeaderKey].FirstOrDefault() ?? string.Empty;
-                                    }
-                                };
+                                options.TokenCredential = new DefaultAzureCredential();                               
                             })
                     );
                 }
