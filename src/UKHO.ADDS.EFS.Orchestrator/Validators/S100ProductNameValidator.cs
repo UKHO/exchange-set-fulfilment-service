@@ -229,7 +229,7 @@ internal class S100ProductNameValidator : AbstractValidator<string>
 
         if (string.IsNullOrEmpty(extension))
             return "Product name must have a file extension";
-
+        
         if (filenameWithoutExtension.Length < 3)
             return "Product name must have a valid file extension";
 

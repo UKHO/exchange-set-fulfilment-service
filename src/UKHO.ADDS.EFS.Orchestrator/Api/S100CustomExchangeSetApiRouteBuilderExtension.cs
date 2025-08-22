@@ -39,14 +39,26 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                     logger.LogAssemblyPipelineStarted(parameters);
 
                     var result = await pipeline.RunAsync(httpContext.RequestAborted);
-                    return CreateResponse(5, 4, 1); // Temporary response for demonstration purposes
+
+                    // Check if there are validation errors
+                    if (result.ErrorResponse?.Errors?.Count > 0)
+                    {
+                        return Results.BadRequest(result.ErrorResponse);
+                    }
+
+                    // Return success response
+                    // Replace all instances of Results.Ok(result.ResponseData) with Results.Accepted(null, result.ResponseData)
+
+                    return Results.Accepted(null, result.ResponseData);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
+                    // Exception handling will be done by middleware
                     throw;
                 }
             })
             .Produces<S100CustomExchangeSetResponse>(202)
+            .Produces<ErrorResponseModel>(400)
             .WithRequiredHeader("x-correlation-id", "Correlation ID", $"job-{Guid.NewGuid():N}")
             .WithDescription("Provide all the latest releasable baseline data for a specified set of S100 Products.");
 
@@ -61,7 +73,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 try
                 {
                     return CreateResponse(6, 5, 1); // Temporary response for demonstration purposes
-                }
+                    }
                 catch (Exception e)
                 {
                     throw;
@@ -83,7 +95,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 try
                 {
                     return CreateResponse(7, 6, 1); // Temporary response for demonstration purposes
-                }
+                    }
                 catch (Exception e)
                 {
                     throw;
@@ -93,39 +105,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             .Produces(304)
             .WithRequiredHeader("x-correlation-id", "Correlation ID", $"job-{Guid.NewGuid():N}")
             .WithDescription("Provide all the releasable S100 data after a datetime.");
-        }
-
-        // Temporary method to create a response for demonstration purposes.
-        private static S100CustomExchangeSetResponse CreateResponse(
-        int requestedProductCount,
-        int exchangeSetProductCount,
-        int requestedProductsAlreadyUpToDateCount)
-        {
-            var batchId = Guid.NewGuid().ToString("N"); // Simulate batch ID for demonstration purposes
-            var jobId = Guid.NewGuid().ToString("N"); // Use correlation ID as job ID
-
-            return new S100CustomExchangeSetResponse
-            {
-                Links = new S100ExchangeSetLinks
-                {
-                    ExchangeSetBatchStatusUri = new S100Link { Href = $"http://fss.ukho.gov.uk/batch/{batchId}/status" },
-                    ExchangeSetBatchDetailsUri = new S100Link { Href = $"http://fss.ukho.gov.uk/batch/{batchId}" },
-                    ExchangeSetFileUri = batchId != null ? new S100Link { Href = $"http://fss.ukho.gov.uk/batch/{batchId}/files/exchangeset.zip" } : null
-                },
-                ExchangeSetUrlExpiryDateTime = DateTime.UtcNow.AddDays(7), // TODO: Get from configuration
-                RequestedProductCount = requestedProductCount,
-                ExchangeSetProductCount = exchangeSetProductCount,
-                RequestedProductsAlreadyUpToDateCount = requestedProductsAlreadyUpToDateCount,
-                RequestedProductsNotInExchangeSet =
-                [
-                    new S100ProductNotInExchangeSet
-                {
-                    ProductName = "101GB40079ABCDEFG",
-                    Reason = S100ProductNotIncludedReason.InvalidProduct
-                }
-                ],
-                FssBatchId = batchId
-            };
         }
     }
 }

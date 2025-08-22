@@ -1,5 +1,4 @@
 using FluentValidation;
-using Microsoft.Extensions.Logging;
 using UKHO.ADDS.EFS.Builds.S100;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
@@ -66,6 +65,19 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
 
                 // Store validation errors in the build for later retrieval
                 context.Subject.Build.LogMessages = validationErrors;
+
+                // Populate ErrorResponseModel with validation errors
+                context.Subject.ErrorResponse = new ErrorResponseModel
+                {
+                    CorrelationId = correlationId,
+                    Errors = validationResult.Errors
+                        .Select(e => new ErrorDetail
+                        {
+                            Source = e.PropertyName,
+                            Description = e.ErrorMessage
+                        })
+                        .ToList()
+                };
 
                 return NodeResultStatus.Failed;
             }

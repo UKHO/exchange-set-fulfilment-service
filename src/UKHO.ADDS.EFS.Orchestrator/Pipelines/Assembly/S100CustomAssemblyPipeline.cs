@@ -2,7 +2,6 @@
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
-using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly;
 
@@ -20,23 +19,9 @@ internal class S100CustomAssemblyPipeline : AssemblyPipeline<S100Build>
         AddPipelineNode<CreateJobNode>(cancellationToken);
         AddPipelineNode<GetDataStandardTimestampNode>(cancellationToken);
         AddPipelineNode<CreateInputValidationNode>(cancellationToken);
-        //Add New node for CreateResponse
+        AddPipelineNode<CreateResponseNode>(cancellationToken);
 
         var result = await Pipeline.ExecuteAsync(context);
-
-        switch (result.Status)
-        {
-            case NodeResultStatus.Succeeded:
-            case NodeResultStatus.SucceededWithErrors:
-                // Nothing to do here, the job is already updated in the context
-                break;
-
-            case NodeResultStatus.NotRun:
-            case NodeResultStatus.Failed:
-            default:
-                await context.SignalAssemblyError();
-                break;
-        }
 
         return new AssemblyPipelineResponse()
         {
@@ -44,7 +29,9 @@ internal class S100CustomAssemblyPipeline : AssemblyPipeline<S100Build>
             DataStandard = context.Job.DataStandard,
             JobStatus = context.Job.JobState,
             BuildStatus = context.Job.BuildState,
-            BatchId = context.Job.BatchId
+            BatchId = context.Job.BatchId,
+            ErrorResponse = context.ErrorResponse?.Errors?.Count > 0 ? context.ErrorResponse : null,
+            ResponseData = context.Build.ResponseData
         };
     }
 

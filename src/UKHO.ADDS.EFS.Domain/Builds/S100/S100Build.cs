@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using UKHO.ADDS.Clients.SalesCatalogueService.Models;
+using UKHO.ADDS.EFS.Messages;
 
 namespace UKHO.ADDS.EFS.Builds.S100
 {
@@ -25,6 +26,11 @@ namespace UKHO.ADDS.EFS.Builds.S100
             get => _productNames;
             set => _productNames = value?.ToList() ?? [];
         }
+
+        /// <summary>
+        /// The response data for successful S100 requests
+        /// </summary>
+        internal S100CustomExchangeSetResponse? ResponseData { get; set; }
 
         public override string GetProductDelimitedList() => (Products == null) ? string.Empty : string.Join(", ", Products.Select(p => p));
 
