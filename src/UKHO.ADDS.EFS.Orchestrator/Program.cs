@@ -66,6 +66,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
 
                 app.RegisterJobsApi(loggerFactory);
+                app.RegisterS100CustomExchangeSetApi(loggerFactory);
 
                 var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
 

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -6,6 +6,11 @@
     <Nullable>enable</Nullable>
     <RootNamespace>UKHO.ADDS.EFS</RootNamespace>
   </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="UKHO.ADDS.EFS.Orchestrator" />
+    <InternalsVisibleTo Include="UKHO.ADDS.EFS.Orchestrator.UnitTests" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Handlebars.Net" Version="2.1.6" />
