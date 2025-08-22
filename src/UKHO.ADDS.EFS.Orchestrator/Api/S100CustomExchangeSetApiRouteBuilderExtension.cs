@@ -72,9 +72,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             {
                 try
                 {
-                    return CreateResponse(6, 5, 1); // Temporary response for demonstration purposes
+                    // Placeholder: endpoint not yet implemented. Return 202 Accepted with no body.
+                    return Results.Accepted();
                     }
-                catch (Exception e)
+                catch (Exception)
                 {
                     throw;
                 }
@@ -94,9 +95,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             {
                 try
                 {
-                    return CreateResponse(7, 6, 1); // Temporary response for demonstration purposes
+                    // Placeholder: endpoint not yet implemented. Return 202 Accepted with no body.
+                    return Results.Accepted();
                     }
-                catch (Exception e)
+                catch (Exception)
                 {
                     throw;
                 }

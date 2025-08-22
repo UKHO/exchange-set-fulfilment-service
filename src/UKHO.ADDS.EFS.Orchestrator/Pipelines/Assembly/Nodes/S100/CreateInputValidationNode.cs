@@ -53,7 +53,7 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
             if (!validationResult.IsValid)
             {
                 var validationErrors = validationResult.Errors
-                    .Select(error => $"{error.PropertyName}: {error.ErrorMessage}")
+                    .Select(error => $"{error.ErrorMessage}")
                     .ToList();
 
                 _logger.S100InputValidationFailed(
@@ -73,7 +73,7 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
                     Errors = validationResult.Errors
                         .Select(e => new ErrorDetail
                         {
-                            Source = e.PropertyName,
+                            Source = e.AttemptedValue?.ToString(),
                             Description = e.ErrorMessage
                         })
                         .ToList()
