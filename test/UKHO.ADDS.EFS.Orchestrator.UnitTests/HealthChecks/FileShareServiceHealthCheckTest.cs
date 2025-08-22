@@ -4,7 +4,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.Aspire.Configuration.Remote;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
-using UKHO.ADDS.EFS.Orchestrator.HealthChecks;
+using UKHO.ADDS.EFS.Orchestrator.Health;
 
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.HealthChecks
 {
