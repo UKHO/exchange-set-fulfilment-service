@@ -8,7 +8,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.HealthChecks
     /// <summary>
     /// Health check for File Share Service connectivity
     /// </summary>
-    public class FileShareServiceHealthCheck : IHealthCheck
+    internal class FileShareServiceHealthCheck : IHealthCheck
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IExternalServiceRegistry _externalServiceRegistry;

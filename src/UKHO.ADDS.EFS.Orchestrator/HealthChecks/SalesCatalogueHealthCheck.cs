@@ -11,7 +11,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.HealthChecks
     /// <summary>
     /// Health check for Sales Catalogue Service connectivity
     /// </summary>
-    public class SalesCatalogueHealthCheck : IHealthCheck
+    internal class SalesCatalogueHealthCheck : IHealthCheck
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IExternalServiceRegistry _externalServiceRegistry;
