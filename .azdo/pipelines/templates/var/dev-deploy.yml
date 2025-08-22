@@ -1,4 +1,5 @@
 variables:
 - group: EFS-Dev-Variables
+- group: ESS-Deployment-Variables-DEV
 - name: AzureSubscription
   value: Exchange-Set-Service-Dev-A-008-02
