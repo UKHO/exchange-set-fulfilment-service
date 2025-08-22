@@ -5,7 +5,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.HealthChecks
     /// <summary>
     /// Provides helper methods for configuring health check endpoints
     /// </summary>
-    internal static class HealthCheckConfiguration
+    internal static class HealthCheckOptionsFactory
     {
         /// <summary>
         /// Creates health check options that exclude specific service checks (like Redis)
