@@ -27,8 +27,8 @@ internal class S100ProductNamesRequestValidator : AbstractValidator<S100ProductN
             .When(request => request.ProductNames is not null);
 
         RuleFor(request => request.ProductNames)
-            .Must(HaveUniqueProductNamesByProducer)
-            .WithMessage("Product names with the same unique code from different producers are not allowed")
+            .Must(HaveUniqueUniqueCodesByProducer)
+            .WithMessage("Unique codes must not be reused for different datasets from the same producer (e.g., 101GB00QWERTY and 102GB00QWERTY are not allowed)")
             .When(request => request.ProductNames is not null);
     }
 
@@ -41,25 +41,53 @@ internal class S100ProductNamesRequestValidator : AbstractValidator<S100ProductN
         return distinctCount == productNames.Count;
     }
 
-    private static bool HaveUniqueProductNamesByProducer(List<string>? productNames)
+    private static bool HaveUniqueUniqueCodesByProducer(List<string>? productNames)
     {
         if (productNames == null)
             return true;
 
-        // Group products by producer code and check for unique codes within each producer
-        var producerGroups = productNames
-            .Where(name => !string.IsNullOrEmpty(name) && name.Length >= 8)
-            .GroupBy(name => new
-            {
-                ProductCode = name.Length >= 3 ? name[..3] : "",
-                ProducerCode = name.Length >= 7 ? name.Substring(3, 4) : "",
-                UniqueCode = name.Length >= 8 ? name[7..] : ""
-            })
-            .Where(g => !string.IsNullOrEmpty(g.Key.ProductCode) &&
-                       !string.IsNullOrEmpty(g.Key.ProducerCode) &&
-                       !string.IsNullOrEmpty(g.Key.UniqueCode));
+        var uniqueCodesByProducer = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
 
-        // Check if any group has more than one product (indicating duplicate unique codes from same producer)
-        return !producerGroups.Any(g => g.Count() > 1);
+        foreach (var productName in productNames)
+        {
+            if (string.IsNullOrEmpty(productName))
+                continue;
+
+            // Extract filename without extension for validation
+            var lastDotIndex = productName.LastIndexOf('.');
+            var filenameWithoutExtension = lastDotIndex > 0 ? productName[..lastDotIndex] : productName;
+
+            if (filenameWithoutExtension.Length < 8)
+                continue;
+
+            var producerCode = filenameWithoutExtension.Substring(3, 4);
+            var uniqueCode = filenameWithoutExtension[7..];
+
+            if (string.IsNullOrEmpty(producerCode) || string.IsNullOrEmpty(uniqueCode))
+                continue;
+
+            // Check if this unique code has already been used by this producer
+            if (!uniqueCodesByProducer.ContainsKey(producerCode))
+            {
+                uniqueCodesByProducer[producerCode] = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            }
+
+            if (uniqueCodesByProducer[producerCode].Contains(uniqueCode))
+            {
+                // Unique code already exists for this producer
+                return false;
+            }
+
+            uniqueCodesByProducer[producerCode].Add(uniqueCode);
+        }
+
+        return true;
+    }
+
+    // Keep the old method for backward compatibility but mark as obsolete
+    [Obsolete("Use HaveUniqueUniqueCodesByProducer instead")]
+    private static bool HaveUniqueProductNamesByProducer(List<string>? productNames)
+    {
+        return HaveUniqueUniqueCodesByProducer(productNames);
     }
 }

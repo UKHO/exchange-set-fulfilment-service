@@ -17,6 +17,9 @@ internal class S100ProductNameValidator : AbstractValidator<string>
     // Character rules for S-104 and S-111: A-Z, a-z, 0-9, hyphen, underscore  
     private static readonly Regex S104S111UniqueCodeRegex = new(@"^[A-Za-z0-9_-]+$", RegexOptions.Compiled);
     
+    // Producer code validation: alphanumeric only
+    private static readonly Regex ProducerCodeRegex = new(@"^[A-Za-z0-9]+$", RegexOptions.Compiled);
+    
     // UTF-8 validation - reject characters outside valid ranges
     private static readonly Regex InvalidUtf8Regex = new(@"[^\u0020-\u007E\u00A0-\u00FF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF]", RegexOptions.Compiled);
 
@@ -127,6 +130,11 @@ internal class S100ProductNameValidator : AbstractValidator<string>
             return false;
 
         var productCode = filenameWithoutExtension[..3];
+        
+        // Product code must be exactly 3 digits
+        if (!productCode.All(char.IsDigit))
+            return false;
+            
         return ValidProductCodes.Contains(productCode);
     }
 
@@ -141,7 +149,9 @@ internal class S100ProductNameValidator : AbstractValidator<string>
             return false;
 
         var producerCode = filenameWithoutExtension.Substring(3, 4);
-        return producerCode.All(char.IsLetterOrDigit);
+        
+        // Producer code must be exactly 4 alphanumeric characters
+        return ProducerCodeRegex.IsMatch(producerCode);
     }
 
     private static bool HasValidUniqueCode(string? productName)

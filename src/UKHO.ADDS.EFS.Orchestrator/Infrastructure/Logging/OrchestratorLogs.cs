@@ -217,7 +217,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         [LoggerMessage(S100InputValidationSucceededId, LogLevel.Information, "S100 input validation succeeded for correlation ID: {correlationId} with {productCount} products", EventName = nameof(S100InputValidationSucceeded))]
         public static partial void S100InputValidationSucceeded(this ILogger logger, string correlationId, int productCount);
 
-        [LoggerMessage(S100InputValidationFailedId, LogLevel.Warning, "S100 input validation failed for correlation ID: {correlationId} - Errors: {validationErrors}", EventName = nameof(S100InputValidationFailed))]
+        [LoggerMessage(S100InputValidationFailedId, LogLevel.Error, "S100 input validation failed for correlation ID: {correlationId} - Errors: {validationErrors}", EventName = nameof(S100InputValidationFailed))]
         public static partial void S100InputValidationFailed(this ILogger logger, string correlationId, string validationErrors);
 
         [LoggerMessage(S100InputValidationErrorId, LogLevel.Error, "S100 input validation error for correlation ID: {correlationId}", EventName = nameof(S100InputValidationError))]

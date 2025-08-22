@@ -21,19 +21,18 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
     private readonly S100ProductNamesRequestValidator _productNamesValidator;
 
     public CreateInputValidationNode(
-        AssemblyNodeEnvironment nodeEnvironment, 
+        AssemblyNodeEnvironment nodeEnvironment,
         ILogger<CreateInputValidationNode> logger,
-        S100ProductNamesRequestValidator productNamesValidator) 
+        S100ProductNamesRequestValidator productNamesValidator)
         : base(nodeEnvironment)
     {
         _logger = logger;
         _productNamesValidator = productNamesValidator;
     }
 
-    public override async Task<bool> ShouldExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
+    public override Task<bool> ShouldExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
     {
-        // Always run validation as the first step
-        return await Task.FromResult(true);
+        return Task.FromResult(context.Subject.Job.JobState == JobState.Created);
     }
 
     protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
@@ -72,7 +71,7 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
             }
 
             _logger.S100InputValidationSucceeded(correlationId, GetProductCount(job, requestType));
-            
+
             return NodeResultStatus.Succeeded;
         }
         catch (Exception ex)
