@@ -1,6 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.Messages;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Jobs
 {
@@ -54,7 +55,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Jobs
         /// <summary>
         ///     Gets the requested products for the job.
         /// </summary>
-        public required string RequestedProducts { get; init; }
+        public required ProductNameList RequestedProducts { get; init; }
+
+        /// <summary>
+        ///     Gets a value indicating whether the job has any requested products.
+        /// </summary>
+        public bool HasProducts => RequestedProducts.HasProducts;
 
         /// <summary>
         ///     Gets the requested filter for the job.

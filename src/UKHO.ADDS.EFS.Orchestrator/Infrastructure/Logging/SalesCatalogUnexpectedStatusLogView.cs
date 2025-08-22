@@ -15,6 +15,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         public HttpStatusCode StatusCode { get; init; }
 
         public static SalesCatalogUnexpectedStatusLogView Create(Job job, HttpStatusCode statusCode) =>
-            new() { DataStandard = job.DataStandard, Products = job.RequestedProducts, CorrelationId = job.GetCorrelationId(), StatusCode = statusCode };
+            new()
+            {
+                DataStandard = job.DataStandard,
+                Products = job.RequestedProducts.ToString(),
+                CorrelationId = job.GetCorrelationId(),
+                StatusCode = statusCode
+            };
     }
 }

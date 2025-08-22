@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.EFS.Jobs;
+﻿using System.Text.Json.Serialization;
+using UKHO.ADDS.EFS.Jobs;
 
 namespace UKHO.ADDS.EFS.Messages
 {
@@ -11,7 +12,8 @@ namespace UKHO.ADDS.EFS.Messages
 
         public DataStandard DataStandard { get; set; }
 
-        public required string Products { get; set; }
+        [JsonPropertyName("products")]
+        public ProductNameList? Products { get; set; }
 
         public required string Filter { get; set; }
     }
