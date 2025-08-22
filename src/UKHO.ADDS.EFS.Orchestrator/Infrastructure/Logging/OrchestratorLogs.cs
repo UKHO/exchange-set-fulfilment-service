@@ -56,6 +56,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         private const int HealthCheckErrorId = BaseEventId + 31;
         private const int HealthCheckFailedStatusCodeId = BaseEventId + 32;
 
+        // Sales Catalogue timeout specific event IDs
+        private const int SalesCatalogueTimeoutId = BaseEventId + 33;
+        private const int SalesCatalogueCancelledId = BaseEventId + 34;
+        private const int GetProductsNodeFailedId = BaseEventId + 35;
+
         // An unhandled HTTP error has occurred
         public static readonly EventId UnhandledHttpError = new(UnhandledHttpErrorId, nameof(UnhandledHttpError));
 
@@ -130,6 +135,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         public static readonly EventId HealthCheckWarning = new(HealthCheckWarningId, nameof(HealthCheckWarning));
         public static readonly EventId HealthCheckError = new(HealthCheckErrorId, nameof(HealthCheckError));
         public static readonly EventId HealthCheckFailedStatusCode = new(HealthCheckFailedStatusCodeId, nameof(HealthCheckFailedStatusCode));
+
+        // Sales Catalogue timeout and cancellation events
+        public static readonly EventId SalesCatalogueTimeout = new(SalesCatalogueTimeoutId, nameof(SalesCatalogueTimeout));
+        public static readonly EventId SalesCatalogueCancelled = new(SalesCatalogueCancelledId, nameof(SalesCatalogueCancelled));
+        public static readonly EventId GetProductsNodeFailed = new(GetProductsNodeFailedId, nameof(GetProductsNodeFailed));
 
         [LoggerMessage(UnhandledHttpErrorId, LogLevel.Error, "An unhandled exception was caught by the HTTP pipeline: {@message}", EventName = nameof(UnhandledHttpError))]
         public static partial void LogUnhandledHttpError(this ILogger logger, string message, Exception exception);
@@ -226,5 +236,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
             
         [LoggerMessage(HealthCheckFailedStatusCodeId, LogLevel.Warning, "Health check for {ServiceName} failed with status code {StatusCode}", EventName = nameof(HealthCheckFailedStatusCode))]
         public static partial void LogHealthCheckFailedStatusCode(this ILogger logger, string serviceName, int statusCode);
+
+        [LoggerMessage(SalesCatalogueTimeoutId, LogLevel.Warning, "Sales Catalogue request timed out for job {JobId}. Error: {Error}", EventName = nameof(SalesCatalogueTimeout))]
+        public static partial void LogSalesCatalogueTimeout(this ILogger logger, string jobId, string error, Exception exception);
+
+        [LoggerMessage(SalesCatalogueCancelledId, LogLevel.Warning, "Sales Catalogue request was cancelled for job {JobId}. Error: {Error}", EventName = nameof(SalesCatalogueCancelled))]
+        public static partial void LogSalesCatalogueCancelled(this ILogger logger, string jobId, string error, Exception exception);
+
+        [LoggerMessage(GetProductsNodeFailedId, LogLevel.Error, "GetProductsForDataStandardNode failed for job {JobId}", EventName = nameof(GetProductsNodeFailed))]
+        public static partial void LogGetProductsNodeFailed(this ILogger logger, string jobId, Exception exception);
     }
 }

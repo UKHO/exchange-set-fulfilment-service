@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using UKHO.ADDS.EFS.Builds.S100;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
@@ -29,43 +30,70 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             var job = context.Subject.Job;
             var build = context.Subject.Build;
 
-            var (s100SalesCatalogueData, lastModified) = await _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(job.DataStandardTimestamp, job);
-
-            var nodeResult = NodeResultStatus.NotRun;
-
-            switch (s100SalesCatalogueData.ResponseCode)
+            try
             {
-                case HttpStatusCode.OK when s100SalesCatalogueData.ResponseBody.Any():
-                    // We have something to build, so move forwards with scheduling a build
-                    build.Products = s100SalesCatalogueData.ResponseBody;
+                var (s100SalesCatalogueData, lastModified) = await _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(job.DataStandardTimestamp, job, Environment.CancellationToken);
 
-                    job.DataStandardTimestamp = lastModified;
-                    build.SalesCatalogueTimestamp = lastModified;
+                var nodeResult = NodeResultStatus.NotRun;
 
-                    await context.Subject.SignalBuildRequired();
+                switch (s100SalesCatalogueData.ResponseCode)
+                {
+                    case HttpStatusCode.OK when s100SalesCatalogueData.ResponseBody.Any():
+                        // We have something to build, so move forwards with scheduling a build
+                        build.Products = s100SalesCatalogueData.ResponseBody;
 
-                    nodeResult = NodeResultStatus.Succeeded;
+                        job.DataStandardTimestamp = lastModified;
+                        build.SalesCatalogueTimestamp = lastModified;
 
-                    break;
-                case HttpStatusCode.NotModified:
-                    // No new data since the specified timestamp, so no build needed
-                    job.DataStandardTimestamp = lastModified;
+                        await context.Subject.SignalBuildRequired();
 
-                    await context.Subject.SignalNoBuildRequired();
+                        nodeResult = NodeResultStatus.Succeeded;
 
-                    nodeResult = NodeResultStatus.Succeeded;
+                        break;
+                    case HttpStatusCode.NotModified:
+                        // No new data since the specified timestamp, so no build needed
+                        job.DataStandardTimestamp = lastModified;
 
-                    break;
-                default:
-                    // Something went wrong, so the job has failed
-                    await context.Subject.SignalAssemblyError();
+                        await context.Subject.SignalNoBuildRequired();
 
-                    nodeResult = NodeResultStatus.Failed;
+                        nodeResult = NodeResultStatus.Succeeded;
 
-                    break;
+                        break;
+                    default:
+                        // Something went wrong, so the job has failed
+                        await context.Subject.SignalAssemblyError();
+
+                        nodeResult = NodeResultStatus.Failed;
+
+                        break;
+                }
+
+                return nodeResult;
             }
-
-            return nodeResult;
+            catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException || ex.CancellationToken.IsCancellationRequested)
+            {
+                Environment.Logger.LogSalesCatalogueTimeout(job.Id, ex.Message, ex);
+                
+                // Signal assembly error and return failed status on timeout
+                await context.Subject.SignalAssemblyError();
+                return NodeResultStatus.Failed;
+            }
+            catch (OperationCanceledException ex)
+            {
+                Environment.Logger.LogSalesCatalogueCancelled(job.Id, ex.Message, ex);
+                
+                // Signal assembly error and return failed status on cancellation
+                await context.Subject.SignalAssemblyError();
+                return NodeResultStatus.Failed;
+            }
+            catch (Exception ex)
+            {
+                Environment.Logger.LogGetProductsNodeFailed(job.Id, ex);
+                
+                // Signal assembly error and return failed status on unexpected errors
+                await context.Subject.SignalAssemblyError();
+                return NodeResultStatus.Failed;
+            }
         }
     }
 }

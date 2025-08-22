@@ -35,6 +35,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
         /// </summary>
         /// <param name="sinceDateTime">Optional date and time to filter products that have changed since this time.</param>
         /// <param name="job">The build.</param>
+        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
         /// <returns>
         ///     A tuple containing:
         ///     - s100SalesCatalogueData: The response from the Sales Catalogue API.
@@ -45,7 +46,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
         ///     The method returns an empty response with the original sinceDateTime when an error occurs or when
         ///     an unexpected HTTP status code is returned from the API.
         /// </remarks>
-        public async Task<(S100SalesCatalogueResponse s100SalesCatalogueData, DateTime? LastModified)> GetS100ProductsFromSpecificDateAsync(DateTime? sinceDateTime, Job job)
+        public async Task<(S100SalesCatalogueResponse s100SalesCatalogueData, DateTime? LastModified)> GetS100ProductsFromSpecificDateAsync(DateTime? sinceDateTime, Job job, CancellationToken cancellationToken)
         {
             var headersOption = new HeadersInspectionHandlerOption { InspectResponseHeaders = true };
             try
@@ -59,7 +60,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
                       config.Headers.Add("If-Modified-Since", headerDateString!);
                       config.Headers.Add("X-Correlation-Id", job.GetCorrelationId());
                       config.Options.Add(headersOption);
-                  });
+                  }, cancellationToken);
                     return Result.Success(result);
                 });
 
