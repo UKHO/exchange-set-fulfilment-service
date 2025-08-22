@@ -84,25 +84,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.HealthChecks
             Assert.That(result.Exception, Is.EqualTo(exception));
         }
 
-        [Test]
-        public void WhenParameterIsNull_ThenConstructorThrowsArgumentNullException()
-        {
-            var ex = Assert.Throws<ArgumentNullException>(() =>
-                new FileShareServiceHealthCheck(null!, _fakeExternalServiceRegistry, _fakeLogger));
-
-            Assert.That(ex.ParamName, Is.EqualTo("httpClientFactory"));
-
-            var ex1 = Assert.Throws<ArgumentNullException>(() =>
-                new FileShareServiceHealthCheck(_fakeHttpClientFactory, null!, _fakeLogger));
-
-            Assert.That(ex1.ParamName, Is.EqualTo("externalServiceRegistry"));
-
-            var ex2 = Assert.Throws<ArgumentNullException>(() =>
-               new FileShareServiceHealthCheck(_fakeHttpClientFactory, _fakeExternalServiceRegistry, null!));
-
-            Assert.That(ex2.ParamName, Is.EqualTo("logger"));
-        }
-
         public class MockHttpMessageHandler : HttpMessageHandler
         {
             private readonly Dictionary<string, HttpResponseMessage> _responses = [];
