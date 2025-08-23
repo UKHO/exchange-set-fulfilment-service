@@ -1,0 +1,115 @@
+openapi: 3.0.1
+info:
+  title: EFS Exchange Set Service API
+  version: 1.0.0
+  description: API for Exchange Set Service endpoints
+
+servers:
+  - url: https://api.example.com
+
+paths:
+  /v2/exchangeSet/s100/productNames:
+    get:
+      summary: Get latest releasable baseline data for specified products
+      operationId: GetProductNames
+      parameters:
+        - name: productIds
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: List of product names
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductNamesResponse'
+      security:
+        - bearerAuth: []
+
+  /v2/exchangeSet/s100/productVersions:
+    get:
+      summary: Get later releasable files for given product versions
+      operationId: GetProductVersions
+      parameters:
+        - name: productVersions
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/ProductVersion'
+      responses:
+        '200':
+          description: List of product versions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductVersionsResponse'
+      security:
+        - bearerAuth: []
+
+  /v2/exchangeSet/s100/updatesSince:
+    get:
+      summary: Get all releasable data after a datetime
+      operationId: GetUpdatesSince
+      parameters:
+        - name: since
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: List of updates since given datetime
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdatesSinceResponse'
+      security:
+        - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ProductNamesResponse:
+      type: object
+      properties:
+        productNames:
+          type: array
+          items:
+            type: string
+
+    ProductVersion:
+      type: object
+      properties:
+        productId:
+          type: string
+        edition:
+          type: string
+        update:
+          type: string
+
+    ProductVersionsResponse:
+      type: object
+      properties:
+        productVersions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductVersion'
+
+    UpdatesSinceResponse:
+      type: object
+      properties:
+        updates:
+          type: array
+          items:
+            type: string

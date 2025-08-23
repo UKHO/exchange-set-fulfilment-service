@@ -167,6 +167,30 @@ stages:
         DeployRedis: ${{ parameters.DeployRedis }}
         WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
 
+  - stage: DeployAPIMDev
+    displayName: "Deploy APIM Dev"
+    dependsOn:
+    - DevDeploy
+    jobs:
+    - job: TerraformAPIMDev
+      displayName: "Terraform APIM Dev"
+      pool:
+        vmImage: 'ubuntu-latest'
+      steps:
+        - checkout: self
+        - script: |
+            cd src/infra/terraform/apim
+            terraform init
+          displayName: 'Terraform Init APIM Dev'
+        - script: |
+            cd src/infra/terraform/apim
+            terraform plan -var-file=dev.tfvars -out=tfplan
+          displayName: 'Terraform Plan APIM Dev'
+        - script: |
+            cd src/infra/terraform/apim
+            terraform apply -auto-approve tfplan
+          displayName: 'Terraform Apply APIM Dev'
+
   - stage: vnextiatDeploy
     dependsOn:
     - DevDeploy
@@ -184,6 +208,30 @@ stages:
         IncludeAddsMock: false
         DeployRedis: ${{ parameters.DeployRedis }}
         WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
+
+  - stage: DeployAPIMVnextIAT
+    displayName: "Deploy APIM vNext IAT"
+    dependsOn:
+    - vnextiatDeploy
+    jobs:
+    - job: TerraformAPIMVnextIAT
+      displayName: "Terraform APIM vNext IAT"
+      pool:
+        vmImage: 'ubuntu-latest'
+      steps:
+        - checkout: self
+        - script: |
+            cd src/infra/terraform/apim
+            terraform init
+          displayName: 'Terraform Init APIM vNext IAT'
+        - script: |
+            cd src/infra/terraform/apim
+            terraform plan -var-file=vnextiat.tfvars -out=tfplan
+          displayName: 'Terraform Plan APIM vNext IAT'
+        - script: |
+            cd src/infra/terraform/apim
+            terraform apply -auto-approve tfplan
+          displayName: 'Terraform Apply APIM vNext IAT'
 
   - stage: vnexte2eDeploy
     dependsOn:
@@ -203,6 +251,30 @@ stages:
         DeployRedis: ${{ parameters.DeployRedis }}
         WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
 
+  - stage: DeployAPIMVnextE2E
+    displayName: "Deploy APIM vNext E2E"
+    dependsOn:
+    - vnexte2eDeploy
+    jobs:
+    - job: TerraformAPIMVnextE2E
+      displayName: "Terraform APIM vNext E2E"
+      pool:
+        vmImage: 'ubuntu-latest'
+      steps:
+        - checkout: self
+        - script: |
+            cd src/infra/terraform/apim
+            terraform init
+          displayName: 'Terraform Init APIM vNext E2E'
+        - script: |
+            cd src/infra/terraform/apim
+            terraform plan -var-file=vnexte2e.tfvars -out=tfplan
+          displayName: 'Terraform Plan APIM vNext E2E'
+        - script: |
+            cd src/infra/terraform/apim
+            terraform apply -auto-approve tfplan
+          displayName: 'Terraform Apply APIM vNext E2E'
+
   - stage: iatDeploy
     dependsOn:
     - DevDeploy
@@ -220,3 +292,27 @@ stages:
         IncludeAddsMock: false
         DeployRedis: ${{ parameters.DeployRedis }}
         WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
+
+  - stage: DeployAPIMIAT
+    displayName: "Deploy APIM IAT"
+    dependsOn:
+    - iatDeploy
+    jobs:
+    - job: TerraformAPIMIAT
+      displayName: "Terraform APIM IAT"
+      pool:
+        vmImage: 'ubuntu-latest'
+      steps:
+        - checkout: self
+        - script: |
+            cd src/infra/terraform/apim
+            terraform init
+          displayName: 'Terraform Init APIM IAT'
+        - script: |
+            cd src/infra/terraform/apim
+            terraform plan -var-file=iat.tfvars -out=tfplan
+          displayName: 'Terraform Plan APIM IAT'
+        - script: |
+            cd src/infra/terraform/apim
+            terraform apply -auto-approve tfplan
+          displayName: 'Terraform Apply APIM IAT'

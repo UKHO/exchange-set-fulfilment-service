@@ -1,5 +1,7 @@
 using System.Runtime.InteropServices;
+using Aspire.Hosting;
 using Aspire.Hosting.Azure;
+using Azure.Provisioning.ApiManagement;
 using Azure.Provisioning.AppConfiguration;
 using Azure.Provisioning.AppContainers;
 using Azure.Provisioning.ApplicationInsights;
@@ -10,6 +12,7 @@ using CliWrap;
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Projects;
 using Serilog;
 using UKHO.ADDS.Aspire.Configuration.Hosting;
@@ -124,7 +127,6 @@ namespace UKHO.ADDS.EFS.LocalHost
                 {
                     var eventHubNamespace = config.GetProvisionableResources().OfType<EventHubsNamespace>().Single();
                     eventHubNamespace.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
-                    eventHubNamespace.DisableLocalAuth = false;
                 });
                 eventHubs.AddHub(ServiceConfiguration.EventHubName);
             }
@@ -193,6 +195,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                 orchestratorService.WaitFor(requestMonitor!);
             }
 
+
             // Configuration
             if (builder.ExecutionContext.IsRunMode)
             {
@@ -215,8 +218,42 @@ namespace UKHO.ADDS.EFS.LocalHost
                 await CreateBuilderContainerImages(ProcessNames.S63Builder, "latest", "UKHO.ADDS.EFS.Builder.S63", appRootPath);
                 await CreateBuilderContainerImages(ProcessNames.S57Builder, "latest", "UKHO.ADDS.EFS.Builder.S57", appRootPath);
             }
-        }
 
+            // API Management
+            var apim = builder.AddAzureApiManagement("solasnonlive")
+                .PublishAsExisting("solasnonlive", "apim-solas-nonlive-rg");
+
+            // Import OpenAPI spec (local file or URL)
+            var openApiSpecPath = "openapi.yaml"; // Adjust path as needed
+            apim.ImportApi("efs-api", openApiSpecPath);
+
+            // Register 3 endpoints (example)
+            apim.AddApiOperation("efs-api", "GetProducts", "/products", "GET");
+            apim.AddApiOperation("efs-api", "CreateProduct", "/products", "POST");
+            apim.AddApiOperation("efs-api", "GetProductById", "/products/{id}", "GET");
+
+            // Create a new product
+            apim.AddProduct("efs-product", displayName: "EFS Product", description: "Product for EFS APIs", approvalRequired: false, subscriptionsLimit: 1);
+
+            // Set a rate-limiting policy (example: 10 calls per 60 seconds)
+            apim.AddApiPolicy("efs-api", @"
+<policies>
+  <inbound>
+    <rate-limit calls='10' renewal-period='60' />
+    <base />
+  </inbound>
+  <backend>
+    <base />
+  </backend>
+  <outbound>
+    <base />
+  </outbound>
+  <on-error>
+    <base />
+  </on-error>
+</policies>
+");
+        }
         private static async Task CreateBuilderContainerImages(string name, string tag, string projectName, string appRootDirectory)
         {
             // Check to see if we need to build any images
