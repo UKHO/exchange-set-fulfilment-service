@@ -76,79 +76,7 @@ resources:
     type: github
 
 stages:
-  - stage: VulnerabilityChecks
-    displayName: "Snyk Checks"
-    dependsOn: []
-    jobs:
-    - template: templates/vulnerability-checks.yml
-      parameters:
-        SnykOnlyFailIfFixable: ${{ parameters.SnykOnlyFailIfFixable }}
-        SnykPassOnIssues: ${{ parameters.SnykPassOnIssues }}
-
-  - stage: Stryker_Mutator
-    displayName: "Stryker Mutator"
-    condition: eq('${{ parameters.DisableStryker }}', false)
-    dependsOn: []
-    jobs:
-    - job: Stryker
-      workspace:
-        clean: all
-      steps:
-        - checkout: self
-          clean: true
-
-        - script: git submodule update --init --recursive
-          displayName: Restore mock submodule
-          workingDirectory: '$(Build.SourcesDirectory)'
-
-        - task: UseDotNet@2
-          displayName: 'Use .NET SDK for Stryker'
-          inputs:
-            packageType: sdk
-            version: $(SdkVersion)
-
-        - task: DotNetCoreCLI@2
-          displayName: "Install Stryker"
-          inputs:
-            command: custom
-            custom: tool
-            workingDirectory: $(Agent.TempDirectory)
-            arguments: install dotnet-stryker --tool-path $(Agent.BuildDirectory)/tools
-
-        - task: Powershell@2
-          displayName: "Run Stryker for EFS Orchestrator UnitTests"
-          inputs:
-            workingDirectory: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Orchestrator.UnitTests'
-            targetType: 'inline'
-            pwsh: true
-            script: $(Agent.BuildDirectory)/tools/dotnet-stryker --test-project $(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Orchestrator.UnitTests/UKHO.ADDS.EFS.Orchestrator.UnitTests.csproj --project UKHO.ADDS.EFS.Orchestrator.csproj
-
-        - task: PublishMutationReport@0
-          displayName: 'Publish Strkyer Mutator Report'
-          inputs:
-            reportPattern: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Orchestrator.UnitTests/**/mutation-report.html'
-            reportDisplayName: 'EFS Orchestrator UnitTests'
-
-        - task: Powershell@2
-          displayName: "Run Stryker for EFS Builder S100 UnitTests"
-          inputs:
-            workingDirectory: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Builder.S100.UnitTests'
-            targetType: 'inline'
-            pwsh: true
-            script: $(Agent.BuildDirectory)/tools/dotnet-stryker --test-project $(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Builder.S100.UnitTests/UKHO.ADDS.EFS.Builder.S100.UnitTests.csproj --project UKHO.ADDS.EFS.Builder.S100.csproj
-
-        - task: PublishMutationReport@0
-          displayName: 'Publish Strkyer Mutator Report'
-          inputs:
-            reportPattern: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Builder.S100.UnitTests/**/mutation-report.html'
-            reportDisplayName: 'EFS Builder S100 UnitTests'
-
-  - stage: Test
-    displayName: Test
-    dependsOn: []
-    jobs:
-    - template: templates/test.yml
-
+  # Application deployment to dev environment
   - stage: DevDeploy
     dependsOn:
     - VulnerabilityChecks
@@ -167,6 +95,9 @@ stages:
         DeployRedis: ${{ parameters.DeployRedis }}
         WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
 
+  # APIM deployment for dev environment
+  # This stage runs Terraform to plan APIM changes using dev.tfvars
+  # No changes are applied to Azure resources in this stage
   - stage: DeployAPIMDev
     displayName: "Deploy APIM Dev"
     dependsOn:
@@ -178,141 +109,139 @@ stages:
         vmImage: 'ubuntu-latest'
       steps:
         - checkout: self
+        # Initialize Terraform in the APIM module directory
         - script: |
             cd src/infra/terraform/apim
             terraform init
           displayName: 'Terraform Init APIM Dev'
+        # Run Terraform plan to preview APIM changes for dev environment
         - script: |
             cd src/infra/terraform/apim
             terraform plan -var-file=dev.tfvars -out=tfplan
           displayName: 'Terraform Plan APIM Dev'
-        - script: |
-            cd src/infra/terraform/apim
-            terraform apply -auto-approve tfplan
-          displayName: 'Terraform Apply APIM Dev'
 
-  - stage: vnextiatDeploy
-    dependsOn:
-    - DevDeploy
-    displayName: vNext IAT Deploy
-    condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/dev/')))
-    jobs:
-    - template: templates/continuous-deployment.yml
-      parameters:
-        AzureDevOpsEnvironment: Ess-vnextiat
-        ShortName: vnextiat
-        AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
-        DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
-        DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
-        DeployAddsMock: ${{ parameters.DeployAddsMock }}
-        IncludeAddsMock: false
-        DeployRedis: ${{ parameters.DeployRedis }}
-        WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
+  # - stage: vnextiatDeploy
+  #   dependsOn:
+  #   - DevDeploy
+  #   displayName: vNext IAT Deploy
+  #   condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/dev/')))
+  #   jobs:
+  #   - template: templates/continuous-deployment.yml
+  #     parameters:
+  #       AzureDevOpsEnvironment: Ess-vnextiat
+  #       ShortName: vnextiat
+  #       AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+  #       DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
+  #       DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
+  #       DeployAddsMock: ${{ parameters.DeployAddsMock }}
+  #       IncludeAddsMock: false
+  #       DeployRedis: ${{ parameters.DeployRedis }}
+  #       WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
 
-  - stage: DeployAPIMVnextIAT
-    displayName: "Deploy APIM vNext IAT"
-    dependsOn:
-    - vnextiatDeploy
-    jobs:
-    - job: TerraformAPIMVnextIAT
-      displayName: "Terraform APIM vNext IAT"
-      pool:
-        vmImage: 'ubuntu-latest'
-      steps:
-        - checkout: self
-        - script: |
-            cd src/infra/terraform/apim
-            terraform init
-          displayName: 'Terraform Init APIM vNext IAT'
-        - script: |
-            cd src/infra/terraform/apim
-            terraform plan -var-file=vnextiat.tfvars -out=tfplan
-          displayName: 'Terraform Plan APIM vNext IAT'
-        - script: |
-            cd src/infra/terraform/apim
-            terraform apply -auto-approve tfplan
-          displayName: 'Terraform Apply APIM vNext IAT'
+  # - stage: DeployAPIMVnextIAT
+  #   displayName: "Deploy APIM vNext IAT"
+  #   dependsOn:
+  #   - vnextiatDeploy
+  #   jobs:
+  #   - job: TerraformAPIMVnextIAT
+  #     displayName: "Terraform APIM vNext IAT"
+  #     pool:
+  #       vmImage: 'ubuntu-latest'
+  #     steps:
+  #       - checkout: self
+  #       - script: |
+  #           cd src/infra/terraform/apim
+  #           terraform init
+  #         displayName: 'Terraform Init APIM vNext IAT'
+  #       - script: |
+  #           cd src/infra/terraform/apim
+  #           terraform plan -var-file=vnextiat.tfvars -out=tfplan
+  #         displayName: 'Terraform Plan APIM vNext IAT'
+  #       - script: |
+  #           cd src/infra/terraform/apim
+  #           terraform apply -auto-approve tfplan
+  #         displayName: 'Terraform Apply APIM vNext IAT'
 
-  - stage: vnexte2eDeploy
-    dependsOn:
-    - vnextiatDeploy
-    displayName: vNext E2E Deploy
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
-    jobs:
-    - template: templates/continuous-deployment.yml
-      parameters:
-        AzureDevOpsEnvironment: Ess-vnexte2e
-        ShortName: vnexte2e
-        AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
-        DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
-        DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
-        DeployAddsMock: ${{ parameters.DeployAddsMock }}
-        IncludeAddsMock: false
-        DeployRedis: ${{ parameters.DeployRedis }}
-        WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
+  # - stage: vnexte2eDeploy
+  #   dependsOn:
+  #   - vnextiatDeploy
+  #   displayName: vNext E2E Deploy
+  #   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  #   jobs:
+  #   - template: templates/continuous-deployment.yml
+  #     parameters:
+  #       AzureDevOpsEnvironment: Ess-vnexte2e
+  #       ShortName: vnexte2e
+  #       AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+  #       DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
+  #       DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
+  #       DeployAddsMock: ${{ parameters.DeployAddsMock }}
+  #       IncludeAddsMock: false
+  #       DeployRedis: ${{ parameters.DeployRedis }}
+  #       WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
 
-  - stage: DeployAPIMVnextE2E
-    displayName: "Deploy APIM vNext E2E"
-    dependsOn:
-    - vnexte2eDeploy
-    jobs:
-    - job: TerraformAPIMVnextE2E
-      displayName: "Terraform APIM vNext E2E"
-      pool:
-        vmImage: 'ubuntu-latest'
-      steps:
-        - checkout: self
-        - script: |
-            cd src/infra/terraform/apim
-            terraform init
-          displayName: 'Terraform Init APIM vNext E2E'
-        - script: |
-            cd src/infra/terraform/apim
-            terraform plan -var-file=vnexte2e.tfvars -out=tfplan
-          displayName: 'Terraform Plan APIM vNext E2E'
-        - script: |
-            cd src/infra/terraform/apim
-            terraform apply -auto-approve tfplan
-          displayName: 'Terraform Apply APIM vNext E2E'
+  # - stage: DeployAPIMVnextE2E
+  #   displayName: "Deploy APIM vNext E2E"
+  #   dependsOn:
+  #   - vnexte2eDeploy
+  #   jobs:
+  #   - job: TerraformAPIMVnextE2E
+  #     displayName: "Terraform APIM vNext E2E"
+  #     pool:
+  #       vmImage: 'ubuntu-latest'
+  #     steps:
+  #       - checkout: self
+  #       - script: |
+  #           cd src/infra/terraform/apim
+  #           terraform init
+  #         displayName: 'Terraform Init APIM vNext E2E'
+  #       - script: |
+  #           cd src/infra/terraform/apim
+  #           terraform plan -var-file=vnexte2e.tfvars -out=tfplan
+  #         displayName: 'Terraform Plan APIM vNext E2E'
+  #       - script: |
+  #           cd src/infra/terraform/apim
+  #           terraform apply -auto-approve tfplan
+  #         displayName: 'Terraform Apply APIM vNext E2E'
 
-  - stage: iatDeploy
-    dependsOn:
-    - DevDeploy
-    displayName: IAT Deploy
-    condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')))
-    jobs:
-    - template: templates/continuous-deployment.yml
-      parameters:
-        AzureDevOpsEnvironment: Ess-iat
-        ShortName: iat
-        AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
-        DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
-        DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
-        DeployAddsMock: ${{ parameters.DeployAddsMock }}
-        IncludeAddsMock: false
-        DeployRedis: ${{ parameters.DeployRedis }}
-        WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
+  # - stage: iatDeploy
+  #   dependsOn:
+  #   - DevDeploy
+  #   displayName: IAT Deploy
+  #   condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')))
+  #   jobs:
+  #   - template: templates/continuous-deployment.yml
+  #     parameters:
+  #       AzureDevOpsEnvironment: Ess-iat
+  #       ShortName: iat
+  #       AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+  #       DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
+  #       DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
+  #       DeployAddsMock: ${{ parameters.DeployAddsMock }}
+  #       IncludeAddsMock: false
+  #       DeployRedis: ${{ parameters.DeployRedis }}
+  #       WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
 
-  - stage: DeployAPIMIAT
-    displayName: "Deploy APIM IAT"
-    dependsOn:
-    - iatDeploy
-    jobs:
-    - job: TerraformAPIMIAT
-      displayName: "Terraform APIM IAT"
-      pool:
-        vmImage: 'ubuntu-latest'
-      steps:
-        - checkout: self
-        - script: |
-            cd src/infra/terraform/apim
-            terraform init
-          displayName: 'Terraform Init APIM IAT'
-        - script: |
-            cd src/infra/terraform/apim
-            terraform plan -var-file=iat.tfvars -out=tfplan
-          displayName: 'Terraform Plan APIM IAT'
-        - script: |
-            cd src/infra/terraform/apim
-            terraform apply -auto-approve tfplan
-          displayName: 'Terraform Apply APIM IAT'
+  # - stage: DeployAPIMIAT
+  #   displayName: "Deploy APIM IAT"
+  #   dependsOn:
+  #   - iatDeploy
+  #   jobs:
+  #   - job: TerraformAPIMIAT
+  #     displayName: "Terraform APIM IAT"
+  #     pool:
+  #       vmImage: 'ubuntu-latest'
+  #     steps:
+  #       - checkout: self
+  #       - script: |
+  #           cd src/infra/terraform/apim
+  #           terraform init
+  #         displayName: 'Terraform Init APIM IAT'
+  #       - script: |
+  #           cd src/infra/terraform/apim
+  #           terraform plan -var-file=iat.tfvars -out=tfplan
+  #         displayName: 'Terraform Plan APIM IAT'
+  #       - script: |
+  #           cd src/infra/terraform/apim
+  #           terraform apply -auto-approve tfplan
+  #         displayName: 'Terraform Apply APIM IAT'

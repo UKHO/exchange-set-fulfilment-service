@@ -142,3 +142,25 @@ variable "apim_name" {}
 variable "efs_api_backend_url" {}
 variable "jwt_issuer" {}
 variable "jwt_audience" {}
+
+# JWT issuer and audience for Azure B2C (external users)
+variable "b2c_jwt_issuer" {
+  type = string
+  description = "JWT issuer URL for Azure B2C authentication."
+}
+
+variable "b2c_jwt_audience" {
+  type = string
+  description = "JWT audience for Azure B2C authentication."
+}
+
+# JWT issuer and audience for Entra ID (internal users)
+variable "entra_jwt_issuer" {
+  type = string
+  description = "JWT issuer URL for Entra ID authentication."
+}
+
+variable "entra_jwt_audience" {
+  type = string
+  description = "JWT audience for Entra ID authentication."
+}
