@@ -61,10 +61,11 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 
                 // Debug configuration loading - this helps identify if configuration is loaded yet
 #pragma warning disable LOG001
-                Log.Information("Configuration debug: Environment={Environment}, StartupClientId={StartupClientId}, HasOrchestratorSection={HasOrchestratorSection}", 
+                Log.Information("Configuration debug: Environment={Environment}, StartupClientId={StartupClientId}, HasOrchestratorSection={HasOrchestratorSection}, AllOrchestratorKeys={AllOrchestratorKeys}", 
                     addsEnvironment.ToString(), 
                     startupClientId ?? "NULL", 
-                    configuration.GetSection("orchestrator").Exists());
+                    configuration.GetSection("orchestrator").Exists(),
+                    string.Join(", ", configuration.AsEnumerable().Where(c => c.Key.StartsWith("orchestrator", StringComparison.OrdinalIgnoreCase)).Select(c => $"{c.Key}={c.Value}")));
 #pragma warning restore LOG001
 
                 builder.Services.AddHttpContextAccessor();
@@ -114,7 +115,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 builder.Services.AddSingleton<IBuilderLogForwarder, BuilderLogForwarder>();
                 builder.Services.AddSingleton<StorageInitializerService>();
 
-                // Configure external services with runtime configuration resolution
+                // Configure external services with enhanced runtime configuration resolution
                 builder.Services.RegisterKiotaClient<KiotaSalesCatalogueService>(provider =>
                 {
                     var registry = provider.GetRequiredService<IExternalServiceRegistry>();
@@ -123,11 +124,16 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     // Get the ClientId from runtime configuration when the service is actually resolved
                     var runtimeConfiguration = provider.GetRequiredService<IConfiguration>();
                     var runtimeClientId = runtimeConfiguration["orchestrator:ClientId"];
+                    
+                    // Enhanced debugging - check all configuration keys at runtime
+                    var allOrchestratorKeys = string.Join(", ", runtimeConfiguration.AsEnumerable()
+                        .Where(c => c.Key.StartsWith("orchestrator", StringComparison.OrdinalIgnoreCase))
+                        .Select(c => $"{c.Key}={c.Value}"));
 
 #pragma warning disable LOG001
-                    Log.Information("Configuring external service client: Service={ServiceName}, Environment={Environment}, Endpoint={Endpoint}, StartupClientId={StartupClientId}, RuntimeClientId={RuntimeClientId}", 
+                    Log.Information("Configuring external service client: Service={ServiceName}, Environment={Environment}, Endpoint={Endpoint}, StartupClientId={StartupClientId}, RuntimeClientId={RuntimeClientId}, AllRuntimeOrchestratorKeys={AllRuntimeOrchestratorKeys}", 
                         ProcessNames.SalesCatalogueService, addsEnvironment.ToString(), scsEndpoint.Uri?.ToString() ?? "Unknown", 
-                        startupClientId ?? "NULL", runtimeClientId ?? "NULL");
+                        startupClientId ?? "NULL", runtimeClientId ?? "NULL", allOrchestratorKeys);
 #pragma warning restore LOG001
 
                     if (addsEnvironment.IsLocal() || addsEnvironment.IsDev())
@@ -135,8 +141,9 @@ namespace UKHO.ADDS.EFS.Orchestrator
                         return (scsEndpoint.Uri, new AnonymousAuthenticationProvider());
                     }
 
-                    // Use runtime ClientId for actual authentication
-                    return (scsEndpoint.Uri, new AzureIdentityAuthenticationProvider(new ManagedIdentityCredential(clientId: runtimeClientId), scopes: scsEndpoint.GetDefaultScope()));
+                    // Use runtime ClientId for actual authentication, fall back to startup if null
+                    var clientIdToUse = runtimeClientId ?? startupClientId;
+                    return (scsEndpoint.Uri, new AzureIdentityAuthenticationProvider(new ManagedIdentityCredential(clientId: clientIdToUse), scopes: scsEndpoint.GetDefaultScope()));
                 });
 
                 builder.Services.AddSingleton<IFileShareReadWriteClientFactory>(provider => new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
@@ -149,11 +156,16 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     // Get the ClientId from runtime configuration when the service is actually resolved
                     var runtimeConfiguration = sp.GetRequiredService<IConfiguration>();
                     var runtimeClientId = runtimeConfiguration["orchestrator:ClientId"];
+                    
+                    // Enhanced debugging - check all configuration keys at runtime
+                    var allOrchestratorKeys = string.Join(", ", runtimeConfiguration.AsEnumerable()
+                        .Where(c => c.Key.StartsWith("orchestrator", StringComparison.OrdinalIgnoreCase))
+                        .Select(c => $"{c.Key}={c.Value}"));
 
 #pragma warning disable LOG001
-                    Log.Information("Configuring external service client: Service={ServiceName}, Environment={Environment}, Endpoint={Endpoint}, StartupClientId={StartupClientId}, RuntimeClientId={RuntimeClientId}", 
+                    Log.Information("Configuring external service client: Service={ServiceName}, Environment={Environment}, Endpoint={Endpoint}, StartupClientId={StartupClientId}, RuntimeClientId={RuntimeClientId}, AllRuntimeOrchestratorKeys={AllRuntimeOrchestratorKeys}", 
                         ProcessNames.FileShareService, addsEnvironment.ToString(), fssEndpoint.Uri?.ToString() ?? "Unknown", 
-                        startupClientId ?? "NULL", runtimeClientId ?? "NULL");
+                        startupClientId ?? "NULL", runtimeClientId ?? "NULL", allOrchestratorKeys);
 #pragma warning restore LOG001
 
                     IAuthenticationTokenProvider? tokenProvider = null;
@@ -164,7 +176,9 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     }
                     else
                     {
-                        tokenProvider = new TokenCredentialAuthenticationTokenProvider(new ManagedIdentityCredential(clientId: runtimeClientId), [fssEndpoint.GetDefaultScope()]);
+                        // Use runtime ClientId for actual authentication, fall back to startup if null
+                        var clientIdToUse = runtimeClientId ?? startupClientId;
+                        tokenProvider = new TokenCredentialAuthenticationTokenProvider(new ManagedIdentityCredential(clientId: clientIdToUse), [fssEndpoint.GetDefaultScope()]);
                     }
 
                     var factory = sp.GetRequiredService<IFileShareReadWriteClientFactory>();
