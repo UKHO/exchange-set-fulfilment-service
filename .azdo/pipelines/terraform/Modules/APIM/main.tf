@@ -21,7 +21,7 @@ resource "azurerm_api_management_product" "efs_product" {
   resource_group_name   = data.azurerm_resource_group.rg.name
   api_management_name   = data.azurerm_api_management.apim_instance.name
   product_id            = lower(replace(var.apim_efs_product_name, " ", "-"))
-  display_name          = title(var.apim_ess_product_name)
+  display_name          = title(var.apim_efs_product_name)
   description           = var.apim_efs_product_description
   subscription_required = true
   approval_required     = true
@@ -64,7 +64,7 @@ resource "azurerm_api_management_api" "efs_api" {
 resource "azurerm_api_management_product_api" "efs_product_api_mapping" {
   resource_group_name = data.azurerm_resource_group.rg.name
   api_management_name = data.azurerm_api_management.apim_instance.name
-  api_name            = azurerm_api_management_api.ess_api.name
+  api_name            = azurerm_api_management_api.efs_api.name
   product_id          = azurerm_api_management_product.efs_product.product_id
 }
 
