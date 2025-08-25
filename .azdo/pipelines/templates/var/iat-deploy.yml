@@ -1,4 +1,5 @@
 variables:
 - group: EFS-IAT-Variables
+- group: ESS-Deployment-Variables-IAT
 - name: AzureSubscription
   value: Exchange-Set-Service-IAT-A.011.08

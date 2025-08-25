@@ -1,4 +1,5 @@
 variables:
 - group: EFS-vNextE2E-Variables
+- group: ESS-Deployment-Variables-vNextE2E
 - name: AzureSubscription
   value: Exchange-Set-Service-vNext-E2E-A.011.08

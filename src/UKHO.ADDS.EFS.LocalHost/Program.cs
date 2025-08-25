@@ -124,6 +124,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                 {
                     var eventHubNamespace = config.GetProvisionableResources().OfType<EventHubsNamespace>().Single();
                     eventHubNamespace.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
+                    eventHubNamespace.DisableLocalAuth = false;
                 });
                 eventHubs.AddHub(ServiceConfiguration.EventHubName);
             }
