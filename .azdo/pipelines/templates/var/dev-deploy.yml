@@ -4,4 +4,4 @@ variables:
 - name: AzureSubscription
   value: Exchange-Set-Service-Dev-A-008-02
 - name: ApimAzureSubscription
-  value: Shared-Services-DEV-O69485
+  value: UKHO-APIM-SOLAS-NonLive
