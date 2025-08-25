@@ -6,6 +6,7 @@ using Microsoft.Kiota.Authentication.Azure;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using Quartz;
+using Serilog;
 using UKHO.ADDS.Aspire.Configuration;
 using UKHO.ADDS.Aspire.Configuration.Remote;
 using UKHO.ADDS.Clients.Common.Authentication;
@@ -45,109 +46,148 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
         public static WebApplicationBuilder AddOrchestratorServices(this WebApplicationBuilder builder)
         {
-            var configuration = builder.Configuration;
-            builder.Services.AddHttpContextAccessor();
-
-            builder.Services.Configure<JsonOptions>(options => JsonCodec.DefaultOptions.CopyTo(options.SerializerOptions));
-
-            builder.AddAzureQueueClient(StorageConfiguration.QueuesName);
-            builder.AddAzureTableClient(StorageConfiguration.TablesName);
-            builder.AddAzureBlobClient(StorageConfiguration.BlobsName);
-
-            builder.Services.AddAuthorization();
-            builder.Services.AddOpenApi();
-
-            builder.Services.ConfigureOpenApi();
-
-            builder.Services.AddTransient<IAssemblyPipelineFactory, AssemblyPipelineFactory>();
-            builder.Services.AddTransient<AssemblyPipelineNodeFactory>();
-
-            builder.Services.AddTransient<CompletionPipelineFactory>();
-            builder.Services.AddTransient<CompletionPipelineNodeFactory>();
-
-            builder.Services.AddSingleton<PipelineContextFactory<S100Build>>();
-            builder.Services.AddSingleton<PipelineContextFactory<S63Build>>();
-            builder.Services.AddSingleton<PipelineContextFactory<S57Build>>();
-
-            builder.Services.AddHostedService<S100BuildResponseMonitor>();
-            builder.Services.AddHostedService<S63BuildResponseMonitor>();
-            builder.Services.AddHostedService<S57BuildResponseMonitor>();
-
-            builder.Services.AddSingleton<ITimestampService, TimestampService>();
-            builder.Services.AddSingleton<IStorageService, StorageService>();
-            builder.Services.AddSingleton<IHashingService, HashingService>();
-
-            builder.Services.AddSingleton<ITable<S100Build>, S100BuildTable>();
-            builder.Services.AddSingleton<ITable<S63Build>, S63BuildTable>();
-            builder.Services.AddSingleton<ITable<S57Build>, S57BuildTable>();
-
-            builder.Services.AddSingleton<ITable<DataStandardTimestamp>, DataStandardTimestampTable>();
-            builder.Services.AddSingleton<ITable<Job>, JobTable>();
-            builder.Services.AddSingleton<ITable<BuildMemento>, BuildMementoTable>();
-
-            builder.Services.AddSingleton<IBuilderLogForwarder, BuilderLogForwarder>();
-            builder.Services.AddSingleton<StorageInitializerService>();
-
-            var addsEnvironment = AddsEnvironment.GetEnvironment();
-
-            builder.Services.RegisterKiotaClient<KiotaSalesCatalogueService>(provider =>
+            try
             {
-                var registry = provider.GetRequiredService<IExternalServiceRegistry>();
-                var scsEndpoint = registry.GetServiceEndpoint(ProcessNames.SalesCatalogueService);
+                // Use Serilog static logger for structured logging
+#pragma warning disable LOG001
+                Log.Information("Starting orchestrator service registration");
+#pragma warning restore LOG001
+                
+                var configuration = builder.Configuration;
+                builder.Services.AddHttpContextAccessor();
 
-                if (addsEnvironment.IsLocal() || addsEnvironment.IsDev())
+                builder.Services.Configure<JsonOptions>(options => JsonCodec.DefaultOptions.CopyTo(options.SerializerOptions));
+
+                // Configure Azure services with logging
+#pragma warning disable LOG001
+                Log.Information("Configuring Azure services: Queues={QueuesName}, Tables={TablesName}, Blobs={BlobsName}", 
+                    StorageConfiguration.QueuesName, StorageConfiguration.TablesName, StorageConfiguration.BlobsName);
+#pragma warning restore LOG001
+                builder.AddAzureQueueClient(StorageConfiguration.QueuesName);
+                builder.AddAzureTableClient(StorageConfiguration.TablesName);
+                builder.AddAzureBlobClient(StorageConfiguration.BlobsName);
+
+                builder.Services.AddAuthorization();
+                builder.Services.AddOpenApi();
+
+                builder.Services.ConfigureOpenApi();
+
+                builder.Services.AddTransient<IAssemblyPipelineFactory, AssemblyPipelineFactory>();
+                builder.Services.AddTransient<AssemblyPipelineNodeFactory>();
+
+                builder.Services.AddTransient<CompletionPipelineFactory>();
+                builder.Services.AddTransient<CompletionPipelineNodeFactory>();
+
+                builder.Services.AddSingleton<PipelineContextFactory<S100Build>>();
+                builder.Services.AddSingleton<PipelineContextFactory<S63Build>>();
+                builder.Services.AddSingleton<PipelineContextFactory<S57Build>>();
+
+                builder.Services.AddHostedService<S100BuildResponseMonitor>();
+                builder.Services.AddHostedService<S63BuildResponseMonitor>();
+                builder.Services.AddHostedService<S57BuildResponseMonitor>();
+
+                builder.Services.AddSingleton<ITimestampService, TimestampService>();
+                builder.Services.AddSingleton<IStorageService, StorageService>();
+                builder.Services.AddSingleton<IHashingService, HashingService>();
+
+                builder.Services.AddSingleton<ITable<S100Build>, S100BuildTable>();
+                builder.Services.AddSingleton<ITable<S63Build>, S63BuildTable>();
+                builder.Services.AddSingleton<ITable<S57Build>, S57BuildTable>();
+
+                builder.Services.AddSingleton<ITable<DataStandardTimestamp>, DataStandardTimestampTable>();
+                builder.Services.AddSingleton<ITable<Job>, JobTable>();
+                builder.Services.AddSingleton<ITable<BuildMemento>, BuildMementoTable>();
+
+                builder.Services.AddSingleton<IBuilderLogForwarder, BuilderLogForwarder>();
+                builder.Services.AddSingleton<StorageInitializerService>();
+
+                var addsEnvironment = AddsEnvironment.GetEnvironment();
+                var clientId = configuration["orchestrator:ClientId"];
+
+                // Configure external services with logging
+                builder.Services.RegisterKiotaClient<KiotaSalesCatalogueService>(provider =>
                 {
-                    return (scsEndpoint.Uri, new AnonymousAuthenticationProvider());
-                }
+                    var registry = provider.GetRequiredService<IExternalServiceRegistry>();
+                    var scsEndpoint = registry.GetServiceEndpoint(ProcessNames.SalesCatalogueService);
 
-                return (scsEndpoint.Uri, new AzureIdentityAuthenticationProvider(new ManagedIdentityCredential(clientId: "8d1e698b-6e93-49dc-9814-9154e02eb8a9"), scopes: scsEndpoint.GetDefaultScope()));
-            });
+#pragma warning disable LOG001
+                    Log.Information("Configuring external service client: Service={ServiceName}, Environment={Environment}, Endpoint={Endpoint}, ClientId={ClientId}", 
+                        ProcessNames.SalesCatalogueService, addsEnvironment.ToString(), scsEndpoint.Uri?.ToString() ?? "Unknown", clientId);
+#pragma warning restore LOG001
 
-            builder.Services.AddSingleton<IFileShareReadWriteClientFactory>(provider => new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
+                    if (addsEnvironment.IsLocal() || addsEnvironment.IsDev())
+                    {
+                        return (scsEndpoint.Uri, new AnonymousAuthenticationProvider());
+                    }
 
-            builder.Services.AddSingleton(sp =>
-            {
-                var registry = sp.GetRequiredService<IExternalServiceRegistry>();
-                var fssEndpoint = registry.GetServiceEndpoint(ProcessNames.FileShareService);
+                    return (scsEndpoint.Uri, new AzureIdentityAuthenticationProvider(new ManagedIdentityCredential(clientId: clientId), scopes: scsEndpoint.GetDefaultScope()));
+                });
 
-                IAuthenticationTokenProvider? tokenProvider = null;
+                builder.Services.AddSingleton<IFileShareReadWriteClientFactory>(provider => new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
 
-                if (addsEnvironment.IsLocal() || addsEnvironment.IsDev())
+                builder.Services.AddSingleton(sp =>
                 {
-                    tokenProvider = new AnonymousAuthenticationTokenProvider();
-                }
-                else
-                {
-                    tokenProvider = new TokenCredentialAuthenticationTokenProvider(new ManagedIdentityCredential(clientId: configuration["orchestrator:ClientId"]), [fssEndpoint.GetDefaultScope()]);
-                }
+                    var registry = sp.GetRequiredService<IExternalServiceRegistry>();
+                    var fssEndpoint = registry.GetServiceEndpoint(ProcessNames.FileShareService);
 
-                var factory = sp.GetRequiredService<IFileShareReadWriteClientFactory>();
-                return factory.CreateClient(fssEndpoint.Uri!.ToString(), tokenProvider);
-            });
+#pragma warning disable LOG001
+                    Log.Information("Configuring external service client: Service={ServiceName}, Environment={Environment}, Endpoint={Endpoint}, ClientId={ClientId}", 
+                        ProcessNames.FileShareService, addsEnvironment.ToString(), fssEndpoint.Uri?.ToString() ?? "Unknown", clientId);
+#pragma warning restore LOG001
 
-            builder.Services.AddSingleton<ISalesCatalogueKiotaClientAdapter, SalesCatalogueKiotaClientAdapter>();
-            builder.Services.AddSingleton<IOrchestratorSalesCatalogueClient, OrchestratorSalesCatalogueClient>();
-            builder.Services.AddSingleton<IOrchestratorFileShareClient, OrchestratorFileShareClient>();
+                    IAuthenticationTokenProvider? tokenProvider = null;
 
-            //Added Dependencies for SchedulerJob
-            builder.Services.AddQuartz(q =>
-            {
+                    if (addsEnvironment.IsLocal() || addsEnvironment.IsDev())
+                    {
+                        tokenProvider = new AnonymousAuthenticationTokenProvider();
+                    }
+                    else
+                    {
+                        tokenProvider = new TokenCredentialAuthenticationTokenProvider(new ManagedIdentityCredential(clientId: clientId), [fssEndpoint.GetDefaultScope()]);
+                    }
+
+                    var factory = sp.GetRequiredService<IFileShareReadWriteClientFactory>();
+                    return factory.CreateClient(fssEndpoint.Uri!.ToString(), tokenProvider);
+                });
+
+                builder.Services.AddSingleton<ISalesCatalogueKiotaClientAdapter, SalesCatalogueKiotaClientAdapter>();
+                builder.Services.AddSingleton<IOrchestratorSalesCatalogueClient, OrchestratorSalesCatalogueClient>();
+                builder.Services.AddSingleton<IOrchestratorFileShareClient, OrchestratorFileShareClient>();
+
+                //Added Dependencies for SchedulerJob
                 var exchangeSetGenerationSchedule = configuration["orchestrator:SchedulerJob:ExchangeSetGenerationSchedule"];
-                var jobKey = new JobKey(nameof(SchedulerJob));
-                q.AddJob<SchedulerJob>(opts => opts.WithIdentity(jobKey));
+#pragma warning disable LOG001
+                Log.Information("Configuring Quartz scheduler with cron schedule: {Schedule}", exchangeSetGenerationSchedule ?? "Not configured");
+#pragma warning restore LOG001
+                
+                builder.Services.AddQuartz(q =>
+                {
+                    var jobKey = new JobKey(nameof(SchedulerJob));
+                    q.AddJob<SchedulerJob>(opts => opts.WithIdentity(jobKey));
 
-                q.AddTrigger(opts => opts
-                    .ForJob(jobKey)
-                    .WithCronSchedule(exchangeSetGenerationSchedule!, x => x.WithMisfireHandlingInstructionDoNothing())
-                );
-            });
+                    q.AddTrigger(opts => opts
+                        .ForJob(jobKey)
+                        .WithCronSchedule(exchangeSetGenerationSchedule!, x => x.WithMisfireHandlingInstructionDoNothing())
+                    );
+                });
 
-            builder.Services.AddQuartzHostedService(options =>
+                builder.Services.AddQuartzHostedService(options =>
+                {
+                    options.WaitForJobsToComplete = true;
+                });
+
+#pragma warning disable LOG001
+                Log.Information("Orchestrator service registration completed successfully");
+#pragma warning restore LOG001
+                return builder;
+            }
+            catch (Exception ex)
             {
-                options.WaitForJobsToComplete = true;
-            });
-
-            return builder;
+#pragma warning disable LOG001
+                Log.Fatal(ex, "Service registration failed");
+#pragma warning restore LOG001
+                throw;
+            }
         }
 
         private static IServiceCollection ConfigureOpenApi(this IServiceCollection serviceCollection)

@@ -51,6 +51,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         private const int SchedulerJobCompletedId = BaseEventId + 28;
         private const int SchedulerJobNextRunId = BaseEventId + 29;
 
+        // Service registration logging event IDs
+        private const int ServiceRegistrationStartedId = BaseEventId + 30;
+        private const int ServiceRegistrationCompletedId = BaseEventId + 31;
+        private const int AzureServiceConfigurationId = BaseEventId + 32;
+        private const int ExternalServiceConfigurationId = BaseEventId + 33;
+        private const int QuartzSchedulerConfigurationId = BaseEventId + 34;
+        private const int ServiceRegistrationFailedId = BaseEventId + 35;
+
         // An unhandled HTTP error has occurred
         public static readonly EventId UnhandledHttpError = new(UnhandledHttpErrorId, nameof(UnhandledHttpError));
 
@@ -120,6 +128,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         public static readonly EventId CreateErrorFile = new(CreateErrorFileId, nameof(CreateErrorFile));
         public static readonly EventId CreateErrorFileNodeFailed = new(CreateErrorFileNodeFailedId, nameof(CreateErrorFileNodeFailed));
         public static readonly EventId CreateErrorFileAddFileFailed = new(CreateErrorFileAddFileFailedId, nameof(CreateErrorFileAddFileFailed));
+
+        // Service registration events
+        public static readonly EventId ServiceRegistrationStarted = new(ServiceRegistrationStartedId, nameof(ServiceRegistrationStarted));
+        public static readonly EventId ServiceRegistrationCompleted = new(ServiceRegistrationCompletedId, nameof(ServiceRegistrationCompleted));
+        public static readonly EventId AzureServiceConfiguration = new(AzureServiceConfigurationId, nameof(AzureServiceConfiguration));
+        public static readonly EventId ExternalServiceConfiguration = new(ExternalServiceConfigurationId, nameof(ExternalServiceConfiguration));
+        public static readonly EventId QuartzSchedulerConfiguration = new(QuartzSchedulerConfigurationId, nameof(QuartzSchedulerConfiguration));
+        public static readonly EventId ServiceRegistrationFailed = new(ServiceRegistrationFailedId, nameof(ServiceRegistrationFailed));
 
         [LoggerMessage(UnhandledHttpErrorId, LogLevel.Error, "An unhandled exception was caught by the HTTP pipeline: {@message}", EventName = nameof(UnhandledHttpError))]
         public static partial void LogUnhandledHttpError(this ILogger logger, string message, Exception exception);
@@ -208,5 +224,23 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         [LoggerMessage(SchedulerJobNextRunId, LogLevel.Information, "Next scheduled run at: {NextRun}", EventName = nameof(LogSchedulerJobNextRun))]
         public static partial void LogSchedulerJobNextRun(this ILogger logger, DateTime? nextRun);
 
+        // Service registration logging methods
+        [LoggerMessage(ServiceRegistrationStartedId, LogLevel.Information, "Starting orchestrator service registration", EventName = nameof(ServiceRegistrationStarted))]
+        public static partial void LogServiceRegistrationStarted(this ILogger logger);
+
+        [LoggerMessage(ServiceRegistrationCompletedId, LogLevel.Information, "Orchestrator service registration completed successfully", EventName = nameof(ServiceRegistrationCompleted))]
+        public static partial void LogServiceRegistrationCompleted(this ILogger logger);
+
+        [LoggerMessage(AzureServiceConfigurationId, LogLevel.Information, "Configuring Azure services: Queues={QueuesName}, Tables={TablesName}, Blobs={BlobsName}", EventName = nameof(AzureServiceConfiguration))]
+        public static partial void LogAzureServiceConfiguration(this ILogger logger, string queuesName, string tablesName, string blobsName);
+
+        [LoggerMessage(ExternalServiceConfigurationId, LogLevel.Information, "Configuring external service client: Service={ServiceName}, Environment={Environment}, Endpoint={Endpoint}, ClientId={ClientId}", EventName = nameof(ExternalServiceConfiguration))]
+        public static partial void LogExternalServiceConfiguration(this ILogger logger, string serviceName, string environment, string endpoint, string? clientId);
+
+        [LoggerMessage(QuartzSchedulerConfigurationId, LogLevel.Information, "Configuring Quartz scheduler with cron schedule: {Schedule}", EventName = nameof(QuartzSchedulerConfiguration))]
+        public static partial void LogQuartzSchedulerConfiguration(this ILogger logger, string schedule);
+
+        [LoggerMessage(ServiceRegistrationFailedId, LogLevel.Error, "Service registration failed", EventName = nameof(ServiceRegistrationFailed))]
+        public static partial void LogServiceRegistrationFailed(this ILogger logger, Exception exception);
     }
 }
