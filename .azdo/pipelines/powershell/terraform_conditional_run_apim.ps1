@@ -5,7 +5,7 @@ param (
     [Parameter(Mandatory = $true)] [boolean] $continueEvenIfResourcesAreGettingDestroyed
 )
 
-cd $env:AGENT_BUILDDIRECTORY/.azdo/pipelines/terraform/Modules/APIM/
+cd $env:BUILD_SOURCESDIRECTORY/.azdo/pipelines/terraform/
 
 terraform --version
 
