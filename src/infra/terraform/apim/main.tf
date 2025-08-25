@@ -66,27 +66,13 @@ resource "azurerm_api_management_product_policy" "efs_product_policy" {
   xml_content = <<XML
     <policies>
       <inbound>
-        <!-- Conditional Authentication Policy for B2C (external) and Entra ID (internal) -->
-        <choose>
-          <!-- If the JWT issuer claim matches B2C, validate with B2C settings -->
-          <when condition="@(context.Request.Headers.GetValueOrDefault('Authorization','').Contains('b2c'))">
-            <validate-jwt header-name="Authorization" failed-validation-error-message="Authorization token is missing or invalid" require-scheme="Bearer">
-              <openid-config url="${var.b2c_jwt_issuer}" />
-              <audiences>
-                <audience>${var.b2c_jwt_audience}</audience>
-              </audiences>
-            </validate-jwt>
-          </when>
-          <!-- Otherwise, validate with Entra ID settings -->
-          <otherwise>
-            <validate-jwt header-name="Authorization" failed-validation-error-message="Authorization token is missing or invalid" require-scheme="Bearer">
-              <openid-config url="${var.entra_jwt_issuer}" />
-              <audiences>
-                <audience>${var.entra_jwt_audience}</audience>
-              </audiences>
-            </validate-jwt>
-          </otherwise>
-        </choose>
+        <!-- Authentication Policy -->
+        <validate-jwt header-name="Authorization" failed-validation-error-message="Authorization token is missing or invalid" require-scheme="Bearer">
+          <openid-config url="${var.jwt_issuer}" />
+          <audiences>
+            <audience>${var.jwt_audience}</audience>
+          </audiences>
+        </validate-jwt>
         <base />
       </inbound>
       <outbound>

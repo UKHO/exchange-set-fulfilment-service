@@ -137,30 +137,35 @@ variable "environment" {
   type        = string
 }
 
-variable "apim_rg" {}
-variable "apim_name" {}
-variable "efs_api_backend_url" {}
-variable "jwt_issuer" {}
-variable "jwt_audience" {}
-
-# JWT issuer and audience for Azure B2C (external users)
-variable "b2c_jwt_issuer" {
-  type = string
-  description = "JWT issuer URL for Azure B2C authentication."
+variable "apim_rg" {
+  type    = string
 }
 
-variable "b2c_jwt_audience" {
-  type = string
-  description = "JWT audience for Azure B2C authentication."
+variable "apim_name" {
+  type    = string
 }
 
-# JWT issuer and audience for Entra ID (internal users)
-variable "entra_jwt_issuer" {
-  type = string
-  description = "JWT issuer URL for Entra ID authentication."
+variable "efs_api_backend_url" {
+  type        = string
+  description = "The URL of the backend service serving the API."
 }
 
-variable "entra_jwt_audience" {
-  type = string
-  description = "JWT audience for Entra ID authentication."
+variable "jwt_issuer" {
+  type    = string
+}
+
+variable "jwt_audience" {
+  type    = string
+}
+
+variable "client_credentials_operation_id" {
+  type    = string  
+}
+
+variable "client_credentials_tenant_id" {
+  type    = string  
+}
+
+variable "client_credentials_scope" {
+  type    = string  
 }
