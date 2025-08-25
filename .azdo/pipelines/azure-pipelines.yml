@@ -74,6 +74,8 @@ variables:
     value: "Mare Nectaris"
   - name: snykAbzuOrganizationId
     value: aeb7543b-8394-457c-8334-a31493d8910d
+  - name: Container
+    value: "ukhydrographicoffice/terraform-azure-powershell-unzip:1.13.0"
 
 resources:
   repositories:
@@ -163,17 +165,17 @@ stages:
    # - Test
     displayName: Dev deploy
     jobs:
-    - template: templates/continuous-deployment.yml
-      parameters:
-        AzureDevOpsEnvironment: Ess-Dev
-        ShortName: dev
-        AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
-        DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
-        DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
-        DeployAddsMock: ${{ parameters.DeployAddsMock }}
-        IncludeAddsMock: true
-        DeployRedis: ${{ parameters.DeployRedis }}
-        WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
+    # - template: templates/continuous-deployment.yml
+    #   parameters:
+    #     AzureDevOpsEnvironment: Ess-Dev
+    #     ShortName: dev
+    #     AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+    #     DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
+    #     DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
+    #     DeployAddsMock: ${{ parameters.DeployAddsMock }}
+    #     IncludeAddsMock: true
+    #     DeployRedis: ${{ parameters.DeployRedis }}
+    #     WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
 
     - template: templates/continuous-deployment-apim.yml
       parameters:
