@@ -20,7 +20,7 @@ jobs:
   condition: and(succeeded(), eq('${{ parameters.DeployApim }}', true))
   environment: ${{ parameters.AzureDevOpsEnvironment }}
   pool: $(LinuxPool)
-  container: $(Container)
+  container:  ${{variables.Container}}
   workspace:
     clean: all
   variables:
