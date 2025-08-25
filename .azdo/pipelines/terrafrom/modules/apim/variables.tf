@@ -2,6 +2,10 @@ variable "apim_name" {
   type = string
 }
 
+variable "apim_rg" {
+  type = string
+}
+
 variable "env_name" {
   type = string
 }
@@ -27,11 +31,11 @@ variable "apim_group_description" {
   type = string
 }
 
-variable "apim_ess_product_name" {
+variable "apim_efs_product_name" {
   type = string
 }
 
-variable "apim_ess_product_description" {
+variable "apim_efs_product_description" {
   type = string
 }
 
@@ -79,16 +83,16 @@ variable "client_credentials_scope" {
   type    = string  
 }
 
-variable "apim_ess_ui_product_name" {
+variable "apim_efs_ui_product_name" {
     type = string
     default = "Exchange Set Service UI"
 }
 
-variable "ess_b2c_token_issuer" {
+variable "efs_b2c_token_issuer" {
   type  = string
 }
 
-variable "ess_b2c_client_id" {
+variable "efs_b2c_client_id" {
   type  = string
 }
 
@@ -96,23 +100,23 @@ variable "cors_origins" {
   type = list(string)
 }
 
-variable "ess_ui_product_call_limit" {
+variable "efs_ui_product_call_limit" {
     type = number
 }
 
-variable "ess_ui_product_call_renewal_period" {
+variable "efs_ui_product_call_renewal_period" {
     type = number
 }
 
-variable "ess_ui_product_daily_quota_limit" {
+variable "efs_ui_product_daily_quota_limit" {
     type = number
 }
 
-variable "apim_ess_monitor_product_name" {
+variable "apim_efs_monitor_product_name" {
   type  = string
 }
 
-variable "apim_ess_monitor_product_description" {
+variable "apim_efs_monitor_product_description" {
   type  = string
 }
 
@@ -130,42 +134,4 @@ variable "apim_monitor_api_openapi" {
 
 variable "apim_monitor_api_path" {
   type  = string
-}
-
-variable "environment" {
-  description = "The deployment environment (dev, vnextiat, vnexte2e, iat)"
-  type        = string
-}
-
-variable "apim_rg" {
-  type    = string
-}
-
-variable "apim_name" {
-  type    = string
-}
-
-variable "efs_api_backend_url" {
-  type        = string
-  description = "The URL of the backend service serving the API."
-}
-
-variable "jwt_issuer" {
-  type    = string
-}
-
-variable "jwt_audience" {
-  type    = string
-}
-
-variable "client_credentials_operation_id" {
-  type    = string  
-}
-
-variable "client_credentials_tenant_id" {
-  type    = string  
-}
-
-variable "client_credentials_scope" {
-  type    = string  
 }

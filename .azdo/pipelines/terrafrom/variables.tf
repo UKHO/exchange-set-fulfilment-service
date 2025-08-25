@@ -1,0 +1,107 @@
+variable "apim_name" {
+  type    = string
+}
+
+variable "apim_rg" {
+  type    = string
+}
+
+variable "apim_api_backend_url" {
+  type    = string
+}
+
+variable "group_name" {
+    type = string
+    default = "Exchange Set Service"
+}
+
+variable "group_description" {
+    type = string
+    default = "Management group for users with accefs to the Exchange Set Service."
+}
+
+variable "product_name" {
+    type = string
+    default = "Exchange Set Service"
+}
+
+variable "product_description" {
+    type = string
+    default = "The Exchange Set Service provides APIs to enable the request of ENC Exchange Sets for loading onto an ECDIS."
+}
+
+variable "api_name" {
+    type = string
+    default = "Exchange Set Service API"
+}
+
+variable "api_description" {
+    type = string
+    default = "The Exchange Set Service APIs to request ENC Exchange Sets for loading onto an ECDIS."
+}
+
+variable "ui_api_name" {
+    type = string
+    default = "Exchange Set Service UI API"
+}
+
+variable "ui_api_description" {
+    type = string
+    default = "The Exchange Set Service UI api to facilitate efs UI Application requests."
+}
+
+variable "ui_product_name" {
+    type = string
+    default = "Exchange Set Service UI"
+}
+
+variable "env_suffix" {
+  type = map(string)
+  default = {
+    "dev"         = "Dev"
+    "qa"          = "QA"
+    "vne"         = "VNE"
+    "vni"         = "VNI"
+    "iat"         = "IAT"
+    "pre"         = "Pre"
+  }
+}
+
+variable "product_rate_limit" {
+  type = map(any)
+  default = {
+	    calls = 5
+	    renewal-period = 5
+    }
+}
+
+variable "product_quota" {
+  type = map(any)
+  default = {
+	    calls = 5000
+	    renewal-period = 86400
+    }
+}
+
+locals {
+  env_name              = lower(terraform.workspace)
+  service_name          = "efs"
+  group_name            = local.env_name == "prod" ? "${var.group_name}${var.suffix}" : "${var.group_name} ${var.env_suffix[local.env_name]}${var.suffix}"
+  product_name          = local.env_name == "prod" ? "${var.product_name}${var.suffix}" : "${var.product_name} ${var.env_suffix[local.env_name]}${var.suffix}"
+  ui_product_name       = local.env_name == "prod" ? "${var.ui_product_name}${var.suffix}" : "${var.ui_product_name} ${var.env_suffix[local.env_name]}${var.suffix}"
+  api_name              = local.env_name == "prod" ? "${var.api_name}${var.suffix}" : "${var.api_name} ${var.env_suffix[local.env_name]}${var.suffix}"
+  apim_api_path         = local.env_name == "prod" ? "${local.service_name}${var.pathsuffix}" : "${local.service_name}-${local.env_name}${var.pathsuffix}"
+  ui_api_name           = local.env_name == "prod" ? "${var.ui_api_name}${var.suffix}" : "${var.ui_api_name} ${var.env_suffix[local.env_name]}${var.suffix}"
+  apim_ui_api_path      = local.env_name == "prod" ? "${local.service_name}-ui${var.pathsuffix}" : "${local.service_name}-ui-${local.env_name}${var.pathsuffix}"
+
+  apim_api_openapi      = file("${path.module}/exchangeSetService_OpenApi_definition.yaml")
+  apim_ui_openapi       = file("${path.module}/exchangeSetService_Ui_OpenApi_definition.yaml")
+
+  cors_origins          = split(";", var.cors_origin_values)
+
+  monitor_product_name      = local.env_name == "prod" ? "${var.monitor_product_name}${var.suffix}" : "${var.monitor_product_name} ${var.env_suffix[local.env_name]}${var.suffix}"
+  monitor_api_name          = local.env_name == "prod" ? "${var.monitor_api_name}${var.suffix}" : "${var.monitor_api_name} ${var.env_suffix[local.env_name]}${var.suffix}"
+  apim_monitor_api_openapi  = file("${path.module}/exchangeSetService_monitor_OpenApi_definition.yaml")
+  monitor_service_name      = "efs-monitor"
+  apim_monitor_api_path     = local.env_name == "prod" ? "${local.monitor_service_name}${var.pathsuffix}" : "${local.monitor_service_name}-${local.env_name}${var.pathsuffix}"
+}

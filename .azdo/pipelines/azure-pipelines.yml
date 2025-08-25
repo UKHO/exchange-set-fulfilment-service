@@ -37,14 +37,14 @@ parameters:
     displayName: "Enable optional pipeline debugging"
     type: boolean
     default: false
-  - name: DeployApim
-    displayName: "Deploy APIM"
-    type: boolean
-    default: false
   - name: ContinueEvenIfResourcesAreGettingDestroyed
     displayName: "Continue even if resources are getting destroyed"
     type: boolean
     default: false
+  - name: DeployApim
+    displayName: "Deploy APIM"
+    type: boolean
+    default: true
 
 trigger:
   - main
@@ -74,6 +74,8 @@ variables:
     value: "Mare Nectaris"
   - name: snykAbzuOrganizationId
     value: aeb7543b-8394-457c-8334-a31493d8910d
+  - name: Container
+    value: "ukhydrographicoffice/terraform-azure-powershell-unzip:1.13.0"
 
 resources:
   repositories:
@@ -106,28 +108,42 @@ stages:
   # APIM deployment for dev environment
   # This stage runs Terraform to plan APIM changes using dev.tfvars
   # No changes are applied to Azure resources in this stage
-  - stage: DeployAPIMDev
-    displayName: "Deploy APIM Dev"
-    dependsOn:
-    - DevDeploy
-    condition: eq('${{ parameters.DeployApim }}', true)
-    jobs:
-    - job: TerraformAPIMDev
-      displayName: "Terraform APIM Dev"
-      pool:
-        vmImage: 'ubuntu-latest'
-      steps:
-        - checkout: self
-        # Initialize Terraform in the APIM module directory
-        - script: |
-            cd src/infra/terraform/apim
-            terraform init
-          displayName: 'Terraform Init APIM Dev'
-        # Run Terraform plan to preview APIM changes for dev environment
-        - script: |
-            cd src/infra/terraform/apim
-            terraform plan -var-file=dev.tfvars -out=tfplan
-          displayName: 'Terraform Plan APIM Dev'
+  # - stage: DeployAPIMDev
+  #   displayName: "Deploy APIM Dev"
+  #   dependsOn:
+  #   - DevDeploy
+  #   condition: eq('${{ parameters.DeployApim }}', true)
+  #   jobs:
+  #   - job: TerraformAPIMDev
+  #     displayName: "Terraform APIM Dev"
+  #     pool:
+  #       vmImage: 'ubuntu-latest'
+  #     steps:
+  #       - checkout: self
+  #       # Initialize Terraform in the APIM module directory
+  #       - script: |
+  #           cd src/infra/terraform/apim
+  #           terraform init
+  #         displayName: 'Terraform Init APIM Dev'
+  #       # Run Terraform plan to preview APIM changes for dev environment
+  #       - script: |
+  #           cd src/infra/terraform/apim
+  #           terraform plan -var-file=dev.tfvars -out=tfplan
+  #         displayName: 'Terraform Plan APIM Dev'
+
+   - stage: DevDeploy
+     dependsOn: []
+   # - VulnerabilityChecks
+   # - Test
+     displayName: Dev deploy
+     jobs:
+     - template: templates/continuous-deployment-apim.yml
+       parameters:
+          AzureDevOpsEnvironment: Ess-Dev
+          ShortName: dev
+          DeployApim: ${{ parameters.DeployApim }}
+          ContinueEvenIfResourcesAreGettingDestroyed: ${{ parameters.ContinueEvenIfResourcesAreGettingDestroyed }}
+          ContainerImage: ${{ variables.Container }}
 
   # - stage: vnextiatDeploy
   #   dependsOn:
