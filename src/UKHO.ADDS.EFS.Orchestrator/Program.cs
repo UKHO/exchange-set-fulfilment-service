@@ -37,18 +37,18 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                 builder.Services.AddHttpContextAccessor();
 
-                if (builder.Environment.IsDevelopment())
-                {
-                    builder.Services.AddSerilog((services, lc) =>
-                        ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint)
-                            .Enrich.WithProperty("Environment", builder.Environment.EnvironmentName)
-                            .Enrich.WithProperty("System", ServiceConfiguration.ServiceName)
-                            .Enrich.WithProperty("Service", ServiceConfiguration.ServiceName)
-                            .Enrich.WithProperty("NodeName", ServiceConfiguration.NodeName)
-                    );
-                }
-                else
-                {
+                //if (builder.Environment.IsDevelopment())
+                //{
+                //    builder.Services.AddSerilog((services, lc) =>
+                //        ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint)
+                //            .Enrich.WithProperty("Environment", builder.Environment.EnvironmentName)
+                //            .Enrich.WithProperty("System", ServiceConfiguration.ServiceName)
+                //            .Enrich.WithProperty("Service", ServiceConfiguration.ServiceName)
+                //            .Enrich.WithProperty("NodeName", ServiceConfiguration.NodeName)
+                //    );
+                //}
+                //else
+                //{
                     var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__efs-events-namespace");
                     var eventHubName = Environment.GetEnvironmentVariable("EVENTHUB_NAME");
 
@@ -69,7 +69,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                                 options.TokenCredential = new DefaultAzureCredential();                               
                             })
                     );
-                }
+                //}
 
                 builder.AddConfiguration(ServiceConfiguration.ServiceName, ProcessNames.ConfigurationService);
 
