@@ -6,7 +6,7 @@ terraform {
     }
   }
 
-  required_version = "=1.9.6"
+  required_version = "=1.13.0"
   backend "azurerm" {
     container_name = "tfstate"
   }
