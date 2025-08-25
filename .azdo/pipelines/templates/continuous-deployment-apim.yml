@@ -9,10 +9,15 @@ parameters:
 - name: ContinueEvenIfResourcesAreGettingDestroyed
   type: boolean
   default: false
+# Used to deploy apim 
+- name: DeployApim
+  type: boolean
+  default: false
 
 jobs:
 - deployment: ${{ parameters.ShortName }}APIMDeploy
   displayName: "${{ upper(parameters.ShortName) }} - APIM deploy"
+  condition: and(succeeded(), eq('${{ parameters.DeployApim }}', true))
   environment: ${{ parameters.AzureDevOpsEnvironment }}
   pool: $(LinuxPool)
   workspace:

@@ -176,10 +176,10 @@ stages:
         WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
 
     - template: templates/continuous-deployment-apim.yml
-      condition: and(succeeded(), eq('${{ parameters.DeployApim }}', true))
       parameters:
           AzureDevOpsEnvironment: Ess-Dev
           ShortName: dev
+          DeployApim: ${{ parameters.DeployApim }}
           ContinueEvenIfResourcesAreGettingDestroyed: ${{ parameters.ContinueEvenIfResourcesAreGettingDestroyed }}
 
   - stage: vnextiatDeploy
