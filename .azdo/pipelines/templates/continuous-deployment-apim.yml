@@ -1,0 +1,51 @@
+parameters:
+# The name of the environment to be used in Azure DevOps.
+- name: AzureDevOpsEnvironment
+  type: string
+# Used to generate job names and, in lower case, to select the correct var/x-deploy.yml variable file.
+- name: ShortName
+  type: string
+# If true, the deployment will continue even if resources are getting destroyed.
+- name: ContinueEvenIfResourcesAreGettingDestroyed
+  type: boolean
+  default: false
+
+jobs:
+- deployment: ${{ parameters.ShortName }}APIMDeploy
+  displayName: "${{ upper(parameters.ShortName) }} - APIM deploy"
+  environment: ${{ parameters.AzureDevOpsEnvironment }}
+  pool: $(LinuxPool)
+  workspace:
+    clean: all
+  variables:
+  - template: var/${{ lower(parameters.ShortName) }}-deploy.yml
+  strategy:
+    runOnce:
+      deploy:
+        steps:
+        - checkout: self
+  
+        - task: AzureKeyVault@2
+          displayName: 'Read APIM terraform Variables'
+          inputs:
+            azureSubscription: ${{ variables.ApimAzureSubscription }}
+            KeyVaultName: "$(APIM_TERRAFORM_KEYVAULT)"
+            SecretsFilter: '*'
+            RunAsPreJob: false
+
+        - task: PowerShell@2
+          name: APIMDeployment
+          displayName: "terraform APIM deployment"
+          inputs:
+            targetType: filePath
+            filePath: '$(Build.SourcesDirectory)/.azdo/pipelines/powershell/terraform_conditional_run_apim.ps1'
+            arguments: '-deploymentResourceGroupName $(APIM_RESOURCE_GROUP_NAME) -deploymentStorageAccountName $(APIM_TFSTATE_STORAGE_ACCOUNT_NAME) -workSpace $(AZURE_ENV_NAME) -continueEvenIfResourcesAreGettingDestroyed ${{ parameters.ContinueEvenIfResourcesAreGettingDestroyed }}'
+          env:
+            ARM_CLIENT_ID: $(TERRAFORM-CLIENT-ID)
+            ARM_CLIENT_SECRET: $(TERRAFORM-CLIENT-SECRET)
+            ARM_TENANT_ID: $(TERRAFORM-TENANT-ID)
+            ARM_SUBSCRIPTION_ID: $(TERRAFORM-SUBSCRIPTION-ID)
+            TF_VAR_apim_rg: $(APIM_RESOURCE_GROUP_NAME)
+            TF_VAR_apim_name: $(APIM_SERVICE_NAME)
+            TF_VAR_apim_api_backend_url: $(SERVICE_DNS_URL)
+

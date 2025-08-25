@@ -37,6 +37,14 @@ parameters:
     displayName: "Enable optional pipeline debugging"
     type: boolean
     default: false
+  - name: ContinueEvenIfResourcesAreGettingDestroyed
+    displayName: "Continue even if resources are getting destroyed"
+    type: boolean
+    default: false
+  - name: DeployApim
+    displayName: "Deploy APIM"
+    type: boolean
+    default: true
 
 trigger:
   - main
@@ -166,6 +174,13 @@ stages:
         IncludeAddsMock: true
         DeployRedis: ${{ parameters.DeployRedis }}
         WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
+
+    - template: templates/continuous-deployment-apim.yml
+      condition: and(succeeded(), eq('${{ parameters.DeployApim }}', true))
+      parameters:
+          AzureDevOpsEnvironment: Ess-Dev
+          ShortName: dev
+          ContinueEvenIfResourcesAreGettingDestroyed: ${{ parameters.ContinueEvenIfResourcesAreGettingDestroyed }}
 
   - stage: vnextiatDeploy
     dependsOn:
