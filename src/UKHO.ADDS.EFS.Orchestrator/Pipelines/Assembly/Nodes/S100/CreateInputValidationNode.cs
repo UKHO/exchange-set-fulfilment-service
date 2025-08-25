@@ -51,6 +51,7 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
             {
                 RequestType.ProductNames => await ValidateProductNamesRequest(job),
                 RequestType.ProductVersions => await ValidateProductVersionsRequest(job),
+                RequestType.UpdatesSince => await ValidateUpdateSinceRequest(job),
                 _ => throw new ArgumentException($"Unsupported request type: {requestType}")
             };
 
@@ -163,6 +164,31 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
         return await _productVersionsRequestValidator.ValidateAsync(request);
     }
 
+    /// <summary>
+    /// Validates the 'updatesSince' request filter for correct format and presence of sinceDateTime.
+    /// </summary>
+    /// <param name="job">The job containing the RequestedFilter.</param>
+    /// <returns>A ValidationResult containing any validation errors.</returns>
+    private async Task<FluentValidation.Results.ValidationResult> ValidateUpdateSinceRequest(Job job)
+    {
+        var errors = new List<FluentValidation.Results.ValidationFailure>();
+        var requestedFilter = job.RequestedFilter;
+
+        var firstColonIndex = requestedFilter.IndexOf(':');
+
+        var updateSinceKey = requestedFilter.Substring(0, firstColonIndex);
+        var sinceDateTime = requestedFilter.Length > firstColonIndex + 1
+            ? requestedFilter.Substring(firstColonIndex + 1)
+            : string.Empty;
+
+            if (!DateTime.TryParseExact(sinceDateTime, "yyyy-MM-ddTHH:mm:ss.fffffffZ", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AdjustToUniversal, out _))
+            {
+                errors.Add(new FluentValidation.Results.ValidationFailure("sinceDateTime", $"sinceDateTime '{sinceDateTime}' is not in the required format yyyy-MM-ddTHH:mm:ss.fffffffZ."));
+            }
+  
+        return await Task.FromResult(new FluentValidation.Results.ValidationResult(errors));
+    }
+
     private static int GetProductCount(Job job, RequestType requestType)
     {
         return requestType switch
@@ -183,5 +209,4 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
             .Select(p => p.Split(':')[0])
             .Count();
     }
-
 }

@@ -108,9 +108,22 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             {
                 try
                 {
-                    // Placeholder: endpoint not yet implemented. Return 202 Accepted with no body.
-                    return Results.Accepted();
+                    var correlationId = httpContext.GetCorrelationId();
+
+                    var parameters = AssemblyPipelineParameters.CreateFromS100UpdatesSince(request, configuration, correlationId);
+                    var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
+
+                    logger.LogAssemblyPipelineStarted(parameters);
+
+                    var result = await pipeline.RunAsync(httpContext.RequestAborted);
+
+                    if (result.ErrorResponse?.Errors?.Count > 0)
+                    {
+                        return Results.BadRequest(result.ErrorResponse);
                     }
+
+                    return Results.Accepted(null, result.ResponseData);
+                }
                 catch (Exception)
                 {
                     throw;
