@@ -54,6 +54,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             // Add FluentValidation
             builder.Services.AddValidatorsFromAssemblyContaining<S100ProductNamesRequestValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<S100ProductVersionsRequestValidator>();
 
             builder.AddAzureQueueClient(StorageConfiguration.QueuesName);
             builder.AddAzureTableClient(StorageConfiguration.TablesName);
@@ -70,6 +71,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddTransient<CompletionPipelineFactory>();
             builder.Services.AddTransient<CompletionPipelineNodeFactory>();
             builder.Services.AddTransient<S100ProductNamesRequestValidator>();
+            builder.Services.AddTransient<S100ProductVersionsRequestValidator>();
 
             builder.Services.AddSingleton<PipelineContextFactory<S100Build>>();
             builder.Services.AddSingleton<PipelineContextFactory<S63Build>>();

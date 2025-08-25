@@ -18,15 +18,18 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
 {
     private readonly ILogger<CreateInputValidationNode> _logger;
     private readonly S100ProductNamesRequestValidator _productNamesValidator;
+    private readonly S100ProductVersionsRequestValidator _productVersionsRequestValidator;
 
     public CreateInputValidationNode(
         AssemblyNodeEnvironment nodeEnvironment,
         ILogger<CreateInputValidationNode> logger,
-        S100ProductNamesRequestValidator productNamesValidator)
+        S100ProductNamesRequestValidator productNamesValidator,
+        S100ProductVersionsRequestValidator productVersionsRequestValidator)
         : base(nodeEnvironment)
     {
         _logger = logger;
         _productNamesValidator = productNamesValidator;
+        _productVersionsRequestValidator = productVersionsRequestValidator;
     }
 
     public override Task<bool> ShouldExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
@@ -47,6 +50,7 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
             FluentValidation.Results.ValidationResult validationResult = requestType switch
             {
                 RequestType.ProductNames => await ValidateProductNamesRequest(job),
+                RequestType.ProductVersions => await ValidateProductVersionsRequest(job),
                 _ => throw new ArgumentException($"Unsupported request type: {requestType}")
             };
 
@@ -96,9 +100,17 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
 
     private static RequestType GetRequestTypeFromContext(IExecutionContext<PipelineContext<S100Build>> context)
     {
-        // For now, default to ProductNames as that's the main request type implemented
-        // This can be enhanced to detect the actual request type from the context or job properties
-        // In the future, this could look at job metadata or other context properties to determine the request type
+        // Example: Use RequestedFilter or other job metadata to determine request type
+        var job = context.Subject.Job;
+        if (!string.IsNullOrEmpty(job.RequestedFilter))
+        {
+            if (job.RequestedFilter.Contains("productVersions", StringComparison.OrdinalIgnoreCase))
+                return RequestType.ProductVersions;
+            if (job.RequestedFilter.Contains("productNames", StringComparison.OrdinalIgnoreCase))
+                return RequestType.ProductNames;
+            if (job.RequestedFilter.Contains("updatesSince", StringComparison.OrdinalIgnoreCase))
+                return RequestType.UpdatesSince;
+        }
         return RequestType.ProductNames;
     }
 
@@ -118,14 +130,58 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
         return await _productNamesValidator.ValidateAsync(request);
     }
 
+    private async Task<FluentValidation.Results.ValidationResult> ValidateProductVersionsRequest(Job job)
+    {
+        // Parse product versions from requested products
+        var productVersions = job.RequestedProducts.Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(p => p.Trim())
+            .Where(p => !string.IsNullOrEmpty(p))
+            .ToList();
+
+        // Extract product names from product versions (first part before ':')
+        var productNames = productVersions
+            .Select(p => p.Split(':')[0])
+            .Where(p => !string.IsNullOrEmpty(p))
+            .ToList();
+
+        var productNamesRequest = new S100ProductNamesRequest
+        {
+            ProductNames = productNames
+        };
+
+        var productNamesValidationResult = await _productNamesValidator.ValidateAsync(productNamesRequest);
+        if (!productNamesValidationResult.IsValid)
+        {
+            return productNamesValidationResult;
+        }
+
+        var request = new ProductVersionsRequest
+        {
+            ProductVersions = productVersions
+        };
+
+        return await _productVersionsRequestValidator.ValidateAsync(request);
+    }
+
     private static int GetProductCount(Job job, RequestType requestType)
     {
         return requestType switch
         {
             RequestType.ProductNames => job.RequestedProducts.Split(',', StringSplitOptions.RemoveEmptyEntries).Length,
-            RequestType.ProductVersions => 1, // Would need to be calculated from actual product versions
+            RequestType.ProductVersions => GetProductNamesCountFromVersions(job),
             RequestType.UpdatesSince => 1, // Single date parameter
             _ => 0
         };
     }
+
+    private static int GetProductNamesCountFromVersions(Job job)
+    {
+        return job.RequestedProducts
+            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(p => p.Trim())
+            .Where(p => !string.IsNullOrEmpty(p))
+            .Select(p => p.Split(':')[0])
+            .Count();
+    }
+
 }
