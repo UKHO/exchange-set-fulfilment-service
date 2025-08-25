@@ -37,6 +37,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                 builder.Services.AddHttpContextAccessor();
 
+                builder.AddConfiguration(ServiceConfiguration.ServiceName, ProcessNames.ConfigurationService);
                 //if (builder.Environment.IsDevelopment())
                 //{
                 //    builder.Services.AddSerilog((services, lc) =>
@@ -49,7 +50,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 //}
                 //else
                 //{
-                    var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__efs-events-namespace");
+                var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__efs-events-namespace");
                     var eventHubName = Environment.GetEnvironmentVariable("EVENTHUB_NAME");
 
                     builder.Services.AddSerilog((services, lc) =>
@@ -72,7 +73,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     );
                 //}
 
-                builder.AddConfiguration(ServiceConfiguration.ServiceName, ProcessNames.ConfigurationService);
+                
 
                 builder.AddServiceDefaults().AddOrchestratorServices();
 
