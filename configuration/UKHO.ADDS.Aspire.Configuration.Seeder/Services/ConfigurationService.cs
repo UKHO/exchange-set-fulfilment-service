@@ -13,7 +13,8 @@ namespace UKHO.ADDS.Aspire.Configuration.Seeder.Services
             var configJson = await File.ReadAllTextAsync(configFilePath, cancellationToken);
             var configJsonCleaned = JsonStripper.StripJsonComments(configJson);
 
-            var flattenedConfig = JsonFlattener.Flatten(AddsEnvironment.Local, configJsonCleaned);
+            // FIX: Use the actual environment parameter instead of hardcoded AddsEnvironment.Local
+            var flattenedConfig = JsonFlattener.Flatten(environment, configJsonCleaned);
 
             foreach (var value in flattenedConfig)
             {
