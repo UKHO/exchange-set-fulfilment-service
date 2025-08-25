@@ -44,7 +44,7 @@ jobs:
           inputs:
             targetType: filePath
             filePath: '$(Build.SourcesDirectory)/.azdo/pipelines/powershell/terraform_conditional_run_apim.ps1'
-            arguments: '-deploymentResourceGroupName $(APIM_RESOURCE_GROUP_NAME) -deploymentStorageAccountName $(APIM_TFSTATE_STORAGE_ACCOUNT_NAME) -workSpace $(AZURE_ENV_NAME) -continueEvenIfResourcesAreGettingDestroyed ${{ parameters.ContinueEvenIfResourcesAreGettingDestroyed }}'
+            arguments: '-deploymentResourceGroupName $(APIM_RESOURCE_GROUP_NAME) -deploymentStorageAccountName $(APIM_TFSTATE_STORAGE_ACCOUNT_NAME) -workSpace $(AZURE_ENV_NAME) -continueEvenIfResourcesAreGettingDestroyed $${{ parameters.ContinueEvenIfResourcesAreGettingDestroyed }}'
           env:
             ARM_CLIENT_ID: $(TERRAFORM-CLIENT-ID)
             ARM_CLIENT_SECRET: $(TERRAFORM-CLIENT-SECRET)
