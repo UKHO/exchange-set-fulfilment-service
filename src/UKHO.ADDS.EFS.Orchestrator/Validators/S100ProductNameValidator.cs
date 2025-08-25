@@ -33,32 +33,32 @@ internal class S100ProductNameValidator : AbstractValidator<string>
 
         RuleFor(productName => productName)
             .Must(HasOnlyAsciiCharacters)
-            .WithMessage("Product name contains invalid characters. Only ASCII characters are allowed (A-Z, a-z, 0-9, underscore, hyphen, and dot)")
+            .WithMessage(productName => $"{productName} - Product name contains invalid characters. Only ASCII characters are allowed (A-Z, a-z, 0-9, underscore, hyphen, and dot)")
             .When(productName => !string.IsNullOrEmpty(productName));
 
         RuleFor(productName => productName)
             .Must(HasValidProductCode)
-            .WithMessage("Product name must start with a valid S-100 product code: 101, 102, 104, or 111")
+            .WithMessage(productName => $"{productName} - Product name must start with a valid S-100 product code: 101, 102, 104, or 111")
             .When(productName => !string.IsNullOrEmpty(productName));
 
         RuleFor(productName => productName)
             .Must(HasValidProducerCode)
-            .WithMessage("Product name must have a valid 4-character alphanumeric producer code after the product code")
+            .WithMessage(productName => $"{productName} - Product name must have a valid 4-character alphanumeric producer code after the product code")
             .When(productName => !string.IsNullOrEmpty(productName) && HasValidProductCode(productName));
 
         RuleFor(productName => productName)
             .Must(HasValidUniqueCode)
-            .WithMessage("Product name must have at least one character for the unique code portion")
+            .WithMessage(productName => $"{productName} - Product name must have at least one character for the unique code portion")
             .When(productName => !string.IsNullOrEmpty(productName) && HasValidProductCode(productName) && HasValidProducerCode(productName));
 
         RuleFor(productName => productName)
             .Must(HasValidLength)
-            .WithMessage(productName => GetLengthValidationMessage(productName))
+            .WithMessage(productName => $"{productName} - {GetLengthValidationMessage(productName)}")
             .When(productName => !string.IsNullOrEmpty(productName) && HasValidProductCode(productName));
 
         RuleFor(productName => productName)
             .Must(HasValidUniqueCodeCharacters)
-            .WithMessage(productName => GetCharacterValidationMessage(productName))
+            .WithMessage(productName => $"{productName} - {GetCharacterValidationMessage(productName)}")
             .When(productName => !string.IsNullOrEmpty(productName) && HasValidProductCode(productName) && HasValidProducerCode(productName) && HasValidUniqueCode(productName));
     }
 

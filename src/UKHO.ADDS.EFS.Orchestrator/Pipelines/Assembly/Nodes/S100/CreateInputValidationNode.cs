@@ -73,7 +73,7 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
                     Errors = validationResult.Errors
                         .Select(e => new ErrorDetail
                         {
-                            Source = e.AttemptedValue?.ToString(),
+                            Source = e.PropertyName,
                             Description = e.ErrorMessage
                         })
                         .ToList()
