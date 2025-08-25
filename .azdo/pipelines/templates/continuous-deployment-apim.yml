@@ -13,6 +13,9 @@ parameters:
 - name: DeployApim
   type: boolean
   default: false
+# The container image to use for the deployment job.
+- name: ContainerImage
+  type: string
 
 jobs:
 - deployment: ${{ parameters.ShortName }}APIMDeploy
@@ -20,7 +23,7 @@ jobs:
   condition: and(succeeded(), eq('${{ parameters.DeployApim }}', true))
   environment: ${{ parameters.AzureDevOpsEnvironment }}
   pool: $(LinuxPool)
-  container:  ${{variables.Container}}
+  container:  ${{parameters.ContainerImage}}
   workspace:
     clean: all
   variables:

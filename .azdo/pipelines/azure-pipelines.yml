@@ -183,6 +183,7 @@ stages:
           ShortName: dev
           DeployApim: ${{ parameters.DeployApim }}
           ContinueEvenIfResourcesAreGettingDestroyed: ${{ parameters.ContinueEvenIfResourcesAreGettingDestroyed }}
+          ContainerImage: ${{ variables.Container }}
 
   - stage: vnextiatDeploy
     dependsOn:
