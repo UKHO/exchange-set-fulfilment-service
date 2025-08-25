@@ -8,6 +8,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Validators;
 /// </summary>
 internal class S100ProductNameValidator : AbstractValidator<string>
 {
+    private const string ProductNamesPropertyName = "ProductNames";
     // S-100 Product standards
     private static readonly string[] ValidProductCodes = ["101", "102", "104", "111"];
 
@@ -28,37 +29,80 @@ internal class S100ProductNameValidator : AbstractValidator<string>
         RuleFor(productName => productName)
             .NotNull()
             .WithMessage("Product name cannot be null")
+            .WithName(ProductNamesPropertyName)
             .NotEmpty()
-            .WithMessage("Product name cannot be empty");
+            .WithMessage("Product name cannot be empty")
+            .WithName(ProductNamesPropertyName);
 
         RuleFor(productName => productName)
             .Must(HasOnlyAsciiCharacters)
             .WithMessage(productName => $"{productName} - Product name contains invalid characters. Only ASCII characters are allowed (A-Z, a-z, 0-9, underscore, hyphen, and dot)")
+            .WithName(ProductNamesPropertyName)
             .When(productName => !string.IsNullOrEmpty(productName));
 
         RuleFor(productName => productName)
-            .Must(HasValidProductCode)
-            .WithMessage(productName => $"{productName} - Product name must start with a valid S-100 product code: 101, 102, 104, or 111")
+            .Custom((productName, context) =>
+            {
+                if (!HasValidProductCode(productName))
+                {
+                    context.AddFailure(new FluentValidation.Results.ValidationFailure(
+                        ProductNamesPropertyName, // Custom property name instead of the actual product name value
+                        $"{productName} - Product name must start with a valid S-100 product code: 101, 102, 104, or 111"
+                    ));
+                }
+            })
             .When(productName => !string.IsNullOrEmpty(productName));
 
         RuleFor(productName => productName)
-            .Must(HasValidProducerCode)
-            .WithMessage(productName => $"{productName} - Product name must have a valid 4-character alphanumeric producer code after the product code")
+            .Custom((productName, context) =>
+            {
+                if (!HasValidProducerCode(productName))
+                {
+                    context.AddFailure(new FluentValidation.Results.ValidationFailure(
+                        ProductNamesPropertyName, // Custom property name instead of the actual product name value
+                        $"{productName} - Product name must have a valid 4-character alphanumeric producer code after the product code"
+                    ));
+                }
+            })
             .When(productName => !string.IsNullOrEmpty(productName) && HasValidProductCode(productName));
 
         RuleFor(productName => productName)
-            .Must(HasValidUniqueCode)
-            .WithMessage(productName => $"{productName} - Product name must have at least one character for the unique code portion")
+            .Custom((productName, context) =>
+            {
+                if (!HasValidUniqueCode(productName))
+                {
+                    context.AddFailure(new FluentValidation.Results.ValidationFailure(
+                        ProductNamesPropertyName, // Custom property name instead of the actual product name value
+                        $"{productName} - Product name must have at least one character for the unique code portion"
+                    ));
+                }
+            })
             .When(productName => !string.IsNullOrEmpty(productName) && HasValidProductCode(productName) && HasValidProducerCode(productName));
 
         RuleFor(productName => productName)
-            .Must(HasValidLength)
-            .WithMessage(productName => $"{productName} - {GetLengthValidationMessage(productName)}")
+            .Custom((productName, context) =>
+            {
+                if (!HasValidLength(productName))
+                {
+                    context.AddFailure(new FluentValidation.Results.ValidationFailure(
+                        ProductNamesPropertyName, // Custom property name instead of the actual product name value
+                        $"{productName} - {GetLengthValidationMessage(productName)}"
+                    ));
+                }
+            })
             .When(productName => !string.IsNullOrEmpty(productName) && HasValidProductCode(productName));
 
         RuleFor(productName => productName)
-            .Must(HasValidUniqueCodeCharacters)
-            .WithMessage(productName => $"{productName} - {GetCharacterValidationMessage(productName)}")
+            .Custom((productName, context) =>
+            {
+                if (!HasValidUniqueCodeCharacters(productName))
+                {
+                    context.AddFailure(new FluentValidation.Results.ValidationFailure(
+                        ProductNamesPropertyName, // Custom property name instead of the actual product name value
+                        $"{productName} - {GetCharacterValidationMessage(productName)}"
+                    ));
+                }
+            })
             .When(productName => !string.IsNullOrEmpty(productName) && HasValidProductCode(productName) && HasValidProducerCode(productName) && HasValidUniqueCode(productName));
     }
 
