@@ -121,7 +121,7 @@
                 }
             },
             "AllowedHosts": "*",
-            "ClientId": "3121f9fc-5c05-444f-9777-d2c53c488b0f",
+            "ClientId": "aeaa4b56-a70a-4fd4-8396-2860bc932c98",
             "Deduplication": {
                 "Enabled": false, // Enable deduplication of requests
                 "Expiry": "23:00:00" // The timeframe for deduplication from first generation to expiry
