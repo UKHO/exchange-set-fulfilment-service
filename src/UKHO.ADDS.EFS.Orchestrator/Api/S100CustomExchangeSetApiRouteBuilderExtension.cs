@@ -21,7 +21,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
             // POST /v2/exchangeSet/s100/productNames
             exchangeSetEndpoint.MapPost("/productNames", async (
-                S100ProductNamesRequest request,
+                List<string> productNames,
                 IConfiguration configuration,
                 IAssemblyPipelineFactory pipelineFactory,
                 HttpContext httpContext,
@@ -29,7 +29,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             {
                 try
                 {
-                    return CreateResponse(5, 4, 1); // Temporary response for demonstration purposes
+                    return Results.Accepted(null, CreateResponse(productNames.Count, 4, 1)); // Temporary response for demonstration purposes
                 }
                 catch (Exception e)
                 {
@@ -42,7 +42,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
             // POST /v2/exchangeSet/s100/productVersions
             exchangeSetEndpoint.MapPost("/productVersions", async (
-                S100ProductVersionsRequest request,
+                List<S100ProductVersionsRequest> productVersions,
                 IConfiguration configuration,
                 IAssemblyPipelineFactory pipelineFactory,
                 HttpContext httpContext,
@@ -50,7 +50,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             {
                 try
                 {
-                    return CreateResponse(6, 5, 1); // Temporary response for demonstration purposes
+                    return Results.Accepted(null, CreateResponse(productVersions.Count, 5, 1)); // Temporary response for demonstration purposes
                 }
                 catch (Exception e)
                 {
@@ -87,9 +87,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
         // Temporary method to create a response for demonstration purposes.
         private static S100CustomExchangeSetResponse CreateResponse(
-        int requestedProductCount,
-        int exchangeSetProductCount,
-        int requestedProductsAlreadyUpToDateCount)
+            int requestedProductCount,
+            int exchangeSetProductCount,
+            int requestedProductsAlreadyUpToDateCount)
         {
             var batchId = Guid.NewGuid().ToString("N"); // Simulate batch ID for demonstration purposes
             var jobId = Guid.NewGuid().ToString("N"); // Use correlation ID as job ID
@@ -109,10 +109,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 RequestedProductsNotInExchangeSet =
                 [
                     new S100ProductNotInExchangeSet
-                {
-                    ProductName = "101GB40079ABCDEFG",
-                    Reason = S100ProductNotIncludedReason.InvalidProduct
-                }
+                    {
+                        ProductName = "101GB40079ABCDEFG",
+                        Reason = S100ProductNotIncludedReason.InvalidProduct
+                    }
                 ],
                 FssBatchId = batchId
             };
