@@ -115,37 +115,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 builder.Services.AddSingleton<IBuilderLogForwarder, BuilderLogForwarder>();
                 builder.Services.AddSingleton<StorageInitializerService>();
 
-                // Configure external services with enhanced runtime configuration resolution
-                builder.Services.RegisterKiotaClient<KiotaSalesCatalogueService>(provider =>
-                {
-                    var registry = provider.GetRequiredService<IExternalServiceRegistry>();
-                    var scsEndpoint = registry.GetServiceEndpoint(ProcessNames.SalesCatalogueService);
-
-                    // Get the ClientId from runtime configuration when the service is actually resolved
-                    var runtimeConfiguration = provider.GetRequiredService<IConfiguration>();
-                    var runtimeClientId = runtimeConfiguration["orchestrator:ClientId"];
-                    
-                    // Enhanced debugging - check all configuration keys at runtime
-                    var allOrchestratorKeys = string.Join(", ", runtimeConfiguration.AsEnumerable()
-                        .Where(c => c.Key.StartsWith("orchestrator", StringComparison.OrdinalIgnoreCase))
-                        .Select(c => $"{c.Key}={c.Value}"));
-
-#pragma warning disable LOG001
-                    Log.Information("Configuring external service client: Service={ServiceName}, Environment={Environment}, Endpoint={Endpoint}, StartupClientId={StartupClientId}, RuntimeClientId={RuntimeClientId}, AllRuntimeOrchestratorKeys={AllRuntimeOrchestratorKeys}", 
-                        ProcessNames.SalesCatalogueService, addsEnvironment.ToString(), scsEndpoint.Uri?.ToString() ?? "Unknown", 
-                        startupClientId ?? "NULL", runtimeClientId ?? "NULL", allOrchestratorKeys);
-#pragma warning restore LOG001
-
-                    if (addsEnvironment.IsLocal() || addsEnvironment.IsDev())
-                    {
-                        return (scsEndpoint.Uri, new AnonymousAuthenticationProvider());
-                    }
-
-                    // Use runtime ClientId for actual authentication, fall back to startup if null
-                    var clientIdToUse = runtimeClientId ?? startupClientId;
-                    return (scsEndpoint.Uri, new AzureIdentityAuthenticationProvider(new ManagedIdentityCredential(clientId: clientIdToUse), scopes: scsEndpoint.GetDefaultScope()));
-                });
-
+                // PRIORITY 1: Configure FSS (File Share Service) first with token authentication
                 builder.Services.AddSingleton<IFileShareReadWriteClientFactory>(provider => new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
 
                 builder.Services.AddSingleton(sp =>
@@ -163,7 +133,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                         .Select(c => $"{c.Key}={c.Value}"));
 
 #pragma warning disable LOG001
-                    Log.Information("Configuring external service client: Service={ServiceName}, Environment={Environment}, Endpoint={Endpoint}, StartupClientId={StartupClientId}, RuntimeClientId={RuntimeClientId}, AllRuntimeOrchestratorKeys={AllRuntimeOrchestratorKeys}", 
+                    Log.Information("PRIORITY: Configuring FSS client with token authentication: Service={ServiceName}, Environment={Environment}, Endpoint={Endpoint}, StartupClientId={StartupClientId}, RuntimeClientId={RuntimeClientId}, AllRuntimeOrchestratorKeys={AllRuntimeOrchestratorKeys}", 
                         ProcessNames.FileShareService, addsEnvironment.ToString(), fssEndpoint.Uri?.ToString() ?? "Unknown", 
                         startupClientId ?? "NULL", runtimeClientId ?? "NULL", allOrchestratorKeys);
 #pragma warning restore LOG001
@@ -172,22 +142,100 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                     if (addsEnvironment.IsLocal() || addsEnvironment.IsDev())
                     {
+#pragma warning disable LOG001
+                        Log.Information("FSS: Using anonymous authentication for local/dev environment");
+#pragma warning restore LOG001
                         tokenProvider = new AnonymousAuthenticationTokenProvider();
                     }
                     else
                     {
                         // Use runtime ClientId for actual authentication, fall back to startup if null
                         var clientIdToUse = runtimeClientId ?? startupClientId;
-                        tokenProvider = new TokenCredentialAuthenticationTokenProvider(new ManagedIdentityCredential(clientId: clientIdToUse), [fssEndpoint.GetDefaultScope()]);
+                        
+                        if (string.IsNullOrEmpty(clientIdToUse))
+                        {
+#pragma warning disable LOG001
+                            Log.Error("FSS: ClientId is null or empty - authentication will fail. Ensure orchestrator:ClientId is configured.");
+#pragma warning restore LOG001
+                            throw new InvalidOperationException("FSS authentication requires a valid ClientId. Configure orchestrator:ClientId.");
+                        }
+
+#pragma warning disable LOG001
+                        Log.Information("FSS: Using managed identity authentication with ClientId={ClientId}, Scope={Scope}", 
+                            clientIdToUse, fssEndpoint.GetDefaultScope());
+#pragma warning restore LOG001
+                        
+                        tokenProvider = new TokenCredentialAuthenticationTokenProvider(
+                            new ManagedIdentityCredential(clientId: clientIdToUse), 
+                            new[] { fssEndpoint.GetDefaultScope() });
                     }
 
                     var factory = sp.GetRequiredService<IFileShareReadWriteClientFactory>();
-                    return factory.CreateClient(fssEndpoint.Uri!.ToString(), tokenProvider);
+                    var fssClient = factory.CreateClient(fssEndpoint.Uri!.ToString(), tokenProvider);
+
+#pragma warning disable LOG001
+                    Log.Information("FSS client successfully configured and ready for authentication");
+#pragma warning restore LOG001
+
+                    return fssClient;
                 });
 
+                // Register FSS orchestrator client
+                builder.Services.AddSingleton<IOrchestratorFileShareClient, OrchestratorFileShareClient>();
+
+                // PRIORITY 2: Configure SCS (Sales Catalogue Service) after FSS is properly configured
+                builder.Services.RegisterKiotaClient<KiotaSalesCatalogueService>(provider =>
+                {
+                    var registry = provider.GetRequiredService<IExternalServiceRegistry>();
+                    var scsEndpoint = registry.GetServiceEndpoint(ProcessNames.SalesCatalogueService);
+
+                    // Get the ClientId from runtime configuration when the service is actually resolved
+                    var runtimeConfiguration = provider.GetRequiredService<IConfiguration>();
+                    var runtimeClientId = runtimeConfiguration["orchestrator:ClientId"];
+                    
+                    // Enhanced debugging - check all configuration keys at runtime
+                    var allOrchestratorKeys = string.Join(", ", runtimeConfiguration.AsEnumerable()
+                        .Where(c => c.Key.StartsWith("orchestrator", StringComparison.OrdinalIgnoreCase))
+                        .Select(c => $"{c.Key}={c.Value}"));
+
+#pragma warning disable LOG001
+                    Log.Information("Configuring SCS client after FSS: Service={ServiceName}, Environment={Environment}, Endpoint={Endpoint}, StartupClientId={StartupClientId}, RuntimeClientId={RuntimeClientId}, AllRuntimeOrchestratorKeys={AllRuntimeOrchestratorKeys}", 
+                        ProcessNames.SalesCatalogueService, addsEnvironment.ToString(), scsEndpoint.Uri?.ToString() ?? "Unknown", 
+                        startupClientId ?? "NULL", runtimeClientId ?? "NULL", allOrchestratorKeys);
+#pragma warning restore LOG001
+
+                    if (addsEnvironment.IsLocal() || addsEnvironment.IsDev())
+                    {
+#pragma warning disable LOG001
+                        Log.Information("SCS: Using anonymous authentication for local/dev environment");
+#pragma warning restore LOG001
+                        return (scsEndpoint.Uri, new AnonymousAuthenticationProvider());
+                    }
+
+                    // Use runtime ClientId for actual authentication, fall back to startup if null
+                    var clientIdToUse = runtimeClientId ?? startupClientId;
+                    
+                    if (string.IsNullOrEmpty(clientIdToUse))
+                    {
+#pragma warning disable LOG001
+                        Log.Error("SCS: ClientId is null or empty - authentication will fail. Ensure orchestrator:ClientId is configured.");
+#pragma warning restore LOG001
+                        throw new InvalidOperationException("SCS authentication requires a valid ClientId. Configure orchestrator:ClientId.");
+                    }
+
+#pragma warning disable LOG001
+                    Log.Information("SCS: Using managed identity authentication with ClientId={ClientId}, Scope={Scope}", 
+                        clientIdToUse, scsEndpoint.GetDefaultScope());
+#pragma warning restore LOG001
+
+                    return (scsEndpoint.Uri, new AzureIdentityAuthenticationProvider(
+                        new ManagedIdentityCredential(clientId: clientIdToUse), 
+                        scopes: scsEndpoint.GetDefaultScope()));
+                });
+
+                // Register remaining SCS services
                 builder.Services.AddSingleton<ISalesCatalogueKiotaClientAdapter, SalesCatalogueKiotaClientAdapter>();
                 builder.Services.AddSingleton<IOrchestratorSalesCatalogueClient, OrchestratorSalesCatalogueClient>();
-                builder.Services.AddSingleton<IOrchestratorFileShareClient, OrchestratorFileShareClient>();
 
                 //Added Dependencies for SchedulerJob
                 var exchangeSetGenerationSchedule = configuration["orchestrator:SchedulerJob:ExchangeSetGenerationSchedule"];
