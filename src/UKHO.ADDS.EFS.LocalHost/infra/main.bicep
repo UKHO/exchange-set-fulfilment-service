@@ -23,6 +23,7 @@ param efs_redis_password string
 param efsApplicationInsightsName string
 param efsContainerAppsEnvironmentName string
 param efsContainerRegistryName string
+param efsEventHubNamespaceName string
 param efsLogAnalyticsWorkspaceName string
 @metadata({azd: {
   type: 'resourceGroup'
@@ -81,8 +82,9 @@ module efs_cae_acr 'efs-cae-acr/efs-cae-acr.module.bicep' = {
 }
 module efs_events_namespace 'efs-events-namespace/efs-events-namespace.module.bicep' = {
   name: 'efs-events-namespace'
-  scope: rg
+  scope: resourceGroup(efsRetainResourceGroup)
   params: {
+    efsEventHubNamespaceName: efsEventHubNamespaceName
     location: location
   }
 }
@@ -105,7 +107,7 @@ module efs_orchestrator_roles_efs_appconfig 'efs-orchestrator-roles-efs-appconfi
 }
 module efs_orchestrator_roles_efs_events_namespace 'efs-orchestrator-roles-efs-events-namespace/efs-orchestrator-roles-efs-events-namespace.module.bicep' = {
   name: 'efs-orchestrator-roles-efs-events-namespace'
-  scope: rg
+  scope: resourceGroup(efsRetainResourceGroup)
   params: {
     efs_events_namespace_outputs_name: efs_events_namespace.outputs.name
     location: location

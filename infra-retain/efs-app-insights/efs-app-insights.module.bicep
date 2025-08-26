@@ -16,7 +16,6 @@ resource efs_app_insights 'Microsoft.Insights/components@2020-02-02' = {
     WorkspaceResourceId: efs_law_outputs_loganalyticsworkspaceid
   }
   tags: {
-    'aspire-resource-name': 'efs-app-insights'
     'hidden-title': 'EFS'
   }
 }

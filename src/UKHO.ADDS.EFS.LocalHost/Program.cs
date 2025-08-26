@@ -1,10 +1,7 @@
 using System.Runtime.InteropServices;
-using Aspire.Hosting;
 using Aspire.Hosting.Azure;
 using Azure.Provisioning.AppConfiguration;
 using Azure.Provisioning.AppContainers;
-using Azure.Provisioning.ApplicationInsights;
-using Azure.Provisioning.EventHubs;
 using Azure.Provisioning.Storage;
 using CliWrap;
 using Docker.DotNet;
@@ -54,6 +51,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             var efsContainerAppsEnvironmentName = builder.AddParameter("efsContainerAppsEnvironmentName");
             var efsContainerRegistryName = builder.AddParameter("efsContainerRegistryName");
             var efsApplicationInsightsName = builder.AddParameter("efsApplicationInsightsName");
+            var efsEventHubNamespaceName = builder.AddParameter("efsEventHubNamespaceName");
             var addsEnvironment = builder.AddParameter("addsEnvironment");
 
             // Existing user managed identity
@@ -67,6 +65,11 @@ namespace UKHO.ADDS.EFS.LocalHost
             // App insights
             var appInsights = builder.ExecutionContext.IsPublishMode
                 ? builder.AddAzureApplicationInsights(ServiceConfiguration.AppInsightsName).PublishAsExisting(efsApplicationInsightsName, efsRetainResourceGroup)
+                : null;
+
+            // Event hubs
+            var eventHubs = builder.ExecutionContext.IsPublishMode
+                ? builder.AddAzureEventHubs(ServiceConfiguration.EventHubNamespaceName).PublishAsExisting(efsEventHubNamespaceName, efsRetainResourceGroup)
                 : null;
 
             // Container registry
@@ -109,20 +112,6 @@ namespace UKHO.ADDS.EFS.LocalHost
             var storageQueue = storage.AddQueues(StorageConfiguration.QueuesName);
             var storageTable = storage.AddTables(StorageConfiguration.TablesName);
             var storageBlob = storage.AddBlobs(StorageConfiguration.BlobsName);
-
-            IResourceBuilder<AzureEventHubsResource>? eventHubs = null;
-
-            if (builder.ExecutionContext.IsPublishMode)
-            {
-                eventHubs = builder.AddAzureEventHubs(ServiceConfiguration.EventHubNamespaceName).RunAsEmulator();
-                eventHubs.ConfigureInfrastructure(config =>
-                {
-                    var eventHubNamespace = config.GetProvisionableResources().OfType<EventHubsNamespace>().Single();
-                    eventHubNamespace.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
-                    eventHubNamespace.DisableLocalAuth = false;
-                });
-                eventHubs.AddHub(ServiceConfiguration.EventHubName);
-            }
 
             // Redis cache
             var redisCache = builder.AddRedis(ProcessNames.RedisCache)

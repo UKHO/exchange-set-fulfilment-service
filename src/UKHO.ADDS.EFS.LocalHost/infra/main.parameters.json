@@ -20,6 +20,9 @@
       "efsContainerRegistryName": {
         "value": "${AZURE_EFS_CONTAINER_REGISTRY_NAME}"
       },
+      "efsEventHubNamespaceName": {
+        "value": "${AZURE_EFS_EVENT_HUB_NAMESPACE_NAME}"
+      },
       "efsLogAnalyticsWorkspaceName": {
         "value": "${AZURE_EFS_LOG_ANALYTICS_WORKSPACE_NAME}"
       },

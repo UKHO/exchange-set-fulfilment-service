@@ -63,6 +63,14 @@ module efs_app_insights 'efs-app-insights/efs-app-insights.module.bicep' = {
   }
 }
 
+module efs_events_namespace 'efs-events-namespace/efs-events-namespace.module.bicep' = {
+  name: 'efs-events-namespace'
+  scope: rg
+  params: {
+    location: location
+  }
+}
+
 module efs_cae_acr 'efs-cae-acr/efs-cae-acr.module.bicep' = {
   name: 'efs-cae-acr'
   scope: rg
