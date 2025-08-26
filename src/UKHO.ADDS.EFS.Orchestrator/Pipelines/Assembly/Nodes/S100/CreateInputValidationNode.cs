@@ -19,17 +19,20 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
     private readonly ILogger<CreateInputValidationNode> _logger;
     private readonly S100ProductNamesRequestValidator _productNamesValidator;
     private readonly S100ProductVersionsRequestValidator _productVersionsRequestValidator;
+    private readonly S100UpdateSinceValidator _updateSinceValidator;
 
     public CreateInputValidationNode(
         AssemblyNodeEnvironment nodeEnvironment,
         ILogger<CreateInputValidationNode> logger,
         S100ProductNamesRequestValidator productNamesValidator,
-        S100ProductVersionsRequestValidator productVersionsRequestValidator)
+        S100ProductVersionsRequestValidator productVersionsRequestValidator,
+        S100UpdateSinceValidator updateSinceValidator)
         : base(nodeEnvironment)
     {
         _logger = logger;
         _productNamesValidator = productNamesValidator;
         _productVersionsRequestValidator = productVersionsRequestValidator;
+        _updateSinceValidator = updateSinceValidator;
     }
 
     public override Task<bool> ShouldExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
@@ -51,7 +54,7 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
             {
                 RequestType.ProductNames => await ValidateProductNamesRequest(job),
                 RequestType.ProductVersions => await ValidateProductVersionsRequest(job),
-                RequestType.UpdatesSince => await ValidateUpdateSinceRequest(job),
+                RequestType.UpdatesSince => await _updateSinceValidator.ValidateAsync(job),
                 _ => throw new ArgumentException($"Unsupported request type: {requestType}")
             };
 
@@ -162,31 +165,6 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
         };
 
         return await _productVersionsRequestValidator.ValidateAsync(request);
-    }
-
-    /// <summary>
-    /// Validates the 'updatesSince' request filter for correct format and presence of sinceDateTime.
-    /// </summary>
-    /// <param name="job">The job containing the RequestedFilter.</param>
-    /// <returns>A ValidationResult containing any validation errors.</returns>
-    private async Task<FluentValidation.Results.ValidationResult> ValidateUpdateSinceRequest(Job job)
-    {
-        var errors = new List<FluentValidation.Results.ValidationFailure>();
-        var requestedFilter = job.RequestedFilter;
-
-        var firstColonIndex = requestedFilter.IndexOf(':');
-
-        var updateSinceKey = requestedFilter.Substring(0, firstColonIndex);
-        var sinceDateTime = requestedFilter.Length > firstColonIndex + 1
-            ? requestedFilter.Substring(firstColonIndex + 1)
-            : string.Empty;
-
-            if (!DateTime.TryParseExact(sinceDateTime, "yyyy-MM-ddTHH:mm:ss.fffffffZ", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AdjustToUniversal, out _))
-            {
-                errors.Add(new FluentValidation.Results.ValidationFailure("sinceDateTime", $"sinceDateTime '{sinceDateTime}' is not in the required format yyyy-MM-ddTHH:mm:ss.fffffffZ."));
-            }
-  
-        return await Task.FromResult(new FluentValidation.Results.ValidationResult(errors));
     }
 
     private static int GetProductCount(Job job, RequestType requestType)
