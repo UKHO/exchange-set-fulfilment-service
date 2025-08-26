@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.EFS.Builds.S100;
+﻿using Serilog.Context;
+using UKHO.ADDS.EFS.Builds.S100;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
@@ -18,21 +19,24 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion
             var context = await CreateContext();
 
             AddPipelineNode<CreateBuildMementoNode>(cancellationToken);
-
             AddPipelineNode<ReplayLogsNode>(cancellationToken);
             AddPipelineNode<CreateErrorFileNode>(cancellationToken);
             AddPipelineNode<CommitFileShareBatchNode>(cancellationToken);
             AddPipelineNode<ExpireFileShareBatchesNode>(cancellationToken);
             AddPipelineNode<CompleteJobNode>(cancellationToken);
 
-            var result = await Pipeline.ExecuteAsync(context);
-
-            switch (result.Status)
+            // Properly scope the correlation ID for all pipeline execution logs
+            using (LogContext.PushProperty("CorrelationId", context.Job.GetCorrelationId().ToString()))
             {
-                case NodeResultStatus.NotRun:
-                case NodeResultStatus.Failed:
-                    await context.SignalCompletionFailure();
-                    break;
+                var result = await Pipeline.ExecuteAsync(context);
+
+                switch (result.Status)
+                {
+                    case NodeResultStatus.NotRun:
+                    case NodeResultStatus.Failed:
+                        await context.SignalCompletionFailure();
+                        break;
+                }
             }
         }
 
