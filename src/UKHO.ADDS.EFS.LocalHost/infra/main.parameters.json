@@ -11,6 +11,9 @@
       "efs_redis_password": {
         "value": "${AZURE_EFS_REDIS_PASSWORD}"
       },
+      "efsApplicationInsightsName": {
+        "value": "${AZURE_EFS_APPLICATION_INSIGHTS_NAME}"
+      },
       "efsContainerAppsEnvironmentName": {
         "value": "${AZURE_EFS_CONTAINER_APPS_ENVIRONMENT_NAME}"
       },

@@ -54,6 +54,15 @@ module efs_law 'efs-law/efs-law.module.bicep' = {
   }
 }
 
+module efs_app_insights 'efs-app-insights/efs-app-insights.module.bicep' = {
+  name: 'efs-app-insights'
+  scope: rg
+  params: {
+    efs_law_outputs_loganalyticsworkspaceid: efs_law.outputs.logAnalyticsWorkspaceId
+    location: location
+  }
+}
+
 module efs_cae_acr 'efs-cae-acr/efs-cae-acr.module.bicep' = {
   name: 'efs-cae-acr'
   scope: rg
@@ -61,18 +70,6 @@ module efs_cae_acr 'efs-cae-acr/efs-cae-acr.module.bicep' = {
     location: location
   }
 }
-
-// module efs_cae 'efs-cae/efs-cae.module.bicep' = {
-//   name: 'efs-cae'
-//   scope: rg
-//   params: {
-//     efs_law_outputs_name: efs_law.outputs.name
-//     location: location
-//     subnetResourceId: subnetResourceId
-//     userPrincipalId: principalId
-//     zoneRedundant: zoneRedundant
-//   }
-// }
 
 module pipeline_roles 'pipeline-roles/pipeline-roles.module.bicep' = {
   name: pipelineDeploymentName

@@ -20,6 +20,7 @@ param addsEnvironment string
 })
 @secure()
 param efs_redis_password string
+param efsApplicationInsightsName string
 param efsContainerAppsEnvironmentName string
 param efsContainerRegistryName string
 param efsLogAnalyticsWorkspaceName string
@@ -45,9 +46,9 @@ resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
 
 module efs_app_insights 'efs-app-insights/efs-app-insights.module.bicep' = {
   name: 'efs-app-insights'
-  scope: rg
+  scope: resourceGroup(efsRetainResourceGroup)
   params: {
-    efs_law_outputs_loganalyticsworkspaceid: efs_law.outputs.logAnalyticsWorkspaceId
+    efsApplicationInsightsName: efsApplicationInsightsName
     location: location
   }
 }

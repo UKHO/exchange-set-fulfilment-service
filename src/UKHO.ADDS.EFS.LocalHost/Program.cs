@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using Aspire.Hosting;
 using Aspire.Hosting.Azure;
 using Azure.Provisioning.AppConfiguration;
 using Azure.Provisioning.AppContainers;
@@ -52,16 +53,21 @@ namespace UKHO.ADDS.EFS.LocalHost
             var efsLogAnalyticsWorkspaceName = builder.AddParameter("efsLogAnalyticsWorkspaceName");
             var efsContainerAppsEnvironmentName = builder.AddParameter("efsContainerAppsEnvironmentName");
             var efsContainerRegistryName = builder.AddParameter("efsContainerRegistryName");
+            var efsApplicationInsightsName = builder.AddParameter("efsApplicationInsightsName");
             var addsEnvironment = builder.AddParameter("addsEnvironment");
 
             // Existing user managed identity
             var efsServiceIdentity = builder.AddAzureUserAssignedIdentity(ServiceConfiguration.EfsServiceIdentity).PublishAsExisting(efsServiceIdentityName, efsRetainResourceGroup);
 
             // Log analytics workspace
-            //var laws = builder.ExecutionContext.IsPublishMode
-            //    ? builder.AddAzureLogAnalyticsWorkspace(ServiceConfiguration.LogAnalyticsWorkspaceName).PublishAsExisting(efsLogAnalyticsWorkspaceName, efsRetainResourceGroup)
-            //    : null;
-            var laws = builder.AddAzureLogAnalyticsWorkspace(ServiceConfiguration.LogAnalyticsWorkspaceName).PublishAsExisting(efsLogAnalyticsWorkspaceName, efsRetainResourceGroup);
+            var laws = builder.ExecutionContext.IsPublishMode
+                ? builder.AddAzureLogAnalyticsWorkspace(ServiceConfiguration.LogAnalyticsWorkspaceName).PublishAsExisting(efsLogAnalyticsWorkspaceName, efsRetainResourceGroup)
+                : null;
+
+            // App insights
+            var appInsights = builder.ExecutionContext.IsPublishMode
+                ? builder.AddAzureApplicationInsights(ServiceConfiguration.AppInsightsName).PublishAsExisting(efsApplicationInsightsName, efsRetainResourceGroup)
+                : null;
 
             // Container registry
             var acr = builder.AddAzureContainerRegistry(ServiceConfiguration.ContainerRegistryName).PublishAsExisting(efsContainerRegistryName, efsRetainResourceGroup);
@@ -104,19 +110,10 @@ namespace UKHO.ADDS.EFS.LocalHost
             var storageTable = storage.AddTables(StorageConfiguration.TablesName);
             var storageBlob = storage.AddBlobs(StorageConfiguration.BlobsName);
 
-            IResourceBuilder<AzureApplicationInsightsResource>? appInsights = null;
             IResourceBuilder<AzureEventHubsResource>? eventHubs = null;
 
             if (builder.ExecutionContext.IsPublishMode)
             {
-                appInsights = builder.AddAzureApplicationInsights(ServiceConfiguration.AppInsightsName)
-                    .WithLogAnalyticsWorkspace(laws!);
-                appInsights.ConfigureInfrastructure(config =>
-                {
-                    var appInsightsResource = config.GetProvisionableResources().OfType<ApplicationInsightsComponent>().Single();
-                    appInsightsResource.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
-                });
-
                 eventHubs = builder.AddAzureEventHubs(ServiceConfiguration.EventHubNamespaceName).RunAsEmulator();
                 eventHubs.ConfigureInfrastructure(config =>
                 {
