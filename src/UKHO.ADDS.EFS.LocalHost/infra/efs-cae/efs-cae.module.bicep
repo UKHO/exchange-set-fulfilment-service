@@ -3,6 +3,8 @@ param location string = resourceGroup().location
 
 param userPrincipalId string
 
+param efs_cae_acr_outputs_name string
+
 param efs_law_outputs_name string
 
 param subnetResourceId string
@@ -18,16 +20,8 @@ resource efs_cae_mi 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30
   }
 }
 
-resource efs_cae_acr 'Microsoft.ContainerRegistry/registries@2025-04-01' = {
-  name: take('efscaeacr${uniqueString(resourceGroup().id)}', 50)
-  location: location
-  sku: {
-    name: 'Basic'
-  }
-  tags: {
-    'aspire-resource-name': 'efs-cae-acr'
-    'hidden-title': 'EFS'
-  }
+resource efs_cae_acr 'Microsoft.ContainerRegistry/registries@2025-04-01' existing = {
+  name: efs_cae_acr_outputs_name
 }
 
 resource efs_cae_acr_efs_cae_mi_AcrPull 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
@@ -85,7 +79,7 @@ output AZURE_LOG_ANALYTICS_WORKSPACE_NAME string = efs_law_outputs_name
 
 output AZURE_LOG_ANALYTICS_WORKSPACE_ID string = efs_law.id
 
-output AZURE_CONTAINER_REGISTRY_NAME string = efs_cae_acr.name
+output AZURE_CONTAINER_REGISTRY_NAME string = efs_cae_acr_outputs_name
 
 output AZURE_CONTAINER_REGISTRY_ENDPOINT string = efs_cae_acr.properties.loginServer
 

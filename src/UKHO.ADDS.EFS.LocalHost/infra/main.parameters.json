@@ -11,6 +11,12 @@
       "efs_redis_password": {
         "value": "${AZURE_EFS_REDIS_PASSWORD}"
       },
+      "efsContainerAppsEnvironmentName": {
+        "value": "${AZURE_EFS_CONTAINER_APPS_ENVIRONMENT_NAME}"
+      },
+      "efsContainerRegistryName": {
+        "value": "${AZURE_EFS_CONTAINER_REGISTRY_NAME}"
+      },
       "efsLogAnalyticsWorkspaceName": {
         "value": "${AZURE_EFS_LOG_ANALYTICS_WORKSPACE_NAME}"
       },
