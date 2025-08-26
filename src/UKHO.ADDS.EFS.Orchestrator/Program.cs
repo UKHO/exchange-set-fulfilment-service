@@ -61,11 +61,15 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 app.UseMiddleware<CorrelationIdMiddleware>();
                 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
+                app.UseAuthentication();
                 app.UseAuthorization();
 
                 var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
 
                 app.RegisterJobsApi(loggerFactory);
+
+                // Map controller routes for ProductDataController
+                app.MapControllers();
 
                 var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
 

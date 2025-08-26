@@ -26,6 +26,7 @@ using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S100;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S57;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S63;
 using UKHO.ADDS.EFS.Orchestrator.Jobs;
+using UKHO.ADDS.EFS.Orchestrator.Models;
 using UKHO.ADDS.EFS.Orchestrator.Monitors;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
@@ -33,7 +34,10 @@ using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Services;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Services.Implementation;
 using UKHO.ADDS.EFS.Orchestrator.Schedule;
+using UKHO.ADDS.EFS.Orchestrator.Services.Authorization;
 using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
+using UKHO.ADDS.EFS.Orchestrator.Services.Products;
+using UKHO.ADDS.EFS.Orchestrator.Services.Products.Implementation;
 using UKHO.ADDS.EFS.Orchestrator.Services.Storage;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
@@ -56,6 +60,19 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             builder.Services.AddAuthorization();
             builder.Services.AddOpenApi();
+
+            // Add MVC controllers for the ProductDataController
+            builder.Services.AddControllers();
+
+            // Configure Azure AD B2C and Azure AD settings
+            builder.Services.Configure<AzureAdB2CConfiguration>(configuration.GetSection("AzureAdB2C"));
+            builder.Services.Configure<AzureADConfiguration>(configuration.GetSection("AzureAd"));
+
+            // Register authorization services
+            builder.Services.AddScoped<IAzureAdB2CHelper, AzureAdB2CHelper>();
+
+            // Register product data services
+            builder.Services.AddScoped<IProductDataService, ProductDataService>();
 
             builder.Services.ConfigureOpenApi();
 

@@ -24,6 +24,15 @@
                 }
             },
             "AllowedHosts": "*",
+            "AzureAd": {
+                "TenantId": "local-azure-ad-tenant-id",
+                "ClientId": "local-azure-ad-client-id"
+            },
+            "AzureAdB2C": {
+                "TenantId": "local-azure-ad-b2c-tenant-id",
+                "IssuerPattern": "login.microsoftonline.com"
+            },
+            "PrivilegedUserDomains": "ukho.gov.uk,dev.partner.com,localhost.test",
             "Deduplication": {
                 "Enabled": false, // Enable deduplication of requests
                 "Expiry": "23:00:00" // The timeframe for deduplication from first generation to expiry
@@ -73,6 +82,15 @@
                 }
             },
             "AllowedHosts": "*",
+            "AzureAd": {
+                "TenantId": "local-azure-ad-tenant-id",
+                "ClientId": "local-azure-ad-client-id"
+            },
+            "AzureAdB2C": {
+                "TenantId": "local-azure-ad-b2c-tenant-id",
+                "IssuerPattern": "login.microsoftonline.com"
+            },
+            "PrivilegedUserDomains": "ukho.gov.uk,dev.partner.com,localhost.test",
             "Deduplication": {
                 "Enabled": false, // Enable deduplication of requests
                 "Expiry": "23:00:00" // The timeframe for deduplication from first generation to expiry
@@ -121,6 +139,15 @@
                 }
             },
             "AllowedHosts": "*",
+            "AzureAd": {
+                "TenantId": "local-azure-ad-tenant-id",
+                "ClientId": "local-azure-ad-client-id"
+            },
+            "AzureAdB2C": {
+                "TenantId": "local-azure-ad-b2c-tenant-id",
+                "IssuerPattern": "login.microsoftonline.com"
+            },
+            "PrivilegedUserDomains": "ukho.gov.uk,dev.partner.com,localhost.test",
             "Deduplication": {
                 "Enabled": false, // Enable deduplication of requests
                 "Expiry": "23:00:00" // The timeframe for deduplication from first generation to expiry
@@ -169,6 +196,15 @@
                 }
             },
             "AllowedHosts": "*",
+            "AzureAd": {
+                "TenantId": "local-azure-ad-tenant-id",
+                "ClientId": "local-azure-ad-client-id"
+            },
+            "AzureAdB2C": {
+                "TenantId": "local-azure-ad-b2c-tenant-id",
+                "IssuerPattern": "login.microsoftonline.com"
+            },
+            "PrivilegedUserDomains": "ukho.gov.uk,dev.partner.com,localhost.test",
             "Deduplication": {
                 "Enabled": false, // Enable deduplication of requests
                 "Expiry": "23:00:00" // The timeframe for deduplication from first generation to expiry
@@ -217,6 +253,15 @@
                 }
             },
             "AllowedHosts": "*",
+            "AzureAd": {
+                "TenantId": "local-azure-ad-tenant-id",
+                "ClientId": "local-azure-ad-client-id"
+            },
+            "AzureAdB2C": {
+                "TenantId": "local-azure-ad-b2c-tenant-id",
+                "IssuerPattern": "login.microsoftonline.com"
+            },
+            "PrivilegedUserDomains": "ukho.gov.uk,dev.partner.com,localhost.test",
             "Deduplication": {
                 "Enabled": false, // Enable deduplication of requests
                 "Expiry": "23:00:00" // The timeframe for deduplication from first generation to expiry
