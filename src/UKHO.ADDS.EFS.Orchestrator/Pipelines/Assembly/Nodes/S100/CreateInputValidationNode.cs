@@ -1,4 +1,3 @@
-using FluentValidation;
 using UKHO.ADDS.EFS.Builds.S100;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
@@ -95,22 +94,32 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
         }
     }
 
+    /// <summary>
+    /// Validates ProductNames request by parsing job data and running FluentValidation
+    /// </summary>
+    /// <param name="job">The job containing request data</param>
+    /// <returns>FluentValidation result</returns>
     private async Task<FluentValidation.Results.ValidationResult> ValidateProductNamesRequest(Job job)
     {
-        // Parse the requested products from the job
-        var productNames = job.RequestedProducts.Split(',', StringSplitOptions.RemoveEmptyEntries)
+        var productNames = job.RequestedProducts.Split(',', StringSplitOptions.None)
             .Select(p => p.Trim())
-            .Where(p => !string.IsNullOrEmpty(p))
             .ToList();
 
         var request = new S100ProductNamesRequest
         {
-            ProductNames = productNames
+            ProductNames = productNames,
+            CallbackUri = job.CallbackUri
         };
 
         return await _productNamesValidator.ValidateAsync(request);
     }
 
+    /// <summary>
+    /// Gets the count of products for different request types
+    /// </summary>
+    /// <param name="job">The job containing request data</param>
+    /// <param name="requestType">The type of request</param>
+    /// <returns>Product count</returns>
     private static int GetProductCount(Job job, RequestType requestType)
     {
         return requestType switch

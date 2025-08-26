@@ -9,5 +9,6 @@
         /// List of S100 product names to request
         /// </summary>
         public required List<string> ProductNames { get; set; }
+        public string? CallbackUri { get; init; }
     }
 }

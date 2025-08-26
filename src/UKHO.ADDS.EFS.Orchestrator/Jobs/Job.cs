@@ -72,5 +72,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Jobs
         /// <remarks>This is always the Job ID.</remarks>
         /// <returns></returns>
         public string GetCorrelationId() => Id;
+
+        public string? CallbackUri { get; init; }
     }
 }

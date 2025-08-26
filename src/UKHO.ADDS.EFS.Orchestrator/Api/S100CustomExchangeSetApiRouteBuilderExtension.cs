@@ -24,7 +24,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
             // POST /v2/exchangeSet/s100/productNames
             exchangeSetEndpoint.MapPost("/productNames", async (
-                S100ProductNamesRequest request,
+                List<string> productNames,
                 IConfiguration configuration,
                 IAssemblyPipelineFactory pipelineFactory,
                 HttpContext httpContext,
@@ -34,7 +34,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 {
                     var correlationId = httpContext.GetCorrelationId();
 
-                    var parameters = AssemblyPipelineParameters.CreateFromS100ProductNames(request, configuration, correlationId);
+                    var parameters = AssemblyPipelineParameters.CreateFromS100ProductNames(productNames, configuration, correlationId, callbackUri);
                     var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
 
                     logger.LogAssemblyPipelineStarted(parameters);
@@ -75,7 +75,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 {
                     var correlationId = httpContext.GetCorrelationId();
 
-                    var parameters = AssemblyPipelineParameters.CreateFromS100ProductVersions(request, configuration, correlationId);
+                    var parameters = AssemblyPipelineParameters.CreateFromS100ProductVersions(request, configuration, correlationId, callbackUri);
                     var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
 
                     logger.LogAssemblyPipelineStarted(parameters);
@@ -112,7 +112,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 {
                     var correlationId = httpContext.GetCorrelationId();
 
-                    var parameters = AssemblyPipelineParameters.CreateFromS100UpdatesSince(request, configuration, correlationId);
+                    var parameters = AssemblyPipelineParameters.CreateFromS100UpdatesSince(request, configuration, correlationId, productIdentifier, callbackUri);
                     var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
 
                     logger.LogAssemblyPipelineStarted(parameters);
