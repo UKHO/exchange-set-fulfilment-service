@@ -27,14 +27,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 HttpContext httpContext,
                 string? callbackUri = null) =>
             {
-                try
-                {
-                    return Results.Accepted(null, CreateResponse(productNames.Count, 4, 1)); // Temporary response for demonstration purposes
-                }
-                catch (Exception e)
-                {
-                    throw;
-                }
+                return Results.Accepted(null, CreateResponse(productNames.Count, 4, 1)); // Temporary response for demonstration purposes
             })
             .Produces<S100CustomExchangeSetResponse>(202)
             .WithRequiredHeader("x-correlation-id", "Correlation ID", Guid.NewGuid().ToString("N"))
@@ -48,14 +41,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 HttpContext httpContext,
                 string? callbackUri = null) =>
             {
-                try
-                {
-                    return Results.Accepted(null, CreateResponse(productVersions.Count, 5, 1)); // Temporary response for demonstration purposes
-                }
-                catch (Exception e)
-                {
-                    throw;
-                }
+                return Results.Accepted(null, CreateResponse(productVersions.Count, 5, 1)); // Temporary response for demonstration purposes
             })
             .Produces<S100CustomExchangeSetResponse>(202)
             .WithRequiredHeader("x-correlation-id", "Correlation ID", Guid.NewGuid().ToString("N"))
@@ -70,14 +56,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 string? callbackUri = null,
                 string? productIdentifier = null) =>
             {
-                try
-                {
-                    return CreateResponse(7, 6, 1); // Temporary response for demonstration purposes
-                }
-                catch (Exception e)
-                {
-                    throw;
-                }
+                return CreateResponse(7, 6, 1); // Temporary response for demonstration purposes
             })
             .Produces<S100CustomExchangeSetResponse>(202)
             .Produces(304)
@@ -92,7 +71,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             int requestedProductsAlreadyUpToDateCount)
         {
             var batchId = Guid.NewGuid().ToString("N"); // Simulate batch ID for demonstration purposes
-            var jobId = Guid.NewGuid().ToString("N"); // Use correlation ID as job ID
 
             return new S100CustomExchangeSetResponse
             {
