@@ -71,13 +71,13 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 // Map health check endpoints with custom configuration to exclude Redis checks
                 //It looks like the Redis service is degraded for some reason, so comment it out from the health checks for the time being.
                 app.MapHealthChecks("/health", HealthCheckOptionsFactory.CreateHealthCheckOptions(
-                    excludeServices: ["redis"]));
+                    excludeServices: "redis"));
 
                 // Only health checks tagged with the "live" tag must pass for app to be considered alive
                 // Also exclude Redis checks
                 app.MapHealthChecks("/alive", HealthCheckOptionsFactory.CreateHealthCheckOptions(
                     tagsFilter: ["live"],
-                    excludeServices: ["redis"]));
+                    excludeServices: "redis"));
 
                 var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
 
