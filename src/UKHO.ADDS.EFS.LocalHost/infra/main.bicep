@@ -20,13 +20,14 @@ param addsEnvironment string
 })
 @secure()
 param efs_redis_password string
-param efsServiceIdentityName string
+param efsLogAnalyticsWorkspaceName string
 @metadata({azd: {
   type: 'resourceGroup'
   config: {}
   }
 })
-param efsServiceIdentityResourceGroup string
+param efsRetainResourceGroup string
+param efsServiceIdentityName string
 param subnetResourceId string
 param zoneRedundant bool
 
@@ -75,8 +76,9 @@ module efs_events_namespace 'efs-events-namespace/efs-events-namespace.module.bi
 }
 module efs_law 'efs-law/efs-law.module.bicep' = {
   name: 'efs-law'
-  scope: rg
+  scope: resourceGroup(efsRetainResourceGroup)
   params: {
+    efsLogAnalyticsWorkspaceName: efsLogAnalyticsWorkspaceName
     location: location
   }
 }
@@ -109,7 +111,7 @@ module efs_orchestrator_roles_efs_storage 'efs-orchestrator-roles-efs-storage/ef
 }
 module efs_service_identity 'efs-service-identity/efs-service-identity.module.bicep' = {
   name: 'efs-service-identity'
-  scope: resourceGroup(efsServiceIdentityResourceGroup)
+  scope: resourceGroup(efsRetainResourceGroup)
   params: {
     efsServiceIdentityName: efsServiceIdentityName
     location: location

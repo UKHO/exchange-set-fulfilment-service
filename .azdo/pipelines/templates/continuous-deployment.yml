@@ -103,7 +103,7 @@ jobs:
               EFS_SERVICE_IDENTITY_NAME=$(az identity list --resource-group $EFS_RETAIN_RESOURCE_GROUP --query "[?starts_with(name, '$(EFS_SERVICE_IDENTITY_PARTIAL_NAME)')].name" --output tsv)
 
               echo "Storing variables..."
-              echo "##vso[task.setvariable variable=AZURE_EFS_SERVICE_IDENTITY_RESOURCE_GROUP;]$EFS_RETAIN_RESOURCE_GROUP"
+              echo "##vso[task.setvariable variable=AZURE_EFS_RETAIN_RESOURCE_GROUP;]$EFS_RETAIN_RESOURCE_GROUP"
               echo "##vso[task.setvariable variable=AZURE_EFS_SERVICE_IDENTITY_NAME;]$EFS_SERVICE_IDENTITY_NAME"
 
               if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
@@ -164,7 +164,7 @@ jobs:
             AZURE_LOCATION: $(AZURE_LOCATION)
             AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
             AZURE_ADDS_ENVIRONMENT: $(AZURE_ENV_NAME)
-            AZURE_EFS_SERVICE_IDENTITY_RESOURCE_GROUP: $(AZURE_EFS_SERVICE_IDENTITY_RESOURCE_GROUP)
+            AZURE_EFS_RETAIN_RESOURCE_GROUP: $(AZURE_EFS_RETAIN_RESOURCE_GROUP)
             AZURE_EFS_SERVICE_IDENTITY_NAME: $(AZURE_EFS_SERVICE_IDENTITY_NAME)
 
         - task: AzureCLI@2

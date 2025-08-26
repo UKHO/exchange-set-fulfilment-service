@@ -35,6 +35,14 @@ module efs_service_identity 'efs-service-identity/efs-service-identity.module.bi
   }
 }
 
+module efs_law 'efs-law/efs-law.module.bicep' = {
+  name: 'efs-law'
+  scope: rg
+  params: {
+    location: location
+  }
+}
+
 module pipeline_roles 'pipeline-roles/pipeline-roles.module.bicep' = {
   name: pipelineDeploymentName
   params: {
@@ -46,3 +54,5 @@ output EFS_SERVICE_IDENTITY_RESOURCE_GROUP string = rg.name
 output EFS_SERVICE_IDENTITY_CLIENTID string = efs_service_identity.outputs.clientId
 output EFS_SERVICE_IDENTITY_ID string = efs_service_identity.outputs.id
 output EFS_SERVICE_IDENTITY_NAME string = efs_service_identity.outputs.name
+output EFS_LAW_ID string = efs_law.outputs.logAnalyticsWorkspaceId
+output EFS_LAW_NAME string = efs_law.outputs.name

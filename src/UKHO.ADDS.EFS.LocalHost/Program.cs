@@ -49,25 +49,17 @@ namespace UKHO.ADDS.EFS.LocalHost
             var subnetResourceId = builder.AddParameter("subnetResourceId");
             var zoneRedundant = builder.AddParameter("zoneRedundant");
             var efsServiceIdentityName = builder.AddParameter("efsServiceIdentityName");
-            var efsServiceIdentityResourceGroup = builder.AddParameter("efsServiceIdentityResourceGroup");
+            var efsRetainResourceGroup = builder.AddParameter("efsRetainResourceGroup");
+            var efsLogAnalyticsWorkspaceName = builder.AddParameter("efsLogAnalyticsWorkspaceName");
             var addsEnvironment = builder.AddParameter("addsEnvironment");
 
             // Existing user managed identity
-            var efsServiceIdentity = builder.AddAzureUserAssignedIdentity(ServiceConfiguration.EfsServiceIdentity)
-                .PublishAsExisting(efsServiceIdentityName, efsServiceIdentityResourceGroup);
+            var efsServiceIdentity = builder.AddAzureUserAssignedIdentity(ServiceConfiguration.EfsServiceIdentity).PublishAsExisting(efsServiceIdentityName, efsRetainResourceGroup);
 
             // Log analytics workspace
-            IResourceBuilder<AzureLogAnalyticsWorkspaceResource>? laws = null;
-
-            if (builder.ExecutionContext.IsPublishMode)
-            {
-                laws = builder.AddAzureLogAnalyticsWorkspace(ServiceConfiguration.LogAnalyticsWorkspaceName);
-                laws.ConfigureInfrastructure(config =>
-                {
-                    var operationalInsightsWorkspace = config.GetProvisionableResources().OfType<OperationalInsightsWorkspace>().Single();
-                    operationalInsightsWorkspace.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
-                });
-            }
+            var laws = builder.ExecutionContext.IsPublishMode
+                ? builder.AddAzureLogAnalyticsWorkspace(ServiceConfiguration.LogAnalyticsWorkspaceName).PublishAsExisting(efsLogAnalyticsWorkspaceName, efsRetainResourceGroup)
+                : null;
 
             // Container apps environment
             var acaEnv = builder.AddAzureContainerAppEnvironment(ServiceConfiguration.AcaEnvironmentName)
