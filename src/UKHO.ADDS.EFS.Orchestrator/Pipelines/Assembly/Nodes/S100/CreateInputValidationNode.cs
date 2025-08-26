@@ -38,15 +38,15 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
     {
         var job = context.Subject.Job;
         var correlationId = job.Id;
+        var requestType = context.Subject.RequestType;
 
         try
         {
-            // Determine the request type from the context
-            var requestType = GetRequestTypeFromContext(context);
-
             FluentValidation.Results.ValidationResult validationResult = requestType switch
             {
                 RequestType.ProductNames => await ValidateProductNamesRequest(job),
+                RequestType.ProductVersions => new FluentValidation.Results.ValidationResult(),
+                RequestType.UpdatesSince => new FluentValidation.Results.ValidationResult(),
                 _ => throw new ArgumentException($"Unsupported request type: {requestType}")
             };
 
@@ -82,7 +82,8 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
                 return NodeResultStatus.Failed;
             }
 
-            _logger.S100InputValidationSucceeded(correlationId, GetProductCount(job, requestType));
+            // Explicitly cast requestType to non-nullable RequestType
+            _logger.S100InputValidationSucceeded(correlationId, GetProductCount(job, (RequestType)requestType));
 
             return NodeResultStatus.Succeeded;
         }
@@ -92,14 +93,6 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
             await context.Subject.SignalAssemblyError();
             return NodeResultStatus.Failed;
         }
-    }
-
-    private static RequestType GetRequestTypeFromContext(IExecutionContext<PipelineContext<S100Build>> context)
-    {
-        // For now, default to ProductNames as that's the main request type implemented
-        // This can be enhanced to detect the actual request type from the context or job properties
-        // In the future, this could look at job metadata or other context properties to determine the request type
-        return RequestType.ProductNames;
     }
 
     private async Task<FluentValidation.Results.ValidationResult> ValidateProductNamesRequest(Job job)

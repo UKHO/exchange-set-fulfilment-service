@@ -11,16 +11,19 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
         private readonly TBuild _build;
         private readonly IStorageService _storageService;
 
-        public PipelineContext(Job job, TBuild build, IStorageService storageService)
+        public PipelineContext(Job job, TBuild build, IStorageService storageService, RequestType? requestType = null)
         {
             _job = job;
             _build = build;
             _storageService = storageService;
+            RequestType = requestType;
         }
 
         public Job Job => _job;
 
         public TBuild Build => _build;
+
+        public RequestType? RequestType { get; }
 
         public bool IsErrorFileCreated { get; set; }
 
