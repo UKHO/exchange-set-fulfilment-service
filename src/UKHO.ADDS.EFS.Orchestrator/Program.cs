@@ -51,7 +51,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 //else
                 //{
                 var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__efs-events-namespace");
-                    var eventHubName = Environment.GetEnvironmentVariable("EVENTHUB_NAME");
+                var eventHubName = ServiceConfiguration.EventHubName;
 
                     builder.Services.AddSerilog((services, lc) =>
                         ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint)
