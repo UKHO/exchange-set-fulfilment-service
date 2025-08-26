@@ -46,6 +46,8 @@ namespace UKHO.ADDS.EFS.Orchestrator
         public static WebApplicationBuilder AddOrchestratorServices(this WebApplicationBuilder builder)
         {
             var configuration = builder.Configuration;
+            var efsClientId = configuration["orchestrator:ClientId"];
+
             builder.Services.AddHttpContextAccessor();
 
             builder.Services.Configure<JsonOptions>(options => JsonCodec.DefaultOptions.CopyTo(options.SerializerOptions));
@@ -100,7 +102,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     return (scsEndpoint.Uri, new AnonymousAuthenticationProvider());
                 }
 
-                return (scsEndpoint.Uri, new AzureIdentityAuthenticationProvider(new ManagedIdentityCredential(clientId: configuration["orchestrator:ClientId"]), scopes: scsEndpoint.GetDefaultScope()));
+                return (scsEndpoint.Uri, new AzureIdentityAuthenticationProvider(new ManagedIdentityCredential(clientId: efsClientId), scopes: scsEndpoint.GetDefaultScope()));
             });
 
             builder.Services.AddSingleton<IFileShareReadWriteClientFactory>(provider => new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
@@ -118,7 +120,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 }
                 else
                 {
-                    tokenProvider = new TokenCredentialAuthenticationTokenProvider(new ManagedIdentityCredential(clientId: configuration["orchestrator:ClientId"]), [fssEndpoint.GetDefaultScope()]);
+                    tokenProvider = new TokenCredentialAuthenticationTokenProvider(new ManagedIdentityCredential(clientId: efsClientId), [fssEndpoint.GetDefaultScope()]);
                 }
 
                 var factory = sp.GetRequiredService<IFileShareReadWriteClientFactory>();
