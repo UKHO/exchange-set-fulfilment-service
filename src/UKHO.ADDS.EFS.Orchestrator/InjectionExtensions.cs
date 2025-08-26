@@ -1,4 +1,5 @@
-﻿using System.Runtime.Intrinsics.X86;
+﻿using System.Net;
+using System.Runtime.Intrinsics.X86;
 using System.Text.Json;
 using Azure.Identity;
 using Microsoft.AspNetCore.Http.Json;
@@ -106,9 +107,12 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 }
 
                 var clientid = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
+
 #pragma warning disable LOG001
-                Log.Information("EFS ClientId is:", clientid);
+                Log.Information("EFS ClientId ={ClientId}",
+                            clientid);
 #pragma warning restore LOG001
+
                 return (scsEndpoint.Uri, new AzureIdentityAuthenticationProvider(new ManagedIdentityCredential(clientId: clientid), scopes: scsEndpoint.GetDefaultScope()));
             });
 
