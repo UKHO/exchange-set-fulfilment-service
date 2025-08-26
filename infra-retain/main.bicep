@@ -21,6 +21,17 @@ param pipelineDeploymentName string
 @description('The id of the pipeline service principal')
 param pipelineClientObjectId string
 
+@minLength(1)
+@description('Id of the user or app to assign application roles')
+param principalId string
+
+@minLength(1)
+@description('Id of the container app subnet')
+param subnetResourceId string
+
+@description('Enable zone redundancy during deployment')
+param zoneRedundant bool
+
 resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
   name: resourceGroupName
   location: location
@@ -40,6 +51,18 @@ module efs_law 'efs-law/efs-law.module.bicep' = {
   scope: rg
   params: {
     location: location
+  }
+}
+
+module efs_cae 'efs-cae/efs-cae.module.bicep' = {
+  name: 'efs-cae'
+  scope: rg
+  params: {
+    efs_law_outputs_name: efs_law.outputs.name
+    location: location
+    subnetResourceId: subnetResourceId
+    userPrincipalId: principalId
+    zoneRedundant: zoneRedundant
   }
 }
 

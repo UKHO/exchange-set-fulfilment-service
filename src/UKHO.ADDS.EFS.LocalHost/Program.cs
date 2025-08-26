@@ -1,10 +1,8 @@
 using System.Runtime.InteropServices;
 using Aspire.Hosting.Azure;
 using Azure.Provisioning.AppConfiguration;
-using Azure.Provisioning.AppContainers;
 using Azure.Provisioning.ApplicationInsights;
 using Azure.Provisioning.EventHubs;
-using Azure.Provisioning.OperationalInsights;
 using Azure.Provisioning.Storage;
 using CliWrap;
 using Docker.DotNet;
@@ -46,11 +44,10 @@ namespace UKHO.ADDS.EFS.LocalHost
         private static async Task BuildEfs(IDistributedApplicationBuilder builder)
         {
             // Get parameters
-            var subnetResourceId = builder.AddParameter("subnetResourceId");
-            var zoneRedundant = builder.AddParameter("zoneRedundant");
             var efsServiceIdentityName = builder.AddParameter("efsServiceIdentityName");
             var efsRetainResourceGroup = builder.AddParameter("efsRetainResourceGroup");
             var efsLogAnalyticsWorkspaceName = builder.AddParameter("efsLogAnalyticsWorkspaceName");
+            var efsContainerAppsEnvironmentName = builder.AddParameter("efsContainerAppsEnvironmentName");
             var addsEnvironment = builder.AddParameter("addsEnvironment");
 
             // Existing user managed identity
@@ -62,28 +59,12 @@ namespace UKHO.ADDS.EFS.LocalHost
                 : null;
 
             // Container apps environment
-            var acaEnv = builder.AddAzureContainerAppEnvironment(ServiceConfiguration.AcaEnvironmentName)
-                .WithParameter("subnetResourceId", subnetResourceId)
-                .WithParameter("zoneRedundant", zoneRedundant);
+            var acaEnv = builder.AddAzureContainerAppEnvironment(ServiceConfiguration.AcaEnvironmentName).PublishAsExisting(efsContainerAppsEnvironmentName, efsRetainResourceGroup);
 
             if (builder.ExecutionContext.IsPublishMode)
             {
                 acaEnv.WithAzureLogAnalyticsWorkspace(laws!);
             }
-
-            acaEnv.ConfigureInfrastructure(config =>
-            {
-                var containerEnvironment = config.GetProvisionableResources().OfType<ContainerAppManagedEnvironment>().Single();
-                containerEnvironment.VnetConfiguration = new ContainerAppVnetConfiguration
-                {
-                    InfrastructureSubnetId = subnetResourceId.AsProvisioningParameter(config),
-                    IsInternal = false
-                };
-                containerEnvironment.IsZoneRedundant = zoneRedundant.AsProvisioningParameter(config);
-                // This doesn't seem to work at the moment so I've updated the bicep tags directly.
-                containerEnvironment.Tags.Add("aspire-resource-name", ServiceConfiguration.AcaEnvironmentName);
-                containerEnvironment.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
-            });
 
             // Storage configuration
             var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e => { e.WithDataVolume(); });
