@@ -59,7 +59,6 @@ namespace UKHO.ADDS.EFS.Orchestrator
                             .Enrich.WithProperty("System", ServiceConfiguration.ServiceName)
                             .Enrich.WithProperty("Service", ServiceConfiguration.ServiceName)
                             .Enrich.WithProperty("NodeName", ServiceConfiguration.NodeName)
-                            .Enrich.FromLogContext()
                             .WriteTo.EventHub(options =>
                             {
                                 options.Environment = builder.Environment.EnvironmentName;
