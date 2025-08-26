@@ -148,10 +148,10 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             // Register health checks
             builder.Services.AddHealthChecks()
-                .AddCheck<SalesCatalogueHealthCheck>(
-                    "sales-catalogue-service",
-                    HealthStatus.Unhealthy,
-                    tags: new[] { "live", "external-dependency" })
+                //.AddCheck<SalesCatalogueHealthCheck>(
+                //    "sales-catalogue-service",
+                //    HealthStatus.Unhealthy,
+                //    tags: new[] { "live", "external-dependency" })
                 .AddCheck<FileShareServiceHealthCheck>(
                     "file-share-service",
                     HealthStatus.Unhealthy,
