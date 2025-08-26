@@ -132,7 +132,8 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 }
                 else
                 {
-                    tokenProvider = new TokenCredentialAuthenticationTokenProvider(new ManagedIdentityCredential(clientId: efsClientId), [fssEndpoint.GetDefaultScope()]);
+                    var clientid = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
+                    tokenProvider = new TokenCredentialAuthenticationTokenProvider(new ManagedIdentityCredential(clientId: clientid), [fssEndpoint.GetDefaultScope()]);
                 }
 
                 var factory = sp.GetRequiredService<IFileShareReadWriteClientFactory>();
