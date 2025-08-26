@@ -1,11 +1,13 @@
 ﻿using System.Text.Json;
 using Azure.Identity;
 using Microsoft.AspNetCore.Http.Json;
+using Microsoft.Kiota.Abstractions;
 using Microsoft.Kiota.Abstractions.Authentication;
 using Microsoft.Kiota.Authentication.Azure;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using Quartz;
+using Serilog;
 using UKHO.ADDS.Aspire.Configuration;
 using UKHO.ADDS.Aspire.Configuration.Remote;
 using UKHO.ADDS.Clients.Common.Authentication;
@@ -92,6 +94,19 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             var addsEnvironment = AddsEnvironment.GetEnvironment();
 
+            //builder.Services.RegisterKiotaClient<KiotaSalesCatalogueService>(provider =>
+            //{
+            //    var registry = provider.GetRequiredService<IExternalServiceRegistry>();
+            //    var scsEndpoint = registry.GetServiceEndpoint(ProcessNames.SalesCatalogueService);
+
+            //    if (addsEnvironment.IsLocal() || addsEnvironment.IsDev())
+            //    {
+            //        return (scsEndpoint.Uri, new AnonymousAuthenticationProvider());
+            //    }
+
+            //    return (scsEndpoint.Uri, new AzureIdentityAuthenticationProvider(new ManagedIdentityCredential(clientId: "61df76fd-9213-4686-96f9-693e9a9aee74"), scopes: scsEndpoint.GetDefaultScope()));
+            //});
+
             builder.Services.RegisterKiotaClient<KiotaSalesCatalogueService>(provider =>
             {
                 var registry = provider.GetRequiredService<IExternalServiceRegistry>();
@@ -101,8 +116,14 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 {
                     return (scsEndpoint.Uri, new AnonymousAuthenticationProvider());
                 }
+                
+                // Use your custom token provider
+                var customTokenProvider = new TokenCredentialAuthenticationTokenProvider(
+                    new ManagedIdentityCredential(clientId: "61df76fd-9213-4686-96f9-693e9a9aee74"),
+                    [scsEndpoint.GetDefaultScope()]
+                );
 
-                return (scsEndpoint.Uri, new AzureIdentityAuthenticationProvider(new ManagedIdentityCredential(clientId: "61df76fd-9213-4686-96f9-693e9a9aee74"), scopes: scsEndpoint.GetDefaultScope()));
+                return (scsEndpoint.Uri, new CustomAuthenticationProvider(customTokenProvider));
             });
 
             builder.Services.AddSingleton<IFileShareReadWriteClientFactory>(provider => new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
@@ -179,6 +200,29 @@ namespace UKHO.ADDS.EFS.Orchestrator
             });
 
             return serviceCollection;
+        }
+    }
+
+    public class CustomAuthenticationProvider : IAuthenticationProvider
+    {
+        private readonly IAuthenticationTokenProvider _tokenProvider;
+
+        public CustomAuthenticationProvider(IAuthenticationTokenProvider tokenProvider)
+        {
+            _tokenProvider = tokenProvider;
+        }
+
+        public async Task AuthenticateRequestAsync(RequestInformation request, Dictionary<string, object>? additionalAuthenticationContext = null, CancellationToken cancellationToken = default)
+        {
+            var token = await _tokenProvider.GetTokenAsync();
+            if (!string.IsNullOrEmpty(token))
+            {
+                request.Headers.Add("Authorization", $"Bearer {token}");
+#pragma warning disable LOG001
+                Log.Information("Testing Token:",token);
+#pragma warning restore LOG001
+               
+            }
         }
     }
 }
