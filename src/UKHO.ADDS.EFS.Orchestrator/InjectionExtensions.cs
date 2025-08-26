@@ -1,6 +1,9 @@
-﻿using System.Text.Json;
+﻿using System.Net;
+using System.Runtime.Intrinsics.X86;
+using System.Text.Json;
 using Azure.Identity;
 using Microsoft.AspNetCore.Http.Json;
+using Microsoft.Kiota.Abstractions;
 using Microsoft.Kiota.Abstractions.Authentication;
 using Microsoft.Kiota.Authentication.Azure;
 using Microsoft.OpenApi.Any;
@@ -46,231 +49,119 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
         public static WebApplicationBuilder AddOrchestratorServices(this WebApplicationBuilder builder)
         {
-            try
+            var configuration = builder.Configuration;
+            var efsClientId = configuration["orchestrator:ClientId"];
+
+            builder.Services.AddHttpContextAccessor();
+
+            builder.Services.Configure<JsonOptions>(options => JsonCodec.DefaultOptions.CopyTo(options.SerializerOptions));
+
+            builder.AddAzureQueueClient(StorageConfiguration.QueuesName);
+            builder.AddAzureTableClient(StorageConfiguration.TablesName);
+            builder.AddAzureBlobClient(StorageConfiguration.BlobsName);
+
+            builder.Services.AddAuthorization();
+            builder.Services.AddOpenApi();
+
+            builder.Services.ConfigureOpenApi();
+
+            builder.Services.AddTransient<IAssemblyPipelineFactory, AssemblyPipelineFactory>();
+            builder.Services.AddTransient<AssemblyPipelineNodeFactory>();
+
+            builder.Services.AddTransient<CompletionPipelineFactory>();
+            builder.Services.AddTransient<CompletionPipelineNodeFactory>();
+
+            builder.Services.AddSingleton<PipelineContextFactory<S100Build>>();
+            builder.Services.AddSingleton<PipelineContextFactory<S63Build>>();
+            builder.Services.AddSingleton<PipelineContextFactory<S57Build>>();
+
+            builder.Services.AddHostedService<S100BuildResponseMonitor>();
+            builder.Services.AddHostedService<S63BuildResponseMonitor>();
+            builder.Services.AddHostedService<S57BuildResponseMonitor>();
+
+            builder.Services.AddSingleton<ITimestampService, TimestampService>();
+            builder.Services.AddSingleton<IStorageService, StorageService>();
+            builder.Services.AddSingleton<IHashingService, HashingService>();
+
+            builder.Services.AddSingleton<ITable<S100Build>, S100BuildTable>();
+            builder.Services.AddSingleton<ITable<S63Build>, S63BuildTable>();
+            builder.Services.AddSingleton<ITable<S57Build>, S57BuildTable>();
+
+            builder.Services.AddSingleton<ITable<DataStandardTimestamp>, DataStandardTimestampTable>();
+            builder.Services.AddSingleton<ITable<Job>, JobTable>();
+            builder.Services.AddSingleton<ITable<BuildMemento>, BuildMementoTable>();
+
+            builder.Services.AddSingleton<IBuilderLogForwarder, BuilderLogForwarder>();
+            builder.Services.AddSingleton<StorageInitializerService>();
+
+            var addsEnvironment = AddsEnvironment.GetEnvironment();
+
+            builder.Services.RegisterKiotaClient<KiotaSalesCatalogueService>(provider =>
             {
-                // Use Serilog static logger for structured logging
-#pragma warning disable LOG001
-                Log.Information("Starting orchestrator service registration");
-#pragma warning restore LOG001
-                
-                var configuration = builder.Configuration;
-                var addsEnvironment = AddsEnvironment.GetEnvironment();
-                
-                // Try to get the ClientId at startup time for logging, but don't rely on it for authentication
-                var startupClientId = configuration["orchestrator:ClientId"];
-                
-                // Debug configuration loading - this helps identify if configuration is loaded yet
-#pragma warning disable LOG001
-                Log.Information("Configuration debug: Environment={Environment}, StartupClientId={StartupClientId}, HasOrchestratorSection={HasOrchestratorSection}, AllOrchestratorKeys={AllOrchestratorKeys}", 
-                    addsEnvironment.ToString(), 
-                    startupClientId ?? "NULL", 
-                    configuration.GetSection("orchestrator").Exists(),
-                    string.Join(", ", configuration.AsEnumerable().Where(c => c.Key.StartsWith("orchestrator", StringComparison.OrdinalIgnoreCase)).Select(c => $"{c.Key}={c.Value}")));
-#pragma warning restore LOG001
+                var registry = provider.GetRequiredService<IExternalServiceRegistry>();
+                var scsEndpoint = registry.GetServiceEndpoint(ProcessNames.SalesCatalogueService);
 
-                builder.Services.AddHttpContextAccessor();
-
-                builder.Services.Configure<JsonOptions>(options => JsonCodec.DefaultOptions.CopyTo(options.SerializerOptions));
-
-                // Configure Azure services with logging
-#pragma warning disable LOG001
-                Log.Information("Configuring Azure services: Queues={QueuesName}, Tables={TablesName}, Blobs={BlobsName}", 
-                    StorageConfiguration.QueuesName, StorageConfiguration.TablesName, StorageConfiguration.BlobsName);
-#pragma warning restore LOG001
-                builder.AddAzureQueueClient(StorageConfiguration.QueuesName);
-                builder.AddAzureTableClient(StorageConfiguration.TablesName);
-                builder.AddAzureBlobClient(StorageConfiguration.BlobsName);
-
-                builder.Services.AddAuthorization();
-                builder.Services.AddOpenApi();
-
-                builder.Services.ConfigureOpenApi();
-
-                builder.Services.AddTransient<IAssemblyPipelineFactory, AssemblyPipelineFactory>();
-                builder.Services.AddTransient<AssemblyPipelineNodeFactory>();
-
-                builder.Services.AddTransient<CompletionPipelineFactory>();
-                builder.Services.AddTransient<CompletionPipelineNodeFactory>();
-
-                builder.Services.AddSingleton<PipelineContextFactory<S100Build>>();
-                builder.Services.AddSingleton<PipelineContextFactory<S63Build>>();
-                builder.Services.AddSingleton<PipelineContextFactory<S57Build>>();
-
-                builder.Services.AddHostedService<S100BuildResponseMonitor>();
-                builder.Services.AddHostedService<S63BuildResponseMonitor>();
-                builder.Services.AddHostedService<S57BuildResponseMonitor>();
-
-                builder.Services.AddSingleton<ITimestampService, TimestampService>();
-                builder.Services.AddSingleton<IStorageService, StorageService>();
-                builder.Services.AddSingleton<IHashingService, HashingService>();
-
-                builder.Services.AddSingleton<ITable<S100Build>, S100BuildTable>();
-                builder.Services.AddSingleton<ITable<S63Build>, S63BuildTable>();
-                builder.Services.AddSingleton<ITable<S57Build>, S57BuildTable>();
-
-                builder.Services.AddSingleton<ITable<DataStandardTimestamp>, DataStandardTimestampTable>();
-                builder.Services.AddSingleton<ITable<Job>, JobTable>();
-                builder.Services.AddSingleton<ITable<BuildMemento>, BuildMementoTable>();
-
-                builder.Services.AddSingleton<IBuilderLogForwarder, BuilderLogForwarder>();
-                builder.Services.AddSingleton<StorageInitializerService>();
-
-                // PRIORITY 1: Configure FSS (File Share Service) first with token authentication
-                builder.Services.AddSingleton<IFileShareReadWriteClientFactory>(provider => new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
-
-                builder.Services.AddSingleton(sp =>
+                if (addsEnvironment.IsLocal() || addsEnvironment.IsDev())
                 {
-                    var registry = sp.GetRequiredService<IExternalServiceRegistry>();
-                    var fssEndpoint = registry.GetServiceEndpoint(ProcessNames.FileShareService);
+                    return (scsEndpoint.Uri, new AnonymousAuthenticationProvider());
+                }
 
-                    // Get the ClientId from runtime configuration when the service is actually resolved
-                    var runtimeConfiguration = sp.GetRequiredService<IConfiguration>();
-                    var runtimeClientId = runtimeConfiguration["orchestrator:ClientId"];
-                    
-                    // Enhanced debugging - check all configuration keys at runtime
-                    var allOrchestratorKeys = string.Join(", ", runtimeConfiguration.AsEnumerable()
-                        .Where(c => c.Key.StartsWith("orchestrator", StringComparison.OrdinalIgnoreCase))
-                        .Select(c => $"{c.Key}={c.Value}"));
+                var clientid = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
 
 #pragma warning disable LOG001
-                    Log.Information("PRIORITY: Configuring FSS client with token authentication: Service={ServiceName}, Environment={Environment}, Endpoint={Endpoint}, StartupClientId={StartupClientId}, RuntimeClientId={RuntimeClientId}, AllRuntimeOrchestratorKeys={AllRuntimeOrchestratorKeys}", 
-                        ProcessNames.FileShareService, addsEnvironment.ToString(), fssEndpoint.Uri?.ToString() ?? "Unknown", 
-                        startupClientId ?? "NULL", runtimeClientId ?? "NULL", allOrchestratorKeys);
+                Log.Information("EFS ClientId ={ClientId}",
+                            clientid);
 #pragma warning restore LOG001
 
-                    IAuthenticationTokenProvider? tokenProvider = null;
+                return (scsEndpoint.Uri, new AzureIdentityAuthenticationProvider(new ManagedIdentityCredential(clientId: clientid), scopes: scsEndpoint.GetDefaultScope()));
+            });
 
-                    if (addsEnvironment.IsLocal() || addsEnvironment.IsDev())
-                    {
-#pragma warning disable LOG001
-                        Log.Information("FSS: Using anonymous authentication for local/dev environment");
-#pragma warning restore LOG001
-                        tokenProvider = new AnonymousAuthenticationTokenProvider();
-                    }
-                    else
-                    {
-                        // Use runtime ClientId for actual authentication, fall back to startup if null
-                        var clientIdToUse = runtimeClientId ?? startupClientId;
-                        
-                        if (string.IsNullOrEmpty(clientIdToUse))
-                        {
-#pragma warning disable LOG001
-                            Log.Error("FSS: ClientId is null or empty - authentication will fail. Ensure orchestrator:ClientId is configured.");
-#pragma warning restore LOG001
-                            throw new InvalidOperationException("FSS authentication requires a valid ClientId. Configure orchestrator:ClientId.");
-                        }
 
-#pragma warning disable LOG001
-                        Log.Information("FSS: Using managed identity authentication with ClientId={ClientId}, Scope={Scope}", 
-                            clientIdToUse, fssEndpoint.GetDefaultScope());
-#pragma warning restore LOG001
-                        
-                        tokenProvider = new TokenCredentialAuthenticationTokenProvider(
-                            new ManagedIdentityCredential(clientId: clientIdToUse), 
-                            new[] { fssEndpoint.GetDefaultScope() });
-                    }
+            builder.Services.AddSingleton<IFileShareReadWriteClientFactory>(provider => new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
 
-                    var factory = sp.GetRequiredService<IFileShareReadWriteClientFactory>();
-                    var fssClient = factory.CreateClient(fssEndpoint.Uri!.ToString(), tokenProvider);
+            builder.Services.AddSingleton(sp =>
+            {
+                var registry = sp.GetRequiredService<IExternalServiceRegistry>();
+                var fssEndpoint = registry.GetServiceEndpoint(ProcessNames.FileShareService);
 
-#pragma warning disable LOG001
-                    Log.Information("FSS client successfully configured and ready for authentication");
-#pragma warning restore LOG001
+                IAuthenticationTokenProvider? tokenProvider = null;
 
-                    return fssClient;
-                });
-
-                // Register FSS orchestrator client
-                builder.Services.AddSingleton<IOrchestratorFileShareClient, OrchestratorFileShareClient>();
-
-                // PRIORITY 2: Configure SCS (Sales Catalogue Service) after FSS is properly configured
-                builder.Services.RegisterKiotaClient<KiotaSalesCatalogueService>(provider =>
+                if (addsEnvironment.IsLocal() || addsEnvironment.IsDev())
                 {
-                    var registry = provider.GetRequiredService<IExternalServiceRegistry>();
-                    var scsEndpoint = registry.GetServiceEndpoint(ProcessNames.SalesCatalogueService);
+                    tokenProvider = new AnonymousAuthenticationTokenProvider();
+                }
+                else
+                {
+                    tokenProvider = new TokenCredentialAuthenticationTokenProvider(new ManagedIdentityCredential(clientId: efsClientId), [fssEndpoint.GetDefaultScope()]);
+                }
 
-                    // Get the ClientId from runtime configuration when the service is actually resolved
-                    var runtimeConfiguration = provider.GetRequiredService<IConfiguration>();
-                    var runtimeClientId = runtimeConfiguration["orchestrator:ClientId"];
-                    
-                    // Enhanced debugging - check all configuration keys at runtime
-                    var allOrchestratorKeys = string.Join(", ", runtimeConfiguration.AsEnumerable()
-                        .Where(c => c.Key.StartsWith("orchestrator", StringComparison.OrdinalIgnoreCase))
-                        .Select(c => $"{c.Key}={c.Value}"));
+                var factory = sp.GetRequiredService<IFileShareReadWriteClientFactory>();
+                return factory.CreateClient(fssEndpoint.Uri!.ToString(), tokenProvider);
+            });
 
-#pragma warning disable LOG001
-                    Log.Information("Configuring SCS client after FSS: Service={ServiceName}, Environment={Environment}, Endpoint={Endpoint}, StartupClientId={StartupClientId}, RuntimeClientId={RuntimeClientId}, AllRuntimeOrchestratorKeys={AllRuntimeOrchestratorKeys}", 
-                        ProcessNames.SalesCatalogueService, addsEnvironment.ToString(), scsEndpoint.Uri?.ToString() ?? "Unknown", 
-                        startupClientId ?? "NULL", runtimeClientId ?? "NULL", allOrchestratorKeys);
-#pragma warning restore LOG001
+            builder.Services.AddSingleton<ISalesCatalogueKiotaClientAdapter, SalesCatalogueKiotaClientAdapter>();
+            builder.Services.AddSingleton<IOrchestratorSalesCatalogueClient, OrchestratorSalesCatalogueClient>();
+            builder.Services.AddSingleton<IOrchestratorFileShareClient, OrchestratorFileShareClient>();
 
-                    if (addsEnvironment.IsLocal() || addsEnvironment.IsDev())
-                    {
-#pragma warning disable LOG001
-                        Log.Information("SCS: Using anonymous authentication for local/dev environment");
-#pragma warning restore LOG001
-                        return (scsEndpoint.Uri, new AnonymousAuthenticationProvider());
-                    }
-
-                    // Use runtime ClientId for actual authentication, fall back to startup if null
-                    var clientIdToUse = runtimeClientId ?? startupClientId;
-                    
-                    if (string.IsNullOrEmpty(clientIdToUse))
-                    {
-#pragma warning disable LOG001
-                        Log.Error("SCS: ClientId is null or empty - authentication will fail. Ensure orchestrator:ClientId is configured.");
-#pragma warning restore LOG001
-                        throw new InvalidOperationException("SCS authentication requires a valid ClientId. Configure orchestrator:ClientId.");
-                    }
-
-#pragma warning disable LOG001
-                    Log.Information("SCS: Using managed identity authentication with ClientId={ClientId}, Scope={Scope}", 
-                        clientIdToUse, scsEndpoint.GetDefaultScope());
-#pragma warning restore LOG001
-
-                    return (scsEndpoint.Uri, new AzureIdentityAuthenticationProvider(
-                        new ManagedIdentityCredential(clientId: clientIdToUse), 
-                        scopes: scsEndpoint.GetDefaultScope()));
-                });
-
-                // Register remaining SCS services
-                builder.Services.AddSingleton<ISalesCatalogueKiotaClientAdapter, SalesCatalogueKiotaClientAdapter>();
-                builder.Services.AddSingleton<IOrchestratorSalesCatalogueClient, OrchestratorSalesCatalogueClient>();
-
-                //Added Dependencies for SchedulerJob
+            //Added Dependencies for SchedulerJob
+            builder.Services.AddQuartz(q =>
+            {
                 var exchangeSetGenerationSchedule = configuration["orchestrator:SchedulerJob:ExchangeSetGenerationSchedule"];
-#pragma warning disable LOG001
-                Log.Information("Configuring Quartz scheduler with cron schedule: {Schedule}", exchangeSetGenerationSchedule ?? "Not configured");
-#pragma warning restore LOG001
-                
-                builder.Services.AddQuartz(q =>
-                {
-                    var jobKey = new JobKey(nameof(SchedulerJob));
-                    q.AddJob<SchedulerJob>(opts => opts.WithIdentity(jobKey));
+                var jobKey = new JobKey(nameof(SchedulerJob));
+                q.AddJob<SchedulerJob>(opts => opts.WithIdentity(jobKey));
 
-                    q.AddTrigger(opts => opts
-                        .ForJob(jobKey)
-                        .WithCronSchedule(exchangeSetGenerationSchedule!, x => x.WithMisfireHandlingInstructionDoNothing())
-                    );
-                });
+                q.AddTrigger(opts => opts
+                    .ForJob(jobKey)
+                    .WithCronSchedule(exchangeSetGenerationSchedule!, x => x.WithMisfireHandlingInstructionDoNothing())
+                );
+            });
 
-                builder.Services.AddQuartzHostedService(options =>
-                {
-                    options.WaitForJobsToComplete = true;
-                });
-
-#pragma warning disable LOG001
-                Log.Information("Orchestrator service registration completed successfully");
-#pragma warning restore LOG001
-                return builder;
-            }
-            catch (Exception ex)
+            builder.Services.AddQuartzHostedService(options =>
             {
-#pragma warning disable LOG001
-                Log.Fatal(ex, "Service registration failed");
-#pragma warning restore LOG001
-                throw;
-            }
+                options.WaitForJobsToComplete = true;
+            });
+
+            return builder;
         }
 
         private static IServiceCollection ConfigureOpenApi(this IServiceCollection serviceCollection)
