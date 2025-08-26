@@ -23,6 +23,7 @@
                     "Aspire.Hosting.Dcp": "Warning"
                 }
             },
+            "SkipScsForTesting": true,
             "AllowedHosts": "*",
             "Deduplication": {
                 "Enabled": false, // Enable deduplication of requests
@@ -122,6 +123,7 @@
             },
             "AllowedHosts": "*",
             "ClientId": "8d1e698b-6e93-49dc-9814-9154e02eb8a9",
+            "SkipScsForTesting": true,
             "Deduplication": {
                 "Enabled": false, // Enable deduplication of requests
                 "Expiry": "23:00:00" // The timeframe for deduplication from first generation to expiry

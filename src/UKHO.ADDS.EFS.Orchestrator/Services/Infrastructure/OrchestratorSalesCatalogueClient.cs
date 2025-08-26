@@ -17,16 +17,19 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
     {
         private readonly ILogger<OrchestratorSalesCatalogueClient> _logger;
         private readonly ISalesCatalogueKiotaClientAdapter _salesCatalogueKiotaClientAdapter;
+        private readonly IConfiguration _configuration;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="OrchestratorSalesCatalogueClient" /> class.
         /// </summary>
         /// <param name="salesCatalogueClient">Client for interacting with the Sales Catalogue API.</param>
         /// <param name="logger">Logger for recording diagnostic information.</param>
-        public OrchestratorSalesCatalogueClient(ISalesCatalogueKiotaClientAdapter salesCatalogueKiotaClientAdapter, ILogger<OrchestratorSalesCatalogueClient> logger)
+        /// <param name="configuration">Configuration for accessing settings.</param>
+        public OrchestratorSalesCatalogueClient(ISalesCatalogueKiotaClientAdapter salesCatalogueKiotaClientAdapter, ILogger<OrchestratorSalesCatalogueClient> logger, IConfiguration configuration)
         {
             _salesCatalogueKiotaClientAdapter = salesCatalogueKiotaClientAdapter ?? throw new ArgumentNullException(nameof(salesCatalogueKiotaClientAdapter));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         /// <summary>
@@ -46,6 +49,16 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
         /// </remarks>
         public async Task<(S100SalesCatalogueResponse s100SalesCatalogueData, DateTime? LastModified)> GetS100ProductsFromSpecificDateAsync(DateTime? sinceDateTime, Job job)
         {
+            // Check if we should skip SCS and use mock data for FSS testing
+            var skipScs = _configuration.GetValue<bool>("orchestrator:SkipScsForTesting", false) ||
+                         Environment.GetEnvironmentVariable("SKIP_SCS_FOR_TESTING")?.ToLowerInvariant() == "true";
+
+            if (skipScs)
+            {
+               // _logger.LogWarning("TESTING MODE: Skipping SCS call and returning mock data for FSS testing. Job={JobId}", job.Id);
+                return GetMockS100ProductsResponse();
+            }
+
             var headersOption = new HeadersInspectionHandlerOption { InspectResponseHeaders = true };
             try
             {
@@ -126,6 +139,16 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
         /// </remarks>
         public async Task<S100ProductNamesResponse> GetS100ProductNamesAsync(IEnumerable<string> productNames, Job job, CancellationToken cancellationToken)
         {
+            // Check if we should skip SCS and use mock data for FSS testing
+            var skipScs = _configuration.GetValue<bool>("orchestrator:SkipScsForTesting", false) ||
+                         Environment.GetEnvironmentVariable("SKIP_SCS_FOR_TESTING")?.ToLowerInvariant() == "true";
+
+            if (skipScs)
+            {
+                //_logger.LogWarning("TESTING MODE: Skipping SCS product names call and returning mock data for FSS testing. Job={JobId}", job.Id);
+                return GetMockS100ProductNamesResponse(productNames);
+            }
+
             try
             {
                 var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<S100ProductResponse?>(_logger, nameof(GetS100ProductNamesAsync));
@@ -181,6 +204,81 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
                 _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, (HttpStatusCode)apiException.ResponseStatusCode));
                 return new S100ProductNamesResponse();
             }
+        }
+
+        /// <summary>
+        /// Returns mock S100 products for FSS testing.
+        /// </summary>
+        private (S100SalesCatalogueResponse s100SalesCatalogueData, DateTime? LastModified) GetMockS100ProductsResponse()
+        {
+            var mockProducts = new List<S100Products>
+            {
+                new()
+                {
+                    ProductName = "TEST_FSS_PRODUCT_001",
+                    LatestEditionNumber = 1,
+                    LatestUpdateNumber = 0,
+                    Status = new S100ProductStatus
+                    {
+                        StatusDate = DateTime.UtcNow.AddDays(-1),
+                        StatusName = "Base"
+                    }
+                },
+                new()
+                {
+                    ProductName = "TEST_FSS_PRODUCT_002",
+                    LatestEditionNumber = 2,
+                    LatestUpdateNumber = 1,
+                    Status = new S100ProductStatus
+                    {
+                        StatusDate = DateTime.UtcNow.AddDays(-2),
+                        StatusName = "Update"
+                    }
+                }
+            };
+
+            var response = new S100SalesCatalogueResponse
+            {
+                ResponseBody = mockProducts,
+                LastModified = DateTime.UtcNow,
+                ResponseCode = HttpStatusCode.OK
+            };
+
+            return (response, response.LastModified);
+        }
+
+        /// <summary>
+        /// Returns mock S100 product names for FSS testing.
+        /// </summary>
+        private S100ProductNamesResponse GetMockS100ProductNamesResponse(IEnumerable<string> productNames)
+        {
+            var mockProductDetails = productNames.Select(name => new S100ProductNames
+            {
+                ProductName = name,
+                EditionNumber = 1,
+                UpdateNumbers = [0],
+                Dates = [new S100ProductDate
+                {
+                    IssueDate = DateTime.UtcNow.AddDays(-1),
+                    UpdateApplicationDate = DateTime.UtcNow.AddDays(-1),
+                    UpdateNumber = 0
+                }],
+                FileSize = 1024000,
+                Cancellation = null
+            }).ToList();
+
+            return new S100ProductNamesResponse
+            {
+                Products = mockProductDetails,
+                ProductCounts = new Clients.SalesCatalogueService.Models.ProductCounts
+                {
+                    RequestedProductCount = productNames.Count(),
+                    ReturnedProductCount = mockProductDetails.Count,
+                    RequestedProductsAlreadyUpToDateCount = 0,
+                    RequestedProductsNotReturned = []
+                },
+                ResponseCode = HttpStatusCode.OK
+            };
         }
     }
 }
