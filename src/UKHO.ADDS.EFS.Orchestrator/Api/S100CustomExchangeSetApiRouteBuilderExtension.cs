@@ -98,9 +98,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             {
                 Links = new S100ExchangeSetLinks
                 {
-                    ExchangeSetBatchStatusUri = new S100Link { Href = $"http://fss.ukho.gov.uk/batch/{batchId}/status" },
-                    ExchangeSetBatchDetailsUri = new S100Link { Href = $"http://fss.ukho.gov.uk/batch/{batchId}" },
-                    ExchangeSetFileUri = batchId != null ? new S100Link { Href = $"http://fss.ukho.gov.uk/batch/{batchId}/files/exchangeset.zip" } : null
+                    ExchangeSetBatchStatusUri = new S100Link { Href = $"https://fss.ukho.gov.uk/batch/{batchId}/status" },
+                    ExchangeSetBatchDetailsUri = new S100Link { Href = $"https://fss.ukho.gov.uk/batch/{batchId}" },
+                    ExchangeSetFileUri = batchId != null ? new S100Link { Href = $"https://fss.ukho.gov.uk/batch/{batchId}/files/exchangeset.zip" } : null
                 },
                 ExchangeSetUrlExpiryDateTime = DateTime.UtcNow.AddDays(7), // TODO: Get from configuration
                 RequestedProductCount = requestedProductCount,
