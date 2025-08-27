@@ -43,7 +43,23 @@ jobs:
             scriptLocation: inlineScript
             ${{ if eq(parameters.AdditionalDebugging, true) }}:
               inlineScript: |
+                set -e
+                echo "Current env variables:"
+                echo "--------------------------------------------------------------------------------"
+                env | sort
+                echo "--------------------------------------------------------------------------------"
+
                 azd down --no-prompt --force --purge --debug
+
+                echo "Current azd variables:"
+                echo "--------------------------------------------------------------------------------"
+                azd env get-values
+                echo "--------------------------------------------------------------------------------"
             ${{ else }}:
               inlineScript: |
                 azd down --no-prompt --force --purge
+          env:
+            AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+            AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+            AZURE_LOCATION: $(AZURE_LOCATION)
+            AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
