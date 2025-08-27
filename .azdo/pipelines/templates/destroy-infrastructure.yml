@@ -47,3 +47,8 @@ jobs:
             ${{ else }}:
               inlineScript: |
                 azd down --no-prompt --force --purge
+          env:
+            AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+            AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+            AZURE_LOCATION: $(AZURE_LOCATION)
+            AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
