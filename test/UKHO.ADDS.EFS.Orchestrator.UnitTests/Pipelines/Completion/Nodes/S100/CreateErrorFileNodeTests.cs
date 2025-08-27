@@ -55,7 +55,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
                 Id = TestJobId,
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = "",
+                RequestedProducts = new ProductNameList(),
                 RequestedFilter = "",
                 BatchId = TestBatchId
             };

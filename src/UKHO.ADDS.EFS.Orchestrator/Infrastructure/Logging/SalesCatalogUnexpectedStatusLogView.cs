@@ -9,7 +9,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
     {
         public DataStandard DataStandard { get; init; }
 
-        public required string Products { get; init; }
+        public required ProductNameList Products { get; init; }
 
         public required CorrelationId CorrelationId { get; init; }
 

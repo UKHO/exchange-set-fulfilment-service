@@ -8,9 +8,9 @@ namespace UKHO.ADDS.EFS.VOS
 
         [JsonIgnore] public IReadOnlyList<ProductName> Names => _products;
 
-        public ProductCount Count => ProductCount.From(_products.Count);
+        [JsonIgnore] public ProductCount Count => ProductCount.From(_products.Count);
 
-        public bool HasProducts => _products.Count > 0;
+        [JsonIgnore] public bool HasProducts => _products.Count > 0;
 
         public bool Add(ProductName product)
         {

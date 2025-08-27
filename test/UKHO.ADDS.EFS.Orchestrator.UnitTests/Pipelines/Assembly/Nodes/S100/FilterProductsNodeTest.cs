@@ -42,7 +42,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = "",
+                RequestedProducts = new ProductNameList(),
                 RequestedFilter = "productName eq '101GB004DEVQK'",
             };
 
@@ -86,7 +86,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = "",
+                RequestedProducts = new ProductNameList(),
                 RequestedFilter = string.Empty
             };
 
@@ -114,7 +114,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = "",
+                RequestedProducts = new ProductNameList(),
                 RequestedFilter = null!
             };
 
@@ -142,7 +142,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = "",
+                RequestedProducts = new ProductNameList(),
                 RequestedFilter = "productName eq '101GB004DEVQK'",
             };
 
@@ -167,7 +167,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = "",
+                RequestedProducts = new ProductNameList(),
                 RequestedFilter = "productName eq '101GB004DEVQK'",
             };
 
@@ -192,7 +192,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = "",
+                RequestedProducts = new ProductNameList(),
                 RequestedFilter = "startswith(ProductName, '102')",
             };
 
@@ -222,12 +222,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         [Test]
         public async Task WhenPerformExecuteAsyncIsCalledAndFilterMatchesNoProducts_ThenSignalsNoBuildRequiredAndReturnsSucceeded()
         {
+            var products = new ProductNameList();
+            
+            products.Add(ProductName.From("101product1"));
+            products.Add(ProductName.From("101product2"));
+
             _job = new Job
             {
                 Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = "product1,product2",
+                RequestedProducts = products,
                 RequestedFilter = "productName eq '101GB004DEVQP'",
             };
 
@@ -257,12 +262,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         [Test]
         public async Task WhenPerformExecuteAsyncIsCalledAndComplexFilter_ThenFiltersCorrectlyAndReturnsSucceeded()
         {
+            var products = new ProductNameList();
+
+            products.Add(ProductName.From("101product1"));
+            products.Add(ProductName.From("101product2"));
+
             _job = new Job
             {
                 Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = "product1,product2",
+                RequestedProducts = products,
                 RequestedFilter = "productName eq '101GB004DEVQK' or latestEditionNumber eq 2",
             };
 

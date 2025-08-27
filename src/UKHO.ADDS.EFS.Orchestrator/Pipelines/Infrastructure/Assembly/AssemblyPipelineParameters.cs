@@ -14,7 +14,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
 
         public required DataStandard DataStandard { get; init; }
 
-        public required string Products { get; init; }
+        public required ProductNameList Products { get; init; }
 
         public required string Filter { get; init; }
 

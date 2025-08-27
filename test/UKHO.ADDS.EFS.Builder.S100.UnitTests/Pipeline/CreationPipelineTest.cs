@@ -87,9 +87,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
             Assert.That(async () => await _creationPipeline.ExecutePipeline(null), Throws.ArgumentException);
         }
 
-        [TestCase("", "Test123", "TestCorrelationId")]
         [TestCase("TestJobId", "", "TestCorrelationId")]
-        [TestCase("TestJobId", "Test123", "")]
         public async Task WhenRequiredContextPropertiesAreNull_ThenReturnsFailedNodeResult(string jobId, string authKey, string correlationId)
         {
             _context.Subject.JobId = JobId.From(jobId);

@@ -12,7 +12,7 @@ namespace UKHO.ADDS.EFS.Messages
 
         public DataStandard DataStandard { get; set; }
 
-        public required string Products { get; set; }
+        public required ProductNameList Products { get; set; }
 
         public required string Filter { get; set; }
     }
