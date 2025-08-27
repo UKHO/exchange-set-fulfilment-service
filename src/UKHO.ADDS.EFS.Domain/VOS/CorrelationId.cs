@@ -1,10 +1,10 @@
 ﻿using Vogen;
 
-namespace UKHO.ADDS.Clients.Common
+namespace UKHO.ADDS.EFS.VOS
 {
     [ValueObject<string>(Conversions.SystemTextJson)]
+    [Instance("None", "")]
     public partial struct CorrelationId
     {
-        
     }
 }

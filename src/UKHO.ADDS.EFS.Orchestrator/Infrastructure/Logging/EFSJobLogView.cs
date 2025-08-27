@@ -1,13 +1,14 @@
 ﻿using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Jobs;
+using UKHO.ADDS.EFS.VOS;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 {
     internal class EFSJobLogView
     {
-        public required string Id { get; init; }
+        public required JobId Id { get; init; }
 
-        public required string? BatchId { get; init; }
+        public required BatchId BatchId { get; init; }
 
         public DateTime Timestamp { get; init; }
 

@@ -4,6 +4,7 @@ using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Services;
 using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
+using UKHO.ADDS.EFS.VOS;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
@@ -23,14 +24,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S57
 
         public override Task<bool> ShouldExecuteAsync(IExecutionContext<PipelineContext<S57Build>> context)
         {
-            return Task.FromResult(!string.IsNullOrEmpty(context.Subject.Job.BatchId) && Environment.BuilderExitCode == BuilderExitCode.Success);
+            return Task.FromResult(context.Subject.Job.BatchId != BatchId.None && Environment.BuilderExitCode == BuilderExitCode.Success);
         }
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<PipelineContext<S57Build>> context)
         {
             var job = context.Subject.Job!;
 
-            var searchResult = await _fileShareClient.SearchCommittedBatchesExcludingCurrentAsync(job.BatchId!, job.GetCorrelationId(), Environment.CancellationToken);
+            var searchResult = await _fileShareClient.SearchCommittedBatchesExcludingCurrentAsync((string)job.BatchId, (string)job.GetCorrelationId(), Environment.CancellationToken);
             if (!searchResult.IsSuccess(out var searchResponse, out _))
             {
                 return NodeResultStatus.Failed;
@@ -43,7 +44,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S57
 
             // TODO State management
 
-            var expiryResult = await _fileShareClient.SetExpiryDateAsync(searchResponse.Entries, job.GetCorrelationId(), Environment.CancellationToken);
+            var expiryResult = await _fileShareClient.SetExpiryDateAsync(searchResponse.Entries, (string)job.GetCorrelationId(), Environment.CancellationToken);
 
             await _timestampService.SetTimestampForJobAsync(job);
 

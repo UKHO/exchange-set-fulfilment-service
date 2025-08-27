@@ -3,6 +3,7 @@ using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
+using UKHO.ADDS.EFS.VOS;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Schedule
 {
@@ -16,7 +17,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Schedule
         private readonly ILogger<SchedulerJob> _logger;
         private readonly IConfiguration _config;
         private readonly IAssemblyPipelineFactory _pipelineFactory;
-        private const string CorrelationIdPrefix = "job-";
+        private const string CorrelationIdPrefix = "sched-";
 
         public SchedulerJob(ILogger<SchedulerJob> logger, IConfiguration config, IAssemblyPipelineFactory pipelineFactory)
         {
@@ -34,7 +35,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Schedule
         {
             try
             {
-                var correlationId = $"{CorrelationIdPrefix}{Guid.NewGuid():N}";
+                var correlationId = CorrelationId.From($"{CorrelationIdPrefix}{Guid.NewGuid():N}");
 
                 _logger.LogSchedulerJobStarted(correlationId, DateTime.UtcNow);
 

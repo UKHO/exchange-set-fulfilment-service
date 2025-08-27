@@ -3,6 +3,7 @@ using UKHO.ADDS.EFS.BuildRequestMonitor.Builders;
 using UKHO.ADDS.EFS.Builds.S57;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.VOS;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.BuildRequestMonitor.Monitors
@@ -13,7 +14,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Monitors
         private readonly QueueServiceClient _queueClient;
         private readonly S57BuildRequestProcessor _processor;
 
-        private readonly List<string> _processedJobs;
+        private readonly List<JobId> _processedJobs;
 
         public S57BuildRequestMonitor(ILogger<S57BuildRequestMonitor> logger, QueueServiceClient qClient, S57BuildRequestProcessor processor)
         {

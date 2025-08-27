@@ -7,6 +7,7 @@ using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.EFS.Orchestrator.Schedule;
+using UKHO.ADDS.EFS.VOS;
 
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Schedule
 {
@@ -20,14 +21,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Schedule
         private IAssemblyPipelineFactory _assemblyPipelineFactory;
         private IAssemblyPipeline _assemblyPipeline;
         private ITrigger _trigger;
-        private const string TestCorrelationId = "job-12345678-1234-1234-1234-123456789abc";
+
+        private static readonly JobId TestCorrelationId = JobId.From("job-12345678-1234-1234-1234-123456789abc");
         private static AssemblyPipelineResponse CreateExpectedResponse() => new()
         {
             JobId = TestCorrelationId,
             JobStatus = JobState.Completed,
             BuildStatus = BuildState.Succeeded,
             DataStandard = DataStandard.S100,
-            BatchId = "test-batch-id"
+            BatchId = BatchId.From("test-batch-id")
         };
 
         [SetUp]
@@ -183,7 +185,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Schedule
             A.CallTo(() => _assemblyPipeline.RunAsync(A<CancellationToken>._))
                 .Returns(Task.FromResult(expectedResponse));
 
-            var capturedCorrelationIds = new List<string>();
+            var capturedCorrelationIds = new List<JobId>();
 
             A.CallTo(() => _assemblyPipelineFactory.CreateAssemblyPipeline(A<AssemblyPipelineParameters>._))
                 .Invokes((AssemblyPipelineParameters parameters) => capturedCorrelationIds.Add(parameters.JobId))

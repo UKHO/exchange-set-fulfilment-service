@@ -57,7 +57,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
                     var result = await _salesCatalogueClient.V2.Catalogues.S100.Basic.GetAsync(config =>
                   {
                       config.Headers.Add("If-Modified-Since", headerDateString!);
-                      config.Headers.Add("X-Correlation-Id", job.GetCorrelationId());
+                      config.Headers.Add("X-Correlation-Id", (string)job.GetCorrelationId());
                       config.Options.Add(headersOption);
                   });
                     return Result.Success(result);
@@ -139,7 +139,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
                 {
                     var result = await _salesCatalogueClient.V2.Products.S100.ProductNames.PostAsync(productNames.ToList(), requestConfiguration =>
                 {
-                    requestConfiguration.Headers.Add("X-Correlation-Id", job.GetCorrelationId());
+                    requestConfiguration.Headers.Add("X-Correlation-Id", (string)job.GetCorrelationId());
 
                 }, cancellationToken);
                     return Result.Success(result);

@@ -1,6 +1,7 @@
 ﻿using UKHO.ADDS.Clients.Common.Constants;
 using UKHO.ADDS.Clients.Common.Extensions;
 using UKHO.ADDS.EFS.Builder.S100.IIC.Models;
+using UKHO.ADDS.EFS.VOS;
 using UKHO.ADDS.Infrastructure.Results;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
@@ -56,7 +57,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
         /// <param name="authKey">The authentication key.</param>
         /// <param name="correlationId">The correlation ID for tracking.</param>
         /// <returns>A result containing the operation response.</returns>
-        public Task<IResult<OperationResponse>> AddExchangeSetAsync(string exchangeSetId, string authKey, string correlationId) =>
+        public Task<IResult<OperationResponse>> AddExchangeSetAsync(JobId exchangeSetId, string authKey, CorrelationId correlationId) =>
             SendApiRequestAsync<OperationResponse>("addExchangeSet", exchangeSetId, authKey, correlationId);
 
         /// <summary>
@@ -67,7 +68,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
         /// <param name="authKey">The authentication key.</param>
         /// <param name="correlationId">The correlation ID for tracking.</param>
         /// <returns>A result containing the operation response.</returns>
-        public async Task<IResult<OperationResponse>> AddContentAsync(string resourceLocation, string exchangeSetId, string authKey, string correlationId)
+        public async Task<IResult<OperationResponse>> AddContentAsync(string resourceLocation, JobId exchangeSetId, string authKey, CorrelationId correlationId)
         {
             return await SendApiRequestAsync<OperationResponse>("addContent", exchangeSetId, authKey, correlationId, resourceLocation);
         }
@@ -79,7 +80,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
         /// <param name="authKey">The authentication key.</param>
         /// <param name="correlationId">The correlation ID for tracking.</param>
         /// <returns>A result containing the signing response.</returns>
-        public Task<IResult<SigningResponse>> SignExchangeSetAsync(string exchangeSetId, string authKey, string correlationId) =>
+        public Task<IResult<SigningResponse>> SignExchangeSetAsync(JobId exchangeSetId, string authKey, CorrelationId correlationId) =>
             SendApiRequestAsync<SigningResponse>("signExchangeSet", exchangeSetId, authKey, correlationId);
 
         /// <summary>
@@ -90,13 +91,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
         /// <param name="correlationId">The correlation ID for tracking.</param>
         /// <param name="destination">The destination location.</param>
         /// <returns>A result containing the extracted stream.</returns>
-        public async Task<IResult<Stream>> ExtractExchangeSetAsync(string exchangeSetId, string authKey, string correlationId, string destination)
+        public async Task<IResult<Stream>> ExtractExchangeSetAsync(JobId exchangeSetId, string authKey, CorrelationId correlationId, string destination)
         {
             try
             {
                 var path = BuildApiPath("extractExchangeSet", exchangeSetId, authKey, null, destination);
                 var response = await _httpClient.GetAsync(path);
-                return await response.CreateResultAsync<Stream>(ApplicationName, correlationId);
+                return await response.CreateResultAsync<Stream>(ApplicationName, (string)correlationId);
             }
             catch (Exception ex)
             {
@@ -142,7 +143,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
         /// <param name="correlationId">The correlation ID for tracking.</param>
         /// <param name="resourceLocation">Optional resource location parameter.</param>
         /// <returns>A result containing the deserialized response object.</returns>
-        private async Task<IResult<T>> SendApiRequestAsync<T>(string action, string exchangeSetId, string authKey, string correlationId, string? resourceLocation = null)
+        private async Task<IResult<T>> SendApiRequestAsync<T>(string action, JobId exchangeSetId, string authKey, CorrelationId correlationId, string? resourceLocation = null)
         {
             try
             {
@@ -156,7 +157,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
                     return Result.Success(resultObj);
                 }
 
-                var errorMetadata = await response.CreateErrorMetadata(ApplicationName, correlationId);
+                var errorMetadata = await response.CreateErrorMetadata(ApplicationName, (string)correlationId);
                 return Result.Failure<T>(ErrorFactory.CreateError(response.StatusCode, errorMetadata));
             }
             catch (Exception ex)
@@ -189,7 +190,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
         /// <param name="authKey">The authentication key.</param>
         /// <param name="resourceLocation">Optional resource location parameter.</param>
         /// <returns>The constructed API path.</returns>
-        private string BuildApiPath(string action, string exchangeSetId, string authKey, string? resourceLocation = null, string? destination = null)
+        private string BuildApiPath(string action, JobId exchangeSetId, string authKey, string? resourceLocation = null, string? destination = null)
         {
             var basePath = $"/xchg-{ApiVersion}/v{ApiVersion}/{action}/{WorkSpaceId}/{exchangeSetId}";
             var query = $"?authkey={authKey}";

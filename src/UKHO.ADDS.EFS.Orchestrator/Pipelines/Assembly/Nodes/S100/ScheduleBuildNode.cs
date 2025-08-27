@@ -6,6 +6,7 @@ using UKHO.ADDS.EFS.Orchestrator.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Services;
+using UKHO.ADDS.EFS.VOS;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
@@ -32,7 +33,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
             var batchId = context.Subject.Job.BatchId;
 
-            return Task.FromResult((jobState == JobState.Created && buildState == BuildState.NotScheduled) && !string.IsNullOrEmpty(batchId));
+            return Task.FromResult((jobState == JobState.Created && buildState == BuildState.NotScheduled) && batchId != BatchId.None);
         }
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)

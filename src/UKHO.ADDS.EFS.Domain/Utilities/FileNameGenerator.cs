@@ -1,5 +1,6 @@
 ﻿using System.Dynamic;
 using HandlebarsDotNet;
+using UKHO.ADDS.EFS.VOS;
 
 namespace UKHO.ADDS.EFS.Utilities
 {
@@ -15,7 +16,7 @@ namespace UKHO.ADDS.EFS.Utilities
             _template = template;
         }
 
-        public string GenerateFileName(string jobId, DateTime? date = null)
+        public string GenerateFileName(JobId jobId, DateTime? date = null)
         {
             // Template uses [] rather than {{ }} to avoid being swapped out by the configuration service
             var templateString = _template.Replace("[", "{{").Replace("]", "}}");

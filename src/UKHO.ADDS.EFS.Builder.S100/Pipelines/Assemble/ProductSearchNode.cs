@@ -65,7 +65,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
                 foreach (var productGroup in productsList)
                 {
-                    var batchDetails = await QueryFileShareServiceFilesAsync(productGroup, context.Subject.Build?.GetCorrelationId()!);
+                    var batchDetails = await QueryFileShareServiceFilesAsync(productGroup, (string)context.Subject.Build?.GetCorrelationId()!);
                     if (batchDetails != null)
                     {
                         batchList.AddRange(batchDetails);

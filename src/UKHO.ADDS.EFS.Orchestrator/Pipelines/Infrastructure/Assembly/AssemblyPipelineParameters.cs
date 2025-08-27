@@ -1,6 +1,8 @@
-﻿using UKHO.ADDS.EFS.Jobs;
+﻿using Microsoft.OpenApi.Extensions;
+using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Jobs;
+using UKHO.ADDS.EFS.VOS;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
 {
@@ -16,7 +18,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
 
         public required string Filter { get; init; }
 
-        public required string JobId { get; init; }
+        public required JobId JobId { get; init; }
 
         public required IConfiguration Configuration { get; init; }
 
@@ -28,11 +30,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 Timestamp = Timestamp,
                 DataStandard = DataStandard,
                 RequestedProducts = Products,
-                RequestedFilter = Filter
+                RequestedFilter = Filter,
+                BatchId = BatchId.None
             };
         }
 
-        public static AssemblyPipelineParameters CreateFrom(JobRequestApiMessage message, IConfiguration configuration, string correlationId) =>
+        public static AssemblyPipelineParameters CreateFrom(JobRequestApiMessage message, IConfiguration configuration, CorrelationId correlationId) =>
             new()
             {
                 Version = message.Version,
@@ -40,7 +43,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 DataStandard = message.DataStandard,
                 Products = message.Products,
                 Filter = message.Filter,
-                JobId = correlationId,
+                JobId = VOS.JobId.From((string)correlationId),
                 Configuration = configuration
             };
     }

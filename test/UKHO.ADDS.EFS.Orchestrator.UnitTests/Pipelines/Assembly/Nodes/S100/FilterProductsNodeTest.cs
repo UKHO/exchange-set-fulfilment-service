@@ -7,6 +7,7 @@ using UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Services;
+using UKHO.ADDS.EFS.VOS;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
@@ -38,7 +39,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         {
             _job = new Job
             {
-                Id = "test-job-id",
+                Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
                 RequestedProducts = "",
@@ -82,7 +83,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         {
             var job = new Job
             {
-                Id = "test-job-id",
+                Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
                 RequestedProducts = "",
@@ -110,7 +111,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         {
             var job = new Job
             {
-                Id = "test-job-id",
+                Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
                 RequestedProducts = "",
@@ -138,7 +139,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         {
             var job = new Job
             {
-                Id = "test-job-id",
+                Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
                 RequestedProducts = "",
@@ -163,7 +164,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         {
             var job = new Job
             {
-                Id = "test-job-id",
+                Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
                 RequestedProducts = "",
@@ -188,7 +189,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         {
             _job = new Job
             {
-                Id = "test-job-id",
+                Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
                 RequestedProducts = "",
@@ -223,7 +224,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         {
             _job = new Job
             {
-                Id = "test-job-id",
+                Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
                 RequestedProducts = "product1,product2",
@@ -258,7 +259,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         {
             _job = new Job
             {
-                Id = "test-job-id",
+                Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
                 RequestedProducts = "product1,product2",

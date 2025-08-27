@@ -8,7 +8,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables
     internal class JobTable : StructuredTable<Job>
     {
         public JobTable(TableServiceClient tableServiceClient)
-            : base(StorageConfiguration.JobTable, tableServiceClient, x => x.Id, x => x.Id)
+            : base(StorageConfiguration.JobTable, tableServiceClient, x => (string)x.Id, x => (string)x.Id)
         {
         }
     }

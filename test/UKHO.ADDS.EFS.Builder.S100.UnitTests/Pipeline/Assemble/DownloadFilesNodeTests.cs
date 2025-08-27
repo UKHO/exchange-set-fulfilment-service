@@ -9,6 +9,7 @@ using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble;
 using UKHO.ADDS.EFS.Builds.S100;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.VOS;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
@@ -51,9 +52,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
                 WorkSpaceRootPath = Path.GetTempPath(),
                 Build = new S100Build
                 {
-                    JobId = "TestCorrelationId",
+                    JobId = JobId.From("TestCorrelationId"),
                     DataStandard = DataStandard.S100,
-                    BatchId = "a-batch-id",
+                    BatchId = BatchId.From("a-batch-id"),
                     Products =
                     [
                         new S100Products { ProductName = "Product1", LatestEditionNumber = 1, LatestUpdateNumber = 0 },

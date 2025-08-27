@@ -1,6 +1,7 @@
 ﻿using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
+using UKHO.ADDS.EFS.VOS;
 using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
@@ -188,22 +189,22 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         public static partial void LogSalesCatalogueProductsNotReturned(this ILogger logger, [LogProperties] SalesCatalogServiceProductsNotReturnedView salesCatalogueLog);
 
         [LoggerMessage(CreateErrorFileId, LogLevel.Error, "Error file created for correlation ID: {correlationId} | Timestamp: {timestamp}", EventName = nameof(CreateErrorFile))]
-        public static partial void LogCreateErrorFile(this ILogger logger, string correlationId, DateTimeOffset timestamp);
+        public static partial void LogCreateErrorFile(this ILogger logger, CorrelationId correlationId, DateTimeOffset timestamp);
 
         [LoggerMessage(CreateErrorFileNodeFailedId, LogLevel.Error, "CreateErrorFileNode failed for correlation ID: {correlationId} | Timestamp: {timestamp}", EventName = nameof(CreateErrorFileNodeFailed))]
-        public static partial void LogCreateErrorFileNodeFailed(this ILogger logger, string correlationId, DateTimeOffset timestamp, Exception exception);
+        public static partial void LogCreateErrorFileNodeFailed(this ILogger logger, CorrelationId correlationId, DateTimeOffset timestamp, Exception exception);
 
         [LoggerMessage(CreateErrorFileAddFileFailedId, LogLevel.Error, "Failed to add error file to batch for correlation ID: {correlationId} | Timestamp: {timestamp} | Error: {@error}", EventName = nameof(CreateErrorFileAddFileFailed))]
-        public static partial void LogCreateErrorFileAddFileFailed(this ILogger logger, string correlationId, DateTimeOffset timestamp, [LogProperties] IError error);
+        public static partial void LogCreateErrorFileAddFileFailed(this ILogger logger, CorrelationId correlationId, DateTimeOffset timestamp, [LogProperties] IError error);
 
         [LoggerMessage(SchedulerJobStartedId, LogLevel.Information, "SchedulerJob started for correlationId - {CorrelationId} at: {Time}", EventName = nameof(LogSchedulerJobStarted))]
-        public static partial void LogSchedulerJobStarted(this ILogger logger, string correlationId, DateTime? time);
+        public static partial void LogSchedulerJobStarted(this ILogger logger, CorrelationId correlationId, DateTime? time);
 
         [LoggerMessage(SchedulerJobExceptionId, LogLevel.Error, "Exception occurred in SchedulerJob.", EventName = nameof(LogSchedulerJobException))]
         public static partial void LogSchedulerJobException(this ILogger logger, Exception exception);
 
         [LoggerMessage(SchedulerJobCompletedId, LogLevel.Information, "SchedulerJob completed for correlationId: {CorrelationId}, Result: {@result}", EventName = nameof(LogSchedulerJobCompleted))]
-        public static partial void LogSchedulerJobCompleted(this ILogger logger, string correlationId, [LogProperties] AssemblyPipelineResponse result);
+        public static partial void LogSchedulerJobCompleted(this ILogger logger, CorrelationId correlationId, [LogProperties] AssemblyPipelineResponse result);
 
         [LoggerMessage(SchedulerJobNextRunId, LogLevel.Information, "Next scheduled run at: {NextRun}", EventName = nameof(LogSchedulerJobNextRun))]
         public static partial void LogSchedulerJobNextRun(this ILogger logger, DateTime? nextRun);

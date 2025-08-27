@@ -1,4 +1,5 @@
 ﻿using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.VOS;
 
 namespace UKHO.ADDS.EFS.Builds
 {
@@ -13,7 +14,7 @@ namespace UKHO.ADDS.EFS.Builds
             _logMessages = [];
         }
 
-        public string JobId { get; init; }
+        public JobId JobId { get; init; }
 
         /// <summary>
         ///     The Sales Catalogue timestamp queried for this job.
@@ -28,7 +29,7 @@ namespace UKHO.ADDS.EFS.Builds
         /// <summary>
         ///     The FSS Batch ID associated with the build.
         /// </summary>
-        public string? BatchId { get; set; }
+        public BatchId BatchId { get; set; }
 
         /// <summary>
         ///     Gets the collection of node statuses for this build.
@@ -53,7 +54,7 @@ namespace UKHO.ADDS.EFS.Builds
         /// </summary>
         /// <remarks>This is always the Job ID.</remarks>
         /// <returns></returns>
-        public string GetCorrelationId() => JobId;
+        public CorrelationId GetCorrelationId() => CorrelationId.From((string)JobId);
 
         /// <summary>
         ///     Gets a list of products in a delimited format.
