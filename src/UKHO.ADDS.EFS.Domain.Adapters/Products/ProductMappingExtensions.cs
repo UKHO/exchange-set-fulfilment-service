@@ -38,14 +38,14 @@ namespace UKHO.ADDS.EFS.Domain.Adapters.Products
             };
         }
 
-        public static ProductVersionList ToDomain(this IEnumerable<S100BasicCatalogue> source, DateTime? lastModified)
+        public static ProductList ToDomain(this IEnumerable<S100BasicCatalogue> source, DateTime? lastModified)
         {
             if (source is null)
             {
                 throw new ArgumentNullException(nameof(source));
             }
 
-            return new ProductVersionList
+            return new ProductList
             {
                 ResponseBody = source.Select(x => x.ToDomain()).ToList(), LastModified = lastModified ?? default, ResponseCode = HttpStatusCode.OK
             };

@@ -48,7 +48,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
         ///     The method returns an empty response with the original sinceDateTime when an error occurs or when
         ///     an unexpected HTTP status code is returned from the API.
         /// </remarks>
-        public async Task<(ProductVersionList s100SalesCatalogueData, DateTime? LastModified)> GetS100ProductVersionListAsync(
+        public async Task<(ProductList s100SalesCatalogueData, DateTime? LastModified)> GetS100ProductVersionListAsync(
             DateTime? sinceDateTime,
             Job job)
         {
@@ -91,7 +91,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
                 }
 
                 _logger.LogSalesCatalogueApiError(SalesCatalogApiErrorLogView.Create(job));
-                return (new ProductVersionList(), sinceDateTime);
+                return (new ProductList(), sinceDateTime);
             }
             catch (ApiException apiException)
             {
@@ -109,7 +109,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
                                 parsed = sinceDateTime ?? default;
                             }
 
-                            return (new ProductVersionList
+                            return (new ProductList
                             {
                                 ResponseCode = HttpStatusCode.NotModified
                             }, parsed);
@@ -117,7 +117,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
 
                     default:
                         _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, (HttpStatusCode)apiException.ResponseStatusCode));
-                        return (new ProductVersionList(), sinceDateTime);
+                        return (new ProductList(), sinceDateTime);
                 }
             }
         }

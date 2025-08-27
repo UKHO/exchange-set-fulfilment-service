@@ -2,7 +2,7 @@
 
 namespace UKHO.ADDS.EFS.Products
 {
-    public class ProductVersionList
+    public class ProductList
     {
         public List<Product> ResponseBody { get; set; }
         public DateTime? LastModified { get; set; }
