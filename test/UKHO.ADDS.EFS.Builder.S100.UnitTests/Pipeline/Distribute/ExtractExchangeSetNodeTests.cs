@@ -65,7 +65,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
             IError outError = null;
 
             A.CallTo(() => fakeResult.IsFailure(out outError!, out outStream!)).Returns(false);
-            A.CallTo(() => _executionContext.Subject.ToolClient.ExtractExchangeSetAsync(A<JobId>._, A<string>._, A<CorrelationId>._, A<string>._))
+            A.CallTo(() => _executionContext.Subject.ToolClient.ExtractExchangeSetAsync(A<JobId>._, A<string>._, A<string>._))
                 .Returns(Task.FromResult(fakeResult));
 
             var result = await _extractExchangeSetNode.ExecuteAsync(_executionContext);
@@ -82,7 +82,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
             Stream outStream = null;
 
             A.CallTo(() => fakeResult.IsFailure(out fakeError, out outStream!)).Returns(true);
-            A.CallTo(() => _executionContext.Subject.ToolClient.ExtractExchangeSetAsync(A<JobId>._, A<string>._, A<CorrelationId>._, A<string>._))
+            A.CallTo(() => _executionContext.Subject.ToolClient.ExtractExchangeSetAsync(A<JobId>._, A<string>._, A<string>._))
                 .Returns(Task.FromResult(fakeResult));
 
             var result = await _extractExchangeSetNode.ExecuteAsync(_executionContext);
@@ -103,7 +103,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
             var exceptionMessage = "Extract exchange set failed";
             string loggedMessage = null;
 
-            A.CallTo(() => _executionContext.Subject.ToolClient.ExtractExchangeSetAsync(A<JobId>._, A<string>._, A<CorrelationId>._, A<string>._))
+            A.CallTo(() => _executionContext.Subject.ToolClient.ExtractExchangeSetAsync(A<JobId>._, A<string>._, A<string>._))
                 .Throws(new Exception(exceptionMessage));
 
             var result = await _extractExchangeSetNode.ExecuteAsync(_executionContext);

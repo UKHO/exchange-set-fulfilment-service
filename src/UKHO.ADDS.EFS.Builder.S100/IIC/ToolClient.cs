@@ -1,7 +1,6 @@
 ﻿using UKHO.ADDS.Clients.Common.Constants;
 using UKHO.ADDS.Clients.Common.Extensions;
 using UKHO.ADDS.EFS.Builder.S100.IIC.Models;
-using UKHO.ADDS.EFS.Implementation;
 using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.Infrastructure.Results;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
@@ -54,51 +53,47 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
         /// <summary>
         /// Adds a new exchange set to the workspace.
         /// </summary>
-        /// <param name="exchangeSetId">The ID of the exchange set.</param>
+        /// <param name="jobId">The ID of the exchange set.</param>
         /// <param name="authKey">The authentication key.</param>
-        /// <param name="correlationId">The correlation ID for tracking.</param>
         /// <returns>A result containing the operation response.</returns>
-        public Task<IResult<OperationResponse>> AddExchangeSetAsync(JobId exchangeSetId, string authKey, CorrelationId correlationId) =>
-            SendApiRequestAsync<OperationResponse>("addExchangeSet", exchangeSetId, authKey, correlationId);
+        public Task<IResult<OperationResponse>> AddExchangeSetAsync(JobId jobId, string authKey) =>
+            SendApiRequestAsync<OperationResponse>("addExchangeSet", jobId, authKey);
 
         /// <summary>
         /// Adds content to an existing exchange set.
         /// </summary>
         /// <param name="resourceLocation">The location of the resource to add.</param>
-        /// <param name="exchangeSetId">The ID of the exchange set.</param>
+        /// <param name="jobId">The ID of the exchange set.</param>
         /// <param name="authKey">The authentication key.</param>
-        /// <param name="correlationId">The correlation ID for tracking.</param>
         /// <returns>A result containing the operation response.</returns>
-        public async Task<IResult<OperationResponse>> AddContentAsync(string resourceLocation, JobId exchangeSetId, string authKey, CorrelationId correlationId)
+        public async Task<IResult<OperationResponse>> AddContentAsync(string resourceLocation, JobId jobId, string authKey)
         {
-            return await SendApiRequestAsync<OperationResponse>("addContent", exchangeSetId, authKey, correlationId, resourceLocation);
+            return await SendApiRequestAsync<OperationResponse>("addContent", jobId, authKey, resourceLocation);
         }
 
         /// <summary>
         /// Signs an exchange set.
         /// </summary>
-        /// <param name="exchangeSetId">The ID of the exchange set.</param>
+        /// <param name="jobId">The ID of the exchange set.</param>
         /// <param name="authKey">The authentication key.</param>
-        /// <param name="correlationId">The correlation ID for tracking.</param>
         /// <returns>A result containing the signing response.</returns>
-        public Task<IResult<SigningResponse>> SignExchangeSetAsync(JobId exchangeSetId, string authKey, CorrelationId correlationId) =>
-            SendApiRequestAsync<SigningResponse>("signExchangeSet", exchangeSetId, authKey, correlationId);
+        public Task<IResult<SigningResponse>> SignExchangeSetAsync(JobId jobId, string authKey) =>
+            SendApiRequestAsync<SigningResponse>("signExchangeSet", jobId, authKey);
 
         /// <summary>
         /// Extracts an exchange set as a stream.
         /// </summary>
-        /// <param name="exchangeSetId">The ID of the exchange set.</param>
+        /// <param name="jobId">The ID of the exchange set.</param>
         /// <param name="authKey">The authentication key.</param>
-        /// <param name="correlationId">The correlation ID for tracking.</param>
         /// <param name="destination">The destination location.</param>
         /// <returns>A result containing the extracted stream.</returns>
-        public async Task<IResult<Stream>> ExtractExchangeSetAsync(JobId exchangeSetId, string authKey, CorrelationId correlationId, string destination)
+        public async Task<IResult<Stream>> ExtractExchangeSetAsync(JobId jobId, string authKey, string destination)
         {
             try
             {
-                var path = BuildApiPath("extractExchangeSet", exchangeSetId, authKey, null, destination);
+                var path = BuildApiPath("extractExchangeSet", jobId, authKey, null, destination);
                 var response = await _httpClient.GetAsync(path);
-                return await response.CreateResultAsync<Stream>(ApplicationName, (string)correlationId);
+                return await response.CreateResultAsync<Stream>(ApplicationName, (string)jobId);
             }
             catch (Exception ex)
             {
@@ -139,16 +134,15 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
         /// </summary>
         /// <typeparam name="T">The type of the expected response object.</typeparam>
         /// <param name="action">The API action to perform.</param>
-        /// <param name="exchangeSetId">The ID of the exchange set.</param>
+        /// <param name="jobId">The ID of the exchange set.</param>
         /// <param name="authKey">The authentication key.</param>
-        /// <param name="correlationId">The correlation ID for tracking.</param>
         /// <param name="resourceLocation">Optional resource location parameter.</param>
         /// <returns>A result containing the deserialized response object.</returns>
-        private async Task<IResult<T>> SendApiRequestAsync<T>(string action, JobId exchangeSetId, string authKey, CorrelationId correlationId, string? resourceLocation = null)
+        private async Task<IResult<T>> SendApiRequestAsync<T>(string action, JobId jobId, string authKey, string? resourceLocation = null)
         {
             try
             {
-                var path = BuildApiPath(action, exchangeSetId, authKey, resourceLocation);
+                var path = BuildApiPath(action, jobId, authKey, resourceLocation);
                 using var response = await SendHttpRequestAsync(action, path);
                 var content = await response.Content.ReadAsStringAsync();
                 var resultObj = JsonCodec.Decode<T>(content);
@@ -158,7 +152,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
                     return Result.Success(resultObj);
                 }
 
-                var errorMetadata = await response.CreateErrorMetadata(ApplicationName, (string)correlationId);
+                var errorMetadata = await response.CreateErrorMetadata(ApplicationName, (string)jobId);
                 return Result.Failure<T>(ErrorFactory.CreateError(response.StatusCode, errorMetadata));
             }
             catch (Exception ex)
@@ -187,13 +181,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
         /// Builds the API path for a given action and parameters.
         /// </summary>
         /// <param name="action">The API action.</param>
-        /// <param name="exchangeSetId">The ID of the exchange set.</param>
+        /// <param name="jobId">The ID of the exchange set.</param>
         /// <param name="authKey">The authentication key.</param>
         /// <param name="resourceLocation">Optional resource location parameter.</param>
         /// <returns>The constructed API path.</returns>
-        private string BuildApiPath(string action, JobId exchangeSetId, string authKey, string? resourceLocation = null, string? destination = null)
+        private string BuildApiPath(string action, JobId jobId, string authKey, string? resourceLocation = null, string? destination = null)
         {
-            var basePath = $"/xchg-{ApiVersion}/v{ApiVersion}/{action}/{WorkSpaceId}/{exchangeSetId}";
+            var basePath = $"/xchg-{ApiVersion}/v{ApiVersion}/{action}/{WorkSpaceId}/{jobId}";
             var query = $"?authkey={authKey}";
             if (!string.IsNullOrEmpty(resourceLocation))
             {

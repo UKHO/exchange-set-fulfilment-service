@@ -1,6 +1,6 @@
 ﻿namespace UKHO.ADDS.EFS.Products
 {
-    public class ProductVersion
+    public class Product
     {
         public ProductName ProductName { get; set; }
 

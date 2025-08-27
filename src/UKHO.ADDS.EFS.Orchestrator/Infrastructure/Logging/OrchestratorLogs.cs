@@ -139,13 +139,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         public static partial void LogGetJobRequestFailed(this ILogger logger, string jobId);
 
         [LoggerMessage(JobCreatedId, LogLevel.Information, "Job created : {@job}", EventName = nameof(JobCreated))]
-        public static partial void LogJobCreated(this ILogger logger, [LogProperties] EFSJobLogView job);
+        public static partial void LogJobCreated(this ILogger logger, [LogProperties] JobLogView job);
 
         [LoggerMessage(JobUpdatedId, LogLevel.Information, "Job updated: {@job}", EventName = nameof(JobUpdated))]
-        public static partial void LogJobUpdated(this ILogger logger, [LogProperties] EFSJobLogView job);
+        public static partial void LogJobUpdated(this ILogger logger, [LogProperties] JobLogView job);
 
         [LoggerMessage(JobCompletedId, LogLevel.Information, "Job completed: {@job}", EventName = nameof(JobCompleted))]
-        public static partial void LogJobCompleted(this ILogger logger, [LogProperties] EFSJobLogView job);
+        public static partial void LogJobCompleted(this ILogger logger, [LogProperties] JobLogView job);
 
         [LoggerMessage(SalesCatalogueErrorId, LogLevel.Error, "Sales Catalogue error: {@message}", EventName = nameof(SalesCatalogueError))]
         public static partial void LogSalesCatalogueApiError(this ILogger logger, [LogProperties] SalesCatalogApiErrorLogView message);
@@ -154,7 +154,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         public static partial void LogUnexpectedSalesCatalogueStatusCode(this ILogger logger, SalesCatalogUnexpectedStatusLogView salesCatalogueLog);
 
         [LoggerMessage(ContainerExecutionFailedId, LogLevel.Error, "Builder container failed: {@job}", EventName = nameof(ContainerExecutionFailed))]
-        public static partial void LogContainerExecutionFailed(this ILogger logger, [LogProperties] EFSJobLogView job, Exception exception);
+        public static partial void LogContainerExecutionFailed(this ILogger logger, [LogProperties] JobLogView job, Exception exception);
 
         [LoggerMessage(ContainerStartFailedId, LogLevel.Error, "Builder container start failed: {@containerId}", EventName = nameof(ContainerStartFailed))]
         public static partial void LogContainerStartFailed(this ILogger logger, string containerId);
@@ -169,7 +169,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         public static partial void LogJobCreationFailed(this ILogger logger, Exception exception);
 
         [LoggerMessage(ContainerTimeoutId, LogLevel.Error, "Builder container timed out: {@containerId} {@job}", EventName = nameof(ContainerTimeout))]
-        public static partial void LogContainerTimeout(this ILogger logger, string containerId, [LogProperties] EFSJobLogView job);
+        public static partial void LogContainerTimeout(this ILogger logger, string containerId, [LogProperties] JobLogView job);
 
         [LoggerMessage(QueueServiceMessageReadFailedId, LogLevel.Error, "Queue monitor {@queueMonitor} failed to read message", EventName = nameof(QueueServiceMessageReadFailed))]
         public static partial void LogQueueServiceMessageReadFailed(this ILogger logger, string queueMonitor, Exception exception);

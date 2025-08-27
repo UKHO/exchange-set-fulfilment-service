@@ -43,7 +43,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
                     JobId = JobId.From("TestCorrelationId"),
                     DataStandard = DataStandard.S100,
                     BatchId = BatchId.From("a-batch-id"),
-                    ProductNames =
+                    ProductEditions =
                     [
                         new ProductEdition 
                         {
@@ -97,7 +97,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         public async Task WhenPerformExecuteAsyncCalledWithNoProductsInContext_ThenReturnNoRun()
         {
             _executionContext.Subject.Build.Products = [];
-            _executionContext.Subject.Build.ProductNames = [];
+            _executionContext.Subject.Build.ProductEditions = [];
 
             var result = await _productSearchNode.ExecuteAsync(_executionContext);
 
@@ -149,7 +149,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
                 })
                 .Returns(Result.Success(batchResponse));
 
-            _executionContext.Subject.Build.ProductNames = new List<ProductEdition>
+            _executionContext.Subject.Build.ProductEditions = new List<ProductEdition>
             {
                 new()
                 {

@@ -9,7 +9,7 @@ namespace UKHO.ADDS.EFS.Domain.Adapters.Products
     /// </summary>
     public static class SalesCatalogueMappingExtensions
     {
-        public static ProductVersion ToDomain(this S100BasicCatalogue source)
+        public static Product ToDomain(this S100BasicCatalogue source)
         {
             if (source is null)
             {
@@ -25,7 +25,7 @@ namespace UKHO.ADDS.EFS.Domain.Adapters.Products
                 };
             }
 
-            return new ProductVersion
+            return new Product
             {
                 ProductName = ProductName.From(source.ProductName!),
                 LatestEditionNumber = source.LatestEditionNumber.HasValue

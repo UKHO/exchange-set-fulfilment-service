@@ -2,7 +2,7 @@
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 {
-    internal class EFSJobLogView
+    internal class JobLogView
     {
         public required JobId Id { get; init; }
 
@@ -14,7 +14,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 
         public DataStandard DataStandard { get; init; }
 
-        public static EFSJobLogView Create(Job job) =>
+        public static JobLogView Create(Job job) =>
             new()
             {
                 Id = job.Id,

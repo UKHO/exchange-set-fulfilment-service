@@ -131,7 +131,7 @@ public class DistributionPipelineTests
         var fakeError = A.Fake<IError>();
 
         A.CallTo(() => fakeResult.IsFailure(out fakeError!, out outStream!)).Returns(true);
-        A.CallTo(() => _executionContext.Subject.ToolClient.ExtractExchangeSetAsync(A<JobId>._, A<string>._, A<CorrelationId>._, A<string>._))
+        A.CallTo(() => _executionContext.Subject.ToolClient.ExtractExchangeSetAsync(A<JobId>._, A<string>._, A<string>._))
             .Returns(Task.FromResult(fakeResult));
 
         var result = await _distributionPipeline.ExecutePipeline(_pipelineContext);

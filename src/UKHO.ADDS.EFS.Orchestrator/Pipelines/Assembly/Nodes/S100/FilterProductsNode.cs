@@ -33,7 +33,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             var job = context.Subject.Job;
             var build = context.Subject.Build;
 
-            var predicate = _language.Parse<ProductVersion>(job.RequestedFilter);
+            var predicate = _language.Parse<Product>(job.RequestedFilter);
             var existingProducts = build.Products!.AsQueryable();
 
             var filteredProducts = existingProducts.Where(predicate).ToList();

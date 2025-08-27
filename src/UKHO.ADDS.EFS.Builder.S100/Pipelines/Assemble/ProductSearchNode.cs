@@ -44,7 +44,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             try
             {
                 _logger = context.Subject.LoggerFactory.CreateLogger<ProductSearchNode>();
-                var products = context.Subject.Build?.ProductNames;
+                var products = context.Subject.Build?.ProductEditions;
                 if (products == null || products.Count() == 0)
                 {
                     return NodeResultStatus.NotRun;

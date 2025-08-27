@@ -46,7 +46,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
 
         private async Task<bool> AddContentForPathAsync(IToolClient toolClient, string path, JobId jobId, string authKey, ILogger logger)
         {
-            var result = await toolClient.AddContentAsync(path, jobId, authKey, CorrelationId.From((string)jobId));
+            var result = await toolClient.AddContentAsync(path, jobId, authKey);
 
             if (result.IsSuccess(out _, out var error))
             {

@@ -5,25 +5,25 @@ namespace UKHO.ADDS.EFS.Builds.S100
 {
     public class S100Build : Build
     {
-        private List<ProductVersion> _products;
-        private List<ProductEdition> _productNames;
+        private List<Product> _products;
+        private List<ProductEdition> _productEditions;
 
         public S100Build()
         {
             _products = [];
-            _productNames = [];
+            _productEditions = [];
         }
 
-        public IEnumerable<ProductVersion>? Products
+        public IEnumerable<Product>? Products
         {
             get => _products;
             set => _products = value?.ToList() ?? [];
         }
 
-        public IEnumerable<ProductEdition> ProductNames
+        public IEnumerable<ProductEdition> ProductEditions
         {
-            get => _productNames;
-            set => _productNames = value?.ToList() ?? [];
+            get => _productEditions;
+            set => _productEditions = value?.ToList() ?? [];
         }
 
         public override string GetProductDelimitedList() => (Products == null) ? string.Empty : string.Join(", ", Products.Select(p => p));

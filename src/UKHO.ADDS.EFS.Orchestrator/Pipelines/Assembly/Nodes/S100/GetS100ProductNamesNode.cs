@@ -59,7 +59,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                         _logger.LogSalesCatalogueProductsNotReturned(s100SalesCatalogueData.ProductCountSummary);
                     }
 
-                    build.ProductNames = s100SalesCatalogueData.Products;
+                    build.ProductEditions = s100SalesCatalogueData.Products;
 
                     await context.Subject.SignalBuildRequired();
 

@@ -48,7 +48,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
                     BatchId = BatchId.From("a-batch-id"),
                     DataStandard = DataStandard.S100,
                     Products = GetProducts(),
-                    ProductNames = GetProductNames()
+                    ProductEditions = GetProductNames()
                 },
             };
 
@@ -144,10 +144,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
                 ];
         }
 
-        private List<ProductVersion> GetProducts()
+        private List<Product> GetProducts()
         {
             return [
-                new ProductVersion
+                new Product
                 {
                     ProductName = ProductName.From("101TestProduct"),
                     LatestEditionNumber = EditionNumber.From(1),
