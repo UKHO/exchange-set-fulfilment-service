@@ -34,6 +34,12 @@ jobs:
             azd config set auth.useAzCliAuth "true"
           displayName: Install azd
 
+        - template: get-retained-resource-details.yml
+
+        - template: get-retained-infrastructure-details.yml
+          parameters:
+            AzureSubscription: ${{ variables.AzureSubscription }}
+
         - task: AzureCLI@2
           displayName: Destroy infrastructure
           inputs:
