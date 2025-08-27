@@ -22,10 +22,6 @@ param pipelineDeploymentName string
 param pipelineClientObjectId string
 
 @minLength(1)
-@description('Id of the user or app to assign application roles')
-param principalId string
-
-@minLength(1)
 @description('Id of the container app subnet')
 param subnetResourceId string
 
