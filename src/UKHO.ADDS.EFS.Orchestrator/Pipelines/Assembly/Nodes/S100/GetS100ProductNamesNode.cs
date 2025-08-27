@@ -38,7 +38,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                 //.Where(name => !string.IsNullOrWhiteSpace(name))
                 .ToArray() ?? [];
 
-            var s100SalesCatalogueData = await _salesCatalogueClient.GetS100ProductNamesAsync(productNames, job, Environment.CancellationToken);
+            var s100SalesCatalogueData = await _salesCatalogueClient.GetS100ProductEditionListAsync(productNames, job, Environment.CancellationToken);
 
             var nodeResult = NodeResultStatus.NotRun;
 

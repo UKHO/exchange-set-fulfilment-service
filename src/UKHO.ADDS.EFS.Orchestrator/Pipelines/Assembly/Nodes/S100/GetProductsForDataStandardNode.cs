@@ -30,7 +30,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             var job = context.Subject.Job;
             var build = context.Subject.Build;
 
-            var (s100SalesCatalogueData, lastModified) = await _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(job.DataStandardTimestamp, job);
+            var (s100SalesCatalogueData, lastModified) = await _salesCatalogueClient.GetS100ProductVersionListAsync(job.DataStandardTimestamp, job);
 
             var nodeResult = NodeResultStatus.NotRun;
 
