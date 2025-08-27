@@ -4,6 +4,7 @@ using Vogen;
 namespace UKHO.ADDS.EFS.VOS
 {
     [ValueObject<int>(Conversions.SystemTextJson, typeof(ValidationException))]
+    [Instance("NotSet", 0)]
     public partial struct UpdateNumber
     {
         private static Validation Validate(int input)

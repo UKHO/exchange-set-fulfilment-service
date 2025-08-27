@@ -1,14 +1,15 @@
 ﻿using UKHO.ADDS.Clients.SalesCatalogueService.Models;
+using UKHO.ADDS.EFS.VOS;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 {
     public class SalesCatalogServiceProductsNotReturnedView
     {
-        public int? RequestedProductCount { get; init; }
+        public ProductCount RequestedProductCount { get; init; }
 
-        public int? ReturnedProductCount { get; init; }
+        public ProductCount ReturnedProductCount { get; init; }
 
-        public int? RequestedProductsAlreadyUpToDateCount { get; init; }
+        public ProductCount RequestedProductsAlreadyUpToDateCount { get; init; }
 
         public List<RequestedProductsNotReturned> RequestedProductsNotReturned { get; init; }
 

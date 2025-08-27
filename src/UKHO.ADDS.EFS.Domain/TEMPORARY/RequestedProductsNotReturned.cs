@@ -1,8 +1,10 @@
-﻿namespace UKHO.ADDS.Clients.SalesCatalogueService.Models
+﻿using UKHO.ADDS.EFS.VOS;
+
+namespace UKHO.ADDS.Clients.SalesCatalogueService.Models
 {
     public class RequestedProductsNotReturned
     {
-        public string ProductName { get; set; }
+        public ProductName ProductName { get; set; }
         public string Reason { get; set; }
     }
 }

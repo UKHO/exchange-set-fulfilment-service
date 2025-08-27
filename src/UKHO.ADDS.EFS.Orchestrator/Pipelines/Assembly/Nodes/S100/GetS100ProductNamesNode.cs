@@ -34,7 +34,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
             var productNames = build.Products?
                 .Select(p => p.ProductName)
-                .Where(name => !string.IsNullOrWhiteSpace(name))
+                //.Where(name => !string.IsNullOrWhiteSpace(name))
                 .ToArray() ?? [];
 
             var s100SalesCatalogueData = await _salesCatalogueClient.GetS100ProductNamesAsync(productNames, job, Environment.CancellationToken);

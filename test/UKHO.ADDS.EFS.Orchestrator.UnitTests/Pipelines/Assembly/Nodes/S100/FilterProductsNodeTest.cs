@@ -50,9 +50,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             {
                 Products =
                 [
-                    new() { ProductName = "101GB004DEVQK", LatestEditionNumber = 1 },
-                    new() { ProductName = "101GB00510210", LatestEditionNumber = 2 },
-                    new() { ProductName = "102CA005N5040W00130.h5", LatestEditionNumber = 1 }
+                    new() { ProductName = ProductName.From("101GB004DEVQK"), LatestEditionNumber = EditionNumber.From(1) },
+                    new() {ProductName = ProductName.From("101GB00510210"), LatestEditionNumber = EditionNumber.From(2)},
+                    new() {ProductName = ProductName.From("102CA005N5040W00130.h5"), LatestEditionNumber = EditionNumber.From(1)}
                 ]
             };
 
@@ -94,7 +94,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             {
                 Products =
                 [
-                    new() { ProductName = "101GB004DEVQK" }
+                    new() { ProductName = ProductName.From("101GB004DEVQK") }
                 ]
             };
 
@@ -122,7 +122,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             {
                 Products =
                 [
-                    new() { ProductName = "101GB004DEVQK" }
+                    new() { ProductName = ProductName.From("101GB004DEVQK") }
                 ]
             };
 
@@ -200,10 +200,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             {
                 Products =
                 [
-                    new() { ProductName = "101GB004DEVQK", LatestEditionNumber = 1 },
-                    new() { ProductName = "101GB00510210", LatestEditionNumber = 2 },
-                    new() { ProductName = "102CA005N5040W00130.h5", LatestEditionNumber = 1 },
-                    new() { ProductName = "102CA005N5040W00140.h5", LatestEditionNumber = 1 }
+                    new() { ProductName = ProductName.From("101GB004DEVQK"), LatestEditionNumber = EditionNumber.From(1) },
+                    new() {ProductName = ProductName.From("101GB00510210"), LatestEditionNumber = EditionNumber.From(2)},
+                    new() {ProductName = ProductName.From("102CA005N5040W00130.h5"), LatestEditionNumber = EditionNumber.From(1)},
+                    new() {ProductName = ProductName.From("102CA005N5040W00140.h5"), LatestEditionNumber = EditionNumber.From(1)}
                 ]
             };
 
@@ -235,9 +235,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             {
                 Products =
                 [
-                    new() { ProductName = "101GB004DEVQK", LatestEditionNumber = 1 },
-                    new() { ProductName = "101GB00510210", LatestEditionNumber = 2 },
-                    new() { ProductName = "102CA005N5040W00130.h5", LatestEditionNumber = 1 }
+                    new() { ProductName = ProductName.From("101GB004DEVQK"), LatestEditionNumber = EditionNumber.From(1) },
+                    new() {ProductName = ProductName.From("101GB00510210"), LatestEditionNumber = EditionNumber.From(2)},
+                    new() {ProductName = ProductName.From("102CA005N5040W00130.h5"), LatestEditionNumber = EditionNumber.From(1)}
                 ]
             };
 
@@ -270,9 +270,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             {
                 Products =
                 [
-                    new() { ProductName = "101GB004DEVQK", LatestEditionNumber = 1 },
-                    new() { ProductName = "101GB00510210", LatestEditionNumber = 2 },
-                    new() { ProductName = "102CA005N5040W00130.h5", LatestEditionNumber = 1 }
+                    new() { ProductName = ProductName.From("101GB004DEVQK"), LatestEditionNumber = EditionNumber.From(1) },
+                    new() {ProductName = ProductName.From("101GB00510210"), LatestEditionNumber = EditionNumber.From(2)},
+                    new() {ProductName = ProductName.From("102CA005N5040W00130.h5"), LatestEditionNumber = EditionNumber.From(1)}
                 ]
             };
             _pipelineContext = new PipelineContext<S100Build>(_job, _build, _storageService);

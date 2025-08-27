@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
+using UKHO.ADDS.EFS.VOS;
 
 namespace UKHO.ADDS.Clients.SalesCatalogueService.Models
 {
@@ -7,10 +8,10 @@ namespace UKHO.ADDS.Clients.SalesCatalogueService.Models
     public class S100ProductNames
     {
         [JsonPropertyName("editionNumber")]
-        public int EditionNumber { get; set; }
+        public EditionNumber EditionNumber { get; set; }
         
         [JsonPropertyName("productName")]
-        public string ProductName { get; set; }
+        public ProductName ProductName { get; set; }
         
         [JsonPropertyName("updateNumbers")]
         public List<int> UpdateNumbers { get; set; } = new List<int>();
@@ -22,6 +23,6 @@ namespace UKHO.ADDS.Clients.SalesCatalogueService.Models
         public int FileSize { get; set; }
         
         [JsonPropertyName("cancellation")]
-        public S100ProductCancellation Cancellation { get; set; }
+        public ProductCancellation Cancellation { get; set; }
     }
 }

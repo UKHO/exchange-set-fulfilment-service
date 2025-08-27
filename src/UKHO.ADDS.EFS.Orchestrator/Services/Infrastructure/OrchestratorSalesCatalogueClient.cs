@@ -7,6 +7,7 @@ using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Jobs;
 using UKHO.ADDS.EFS.RetryPolicy;
+using UKHO.ADDS.EFS.VOS;
 using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
@@ -83,9 +84,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
                             }
                             return new S100Products
                             {
-                                ProductName = x.ProductName,
-                                LatestEditionNumber = x.LatestEditionNumber,
-                                LatestUpdateNumber = x.LatestUpdateNumber,
+                                ProductName = ProductName.From(x.ProductName!),
+                                LatestEditionNumber = x.LatestEditionNumber.HasValue ? EditionNumber.From(x.LatestEditionNumber!.Value) : EditionNumber.NotSet,
+                                LatestUpdateNumber = x.LatestUpdateNumber.HasValue ? UpdateNumber.From(x.LatestUpdateNumber!.Value) : UpdateNumber.NotSet,
                                 Status = parsedStatus
                             };
                         })],
@@ -130,14 +131,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
         ///     The method returns an empty response when an error occurs or when
         ///     an unexpected HTTP status code is returned from the API.
         /// </remarks>
-        public async Task<S100ProductNamesResponse> GetS100ProductNamesAsync(IEnumerable<string> productNames, Job job, CancellationToken cancellationToken)
+        public async Task<S100ProductNamesResponse> GetS100ProductNamesAsync(IEnumerable<ProductName> productNames, Job job, CancellationToken cancellationToken)
         {
             try
             {
                 var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<S100ProductResponse?>(_logger, nameof(GetS100ProductNamesAsync));
                 var S100ProductNamesResult = await retryPolicy.ExecuteAsync(async () =>
                 {
-                    var result = await _salesCatalogueClient.V2.Products.S100.ProductNames.PostAsync(productNames.ToList(), requestConfiguration =>
+                    var result = await _salesCatalogueClient.V2.Products.S100.ProductNames.PostAsync(productNames.Select(x => (string)x).ToList(), requestConfiguration =>
                 {
                     requestConfiguration.Headers.Add("X-Correlation-Id", (string)job.GetCorrelationId());
 
@@ -151,33 +152,33 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
                     {
                         Products = response.Products?.Select(x => new S100ProductNames
                         {
-                            ProductName = x.ProductName ?? string.Empty,
-                            EditionNumber = x.EditionNumber ?? 0,
+                            ProductName = ProductName.From(x.ProductName!),
+                            EditionNumber = x.EditionNumber.HasValue ? EditionNumber.From(x.EditionNumber!.Value) : EditionNumber.NotSet,
                             UpdateNumbers = x.UpdateNumbers != null ? x.UpdateNumbers.Where(i => i.HasValue).Select(i => i.Value).ToList() : new List<int>(),
                             Dates = x.Dates?.Select(d => new S100ProductDate
                             {
-                                IssueDate = d.IssueDate.HasValue ? d.IssueDate.Value.DateTime : default,
-                                UpdateApplicationDate = d.UpdateApplicationDate.HasValue ? d.UpdateApplicationDate.Value.DateTime : default,
-                                UpdateNumber = d.UpdateNumber ?? 0
+                                IssueDate = d.IssueDate?.DateTime ?? default,
+                                UpdateApplicationDate = d.UpdateApplicationDate?.DateTime ?? default,
+                                UpdateNumber = d.UpdateNumber.HasValue ? UpdateNumber.From(d.UpdateNumber!.Value) : UpdateNumber.NotSet
                             }).ToList() ?? new List<S100ProductDate>(),
                             FileSize = x.FileSize ?? 0,
                             Cancellation = x.Cancellation is null
                                     ? null
-                                    : new S100ProductCancellation
+                                    : new ProductCancellation
                                     {
-                                        EditionNumber = x.Cancellation?.EditionNumber ?? 0,
-                                        UpdateNumber = x.Cancellation?.UpdateNumber ?? 0
+                                        EditionNumber = x.Cancellation!.EditionNumber.HasValue ? EditionNumber.From(x.Cancellation!.EditionNumber.Value) : EditionNumber.NotSet,
+                                        UpdateNumber = x.Cancellation!.UpdateNumber.HasValue ? UpdateNumber.From(x.Cancellation!.UpdateNumber.Value) : UpdateNumber.NotSet
                                     }
 
                         }).ToList() ?? new List<S100ProductNames>(),
                         ProductCounts = response?.ProductCounts is null ? null : new UKHO.ADDS.Clients.SalesCatalogueService.Models.ProductCounts
                         {
-                            RequestedProductCount = response.ProductCounts.RequestedProductCount,
-                            ReturnedProductCount = response.ProductCounts.ReturnedProductCount,
-                            RequestedProductsAlreadyUpToDateCount = response.ProductCounts.RequestedProductsAlreadyUpToDateCount,
+                            RequestedProductCount = response.ProductCounts.RequestedProductCount.HasValue ? ProductCount.From(response.ProductCounts.RequestedProductCount!.Value) : ProductCount.None,
+                            ReturnedProductCount = response.ProductCounts.ReturnedProductCount.HasValue ? ProductCount.From(response.ProductCounts.ReturnedProductCount!.Value) : ProductCount.None ,
+                            RequestedProductsAlreadyUpToDateCount = response.ProductCounts.RequestedProductsAlreadyUpToDateCount.HasValue ? ProductCount.From(response.ProductCounts.RequestedProductsAlreadyUpToDateCount!.Value) : ProductCount.None,
                             RequestedProductsNotReturned = response.ProductCounts.RequestedProductsNotReturned?.Select(r => new RequestedProductsNotReturned
                             {
-                                ProductName = r.ProductName ?? string.Empty,
+                                ProductName = ProductName.From(r.ProductName!),
                                 Reason = r.Reason?.ToString() ?? string.Empty
                             }).ToList() ?? new List<RequestedProductsNotReturned>()
                         },

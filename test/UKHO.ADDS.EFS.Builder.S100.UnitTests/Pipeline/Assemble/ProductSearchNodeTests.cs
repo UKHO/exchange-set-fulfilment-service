@@ -48,14 +48,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
                     [
                         new S100ProductNames 
                         {
-                            ProductName = "TestProduct",
-                            EditionNumber = 1,
+                            ProductName = ProductName.From("101TestProduct"),
+                            EditionNumber = EditionNumber.From(1),
                             UpdateNumbers = [0, 1]
                         },
                         new S100ProductNames 
                         {
-                            ProductName = "TestProduct2",
-                            EditionNumber = 2,
+                            ProductName = ProductName.From("101TestProduct2"),
+                            EditionNumber = EditionNumber.From(2),
                             UpdateNumbers = [0, 1]
                         }
                     ]
@@ -136,7 +136,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [Test]
         public async Task WhenPerformExecuteAsyncIsCalled_ThenQueryIsCorrectlyConfigured()
         {
-            var searchQuery = "BusinessUnit eq 'ADDS-S100' and $batch(ProductType) eq 'S-100' and (($batch(ProductName) eq 'TestProduct2' and $batch(EditionNumber) eq '2' and (($batch(UpdateNumber) eq '1' ))))";
+            var searchQuery = "BusinessUnit eq 'ADDS-S100' and $batch(ProductType) eq 'S-100' and (($batch(ProductName) eq '101TESTPRODUCT2' and $batch(EditionNumber) eq '2' and (($batch(UpdateNumber) eq '1' ))))";
             string? capturedQuery = null;
             var batchResponse = new BatchSearchResponse
             {
@@ -154,8 +154,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
             {
                 new()
                 {
-                    ProductName = "TestProduct2",
-                    EditionNumber = 2,
+                    ProductName = ProductName.From("101TestProduct2"),
+                    EditionNumber = EditionNumber.From(2),
                     UpdateNumbers = new List<int> { 1 }
                 }
             };

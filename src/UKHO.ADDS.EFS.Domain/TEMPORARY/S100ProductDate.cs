@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
+using UKHO.ADDS.EFS.VOS;
 
 namespace UKHO.ADDS.Clients.SalesCatalogueService.Models
 {
@@ -13,6 +14,6 @@ namespace UKHO.ADDS.Clients.SalesCatalogueService.Models
         public DateTime? UpdateApplicationDate { get; set; }
         
         [JsonPropertyName("updateNumber")]
-        public int UpdateNumber { get; set; }
+        public UpdateNumber UpdateNumber { get; set; }
     }
 }

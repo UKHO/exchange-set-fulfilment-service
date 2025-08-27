@@ -1,10 +1,12 @@
-﻿namespace UKHO.ADDS.Clients.SalesCatalogueService.Models
+﻿using UKHO.ADDS.EFS.VOS;
+
+namespace UKHO.ADDS.Clients.SalesCatalogueService.Models
 {
     public class ProductCounts
     {
-        public int? RequestedProductCount { get; set; }
-        public int? ReturnedProductCount { get; set; }
-        public int? RequestedProductsAlreadyUpToDateCount { get; set; }
+        public ProductCount RequestedProductCount { get; set; }
+        public ProductCount ReturnedProductCount { get; set; }
+        public ProductCount RequestedProductsAlreadyUpToDateCount { get; set; }
         public List<RequestedProductsNotReturned> RequestedProductsNotReturned { get; set; }
     }
 }

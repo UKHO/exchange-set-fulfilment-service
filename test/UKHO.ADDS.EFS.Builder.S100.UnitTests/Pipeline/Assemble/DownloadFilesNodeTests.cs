@@ -57,8 +57,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
                     BatchId = BatchId.From("a-batch-id"),
                     Products =
                     [
-                        new S100Products { ProductName = "Product1", LatestEditionNumber = 1, LatestUpdateNumber = 0 },
-                        new S100Products { ProductName = "Product2", LatestEditionNumber = 2, LatestUpdateNumber = 1 }
+                        new S100Products { ProductName = ProductName.From("Product1"), LatestEditionNumber = EditionNumber.From(1), LatestUpdateNumber = UpdateNumber.From(0) },
+                        new S100Products { ProductName = ProductName.From("Product2"), LatestEditionNumber = EditionNumber.From(2), LatestUpdateNumber = UpdateNumber.From(1) }
                     ]
                 }
             };

@@ -6,6 +6,7 @@ using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
 using UKHO.ADDS.EFS.Builds.S100;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Constants;
+using UKHO.ADDS.EFS.Exceptions;
 using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100;
@@ -128,11 +129,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
         [Test]
         public async Task WhenShouldExecuteAsyncCalledWithWhitespaceBatchId_ThenReturnsFalse()
         {
+            Assert.Throws<ValidationException>(CreateWhitespaceBatchId);
+        }
+
+        private void CreateWhitespaceBatchId()
+        {
             _pipelineContext.Job.BatchId = BatchId.From("   ");
-
-            var result = await _createErrorFileNode.ShouldExecuteAsync(_executionContext);
-
-            Assert.That(result, Is.False);
         }
 
         [Test]

@@ -5,6 +5,7 @@ namespace UKHO.ADDS.EFS.VOS
 {
     [ValueObject<int>(Conversions.SystemTextJson, typeof(ValidationException))]
     [Instance("NotRequired", 0)]
+    [Instance("NotSet", 0)]
     public partial struct EditionNumber
     {
         private static Validation Validate(int input)

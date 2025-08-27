@@ -150,9 +150,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
             return [
                 new S100Products
                 {
-                    ProductName="TestProduct",
-                    LatestEditionNumber=1,
-                    LatestUpdateNumber=0,
+                    ProductName = ProductName.From("TestProduct"),
+                    LatestEditionNumber = EditionNumber.From(1),
+                    LatestUpdateNumber = UpdateNumber.From(0),
                     Status=new S100ProductStatus
                     {
                         StatusName="newDataSet",
@@ -167,8 +167,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
             return [
                 new S100ProductNames
                 {
-                    ProductName = "TestProduct",
-                    EditionNumber = 1,
+                    ProductName = ProductName.From("TestProduct"),
+                    EditionNumber = EditionNumber.From(1),
                     UpdateNumbers =  [0,1]
                 }
             ];

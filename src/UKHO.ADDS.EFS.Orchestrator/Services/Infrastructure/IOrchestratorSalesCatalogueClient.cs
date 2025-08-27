@@ -1,5 +1,6 @@
 ﻿using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Orchestrator.Jobs;
+using UKHO.ADDS.EFS.VOS;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
 {
@@ -31,6 +32,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
         /// <returns>
         ///     The response containing product details or an empty response if an error occurs.
         /// </returns>
-        Task<S100ProductNamesResponse> GetS100ProductNamesAsync(IEnumerable<string> productNames, Job job, CancellationToken cancellationToken);
+        Task<S100ProductNamesResponse> GetS100ProductNamesAsync(IEnumerable<ProductName> productNames, Job job, CancellationToken cancellationToken);
     }
 }
