@@ -1,6 +1,6 @@
 ﻿using UKHO.ADDS.EFS.Builds;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Jobs
+namespace UKHO.ADDS.EFS.Jobs
 {
     public partial class Job
     {

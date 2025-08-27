@@ -1,4 +1,4 @@
-﻿using UKHO.ADDS.EFS.VOS;
+﻿using UKHO.ADDS.EFS.Products;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Models
 {

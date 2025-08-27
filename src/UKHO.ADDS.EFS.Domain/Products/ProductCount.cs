@@ -1,19 +1,20 @@
 ﻿using UKHO.ADDS.EFS.Exceptions;
 using Vogen;
 
-namespace UKHO.ADDS.EFS.VOS
+namespace UKHO.ADDS.EFS.Products
 {
     [ValueObject<int>(Conversions.SystemTextJson, typeof(ValidationException))]
-    public partial struct MessageVersion
+    [Instance("None", 0)]
+    public partial struct ProductCount
     {
         private static Validation Validate(int input)
         {
-            if (input >= 1)
+            if (input >= 0)
             {
                 return Validation.Ok;
             }
 
-            return Validation.Invalid($"{nameof(MessageVersion)} must be >= 1");
+            return Validation.Invalid($"{nameof(ProductCount)} must be >= 0");
         }
     }
 }

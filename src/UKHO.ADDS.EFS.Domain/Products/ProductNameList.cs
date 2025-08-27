@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace UKHO.ADDS.EFS.VOS
+namespace UKHO.ADDS.EFS.Products
 {
     public sealed class ProductNameList
     {

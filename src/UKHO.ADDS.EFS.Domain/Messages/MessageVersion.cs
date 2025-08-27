@@ -1,21 +1,19 @@
 ﻿using UKHO.ADDS.EFS.Exceptions;
 using Vogen;
 
-namespace UKHO.ADDS.EFS.VOS
+namespace UKHO.ADDS.EFS.Messages
 {
     [ValueObject<int>(Conversions.SystemTextJson, typeof(ValidationException))]
-    [Instance("NotRequired", 0)]
-    [Instance("NotSet", 0)]
-    public partial struct EditionNumber
+    public partial struct MessageVersion
     {
         private static Validation Validate(int input)
         {
-            if (input >= 0)
+            if (input >= 1)
             {
                 return Validation.Ok;
             }
 
-            return Validation.Invalid($"{nameof(EditionNumber)} must be >= 0");
+            return Validation.Invalid($"{nameof(MessageVersion)} must be >= 1");
         }
     }
 }

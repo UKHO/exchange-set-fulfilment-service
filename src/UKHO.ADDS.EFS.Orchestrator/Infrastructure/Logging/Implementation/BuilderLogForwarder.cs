@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using UKHO.ADDS.EFS.Jobs;
-using UKHO.ADDS.EFS.VOS;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation

@@ -5,7 +5,7 @@ using UKHO.ADDS.EFS.Builder.Common.Factories;
 using UKHO.ADDS.EFS.Builder.Common.Logging;
 using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
-using UKHO.ADDS.EFS.VOS;
+using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Builder.Common.Pipelines

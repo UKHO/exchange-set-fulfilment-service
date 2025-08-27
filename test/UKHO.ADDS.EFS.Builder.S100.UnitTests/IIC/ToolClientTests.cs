@@ -3,7 +3,8 @@ using System.Text;
 using FakeItEasy;
 using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.IIC.Models;
-using UKHO.ADDS.EFS.VOS;
+using UKHO.ADDS.EFS.Implementation;
+using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC

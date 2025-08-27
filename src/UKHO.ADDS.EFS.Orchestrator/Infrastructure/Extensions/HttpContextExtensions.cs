@@ -1,5 +1,5 @@
 ﻿using UKHO.ADDS.Clients.Common.Constants;
-using UKHO.ADDS.EFS.VOS;
+using UKHO.ADDS.EFS.Implementation;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Extensions
 {

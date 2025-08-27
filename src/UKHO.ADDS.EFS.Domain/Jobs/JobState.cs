@@ -1,4 +1,4 @@
-﻿namespace UKHO.ADDS.EFS.Orchestrator.Jobs
+﻿namespace UKHO.ADDS.EFS.Jobs
 {
     public enum JobState
     {

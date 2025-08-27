@@ -1,7 +1,7 @@
 ﻿using UKHO.ADDS.EFS.Exceptions;
 using Vogen;
 
-namespace UKHO.ADDS.EFS.VOS
+namespace UKHO.ADDS.EFS.Jobs
 {
     [ValueObject<string>(Conversions.SystemTextJson, typeof(ValidationException))]
     public partial struct JobId

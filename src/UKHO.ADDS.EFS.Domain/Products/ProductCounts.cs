@@ -1,6 +1,4 @@
-﻿using UKHO.ADDS.EFS.VOS;
-
-namespace UKHO.ADDS.Clients.SalesCatalogueService.Models
+﻿namespace UKHO.ADDS.EFS.Products
 {
     public class ProductCounts
     {

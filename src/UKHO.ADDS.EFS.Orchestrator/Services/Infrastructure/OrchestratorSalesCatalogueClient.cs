@@ -3,12 +3,12 @@ using Microsoft.Kiota.Abstractions;
 using Microsoft.Kiota.Http.HttpClientLibrary.Middleware.Options;
 using UKHO.ADDS.Clients.Kiota.SalesCatalogueService;
 using UKHO.ADDS.Clients.Kiota.SalesCatalogueService.Models;
-using UKHO.ADDS.Clients.SalesCatalogueService.Models;
+using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
-using UKHO.ADDS.EFS.Orchestrator.Jobs;
+using UKHO.ADDS.EFS.Products;
 using UKHO.ADDS.EFS.RetryPolicy;
-using UKHO.ADDS.EFS.VOS;
 using UKHO.ADDS.Infrastructure.Results;
+using ProductCounts = UKHO.ADDS.EFS.Products.ProductCounts;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
 {
@@ -171,7 +171,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
                                     }
 
                         }).ToList() ?? new List<S100ProductNames>(),
-                        ProductCounts = response?.ProductCounts is null ? null : new UKHO.ADDS.Clients.SalesCatalogueService.Models.ProductCounts
+                        ProductCounts = response?.ProductCounts is null ? null : new ProductCounts
                         {
                             RequestedProductCount = response.ProductCounts.RequestedProductCount.HasValue ? ProductCount.From(response.ProductCounts.RequestedProductCount!.Value) : ProductCount.None,
                             ReturnedProductCount = response.ProductCounts.ReturnedProductCount.HasValue ? ProductCount.From(response.ProductCounts.ReturnedProductCount!.Value) : ProductCount.None ,

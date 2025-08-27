@@ -1,5 +1,4 @@
-﻿using UKHO.ADDS.Clients.SalesCatalogueService.Models;
-using UKHO.ADDS.EFS.VOS;
+﻿using UKHO.ADDS.EFS.Products;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 {

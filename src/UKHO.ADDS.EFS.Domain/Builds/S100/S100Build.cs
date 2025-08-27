@@ -1,5 +1,5 @@
 ﻿using System.Text;
-using UKHO.ADDS.Clients.SalesCatalogueService.Models;
+using UKHO.ADDS.EFS.Products;
 
 namespace UKHO.ADDS.EFS.Builds.S100
 {

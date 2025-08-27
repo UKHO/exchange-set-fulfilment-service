@@ -1,6 +1,7 @@
 ﻿using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Create.Logging;
-using UKHO.ADDS.EFS.VOS;
+using UKHO.ADDS.EFS.Implementation;
+using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 

@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
-using UKHO.ADDS.EFS.VOS;
 
-namespace UKHO.ADDS.Clients.SalesCatalogueService.Models
+namespace UKHO.ADDS.EFS.Products
 {
     [ExcludeFromCodeCoverage]
     public class S100Products

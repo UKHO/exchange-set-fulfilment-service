@@ -1,9 +1,9 @@
 ﻿using System.Text.Json.Serialization;
 using UKHO.ADDS.EFS.Builds;
-using UKHO.ADDS.EFS.Jobs;
-using UKHO.ADDS.EFS.VOS;
+using UKHO.ADDS.EFS.Implementation;
+using UKHO.ADDS.EFS.Products;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Jobs
+namespace UKHO.ADDS.EFS.Jobs
 {
     public partial class Job
     {

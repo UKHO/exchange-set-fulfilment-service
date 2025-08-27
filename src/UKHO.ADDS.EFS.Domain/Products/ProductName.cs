@@ -2,7 +2,7 @@
 using UKHO.ADDS.EFS.Jobs;
 using Vogen;
 
-namespace UKHO.ADDS.EFS.VOS
+namespace UKHO.ADDS.EFS.Products
 {
     [ValueObject<string>(Conversions.SystemTextJson, typeof(ValidationException))]
     public partial struct ProductName
@@ -40,7 +40,7 @@ namespace UKHO.ADDS.EFS.VOS
         {
             get
             {
-                var span = Value.AsSpan();
+                var span = MemoryExtensions.AsSpan(Value);
 
                 if (TryParseExactlyThreeDigits(span, out var _))
                 {
@@ -60,7 +60,7 @@ namespace UKHO.ADDS.EFS.VOS
         {
             get
             {
-                var span = Value.AsSpan();
+                var span = MemoryExtensions.AsSpan(Value);
 
                 if (TryParseExactlyThreeDigits(span, out var code))
                 {

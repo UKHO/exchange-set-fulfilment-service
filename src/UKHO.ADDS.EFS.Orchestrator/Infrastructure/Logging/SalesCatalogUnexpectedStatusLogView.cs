@@ -1,7 +1,7 @@
 ﻿using System.Net;
+using UKHO.ADDS.EFS.Implementation;
 using UKHO.ADDS.EFS.Jobs;
-using UKHO.ADDS.EFS.Orchestrator.Jobs;
-using UKHO.ADDS.EFS.VOS;
+using UKHO.ADDS.EFS.Products;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 {

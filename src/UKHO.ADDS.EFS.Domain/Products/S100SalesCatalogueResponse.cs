@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace UKHO.ADDS.Clients.SalesCatalogueService.Models
+namespace UKHO.ADDS.EFS.Products
 {
     public class S100SalesCatalogueResponse
     {

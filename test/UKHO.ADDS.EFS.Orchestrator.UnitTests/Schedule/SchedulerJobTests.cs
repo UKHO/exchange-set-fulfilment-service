@@ -4,10 +4,8 @@ using Microsoft.Extensions.Logging;
 using Quartz;
 using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Jobs;
-using UKHO.ADDS.EFS.Orchestrator.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.EFS.Orchestrator.Schedule;
-using UKHO.ADDS.EFS.VOS;
 
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Schedule
 {

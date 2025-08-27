@@ -1,4 +1,4 @@
-﻿using UKHO.ADDS.EFS.VOS;
+﻿using UKHO.ADDS.EFS.Jobs;
 
 namespace UKHO.ADDS.EFS.Builder.S57.Pipelines.Startup.Logging
 {

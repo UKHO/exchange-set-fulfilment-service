@@ -1,4 +1,4 @@
-﻿using UKHO.ADDS.EFS.VOS;
+﻿using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute.Logging

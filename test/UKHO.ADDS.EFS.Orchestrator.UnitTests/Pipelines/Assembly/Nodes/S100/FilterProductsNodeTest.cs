@@ -2,12 +2,11 @@ using FakeItEasy;
 using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Builds.S100;
 using UKHO.ADDS.EFS.Jobs;
-using UKHO.ADDS.EFS.Orchestrator.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Services;
-using UKHO.ADDS.EFS.VOS;
+using UKHO.ADDS.EFS.Products;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 

@@ -1,9 +1,10 @@
 ﻿using Quartz;
+using UKHO.ADDS.EFS.Implementation;
 using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
-using UKHO.ADDS.EFS.VOS;
+using UKHO.ADDS.EFS.Products;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Schedule
 {

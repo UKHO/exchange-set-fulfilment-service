@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Text.Json.Serialization;
 
-namespace UKHO.ADDS.Clients.SalesCatalogueService.Models
+namespace UKHO.ADDS.EFS.Products
 {
     [ExcludeFromCodeCoverage]
     public class S100ProductNamesResponse

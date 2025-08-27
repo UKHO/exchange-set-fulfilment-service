@@ -1,6 +1,5 @@
-﻿using UKHO.ADDS.Clients.SalesCatalogueService.Models;
-using UKHO.ADDS.EFS.Orchestrator.Jobs;
-using UKHO.ADDS.EFS.VOS;
+﻿using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.Products;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
 {

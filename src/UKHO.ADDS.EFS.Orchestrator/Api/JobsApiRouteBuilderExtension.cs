@@ -1,12 +1,11 @@
 ﻿using UKHO.ADDS.EFS.Builds;
+using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Extensions;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
-using UKHO.ADDS.EFS.Orchestrator.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
-using UKHO.ADDS.EFS.VOS;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Api
 {

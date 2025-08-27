@@ -1,5 +1,5 @@
-﻿using UKHO.ADDS.EFS.Utilities;
-using UKHO.ADDS.EFS.VOS;
+﻿using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.Utilities;
 
 namespace UKHO.ADDS.EFS.Domain.UnitTests.Utilities
 {

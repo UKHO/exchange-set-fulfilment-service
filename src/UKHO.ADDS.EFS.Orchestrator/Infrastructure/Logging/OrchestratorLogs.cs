@@ -1,7 +1,7 @@
 ﻿using UKHO.ADDS.EFS.Builds;
+using UKHO.ADDS.EFS.Implementation;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
-using UKHO.ADDS.EFS.VOS;
 using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
