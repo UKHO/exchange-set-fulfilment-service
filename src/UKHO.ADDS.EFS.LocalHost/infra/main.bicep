@@ -21,7 +21,6 @@ param addsEnvironment string
 @secure()
 param efs_redis_password string
 param efsApplicationInsightsName string
-param efsContainerAppsEnvironmentName string
 param efsContainerRegistryName string
 param efsEventHubNamespaceName string
 param efsLogAnalyticsWorkspaceName string

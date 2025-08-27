@@ -48,7 +48,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             var efsServiceIdentityName = builder.AddParameter("efsServiceIdentityName");
             var efsRetainResourceGroup = builder.AddParameter("efsRetainResourceGroup");
             var efsLogAnalyticsWorkspaceName = builder.AddParameter("efsLogAnalyticsWorkspaceName");
-            var efsContainerAppsEnvironmentName = builder.AddParameter("efsContainerAppsEnvironmentName");
+            //var efsContainerAppsEnvironmentName = builder.AddParameter("efsContainerAppsEnvironmentName");
             var efsContainerRegistryName = builder.AddParameter("efsContainerRegistryName");
             var efsApplicationInsightsName = builder.AddParameter("efsApplicationInsightsName");
             var efsEventHubNamespaceName = builder.AddParameter("efsEventHubNamespaceName");
