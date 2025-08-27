@@ -3,6 +3,8 @@ using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute.Logging;
 using UKHO.ADDS.EFS.Constants;
+using UKHO.ADDS.EFS.Implementation;
+using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.RetryPolicy;
 using UKHO.ADDS.EFS.Utilities;
 using UKHO.ADDS.Infrastructure.Pipelines;
@@ -58,7 +60,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
             {
                 await using var fileStream = CreateExchangeSetFileStream(filePath);
 
-                var batchHandle = new BatchHandle(batchId);
+                var batchHandle = new BatchHandle((string)batchId);
                 var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<AddFileToBatchResponse>(_logger, "AddFileToBatchAsync");
                 var addFileResult = await retryPolicy.ExecuteAsync(() =>
                     _fileShareReadWriteClient.AddFileToBatchAsync(
@@ -66,7 +68,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
                         fileStream,
                         fileName,
                         ApiHeaderKeys.ContentTypeOctetStream,
-                        correlationId,
+                        (string)correlationId,
                         CancellationToken.None
                     ));
 
@@ -107,7 +109,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
         /// <param name="fileName">The name of the file.</param>
         /// <param name="batchId">The batch identifier.</param>
         /// <param name="error">The error details.</param>
-        private void LogAddFileToBatchError(string fileName, string batchId, IError error)
+        private void LogAddFileToBatchError(string fileName, BatchId batchId, IError error)
         {
             var addFileLogView = new AddFileLogView
             {
@@ -126,7 +128,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
         /// <param name="filePath">The expected file path of the missing file.</param>
         /// <param name="batchId">The identifier for the batch associated with the operation.</param>
         /// <param name="correlationId">The correlation identifier used to trace the operation across systems.</param>
-        private void LogExchangeSetFileNotFound(string fileName, string filePath, string batchId, string correlationId)
+        private void LogExchangeSetFileNotFound(string fileName, string filePath, BatchId batchId, CorrelationId correlationId)
         {
             var fileNotFoundLogView = new FileNotFoundLogView
             {

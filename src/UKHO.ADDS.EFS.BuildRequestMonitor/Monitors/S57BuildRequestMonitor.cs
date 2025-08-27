@@ -13,7 +13,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Monitors
         private readonly QueueServiceClient _queueClient;
         private readonly S57BuildRequestProcessor _processor;
 
-        private readonly List<string> _processedJobs;
+        private readonly List<JobId> _processedJobs;
 
         public S57BuildRequestMonitor(ILogger<S57BuildRequestMonitor> logger, QueueServiceClient qClient, S57BuildRequestProcessor processor)
         {

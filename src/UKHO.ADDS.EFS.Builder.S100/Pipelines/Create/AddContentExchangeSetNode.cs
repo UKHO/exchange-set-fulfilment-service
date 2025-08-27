@@ -1,5 +1,7 @@
 ﻿using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Create.Logging;
+using UKHO.ADDS.EFS.Implementation;
+using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
@@ -42,9 +44,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
             return NodeResultStatus.Succeeded;
         }
 
-        private async Task<bool> AddContentForPathAsync(IToolClient toolClient, string path, string jobId, string authKey, ILogger logger)
+        private async Task<bool> AddContentForPathAsync(IToolClient toolClient, string path, JobId jobId, string authKey, ILogger logger)
         {
-            var result = await toolClient.AddContentAsync(path, jobId, authKey, jobId);
+            var result = await toolClient.AddContentAsync(path, jobId, authKey);
 
             if (result.IsSuccess(out _, out var error))
             {

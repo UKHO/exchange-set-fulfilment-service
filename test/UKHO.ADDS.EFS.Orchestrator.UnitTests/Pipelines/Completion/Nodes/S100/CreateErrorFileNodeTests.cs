@@ -6,13 +6,14 @@ using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
 using UKHO.ADDS.EFS.Builds.S100;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Constants;
+using UKHO.ADDS.EFS.Exceptions;
 using UKHO.ADDS.EFS.Jobs;
-using UKHO.ADDS.EFS.Orchestrator.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Services;
 using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
+using UKHO.ADDS.EFS.Products;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
@@ -31,8 +32,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
         private IConfiguration _configuration;
         private readonly CancellationToken _cancellationToken = CancellationToken.None;
         private const string S100ErrorFileNameTemplate = "orchestrator:Errors:FileNameTemplate";
-        private const string TestBatchId = "test-batch-id";
-        private const string TestJobId = "test-job-id";
+
+        private static BatchId TestBatchId = BatchId.From("test-batch-id");
+        private static JobId TestJobId = JobId.From("test-job-id");
 
         [SetUp]
         public void SetUp()
@@ -52,7 +54,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
                 Id = TestJobId,
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = "",
+                RequestedProducts = new ProductNameList(),
                 RequestedFilter = "",
                 BatchId = TestBatchId
             };
@@ -114,19 +116,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
         }
 
         [Test]
-        public async Task WhenShouldExecuteAsyncCalledWithNullBatchId_ThenReturnsFalse()
+        public async Task WhenShouldExecuteAsyncCalledWithBatchIdNone_ThenReturnsFalse()
         {
-            _pipelineContext.Job.BatchId = null;
-
-            var result = await _createErrorFileNode.ShouldExecuteAsync(_executionContext);
-
-            Assert.That(result, Is.False);
-        }
-
-        [Test]
-        public async Task WhenShouldExecuteAsyncCalledWithEmptyBatchId_ThenReturnsFalse()
-        {
-            _pipelineContext.Job.BatchId = string.Empty;
+            _pipelineContext.Job.BatchId = BatchId.None;
 
             var result = await _createErrorFileNode.ShouldExecuteAsync(_executionContext);
 
@@ -136,11 +128,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
         [Test]
         public async Task WhenShouldExecuteAsyncCalledWithWhitespaceBatchId_ThenReturnsFalse()
         {
-            _pipelineContext.Job.BatchId = "   ";
+            Assert.Throws<ValidationException>(CreateWhitespaceBatchId);
+        }
 
-            var result = await _createErrorFileNode.ShouldExecuteAsync(_executionContext);
-
-            Assert.That(result, Is.False);
+        private void CreateWhitespaceBatchId()
+        {
+            _pipelineContext.Job.BatchId = BatchId.From("   ");
         }
 
         [Test]
@@ -148,11 +141,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
         {
             var addFileResponse = new AddFileToBatchResponse();
             A.CallTo(() => _fileShareClient.AddFileToBatchAsync(
-                A<string>.That.IsEqualTo(TestBatchId),
+                A<string>.That.IsEqualTo((string)TestBatchId),
                 A<Stream>._,
                 A<string>.That.IsEqualTo("error.txt"),
                 A<string>.That.IsEqualTo(ApiHeaderKeys.ContentTypeTextPlain),
-                A<string>.That.IsEqualTo(TestJobId),
+                A<string>.That.IsEqualTo((string)TestJobId),
                 A<CancellationToken>._))
                 .Returns(Result.Success(addFileResponse));
 
@@ -168,11 +161,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
         {
             var addFileResponse = new AddFileToBatchResponse();
             A.CallTo(() => _fileShareClient.AddFileToBatchAsync(
-                A<string>.That.IsEqualTo(TestBatchId),
+                A<string>.That.IsEqualTo((string)TestBatchId),
                 A<Stream>._,
                 A<string>.That.IsEqualTo("error.txt"),
                 A<string>.That.IsEqualTo(ApiHeaderKeys.ContentTypeTextPlain),
-                A<string>.That.IsEqualTo(TestJobId),
+                A<string>.That.IsEqualTo((string)TestJobId),
                 A<CancellationToken>._))
                 .Returns(Result.Success(addFileResponse));
 
@@ -206,11 +199,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
             var addFileResponse = new AddFileToBatchResponse();
 
             A.CallTo(() => _fileShareClient.AddFileToBatchAsync(
-                A<string>.That.IsEqualTo(TestBatchId),
+                A<string>.That.IsEqualTo((string)TestBatchId),
                 A<Stream>._,
                 A<string>.That.IsEqualTo("error_test-job-id.txt"),
                 A<string>.That.IsEqualTo(ApiHeaderKeys.ContentTypeTextPlain),
-                A<string>.That.IsEqualTo(TestJobId),
+                A<string>.That.IsEqualTo((string)TestJobId),
                 A<CancellationToken>._))
                 .Returns(Result.Success(addFileResponse));
 
@@ -400,11 +393,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
             await _createErrorFileNode.ExecuteAsync(_executionContext);
 
             A.CallTo(() => _fileShareClient.AddFileToBatchAsync(
-                TestBatchId,
+                (string)TestBatchId,
                 A<Stream>.That.Not.IsNull(),
                 "error.txt",
                 ApiHeaderKeys.ContentTypeTextPlain,
-                TestJobId,
+                (string)TestJobId,
                 A<CancellationToken>._))
                 .MustHaveHappenedOnceExactly();
         }

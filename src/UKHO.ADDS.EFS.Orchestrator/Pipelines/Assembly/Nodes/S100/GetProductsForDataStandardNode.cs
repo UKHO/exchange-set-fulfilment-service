@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using UKHO.ADDS.EFS.Builds.S100;
+using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
@@ -29,15 +30,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             var job = context.Subject.Job;
             var build = context.Subject.Build;
 
-            var (s100SalesCatalogueData, lastModified) = await _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(job.DataStandardTimestamp, job);
+            var (s100SalesCatalogueData, lastModified) = await _salesCatalogueClient.GetS100ProductVersionListAsync(job.DataStandardTimestamp, job);
 
             var nodeResult = NodeResultStatus.NotRun;
 
             switch (s100SalesCatalogueData.ResponseCode)
             {
-                case HttpStatusCode.OK when s100SalesCatalogueData.ResponseBody.Any():
+                case HttpStatusCode.OK when s100SalesCatalogueData.Products.Any():
                     // We have something to build, so move forwards with scheduling a build
-                    build.Products = s100SalesCatalogueData.ResponseBody;
+                    build.Products = s100SalesCatalogueData.Products;
 
                     job.DataStandardTimestamp = lastModified;
                     build.SalesCatalogueTimestamp = lastModified;

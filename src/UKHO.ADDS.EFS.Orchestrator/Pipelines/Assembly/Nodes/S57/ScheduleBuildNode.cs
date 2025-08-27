@@ -2,7 +2,7 @@
 using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Builds.S57;
 using UKHO.ADDS.EFS.Configuration.Namespaces;
-using UKHO.ADDS.EFS.Orchestrator.Jobs;
+using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Services;
@@ -32,7 +32,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S57
 
             var batchId = context.Subject.Job.BatchId;
 
-            return Task.FromResult((jobState == JobState.Created && buildState == BuildState.NotScheduled) && !string.IsNullOrEmpty(batchId));
+            return Task.FromResult((jobState == JobState.Created && buildState == BuildState.NotScheduled) && batchId != BatchId.None);
         }
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<PipelineContext<S57Build>> context)
@@ -45,7 +45,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S57
             {
                 var request = new S57BuildRequest()
                 {
-                    Version = 1,
                     Timestamp = DateTime.UtcNow,
                     JobId = job.Id,
                     BatchId = job.BatchId!,

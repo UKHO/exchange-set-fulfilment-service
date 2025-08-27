@@ -3,6 +3,7 @@ using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
+using UKHO.ADDS.EFS.Implementation;
 using UKHO.ADDS.EFS.RetryPolicy;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
@@ -87,7 +88,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private async Task<NodeResultStatus> DownloadLatestBatchFilesAsync(
             IEnumerable<BatchDetails> latestBatches,
             string workSpaceRootPath,
-            string correlationId,
+            CorrelationId correlationId,
             string workSpaceSpoolDataSetFilesPath,
             string workSpaceSpoolSupportFilesPath)
         {
@@ -175,7 +176,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             string workSpaceRootPath,
             string workSpaceSpoolDataSetFilesPath,
             string workSpaceSpoolSupportFilesPath,
-            string correlationId,
+            CorrelationId correlationId,
             ConcurrentDictionary<string, SemaphoreSlim> fileLocks)
         {
             var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<Stream>(_logger, "DownloadFile");
@@ -216,8 +217,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                                 FileOptions.Asynchronous);
 
                             var streamResult = await retryPolicy.ExecuteAsync(() =>
-                                _fileShareReadOnlyClient.DownloadFileAsync(
-                                    item.Batch.BatchId, item.FileName, outputFileStream, correlationId, FileSizeInBytes));
+                                _fileShareReadOnlyClient.DownloadFileAsync(item.Batch.BatchId, item.FileName, outputFileStream, (string)correlationId, FileSizeInBytes));
 
                             if (streamResult.IsFailure(out var error, out var value))
                             {
@@ -313,7 +313,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             return extension.Equals(H5Extension, StringComparison.OrdinalIgnoreCase);
         }
 
-        private void LogFssDownloadFailed(BatchDetails batch, string fileName, IError error, string correlationId)
+        private void LogFssDownloadFailed(BatchDetails batch, string fileName, IError error, CorrelationId correlationId)
         {
             var downloadFilesLogView = new DownloadFilesLogView
             {

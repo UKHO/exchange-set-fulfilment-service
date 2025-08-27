@@ -6,6 +6,7 @@ using UKHO.ADDS.EFS.Builder.S100.IIC.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Create;
 using UKHO.ADDS.EFS.Builds.S100;
+using UKHO.ADDS.EFS.Implementation;
 using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
@@ -39,11 +40,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
             {
                 Build = new S100Build()
                 {
-                    JobId = "TestCorrelationId",
-                    BatchId = "a-valid-batch-id",
+                    JobId = JobId.From("TestCorrelationId"),
+                    BatchId = BatchId.From("a-valid-batch-id"),
                     DataStandard = DataStandard.S100
                 },
-                JobId = "TestJobId",
+                JobId = JobId.From("TestJobId"),
                 WorkspaceAuthenticationKey = "Test123"
             };
             A.CallTo(() => _executionContext.Subject).Returns(exchangeSetPipelineContext);
@@ -55,7 +56,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         {
             var signingResponse = new SigningResponse { Certificate = "cert", SigningKey = "key", Status = "ok" };
             var result = Result.Success(signingResponse);
-            A.CallTo(() => _toolClient.SignExchangeSetAsync("TestJobId", "Test123", "TestCorrelationId")).Returns(Task.FromResult<IResult<SigningResponse>>(result));
+            A.CallTo(() => _toolClient.SignExchangeSetAsync(JobId.From("TestJobId"), "Test123")).Returns(Task.FromResult<IResult<SigningResponse>>(result));
             A.CallTo(() => _loggerFactory.CreateLogger(typeof(SignExchangeSetNode).FullName!)).Returns(_logger);
 
             var nodeResult = await _signExchangeSetNode.ExecuteAsync(_executionContext);
@@ -68,7 +69,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         {
             var error = ErrorFactory.CreateError(HttpStatusCode.BadRequest);
             var result = Result.Failure<SigningResponse>(error);
-            A.CallTo(() => _toolClient.SignExchangeSetAsync("TestJobId", "Test123", "TestCorrelationId")).Returns(Task.FromResult<IResult<SigningResponse>>(result));
+            A.CallTo(() => _toolClient.SignExchangeSetAsync(JobId.From("TestJobId"), "Test123")).Returns(Task.FromResult<IResult<SigningResponse>>(result));
             A.CallTo(() => _loggerFactory.CreateLogger(typeof(SignExchangeSetNode).FullName!)).Returns(_logger);
 
             var nodeResult = await _signExchangeSetNode.ExecuteAsync(_executionContext);

@@ -8,7 +8,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S57
     internal class S57BuildTable : BlobTable<S57Build>
     {
         public S57BuildTable(BlobServiceClient blobServiceClient)
-            : base(StorageConfiguration.S57BuildContainer, blobServiceClient, x => x.JobId, x => x.JobId)
+            : base(StorageConfiguration.S57BuildContainer, blobServiceClient, x => (string)x.JobId, x => (string)x.JobId)
         {
         }
     }

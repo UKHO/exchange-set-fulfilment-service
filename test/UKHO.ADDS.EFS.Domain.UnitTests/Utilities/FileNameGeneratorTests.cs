@@ -1,11 +1,12 @@
-﻿using UKHO.ADDS.EFS.Utilities;
+﻿using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.Utilities;
 
 namespace UKHO.ADDS.EFS.Domain.UnitTests.Utilities
 {
     [TestFixture]
     public class FileNameGeneratorTests
     {
-        private const string DefaultJobId = "TEST123";
+        private readonly JobId _defaultJobId = JobId.From("TEST123");
 
        [Test]
         public void WhenGeneratingFromTemplateWithNoParams_ThenReturnsTemplateVerbatim()
@@ -13,7 +14,7 @@ namespace UKHO.ADDS.EFS.Domain.UnitTests.Utilities
             var exchangeSetNameTemplate = "Test";
 
             var sut = new FileNameGenerator(exchangeSetNameTemplate);
-            var result = sut.GenerateFileName(DefaultJobId);
+            var result = sut.GenerateFileName(_defaultJobId);
 
             Assert.That(result, Is.EqualTo("Test"));
         }
@@ -24,7 +25,7 @@ namespace UKHO.ADDS.EFS.Domain.UnitTests.Utilities
             var exchangeSetNameTemplate = "Test_[jobid]";
 
             var sut = new FileNameGenerator(exchangeSetNameTemplate);
-            var result = sut.GenerateFileName(DefaultJobId);
+            var result = sut.GenerateFileName(_defaultJobId);
 
             Assert.That(result, Is.EqualTo("Test_TEST123"));
         }
@@ -38,7 +39,7 @@ namespace UKHO.ADDS.EFS.Domain.UnitTests.Utilities
             var sut = new FileNameGenerator(exchangeSetNameTemplate);
             var date = new DateTime(2023, 10, 5);
 
-            var result = sut.GenerateFileName(DefaultJobId, date);
+            var result = sut.GenerateFileName(_defaultJobId, date);
 
             Assert.That(result, Is.EqualTo($"Test_20231005"));
         }

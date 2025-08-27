@@ -4,6 +4,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 {
     public interface IBuilderLogForwarder
     {
-        Task ForwardLogsAsync(IEnumerable<string> messages, DataStandard dataStandard, string jobId);
+        Task ForwardLogsAsync(IEnumerable<string> messages, DataStandard dataStandard, JobId jobId);
     }
 }

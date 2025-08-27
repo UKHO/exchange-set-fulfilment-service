@@ -6,6 +6,7 @@ using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute;
 using UKHO.ADDS.EFS.Builds.S100;
+using UKHO.ADDS.EFS.Implementation;
 using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
@@ -42,8 +43,8 @@ public class DistributionPipelineTests
         {
             Build = new S100Build()
             {
-                JobId = "testId",
-                BatchId = "a-batch-id",
+                JobId = JobId.From("testId"),
+                BatchId = BatchId.From("a-batch-id"),
                 DataStandard = DataStandard.S100
             },
             WorkspaceAuthenticationKey = "authKey",
@@ -130,7 +131,7 @@ public class DistributionPipelineTests
         var fakeError = A.Fake<IError>();
 
         A.CallTo(() => fakeResult.IsFailure(out fakeError!, out outStream!)).Returns(true);
-        A.CallTo(() => _executionContext.Subject.ToolClient.ExtractExchangeSetAsync(A<string>._, A<string>._, A<string>._, A<string>._))
+        A.CallTo(() => _executionContext.Subject.ToolClient.ExtractExchangeSetAsync(A<JobId>._, A<string>._, A<string>._))
             .Returns(Task.FromResult(fakeResult));
 
         var result = await _distributionPipeline.ExecutePipeline(_pipelineContext);

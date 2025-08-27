@@ -1,5 +1,5 @@
 ﻿using UKHO.ADDS.EFS.Builds.S57;
-using UKHO.ADDS.EFS.Orchestrator.Jobs;
+using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
@@ -28,12 +28,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S57
             var job = context.Subject.Job;
             var build = context.Subject.Build;
 
-            var createBatchResponseResult = await _fileShareClient.CreateBatchAsync(job.GetCorrelationId(), Environment.CancellationToken);
+            var createBatchResponseResult = await _fileShareClient.CreateBatchAsync((string)job.GetCorrelationId(), Environment.CancellationToken);
 
             if (createBatchResponseResult.IsSuccess(out var batchHandle, out _))
             {
-                job.BatchId = batchHandle.BatchId;
-                build.BatchId = batchHandle.BatchId;
+                job.BatchId = BatchId.From(batchHandle.BatchId);
+                build.BatchId = BatchId.From(batchHandle.BatchId);
             }
             else
             {

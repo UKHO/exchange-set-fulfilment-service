@@ -133,6 +133,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
             {
                 var exchangeSetGenerationSchedule = configuration["orchestrator:SchedulerJob:ExchangeSetGenerationSchedule"];
                 var jobKey = new JobKey(nameof(SchedulerJob));
+
                 q.AddJob<SchedulerJob>(opts => opts.WithIdentity(jobKey));
 
                 q.AddTrigger(opts => opts

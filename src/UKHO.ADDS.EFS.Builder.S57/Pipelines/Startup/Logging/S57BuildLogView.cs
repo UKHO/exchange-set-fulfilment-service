@@ -5,7 +5,7 @@ namespace UKHO.ADDS.EFS.Builder.S57.Pipelines.Startup.Logging
 {
     internal class S57BuildLogView
     {
-        public required string Id { get; init; }
+        public required JobId Id { get; init; }
 
         public required DateTime? SalesCatalogueTimestamp { get; init; }
 
