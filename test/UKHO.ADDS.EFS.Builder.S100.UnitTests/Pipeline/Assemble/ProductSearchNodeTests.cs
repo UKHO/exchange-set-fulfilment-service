@@ -45,13 +45,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
                     BatchId = BatchId.From("a-batch-id"),
                     ProductNames =
                     [
-                        new S100ProductNames 
+                        new ProductEdition 
                         {
                             ProductName = ProductName.From("101TestProduct"),
                             EditionNumber = EditionNumber.From(1),
                             UpdateNumbers = [0, 1]
                         },
-                        new S100ProductNames 
+                        new ProductEdition 
                         {
                             ProductName = ProductName.From("101TestProduct2"),
                             EditionNumber = EditionNumber.From(2),
@@ -149,7 +149,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
                 })
                 .Returns(Result.Success(batchResponse));
 
-            _executionContext.Subject.Build.ProductNames = new List<S100ProductNames>
+            _executionContext.Subject.Build.ProductNames = new List<ProductEdition>
             {
                 new()
                 {

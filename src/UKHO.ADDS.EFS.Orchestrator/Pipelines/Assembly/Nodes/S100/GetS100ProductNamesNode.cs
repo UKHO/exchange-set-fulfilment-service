@@ -46,17 +46,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             {
                 case HttpStatusCode.OK:
 
-                    if (s100SalesCatalogueData.ProductCounts.ReturnedProductCount == 0)
+                    if (s100SalesCatalogueData.ProductCountSummary.ReturnedProductCount == 0)
                     {
                         await context.Subject.SignalAssemblyError();
-                        _logger.LogSalesCatalogueProductsNotReturned(SalesCatalogServiceProductsNotReturnedView.Create(s100SalesCatalogueData.ProductCounts));
+                        _logger.LogSalesCatalogueProductsNotReturned(s100SalesCatalogueData.ProductCountSummary);
                         return NodeResultStatus.Failed;
                     }
 
                     // Log any requested products that weren't returned, but don't fail the build
-                    if (s100SalesCatalogueData.ProductCounts.RequestedProductsNotReturned.Count > 0)
+                    if (s100SalesCatalogueData.ProductCountSummary.MissingProducts.Count > 0)
                     {
-                        _logger.LogSalesCatalogueProductsNotReturned(SalesCatalogServiceProductsNotReturnedView.Create(s100SalesCatalogueData.ProductCounts));
+                        _logger.LogSalesCatalogueProductsNotReturned(s100SalesCatalogueData.ProductCountSummary);
                     }
 
                     build.ProductNames = s100SalesCatalogueData.Products;

@@ -8,7 +8,7 @@ using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Products;
 using UKHO.ADDS.EFS.RetryPolicy;
 using UKHO.ADDS.Infrastructure.Results;
-using ProductCounts = UKHO.ADDS.EFS.Products.ProductCounts;
+using ProductCounts = UKHO.ADDS.EFS.Products.ProductCountSummary;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
 {
@@ -46,7 +46,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
         ///     The method returns an empty response with the original sinceDateTime when an error occurs or when
         ///     an unexpected HTTP status code is returned from the API.
         /// </remarks>
-        public async Task<(S100SalesCatalogueResponse s100SalesCatalogueData, DateTime? LastModified)> GetS100ProductsFromSpecificDateAsync(DateTime? sinceDateTime, Job job)
+        public async Task<(ProductVersionList s100SalesCatalogueData, DateTime? LastModified)> GetS100ProductsFromSpecificDateAsync(DateTime? sinceDateTime, Job job)
         {
             var headersOption = new HeadersInspectionHandlerOption { InspectResponseHeaders = true };
             try
@@ -72,17 +72,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
 
                 if (s100BasicCatalogueResult.IsSuccess(out var catalogueList) && catalogueList != null)
                 {
-                    var response = new S100SalesCatalogueResponse
+                    var response = new ProductVersionList
                     {
                         ResponseBody = [.. catalogueList.Select(x =>
                         {
-                            S100ProductStatus? parsedStatus = null;
+                            ProductStatus? parsedStatus = null;
 
                             if (x.Status?.StatusDate != null)
                             {
-                                parsedStatus = new S100ProductStatus() { StatusDate = x.Status.StatusDate.Value.DateTime, StatusName = x.Status.StatusName.ToString() };
+                                parsedStatus = new ProductStatus() { StatusDate = x.Status.StatusDate.Value.DateTime, StatusName = x.Status.StatusName.ToString() };
                             }
-                            return new S100Products
+                            return new ProductVersion
                             {
                                 ProductName = ProductName.From(x.ProductName!),
                                 LatestEditionNumber = x.LatestEditionNumber.HasValue ? EditionNumber.From(x.LatestEditionNumber!.Value) : EditionNumber.NotSet,
@@ -98,7 +98,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
 
                 _logger.LogSalesCatalogueApiError(SalesCatalogApiErrorLogView.Create(job));
 
-                return (new S100SalesCatalogueResponse(), sinceDateTime);
+                return (new ProductVersionList(), sinceDateTime);
             }
 
             catch (ApiException apiException)
@@ -110,10 +110,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
                         var lastModified = headersOption.ResponseHeaders.TryGetValue("Last-Modified", out var values)
                             ? values.FirstOrDefault()
                             : null;
-                        return (new S100SalesCatalogueResponse() { ResponseCode = HttpStatusCode.NotModified }, DateTime.Parse(lastModified!));
+                        return (new ProductVersionList() { ResponseCode = HttpStatusCode.NotModified }, DateTime.Parse(lastModified!));
                     default:
                         _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, (HttpStatusCode)apiException.ResponseStatusCode));
-                        return (new S100SalesCatalogueResponse(), sinceDateTime);
+                        return (new ProductVersionList(), sinceDateTime);
                 }
             }
         }
@@ -131,7 +131,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
         ///     The method returns an empty response when an error occurs or when
         ///     an unexpected HTTP status code is returned from the API.
         /// </remarks>
-        public async Task<S100ProductNamesResponse> GetS100ProductNamesAsync(IEnumerable<ProductName> productNames, Job job, CancellationToken cancellationToken)
+        public async Task<ProductEditionList> GetS100ProductNamesAsync(IEnumerable<ProductName> productNames, Job job, CancellationToken cancellationToken)
         {
             try
             {
@@ -148,19 +148,19 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
 
                 if (S100ProductNamesResult.IsSuccess(out var response) && response != null)
                 {
-                    return new S100ProductNamesResponse
+                    return new ProductEditionList
                     {
-                        Products = response.Products?.Select(x => new S100ProductNames
+                        Products = response.Products?.Select(x => new ProductEdition
                         {
                             ProductName = ProductName.From(x.ProductName!),
                             EditionNumber = x.EditionNumber.HasValue ? EditionNumber.From(x.EditionNumber!.Value) : EditionNumber.NotSet,
                             UpdateNumbers = x.UpdateNumbers != null ? x.UpdateNumbers.Where(i => i.HasValue).Select(i => i.Value).ToList() : new List<int>(),
-                            Dates = x.Dates?.Select(d => new S100ProductDate
+                            Dates = x.Dates?.Select(d => new ProductDate
                             {
                                 IssueDate = d.IssueDate?.DateTime ?? default,
                                 UpdateApplicationDate = d.UpdateApplicationDate?.DateTime ?? default,
                                 UpdateNumber = d.UpdateNumber.HasValue ? UpdateNumber.From(d.UpdateNumber!.Value) : UpdateNumber.NotSet
-                            }).ToList() ?? new List<S100ProductDate>(),
+                            }).ToList() ?? new List<ProductDate>(),
                             FileSize = x.FileSize ?? 0,
                             Cancellation = x.Cancellation is null
                                     ? null
@@ -170,28 +170,28 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
                                         UpdateNumber = x.Cancellation!.UpdateNumber.HasValue ? UpdateNumber.From(x.Cancellation!.UpdateNumber.Value) : UpdateNumber.NotSet
                                     }
 
-                        }).ToList() ?? new List<S100ProductNames>(),
-                        ProductCounts = response?.ProductCounts is null ? null : new ProductCounts
+                        }).ToList() ?? new List<ProductEdition>(),
+                        ProductCountSummary = response?.ProductCounts is null ? null : new ProductCounts
                         {
                             RequestedProductCount = response.ProductCounts.RequestedProductCount.HasValue ? ProductCount.From(response.ProductCounts.RequestedProductCount!.Value) : ProductCount.None,
                             ReturnedProductCount = response.ProductCounts.ReturnedProductCount.HasValue ? ProductCount.From(response.ProductCounts.ReturnedProductCount!.Value) : ProductCount.None ,
                             RequestedProductsAlreadyUpToDateCount = response.ProductCounts.RequestedProductsAlreadyUpToDateCount.HasValue ? ProductCount.From(response.ProductCounts.RequestedProductsAlreadyUpToDateCount!.Value) : ProductCount.None,
-                            RequestedProductsNotReturned = response.ProductCounts.RequestedProductsNotReturned?.Select(r => new RequestedProductsNotReturned
+                            MissingProducts = response.ProductCounts.RequestedProductsNotReturned?.Select(r => new MissingProduct
                             {
                                 ProductName = ProductName.From(r.ProductName!),
                                 Reason = r.Reason?.ToString() ?? string.Empty
-                            }).ToList() ?? new List<RequestedProductsNotReturned>()
+                            }).ToList() ?? new List<MissingProduct>()
                         },
                         ResponseCode = HttpStatusCode.OK
                     };
                 }
                 _logger.LogSalesCatalogueApiError(SalesCatalogApiErrorLogView.Create(job));
-                return new S100ProductNamesResponse();
+                return new ProductEditionList();
             }
             catch (ApiException apiException)
             {
                 _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, (HttpStatusCode)apiException.ResponseStatusCode));
-                return new S100ProductNamesResponse();
+                return new ProductEditionList();
             }
         }
 

@@ -2,6 +2,7 @@
 using UKHO.ADDS.EFS.Implementation;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
+using UKHO.ADDS.EFS.Products;
 using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
@@ -186,7 +187,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         public static partial void LogFileShareSearchCommittedBatchesError(this ILogger logger, [LogProperties] SearchCommittedBatchesLogView searchCommittedBatchesLogView);
 
         [LoggerMessage(SalesCatalogueProductsNotReturnedId, LogLevel.Warning, "Sales Catalogue products not returned: {@salesCatalogueLog}", EventName = nameof(SalesCatalogueProductsNotReturned))]
-        public static partial void LogSalesCatalogueProductsNotReturned(this ILogger logger, [LogProperties] SalesCatalogServiceProductsNotReturnedView salesCatalogueLog);
+        public static partial void LogSalesCatalogueProductsNotReturned(this ILogger logger, [LogProperties] ProductCountSummary salesCatalogueLog);
 
         [LoggerMessage(CreateErrorFileId, LogLevel.Error, "Error file created for correlation ID: {correlationId} | Timestamp: {timestamp}", EventName = nameof(CreateErrorFile))]
         public static partial void LogCreateErrorFile(this ILogger logger, CorrelationId correlationId, DateTimeOffset timestamp);

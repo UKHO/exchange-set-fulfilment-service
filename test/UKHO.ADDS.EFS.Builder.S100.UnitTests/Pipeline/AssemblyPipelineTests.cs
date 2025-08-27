@@ -144,15 +144,15 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
                 ];
         }
 
-        private List<S100Products> GetProducts()
+        private List<ProductVersion> GetProducts()
         {
             return [
-                new S100Products
+                new ProductVersion
                 {
                     ProductName = ProductName.From("101TestProduct"),
                     LatestEditionNumber = EditionNumber.From(1),
                     LatestUpdateNumber = UpdateNumber.From(0),
-                    Status=new S100ProductStatus
+                    Status=new ProductStatus
                     {
                         StatusName="newDataSet",
                         StatusDate=DateTime.UtcNow.AddDays(-7)
@@ -161,10 +161,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
                 ];
         }
 
-        private static List<S100ProductNames> GetProductNames()
+        private static List<ProductEdition> GetProductNames()
         {
             return [
-                new S100ProductNames
+                new ProductEdition
                 {
                     ProductName = ProductName.From("101TestProduct"),
                     EditionNumber = EditionNumber.From(1),
