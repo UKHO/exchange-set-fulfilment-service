@@ -36,9 +36,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
             switch (s100SalesCatalogueData.ResponseCode)
             {
-                case HttpStatusCode.OK when s100SalesCatalogueData.ResponseBody.Any():
+                case HttpStatusCode.OK when s100SalesCatalogueData.Products.Any():
                     // We have something to build, so move forwards with scheduling a build
-                    build.Products = s100SalesCatalogueData.ResponseBody;
+                    build.Products = s100SalesCatalogueData.Products;
 
                     job.DataStandardTimestamp = lastModified;
                     build.SalesCatalogueTimestamp = lastModified;

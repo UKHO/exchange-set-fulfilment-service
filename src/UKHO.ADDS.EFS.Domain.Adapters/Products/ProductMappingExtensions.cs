@@ -47,7 +47,7 @@ namespace UKHO.ADDS.EFS.Domain.Adapters.Products
 
             return new ProductList
             {
-                ResponseBody = source.Select(x => x.ToDomain()).ToList(), LastModified = lastModified ?? default, ResponseCode = HttpStatusCode.OK
+                Products = source.Select(x => x.ToDomain()).ToList(), LastModified = lastModified ?? default, ResponseCode = HttpStatusCode.OK
             };
         }
 

@@ -4,7 +4,7 @@ namespace UKHO.ADDS.EFS.Products
 {
     public class ProductList
     {
-        public List<Product> ResponseBody { get; set; }
+        public List<Product> Products { get; set; }
         public DateTime? LastModified { get; set; }
         public HttpStatusCode ResponseCode { get; set; }
     }
