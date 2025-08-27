@@ -41,7 +41,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Schedule
 
                 var message = new JobRequestApiMessage
                 {
-                    Version = 1,
                     DataStandard = DataStandard.S100,
                     Products = "",
                     Filter = ""

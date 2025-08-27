@@ -7,7 +7,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
 {
     public class AssemblyPipelineResponse
     {
-        public int Version { get; init; } = 1;
+        public MessageVersion Version { get; init; } = MessageVersion.From(1);
 
         public required JobId JobId { get; init; }
 

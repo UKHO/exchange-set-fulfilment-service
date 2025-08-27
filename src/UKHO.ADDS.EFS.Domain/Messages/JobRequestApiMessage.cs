@@ -1,4 +1,5 @@
 ﻿using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.VOS;
 
 namespace UKHO.ADDS.EFS.Messages
 {
@@ -7,7 +8,7 @@ namespace UKHO.ADDS.EFS.Messages
     /// </summary>
     public class JobRequestApiMessage
     {
-        public required int Version { get; init; } = 1;
+        public MessageVersion Version { get; init; } = MessageVersion.From(1);
 
         public DataStandard DataStandard { get; set; }
 

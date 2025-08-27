@@ -8,7 +8,7 @@ namespace UKHO.ADDS.EFS.Builds
         /// <summary>
         /// The message version
         /// </summary>
-        public required int Version { get; init; }
+        public MessageVersion Version { get; init; } = MessageVersion.From(1);
 
         /// <summary>
         /// The build request timestamp

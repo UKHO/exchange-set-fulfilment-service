@@ -8,7 +8,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
 {
     internal class AssemblyPipelineParameters
     {
-        public required int Version { get; init; }
+        public required MessageVersion Version { get; init; }
 
         public required DateTime Timestamp { get; init; }
 

@@ -46,7 +46,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S57
             {
                 var request = new S57BuildRequest()
                 {
-                    Version = 1,
                     Timestamp = DateTime.UtcNow,
                     JobId = job.Id,
                     BatchId = job.BatchId!,
