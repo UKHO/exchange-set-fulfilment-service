@@ -114,6 +114,13 @@ namespace UKHO.ADDS.EFS.LocalHost
             var storageBlob = storage.AddBlobs(StorageConfiguration.BlobsName);
 
             // Redis cache
+            //var redisCache = builder.AddAzureRedis(ProcessNames.RedisCache)
+            //    .RunAsContainer();
+            //redisCache.ConfigureInfrastructure(config =>
+            //{
+            //    var redis = config.GetProvisionableResources().OfType<Azure.Provisioning.Redis.RedisResource>().Single();
+            //    redis.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
+            //});
             var redisCache = builder.AddRedis(ProcessNames.RedisCache)
                 .WithRedisInsight()
                 .PublishAsAzureContainerApp((infra, app) =>
