@@ -7,7 +7,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
     /// <summary>
     /// Extension methods for registering S100 Exchange Set API endpoints
     /// </summary>
-    public static class S100CustomExchangeSetApiRouteBuilderExtension
+    internal static class S100CustomExchangeSetApiRouteBuilderExtension // Changed to static class
     {
         /// <summary>
         /// Registers S100 Exchange Set API endpoints
@@ -56,7 +56,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 string? callbackUri = null,
                 string? productIdentifier = null) =>
             {
-                return CreateResponse(7, 6, 1); // Temporary response for demonstration purposes
+                return Results.Accepted(null, CreateResponse(7, 6, 1));  // Temporary response for demonstration purposes
             })
             .Produces<S100CustomExchangeSetResponse>(202)
             .Produces(304)
@@ -87,10 +87,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 RequestedProductsNotInExchangeSet =
                 [
                     new S100ProductNotInExchangeSet
-                    {
-                        ProductName = "101GB40079ABCDEFG",
-                        Reason = S100ProductNotIncludedReason.InvalidProduct
-                    }
+                        {
+                            ProductName = "101GB40079ABCDEFG",
+                            Reason = S100ProductNotIncludedReason.InvalidProduct
+                        }
                 ],
                 FssBatchId = batchId
             };
