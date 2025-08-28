@@ -90,15 +90,6 @@ module efs_orchestrator_roles_efs_appconfig 'efs-orchestrator-roles-efs-appconfi
     principalId: efs_service_identity.outputs.principalId
   }
 }
-module efs_orchestrator_roles_efs_events_namespace 'efs-orchestrator-roles-efs-events-namespace/efs-orchestrator-roles-efs-events-namespace.module.bicep' = {
-  name: 'efs-orchestrator-roles-efs-events-namespace'
-  scope: resourceGroup(efsRetainResourceGroup)
-  params: {
-    efs_events_namespace_outputs_name: efs_events_namespace.outputs.name
-    location: location
-    principalId: efs_service_identity.outputs.principalId
-  }
-}
 module efs_orchestrator_roles_efs_storage 'efs-orchestrator-roles-efs-storage/efs-orchestrator-roles-efs-storage.module.bicep' = {
   name: 'efs-orchestrator-roles-efs-storage'
   scope: rg

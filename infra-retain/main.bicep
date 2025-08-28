@@ -64,6 +64,7 @@ module efs_events_namespace 'efs-events-namespace/efs-events-namespace.module.bi
   scope: rg
   params: {
     location: location
+    principalId: pipelineClientObjectId
   }
 }
 
