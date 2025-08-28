@@ -4,7 +4,7 @@ steps:
     echo "##vso[task.setvariable variable=EFS_SERVICE_IDENTITY_PARTIAL_NAME;]efs_service_identity"
     echo "##vso[task.setvariable variable=EFS_LOG_ANALYTICS_WORKSPACE_PARTIAL_NAME;]efslaw"
     echo "##vso[task.setvariable variable=EFS_CONTAINER_REGISTRY_PARTIAL_NAME;]efscaeacr"
-    #echo "##vso[task.setvariable variable=EFS_CONTAINER_APPS_ENVIRONMENT_PARTIAL_NAME;]efscae"
+    echo "##vso[task.setvariable variable=EFS_CONTAINER_APPS_ENVIRONMENT_PARTIAL_NAME;]efscae"
     echo "##vso[task.setvariable variable=EFS_APPLICATION_INSIGHTS_PARTIAL_NAME;]efs_app_insights"
     echo "##vso[task.setvariable variable=EFS_EVENT_HUB_NAMESPACE_PARTIAL_NAME;]efs-events-namespace"
   displayName: Set retained resource variables
