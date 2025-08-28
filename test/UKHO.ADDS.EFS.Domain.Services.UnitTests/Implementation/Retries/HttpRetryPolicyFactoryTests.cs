@@ -2,10 +2,11 @@ using System.Net;
 using FakeItEasy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using UKHO.ADDS.EFS.RetryPolicy;
+using NUnit.Framework;
+using UKHO.ADDS.EFS.Domain.Services.Implementation.Retries;
 using UKHO.ADDS.Infrastructure.Results;
 
-namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Infrastructure
+namespace UKHO.ADDS.EFS.Domain.Services.UnitTests.Implementation.Retries
 {
     [TestFixture]
     public class HttpRetryPolicyFactoryTests

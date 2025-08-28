@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace UKHO.ADDS.EFS.Products
+namespace UKHO.ADDS.EFS.Domain.Products
 {
     public class ProductList
     {

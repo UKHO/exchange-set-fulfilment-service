@@ -1,7 +1,7 @@
 ﻿using System.Text;
-using UKHO.ADDS.EFS.Products;
+using UKHO.ADDS.EFS.Domain.Products;
 
-namespace UKHO.ADDS.EFS.Builds.S100
+namespace UKHO.ADDS.EFS.Domain.Builds.S100
 {
     public class S100Build : Build
     {

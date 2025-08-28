@@ -2,11 +2,11 @@
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute.Logging;
-using UKHO.ADDS.EFS.Constants;
-using UKHO.ADDS.EFS.Implementation;
-using UKHO.ADDS.EFS.Jobs;
-using UKHO.ADDS.EFS.RetryPolicy;
-using UKHO.ADDS.EFS.Utilities;
+using UKHO.ADDS.EFS.Domain.Constants;
+using UKHO.ADDS.EFS.Domain.External;
+using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Services.Factories;
+using UKHO.ADDS.EFS.Domain.Services.Implementation.Retries;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;

@@ -1,7 +1,7 @@
-﻿using UKHO.ADDS.EFS.Exceptions;
+﻿using UKHO.ADDS.EFS.Domain.Exceptions;
 using Vogen;
 
-namespace UKHO.ADDS.EFS.Messages
+namespace UKHO.ADDS.EFS.Domain.Messages
 {
     [ValueObject<int>(Conversions.SystemTextJson, typeof(ValidationException))]
     public partial struct MessageVersion
