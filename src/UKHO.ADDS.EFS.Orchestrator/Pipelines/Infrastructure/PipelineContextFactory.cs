@@ -41,7 +41,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
                 BatchId = null
             };
 
-            var context = new PipelineContext<TBuild>(job, build, _storageService);
+            var context = new PipelineContext<TBuild>(job, build, _storageService, parameters.RequestType);
 
             return Task.FromResult(context);
         }

@@ -3,6 +3,7 @@ using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Extensions;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
+using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Api
 {
@@ -23,7 +24,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
             // POST /v2/exchangeSet/s100/productNames
             exchangeSetEndpoint.MapPost("/productNames", async (
-                S100ProductNamesRequest request,
+                List<string> productNames,
                 IConfiguration configuration,
                 IAssemblyPipelineFactory pipelineFactory,
                 HttpContext httpContext,
@@ -33,7 +34,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 {
                     var correlationId = httpContext.GetCorrelationId();
 
-                    var parameters = AssemblyPipelineParameters.CreateFromS100ProductNames(request, configuration, correlationId);
+                    var parameters = AssemblyPipelineParameters.CreateFromS100ProductNames(productNames, configuration, correlationId, callbackUri);
                     var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
 
                     logger.LogAssemblyPipelineStarted(parameters);
@@ -74,13 +75,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 {
                     var correlationId = httpContext.GetCorrelationId();
 
-                    var parameters = AssemblyPipelineParameters.CreateFromS100ProductVersions(request, configuration, correlationId);
+                    var parameters = AssemblyPipelineParameters.CreateFromS100ProductVersions(request, configuration, correlationId, callbackUri);
                     var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
 
                     logger.LogAssemblyPipelineStarted(parameters);
 
                     var result = await pipeline.RunAsync(httpContext.RequestAborted);
 
+                    // Check if there are validation errors
                     if (result.ErrorResponse?.Errors?.Count > 0)
                     {
                         return Results.BadRequest(result.ErrorResponse);
@@ -110,13 +112,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 {
                     var correlationId = httpContext.GetCorrelationId();
 
-                    var parameters = AssemblyPipelineParameters.CreateFromS100UpdatesSince(request, configuration, correlationId);
+                    var parameters = AssemblyPipelineParameters.CreateFromS100UpdatesSince(request, configuration, correlationId, productIdentifier, callbackUri);
                     var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
 
                     logger.LogAssemblyPipelineStarted(parameters);
 
                     var result = await pipeline.RunAsync(httpContext.RequestAborted);
 
+                    // Check if there are validation errors
                     if (result.ErrorResponse?.Errors?.Count > 0)
                     {
                         return Results.BadRequest(result.ErrorResponse);

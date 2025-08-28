@@ -1,4 +1,3 @@
-using FluentValidation;
 using UKHO.ADDS.EFS.Builds.S100;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
@@ -44,12 +43,10 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
     {
         var job = context.Subject.Job;
         var correlationId = job.Id;
+        var requestType = context.Subject.RequestType;
 
         try
         {
-            // Determine the request type from the context
-            var requestType = GetRequestTypeFromContext(context);
-
             FluentValidation.Results.ValidationResult validationResult = requestType switch
             {
                 RequestType.ProductNames => await ValidateProductNamesRequest(job),
@@ -90,7 +87,8 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
                 return NodeResultStatus.Failed;
             }
 
-            _logger.S100InputValidationSucceeded(correlationId, GetProductCount(job, requestType));
+            // Explicitly cast requestType to non-nullable RequestType
+            _logger.S100InputValidationSucceeded(correlationId, GetProductCount(job, (RequestType)requestType));
 
             return NodeResultStatus.Succeeded;
         }
@@ -102,33 +100,16 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
         }
     }
 
-    private static RequestType GetRequestTypeFromContext(IExecutionContext<PipelineContext<S100Build>> context)
-    {
-        // Example: Use RequestedFilter or other job metadata to determine request type
-        var job = context.Subject.Job;
-        if (!string.IsNullOrEmpty(job.RequestedFilter))
-        {
-            if (job.RequestedFilter.Contains("productVersions", StringComparison.OrdinalIgnoreCase))
-                return RequestType.ProductVersions;
-            if (job.RequestedFilter.Contains("productNames", StringComparison.OrdinalIgnoreCase))
-                return RequestType.ProductNames;
-            if (job.RequestedFilter.Contains("updatesSince", StringComparison.OrdinalIgnoreCase))
-                return RequestType.UpdatesSince;
-        }
-        return RequestType.ProductNames;
-    }
-
     private async Task<FluentValidation.Results.ValidationResult> ValidateProductNamesRequest(Job job)
     {
-        // Parse the requested products from the job
-        var productNames = job.RequestedProducts.Split(',', StringSplitOptions.RemoveEmptyEntries)
+        var productNames = job.RequestedProducts.Split(',', StringSplitOptions.None)
             .Select(p => p.Trim())
-            .Where(p => !string.IsNullOrEmpty(p))
             .ToList();
 
         var request = new S100ProductNamesRequest
         {
-            ProductNames = productNames
+            ProductNames = productNames,
+            CallbackUri = job.CallbackUri
         };
 
         return await _productNamesValidator.ValidateAsync(request);
@@ -150,7 +131,8 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
 
         var productNamesRequest = new S100ProductNamesRequest
         {
-            ProductNames = productNames
+            ProductNames = productNames,
+            CallbackUri = job.CallbackUri
         };
 
         var productNamesValidationResult = await _productNamesValidator.ValidateAsync(productNamesRequest);

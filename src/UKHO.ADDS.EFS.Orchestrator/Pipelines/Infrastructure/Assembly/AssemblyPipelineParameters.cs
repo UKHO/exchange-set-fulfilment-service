@@ -43,7 +43,8 @@ internal class AssemblyPipelineParameters
             Timestamp = Timestamp,
             DataStandard = DataStandard,
             RequestedProducts = Products,
-            RequestedFilter = Filter
+            RequestedFilter = Filter,
+            CallbackUri = CallbackUri,
         };
     }
 
@@ -62,23 +63,24 @@ internal class AssemblyPipelineParameters
     /// <summary>
     /// Creates parameters from S100 Product Names request
     /// </summary>
-    public static AssemblyPipelineParameters CreateFromS100ProductNames(S100ProductNamesRequest request, IConfiguration configuration, string correlationId) =>
+    public static AssemblyPipelineParameters CreateFromS100ProductNames(List<string> productNames, IConfiguration configuration, string correlationId, string? callbackUri = null) =>
         new()
         {
             Version = 2,
             Timestamp = DateTime.UtcNow,
             DataStandard = DataStandard.S100,
-            Products = string.Join(",", request.ProductNames),
+            Products = string.Join(",", productNames),
             Filter = "productNames",
             JobId = correlationId,
             Configuration = configuration,
-            RequestType = Messages.RequestType.ProductNames
+            RequestType = Messages.RequestType.ProductNames,
+            CallbackUri = callbackUri
         };
 
     /// <summary>
     /// Creates parameters from S100 Product Versions request
     /// </summary>
-    public static AssemblyPipelineParameters CreateFromS100ProductVersions(S100ProductVersionsRequest request, IConfiguration configuration, string correlationId) =>
+    public static AssemblyPipelineParameters CreateFromS100ProductVersions(S100ProductVersionsRequest request, IConfiguration configuration, string correlationId, string? callbackUri = null) =>
         new()
         {
             Version = 2,
@@ -88,13 +90,14 @@ internal class AssemblyPipelineParameters
             Filter = "productVersions",
             JobId = correlationId,
             Configuration = configuration,
-            RequestType = Messages.RequestType.ProductVersions
+            RequestType = Messages.RequestType.ProductVersions,
+            CallbackUri = callbackUri
         };
 
     /// <summary>
     /// Creates parameters from S100 Updates Since request
     /// </summary>
-    public static AssemblyPipelineParameters CreateFromS100UpdatesSince(S100UpdatesSinceRequest request, IConfiguration configuration, string correlationId, string? productIdentifier = null) =>
+    public static AssemblyPipelineParameters CreateFromS100UpdatesSince(S100UpdatesSinceRequest request, IConfiguration configuration, string correlationId, string? productIdentifier = null, string? callbackUri = null) =>
         new()
         {
             Version = 2,
@@ -105,6 +108,7 @@ internal class AssemblyPipelineParameters
             JobId = correlationId,
             Configuration = configuration,
             RequestType = Messages.RequestType.UpdatesSince,
-            ProductIdentifier = productIdentifier
+            ProductIdentifier = productIdentifier,
+            CallbackUri = callbackUri
         };
 }
