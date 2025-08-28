@@ -95,7 +95,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddSingleton<StorageInitializerService>();
 
             var addsEnvironment = AddsEnvironment.GetEnvironment();
-
+            var clientid = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
             builder.Services.RegisterKiotaClient<KiotaSalesCatalogueService>(provider =>
             {
                 var registry = provider.GetRequiredService<IExternalServiceRegistry>();
@@ -106,7 +106,6 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     return (scsEndpoint.Uri, new AnonymousAuthenticationProvider());
                 }
 
-                var clientid = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
 
                 return (scsEndpoint.Uri, new AzureIdentityAuthenticationProvider(new ManagedIdentityCredential(clientId: clientid), scopes: scsEndpoint.GetDefaultScope()));
             });
@@ -127,7 +126,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 }
                 else
                 {
-                    tokenProvider = new TokenCredentialAuthenticationTokenProvider(new ManagedIdentityCredential(clientId: efsClientId), [fssEndpoint.GetDefaultScope()]);
+                    tokenProvider = new TokenCredentialAuthenticationTokenProvider(new ManagedIdentityCredential(clientId: clientid), [fssEndpoint.GetDefaultScope()]);
                 }
 
                 var factory = sp.GetRequiredService<IFileShareReadWriteClientFactory>();
