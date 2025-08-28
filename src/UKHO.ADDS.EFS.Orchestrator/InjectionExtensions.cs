@@ -108,11 +108,6 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                 var clientid = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
 
-#pragma warning disable LOG001
-                Log.Information("EFS Client id is ={clientid}",
-                       clientid ?? "NULL");
-#pragma warning restore LOG001
-
                 return (scsEndpoint.Uri, new AzureIdentityAuthenticationProvider(new ManagedIdentityCredential(clientId: clientid), scopes: scsEndpoint.GetDefaultScope()));
             });
 

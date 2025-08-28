@@ -108,6 +108,8 @@ namespace UKHO.ADDS.Clients.Common.MiddlewareExtensions
         /// <returns>The updated HTTP client builder.</returns>
         private static IHttpClientBuilder AttachKiotaHandlers(this IHttpClientBuilder builder)
         {
+            builder.AddHttpMessageHandler(sp =>
+        AuthorizationHandlerFactory.CreateHandler(sp, builder.Name ?? "UnknownClient"));
             var kiotaHandlers = KiotaClientFactory.CreateDefaultHandlers([new HeadersInspectionHandlerOption() { InspectResponseHeaders = true }]);
             foreach (var handler in kiotaHandlers)
             {
