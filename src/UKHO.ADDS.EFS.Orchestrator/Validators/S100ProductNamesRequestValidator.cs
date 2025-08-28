@@ -17,24 +17,8 @@ internal class S100ProductNamesRequestValidator : AbstractValidator<S100ProductN
             .WithMessage("ProductNames cannot be null or empty.");
 
         RuleFor(request => request.CallbackUri)
-            .Must(IsValidCallbackUri)
+            .Must(CallbackUriValidator.IsValidCallbackUri)
             .When(request => !string.IsNullOrEmpty(request.CallbackUri))
             .WithMessage("Invalid callbackUri format.");
-    }
-
-    private static bool IsValidCallbackUri(string? callbackUri)
-    {
-        if (string.IsNullOrEmpty(callbackUri))
-            return true;
-
-        try
-        {
-            Uri baseUri = new Uri(callbackUri);
-            return (baseUri.Scheme == Uri.UriSchemeHttps);
-        }
-        catch (Exception)
-        {
-            return false;
-        }
     }
 }
