@@ -1,14 +1,16 @@
-﻿namespace UKHO.ADDS.EFS.Messages
+﻿using UKHO.ADDS.EFS.Domain.Jobs;
+
+namespace UKHO.ADDS.EFS.Messages
 {
     /// <summary>
-    /// Response model for S100 exchange set endpoints
+    /// Response model for exchange set endpoints
     /// </summary>
-    internal class S100CustomExchangeSetResponse
+    internal class CustomExchangeSetResponse
     {
         /// <summary>
         /// Links to related resources
         /// </summary>
-        public required S100ExchangeSetLinks Links { get; set; }
+        public required ExchangeSetLinks Links { get; set; }
 
         /// <summary>
         /// The expiry date and time for the exchange set URL
@@ -33,11 +35,11 @@
         /// <summary>
         /// Products that were requested but not included in the exchange set
         /// </summary>
-        public List<S100ProductNotInExchangeSet> RequestedProductsNotInExchangeSet { get; set; } = new();
+        public List<ProductNotInExchangeSet> RequestedProductsNotInExchangeSet { get; set; } = new();
 
         /// <summary>
         /// The FSS Batch ID associated with the exchange set
         /// </summary>
-        public string? FssBatchId { get; set; }
-    }
+        public BatchId FssBatchId { get; set; }
+    }   
 }

@@ -3,15 +3,15 @@ namespace UKHO.ADDS.EFS.Messages
     /// <summary>
     /// Reasons why a product might not be included in the exchange set
     /// </summary>
-    internal enum S100ProductNotIncludedReason
+    internal enum ProductNotIncludedReason
     {
         /// <summary>
-        /// The product has been withdrawn from the S-100 Service
+        /// The product has been withdrawn from the service
         /// </summary>
         ProductWithdrawn,
 
         /// <summary>
-        /// The product is not part of the S-100 Service (invalid or unknown product)
+        /// The product is not part of the service (invalid or unknown product)
         /// </summary>
         InvalidProduct,
 

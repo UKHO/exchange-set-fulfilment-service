@@ -1,13 +1,14 @@
 ﻿using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
+using UKHO.ADDS.EFS.Domain.Jobs;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Api
 {
     /// <summary>
     /// Extension methods for registering S100 Exchange Set API endpoints
     /// </summary>
-    internal static class S100CustomExchangeSetApiRouteBuilderExtension // Changed to static class
+    internal static class S100CustomExchangeSetApiRouteBuilderExtension
     {
         /// <summary>
         /// Registers S100 Exchange Set API endpoints
@@ -29,7 +30,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             {
                 return Results.Accepted(null, CreateResponse(productNames.Count, 4, 1)); // Temporary response for demonstration purposes
             })
-            .Produces<S100CustomExchangeSetResponse>(202)
+            .Produces<CustomExchangeSetResponse>(202)
             .WithRequiredHeader("x-correlation-id", "Correlation ID", Guid.NewGuid().ToString("N"))
             .WithDescription("Provide all the latest releasable baseline data for a specified set of S100 Products.");
 
@@ -43,7 +44,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             {
                 return Results.Accepted(null, CreateResponse(productVersions.Count, 5, 1)); // Temporary response for demonstration purposes
             })
-            .Produces<S100CustomExchangeSetResponse>(202)
+            .Produces<CustomExchangeSetResponse>(202)
             .WithRequiredHeader("x-correlation-id", "Correlation ID", Guid.NewGuid().ToString("N"))
             .WithDescription("Given a set of S100 Product versions (e.g. Edition x Update y) provide any later releasable files.");
 
@@ -58,27 +59,27 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             {
                 return Results.Accepted(null, CreateResponse(7, 6, 1));  // Temporary response for demonstration purposes
             })
-            .Produces<S100CustomExchangeSetResponse>(202)
+            .Produces<CustomExchangeSetResponse>(202)
             .Produces(304)
             .WithRequiredHeader("x-correlation-id", "Correlation ID", Guid.NewGuid().ToString("N"))
             .WithDescription("Provide all the releasable S100 data after a datetime.");
         }
 
         // Temporary method to create a response for demonstration purposes.
-        private static S100CustomExchangeSetResponse CreateResponse(
+        private static CustomExchangeSetResponse CreateResponse(
             int requestedProductCount,
             int exchangeSetProductCount,
             int requestedProductsAlreadyUpToDateCount)
         {
             var batchId = Guid.NewGuid().ToString("N"); // Simulate batch ID for demonstration purposes
 
-            return new S100CustomExchangeSetResponse
+            return new CustomExchangeSetResponse
             {
-                Links = new S100ExchangeSetLinks
+                Links = new ExchangeSetLinks
                 {
-                    ExchangeSetBatchStatusUri = new S100Link { Href = $"https://fss.ukho.gov.uk/batch/{batchId}/status" },
-                    ExchangeSetBatchDetailsUri = new S100Link { Href = $"https://fss.ukho.gov.uk/batch/{batchId}" },
-                    ExchangeSetFileUri = batchId != null ? new S100Link { Href = $"https://fss.ukho.gov.uk/batch/{batchId}/files/exchangeset.zip" } : null
+                    ExchangeSetBatchStatusUri = new Link { Href = $"https://fss.ukho.gov.uk/batch/{batchId}/status" },
+                    ExchangeSetBatchDetailsUri = new Link { Href = $"https://fss.ukho.gov.uk/batch/{batchId}" },
+                    ExchangeSetFileUri = batchId != null ? new Link { Href = $"https://fss.ukho.gov.uk/batch/{batchId}/files/exchangeset.zip" } : null
                 },
                 ExchangeSetUrlExpiryDateTime = DateTime.UtcNow.AddDays(7), // TODO: Get from configuration
                 RequestedProductCount = requestedProductCount,
@@ -86,13 +87,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 RequestedProductsAlreadyUpToDateCount = requestedProductsAlreadyUpToDateCount,
                 RequestedProductsNotInExchangeSet =
                 [
-                    new S100ProductNotInExchangeSet
+                    new ProductNotInExchangeSet
                         {
                             ProductName = "101GB40079ABCDEFG",
-                            Reason = S100ProductNotIncludedReason.InvalidProduct
+                            Reason = ProductNotIncludedReason.InvalidProduct
                         }
                 ],
-                FssBatchId = batchId
+                FssBatchId = BatchId.From(batchId)
             };
         }
     }

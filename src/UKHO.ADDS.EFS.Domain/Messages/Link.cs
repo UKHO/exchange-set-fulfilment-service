@@ -3,7 +3,7 @@ namespace UKHO.ADDS.EFS.Messages
     /// <summary>
     /// Represents a link with href
     /// </summary>
-    internal class S100Link
+    internal class Link
     {
         /// <summary>
         /// The URL reference
