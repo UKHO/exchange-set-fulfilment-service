@@ -1,6 +1,6 @@
-﻿using UKHO.ADDS.EFS.Builds;
+﻿using UKHO.ADDS.EFS.Domain.Builds;
 
-namespace UKHO.ADDS.EFS.Jobs
+namespace UKHO.ADDS.EFS.Domain.Jobs
 {
     public partial class Job
     {

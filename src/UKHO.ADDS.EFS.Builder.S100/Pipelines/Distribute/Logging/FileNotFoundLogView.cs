@@ -1,5 +1,5 @@
-﻿using UKHO.ADDS.EFS.Implementation;
-using UKHO.ADDS.EFS.Jobs;
+﻿using UKHO.ADDS.EFS.Domain.External;
+using UKHO.ADDS.EFS.Domain.Jobs;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute.Logging
 {

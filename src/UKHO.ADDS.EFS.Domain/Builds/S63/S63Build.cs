@@ -1,4 +1,4 @@
-﻿namespace UKHO.ADDS.EFS.Builds.S63
+﻿namespace UKHO.ADDS.EFS.Domain.Builds.S63
 {
     public class S63Build : Build
     {

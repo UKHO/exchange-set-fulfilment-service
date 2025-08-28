@@ -1,4 +1,4 @@
-﻿namespace UKHO.ADDS.EFS.Configuration.Orchestrator
+﻿namespace UKHO.ADDS.EFS.Domain.Services.Configuration.Orchestrator
 {
     public static class GlobalEnvironmentVariables
     {
