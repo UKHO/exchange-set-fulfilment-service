@@ -14,8 +14,8 @@
       "efsApplicationInsightsName": {
         "value": "${AZURE_EFS_APPLICATION_INSIGHTS_NAME}"
       },
-        "efsContainerAppsEnvironmentName": {
-            "value": "${AZURE_EFS_CONTAINER_APPS_ENVIRONMENT_NAME}"
+      "efsContainerAppsEnvironmentName": {
+        "value": "${AZURE_EFS_CONTAINER_APPS_ENVIRONMENT_NAME}"
       },
       "efsContainerRegistryName": {
         "value": "${AZURE_EFS_CONTAINER_REGISTRY_NAME}"
@@ -37,3 +37,4 @@
       }
     }
   }
+  
