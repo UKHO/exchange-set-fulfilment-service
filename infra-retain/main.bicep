@@ -64,7 +64,7 @@ module efs_events_namespace 'efs-events-namespace/efs-events-namespace.module.bi
   scope: rg
   params: {
     location: location
-    principalId: pipelineClientObjectId
+    principalId: efs_service_identity.outputs.clientId
   }
 }
 
@@ -73,7 +73,7 @@ module efs_cae_acr 'efs-cae-acr/efs-cae-acr.module.bicep' = {
   scope: rg
   params: {
     location: location
-    principalId: pipelineClientObjectId
+    principalId: efs_service_identity.outputs.clientId
   }
 }
 
