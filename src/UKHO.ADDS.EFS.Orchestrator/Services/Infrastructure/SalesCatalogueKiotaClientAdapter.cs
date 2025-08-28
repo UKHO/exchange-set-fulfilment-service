@@ -21,10 +21,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
             var headerDateString = sinceDateTime?.ToString("R");
             return await _kiotaSalesCatalogueService.V2.Catalogues.S100.Basic.GetAsync(config =>
             {
-                config.Headers.Add("If-Modified-Since", headerDateString!);
+                if (!string.IsNullOrEmpty(headerDateString))
+                {
+                    config.Headers.Add("If-Modified-Since", headerDateString);
+                }
                 config.Headers.Add("X-Correlation-Id", job.GetCorrelationId());
                 config.Options.Add(headersOption);
-            }, cancellationToken);
+            });
         }
 
         public async Task<S100ProductResponse?> PostProductNamesAsync(List<string> productNames, Job job, CancellationToken cancellationToken)
