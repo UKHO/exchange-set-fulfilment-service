@@ -88,7 +88,10 @@ namespace UKHO.ADDS.Clients.Common.MiddlewareExtensions
             {
                 var (baseUri, authProvider) = endpointFunc(sp);
 
-                var adapter = new HttpClientRequestAdapter(authProvider)
+                var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+                var httpClient = httpClientFactory.CreateClient(typeof(TClient).Name);
+
+                var adapter = new HttpClientRequestAdapter(authProvider, httpClient: httpClient)
                 {
                     BaseUrl = baseUri.AbsoluteUri.TrimEnd('/')
                 };
