@@ -8,18 +8,29 @@ namespace UKHO.ADDS.EFS.Orchestrator.Validators;
 public class CallbackUriValidator : AbstractValidator<string?>
 {
     /// <summary>
+    /// Initializes a new instance of the CallbackUriValidator class
+    /// </summary>
+    public CallbackUriValidator()
+    {
+        RuleFor(callbackUri => callbackUri)
+            .Must(IsValidCallbackUri)
+            .When(callbackUri => !string.IsNullOrWhiteSpace(callbackUri))
+            .WithMessage("Invalid callbackUri format.");
+    }
+
+    /// <summary>
     /// Validates that the callback URI is a valid HTTPS URI
     /// </summary>
     /// <param name="callbackUri">The callback URI to validate</param>
     /// <returns>True if the URI is valid HTTPS, false otherwise</returns>
     public static bool IsValidCallbackUri(string? callbackUri)
     {
-        if (string.IsNullOrEmpty(callbackUri))
+        if (string.IsNullOrWhiteSpace(callbackUri))
             return true;
 
         try
         {
-            Uri baseUri = new Uri(callbackUri);
+            var baseUri = new Uri(callbackUri);
             return (baseUri.Scheme == Uri.UriSchemeHttps);
         }
         catch (FormatException)
