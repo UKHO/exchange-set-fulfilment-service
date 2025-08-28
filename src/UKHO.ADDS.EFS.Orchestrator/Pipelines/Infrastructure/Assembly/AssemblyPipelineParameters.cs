@@ -1,22 +1,23 @@
-﻿using UKHO.ADDS.EFS.Jobs;
-using UKHO.ADDS.EFS.Messages;
-using UKHO.ADDS.EFS.Orchestrator.Jobs;
+﻿using UKHO.ADDS.EFS.Domain.External;
+using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Messages;
+using UKHO.ADDS.EFS.Domain.Products;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
 {
     internal class AssemblyPipelineParameters
     {
-        public required int Version { get; init; }
+        public MessageVersion Version { get; init; } = MessageVersion.From(1);
 
         public required DateTime Timestamp { get; init; }
 
         public required DataStandard DataStandard { get; init; }
 
-        public required string Products { get; init; }
+        public required ProductNameList Products { get; init; }
 
         public required string Filter { get; init; }
 
-        public required string JobId { get; init; }
+        public required JobId JobId { get; init; }
 
         public required IConfiguration Configuration { get; init; }
 
@@ -28,19 +29,19 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 Timestamp = Timestamp,
                 DataStandard = DataStandard,
                 RequestedProducts = Products,
-                RequestedFilter = Filter
+                RequestedFilter = Filter,
+                BatchId = BatchId.None
             };
         }
 
-        public static AssemblyPipelineParameters CreateFrom(JobRequestApiMessage message, IConfiguration configuration, string correlationId) =>
+        public static AssemblyPipelineParameters CreateFrom(JobRequestApiMessage message, IConfiguration configuration, CorrelationId correlationId) =>
             new()
             {
-                Version = message.Version,
                 Timestamp = DateTime.UtcNow,
                 DataStandard = message.DataStandard,
                 Products = message.Products,
                 Filter = message.Filter,
-                JobId = correlationId,
+                JobId = Domain.Jobs.JobId.From((string)correlationId),
                 Configuration = configuration
             };
     }

@@ -1,6 +1,8 @@
 ﻿using Quartz;
-using UKHO.ADDS.EFS.Jobs;
-using UKHO.ADDS.EFS.Messages;
+using UKHO.ADDS.EFS.Domain.External;
+using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Messages;
+using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 
@@ -16,7 +18,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Schedule
         private readonly ILogger<SchedulerJob> _logger;
         private readonly IConfiguration _config;
         private readonly IAssemblyPipelineFactory _pipelineFactory;
-        private const string CorrelationIdPrefix = "job-";
+        private const string CorrelationIdPrefix = "sched-";
 
         public SchedulerJob(ILogger<SchedulerJob> logger, IConfiguration config, IAssemblyPipelineFactory pipelineFactory)
         {
@@ -34,15 +36,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Schedule
         {
             try
             {
-                var correlationId = $"{CorrelationIdPrefix}{Guid.NewGuid():N}";
+                var correlationId = CorrelationId.From($"{CorrelationIdPrefix}{Guid.NewGuid():N}");
 
                 _logger.LogSchedulerJobStarted(correlationId, DateTime.UtcNow);
 
                 var message = new JobRequestApiMessage
                 {
-                    Version = 1,
                     DataStandard = DataStandard.S100,
-                    Products = "",
+                    Products = new ProductNameList(),
                     Filter = ""
                 };
 

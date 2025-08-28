@@ -1,4 +1,4 @@
-﻿using UKHO.ADDS.EFS.Configuration.Orchestrator;
+﻿using UKHO.ADDS.EFS.Domain.Builds;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion
 {

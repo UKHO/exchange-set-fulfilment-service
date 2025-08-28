@@ -1,7 +1,7 @@
 ﻿using StringToExpression.LanguageDefinitions;
-using UKHO.ADDS.Clients.SalesCatalogueService.Models;
-using UKHO.ADDS.EFS.Builds.S100;
-using UKHO.ADDS.EFS.Orchestrator.Jobs;
+using UKHO.ADDS.EFS.Domain.Builds.S100;
+using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.Infrastructure.Pipelines;
@@ -32,7 +32,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             var job = context.Subject.Job;
             var build = context.Subject.Build;
 
-            var predicate = _language.Parse<S100Products>(job.RequestedFilter);
+            var predicate = _language.Parse<Product>(job.RequestedFilter);
             var existingProducts = build.Products!.AsQueryable();
 
             var filteredProducts = existingProducts.Where(predicate).ToList();

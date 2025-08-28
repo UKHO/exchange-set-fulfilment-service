@@ -4,8 +4,8 @@ using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Models;
-using UKHO.ADDS.EFS.Exceptions;
-using UKHO.ADDS.EFS.RetryPolicy;
+using UKHO.ADDS.EFS.Domain.Exceptions;
+using UKHO.ADDS.EFS.Domain.Services.Implementation.Retries;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
@@ -44,7 +44,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             try
             {
                 _logger = context.Subject.LoggerFactory.CreateLogger<ProductSearchNode>();
-                var products = context.Subject.Build?.ProductNames;
+                var products = context.Subject.Build?.ProductEditions;
                 if (products == null || products.Count() == 0)
                 {
                     return NodeResultStatus.NotRun;
@@ -65,7 +65,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
                 foreach (var productGroup in productsList)
                 {
-                    var batchDetails = await QueryFileShareServiceFilesAsync(productGroup, context.Subject.Build?.GetCorrelationId()!);
+                    var batchDetails = await QueryFileShareServiceFilesAsync(productGroup, (string)context.Subject.Build?.GetCorrelationId()!);
                     if (batchDetails != null)
                     {
                         batchList.AddRange(batchDetails);
