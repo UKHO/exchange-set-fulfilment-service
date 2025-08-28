@@ -43,11 +43,11 @@ namespace UKHO.ADDS.EFS.LocalHost
         private static async Task BuildEfs(IDistributedApplicationBuilder builder)
         {
             // Get parameters
-            var subnetResourceId = builder.AddParameter("subnetResourceId");
-            var zoneRedundant = builder.AddParameter("zoneRedundant");
+            //var subnetResourceId = builder.AddParameter("subnetResourceId");
+            //var zoneRedundant = builder.AddParameter("zoneRedundant");
             var efsServiceIdentityName = builder.AddParameter("efsServiceIdentityName");
             var efsRetainResourceGroup = builder.AddParameter("efsRetainResourceGroup");
-            var efsLogAnalyticsWorkspaceName = builder.AddParameter("efsLogAnalyticsWorkspaceName");
+            //var efsLogAnalyticsWorkspaceName = builder.AddParameter("efsLogAnalyticsWorkspaceName");
             var efsContainerAppsEnvironmentName = builder.AddParameter("efsContainerAppsEnvironmentName");
             var efsContainerRegistryName = builder.AddParameter("efsContainerRegistryName");
             var efsApplicationInsightsName = builder.AddParameter("efsApplicationInsightsName");
@@ -58,9 +58,9 @@ namespace UKHO.ADDS.EFS.LocalHost
             var efsServiceIdentity = builder.AddAzureUserAssignedIdentity(ServiceConfiguration.EfsServiceIdentity).PublishAsExisting(efsServiceIdentityName, efsRetainResourceGroup);
 
             // Log analytics workspace
-            var laws = builder.ExecutionContext.IsPublishMode
-                ? builder.AddAzureLogAnalyticsWorkspace(ServiceConfiguration.LogAnalyticsWorkspaceName).PublishAsExisting(efsLogAnalyticsWorkspaceName, efsRetainResourceGroup)
-                : null;
+            //var laws = builder.ExecutionContext.IsPublishMode
+            //    ? builder.AddAzureLogAnalyticsWorkspace(ServiceConfiguration.LogAnalyticsWorkspaceName).PublishAsExisting(efsLogAnalyticsWorkspaceName, efsRetainResourceGroup)
+            //    : null;
 
             // App insights
             var appInsights = builder.ExecutionContext.IsPublishMode
@@ -92,13 +92,6 @@ namespace UKHO.ADDS.EFS.LocalHost
             var storageBlob = storage.AddBlobs(StorageConfiguration.BlobsName);
 
             // Redis cache
-            //var redisCache = builder.AddAzureRedis(ProcessNames.RedisCache)
-            //    .RunAsContainer();
-            //redisCache.ConfigureInfrastructure(config =>
-            //{
-            //    var redis = config.GetProvisionableResources().OfType<Azure.Provisioning.Redis.RedisResource>().Single();
-            //    redis.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
-            //});
             var redisCache = builder.AddRedis(ProcessNames.RedisCache)
                 .WithRedisInsight()
                 .PublishAsAzureContainerApp((infra, app) =>

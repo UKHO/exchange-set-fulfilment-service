@@ -14,26 +14,20 @@
       "efsApplicationInsightsName": {
         "value": "${AZURE_EFS_APPLICATION_INSIGHTS_NAME}"
       },
+        "efsContainerAppsEnvironmentName": {
+            "value": "${AZURE_EFS_CONTAINER_APPS_ENVIRONMENT_NAME}"
+      },
       "efsContainerRegistryName": {
         "value": "${AZURE_EFS_CONTAINER_REGISTRY_NAME}"
       },
       "efsEventHubNamespaceName": {
         "value": "${AZURE_EFS_EVENT_HUB_NAMESPACE_NAME}"
       },
-      "efsLogAnalyticsWorkspaceName": {
-        "value": "${AZURE_EFS_LOG_ANALYTICS_WORKSPACE_NAME}"
-      },
       "efsRetainResourceGroup": {
         "value": "${AZURE_EFS_RETAIN_RESOURCE_GROUP}"
       },
       "efsServiceIdentityName": {
         "value": "${AZURE_EFS_SERVICE_IDENTITY_NAME}"
-      },
-      "subnetResourceId": {
-        "value": "${AZURE_SUBNET_RESOURCE_ID}"
-      },
-      "zoneRedundant": {
-        "value": "${AZURE_ZONE_REDUNDANT}"
       },
       "environmentName": {
         "value": "${AZURE_ENV_NAME}"
@@ -43,4 +37,3 @@
       }
     }
   }
-  

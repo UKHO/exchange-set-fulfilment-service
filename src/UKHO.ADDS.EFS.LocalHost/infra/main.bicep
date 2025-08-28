@@ -21,9 +21,9 @@ param addsEnvironment string
 @secure()
 param efs_redis_password string
 param efsApplicationInsightsName string
+param efsContainerAppsEnvironmentName string
 param efsContainerRegistryName string
 param efsEventHubNamespaceName string
-param efsLogAnalyticsWorkspaceName string
 @metadata({azd: {
   type: 'resourceGroup'
   config: {}
@@ -31,8 +31,6 @@ param efsLogAnalyticsWorkspaceName string
 })
 param efsRetainResourceGroup string
 param efsServiceIdentityName string
-param subnetResourceId string
-param zoneRedundant bool
 
 var tags = {
   'azd-env-name': environmentName
@@ -61,14 +59,10 @@ module efs_appconfig 'efs-appconfig/efs-appconfig.module.bicep' = {
 }
 module efs_cae 'efs-cae/efs-cae.module.bicep' = {
   name: 'efs-cae'
-  scope: rg
+  scope: resourceGroup(efsRetainResourceGroup)
   params: {
-    efs_cae_acr_outputs_name: efs_cae_acr.outputs.name
-    efs_law_outputs_name: efs_law.outputs.name
     location: location
-    subnetResourceId: subnetResourceId
-    userPrincipalId: principalId
-    zoneRedundant: zoneRedundant
+    efsContainerAppsEnvironmentName: efsContainerAppsEnvironmentName
   }
 }
 module efs_cae_acr 'efs-cae-acr/efs-cae-acr.module.bicep' = {
@@ -84,14 +78,6 @@ module efs_events_namespace 'efs-events-namespace/efs-events-namespace.module.bi
   scope: resourceGroup(efsRetainResourceGroup)
   params: {
     efsEventHubNamespaceName: efsEventHubNamespaceName
-    location: location
-  }
-}
-module efs_law 'efs-law/efs-law.module.bicep' = {
-  name: 'efs-law'
-  scope: resourceGroup(efsRetainResourceGroup)
-  params: {
-    efsLogAnalyticsWorkspaceName: efsLogAnalyticsWorkspaceName
     location: location
   }
 }
@@ -138,13 +124,13 @@ module efs_storage 'efs-storage/efs-storage.module.bicep' = {
   }
 }
 output AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN string = efs_cae.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN
-output AZURE_CONTAINER_REGISTRY_ENDPOINT string = efs_cae.outputs.AZURE_CONTAINER_REGISTRY_ENDPOINT
+output AZURE_CONTAINER_REGISTRY_ENDPOINT string = efs_cae_acr.outputs.loginServer
 output EFS_APP_INSIGHTS_APPINSIGHTSCONNECTIONSTRING string = efs_app_insights.outputs.appInsightsConnectionString
 output EFS_APPCONFIG_APPCONFIGENDPOINT string = efs_appconfig.outputs.appConfigEndpoint
 output EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN string = efs_cae.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN
 output EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_ID string = efs_cae.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_ID
-output EFS_CAE_AZURE_CONTAINER_REGISTRY_ENDPOINT string = efs_cae.outputs.AZURE_CONTAINER_REGISTRY_ENDPOINT
-output EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID string = efs_cae.outputs.AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID
+output EFS_CAE_AZURE_CONTAINER_REGISTRY_ENDPOINT string = efs_cae_acr.outputs.loginServer
+output EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID string = efs_service_identity.outputs.id
 output EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT string = efs_events_namespace.outputs.eventHubsEndpoint
 output EFS_SERVICE_IDENTITY_CLIENTID string = efs_service_identity.outputs.clientId
 output EFS_SERVICE_IDENTITY_ID string = efs_service_identity.outputs.id
