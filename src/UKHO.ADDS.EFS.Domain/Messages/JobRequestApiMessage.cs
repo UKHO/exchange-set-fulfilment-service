@@ -1,4 +1,5 @@
 ﻿using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.Products;
 
 namespace UKHO.ADDS.EFS.Messages
 {
@@ -7,11 +8,9 @@ namespace UKHO.ADDS.EFS.Messages
     /// </summary>
     public class JobRequestApiMessage
     {
-        public required int Version { get; init; } = 1;
-
         public DataStandard DataStandard { get; set; }
 
-        public required string Products { get; set; }
+        public required ProductNameList Products { get; set; }
 
         public required string Filter { get; set; }
     }

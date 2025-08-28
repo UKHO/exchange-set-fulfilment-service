@@ -8,7 +8,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion
     {
         public required DataStandard DataStandard { get; init; }
 
-        public required string JobId { get; init; }
+        public required JobId JobId { get; init; }
 
         public required BuilderExitCode ExitCode { get; init; }
 

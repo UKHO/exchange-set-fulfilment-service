@@ -7,7 +7,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Jobs
         /// <summary>
         ///     The Job ID
         /// </summary>
-        public required string JobId { get; init; }
+        public required JobId JobId { get; init; }
 
         /// <summary>
         ///     The discriminant is a BLAKE2b-256 hash of the build discriminator string
@@ -17,7 +17,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Jobs
         /// <summary>
         ///     The File Share batch ID of the Exchange Set
         /// </summary>
-        public required string BatchId { get; init; }
+        public required BatchId BatchId { get; init; }
 
         /// <summary>
         ///     The data standard

@@ -1,15 +1,15 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
-namespace UKHO.ADDS.Clients.SalesCatalogueService.Models
+namespace UKHO.ADDS.EFS.Products
 {
     [ExcludeFromCodeCoverage]
-    public class S100ProductCancellation
+    public class ProductCancellation
     {
         [JsonPropertyName("editionNumber")]
-        public int EditionNumber { get; set; }
+        public EditionNumber EditionNumber { get; set; }
 
         [JsonPropertyName("updateNumber")]
-        public int UpdateNumber { get; set; }
+        public UpdateNumber UpdateNumber { get; set; }
     }
 }

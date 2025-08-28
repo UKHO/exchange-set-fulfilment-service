@@ -8,7 +8,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables
     internal class BuildMementoTable : StructuredTable<BuildMemento>
     {
         public BuildMementoTable(TableServiceClient tableServiceClient)
-            : base(StorageConfiguration.BuildMementoTable, tableServiceClient, x => x.JobId, x => x.JobId)
+            : base(StorageConfiguration.BuildMementoTable, tableServiceClient, x => (string)x.JobId, x => (string)x.JobId)
         {
         }
     }

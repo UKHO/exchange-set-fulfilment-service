@@ -2,11 +2,11 @@ using FakeItEasy;
 using UKHO.ADDS.EFS.Builds;
 using UKHO.ADDS.EFS.Builds.S100;
 using UKHO.ADDS.EFS.Jobs;
-using UKHO.ADDS.EFS.Orchestrator.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Services;
+using UKHO.ADDS.EFS.Products;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
@@ -38,10 +38,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         {
             _job = new Job
             {
-                Id = "test-job-id",
+                Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = "",
+                RequestedProducts = new ProductNameList(),
                 RequestedFilter = "productName eq '101GB004DEVQK'",
             };
 
@@ -49,9 +49,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             {
                 Products =
                 [
-                    new() { ProductName = "101GB004DEVQK", LatestEditionNumber = 1 },
-                    new() { ProductName = "101GB00510210", LatestEditionNumber = 2 },
-                    new() { ProductName = "102CA005N5040W00130.h5", LatestEditionNumber = 1 }
+                    new() { ProductName = ProductName.From("101GB004DEVQK"), LatestEditionNumber = EditionNumber.From(1) },
+                    new() {ProductName = ProductName.From("101GB00510210"), LatestEditionNumber = EditionNumber.From(2)},
+                    new() {ProductName = ProductName.From("102CA005N5040W00130.h5"), LatestEditionNumber = EditionNumber.From(1)}
                 ]
             };
 
@@ -82,10 +82,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         {
             var job = new Job
             {
-                Id = "test-job-id",
+                Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = "",
+                RequestedProducts = new ProductNameList(),
                 RequestedFilter = string.Empty
             };
 
@@ -93,7 +93,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             {
                 Products =
                 [
-                    new() { ProductName = "101GB004DEVQK" }
+                    new() { ProductName = ProductName.From("101GB004DEVQK") }
                 ]
             };
 
@@ -110,10 +110,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         {
             var job = new Job
             {
-                Id = "test-job-id",
+                Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = "",
+                RequestedProducts = new ProductNameList(),
                 RequestedFilter = null!
             };
 
@@ -121,7 +121,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             {
                 Products =
                 [
-                    new() { ProductName = "101GB004DEVQK" }
+                    new() { ProductName = ProductName.From("101GB004DEVQK") }
                 ]
             };
 
@@ -138,10 +138,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         {
             var job = new Job
             {
-                Id = "test-job-id",
+                Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = "",
+                RequestedProducts = new ProductNameList(),
                 RequestedFilter = "productName eq '101GB004DEVQK'",
             };
 
@@ -163,10 +163,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         {
             var job = new Job
             {
-                Id = "test-job-id",
+                Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = "",
+                RequestedProducts = new ProductNameList(),
                 RequestedFilter = "productName eq '101GB004DEVQK'",
             };
 
@@ -188,10 +188,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         {
             _job = new Job
             {
-                Id = "test-job-id",
+                Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = "",
+                RequestedProducts = new ProductNameList(),
                 RequestedFilter = "startswith(ProductName, '102')",
             };
 
@@ -199,10 +199,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             {
                 Products =
                 [
-                    new() { ProductName = "101GB004DEVQK", LatestEditionNumber = 1 },
-                    new() { ProductName = "101GB00510210", LatestEditionNumber = 2 },
-                    new() { ProductName = "102CA005N5040W00130.h5", LatestEditionNumber = 1 },
-                    new() { ProductName = "102CA005N5040W00140.h5", LatestEditionNumber = 1 }
+                    new() { ProductName = ProductName.From("101GB004DEVQK"), LatestEditionNumber = EditionNumber.From(1) },
+                    new() {ProductName = ProductName.From("101GB00510210"), LatestEditionNumber = EditionNumber.From(2)},
+                    new() {ProductName = ProductName.From("102CA005N5040W00130.h5"), LatestEditionNumber = EditionNumber.From(1)},
+                    new() {ProductName = ProductName.From("102CA005N5040W00140.h5"), LatestEditionNumber = EditionNumber.From(1)}
                 ]
             };
 
@@ -221,12 +221,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         [Test]
         public async Task WhenPerformExecuteAsyncIsCalledAndFilterMatchesNoProducts_ThenSignalsNoBuildRequiredAndReturnsSucceeded()
         {
+            var products = new ProductNameList();
+            
+            products.Add(ProductName.From("101product1"));
+            products.Add(ProductName.From("101product2"));
+
             _job = new Job
             {
-                Id = "test-job-id",
+                Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = "product1,product2",
+                RequestedProducts = products,
                 RequestedFilter = "productName eq '101GB004DEVQP'",
             };
 
@@ -234,9 +239,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             {
                 Products =
                 [
-                    new() { ProductName = "101GB004DEVQK", LatestEditionNumber = 1 },
-                    new() { ProductName = "101GB00510210", LatestEditionNumber = 2 },
-                    new() { ProductName = "102CA005N5040W00130.h5", LatestEditionNumber = 1 }
+                    new() { ProductName = ProductName.From("101GB004DEVQK"), LatestEditionNumber = EditionNumber.From(1) },
+                    new() {ProductName = ProductName.From("101GB00510210"), LatestEditionNumber = EditionNumber.From(2)},
+                    new() {ProductName = ProductName.From("102CA005N5040W00130.h5"), LatestEditionNumber = EditionNumber.From(1)}
                 ]
             };
 
@@ -256,12 +261,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         [Test]
         public async Task WhenPerformExecuteAsyncIsCalledAndComplexFilter_ThenFiltersCorrectlyAndReturnsSucceeded()
         {
+            var products = new ProductNameList();
+
+            products.Add(ProductName.From("101product1"));
+            products.Add(ProductName.From("101product2"));
+
             _job = new Job
             {
-                Id = "test-job-id",
+                Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = "product1,product2",
+                RequestedProducts = products,
                 RequestedFilter = "productName eq '101GB004DEVQK' or latestEditionNumber eq 2",
             };
 
@@ -269,9 +279,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             {
                 Products =
                 [
-                    new() { ProductName = "101GB004DEVQK", LatestEditionNumber = 1 },
-                    new() { ProductName = "101GB00510210", LatestEditionNumber = 2 },
-                    new() { ProductName = "102CA005N5040W00130.h5", LatestEditionNumber = 1 }
+                    new() { ProductName = ProductName.From("101GB004DEVQK"), LatestEditionNumber = EditionNumber.From(1) },
+                    new() {ProductName = ProductName.From("101GB00510210"), LatestEditionNumber = EditionNumber.From(2)},
+                    new() {ProductName = ProductName.From("102CA005N5040W00130.h5"), LatestEditionNumber = EditionNumber.From(1)}
                 ]
             };
             _pipelineContext = new PipelineContext<S100Build>(_job, _build, _storageService);

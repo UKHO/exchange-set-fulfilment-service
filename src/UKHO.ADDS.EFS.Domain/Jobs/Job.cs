@@ -1,8 +1,9 @@
 ﻿using System.Text.Json.Serialization;
 using UKHO.ADDS.EFS.Builds;
-using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.Implementation;
+using UKHO.ADDS.EFS.Products;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Jobs
+namespace UKHO.ADDS.EFS.Jobs
 {
     public partial class Job
     {
@@ -21,7 +22,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Jobs
         /// <summary>
         ///     The job id.
         /// </summary>
-        public required string Id { get; init; }
+        public required JobId Id { get; init; }
 
         /// <summary>
         ///     The timestamp of the job creation.
@@ -54,7 +55,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Jobs
         /// <summary>
         ///     Gets the requested products for the job.
         /// </summary>
-        public required string RequestedProducts { get; init; }
+        public required ProductNameList RequestedProducts { get; init; }
 
         /// <summary>
         ///     Gets the requested filter for the job.
@@ -64,13 +65,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Jobs
         /// <summary>
         ///     The FSS Batch ID associated with the job.
         /// </summary>
-        public string? BatchId { get; set; }
+        public BatchId BatchId { get; set; }
 
         /// <summary>
         ///     Gets the correlation ID for the job.
         /// </summary>
         /// <remarks>This is always the Job ID.</remarks>
         /// <returns></returns>
-        public string GetCorrelationId() => Id;
+        public CorrelationId GetCorrelationId() => CorrelationId.From((string)Id);
     }
 }
