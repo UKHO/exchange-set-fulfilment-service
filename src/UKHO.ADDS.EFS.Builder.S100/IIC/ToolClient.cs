@@ -1,7 +1,7 @@
 ﻿using UKHO.ADDS.Clients.Common.Constants;
 using UKHO.ADDS.Clients.Common.Extensions;
 using UKHO.ADDS.EFS.Builder.S100.IIC.Models;
-using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.Infrastructure.Results;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 

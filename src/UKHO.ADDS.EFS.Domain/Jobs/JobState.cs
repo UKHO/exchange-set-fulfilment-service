@@ -1,4 +1,4 @@
-﻿namespace UKHO.ADDS.EFS.Jobs
+﻿namespace UKHO.ADDS.EFS.Domain.Jobs
 {
     public enum JobState
     {

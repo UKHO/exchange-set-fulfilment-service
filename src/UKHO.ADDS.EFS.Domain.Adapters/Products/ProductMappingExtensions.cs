@@ -1,6 +1,6 @@
 ﻿using System.Net;
 using UKHO.ADDS.Clients.Kiota.SalesCatalogueService.Models;
-using UKHO.ADDS.EFS.Products;
+using UKHO.ADDS.EFS.Domain.Products;
 
 namespace UKHO.ADDS.EFS.Domain.Adapters.Products
 {

@@ -1,8 +1,8 @@
-﻿using UKHO.ADDS.EFS.Exceptions;
-using UKHO.ADDS.EFS.Extensions;
+﻿using UKHO.ADDS.EFS.Domain.Exceptions;
+using UKHO.ADDS.EFS.Domain.Extensions;
 using Vogen;
 
-namespace UKHO.ADDS.EFS.Jobs
+namespace UKHO.ADDS.EFS.Domain.Jobs
 {
     [ValueObject<int>(Conversions.SystemTextJson, typeof(ValidationException))]
     public partial struct DataStandardProduct

@@ -1,8 +1,8 @@
-﻿using UKHO.ADDS.EFS.Builds;
-using UKHO.ADDS.EFS.External;
-using UKHO.ADDS.EFS.Messages;
+﻿using UKHO.ADDS.EFS.Domain.Builds;
+using UKHO.ADDS.EFS.Domain.External;
+using UKHO.ADDS.EFS.Domain.Messages;
+using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
-using UKHO.ADDS.EFS.Products;
 using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging

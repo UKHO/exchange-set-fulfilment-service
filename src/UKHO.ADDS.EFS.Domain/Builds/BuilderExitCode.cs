@@ -1,4 +1,4 @@
-﻿namespace UKHO.ADDS.EFS.Configuration.Orchestrator
+﻿namespace UKHO.ADDS.EFS.Domain.Builds
 {
     public enum BuilderExitCode
     {

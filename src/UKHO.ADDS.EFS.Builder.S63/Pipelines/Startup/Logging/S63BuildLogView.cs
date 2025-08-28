@@ -1,5 +1,5 @@
-﻿using UKHO.ADDS.EFS.Builds.S63;
-using UKHO.ADDS.EFS.Jobs;
+﻿using UKHO.ADDS.EFS.Domain.Builds.S63;
+using UKHO.ADDS.EFS.Domain.Jobs;
 
 namespace UKHO.ADDS.EFS.Builder.S63.Pipelines.Startup.Logging
 {

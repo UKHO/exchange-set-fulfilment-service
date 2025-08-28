@@ -8,10 +8,9 @@ using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.EFS.Builder.Common.Factories;
 using UKHO.ADDS.EFS.Builder.Common.Logging;
 using UKHO.ADDS.EFS.Builder.S63.Pipelines;
-using UKHO.ADDS.EFS.Configuration.Orchestrator;
+using UKHO.ADDS.EFS.Domain.Extensions;
 using UKHO.ADDS.EFS.Domain.Services.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Domain.Services.Configuration.Orchestrator;
-using UKHO.ADDS.EFS.Extensions;
 
 namespace UKHO.ADDS.EFS.Builder.S63
 {

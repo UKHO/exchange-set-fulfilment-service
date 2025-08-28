@@ -1,8 +1,8 @@
-﻿using UKHO.ADDS.EFS.Exceptions;
-using UKHO.ADDS.EFS.Jobs;
+﻿using UKHO.ADDS.EFS.Domain.Exceptions;
+using UKHO.ADDS.EFS.Domain.Jobs;
 using Vogen;
 
-namespace UKHO.ADDS.EFS.Products
+namespace UKHO.ADDS.EFS.Domain.Products
 {
     [ValueObject<string>(Conversions.SystemTextJson, typeof(ValidationException))]
     public partial struct ProductName

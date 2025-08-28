@@ -3,7 +3,6 @@ using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
 using UKHO.ADDS.Aspire.Configuration;
-using UKHO.ADDS.EFS.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Domain.Services.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Domain.Services.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Orchestrator.Api;

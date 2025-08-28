@@ -1,7 +1,6 @@
-﻿using UKHO.ADDS.EFS.Configuration.Orchestrator;
-using UKHO.ADDS.EFS.Jobs;
+﻿using UKHO.ADDS.EFS.Domain.Jobs;
 
-namespace UKHO.ADDS.EFS.Builds
+namespace UKHO.ADDS.EFS.Domain.Builds
 {
     public class BuildResponse
     {

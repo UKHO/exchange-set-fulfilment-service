@@ -1,7 +1,7 @@
-﻿using UKHO.ADDS.EFS.Jobs;
-using UKHO.ADDS.EFS.Products;
+﻿using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Products;
 
-namespace UKHO.ADDS.EFS.Messages
+namespace UKHO.ADDS.EFS.Domain.Messages
 {
     /// <summary>
     /// <see cref="JobRequestApiMessage"/> is received via the Request API (and later converted into a <see cref="JobRequestQueueMessage"/>.
