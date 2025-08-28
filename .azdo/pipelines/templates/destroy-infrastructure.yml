@@ -34,6 +34,12 @@ jobs:
             azd config set auth.useAzCliAuth "true"
           displayName: Install azd
 
+        - template: get-retained-resource-details.yml
+
+        - template: get-retained-infrastructure-details.yml
+          parameters:
+            AzureSubscription: ${{ variables.AzureSubscription }}
+
         - task: AzureCLI@2
           displayName: Destroy infrastructure
           inputs:
@@ -43,7 +49,26 @@ jobs:
             scriptLocation: inlineScript
             ${{ if eq(parameters.AdditionalDebugging, true) }}:
               inlineScript: |
+                set -e
+                echo "Current env variables:"
+                echo "--------------------------------------------------------------------------------"
+                env | sort
+                echo "--------------------------------------------------------------------------------"
+
                 azd down --no-prompt --force --purge --debug
+
+                echo "Current azd variables:"
+                echo "--------------------------------------------------------------------------------"
+                azd env get-values
+                echo "--------------------------------------------------------------------------------"
             ${{ else }}:
               inlineScript: |
                 azd down --no-prompt --force --purge
+          env:
+            AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+            AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+            AZURE_LOCATION: $(AZURE_LOCATION)
+            AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
+            AZURE_ADDS_ENVIRONMENT: $(AZURE_ENV_NAME)
+            AZURE_EFS_SERVICE_IDENTITY_RESOURCE_GROUP: $(AZURE_EFS_SERVICE_IDENTITY_RESOURCE_GROUP)
+            AZURE_EFS_SERVICE_IDENTITY_NAME: $(AZURE_EFS_SERVICE_IDENTITY_NAME)
