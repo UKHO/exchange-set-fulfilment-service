@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 
-namespace UKHO.ADDS.EFS.RetryPolicy
+namespace UKHO.ADDS.EFS.Domain.Services.Implementation.Retries
 {
     public static partial class HttpClientPolicyLogger
     {

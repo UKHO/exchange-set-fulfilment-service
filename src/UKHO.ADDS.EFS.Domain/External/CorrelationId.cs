@@ -1,6 +1,6 @@
 ﻿using Vogen;
 
-namespace UKHO.ADDS.EFS.Implementation
+namespace UKHO.ADDS.EFS.External
 {
     [ValueObject<string>(Conversions.SystemTextJson)]
     [Instance("None", "")]

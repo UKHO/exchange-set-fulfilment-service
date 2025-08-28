@@ -2,7 +2,7 @@
 using UKHO.ADDS.Aspire.Configuration.Remote;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Services;
 using UKHO.ADDS.EFS.Builds.S63;
-using UKHO.ADDS.EFS.Configuration.Namespaces;
+using UKHO.ADDS.EFS.Domain.Services.Configuration.Namespaces;
 
 namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
 {

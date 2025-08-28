@@ -1,4 +1,4 @@
-﻿namespace UKHO.ADDS.EFS.Configuration.Namespaces
+﻿namespace UKHO.ADDS.EFS.Domain.Services.Configuration.Namespaces
 {
     public static class ProcessNames
     {

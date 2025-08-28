@@ -2,7 +2,7 @@
 using HandlebarsDotNet;
 using UKHO.ADDS.EFS.Jobs;
 
-namespace UKHO.ADDS.EFS.Utilities
+namespace UKHO.ADDS.EFS.Domain.Services.Factories
 {
     public class FileNameGenerator
     {

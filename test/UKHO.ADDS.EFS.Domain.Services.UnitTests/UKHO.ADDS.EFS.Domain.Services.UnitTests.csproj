@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\UKHO.ADDS.EFS.Domain.Services\UKHO.ADDS.EFS.Domain.Services.csproj" />
+    <ProjectReference Include="..\UKHO.ADDS.EFS.UnitTests\UKHO.ADDS.EFS.UnitTests.csproj" />
+  </ItemGroup>
+
+</Project>

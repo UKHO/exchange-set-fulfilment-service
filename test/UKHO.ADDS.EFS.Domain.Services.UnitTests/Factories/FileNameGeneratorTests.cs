@@ -1,7 +1,8 @@
-﻿using UKHO.ADDS.EFS.Jobs;
-using UKHO.ADDS.EFS.Utilities;
+﻿using NUnit.Framework;
+using UKHO.ADDS.EFS.Domain.Services.Factories;
+using UKHO.ADDS.EFS.Jobs;
 
-namespace UKHO.ADDS.EFS.Domain.UnitTests.Utilities
+namespace UKHO.ADDS.EFS.Domain.Services.UnitTests.Factories
 {
     [TestFixture]
     public class FileNameGeneratorTests

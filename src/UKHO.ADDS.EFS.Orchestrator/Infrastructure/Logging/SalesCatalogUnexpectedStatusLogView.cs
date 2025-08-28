@@ -1,5 +1,5 @@
 ﻿using System.Net;
-using UKHO.ADDS.EFS.Implementation;
+using UKHO.ADDS.EFS.External;
 using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.EFS.Products;
 

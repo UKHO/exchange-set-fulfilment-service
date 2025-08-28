@@ -2,6 +2,7 @@
 using Azure.Storage.Queues;
 using Microsoft.Extensions.Configuration;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
+using UKHO.ADDS.EFS.Domain.Services.Configuration.Orchestrator;
 
 namespace UKHO.ADDS.EFS.Builder.Common.Factories
 {
