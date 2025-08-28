@@ -118,21 +118,20 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
     private async Task<FluentValidation.Results.ValidationResult> ValidateProductVersionsRequest(Job job)
     {
         // Parse product versions from requested products
-        var productVersions = new List<S100ProductVersion>();
-        var productStrings = job.RequestedProducts.Split(',', StringSplitOptions.RemoveEmptyEntries)
+        var productVersions = job.RequestedProducts
+            .Split(',', StringSplitOptions.RemoveEmptyEntries)
             .Select(p => p.Trim())
-            .Where(p => !string.IsNullOrEmpty(p));
-
-        foreach (var p in productStrings)
-        {
-            var parts = p.Split(':');
-            productVersions.Add(new S100ProductVersion
-            {
-                ProductName = parts.ElementAtOrDefault(0) ?? string.Empty,
-                EditionNumber = int.TryParse(parts.ElementAtOrDefault(1), out var edition) ? edition : 0,
-                UpdateNumber = int.TryParse(parts.ElementAtOrDefault(2), out var update) ? update : 0
-            });
-        }
+            .Where(p => !string.IsNullOrEmpty(p))
+            .Select(p => {
+                var parts = p.Split(':');
+                return new S100ProductVersion
+                {
+                    ProductName = parts.ElementAtOrDefault(0) ?? string.Empty,
+                    EditionNumber = int.TryParse(parts.ElementAtOrDefault(1), out var edition) ? edition : 0,
+                    UpdateNumber = int.TryParse(parts.ElementAtOrDefault(2), out var update) ? update : 0
+                };
+            })
+            .ToList();
 
         var request = new S100ProductVersionsRequest
         {

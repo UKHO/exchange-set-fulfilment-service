@@ -10,6 +10,11 @@ internal class S100UpdateSinceValidator : AbstractValidator<Job>
 {
     public S100UpdateSinceValidator()
     {
+        RuleFor(request => request.CallbackUri)
+            .Must(CallbackUriValidator.IsValidCallbackUri)
+            .When(request => !string.IsNullOrEmpty(request.CallbackUri))
+            .WithMessage("Invalid callbackUri format.");
+
         RuleFor(job => job.RequestedFilter)
             .NotEmpty().WithMessage("RequestedFilter cannot be empty for updatesSince requests.")
             .Custom((requestedFilter, context) =>
