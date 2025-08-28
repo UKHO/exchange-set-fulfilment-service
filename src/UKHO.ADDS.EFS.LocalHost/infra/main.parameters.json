@@ -11,11 +11,23 @@
       "efs_redis_password": {
         "value": "${AZURE_EFS_REDIS_PASSWORD}"
       },
+      "efsApplicationInsightsName": {
+        "value": "${AZURE_EFS_APPLICATION_INSIGHTS_NAME}"
+      },
+      "efsContainerRegistryName": {
+        "value": "${AZURE_EFS_CONTAINER_REGISTRY_NAME}"
+      },
+      "efsEventHubNamespaceName": {
+        "value": "${AZURE_EFS_EVENT_HUB_NAMESPACE_NAME}"
+      },
+      "efsLogAnalyticsWorkspaceName": {
+        "value": "${AZURE_EFS_LOG_ANALYTICS_WORKSPACE_NAME}"
+      },
+      "efsRetainResourceGroup": {
+        "value": "${AZURE_EFS_RETAIN_RESOURCE_GROUP}"
+      },
       "efsServiceIdentityName": {
         "value": "${AZURE_EFS_SERVICE_IDENTITY_NAME}"
-      },
-      "efsServiceIdentityResourceGroup": {
-        "value": "${AZURE_EFS_SERVICE_IDENTITY_RESOURCE_GROUP}"
       },
       "subnetResourceId": {
         "value": "${AZURE_SUBNET_RESOURCE_ID}"

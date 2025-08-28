@@ -20,13 +20,17 @@ param addsEnvironment string
 })
 @secure()
 param efs_redis_password string
-param efsServiceIdentityName string
+param efsApplicationInsightsName string
+param efsContainerRegistryName string
+param efsEventHubNamespaceName string
+param efsLogAnalyticsWorkspaceName string
 @metadata({azd: {
   type: 'resourceGroup'
   config: {}
   }
 })
-param efsServiceIdentityResourceGroup string
+param efsRetainResourceGroup string
+param efsServiceIdentityName string
 param subnetResourceId string
 param zoneRedundant bool
 
@@ -42,9 +46,9 @@ resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
 
 module efs_app_insights 'efs-app-insights/efs-app-insights.module.bicep' = {
   name: 'efs-app-insights'
-  scope: rg
+  scope: resourceGroup(efsRetainResourceGroup)
   params: {
-    efs_law_outputs_loganalyticsworkspaceid: efs_law.outputs.logAnalyticsWorkspaceId
+    efsApplicationInsightsName: efsApplicationInsightsName
     location: location
   }
 }
@@ -59,6 +63,7 @@ module efs_cae 'efs-cae/efs-cae.module.bicep' = {
   name: 'efs-cae'
   scope: rg
   params: {
+    efs_cae_acr_outputs_name: efs_cae_acr.outputs.name
     efs_law_outputs_name: efs_law.outputs.name
     location: location
     subnetResourceId: subnetResourceId
@@ -66,17 +71,27 @@ module efs_cae 'efs-cae/efs-cae.module.bicep' = {
     zoneRedundant: zoneRedundant
   }
 }
+module efs_cae_acr 'efs-cae-acr/efs-cae-acr.module.bicep' = {
+  name: 'efs-cae-acr'
+  scope: resourceGroup(efsRetainResourceGroup)
+  params: {
+    efsContainerRegistryName: efsContainerRegistryName
+    location: location
+  }
+}
 module efs_events_namespace 'efs-events-namespace/efs-events-namespace.module.bicep' = {
   name: 'efs-events-namespace'
-  scope: rg
+  scope: resourceGroup(efsRetainResourceGroup)
   params: {
+    efsEventHubNamespaceName: efsEventHubNamespaceName
     location: location
   }
 }
 module efs_law 'efs-law/efs-law.module.bicep' = {
   name: 'efs-law'
-  scope: rg
+  scope: resourceGroup(efsRetainResourceGroup)
   params: {
+    efsLogAnalyticsWorkspaceName: efsLogAnalyticsWorkspaceName
     location: location
   }
 }
@@ -91,7 +106,7 @@ module efs_orchestrator_roles_efs_appconfig 'efs-orchestrator-roles-efs-appconfi
 }
 module efs_orchestrator_roles_efs_events_namespace 'efs-orchestrator-roles-efs-events-namespace/efs-orchestrator-roles-efs-events-namespace.module.bicep' = {
   name: 'efs-orchestrator-roles-efs-events-namespace'
-  scope: rg
+  scope: resourceGroup(efsRetainResourceGroup)
   params: {
     efs_events_namespace_outputs_name: efs_events_namespace.outputs.name
     location: location
@@ -109,7 +124,7 @@ module efs_orchestrator_roles_efs_storage 'efs-orchestrator-roles-efs-storage/ef
 }
 module efs_service_identity 'efs-service-identity/efs-service-identity.module.bicep' = {
   name: 'efs-service-identity'
-  scope: resourceGroup(efsServiceIdentityResourceGroup)
+  scope: resourceGroup(efsRetainResourceGroup)
   params: {
     efsServiceIdentityName: efsServiceIdentityName
     location: location
