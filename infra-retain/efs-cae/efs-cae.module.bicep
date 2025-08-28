@@ -23,10 +23,10 @@ resource efs_cae 'Microsoft.App/managedEnvironments@2025-01-01' = {
       }
     }
     zoneRedundant: zoneRedundant
-    vnetConfiguration: {
-      internal: false
-      infrastructureSubnetId: subnetResourceId
-    }
+    // vnetConfiguration: {
+    //   internal: false
+    //   infrastructureSubnetId: subnetResourceId
+    // }
     workloadProfiles: [
       {
         name: 'consumption'
