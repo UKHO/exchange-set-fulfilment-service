@@ -118,30 +118,23 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
     private async Task<FluentValidation.Results.ValidationResult> ValidateProductVersionsRequest(Job job)
     {
         // Parse product versions from requested products
-        var productVersions = job.RequestedProducts.Split(',', StringSplitOptions.RemoveEmptyEntries)
+        var productVersions = new List<S100ProductVersion>();
+        var productStrings = job.RequestedProducts.Split(',', StringSplitOptions.RemoveEmptyEntries)
             .Select(p => p.Trim())
-            .Where(p => !string.IsNullOrEmpty(p))
-            .ToList();
+            .Where(p => !string.IsNullOrEmpty(p));
 
-        // Extract product names from product versions (first part before ':')
-        var productNames = productVersions
-            .Select(p => p.Split(':')[0])
-            .Where(p => !string.IsNullOrEmpty(p))
-            .ToList();
-
-        var productNamesRequest = new S100ProductNamesRequest
+        foreach (var p in productStrings)
         {
-            ProductNames = productNames,
-            CallbackUri = job.CallbackUri
-        };
-
-        var productNamesValidationResult = await _productNamesValidator.ValidateAsync(productNamesRequest);
-        if (!productNamesValidationResult.IsValid)
-        {
-            return productNamesValidationResult;
+            var parts = p.Split(':');
+            productVersions.Add(new S100ProductVersion
+            {
+                ProductName = parts.ElementAtOrDefault(0) ?? string.Empty,
+                EditionNumber = int.TryParse(parts.ElementAtOrDefault(1), out var edition) ? edition : 0,
+                UpdateNumber = int.TryParse(parts.ElementAtOrDefault(2), out var update) ? update : 0
+            });
         }
 
-        var request = new ProductVersionsRequest
+        var request = new S100ProductVersionsRequest
         {
             ProductVersions = productVersions
         };
