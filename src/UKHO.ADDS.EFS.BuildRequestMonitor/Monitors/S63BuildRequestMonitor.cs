@@ -1,9 +1,8 @@
 using Azure.Storage.Queues;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Builders;
-using UKHO.ADDS.EFS.Builds;
-using UKHO.ADDS.EFS.Builds.S63;
-using UKHO.ADDS.EFS.Configuration.Namespaces;
-using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.Domain.Builds.S63;
+using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Services.Configuration.Namespaces;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.BuildRequestMonitor.Monitors
@@ -14,7 +13,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Monitors
         private readonly QueueServiceClient _queueClient;
         private readonly S63BuildRequestProcessor _processor;
 
-        private readonly List<string> _processedJobs;
+        private readonly List<JobId> _processedJobs;
 
         public S63BuildRequestMonitor(ILogger<S63BuildRequestMonitor> logger, QueueServiceClient qClient, S63BuildRequestProcessor processor)
         {

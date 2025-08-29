@@ -4,8 +4,8 @@ using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.IIC.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Create;
-using UKHO.ADDS.EFS.Builds.S100;
-using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.Domain.Builds.S100;
+using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
@@ -38,11 +38,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
             {
                 Build = new S100Build
                 {
-                    JobId = "TestCorrelationId",
-                    BatchId = "a-valid-batch-id",
+                    // TODO - wrong, jobid == correlationid
+
+                    JobId = JobId.From("TestCorrelationId"),
+                    BatchId = BatchId.From("a-valid-batch-id"),
                     DataStandard = DataStandard.S100
                 },
-                JobId = "TestJobId",
+                JobId = JobId.From("TestJobId"),
                 WorkspaceAuthenticationKey = "Test123",
                 WorkSpaceRootPath = "rootPath"
             };
@@ -59,7 +61,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
 
             A.CallTo(() => fakeResult.IsSuccess(out opResponse, out error)).Returns(true);
 
-            A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<string>._, A<string>._, A<string>._))
+            A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<JobId>._, A<string>._))
                 .Returns(Task.FromResult(fakeResult));
 
             var result = await _addContentExchangeSetNode.ExecuteAsync(_executionContext);
@@ -70,7 +72,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         [Test]
         public async Task WhenPerformExecuteAsyncIsCalledAndAddContentFails_ThenReturnsFailed()
         {
-            A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<string>._, A<string>._, A<string>._))
+            A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<JobId>._, A<string>._))
                 .Returns(Result.Failure<OperationResponse>("error"));
 
             var result = await _addContentExchangeSetNode.ExecuteAsync(_executionContext);

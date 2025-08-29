@@ -2,7 +2,7 @@
 using System.Text;
 using System.Text.Json;
 using Aspire.Hosting;
-using UKHO.ADDS.EFS.Configuration.Namespaces;
+using UKHO.ADDS.EFS.Domain.Services.Configuration.Namespaces;
 using Xunit.Abstractions;
 
 namespace UKHO.ADDS.EFS.EndToEndTests

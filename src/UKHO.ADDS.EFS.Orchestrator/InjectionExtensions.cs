@@ -13,12 +13,12 @@ using UKHO.ADDS.Clients.Common.Authentication;
 using UKHO.ADDS.Clients.Common.MiddlewareExtensions;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.Kiota.SalesCatalogueService;
-using UKHO.ADDS.EFS.Builds;
-using UKHO.ADDS.EFS.Builds.S100;
-using UKHO.ADDS.EFS.Builds.S57;
-using UKHO.ADDS.EFS.Builds.S63;
-using UKHO.ADDS.EFS.Configuration.Namespaces;
-using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.Domain.Builds;
+using UKHO.ADDS.EFS.Domain.Builds.S100;
+using UKHO.ADDS.EFS.Domain.Builds.S57;
+using UKHO.ADDS.EFS.Domain.Builds.S63;
+using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Services.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Health;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
@@ -27,7 +27,6 @@ using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S100;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S57;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S63;
-using UKHO.ADDS.EFS.Orchestrator.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Monitors;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
@@ -162,6 +161,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
             {
                 var exchangeSetGenerationSchedule = configuration["orchestrator:SchedulerJob:ExchangeSetGenerationSchedule"];
                 var jobKey = new JobKey(nameof(SchedulerJob));
+
                 q.AddJob<SchedulerJob>(opts => opts.WithIdentity(jobKey));
 
                 q.AddTrigger(opts => opts

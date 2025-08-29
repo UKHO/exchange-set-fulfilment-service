@@ -1,29 +1,29 @@
 ﻿using System.Text;
-using UKHO.ADDS.Clients.SalesCatalogueService.Models;
+using UKHO.ADDS.EFS.Domain.Products;
 
-namespace UKHO.ADDS.EFS.Builds.S100
+namespace UKHO.ADDS.EFS.Domain.Builds.S100
 {
     public class S100Build : Build
     {
-        private List<S100Products> _products;
-        private List<S100ProductNames> _productNames;
+        private List<Product> _products;
+        private List<ProductEdition> _productEditions;
 
         public S100Build()
         {
             _products = [];
-            _productNames = [];
+            _productEditions = [];
         }
 
-        public IEnumerable<S100Products>? Products
+        public IEnumerable<Product>? Products
         {
             get => _products;
             set => _products = value?.ToList() ?? [];
         }
 
-        public IEnumerable<S100ProductNames> ProductNames
+        public IEnumerable<ProductEdition> ProductEditions
         {
-            get => _productNames;
-            set => _productNames = value?.ToList() ?? [];
+            get => _productEditions;
+            set => _productEditions = value?.ToList() ?? [];
         }
 
         public override string GetProductDelimitedList() => (Products == null) ? string.Empty : string.Join(", ", Products.Select(p => p));

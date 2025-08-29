@@ -3,12 +3,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
-using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble;
-using UKHO.ADDS.EFS.Builds.S100;
-using UKHO.ADDS.EFS.Configuration.Orchestrator;
-using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.Domain.Builds.S100;
+using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Products;
+using UKHO.ADDS.EFS.Domain.Services.Configuration.Orchestrator;
+using UKHO.ADDS.EFS.Domain.Services.Implementation.Retries;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
@@ -44,20 +45,20 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         {
             _configuration = A.Fake<IConfiguration>();
             A.CallTo(() => _configuration["HttpRetry:RetryDelayInMilliseconds"]).Returns(RetryDelayInMilliseconds.ToString());
-            UKHO.ADDS.EFS.RetryPolicy.HttpRetryPolicyFactory.SetConfiguration(_configuration);
+            HttpRetryPolicyFactory.SetConfiguration(_configuration);
 
             var exchangeSetPipelineContext = new S100ExchangeSetPipelineContext(null, null, null, null, _loggerFactory)
             {
                 WorkSpaceRootPath = Path.GetTempPath(),
                 Build = new S100Build
                 {
-                    JobId = "TestCorrelationId",
+                    JobId = JobId.From("TestCorrelationId"),
                     DataStandard = DataStandard.S100,
-                    BatchId = "a-batch-id",
+                    BatchId = BatchId.From("a-batch-id"),
                     Products =
                     [
-                        new S100Products { ProductName = "Product1", LatestEditionNumber = 1, LatestUpdateNumber = 0 },
-                        new S100Products { ProductName = "Product2", LatestEditionNumber = 2, LatestUpdateNumber = 1 }
+                        new Product { ProductName = ProductName.From("Product1"), LatestEditionNumber = EditionNumber.From(1), LatestUpdateNumber = UpdateNumber.From(0) },
+                        new Product { ProductName = ProductName.From("Product2"), LatestEditionNumber = EditionNumber.From(2), LatestUpdateNumber = UpdateNumber.From(1) }
                     ]
                 }
             };
@@ -255,7 +256,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [TearDown]
         public void TearDown()
         {
-            UKHO.ADDS.EFS.RetryPolicy.HttpRetryPolicyFactory.SetConfiguration(null);
+            HttpRetryPolicyFactory.SetConfiguration(null);
         }
 
 
