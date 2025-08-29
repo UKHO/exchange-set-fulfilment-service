@@ -60,7 +60,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
                                      TokenCredential credentials,
                                      AzureStorageLogProviderOptions azureStorageLogProviderOptions)
         {
-            eventHubClient = new EventHubProducerClient(fullyQualifiedNamespace, eventHubName, credentials);
+            eventHubClient = new EventHubProducerClient(fullyQualifiedNamespace, eventHubName, credentials, clientOptions: new EventHubProducerClientOptions
+            {
+                ConnectionOptions = new EventHubConnectionOptions
+                {
+                    TransportType = EventHubsTransportType.AmqpWebSockets // supports firewall/proxy environments
+                }
+            });
             SetupAzureStorageBlobContainer(azureStorageLogProviderOptions);
         }
 

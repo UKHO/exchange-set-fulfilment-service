@@ -1,7 +1,6 @@
 ﻿using System.Text.Json;
-using UKHO.ADDS.EFS.Domain.Jobs;
 using Serilog.Context;
-using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
@@ -25,7 +24,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
 
             foreach (var log in messages)
             {
-                WriteLog(log, logger, builderName, jobId);
+                WriteLog(log, logger, builderName, (string)jobId);
                 await Task.Yield(); 
             }
         }

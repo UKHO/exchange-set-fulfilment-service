@@ -45,7 +45,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
                 }
 
                 // Once we have JobId, establish correlation context for ALL subsequent operations
-                if (!string.IsNullOrEmpty(pipelineContext.JobId))
+                if (!string.IsNullOrEmpty((string)pipelineContext.JobId))
                 {
                     using (LogContext.PushProperty("CorrelationId", pipelineContext.JobId))
                     {
@@ -98,7 +98,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
             catch (Exception ex)
             {
                 // Use correlation ID if available
-                var correlationId = pipelineContext?.JobId ?? "unknown";
+                var correlationId = (string)pipelineContext?.JobId ?? "unknown";
                 using (LogContext.PushProperty("CorrelationId", correlationId))
                 {
 #pragma warning disable LOG001
@@ -113,7 +113,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
                 if (pipelineContext != null && configuration != null)
                 {
                     // Ensure correlation context for completion
-                    var correlationId = pipelineContext.JobId ?? "unknown";
+                    var correlationId = (string)pipelineContext.JobId ?? "unknown";
                     using (LogContext.PushProperty("CorrelationId", correlationId))
                     {
                         await pipelineContext.CompleteBuild(configuration, sink, exitCode);

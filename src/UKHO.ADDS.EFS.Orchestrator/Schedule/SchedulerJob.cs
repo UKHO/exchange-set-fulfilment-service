@@ -42,16 +42,16 @@ namespace UKHO.ADDS.EFS.Orchestrator.Schedule
             {
                 try
                 {
-                    _logger.LogSchedulerJobStarted(correlationId, DateTime.UtcNow);
+                    _logger.LogSchedulerJobStarted((CorrelationId)correlationId, DateTime.UtcNow);
 
-                var message = new JobRequestApiMessage
-                {
-                    DataStandard = DataStandard.S100,
-                    Products = new ProductNameList(),
-                    Filter = ""
-                };
+                    var message = new JobRequestApiMessage
+                    {
+                        DataStandard = DataStandard.S100,
+                        Products = new ProductNameList(),
+                        Filter = ""
+                    };
 
-                    var parameters = AssemblyPipelineParameters.CreateFrom(message, _config, correlationId);
+                    var parameters = AssemblyPipelineParameters.CreateFrom(message, _config, (CorrelationId)correlationId);
                     var pipeline = _pipelineFactory.CreateAssemblyPipeline(parameters);
 
                     var result = await pipeline.RunAsync(CancellationToken.None);
