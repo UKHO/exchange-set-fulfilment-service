@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Net;
 using System.Text.Json.Nodes;
 using Azure.Identity;
 using Serilog;
@@ -136,7 +135,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
             var fileShareEndpoint = configuration[BuilderEnvironmentVariables.FileShareEndpoint] ?? configuration["DebugEndpoints:FileShareService"]!;
 
             IAuthenticationTokenProvider? tokenProvider = null;
-            var fileShareScope = $"api://{fileShareClientId}/.default";
+            var fileShareScope = $"{fileShareClientId}/.default";
 
             if (addsEnvironment.IsLocal() || addsEnvironment.IsDev())
             {
@@ -144,7 +143,8 @@ namespace UKHO.ADDS.EFS.Builder.S100
             }
             else
             {
-                tokenProvider = new TokenCredentialAuthenticationTokenProvider(new ManagedIdentityCredential(), [fileShareScope]);
+                var efsClientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
+                tokenProvider = new TokenCredentialAuthenticationTokenProvider(new ManagedIdentityCredential(clientId: efsClientId), [fileShareScope]);
             }
 
             // Read-Write Client

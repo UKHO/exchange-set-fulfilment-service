@@ -7,6 +7,6 @@
         public Uri Uri { get; init; }
         public string ClientId { get; init; } = string.Empty;
 
-        public string GetDefaultScope() => $"api://{ClientId}/.default";
+        public string GetDefaultScope() => $"{ClientId}/.default";
     }
 }

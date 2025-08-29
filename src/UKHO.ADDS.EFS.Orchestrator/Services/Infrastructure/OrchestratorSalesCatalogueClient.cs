@@ -1,7 +1,6 @@
 ﻿using System.Net;
 using Microsoft.Kiota.Abstractions;
 using Microsoft.Kiota.Http.HttpClientLibrary.Middleware.Options;
-using UKHO.ADDS.Clients.Kiota.SalesCatalogueService;
 using UKHO.ADDS.Clients.Kiota.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Domain.Adapters.Products;
 using UKHO.ADDS.EFS.Domain.Jobs;
@@ -18,7 +17,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
     internal class OrchestratorSalesCatalogueClient : IOrchestratorSalesCatalogueClient
     {
         private readonly ILogger<OrchestratorSalesCatalogueClient> _logger;
-        private readonly KiotaSalesCatalogueService _salesCatalogueClient;
+        private readonly ISalesCatalogueKiotaClientAdapter _salesCatalogueKiotaClientAdapter;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="OrchestratorSalesCatalogueClient" /> class.
@@ -26,10 +25,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
         /// <param name="salesCatalogueClient">Client for interacting with the Sales Catalogue API.</param>
         /// <param name="logger">Logger for recording diagnostic information.</param>
         public OrchestratorSalesCatalogueClient(
-            KiotaSalesCatalogueService salesCatalogueClient,
+            ISalesCatalogueKiotaClientAdapter salesCatalogueKiotaClientAdapter,
             ILogger<OrchestratorSalesCatalogueClient> logger)
         {
-            _salesCatalogueClient = salesCatalogueClient ?? throw new ArgumentNullException(nameof(salesCatalogueClient));
+            _salesCatalogueKiotaClientAdapter = salesCatalogueKiotaClientAdapter ?? throw new ArgumentNullException(nameof(salesCatalogueKiotaClientAdapter));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -59,22 +58,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
 
             try
             {
-                var headerDateString = sinceDateTime?.ToString("R");
                 var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<List<S100BasicCatalogue>?>(_logger, nameof(GetS100ProductVersionListAsync));
 
                 var s100BasicCatalogueResult = await retryPolicy.ExecuteAsync(async () =>
                 {
-                    var result = await _salesCatalogueClient.V2.Catalogues.S100.Basic.GetAsync(config =>
-                    {
-                        if (!string.IsNullOrEmpty(headerDateString))
-                        {
-                            config.Headers.Add("If-Modified-Since", headerDateString);
-                        }
-
-                        config.Headers.Add("X-Correlation-Id", (string)job.GetCorrelationId());
-                        config.Options.Add(headersOption);
-                    });
-
+                    var result = await _salesCatalogueKiotaClientAdapter.GetBasicCatalogueAsync(sinceDateTime, job, headersOption, CancellationToken.None);
                     return Result.Success(result);
                 });
 
@@ -149,12 +137,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
                 {
                     var payload = productNames.Select(x => (string)x).ToList();
 
-                    var result = await _salesCatalogueClient.V2.Products.S100.ProductNames.PostAsync(payload,
-                        requestConfiguration =>
-                        {
-                            requestConfiguration.Headers.Add("X-Correlation-Id", (string)job.GetCorrelationId());
-                        },
-                        cancellationToken);
+                    var result = await _salesCatalogueKiotaClientAdapter.PostProductNamesAsync(payload, job, cancellationToken);
 
                     return Result.Success(result);
                 });
