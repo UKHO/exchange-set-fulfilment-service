@@ -1,5 +1,5 @@
 ﻿using System.Text;
-using UKHO.ADDS.EFS.Builds.S100;
+using UKHO.ADDS.EFS.Domain.Builds.S100;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Serialization.Json;

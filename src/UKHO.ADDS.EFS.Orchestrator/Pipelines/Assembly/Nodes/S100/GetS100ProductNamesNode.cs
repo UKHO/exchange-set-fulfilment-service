@@ -1,7 +1,8 @@
 ﻿using System.Net;
-using UKHO.ADDS.EFS.Builds.S100;
+using UKHO.ADDS.EFS.Domain.Builds.S100;
+using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
-using UKHO.ADDS.EFS.Orchestrator.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
@@ -36,17 +37,20 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
             if (job.RequestedProducts.HasProducts)
             {
-                productNames = job.RequestedProducts!;
+                productNames = job.RequestedProducts.Names
+                    .Select(p => p.ToString())
+                    .ToArray();
             }
             else
             {
                 productNames = build.Products?
-                    .Select(p => p.ProductName)
-                    .Where(name => !string.IsNullOrWhiteSpace(name))
+                    .Select(p => p.ProductName.Value)
                     .ToArray() ?? [];
             }
 
-            var s100SalesCatalogueData = await _salesCatalogueClient.GetS100ProductNamesAsync(productNames, job, Environment.CancellationToken);
+            var productNameCollection = productNames.Select(ProductName.From);
+
+            var s100SalesCatalogueData = await _salesCatalogueClient.GetS100ProductEditionListAsync(productNameCollection, job, Environment.CancellationToken);
 
             var nodeResult = NodeResultStatus.NotRun;
 
@@ -54,20 +58,20 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             {
                 case HttpStatusCode.OK:
 
-                    if (s100SalesCatalogueData.ProductCounts.ReturnedProductCount == 0)
+                    if (s100SalesCatalogueData.ProductCountSummary.ReturnedProductCount == 0)
                     {
                         await context.Subject.SignalAssemblyError();
-                        _logger.LogSalesCatalogueProductsNotReturned(SalesCatalogServiceProductsNotReturnedView.Create(s100SalesCatalogueData.ProductCounts));
+                        _logger.LogSalesCatalogueProductsNotReturned(s100SalesCatalogueData.ProductCountSummary);
                         return NodeResultStatus.Failed;
                     }
 
                     // Log any requested products that weren't returned, but don't fail the build
-                    if (s100SalesCatalogueData.ProductCounts.RequestedProductsNotReturned.Count > 0)
+                    if (s100SalesCatalogueData.ProductCountSummary.MissingProducts.Count > 0)
                     {
-                        _logger.LogSalesCatalogueProductsNotReturned(SalesCatalogServiceProductsNotReturnedView.Create(s100SalesCatalogueData.ProductCounts));
+                        _logger.LogSalesCatalogueProductsNotReturned(s100SalesCatalogueData.ProductCountSummary);
                     }
 
-                    build.ProductNames = s100SalesCatalogueData.Products;
+                    build.ProductEditions = s100SalesCatalogueData.Products;
 
                     await context.Subject.SignalBuildRequired();
 

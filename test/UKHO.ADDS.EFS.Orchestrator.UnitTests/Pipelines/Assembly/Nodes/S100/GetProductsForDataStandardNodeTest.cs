@@ -2,12 +2,10 @@ using System.Net;
 using FakeItEasy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using UKHO.ADDS.Clients.SalesCatalogueService.Models;
-using UKHO.ADDS.EFS.Builds;
-using UKHO.ADDS.EFS.Builds.S100;
-using UKHO.ADDS.EFS.Jobs;
-using UKHO.ADDS.EFS.Messages;
-using UKHO.ADDS.EFS.Orchestrator.Jobs;
+using UKHO.ADDS.EFS.Domain.Builds;
+using UKHO.ADDS.EFS.Domain.Builds.S100;
+using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
@@ -46,10 +44,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         {
             var job = new Job
             {
-                Id = "test-job-id",
+                Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = [],
+                RequestedProducts = new ProductNameList(),
                 RequestedFilter = ""
             };
             job.ValidateAndSet(JobState.Created, BuildState.NotScheduled);
@@ -68,10 +66,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         {
             var job = new Job
             {
-                Id = "test-job-id",
+                Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = [],
+                RequestedProducts = new ProductNameList(),
                 RequestedFilter = ""
             };
             job.ValidateAndSet(JobState.Created, BuildState.NotScheduled);
@@ -88,12 +86,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         [Test]
         public async Task WhenShouldExecuteAsyncIsCalledWithJobStateCreatedAndNonEmptyRequestedProducts_ThenReturnsFalse()
         {
+            var products = new ProductNameList();
+
+            products.Add(ProductName.From("101GB004DEVQK"));
+            products.Add(ProductName.From("101GB00510210"));
+
             var job = new Job
             {
-                Id = "test-job-id",
+                Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = new ProductNameList([new ProductName("101GB004DEVQK"), new ProductName("101GB00510210")]),
+                RequestedProducts = products,
                 RequestedFilter = ""
             };
             job.ValidateAndSet(JobState.Created, BuildState.NotScheduled);
@@ -112,10 +115,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         {
             var job = new Job
             {
-                Id = "test-job-id",
+                Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = [],
+                RequestedProducts = new ProductNameList(),
                 RequestedFilter = ""
             };
             job.ValidateAndSet(JobState.Submitted, BuildState.NotScheduled);
@@ -134,10 +137,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         {
             var job = new Job
             {
-                Id = "test-job-id",
+                Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = [],
+                RequestedProducts = new ProductNameList(),
                 RequestedFilter = "",
                 DataStandardTimestamp = DateTime.UtcNow.AddDays(-1)
             };
@@ -146,20 +149,20 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             var pipelineContext = new PipelineContext<S100Build>(job, build, _storageService);
             A.CallTo(() => _executionContext.Subject).Returns(pipelineContext);
 
-            var products = new List<S100Products>
+            var products = new List<Product>
             {
-                new() { ProductName = "101GB004DEVQK", LatestEditionNumber = 1 },
-                new() { ProductName = "101GB004DEVQP", LatestEditionNumber = 2 }
+                new() { ProductName = ProductName.From("101GB004DEVQP"), LatestEditionNumber = EditionNumber.From(1), LatestUpdateNumber = UpdateNumber.From(0) },
+                new() { ProductName = ProductName.From("101GB004DEVQK"), LatestEditionNumber = EditionNumber.From(2), LatestUpdateNumber = UpdateNumber.From(0) }
             };
 
             var lastModified = DateTime.UtcNow;
-            var salesCatalogueResponse = new S100SalesCatalogueResponse
+            var salesCatalogueResponse = new ProductList
             {
                 ResponseCode = HttpStatusCode.OK,
-                ResponseBody = products
+                Products = products
             };
 
-            A.CallTo(() => _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(job.DataStandardTimestamp, job))
+            A.CallTo(() => _salesCatalogueClient.GetS100ProductVersionListAsync(job.DataStandardTimestamp, job))
                 .Returns(Task.FromResult((salesCatalogueResponse, (DateTime?)lastModified)));
 
             var result = await _getProductsForDataStandardNode.ExecuteAsync(_executionContext);
@@ -176,10 +179,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         {
             var job = new Job
             {
-                Id = "test-job-id",
+                Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = [],
+                RequestedProducts = new ProductNameList(),
                 RequestedFilter = "",
                 DataStandardTimestamp = DateTime.UtcNow.AddDays(-1)
             };
@@ -188,13 +191,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             var pipelineContext = new PipelineContext<S100Build>(job, build, _storageService);
             A.CallTo(() => _executionContext.Subject).Returns(pipelineContext);
 
-            var salesCatalogueResponse = new S100SalesCatalogueResponse
+            var salesCatalogueResponse = new ProductList
             {
                 ResponseCode = HttpStatusCode.OK,
-                ResponseBody = []
+                Products = []
             };
 
-            A.CallTo(() => _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(job.DataStandardTimestamp, job))
+            A.CallTo(() => _salesCatalogueClient.GetS100ProductVersionListAsync(job.DataStandardTimestamp, job))
                 .Returns(Task.FromResult((salesCatalogueResponse, (DateTime?)DateTime.UtcNow)));
 
             var result = await _getProductsForDataStandardNode.ExecuteAsync(_executionContext);
@@ -207,10 +210,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         {
             var job = new Job
             {
-                Id = "test-job-id",
+                Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = [],
+                RequestedProducts = new ProductNameList(),
                 RequestedFilter = "",
                 DataStandardTimestamp = DateTime.UtcNow.AddDays(-1)
             };
@@ -220,13 +223,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             A.CallTo(() => _executionContext.Subject).Returns(pipelineContext);
 
             var lastModified = DateTime.UtcNow;
-            var salesCatalogueResponse = new S100SalesCatalogueResponse
+            var salesCatalogueResponse = new ProductList
             {
                 ResponseCode = HttpStatusCode.NotModified,
-                ResponseBody = []
+                Products = []
             };
 
-            A.CallTo(() => _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(job.DataStandardTimestamp, job))
+            A.CallTo(() => _salesCatalogueClient.GetS100ProductVersionListAsync(job.DataStandardTimestamp, job))
                 .Returns(Task.FromResult((salesCatalogueResponse, (DateTime?)lastModified)));
 
             var result = await _getProductsForDataStandardNode.ExecuteAsync(_executionContext);
@@ -242,10 +245,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         {
             var job = new Job
             {
-                Id = "test-job-id",
+                Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = [],
+                RequestedProducts = new ProductNameList(),
                 RequestedFilter = "",
                 DataStandardTimestamp = DateTime.UtcNow.AddDays(-1)
             };
@@ -254,13 +257,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             var pipelineContext = new PipelineContext<S100Build>(job, build, _storageService);
             A.CallTo(() => _executionContext.Subject).Returns(pipelineContext);
 
-            var salesCatalogueResponse = new S100SalesCatalogueResponse
+            var salesCatalogueResponse = new ProductList
             {
                 ResponseCode = HttpStatusCode.InternalServerError,
-                ResponseBody = []
+                Products = []
             };
 
-            A.CallTo(() => _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(job.DataStandardTimestamp, job))
+            A.CallTo(() => _salesCatalogueClient.GetS100ProductVersionListAsync(job.DataStandardTimestamp, job))
                 .Returns(Task.FromResult((salesCatalogueResponse, (DateTime?)DateTime.UtcNow)));
 
             var result = await _getProductsForDataStandardNode.ExecuteAsync(_executionContext);
@@ -275,10 +278,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         {
             var job = new Job
             {
-                Id = "test-job-id",
+                Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = [],
+                RequestedProducts = new ProductNameList(),
                 RequestedFilter = "",
                 DataStandardTimestamp = DateTime.UtcNow.AddDays(-1)
             };
@@ -287,13 +290,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             var pipelineContext = new PipelineContext<S100Build>(job, build, _storageService);
             A.CallTo(() => _executionContext.Subject).Returns(pipelineContext);
 
-            var salesCatalogueResponse = new S100SalesCatalogueResponse
+            var salesCatalogueResponse = new ProductList
             {
                 ResponseCode = HttpStatusCode.BadRequest,
-                ResponseBody = []
+                Products = []
             };
 
-            A.CallTo(() => _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(job.DataStandardTimestamp, job))
+            A.CallTo(() => _salesCatalogueClient.GetS100ProductVersionListAsync(job.DataStandardTimestamp, job))
                 .Returns(Task.FromResult((salesCatalogueResponse, (DateTime?)DateTime.UtcNow)));
 
             var result = await _getProductsForDataStandardNode.ExecuteAsync(_executionContext);
@@ -308,10 +311,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         {
             var job = new Job
             {
-                Id = "test-job-id",
+                Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = [],
+                RequestedProducts = new ProductNameList(),
                 RequestedFilter = "",
                 DataStandardTimestamp = null
             };
@@ -320,25 +323,26 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             var pipelineContext = new PipelineContext<S100Build>(job, build, _storageService);
             A.CallTo(() => _executionContext.Subject).Returns(pipelineContext);
 
-            var products = new List<S100Products>
+            var products = new List<Product>
             {
-                new() { ProductName = "101GB004DEVQK", LatestEditionNumber = 1 }
+                new() { ProductName = ProductName.From("101GB004DEVQP"), LatestEditionNumber = EditionNumber.From(1), LatestUpdateNumber = UpdateNumber.From(0) },
+                new() { ProductName = ProductName.From("101GB004DEVQK"), LatestEditionNumber = EditionNumber.From(2), LatestUpdateNumber = UpdateNumber.From(0) }
             };
 
-            var salesCatalogueResponse = new S100SalesCatalogueResponse
+            var salesCatalogueResponse = new ProductList
             {
                 ResponseCode = HttpStatusCode.OK,
-                ResponseBody = products
+                Products = products
             };
 
-            A.CallTo(() => _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(null, job))
+            A.CallTo(() => _salesCatalogueClient.GetS100ProductVersionListAsync(null, job))
                 .Returns(Task.FromResult((salesCatalogueResponse, (DateTime?)DateTime.UtcNow)));
 
             var result = await _getProductsForDataStandardNode.ExecuteAsync(_executionContext);
 
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
 
-            A.CallTo(() => _salesCatalogueClient.GetS100ProductsFromSpecificDateAsync(null, job))
+            A.CallTo(() => _salesCatalogueClient.GetS100ProductVersionListAsync(null, job))
                 .MustHaveHappenedOnceExactly();
         }
     }

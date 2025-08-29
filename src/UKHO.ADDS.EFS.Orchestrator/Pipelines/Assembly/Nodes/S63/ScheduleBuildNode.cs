@@ -1,8 +1,8 @@
 ﻿using Azure.Storage.Queues;
-using UKHO.ADDS.EFS.Builds;
-using UKHO.ADDS.EFS.Builds.S63;
-using UKHO.ADDS.EFS.Configuration.Namespaces;
-using UKHO.ADDS.EFS.Orchestrator.Jobs;
+using UKHO.ADDS.EFS.Domain.Builds;
+using UKHO.ADDS.EFS.Domain.Builds.S63;
+using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Services.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Services;
@@ -32,7 +32,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S63
 
             var batchId = context.Subject.Job.BatchId;
 
-            return Task.FromResult((jobState == JobState.Created && buildState == BuildState.NotScheduled) && !string.IsNullOrEmpty(batchId));
+            return Task.FromResult((jobState == JobState.Created && buildState == BuildState.NotScheduled) && batchId != BatchId.None);
         }
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<PipelineContext<S63Build>> context)
@@ -45,7 +45,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S63
             {
                 var request = new S63BuildRequest()
                 {
-                    Version = 1,
                     Timestamp = DateTime.UtcNow,
                     JobId = job.Id,
                     BatchId = job.BatchId!,
