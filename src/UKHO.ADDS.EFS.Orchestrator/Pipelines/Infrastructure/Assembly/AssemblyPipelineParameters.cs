@@ -44,7 +44,7 @@ internal class AssemblyPipelineParameters
             DataStandard = DataStandard,
             RequestedProducts = Products,
             RequestedFilter = Filter,
-            CallbackUri = CallbackUri,
+            CallbackUri = CallbackUri
         };
     }
 

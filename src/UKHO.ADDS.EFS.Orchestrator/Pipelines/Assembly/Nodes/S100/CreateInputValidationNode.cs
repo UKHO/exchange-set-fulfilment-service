@@ -51,7 +51,7 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
             {
                 RequestType.ProductNames => await ValidateProductNamesRequest(job),
                 RequestType.ProductVersions => await ValidateProductVersionsRequest(job),
-                RequestType.UpdatesSince => await _updateSinceValidator.ValidateAsync(job),
+                RequestType.UpdatesSince => await ValidateUpdateSinceRequest(job),
                 _ => throw new ArgumentException($"Unsupported request type: {requestType}")
             };
 
@@ -140,6 +140,25 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
         };
 
         return await _productVersionsRequestValidator.ValidateAsync(request);
+    }
+
+    private async Task<FluentValidation.Results.ValidationResult> ValidateUpdateSinceRequest(Job job)
+    {
+        var firstColonIndex = job.RequestedFilter.IndexOf(':');
+        var sinceDateTimeString = job.RequestedFilter.Length > firstColonIndex + 1
+            ? job.RequestedFilter.Substring(firstColonIndex + 1)
+            : string.Empty;
+
+        var sinceDateTime = DateTime.TryParse(sinceDateTimeString, out var result) ? result : DateTime.MinValue;
+
+
+        var request = new S100UpdatesSinceRequest
+        {
+            SinceDateTime = sinceDateTime,
+            CallbackUri = job.CallbackUri
+        };
+
+        return await _updateSinceValidator.ValidateAsync(request);
     }
 
     private static int GetProductCount(Job job, RequestType requestType)
