@@ -39,18 +39,28 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
         private EventHubProducerClient eventHubClient;
         public AzureStorageBlobContainerBuilder AzureStorageBlobContainerBuilder { get; set; }
 
+        //public EventHubClientWrapper(string fullyQualifiedNamespace,
+        //                             string eventHubName,
+        //                             TokenCredential credentials,
+        //                             AzureStorageLogProviderOptions azureStorageLogProviderOptions)
+        //{
+        //    eventHubClient = new EventHubProducerClient(fullyQualifiedNamespace, eventHubName, credentials,
+        //        clientOptions: new EventHubProducerClientOptions
+        //    {
+        //        ConnectionOptions = new EventHubConnectionOptions
+        //        {
+        //            TransportType = EventHubsTransportType.AmqpWebSockets // supports firewall/proxy environments
+        //        }
+        //    });
+        //    SetupAzureStorageBlobContainer(azureStorageLogProviderOptions);
+        //}
+
         public EventHubClientWrapper(string fullyQualifiedNamespace,
                                      string eventHubName,
                                      TokenCredential credentials,
                                      AzureStorageLogProviderOptions azureStorageLogProviderOptions)
         {
-            eventHubClient = new EventHubProducerClient(fullyQualifiedNamespace, eventHubName, credentials, clientOptions: new EventHubProducerClientOptions
-            {
-                ConnectionOptions = new EventHubConnectionOptions
-                {
-                    TransportType = EventHubsTransportType.AmqpWebSockets // supports firewall/proxy environments
-                }
-            });
+            eventHubClient = new EventHubProducerClient(fullyQualifiedNamespace, eventHubName, credentials);
             SetupAzureStorageBlobContainer(azureStorageLogProviderOptions);
         }
 
