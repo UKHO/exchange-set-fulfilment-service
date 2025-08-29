@@ -50,7 +50,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 //}
                 //else
                 //{
-                var connectionString = "https://efs-events-namespace.servicebus.windows.net:443/";//Environment.GetEnvironmentVariable("ConnectionStrings__efs-events-namespace");
+                var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__efs-events-namespace");
                 var eventHubName = ServiceConfiguration.EventHubName;
 
                 builder.Services.AddSerilog((services, lc) =>
