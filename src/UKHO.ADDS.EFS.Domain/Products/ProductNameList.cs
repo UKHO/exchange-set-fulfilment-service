@@ -27,21 +27,8 @@ namespace UKHO.ADDS.EFS.Domain.Products
 
         public void Clear() => _products.Clear();
 
-        public override string ToString() => string.Join(", ", _products.Select(p => p.ToString()));
+        public override string ToString() => string.Join(", ", _products.Select(p => p.Value.ToString()));
 
-        ////public ProductNameList(IEnumerable<string> products)
-        ////{
-        ////    _products = products?.Select(p => new ProductName(p)).ToList() ?? [];
-        ////}
-
-        //public ProductNameList(IEnumerable<ProductName> products)
-        //{
-        //    _products = products?.ToList() ?? [];
-        //}
-
-        ///// <summary>
-        ///// Gets the products as an enumerable collection.
-        ///// </summary>
-        //public IEnumerable<ProductName> Products => _products;
+        
     }
 }
