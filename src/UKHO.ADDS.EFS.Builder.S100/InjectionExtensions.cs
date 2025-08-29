@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Net;
 using System.Text.Json.Nodes;
 using Azure.Identity;
 using Serilog;
