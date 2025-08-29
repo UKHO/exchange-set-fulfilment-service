@@ -87,7 +87,7 @@ namespace UKHO.ADDS.EFS.Domain.UnitTests.Implementation.Serialization
         [Fact]
         public void Deserialize_MixedCaseInput_Uppercases_AllItems()
         {
-            var json = /*lang=json*/ @"[ ""101-alpha"", ""102-Beta"", ""101-GaMmA"" ]";
+            var json = @"[ ""101-alpha"", ""102-Beta"", ""101-GaMmA"" ]";
             var list = JsonSerializer.Deserialize<ProductNameList>(json, CreateOptions())!;
 
             Assert.Equal(new[]
@@ -120,7 +120,7 @@ namespace UKHO.ADDS.EFS.Domain.UnitTests.Implementation.Serialization
         [Fact]
         public void Deserialize_InsideContainer_Nullable_AllowsNull()
         {
-            var json = /*lang=json*/ @"{ ""Names"": null }";
+            var json = @"{ ""Names"": null }";
             var c = JsonSerializer.Deserialize<ContainerNullable>(json, CreateOptions());
 
             Assert.NotNull(c);
@@ -130,7 +130,7 @@ namespace UKHO.ADDS.EFS.Domain.UnitTests.Implementation.Serialization
         [Fact]
         public void Deserialize_InsideContainer_Array_BindsAndUppercases()
         {
-            var json = /*lang=json*/ @"{ ""Names"": [""101-alpha"", ""102-beta""] }";
+            var json = @"{ ""Names"": [""101-alpha"", ""102-beta""] }";
             var c = JsonSerializer.Deserialize<ContainerNullable>(json, CreateOptions())!;
 
             Assert.NotNull(c.Names);
@@ -143,8 +143,7 @@ namespace UKHO.ADDS.EFS.Domain.UnitTests.Implementation.Serialization
         [Fact]
         public void Deserialize_Array_WithDuplicates_PreservesDuplicates_AndUppercases()
         {
-            // Converter calls IJsonList<T>.Add; your explicit impl adds directly (duplicates preserved).
-            var json = /*lang=json*/ @"[ ""101-dup"", ""101-dup"", ""102-x"" ]";
+            var json = @"[ ""101-dup"", ""101-dup"", ""102-x"" ]";
             var list = JsonSerializer.Deserialize<ProductNameList>(json, CreateOptions())!;
 
             Assert.Equal(new[]
@@ -164,7 +163,7 @@ namespace UKHO.ADDS.EFS.Domain.UnitTests.Implementation.Serialization
         [Fact]
         public void Deserialize_Array_WithNullElement_Throws()
         {
-            var json = /*lang=json*/ @"[ null ]";
+            var json = @"[ null ]";
             Assert.ThrowsAny<JsonException>(() => JsonSerializer.Deserialize<ProductNameList>(json, CreateOptions()));
         }
 
@@ -172,16 +171,16 @@ namespace UKHO.ADDS.EFS.Domain.UnitTests.Implementation.Serialization
         public void Deserialize_Array_WithInvalidItem_Throws()
         {
             // Violates rule: must start with 101 or 102
-            var json = /*lang=json*/ @"[ ""999-oops"" ]";
+            var json = @"[ ""999-oops"" ]";
             var ex = Record.Exception(() => JsonSerializer.Deserialize<ProductNameList>(json, CreateOptions()));
 
-            Assert.NotNull(ex); // typically JsonException or wrapped
+            Assert.NotNull(ex); 
         }
 
         [Fact]
         public void Deserialize_Array_WithMixedValidInvalid_Throws()
         {
-            var json = /*lang=json*/ @"[ ""101-good"", ""100-bad"", ""102-good"" ]";
+            var json = @"[ ""101-good"", ""100-bad"", ""102-good"" ]";
             var ex = Record.Exception(() => JsonSerializer.Deserialize<ProductNameList>(json, CreateOptions()));
 
             Assert.NotNull(ex);
@@ -203,12 +202,12 @@ namespace UKHO.ADDS.EFS.Domain.UnitTests.Implementation.Serialization
 
         private sealed class ContainerNullable
         {
-            public ProductNameList? Names { get; set; }
+            public ProductNameList? Names { get; init; }
         }
 
         private sealed class ContainerNonNullable
         {
-            [Required] public ProductNameList Names { get; set; } = new();
+            [Required] public ProductNameList Names { get; set; } = [];
         }
     }
 }
