@@ -63,14 +63,38 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 var productGroupCount = (int)Math.Ceiling((double)products.Count() / MaxSearchOperations);
                 var productsList = SplitList(groupedProducts, productGroupCount);
 
+                // Log the product list in JSON format
+                var correlationId = (string)context.Subject.Build?.GetCorrelationId()!;
+                var productSearchLogData = new ProductSearchLogView
+                {
+                    CorrelationId = correlationId,
+                    GroupedProducts = groupedProducts,
+                    BatchDetails = new List<BatchDetails>(), // Will be populated later
+                    ProductCount = groupedProducts.Count,
+                    BatchCount = 0 // Will be updated later
+                };
+                _logger.LogProductSearchNodeData(productSearchLogData);
+
                 foreach (var productGroup in productsList)
                 {
-                    var batchDetails = await QueryFileShareServiceFilesAsync(productGroup, (string)context.Subject.Build?.GetCorrelationId()!);
+                    var batchDetails = await QueryFileShareServiceFilesAsync(productGroup, correlationId);
                     if (batchDetails != null)
                     {
                         batchList.AddRange(batchDetails);
                     }
                 }
+
+                // Log the batch list in JSON format
+                var finalProductSearchLogData = new ProductSearchLogView
+                {
+                    CorrelationId = correlationId,
+                    GroupedProducts = groupedProducts,
+                    BatchDetails = batchList,
+                    ProductCount = groupedProducts.Count,
+                    BatchCount = batchList.Count
+                };
+                _logger.LogProductSearchNodeData(finalProductSearchLogData);
+
                 context.Subject.BatchDetails = batchList;
                 return NodeResultStatus.Succeeded;
             }
@@ -209,14 +233,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
         private static List<BatchProductDetail> ChunkProductsByUpdateNumberLimit(IEnumerable<BatchProductDetail> products)
         {
-            return [.. products.SelectMany(product =>
+            return products.SelectMany(product =>
                 SplitList(product.UpdateNumbers.ToList(), UpdateNumberLimit)
                     .Select(updateNumbers => new BatchProductDetail
                     {
                         ProductName = product.ProductName,
                         EditionNumber = product.EditionNumber,
                         UpdateNumbers = updateNumbers
-                    }))];
+                    })).ToList();
         }
 
         private static Dictionary<string, string> ParseQueryString(string queryString)

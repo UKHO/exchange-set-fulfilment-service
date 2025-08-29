@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.Logging;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
 
@@ -15,6 +16,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
         private const int DownloadFilesNodeFailedId = BaseEventId + 4;
         private const int DownloadFilesNodeFssDownloadFailedId = BaseEventId + 5;
         private const int DownloadFilesNodeNoFilesToProcessErrorId = BaseEventId + 6;
+        private const int ProductSearchNodeDataLogId = BaseEventId + 7;
 
         // The assembly pipeline failed
         public static readonly EventId AssemblyPipelineFailed = new(AssemblyPipelineFailedId, nameof(AssemblyPipelineFailed));
@@ -33,6 +35,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
 
         [LoggerMessage(ProductSearchNodeFssSearchFailedId, LogLevel.Error, "ProductSearchNode File Share Service Search failed: {@batchSearchProductsLog}", EventName = nameof(ProductSearchNodeFssSearchFailed))]
         public static partial void LogProductSearchNodeFssSearchFailed(this ILogger logger, BatchProductSearchLog batchSearchProductsLog);
+
+        //The Product Search node data logging
+        public static readonly EventId ProductSearchNodeDataLog = new(ProductSearchNodeDataLogId, nameof(ProductSearchNodeDataLog));
+
+        [LoggerMessage(ProductSearchNodeDataLogId, LogLevel.Information, "ProductSearchNode data: {@productSearchLog}", EventName = nameof(ProductSearchNodeDataLog))]
+        public static partial void LogProductSearchNodeData(this ILogger logger, ProductSearchLogView productSearchLog);
 
         //The Download Files Node failed
         public static readonly EventId DownloadFilesNodeFailed = new(DownloadFilesNodeFailedId, nameof(DownloadFilesNodeFailed));
