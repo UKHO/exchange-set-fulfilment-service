@@ -40,8 +40,12 @@ steps:
       az appconfig kv list --endpoint $env:appConfigEndpoint --key "externalservice:FileShare" --fields value --output tsv --auth-mode login | Out-File -FilePath $env:fssJson
       $jsonData = Get-Content -Path $env:fssJson -Raw | ConvertFrom-Json
       $env:fssEndpoint = ($jsonData.endpoints | Where-Object { $_.tag -eq "" }).resolvedUrl
-      $env:fssEndpoint = $env:fssEndpoint.TrimEnd('/')
-      $env:fssEndpointHealth = $env:fssEndpoint + "/health"
+
+      if ($env:fssEndpoint -notmatch '/$') {
+        $env:fssEndpoint += '/'
+      }
+
+      $env:fssEndpointHealth = $env:fssEndpoint + "health"
       $env:fssClientId = $jsonData.clientId
       Write-Host "##vso[task.setvariable variable=${{ parameters.BuilderType }}_FSS_ENDPOINT;]$env:fssEndpoint"
       Write-Host "##vso[task.setvariable variable=${{ parameters.BuilderType }}_FSS_ENDPOINT_HEALTH;]$env:fssEndpointHealth"
