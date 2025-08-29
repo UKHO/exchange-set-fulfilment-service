@@ -13,7 +13,7 @@ using UKHO.ADDS.EFS.Builder.Common.Factories;
 using UKHO.ADDS.EFS.Builder.Common.Logging;
 using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
-using UKHO.ADDS.EFS.Domain.Extensions;
+using UKHO.ADDS.EFS.Domain.Implementation.Extensions;
 using UKHO.ADDS.EFS.Domain.Services.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Domain.Services.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Domain.Services.Implementation.Retries;

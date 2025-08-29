@@ -38,7 +38,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
             {
                 JobId = parameters.JobId,
                 DataStandard = parameters.DataStandard,
-                BatchId = BatchId.None
+                BatchId = BatchId.None,
             };
 
             var context = new PipelineContext<TBuild>(job, build, _storageService);
