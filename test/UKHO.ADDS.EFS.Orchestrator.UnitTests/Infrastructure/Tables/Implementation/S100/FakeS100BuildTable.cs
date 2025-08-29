@@ -1,0 +1,14 @@
+﻿using Azure.Storage.Blobs;
+using UKHO.ADDS.EFS.Domain.Builds.S100;
+using UKHO.ADDS.EFS.Domain.Services.Configuration.Namespaces;
+
+namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Infrastructure.Tables.Implementation.S100
+{
+    public class FakeS100BuildTable : FakeTable<S100Build>
+    {
+        public FakeS100BuildTable()
+            : base(StorageConfiguration.S100BuildContainer, x => (string)x.JobId, x => (string)x.JobId)
+        {
+        }
+    }
+}
