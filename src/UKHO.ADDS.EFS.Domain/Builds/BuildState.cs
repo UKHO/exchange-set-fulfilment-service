@@ -1,4 +1,4 @@
-﻿namespace UKHO.ADDS.EFS.Builds
+﻿namespace UKHO.ADDS.EFS.Domain.Builds
 {
     public enum BuildState
     {

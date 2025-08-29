@@ -1,5 +1,5 @@
-﻿using UKHO.ADDS.EFS.Builds.S63;
-using UKHO.ADDS.EFS.Configuration.Orchestrator;
+﻿using UKHO.ADDS.EFS.Domain.Builds;
+using UKHO.ADDS.EFS.Domain.Builds.S63;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
 using UKHO.ADDS.Infrastructure.Pipelines;

@@ -1,5 +1,6 @@
-﻿using Serilog.Context;
-using UKHO.ADDS.EFS.Constants;
+﻿using UKHO.ADDS.EFS.Domain.Constants;
+using Serilog.Context;
+
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Middleware
 {

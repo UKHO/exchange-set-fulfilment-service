@@ -10,4 +10,11 @@
     <ProjectReference Include="..\UKHO.ADDS.EFS.Domain\UKHO.ADDS.EFS.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\UKHO.ADDS.Clients.Common\UKHO.ADDS.Clients.Common.csproj" />
+    <ProjectReference Include="..\UKHO.ADDS.Clients.FileShareService.ReadOnly\UKHO.ADDS.Clients.FileShareService.ReadOnly.csproj" />
+    <ProjectReference Include="..\UKHO.ADDS.Clients.FileShareService.ReadWrite\UKHO.ADDS.Clients.FileShareService.ReadWrite.csproj" />
+    <ProjectReference Include="..\UKHO.ADDS.Clients.SalesCatalogueService\UKHO.ADDS.Clients.SalesCatalogueService.csproj" />
+  </ItemGroup>
+
 </Project>

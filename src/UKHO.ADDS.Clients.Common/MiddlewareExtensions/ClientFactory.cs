@@ -29,9 +29,6 @@ namespace UKHO.ADDS.Clients.Common.MiddlewareExtensions
                 throw new InvalidOperationException($"{typeof(TClient).Name} must have a constructor with IRequestAdapter parameter.");
             }
 
-            // TODO Source gen test - remove when working
-            var x = CorrelationId.From("this is a test");
-
             // Create the Http client here to make sure it is configured correctly
             var httpClient = httpClientFactory.CreateClient(typeof(TClient).Name);
             logger.LogInformation("Creating client for {ClientType} with base address: {baseAddress}", typeof(TClient).Name, httpClient.BaseAddress);

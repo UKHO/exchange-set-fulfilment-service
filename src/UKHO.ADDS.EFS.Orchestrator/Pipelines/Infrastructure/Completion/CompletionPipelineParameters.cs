@@ -1,6 +1,5 @@
-﻿using UKHO.ADDS.EFS.Builds;
-using UKHO.ADDS.EFS.Configuration.Orchestrator;
-using UKHO.ADDS.EFS.Jobs;
+﻿using UKHO.ADDS.EFS.Domain.Builds;
+using UKHO.ADDS.EFS.Domain.Jobs;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion
 {
@@ -8,7 +7,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion
     {
         public required DataStandard DataStandard { get; init; }
 
-        public required string JobId { get; init; }
+        public required JobId JobId { get; init; }
 
         public required BuilderExitCode ExitCode { get; init; }
 

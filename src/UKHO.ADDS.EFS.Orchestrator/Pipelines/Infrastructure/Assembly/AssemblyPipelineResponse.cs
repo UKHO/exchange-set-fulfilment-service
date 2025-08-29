@@ -1,14 +1,14 @@
-﻿using UKHO.ADDS.EFS.Builds;
-using UKHO.ADDS.EFS.Jobs;
-using UKHO.ADDS.EFS.Orchestrator.Jobs;
+﻿using UKHO.ADDS.EFS.Domain.Builds;
+using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Messages;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
 {
     public class AssemblyPipelineResponse
     {
-        public int Version { get; init; } = 1;
+        public MessageVersion Version { get; init; } = MessageVersion.From(1);
 
-        public required string JobId { get; init; }
+        public required JobId JobId { get; init; }
 
         public required JobState JobStatus { get; init; }
 
@@ -16,6 +16,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
 
         public required DataStandard DataStandard { get; init; }
 
-        public required string? BatchId { get; init; }
+        public required BatchId BatchId { get; init; }
     }
 }

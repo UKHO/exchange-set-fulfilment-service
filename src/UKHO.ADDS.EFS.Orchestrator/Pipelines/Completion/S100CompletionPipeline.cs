@@ -1,5 +1,5 @@
 ﻿using Serilog.Context;
-using UKHO.ADDS.EFS.Builds.S100;
+using UKHO.ADDS.EFS.Domain.Builds.S100;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;

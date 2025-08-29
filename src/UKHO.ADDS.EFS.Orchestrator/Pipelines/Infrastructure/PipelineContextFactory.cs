@@ -1,6 +1,6 @@
-﻿using UKHO.ADDS.EFS.Builds;
+﻿using UKHO.ADDS.EFS.Domain.Builds;
+using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
-using UKHO.ADDS.EFS.Orchestrator.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Services;
@@ -38,7 +38,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
             {
                 JobId = parameters.JobId,
                 DataStandard = parameters.DataStandard,
-                BatchId = null
+                BatchId = BatchId.None
             };
 
             var context = new PipelineContext<TBuild>(job, build, _storageService);
@@ -48,8 +48,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
 
         public async Task<PipelineContext<TBuild>> CreatePipelineContext(CompletionPipelineParameters parameters)
         {
-            var jobResult = await _jobTable.GetUniqueAsync(parameters.JobId);
-            var buildResult = await _buildTable.GetUniqueAsync(parameters.JobId);
+            var jobResult = await _jobTable.GetUniqueAsync((string)parameters.JobId);
+            var buildResult = await _buildTable.GetUniqueAsync((string)parameters.JobId);
 
             if (jobResult.IsSuccess(out var job) && buildResult.IsSuccess(out var build))
             {

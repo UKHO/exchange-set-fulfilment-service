@@ -1,6 +1,6 @@
 ﻿using Azure.Storage.Blobs;
-using UKHO.ADDS.EFS.Builds.S57;
-using UKHO.ADDS.EFS.Configuration.Namespaces;
+using UKHO.ADDS.EFS.Domain.Builds.S57;
+using UKHO.ADDS.EFS.Domain.Services.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.Implementation;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S57
@@ -8,7 +8,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S57
     internal class S57BuildTable : BlobTable<S57Build>
     {
         public S57BuildTable(BlobServiceClient blobServiceClient)
-            : base(StorageConfiguration.S57BuildContainer, blobServiceClient, x => x.JobId, x => x.JobId)
+            : base(StorageConfiguration.S57BuildContainer, blobServiceClient, x => (string)x.JobId, x => (string)x.JobId)
         {
         }
     }

@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace UKHO.ADDS.EFS.Extensions
+namespace UKHO.ADDS.EFS.Domain.Extensions
 {
     public static class StringExtensions
     {

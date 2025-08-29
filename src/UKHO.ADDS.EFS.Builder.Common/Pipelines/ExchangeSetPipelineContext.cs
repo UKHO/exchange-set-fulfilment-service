@@ -3,8 +3,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.EFS.Builder.Common.Factories;
 using UKHO.ADDS.EFS.Builder.Common.Logging;
-using UKHO.ADDS.EFS.Builds;
-using UKHO.ADDS.EFS.Configuration.Orchestrator;
+using UKHO.ADDS.EFS.Domain.Builds;
+using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Builder.Common.Pipelines
@@ -40,9 +40,9 @@ namespace UKHO.ADDS.EFS.Builder.Common.Pipelines
 
         public BlobClientFactory BlobClientFactory => _blobClientFactory;
 
-        public string JobId { get; set; }
+        public JobId JobId { get; set; }
 
-        public string BatchId { get; set; }
+        public BatchId BatchId { get; set; }
 
         public string FileShareEndpoint { get; set; }
 

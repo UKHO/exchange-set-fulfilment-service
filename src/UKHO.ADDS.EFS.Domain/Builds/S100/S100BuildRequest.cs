@@ -1,4 +1,4 @@
-﻿namespace UKHO.ADDS.EFS.Builds.S100
+﻿namespace UKHO.ADDS.EFS.Domain.Builds.S100
 {
     public class S100BuildRequest : BuildRequest
     {

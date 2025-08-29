@@ -1,4 +1,4 @@
-﻿using UKHO.ADDS.EFS.Jobs;
+﻿using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion

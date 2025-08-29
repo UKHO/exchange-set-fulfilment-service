@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using UKHO.ADDS.EFS.Domain.Jobs;
 using Serilog.Context;
 using UKHO.ADDS.EFS.Jobs;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
@@ -17,7 +18,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
             _replayLevel = configuration.GetValue("Builders:LogReplayLevel", LogLevel.Information);
         }
 
-        public async Task ForwardLogsAsync(IEnumerable<string> messages, DataStandard dataStandard, string jobId)
+        public async Task ForwardLogsAsync(IEnumerable<string> messages, DataStandard dataStandard, JobId jobId)
         {
             var builderName = $"Builder-{dataStandard}-{jobId}";
             var logger = _loggerFactory.CreateLogger(builderName);

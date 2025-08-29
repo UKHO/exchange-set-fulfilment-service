@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using Microsoft.AspNetCore.Mvc;
-using UKHO.ADDS.EFS.Constants;
-using UKHO.ADDS.EFS.Exceptions;
+using UKHO.ADDS.EFS.Domain.Constants;
+using UKHO.ADDS.EFS.Domain.Exceptions;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Extensions;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 

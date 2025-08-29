@@ -1,13 +1,14 @@
-﻿using UKHO.ADDS.EFS.Jobs;
+﻿using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Messages;
 
-namespace UKHO.ADDS.EFS.Builds
+namespace UKHO.ADDS.EFS.Domain.Builds
 {
     public abstract class BuildRequest
     {
         /// <summary>
         /// The message version
         /// </summary>
-        public required int Version { get; init; }
+        public MessageVersion Version { get; init; } = MessageVersion.From(1);
 
         /// <summary>
         /// The build request timestamp
@@ -17,12 +18,12 @@ namespace UKHO.ADDS.EFS.Builds
         /// <summary>
         /// The job ID relating to this build
         /// </summary>
-        public required string JobId { get; init; }
+        public required JobId JobId { get; init; }
 
         /// <summary>
         /// The File Share batch ID for this build
         /// </summary>
-        public required string BatchId { get; init; }
+        public required BatchId BatchId { get; init; }
 
         /// <summary>
         /// The data standard

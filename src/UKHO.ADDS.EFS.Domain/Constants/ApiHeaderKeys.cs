@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace UKHO.ADDS.EFS.Constants
+namespace UKHO.ADDS.EFS.Domain.Constants
 {
     [ExcludeFromCodeCoverage]
     public static class ApiHeaderKeys

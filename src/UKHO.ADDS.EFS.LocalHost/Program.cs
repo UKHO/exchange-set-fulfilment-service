@@ -13,7 +13,7 @@ using Microsoft.Extensions.Configuration;
 using Projects;
 using Serilog;
 using UKHO.ADDS.Aspire.Configuration.Hosting;
-using UKHO.ADDS.EFS.Configuration.Namespaces;
+using UKHO.ADDS.EFS.Domain.Services.Configuration.Namespaces;
 using UKHO.ADDS.EFS.LocalHost.Extensions;
 
 namespace UKHO.ADDS.EFS.LocalHost

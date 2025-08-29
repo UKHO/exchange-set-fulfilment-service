@@ -19,9 +19,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
             try
             {
                 var result = await context.Subject.ToolClient.ExtractExchangeSetAsync(
-                    context.Subject.Build?.JobId!,
+                    context.Subject.Build.JobId,
                     context.Subject.WorkspaceAuthenticationKey,
-                    context.Subject.Build?.GetCorrelationId()!,
                     context.Subject.ExchangeSetArchiveFolderName);
 
                 if (result.IsFailure(out var error, out var _))

@@ -56,3 +56,7 @@ jobs:
               fi
           env:
             PIPELINE-CLIENT-OBJECT-ID: $(PIPELINE-CLIENT-OBJECT-ID)
+
+        - template: get-retained-infrastructure-details.yml
+          parameters:
+            AzureSubscription: ${{ variables.AzureSubscription }}

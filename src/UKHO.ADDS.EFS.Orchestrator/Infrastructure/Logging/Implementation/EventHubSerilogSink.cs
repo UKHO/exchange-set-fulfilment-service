@@ -7,7 +7,7 @@ using Serilog.Core;
 using Serilog.Events;
 using Serilog.Formatting;
 using Serilog.Formatting.Json;
-using UKHO.ADDS.EFS.Configuration.Namespaces;
+using UKHO.ADDS.EFS.Domain.Services.Configuration.Namespaces;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
 {

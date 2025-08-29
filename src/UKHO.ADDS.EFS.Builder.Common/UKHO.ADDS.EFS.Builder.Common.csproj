@@ -17,7 +17,7 @@
     <ProjectReference Include="..\UKHO.ADDS.Clients.FileShareService.ReadOnly\UKHO.ADDS.Clients.FileShareService.ReadOnly.csproj" />
     <ProjectReference Include="..\UKHO.ADDS.Clients.FileShareService.ReadWrite\UKHO.ADDS.Clients.FileShareService.ReadWrite.csproj" />
     <ProjectReference Include="..\UKHO.ADDS.EFS.Analyzers\UKHO.ADDS.EFS.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-    <ProjectReference Include="..\UKHO.ADDS.EFS.Domain\UKHO.ADDS.EFS.Domain.csproj" />
+    <ProjectReference Include="..\UKHO.ADDS.EFS.Domain.Services\UKHO.ADDS.EFS.Domain.Services.csproj" />
   </ItemGroup>
 
 </Project>
