@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using UKHO.ADDS.EFS.Domain.Builds.S100;
 using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
@@ -32,12 +33,24 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             var job = context.Subject.Job;
             var build = context.Subject.Build;
 
-            var productNames = build.Products?
-                .Select(p => p.ProductName)
-                //.Where(name => !string.IsNullOrWhiteSpace(name))
-                .ToArray() ?? [];
+            string[] productNames;
 
-            var s100SalesCatalogueData = await _salesCatalogueClient.GetS100ProductEditionListAsync(productNames, job, Environment.CancellationToken);
+            if (job.RequestedProducts.HasProducts)
+            {
+                productNames = job.RequestedProducts.Names
+                    .Select(p => p.ToString())
+                    .ToArray();
+            }
+            else
+            {
+                productNames = build.Products?
+                    .Select(p => p.ProductName.Value)
+                    .ToArray() ?? [];
+            }
+
+            var productNameCollection = productNames.Select(ProductName.From);
+
+            var s100SalesCatalogueData = await _salesCatalogueClient.GetS100ProductEditionListAsync(productNameCollection, job, Environment.CancellationToken);
 
             var nodeResult = NodeResultStatus.NotRun;
 

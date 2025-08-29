@@ -26,5 +26,9 @@ namespace UKHO.ADDS.EFS.Domain.Products
         public bool Remove(ProductName product) => _products.Remove(product);
 
         public void Clear() => _products.Clear();
+
+        public override string ToString() => string.Join(", ", _products.Select(p => p.Value.ToString()));
+
+        
     }
 }

@@ -184,6 +184,34 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         }
 
         [Test]
+        public async Task WhenShouldExecuteAsyncIsCalledAndRequestedProductsAndRequestedFilterEmpty_ThenReturnsFalse()
+        {
+            var job = new Job
+            {
+                Id = JobId.From("test-job-id"),
+                Timestamp = DateTime.UtcNow,
+                DataStandard = DataStandard.S100,
+                RequestedProducts = new ProductNameList(),
+                RequestedFilter = "",
+            };
+
+            var build = new S100Build
+            {
+                Products =
+                [
+                    new() { ProductName = ProductName.From("101GB004DEVQK"), LatestEditionNumber = EditionNumber.From(1) },
+                ]
+            };
+
+            var pipelineContext = new PipelineContext<S100Build>(job, build, _storageService);
+            A.CallTo(() => _executionContext.Subject).Returns(pipelineContext);
+
+            var result = await _filterProductsNode.ShouldExecuteAsync(_executionContext);
+
+            Assert.That(result, Is.False);
+        }
+
+        [Test]
         public async Task WhenPerformExecuteAsyncIsCalledAndFilterMatchesProducts_ThenFiltersProductsAndReturnsSucceeded()
         {
             _job = new Job
@@ -220,18 +248,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
 
         [Test]
         public async Task WhenPerformExecuteAsyncIsCalledAndFilterMatchesNoProducts_ThenSignalsNoBuildRequiredAndReturnsSucceeded()
-        {
-            var products = new ProductNameList();
-            
-            products.Add(ProductName.From("101product1"));
-            products.Add(ProductName.From("101product2"));
-
+        {          
             _job = new Job
             {
                 Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = products,
+                RequestedProducts = new ProductNameList(),
                 RequestedFilter = "productName eq '101GB004DEVQP'",
             };
 
@@ -261,17 +284,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         [Test]
         public async Task WhenPerformExecuteAsyncIsCalledAndComplexFilter_ThenFiltersCorrectlyAndReturnsSucceeded()
         {
-            var products = new ProductNameList();
-
-            products.Add(ProductName.From("101product1"));
-            products.Add(ProductName.From("101product2"));
-
             _job = new Job
             {
                 Id = JobId.From("test-job-id"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = products,
+                RequestedProducts = new ProductNameList(),
                 RequestedFilter = "productName eq '101GB004DEVQK' or latestEditionNumber eq 2",
             };
 
