@@ -1,10 +1,10 @@
-﻿using UKHO.ADDS.EFS.Builds;
-using UKHO.ADDS.EFS.Messages;
+﻿using UKHO.ADDS.EFS.Domain.Builds;
+using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Extensions;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
-using UKHO.ADDS.EFS.Orchestrator.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Api
@@ -22,7 +22,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                     {
                         var correlationId = httpContext.GetCorrelationId();
 
-                        var parameters = AssemblyPipelineParameters.CreateFrom(message, configuration, correlationId);
+                        var parameters = AssemblyPipelineParameters.CreateFrom(message, configuration, (string)correlationId);
                         var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
 
                         logger.LogAssemblyPipelineStarted(parameters);

@@ -1,7 +1,7 @@
-using UKHO.ADDS.EFS.Builds.S100;
+using UKHO.ADDS.EFS.Domain.Builds.S100;
+using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
-using UKHO.ADDS.EFS.Orchestrator.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.EFS.Orchestrator.Validators;
@@ -56,7 +56,7 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
                     .ToList();
 
                 _logger.S100InputValidationFailed(
-                    correlationId,
+                    (string)correlationId,
                     string.Join("; ", validationErrors));
 
                 // Signal assembly error to set the job state appropriately
@@ -68,7 +68,7 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
                 // Populate ErrorResponseModel with validation errors
                 context.Subject.ErrorResponse = new ErrorResponseModel
                 {
-                    CorrelationId = correlationId,
+                    CorrelationId = (string)correlationId,
                     Errors = validationResult.Errors
                         .Select(e => new ErrorDetail
                         {
@@ -82,13 +82,13 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
             }
 
             // Explicitly cast requestType to non-nullable RequestType
-            _logger.S100InputValidationSucceeded(correlationId, GetProductCount(job, (RequestType)requestType));
+            _logger.S100InputValidationSucceeded((string)correlationId, GetProductCount(job, (RequestType)requestType));
 
             return NodeResultStatus.Succeeded;
         }
         catch (Exception ex)
         {
-            _logger.S100InputValidationError(correlationId, ex);
+            _logger.S100InputValidationError((string)correlationId, ex);
             await context.Subject.SignalAssemblyError();
             return NodeResultStatus.Failed;
         }
@@ -101,8 +101,9 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
     /// <returns>FluentValidation result</returns>
     private async Task<FluentValidation.Results.ValidationResult> ValidateProductNamesRequest(Job job)
     {
-        var productNames = job.RequestedProducts.Split(',', StringSplitOptions.None)
-            .Select(p => p.Trim())
+        // Extract product names from ProductNameList
+        var productNames = job.RequestedProducts.Names
+            .Select(p => (string)p)
             .ToList();
 
         var request = new S100ProductNamesRequest
@@ -124,7 +125,7 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
     {
         return requestType switch
         {
-            RequestType.ProductNames => job.RequestedProducts.Split(',', StringSplitOptions.RemoveEmptyEntries).Length,
+            RequestType.ProductNames => job.RequestedProducts.Names.Count,
             RequestType.ProductVersions => 1, // Would need to be calculated from actual product versions
             RequestType.UpdatesSince => 1, // Single date parameter
             _ => 0

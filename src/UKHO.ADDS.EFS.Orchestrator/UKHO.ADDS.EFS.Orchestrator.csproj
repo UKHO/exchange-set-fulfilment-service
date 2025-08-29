@@ -23,7 +23,6 @@
     <PackageReference Include="Quartz.Extensions.DependencyInjection" Version="3.15.0" />
     <PackageReference Include="Quartz.Extensions.Hosting" Version="3.15.0" />
     <PackageReference Include="Scalar.AspNetCore" Version="2.6.9" />
-    <PackageReference Include="Docker.DotNet" Version="3.125.15" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.8" />
     <PackageReference Include="Serilog" Version="4.3.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
@@ -42,7 +41,7 @@
     <ProjectReference Include="..\..\configuration\UKHO.ADDS.Aspire.Configuration\UKHO.ADDS.Aspire.Configuration.csproj" />
     <ProjectReference Include="..\UKHO.ADDS.EFS.Analyzers\UKHO.ADDS.EFS.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\UKHO.ADDS.EFS.Aspire\UKHO.ADDS.EFS.Aspire.csproj" />
-    <ProjectReference Include="..\UKHO.ADDS.EFS.Domain.Adapters\UKHO.ADDS.EFS.Domain.Adapters.csproj" />
+    <ProjectReference Include="..\UKHO.ADDS.EFS.Domain.Services\UKHO.ADDS.EFS.Domain.Services.csproj" />
   </ItemGroup>
 
 </Project>
