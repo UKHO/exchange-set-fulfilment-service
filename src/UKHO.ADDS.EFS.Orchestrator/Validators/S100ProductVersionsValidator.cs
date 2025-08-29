@@ -17,16 +17,17 @@ internal class S100ProductVersionsRequestValidator : AbstractValidator<S100Produ
             .WithMessage("ProductVersions cannot be empty");
 
         RuleForEach(request => request.ProductVersions)
-            .Must(product =>
-            {
-                var productNameValidator = new S100ProductNamesRequestValidator();
-                var result = productNameValidator.Validate(new S100ProductNamesRequest { ProductNames = [product.ProductName] });
-                return result.IsValid;
-            })
-            .WithMessage("ProductName is invalid.")
             .Must(product => product.EditionNumber > 0)
             .WithMessage("Edition number must be a positive integer.")
             .Must(product => product.UpdateNumber >= 0)
             .WithMessage("Update number must be zero or a positive integer.");
+
+        RuleForEach(request => request.ProductVersions)
+           .Must(product => !string.IsNullOrWhiteSpace(product.ProductName))
+           .WithMessage("ProductNames cannot be null or empty..");
+
+        RuleFor(request => request.CallbackUri)
+            .Must(CallbackUriValidator.IsValidCallbackUri)
+            .WithMessage("Invalid callbackUri format.");
     }
 }

@@ -135,7 +135,8 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
 
         var request = new S100ProductVersionsRequest
         {
-            ProductVersions = productVersions
+            ProductVersions = productVersions,
+            CallbackUri = job.CallbackUri
         };
 
         return await _productVersionsRequestValidator.ValidateAsync(request);
