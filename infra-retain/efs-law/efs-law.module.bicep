@@ -10,7 +10,6 @@ resource efs_law 'Microsoft.OperationalInsights/workspaces@2025-02-01' = {
     }
   }
   tags: {
-    'aspire-resource-name': 'efs-law'
     'hidden-title': 'EFS'
   }
 }
