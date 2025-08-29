@@ -17,30 +17,16 @@ internal class S100ProductVersionsRequestValidator : AbstractValidator<S100Produ
             .WithMessage("ProductVersions cannot be empty");
 
         RuleForEach(request => request.ProductVersions)
-            .Custom((product, context) =>
+            .Must(product =>
             {
-                // Validate ProductName
                 var productNameValidator = new S100ProductNamesRequestValidator();
-                var productNameValidationResult = productNameValidator.Validate(new S100ProductNamesRequest { ProductNames = [product.ProductName] });
-                if (!productNameValidationResult.IsValid)
-                {
-                    foreach (var error in productNameValidationResult.Errors)
-                    {
-                        context.AddFailure(product.ProductName, error.ErrorMessage);
-                    }
-                }
-
-                // Validate EditionNumber
-                if (product.EditionNumber <= 0)
-                {
-                    context.AddFailure(product.ProductName, "Edition number must be a positive integer.");
-                }
-
-                // Validate UpdateNumber
-                if (product.UpdateNumber < 0)
-                {
-                    context.AddFailure(product.ProductName, "Update number must be zero or a positive integer.");
-                }
-            });
+                var result = productNameValidator.Validate(new S100ProductNamesRequest { ProductNames = [product.ProductName] });
+                return result.IsValid;
+            })
+            .WithMessage("ProductName is invalid.")
+            .Must(product => product.EditionNumber > 0)
+            .WithMessage("Edition number must be a positive integer.")
+            .Must(product => product.UpdateNumber >= 0)
+            .WithMessage("Update number must be zero or a positive integer.");
     }
 }
