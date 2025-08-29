@@ -3,17 +3,19 @@
     public interface IBatchHandle
     {
         string BatchId { get; }
+        List<FileDetail> FileDetails { get; }
     }
 
     public class BatchHandle : IBatchHandle
     {
         public string BatchId { get; }
 
-        public List<FileDetail> FileDetails { get; } = new List<FileDetail>();
+        public List<FileDetail> FileDetails { get; }
 
         public BatchHandle(string batchId)
         {
             BatchId = batchId;
+            FileDetails = new List<FileDetail>();
         }
 
         public void AddFile(string filename, string hash)

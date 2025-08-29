@@ -177,7 +177,7 @@ namespace UKHO.ADDS.Clients.FileShareService.ReadWrite
 
                 var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, uri)
                 {
-                    Content = new StringContent(JsonCodec.Encode(batchHandle), Encoding.UTF8, ApiHeaderKeys.ContentTypeJson)
+                    Content = new StringContent(JsonCodec.Encode(batchHandle.FileDetails), Encoding.UTF8, ApiHeaderKeys.ContentTypeJson)
                 };
 
                 var response = await httpClient.SendAsync(httpRequestMessage, cancellationToken);
