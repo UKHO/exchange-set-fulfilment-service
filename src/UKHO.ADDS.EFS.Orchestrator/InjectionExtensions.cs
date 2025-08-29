@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using Azure.Identity;
 using Microsoft.AspNetCore.Http.Json;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Kiota.Abstractions.Authentication;
 using Microsoft.Kiota.Authentication.Azure;
 using Microsoft.OpenApi.Any;
@@ -19,6 +20,7 @@ using UKHO.ADDS.EFS.Domain.Builds.S63;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Services.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
+using UKHO.ADDS.EFS.Orchestrator.Health;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
@@ -124,8 +126,35 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 return factory.CreateClient(fssEndpoint.Uri!.ToString(), tokenProvider);
             });
 
+            // Register token provider for SalesCatalogueService health check
+            builder.Services.AddSingleton<IAuthenticationTokenProvider>(sp =>
+            {
+                var registry = sp.GetRequiredService<IExternalServiceRegistry>();
+                var scsEndpoint = registry.GetServiceEndpoint(ProcessNames.SalesCatalogueService);
+
+                if (addsEnvironment.IsLocal() || addsEnvironment.IsDev())
+                {
+                    return new AnonymousAuthenticationTokenProvider();
+                }
+                else
+                {
+                    return new TokenCredentialAuthenticationTokenProvider(new ManagedIdentityCredential(), [scsEndpoint.GetDefaultScope()]);
+                }
+            });
+
             builder.Services.AddSingleton<IOrchestratorSalesCatalogueClient, OrchestratorSalesCatalogueClient>();
             builder.Services.AddSingleton<IOrchestratorFileShareClient, OrchestratorFileShareClient>();
+
+            // Register health checks
+            builder.Services.AddHealthChecks()
+                //.AddCheck<SalesCatalogueHealthCheck>(
+                //    "sales-catalogue-service",
+                //    HealthStatus.Unhealthy,
+                //    tags: new[] { "live", "external-dependency" })
+                .AddCheck<FileShareServiceHealthCheck>(
+                    "file-share-service",
+                    HealthStatus.Unhealthy,
+                    tags: new[] { "live", "external-dependency" });
 
             //Added Dependencies for SchedulerJob
             builder.Services.AddQuartz(q =>
