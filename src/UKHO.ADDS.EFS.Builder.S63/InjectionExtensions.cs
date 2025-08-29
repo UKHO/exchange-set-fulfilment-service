@@ -69,8 +69,8 @@ namespace UKHO.ADDS.EFS.Builder.S63
 
                 var ports = GetPorts(debugDevPath, debugPath);
 
-                Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.QueueConnectionString, $"http://host.docker.internal:{ports.QueuePort}/{QueueClientFactory.AzuriteAccountName}");
-                Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.BlobConnectionString, $"http://host.docker.internal:{ports.BlobPort}/{QueueClientFactory.AzuriteAccountName}");
+                Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.QueueEndpoint, $"http://host.docker.internal:{ports.QueuePort}/{QueueClientFactory.AzuriteAccountName}");
+                Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.BlobEndpoint, $"http://host.docker.internal:{ports.BlobPort}/{QueueClientFactory.AzuriteAccountName}");
 
                 configurationBuilder.SetBasePath(Directory.GetCurrentDirectory())
                     .AddJsonFile(debugPath)
