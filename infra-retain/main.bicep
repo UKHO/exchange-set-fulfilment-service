@@ -64,7 +64,7 @@ module efs_events_namespace 'efs-events-namespace/efs-events-namespace.module.bi
   scope: rg
   params: {
     location: location
-    principalId: efs_service_identity.outputs.clientId
+    principalId: efs_service_identity.outputs.principalId
   }
 }
 
@@ -73,7 +73,7 @@ module efs_cae_acr 'efs-cae-acr/efs-cae-acr.module.bicep' = {
   scope: rg
   params: {
     location: location
-    principalId: efs_service_identity.outputs.clientId
+    principalId: efs_service_identity.outputs.principalId
   }
 }
 
@@ -97,6 +97,7 @@ module pipeline_roles 'pipeline-roles/pipeline-roles.module.bicep' = {
 
 output EFS_SERVICE_IDENTITY_RESOURCE_GROUP string = rg.name
 output EFS_SERVICE_IDENTITY_CLIENTID string = efs_service_identity.outputs.clientId
+output EFS_SERVICE_IDENTITY_PRINCIPALID string = efs_service_identity.outputs.principalId
 output EFS_SERVICE_IDENTITY_ID string = efs_service_identity.outputs.id
 output EFS_SERVICE_IDENTITY_NAME string = efs_service_identity.outputs.name
 output EFS_LAW_ID string = efs_law.outputs.logAnalyticsWorkspaceId
