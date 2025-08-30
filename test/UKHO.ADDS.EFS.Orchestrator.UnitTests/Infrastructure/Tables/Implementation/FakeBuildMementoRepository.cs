@@ -3,9 +3,9 @@ using UKHO.ADDS.EFS.Domain.Services.Configuration.Namespaces;
 
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Infrastructure.Tables.Implementation
 {
-    public class FakeBuildMementoTable : FakeTable<BuildMemento>
+    public class FakeBuildMementoRepository : FakeRepository<BuildMemento>
     {
-        public FakeBuildMementoTable()
+        public FakeBuildMementoRepository()
             : base(StorageConfiguration.S100BuildContainer, x => (string)x.JobId, x => (string)x.JobId)
         {
         }

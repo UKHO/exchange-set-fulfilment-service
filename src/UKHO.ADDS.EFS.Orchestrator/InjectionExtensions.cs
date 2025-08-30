@@ -18,6 +18,7 @@ using UKHO.ADDS.EFS.Domain.Builds.S57;
 using UKHO.ADDS.EFS.Domain.Builds.S63;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Services.Configuration.Namespaces;
+using UKHO.ADDS.EFS.Domain.Services.Infrastructure.Tables;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation;
@@ -76,13 +77,13 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddSingleton<IStorageService, StorageService>();
             builder.Services.AddSingleton<IHashingService, HashingService>();
 
-            builder.Services.AddSingleton<ITable<S100Build>, S100BuildTable>();
-            builder.Services.AddSingleton<ITable<S63Build>, S63BuildTable>();
-            builder.Services.AddSingleton<ITable<S57Build>, S57BuildTable>();
+            builder.Services.AddSingleton<IRepository<S100Build>, S100BuildRepository>();
+            builder.Services.AddSingleton<IRepository<S63Build>, S63BuildRepository>();
+            builder.Services.AddSingleton<IRepository<S57Build>, S57BuildRepository>();
 
-            builder.Services.AddSingleton<ITable<DataStandardTimestamp>, DataStandardTimestampTable>();
-            builder.Services.AddSingleton<ITable<Job>, JobTable>();
-            builder.Services.AddSingleton<ITable<BuildMemento>, BuildMementoTable>();
+            builder.Services.AddSingleton<IRepository<DataStandardTimestamp>, DataStandardTimestampRepository>();
+            builder.Services.AddSingleton<IRepository<Job>, JobRepository>();
+            builder.Services.AddSingleton<IRepository<BuildMemento>, BuildMementoRepository>();
 
             builder.Services.AddSingleton<IBuilderLogForwarder, BuilderLogForwarder>();
             builder.Services.AddSingleton<StorageInitializerService>();

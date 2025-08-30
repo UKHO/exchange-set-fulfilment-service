@@ -1,16 +1,17 @@
 ﻿using Azure.Data.Tables;
+using UKHO.ADDS.EFS.Domain.Services.Infrastructure.Tables;
 using UKHO.ADDS.Infrastructure.Results;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.Implementation
 {
-    internal abstract class StructuredTable<TEntity> : ITable<TEntity> where TEntity : class
+    internal abstract class TableRepository<TEntity> : IRepository<TEntity> where TEntity : class
     {
         private readonly Func<TEntity, string> _partitionKeySelector;
         private readonly Func<TEntity, string> _rowKeySelector;
         private readonly TableClient _tableClient;
 
-        protected StructuredTable(string name, TableServiceClient tableServiceClient, Func<TEntity, string> partitionKeySelector, Func<TEntity, string> rowKeySelector)
+        protected TableRepository(string name, TableServiceClient tableServiceClient, Func<TEntity, string> partitionKeySelector, Func<TEntity, string> rowKeySelector)
         {
             _partitionKeySelector = partitionKeySelector ?? throw new ArgumentNullException(nameof(partitionKeySelector));
             _rowKeySelector = rowKeySelector ?? throw new ArgumentNullException(nameof(rowKeySelector));

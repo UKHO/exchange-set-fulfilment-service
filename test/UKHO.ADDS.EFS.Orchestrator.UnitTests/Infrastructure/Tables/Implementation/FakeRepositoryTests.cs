@@ -6,9 +6,9 @@ using Assert = Xunit.Assert;
 
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Infrastructure.Tables.Implementation
 {
-    public class FakeTableTests : GivenWhenThenTest
+    public class FakeRepositoryTests : GivenWhenThenTest
     {
-        public FakeTableTests(ITestOutputHelper output)
+        public FakeRepositoryTests(ITestOutputHelper output)
             : base(output)
         {
         }
@@ -18,7 +18,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Infrastructure.Tables.Implementat
         {
             Result result = null;
 
-            await Given("A fresh table", () => new FakeTable<UniqueKeyTestEntity>("Unique", e => e.Id, e => e.Id))
+            await Given("A fresh repository", () => new FakeRepository<UniqueKeyTestEntity>("Unique", e => e.Id, e => e.Id))
 
                 .When("I add a new entity", async t =>
                 {
@@ -42,9 +42,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Infrastructure.Tables.Implementat
         {
             Result result = null;
 
-            await Given("A table with existing entity", () =>
+            await Given("A repository with existing entity", () =>
                 {
-                    var table = new FakeTable<UniqueKeyTestEntity>("Unique", e => e.Id, e => e.Id);
+                    var table = new FakeRepository<UniqueKeyTestEntity>("Unique", e => e.Id, e => e.Id);
 
                     table.Seed([
                         new UniqueKeyTestEntity
@@ -77,9 +77,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Infrastructure.Tables.Implementat
         {
             Result<UniqueKeyTestEntity>? result = null;
 
-            await Given("A table with an entity", () =>
+            await Given("A repository with an entity", () =>
                 {
-                    var table = new FakeTable<UniqueKeyTestEntity>("Unique", e => e.Id, e => e.Id);
+                    var table = new FakeRepository<UniqueKeyTestEntity>("Unique", e => e.Id, e => e.Id);
 
                     table.Seed([
                         new UniqueKeyTestEntity
@@ -108,7 +108,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Infrastructure.Tables.Implementat
         {
             Result<UniqueKeyTestEntity>? result = null;
 
-            await Given("A fresh table", () => new FakeTable<UniqueKeyTestEntity>("Unique", e => e.Id, e => e.Id))
+            await Given("A fresh repository", () => new FakeRepository<UniqueKeyTestEntity>("Unique", e => e.Id, e => e.Id))
 
                 .When("I try to get missing entity", async t =>
                 {
@@ -126,9 +126,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Infrastructure.Tables.Implementat
         {
             Result<UniqueKeyTestEntity>? result = null;
 
-            await Given("A table with entity", () =>
+            await Given("A repository with entity", () =>
                 {
-                    var table = new FakeTable<UniqueKeyTestEntity>("Unique", e => e.Id, e => e.Id);
+                    var table = new FakeRepository<UniqueKeyTestEntity>("Unique", e => e.Id, e => e.Id);
 
                     table.Seed([
                         new UniqueKeyTestEntity
@@ -157,7 +157,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Infrastructure.Tables.Implementat
         {
             Result<UniqueKeyTestEntity>? result = null;
 
-            await Given("An empty table", () => new FakeTable<UniqueKeyTestEntity>("Unique", e => e.Id, e => e.Id))
+            await Given("An empty repository", () => new FakeRepository<UniqueKeyTestEntity>("Unique", e => e.Id, e => e.Id))
 
                 .When("I try to get missing by partition/row key", async t =>
                 {
@@ -175,9 +175,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Infrastructure.Tables.Implementat
         {
             IEnumerable<UniqueKeyTestEntity> list = null!;
 
-            await Given("A table with entities", () =>
+            await Given("A repository with entities", () =>
                 {
-                    var table = new FakeTable<UniqueKeyTestEntity>("Unique", e => e.Id, e => e.Id);
+                    var table = new FakeRepository<UniqueKeyTestEntity>("Unique", e => e.Id, e => e.Id);
 
                     table.Seed([
                         new UniqueKeyTestEntity
@@ -210,9 +210,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Infrastructure.Tables.Implementat
         {
             IEnumerable<UniqueKeyTestEntity> all = null!;
 
-            await Given("A seeded table", () =>
+            await Given("A seeded repository", () =>
                 {
-                    var table = new FakeTable<UniqueKeyTestEntity>("Unique", e => e.Id, e => e.Id);
+                    var table = new FakeRepository<UniqueKeyTestEntity>("Unique", e => e.Id, e => e.Id);
                     table.Seed(new[]
                     {
                         new UniqueKeyTestEntity
@@ -243,9 +243,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Infrastructure.Tables.Implementat
         {
             Result result = null;
 
-            await Given("A table with existing entity", () =>
+            await Given("A repository with existing entity", () =>
                 {
-                    var table = new FakeTable<UniqueKeyTestEntity>("Unique", e => e.Id, e => e.Id);
+                    var table = new FakeRepository<UniqueKeyTestEntity>("Unique", e => e.Id, e => e.Id);
 
                     table.Seed([
                         new UniqueKeyTestEntity
@@ -275,7 +275,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Infrastructure.Tables.Implementat
         {
             Result result = null;
 
-            await Given("An empty table", () => new FakeTable<UniqueKeyTestEntity>("Unique", e => e.Id, e => e.Id))
+            await Given("An empty repository", () => new FakeRepository<UniqueKeyTestEntity>("Unique", e => e.Id, e => e.Id))
 
                 .When("I try to update missing entity", async t =>
                 {
@@ -297,7 +297,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Infrastructure.Tables.Implementat
         {
             Result result = null;
 
-            await Given("An empty table", () => new FakeTable<UniqueKeyTestEntity>("Unique", e => e.Id, e => e.Id))
+            await Given("An empty repository", () => new FakeRepository<UniqueKeyTestEntity>("Unique", e => e.Id, e => e.Id))
 
                 .When("I upsert new entity", async t =>
                 {
@@ -319,9 +319,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Infrastructure.Tables.Implementat
         {
             Result result = null;
 
-            await Given("Table with entity", () =>
+            await Given("A repository with entity", () =>
                 {
-                    var table = new FakeTable<UniqueKeyTestEntity>("Unique", e => e.Id, e => e.Id);
+                    var table = new FakeRepository<UniqueKeyTestEntity>("Unique", e => e.Id, e => e.Id);
 
                     table.Seed([
                         new UniqueKeyTestEntity
@@ -350,9 +350,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Infrastructure.Tables.Implementat
         {
             Result result = null;
 
-            await Given("Table with multiple entities", () =>
+            await Given("A repository with multiple entities", () =>
                 {
-                    var table = new FakeTable<UniqueKeyTestEntity>("Unique", e => e.Id, e => e.Id);
+                    var table = new FakeRepository<UniqueKeyTestEntity>("Unique", e => e.Id, e => e.Id);
 
                     table.Seed([
                         new UniqueKeyTestEntity
@@ -386,7 +386,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Infrastructure.Tables.Implementat
         {
             Result result = null;
 
-            await Given("A fresh table", () => new FakeTable<UniqueKeyTestEntity>("Unique", e => e.Id, e => e.Id))
+            await Given("A fresh repository", () => new FakeRepository<UniqueKeyTestEntity>("Unique", e => e.Id, e => e.Id))
 
                 .When("I call CreateIfNotExistsAsync", async t =>
                 {
@@ -405,7 +405,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Infrastructure.Tables.Implementat
         {
             Result result = null;
 
-            await Given("A fresh compound table", () => new FakeTable<CompoundKeyTestEntity>("Compound", e => e.PartitionKey, e => e.RowKey))
+            await Given("A fresh compound repository", () => new FakeRepository<CompoundKeyTestEntity>("Compound", e => e.PartitionKey, e => e.RowKey))
 
                 .When("I add new entity", async t =>
                 {
@@ -427,9 +427,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Infrastructure.Tables.Implementat
         {
             IEnumerable<CompoundKeyTestEntity> list = null!;
 
-            await Given("A seeded compound table", () =>
+            await Given("A seeded compound repository", () =>
                 {
-                    var table = new FakeTable<CompoundKeyTestEntity>("Compound", e => e.PartitionKey, e => e.RowKey);
+                    var table = new FakeRepository<CompoundKeyTestEntity>("Compound", e => e.PartitionKey, e => e.RowKey);
 
                     table.Seed([
                         new CompoundKeyTestEntity
@@ -466,9 +466,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Infrastructure.Tables.Implementat
         {
             Result result = null;
 
-            await Given("A seeded table", () =>
+            await Given("A seeded repository", () =>
                 {
-                    var table = new FakeTable<CompoundKeyTestEntity>("Compound", e => e.PartitionKey, e => e.RowKey);
+                    var table = new FakeRepository<CompoundKeyTestEntity>("Compound", e => e.PartitionKey, e => e.RowKey);
 
                     table.Seed([
                         new CompoundKeyTestEntity

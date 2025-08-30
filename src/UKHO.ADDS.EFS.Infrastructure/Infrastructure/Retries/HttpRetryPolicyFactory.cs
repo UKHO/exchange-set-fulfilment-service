@@ -4,7 +4,7 @@ using Polly;
 using UKHO.ADDS.EFS.Domain.Services.Configuration.Orchestrator;
 using UKHO.ADDS.Infrastructure.Results;
 
-namespace UKHO.ADDS.EFS.Domain.Services.Implementation.Retries
+namespace UKHO.ADDS.EFS.Domain.Services.Infrastructure.Retries
 {
     /// <summary>
     /// Provides Polly retry policies for HttpClient and custom result types to handle transient errors.

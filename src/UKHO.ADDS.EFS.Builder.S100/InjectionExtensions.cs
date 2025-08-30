@@ -16,7 +16,7 @@ using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Domain.Implementation.Extensions;
 using UKHO.ADDS.EFS.Domain.Services.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Domain.Services.Configuration.Orchestrator;
-using UKHO.ADDS.EFS.Domain.Services.Implementation.Retries;
+using UKHO.ADDS.EFS.Domain.Services.Infrastructure.Retries;
 
 namespace UKHO.ADDS.EFS.Builder.S100
 {

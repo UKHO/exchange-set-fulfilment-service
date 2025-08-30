@@ -3,7 +3,7 @@ using FakeItEasy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
-using UKHO.ADDS.EFS.Domain.Services.Implementation.Retries;
+using UKHO.ADDS.EFS.Domain.Services.Infrastructure.Retries;
 using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Domain.Services.UnitTests.Implementation.Retries

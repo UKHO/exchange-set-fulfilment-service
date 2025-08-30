@@ -4,9 +4,9 @@ using UKHO.ADDS.EFS.Domain.Services.Configuration.Namespaces;
 
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Infrastructure.Tables.Implementation.S100
 {
-    public class FakeS100BuildTable : FakeTable<S100Build>
+    public class FakeS100BuildRepository : FakeRepository<S100Build>
     {
-        public FakeS100BuildTable()
+        public FakeS100BuildRepository()
             : base(StorageConfiguration.S100BuildContainer, x => (string)x.JobId, x => (string)x.JobId)
         {
         }

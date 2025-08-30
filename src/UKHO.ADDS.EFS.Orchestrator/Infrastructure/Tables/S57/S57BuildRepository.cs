@@ -5,9 +5,9 @@ using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.Implementation;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S57
 {
-    internal class S57BuildTable : BlobTable<S57Build>
+    internal class S57BuildRepository : BlobRepository<S57Build>
     {
-        public S57BuildTable(BlobServiceClient blobServiceClient)
+        public S57BuildRepository(BlobServiceClient blobServiceClient)
             : base(StorageConfiguration.S57BuildContainer, blobServiceClient, x => (string)x.JobId, x => (string)x.JobId)
         {
         }

@@ -6,7 +6,7 @@ using UKHO.ADDS.EFS.Domain.Constants;
 using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Services.Factories;
-using UKHO.ADDS.EFS.Domain.Services.Implementation.Retries;
+using UKHO.ADDS.EFS.Domain.Services.Infrastructure.Retries;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;

@@ -5,10 +5,10 @@ using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.Implementation;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables
 {
-    internal class BuildMementoTable : StructuredTable<BuildMemento>
+    internal class BuildMementoRepository : TableRepository<BuildMemento>
     {
-        public BuildMementoTable(TableServiceClient tableServiceClient)
-            : base(StorageConfiguration.BuildMementoTable, tableServiceClient, x => (string)x.JobId, x => (string)x.JobId)
+        public BuildMementoRepository(TableServiceClient tableServiceClient)
+            : base(StorageConfiguration.BuildMementoRepositoryName, tableServiceClient, x => (string)x.JobId, x => (string)x.JobId)
         {
         }
     }

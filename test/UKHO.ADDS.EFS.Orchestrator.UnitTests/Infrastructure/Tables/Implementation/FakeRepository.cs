@@ -1,14 +1,15 @@
 ﻿using System.Collections.Concurrent;
+using UKHO.ADDS.EFS.Domain.Services.Infrastructure.Tables;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
 using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Infrastructure.Tables.Implementation
 {
     /// <summary>
-    ///     An in-memory fake implementation of ITable for testing.
+    ///     An in-memory fake implementation of IRepository for testing.
     ///     Supports independent partition and row key selectors.
     /// </summary>
-    public class FakeTable<TEntity> : ITable<TEntity> where TEntity : class
+    public class FakeRepository<TEntity> : IRepository<TEntity> where TEntity : class
     {
         private readonly Func<TEntity, string> _partitionKeySelector;
         private readonly Func<TEntity, string> _rowKeySelector;
@@ -21,7 +22,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Infrastructure.Tables.Implementat
         /// <param name="name">Logical name of the table.</param>
         /// <param name="partitionKeySelector">Function to extract PartitionKey from entity.</param>
         /// <param name="rowKeySelector">Function to extract RowKey from entity.</param>
-        public FakeTable(string name, Func<TEntity, string> partitionKeySelector, Func<TEntity, string> rowKeySelector)
+        public FakeRepository(string name, Func<TEntity, string> partitionKeySelector, Func<TEntity, string> rowKeySelector)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
 

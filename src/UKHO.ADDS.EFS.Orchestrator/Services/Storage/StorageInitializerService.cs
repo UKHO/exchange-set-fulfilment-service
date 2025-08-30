@@ -5,6 +5,7 @@ using UKHO.ADDS.EFS.Domain.Builds.S57;
 using UKHO.ADDS.EFS.Domain.Builds.S63;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Services.Configuration.Namespaces;
+using UKHO.ADDS.EFS.Domain.Services.Infrastructure.Tables;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Services.Storage
@@ -13,30 +14,30 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Storage
     {
         private readonly QueueServiceClient _queueClient;
 
-        private readonly ITable<DataStandardTimestamp> _timestampTable;
-        private readonly ITable<Job> _jobTable;
-        private readonly ITable<S100Build> _s100BuildTable;
-        private readonly ITable<S63Build> _s63BuildTable;
-        private readonly ITable<S57Build> _s57BuildTable;
-        private readonly ITable<BuildMemento> _buildMementoTable;
+        private readonly IRepository<DataStandardTimestamp> _timestampRepository;
+        private readonly IRepository<Job> _jobRepository;
+        private readonly IRepository<S100Build> _s100BuildRepository;
+        private readonly IRepository<S63Build> _s63BuildRepository;
+        private readonly IRepository<S57Build> _s57BuildRepository;
+        private readonly IRepository<BuildMemento> _buildMementoRepository;
 
         public StorageInitializerService
             (
                 QueueServiceClient queueClient,
-                ITable<DataStandardTimestamp> timestampTable,
-                ITable<Job> jobTable,
-                ITable<S100Build> s100BuildTable,
-                ITable<S63Build> s63BuildTable,
-                ITable<S57Build> s57BuildTable,
-                ITable<BuildMemento> buildMementoTable)
+                IRepository<DataStandardTimestamp> timestampRepository,
+                IRepository<Job> jobRepository,
+                IRepository<S100Build> s100BuildRepository,
+                IRepository<S63Build> s63BuildRepository,
+                IRepository<S57Build> s57BuildRepository,
+                IRepository<BuildMemento> buildMementoRepository)
         {
             _queueClient = queueClient;
-            _timestampTable = timestampTable;
-            _jobTable = jobTable;
-            _s100BuildTable = s100BuildTable;
-            _s63BuildTable = s63BuildTable;
-            _s57BuildTable = s57BuildTable;
-            _buildMementoTable = buildMementoTable;
+            _timestampRepository = timestampRepository;
+            _jobRepository = jobRepository;
+            _s100BuildRepository = s100BuildRepository;
+            _s63BuildRepository = s63BuildRepository;
+            _s57BuildRepository = s57BuildRepository;
+            _buildMementoRepository = buildMementoRepository;
         }
 
         public async Task InitializeStorageAsync(CancellationToken stoppingToken)
@@ -54,14 +55,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Storage
                 await EnsureQueueExists(StorageConfiguration.S57BuildRequestQueueName, stoppingToken);
                 await EnsureQueueExists(StorageConfiguration.S57BuildResponseQueueName, stoppingToken);
 
-                await _s100BuildTable.CreateIfNotExistsAsync(stoppingToken);
-                await _s63BuildTable.CreateIfNotExistsAsync(stoppingToken);
-                await _s57BuildTable.CreateIfNotExistsAsync(stoppingToken);
+                await _s100BuildRepository.CreateIfNotExistsAsync(stoppingToken);
+                await _s63BuildRepository.CreateIfNotExistsAsync(stoppingToken);
+                await _s57BuildRepository.CreateIfNotExistsAsync(stoppingToken);
 
-                await _jobTable.CreateIfNotExistsAsync(stoppingToken);
+                await _jobRepository.CreateIfNotExistsAsync(stoppingToken);
 
-                await _timestampTable.CreateIfNotExistsAsync(stoppingToken);
-                await _buildMementoTable.CreateIfNotExistsAsync(stoppingToken);
+                await _timestampRepository.CreateIfNotExistsAsync(stoppingToken);
+                await _buildMementoRepository.CreateIfNotExistsAsync(stoppingToken);
             }
             catch (Exception ex)
             {

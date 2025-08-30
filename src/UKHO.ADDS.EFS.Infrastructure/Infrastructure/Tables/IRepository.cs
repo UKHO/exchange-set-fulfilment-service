@@ -1,8 +1,8 @@
 ﻿using UKHO.ADDS.Infrastructure.Results;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables
+namespace UKHO.ADDS.EFS.Domain.Services.Infrastructure.Tables
 {
-    public interface ITable<TEntity> where TEntity : class
+    public interface IRepository<TEntity> where TEntity : class
     {
         string Name { get; }
 

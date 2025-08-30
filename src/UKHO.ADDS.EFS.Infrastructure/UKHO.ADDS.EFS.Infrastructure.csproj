@@ -7,10 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\UKHO.ADDS.EFS.Domain\UKHO.ADDS.EFS.Domain.csproj" />
+    <PackageReference Include="Polly" Version="8.6.2" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\UKHO.ADDS.EFS.Domain.Services\UKHO.ADDS.EFS.Domain.Services.csproj" />
     <ProjectReference Include="..\UKHO.ADDS.Clients.Common\UKHO.ADDS.Clients.Common.csproj" />
     <ProjectReference Include="..\UKHO.ADDS.Clients.FileShareService.ReadOnly\UKHO.ADDS.Clients.FileShareService.ReadOnly.csproj" />
     <ProjectReference Include="..\UKHO.ADDS.Clients.FileShareService.ReadWrite\UKHO.ADDS.Clients.FileShareService.ReadWrite.csproj" />

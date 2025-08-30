@@ -1,18 +1,19 @@
 ﻿using System.Text;
 using Azure.Storage.Blobs;
+using UKHO.ADDS.EFS.Domain.Services.Infrastructure.Tables;
 using UKHO.ADDS.Infrastructure.Results;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.Implementation
 {
-    internal abstract class BlobTable<TEntity> : ITable<TEntity> where TEntity : class
+    internal abstract class BlobRepository<TEntity> : IRepository<TEntity> where TEntity : class
     {
         private readonly BlobServiceClient _blobClient;
 
         private readonly Func<TEntity, string> _partitionKeySelector;
         private readonly Func<TEntity, string> _rowKeySelector;
 
-        protected BlobTable(string name, BlobServiceClient blobServiceClient, Func<TEntity, string> partitionKeySelector, Func<TEntity, string> rowKeySelector)
+        protected BlobRepository(string name, BlobServiceClient blobServiceClient, Func<TEntity, string> partitionKeySelector, Func<TEntity, string> rowKeySelector)
         {
             _partitionKeySelector = partitionKeySelector ?? throw new ArgumentNullException(nameof(partitionKeySelector));
             _rowKeySelector = rowKeySelector ?? throw new ArgumentNullException(nameof(rowKeySelector));
@@ -256,7 +257,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.Implementation
             }
             catch (Exception ex)
             {
-                return Result.Failure($"Error creating blob table: {ex.Message}");
+                return Result.Failure($"Error creating blob repository: {ex.Message}");
             }
         }
 

@@ -36,10 +36,10 @@
 
         public const string DataStandardTimestampTable = "datastandardtimestamp";
 
-        public const string JobTable = "job";
+        public const string JobRepositoryName = "job";
 
-        public const string BuildMementoTable = "buildmemento";
+        public const string BuildMementoRepositoryName = "buildmemento";
 
-        public const string BuildFingerprintTable = "buildfingerprint";
+        public const string BuildFingerprintRepositoryName = "buildfingerprint";
     }
 }
