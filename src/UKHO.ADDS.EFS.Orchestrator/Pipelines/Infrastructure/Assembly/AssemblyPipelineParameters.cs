@@ -34,7 +34,7 @@ internal class AssemblyPipelineParameters
     /// Product identifier filter for S100 updates since requests (s101, s102, s104, s111)
     /// </summary>
     public string? ProductIdentifier { get; init; }
-
+    
     public Job CreateJob()
     {
         return new Job()
@@ -44,7 +44,8 @@ internal class AssemblyPipelineParameters
             DataStandard = DataStandard,
             RequestedProducts = Products,
             RequestedFilter = Filter,
-            CallbackUri = CallbackUri
+            CallbackUri = CallbackUri,
+            ProductIdentifier = ProductIdentifier
         };
     }
 
@@ -104,7 +105,7 @@ internal class AssemblyPipelineParameters
             Timestamp = DateTime.UtcNow,
             DataStandard = DataStandard.S100,
             Products = "all",
-            Filter = $"updatesSince:{request.SinceDateTime:O}" + (productIdentifier != null ? $",productIdentifier:{productIdentifier}" : ""),
+            Filter = $"updatesSince:{request.SinceDateTime:O}",
             JobId = correlationId,
             Configuration = configuration,
             RequestType = Messages.RequestType.UpdatesSince,

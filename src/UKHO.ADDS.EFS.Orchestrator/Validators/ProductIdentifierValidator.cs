@@ -1,4 +1,3 @@
-
 namespace UKHO.ADDS.EFS.Orchestrator.Validators;
 
 /// <summary>
@@ -10,7 +9,7 @@ internal static class ProductIdentifierValidator
 
     public static bool IsValid(string? productIdentifier)
     {
-        if (string.IsNullOrWhiteSpace(productIdentifier))
+        if ( productIdentifier == string.Empty)
             return false;
         return true;
     }

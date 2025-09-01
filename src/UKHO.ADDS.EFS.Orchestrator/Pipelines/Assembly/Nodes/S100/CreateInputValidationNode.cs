@@ -155,7 +155,8 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
         var request = new S100UpdatesSinceRequest
         {
             SinceDateTime = sinceDateTime,
-            CallbackUri = job.CallbackUri
+            CallbackUri = job.CallbackUri,
+            ProductIdentifier = job.ProductIdentifier,
         };
 
         return await _updateSinceValidator.ValidateAsync(request);

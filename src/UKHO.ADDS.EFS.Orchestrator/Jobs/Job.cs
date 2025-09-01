@@ -74,5 +74,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Jobs
         public string GetCorrelationId() => Id;
 
         public string? CallbackUri { get; init; }
+
+        public string? ProductIdentifier { get; init; }
     }
 }

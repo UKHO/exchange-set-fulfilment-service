@@ -21,9 +21,9 @@ internal class S100UpdateSinceValidator : AbstractValidator<S100UpdatesSinceRequ
             .WithMessage("sinceDateTime cannot be empty.")
             .Must(IsValidFormat)
             .WithMessage("sinceDateTime must be in the format yyyy-MM-ddTHH:mm:ss.fffffffZ.")
-            .Must(date => IsFutureDate(date))
+            .Must(date => !IsFutureDate(date))
             .WithMessage("sinceDateTime cannot be a future date.")
-            .Must(date => IsMoreThan28DaysInPast(date))
+            .Must(date => !IsMoreThan28DaysInPast(date))
             .WithMessage("sinceDateTime cannot be more than 28 days in the past.");
 
         RuleFor(request => request.ProductIdentifier)
