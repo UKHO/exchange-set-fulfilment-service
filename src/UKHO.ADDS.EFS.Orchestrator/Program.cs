@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Azure.Identity;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
@@ -6,7 +7,7 @@ using UKHO.ADDS.Aspire.Configuration;
 using UKHO.ADDS.EFS.Domain.Services.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Domain.Services.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Orchestrator.Api;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Serilog;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Middleware;
 using UKHO.ADDS.EFS.Orchestrator.Services.Storage;
 
@@ -31,14 +32,40 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                 var oltpEndpoint = builder.Configuration[GlobalEnvironmentVariables.OtlpEndpoint]!;
 
+                builder.Services.AddHttpContextAccessor();
+
                 if (builder.Environment.IsDevelopment())
                 {
-                    builder.Services.AddSerilog((services, lc) => ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint));
+                    builder.Services.AddSerilog((services, lc) =>
+                        ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint)
+                            .Enrich.WithProperty("Environment", builder.Environment.EnvironmentName)
+                            .Enrich.WithProperty("System", ServiceConfiguration.ServiceName)
+                            .Enrich.WithProperty("Service", ServiceConfiguration.ServiceName)
+                            .Enrich.WithProperty("NodeName", ServiceConfiguration.NodeName)
+                    );
                 }
                 else
                 {
-                    builder.Services.AddSerilog((services, lc) => ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint)
-                        .WriteTo.Sink(new EventHubSerilogSink()));
+                    var fullyQualifiedNamespace = Environment.GetEnvironmentVariable("ConnectionStrings__efs-events-namespace");
+                    var eventHubName = ServiceConfiguration.EventHubName;
+
+                    builder.Services.AddSerilog((services, lc) =>
+                        ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint)
+                            .Enrich.WithProperty("Environment", builder.Environment.EnvironmentName)
+                            .Enrich.WithProperty("System", ServiceConfiguration.ServiceName)
+                            .Enrich.WithProperty("Service", ServiceConfiguration.ServiceName)
+                            .Enrich.WithProperty("NodeName", ServiceConfiguration.NodeName)
+                            .WriteTo.EventHub(options =>
+                            {
+                                options.Environment = builder.Environment.EnvironmentName;
+                                options.System = ServiceConfiguration.ServiceName;
+                                options.Service = ServiceConfiguration.ServiceName;
+                                options.NodeName = ServiceConfiguration.NodeName;
+                                options.EventHubFullyQualifiedNamespace = fullyQualifiedNamespace;
+                                options.EventHubEntityPath = eventHubName;
+                                options.TokenCredential = new DefaultAzureCredential();
+                            })
+                    );
                 }
 
                 builder.AddConfiguration(ServiceConfiguration.ServiceName, ProcessNames.ConfigurationService);
@@ -56,7 +83,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 //{
                 app.MapOpenApi();
                 app.MapScalarApiReference(_ => _.Servers = []); // Stop OpenAPI specifying the wrong port in the generated OpenAPI doc
-                //}
+                                                                //}
 
                 app.UseMiddleware<CorrelationIdMiddleware>();
                 app.UseMiddleware<ExceptionHandlingMiddleware>();

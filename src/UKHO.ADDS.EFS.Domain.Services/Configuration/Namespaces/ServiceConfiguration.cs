@@ -9,6 +9,10 @@
         public const string EventHubNamespaceName = "efs-events-namespace";
         public const string EventHubName = "efs-events-hub";
         public const string LogAnalyticsWorkspaceName = "efs-law";
+<<<<<<< Updated upstream
         public const string ContainerRegistryName = "efs-cae-acr";
+=======
+        public const string NodeName = "Azure";
+>>>>>>> Stashed changes
     }
 }

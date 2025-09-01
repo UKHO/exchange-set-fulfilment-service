@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Serilog.Context;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
@@ -23,12 +24,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
 
             foreach (var log in messages)
             {
-                WriteLog(log, logger, builderName);
-                await Task.Yield(); 
+                WriteLog(log, logger, builderName, jobId.ToString());
+                await Task.Yield();
             }
         }
 
-        private void WriteLog(string log, ILogger logger, string builderName)
+        private void WriteLog(string log, ILogger logger, string builderName, string jobId)
         {
             if (string.IsNullOrWhiteSpace(log))
             {
@@ -51,6 +52,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
                 return;
             }
 
+            // Extract correlation ID from nested Properties if it exists
+            var correlationId = ExtractCorrelationId(parsedLog, jobId);
             var mergedLog = new Dictionary<string, object>(parsedLog) { ["server.name"] = builderName };
 
             var logMessage = "(no message template)";
@@ -68,6 +71,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
             }
 
             var effectiveLogLevel = DetermineLogLevel(parsedLog, _replayLevel);
+
+            // Use LogContext to ensure correlation ID appears at top level
+            using (LogContext.PushProperty("CorrelationId", correlationId))
 
             // Flatten the dictionary into structured log properties
             using (logger.BeginScope(mergedLog))
@@ -117,6 +123,53 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
             }
 
             return defaultLevel;
+        }
+
+        /// <summary>
+        /// Extracts correlation ID from the nested Properties JSON string or falls back to jobId
+        /// </summary>
+        private static string ExtractCorrelationId(Dictionary<string, object> parsedLog, string fallbackJobId)
+        {
+            // First try to get correlation ID from top-level properties
+            if (parsedLog.TryGetValue("CorrelationId", out var topLevelCorrelationId) &&
+                topLevelCorrelationId is JsonElement { ValueKind: JsonValueKind.String } topLevelElement)
+            {
+                var correlationId = topLevelElement.GetString();
+                if (!string.IsNullOrEmpty(correlationId))
+                {
+                    return correlationId;
+                }
+            }
+
+            // Try to extract from nested Properties JSON string
+            if (parsedLog.TryGetValue("Properties", out var propertiesValue) &&
+                propertiesValue is JsonElement { ValueKind: JsonValueKind.String } propertiesElement)
+            {
+                var propertiesJson = propertiesElement.GetString();
+                if (!string.IsNullOrEmpty(propertiesJson))
+                {
+                    try
+                    {
+                        var nestedProperties = JsonCodec.Decode<Dictionary<string, object>>(propertiesJson);
+                        if (nestedProperties?.TryGetValue("CorrelationId", out var nestedCorrelationId) == true &&
+                            nestedCorrelationId is JsonElement { ValueKind: JsonValueKind.String } nestedElement)
+                        {
+                            var correlationId = nestedElement.GetString();
+                            if (!string.IsNullOrEmpty(correlationId))
+                            {
+                                return correlationId;
+                            }
+                        }
+                    }
+                    catch (JsonException)
+                    {
+                        // Failed to parse nested properties, continue with fallback
+                    }
+                }
+            }
+
+            // Fallback to job ID
+            return fallbackJobId;
         }
     }
 }
