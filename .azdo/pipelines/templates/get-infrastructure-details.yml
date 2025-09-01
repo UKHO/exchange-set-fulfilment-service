@@ -20,13 +20,13 @@ steps:
       EFS_LOG_ANALYTICS_WORKSPACE_NAME=$(az monitor log-analytics workspace list --resource-group $EFS_RETAIN_RESOURCE_GROUP --query "[?starts_with(name, '$(EFS_LOG_ANALYTICS_WORKSPACE_PARTIAL_NAME)')].name" --output tsv)
 
       echo "Getting container registry name..."
-      EFS_CONTAINER_REGISTRY_NAME=$(az acr list --resource-group $EFS_RETAIN_RESOURCE_GROUP --query "[?starts_with(name, '$(EFS_CONTAINER_REGISTRY_PARTIAL_NAME)')].name" --output tsv)
+      EFS_CONTAINER_REGISTRY_NAME=$(az acr list --resource-group $EFS_RESOURCE_GROUP --query "[?starts_with(name, '$(EFS_CONTAINER_REGISTRY_PARTIAL_NAME)')].name" --output tsv)
 
       echo "Getting container apps environment name..."
       EFS_CONTAINER_APPS_ENVIRONMENT_NAME=$(az containerapp env list --resource-group $EFS_RETAIN_RESOURCE_GROUP --query "[?starts_with(name, '$(EFS_CONTAINER_APPS_ENVIRONMENT_PARTIAL_NAME)')].name" --output tsv)
 
       echo "Getting application insights name..."
-      EFS_APPLICATION_INSIGHTS_NAME=$(az monitor app-insights component show --resource-group $EFS_RETAIN_RESOURCE_GROUP --query "[?starts_with(name, '$(EFS_APPLICATION_INSIGHTS_PARTIAL_NAME)')].name" --output tsv)
+      EFS_APPLICATION_INSIGHTS_NAME=$(az monitor app-insights component show --resource-group $EFS_RESOURCE_GROUP --query "[?starts_with(name, '$(EFS_APPLICATION_INSIGHTS_PARTIAL_NAME)')].name" --output tsv)
 
       echo "Getting event hub namespace name..."
       EFS_EVENT_HUB_NAMESPACE_NAME=$(az eventhubs namespace list --resource-group $EFS_RETAIN_RESOURCE_GROUP --query "[?starts_with(name, '$(EFS_EVENT_HUB_NAMESPACE_PARTIAL_NAME)')].name" --output tsv)
