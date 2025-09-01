@@ -236,6 +236,7 @@ stages:
           DeployApim: ${{ parameters.DeployApim }}
           ContinueEvenIfResourcesAreGettingDestroyed: ${{ parameters.ContinueEvenIfResourcesAreGettingDestroyed }}
           ContainerImage: ${{ variables.Container }}
+          OrchestratorUrl: $(ORCHESTRATOR_URL)
 
   - stage: iatDeploy
     dependsOn: []
