@@ -27,6 +27,10 @@ resource "azurerm_api_management_product" "efs_product" {
   approval_required     = true
   published             = true
   subscriptions_limit   = 1
+
+  depends_on = [
+    azurerm_api_management_product_api.efs_product_api_mapping
+  ]
 }
 
 # EFS product-Group mapping
@@ -66,6 +70,7 @@ resource "azurerm_api_management_product_api" "efs_product_api_mapping" {
   api_management_name = data.azurerm_api_management.apim_instance.name
   api_name            = azurerm_api_management_api.efs_api.name
   product_id          = azurerm_api_management_product.efs_product.product_id
+
 }
 
 #Product quota and throttle policy
