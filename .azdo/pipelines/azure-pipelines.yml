@@ -159,61 +159,61 @@ stages:
   #   jobs:
   #   - template: templates/test.yml
 
-  - stage: DevDeploy
-    dependsOn: []
-   # - VulnerabilityChecks
-   # - Test
-    displayName: Dev deploy
-    jobs:
-    - template: templates/continuous-deployment.yml
-      parameters:
-        AzureDevOpsEnvironment: Ess-Dev
-        ShortName: dev
-        AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
-        DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
-        DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
-        DeployAddsMock: ${{ parameters.DeployAddsMock }}
-        IncludeAddsMock: true
-        DeployRedis: ${{ parameters.DeployRedis }}
-        WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
+  # - stage: DevDeploy
+  #   dependsOn: []
+  #  # - VulnerabilityChecks
+  #  # - Test
+  #   displayName: Dev deploy
+  #   jobs:
+  #   - template: templates/continuous-deployment.yml
+  #     parameters:
+  #       AzureDevOpsEnvironment: Ess-Dev
+  #       ShortName: dev
+  #       AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+  #       DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
+  #       DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
+  #       DeployAddsMock: ${{ parameters.DeployAddsMock }}
+  #       IncludeAddsMock: true
+  #       DeployRedis: ${{ parameters.DeployRedis }}
+  #       WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
 
-    - template: templates/continuous-deployment-apim.yml
-      parameters:
-          AzureDevOpsEnvironment: Ess-Dev
-          ShortName: dev
-          DeployApim: ${{ parameters.DeployApim }}
-          ContinueEvenIfResourcesAreGettingDestroyed: ${{ parameters.ContinueEvenIfResourcesAreGettingDestroyed }}
-          ContainerImage: ${{ variables.Container }}
+  #   - template: templates/continuous-deployment-apim.yml
+  #     parameters:
+  #         AzureDevOpsEnvironment: Ess-Dev
+  #         ShortName: dev
+  #         DeployApim: ${{ parameters.DeployApim }}
+  #         ContinueEvenIfResourcesAreGettingDestroyed: ${{ parameters.ContinueEvenIfResourcesAreGettingDestroyed }}
+  #         ContainerImage: ${{ variables.Container }}
 
-  - stage: vnextiatDeploy
-    dependsOn: []
-   # - DevDeploy
-    displayName: vNext IAT Deploy
-    #condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/dev/')))
-    jobs:
-    # - template: templates/continuous-deployment.yml
-    #   parameters:
-    #     AzureDevOpsEnvironment: Ess-vnextiat
-    #     ShortName: vnextiat
-    #     AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
-    #     DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
-    #     DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
-    #     DeployAddsMock: ${{ parameters.DeployAddsMock }}
-    #     IncludeAddsMock: false
-    #     DeployRedis: ${{ parameters.DeployRedis }}
-    #     WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
+  # - stage: vnextiatDeploy
+  #   dependsOn: []
+  #  # - DevDeploy
+  #   displayName: vNext IAT Deploy
+  #   #condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/dev/')))
+  #   jobs:
+  #   # - template: templates/continuous-deployment.yml
+  #   #   parameters:
+  #   #     AzureDevOpsEnvironment: Ess-vnextiat
+  #   #     ShortName: vnextiat
+  #   #     AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+  #   #     DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
+  #   #     DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
+  #   #     DeployAddsMock: ${{ parameters.DeployAddsMock }}
+  #   #     IncludeAddsMock: false
+  #   #     DeployRedis: ${{ parameters.DeployRedis }}
+  #   #     WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
 
-    - template: templates/continuous-deployment-apim.yml
-      parameters:
-          AzureDevOpsEnvironment: Ess-vnextiat
-          ShortName: vnextiat
-          DeployApim: ${{ parameters.DeployApim }}
-          ContinueEvenIfResourcesAreGettingDestroyed: ${{ parameters.ContinueEvenIfResourcesAreGettingDestroyed }}
-          ContainerImage: ${{ variables.Container }}
+  #   - template: templates/continuous-deployment-apim.yml
+  #     parameters:
+  #         AzureDevOpsEnvironment: Ess-vnextiat
+  #         ShortName: vnextiat
+  #         DeployApim: ${{ parameters.DeployApim }}
+  #         ContinueEvenIfResourcesAreGettingDestroyed: ${{ parameters.ContinueEvenIfResourcesAreGettingDestroyed }}
+  #         ContainerImage: ${{ variables.Container }}
 
   - stage: vnexte2eDeploy
-    dependsOn:
-    - vnextiatDeploy
+    dependsOn: []
+   # - vnextiatDeploy
     displayName: vNext E2E Deploy
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
     jobs:
