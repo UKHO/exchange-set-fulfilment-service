@@ -8,14 +8,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
     {
         public DataStandard DataStandard { get; init; }
 
-        public required ProductNameList Products { get; init; }
+        public required string Products { get; init; }
 
         public required CorrelationId CorrelationId { get; init; }
 
         public static SalesCatalogApiErrorLogView Create(Job job) => new()
         {
             DataStandard = job.DataStandard,
-            Products = job.RequestedProducts,
+            Products = job.RequestedProducts.ToString(),
             CorrelationId = job.GetCorrelationId()
         };
     }

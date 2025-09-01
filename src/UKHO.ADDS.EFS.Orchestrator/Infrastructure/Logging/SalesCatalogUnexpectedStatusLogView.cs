@@ -9,7 +9,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
     {
         public DataStandard DataStandard { get; init; }
 
-        public required ProductNameList Products { get; init; }
+        public required string Products { get; init; }
 
         public required CorrelationId CorrelationId { get; init; }
 
@@ -17,7 +17,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 
         public static SalesCatalogUnexpectedStatusLogView Create(Job job, HttpStatusCode statusCode) => new()
         {
-            DataStandard = job.DataStandard, Products = job.RequestedProducts, CorrelationId = job.GetCorrelationId(), StatusCode = statusCode
+            DataStandard = job.DataStandard, 
+            Products = job.RequestedProducts.ToString(), 
+            CorrelationId = job.GetCorrelationId(), 
+            StatusCode = statusCode
         };
     }
 }
