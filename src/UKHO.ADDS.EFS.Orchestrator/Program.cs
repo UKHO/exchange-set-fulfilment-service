@@ -33,12 +33,12 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 var oltpEndpoint = builder.Configuration[GlobalEnvironmentVariables.OtlpEndpoint]!;
 
                 builder.Services.AddHttpContextAccessor();
-
-                if (builder.Environment.IsDevelopment())
+                var environment = AddsEnvironment.GetEnvironment();
+                if (environment.IsLocal())
                 {
                     builder.Services.AddSerilog((services, lc) =>
                         ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint)
-                            .Enrich.WithProperty("Environment", builder.Environment.EnvironmentName)
+                            .Enrich.WithProperty("Environment", environment)
                             .Enrich.WithProperty("System", ServiceConfiguration.ServiceName)
                             .Enrich.WithProperty("Service", ServiceConfiguration.ServiceName)
                             .Enrich.WithProperty("NodeName", ServiceConfiguration.NodeName)
@@ -47,11 +47,11 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 else
                 {
                     var fullyQualifiedNamespace = Environment.GetEnvironmentVariable("ConnectionStrings__efs-events-namespace");
-                    var eventHubName = ServiceConfiguration.EventHubName;
+                    var eventHubName = ServiceConfiguration.EventHubName;                   
 
                     builder.Services.AddSerilog((services, lc) =>
                         ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint)
-                            .Enrich.WithProperty("Environment", builder.Environment.EnvironmentName)
+                            .Enrich.WithProperty("Environment", environment)
                             .Enrich.WithProperty("System", ServiceConfiguration.ServiceName)
                             .Enrich.WithProperty("Service", ServiceConfiguration.ServiceName)
                             .Enrich.WithProperty("NodeName", ServiceConfiguration.NodeName)
