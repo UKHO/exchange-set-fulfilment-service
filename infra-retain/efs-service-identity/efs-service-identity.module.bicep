@@ -17,4 +17,6 @@ output id string = efs_service_identity.id
 
 output clientId string = efs_service_identity.properties.clientId
 
+output principalId string = efs_service_identity.properties.principalId
+
 output name string = efs_service_identity.name
