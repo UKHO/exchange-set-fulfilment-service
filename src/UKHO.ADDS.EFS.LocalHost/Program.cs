@@ -1,10 +1,6 @@
 using System.Runtime.InteropServices;
 using Aspire.Hosting.Azure;
 using Azure.Provisioning.AppConfiguration;
-using Azure.Provisioning.AppContainers;
-using Azure.Provisioning.ApplicationInsights;
-using Azure.Provisioning.EventHubs;
-using Azure.Provisioning.OperationalInsights;
 using Azure.Provisioning.Storage;
 using CliWrap;
 using Docker.DotNet;
@@ -56,52 +52,32 @@ namespace UKHO.ADDS.EFS.LocalHost
         private static async Task BuildEfs(IDistributedApplicationBuilder builder)
         {
             // Get parameters
-            var subnetResourceId = builder.AddParameter("subnetResourceId");
-            var zoneRedundant = builder.AddParameter("zoneRedundant");
             var efsServiceIdentityName = builder.AddParameter("efsServiceIdentityName");
-            var efsServiceIdentityResourceGroup = builder.AddParameter("efsServiceIdentityResourceGroup");
+            var efsRetainResourceGroup = builder.AddParameter("efsRetainResourceGroup");
+            var efsContainerAppsEnvironmentName = builder.AddParameter("efsContainerAppsEnvironmentName");
+            var efsContainerRegistryName = builder.AddParameter("efsContainerRegistryName");
+            var efsApplicationInsightsName = builder.AddParameter("efsApplicationInsightsName");
+            var efsEventHubNamespaceName = builder.AddParameter("efsEventHubNamespaceName");
             var addsEnvironment = builder.AddParameter("addsEnvironment");
 
             // Existing user managed identity
-            var efsServiceIdentity = builder.AddAzureUserAssignedIdentity(ServiceConfiguration.EfsServiceIdentity)
-                .PublishAsExisting(efsServiceIdentityName, efsServiceIdentityResourceGroup);
+            var efsServiceIdentity = builder.AddAzureUserAssignedIdentity(ServiceConfiguration.EfsServiceIdentity).PublishAsExisting(efsServiceIdentityName, efsRetainResourceGroup);
 
-            // Log analytics workspace
-            IResourceBuilder<AzureLogAnalyticsWorkspaceResource>? laws = null;
+            // App insights
+            var appInsights = builder.ExecutionContext.IsPublishMode
+                ? builder.AddAzureApplicationInsights(ServiceConfiguration.AppInsightsName).PublishAsExisting(efsApplicationInsightsName, efsRetainResourceGroup)
+                : null;
 
-            if (builder.ExecutionContext.IsPublishMode)
-            {
-                laws = builder.AddAzureLogAnalyticsWorkspace(ServiceConfiguration.LogAnalyticsWorkspaceName);
-                laws.ConfigureInfrastructure(config =>
-                {
-                    var operationalInsightsWorkspace = config.GetProvisionableResources().OfType<OperationalInsightsWorkspace>().Single();
-                    operationalInsightsWorkspace.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
-                });
-            }
+            // Event hubs
+            var eventHubs = builder.ExecutionContext.IsPublishMode
+                ? builder.AddAzureEventHubs(ServiceConfiguration.EventHubNamespaceName).PublishAsExisting(efsEventHubNamespaceName, efsRetainResourceGroup)
+                : null;
+
+            // Container registry
+            var acr = builder.AddAzureContainerRegistry(ServiceConfiguration.ContainerRegistryName).PublishAsExisting(efsContainerRegistryName, efsRetainResourceGroup);
 
             // Container apps environment
-            var acaEnv = builder.AddAzureContainerAppEnvironment(ServiceConfiguration.AcaEnvironmentName)
-                .WithParameter("subnetResourceId", subnetResourceId)
-                .WithParameter("zoneRedundant", zoneRedundant);
-
-            if (builder.ExecutionContext.IsPublishMode)
-            {
-                acaEnv.WithAzureLogAnalyticsWorkspace(laws!);
-            }
-
-            acaEnv.ConfigureInfrastructure(config =>
-            {
-                var containerEnvironment = config.GetProvisionableResources().OfType<ContainerAppManagedEnvironment>().Single();
-                containerEnvironment.VnetConfiguration = new ContainerAppVnetConfiguration
-                {
-                    InfrastructureSubnetId = subnetResourceId.AsProvisioningParameter(config),
-                    IsInternal = false
-                };
-                containerEnvironment.IsZoneRedundant = zoneRedundant.AsProvisioningParameter(config);
-                // This doesn't seem to work at the moment so I've updated the bicep tags directly.
-                containerEnvironment.Tags.Add("aspire-resource-name", ServiceConfiguration.AcaEnvironmentName);
-                containerEnvironment.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
-            });
+            var acaEnv = builder.AddAzureContainerAppEnvironment(ServiceConfiguration.AcaEnvironmentName).PublishAsExisting(efsContainerAppsEnvironmentName, efsRetainResourceGroup);
 
             // Storage configuration
             var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e => { e.WithDataVolume(); });
@@ -115,29 +91,6 @@ namespace UKHO.ADDS.EFS.LocalHost
             var storageQueue = storage.AddQueues(StorageConfiguration.QueuesName);
             var storageTable = storage.AddTables(StorageConfiguration.TablesName);
             var storageBlob = storage.AddBlobs(StorageConfiguration.BlobsName);
-
-            IResourceBuilder<AzureApplicationInsightsResource>? appInsights = null;
-            IResourceBuilder<AzureEventHubsResource>? eventHubs = null;
-
-            if (builder.ExecutionContext.IsPublishMode)
-            {
-                appInsights = builder.AddAzureApplicationInsights(ServiceConfiguration.AppInsightsName)
-                    .WithLogAnalyticsWorkspace(laws!);
-                appInsights.ConfigureInfrastructure(config =>
-                {
-                    var appInsightsResource = config.GetProvisionableResources().OfType<ApplicationInsightsComponent>().Single();
-                    appInsightsResource.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
-                });
-
-                eventHubs = builder.AddAzureEventHubs(ServiceConfiguration.EventHubNamespaceName).RunAsEmulator();
-                eventHubs.ConfigureInfrastructure(config =>
-                {
-                    var eventHubNamespace = config.GetProvisionableResources().OfType<EventHubsNamespace>().Single();
-                    eventHubNamespace.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
-                    eventHubNamespace.DisableLocalAuth = false;
-                });
-                eventHubs.AddHub(ServiceConfiguration.EventHubName);
-            }
 
             // Redis cache
             var redisCache = builder.AddRedis(ProcessNames.RedisCache)
