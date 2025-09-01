@@ -74,6 +74,7 @@ module efs_appconfig 'efs-appconfig/efs-appconfig.module.bicep' = {
   scope: app_rg
   params: {
     location: location
+    principalId: efs_service_identity.outputs.principalId
   }
 }
 
