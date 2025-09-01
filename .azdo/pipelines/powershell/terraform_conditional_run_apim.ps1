@@ -30,7 +30,7 @@ terraform validate
 if ( !$? ) { echo "Something went wrong during terraform validation" ; throw "Error" }
 
 Write-output "Execute Terraform plan..."
-terraform plan -out "$backendConfigKey" | tee terraform_output.txt
+terraform plan -destroy -out "$backendConfigKey" | tee terraform_output.txt
 if ( !$? ) { echo "Something went wrong during terraform plan" ; throw "Error" }
 
 $totalDestroyLines=(Get-Content -Path terraform_output.txt | Select-String -Pattern "destroy" -CaseSensitive |  where {$_ -ne ""}).length
@@ -47,5 +47,5 @@ if($totalDestroyLines -ge 2)
 }
 
 Write-output "Executing terraform apply..."
-terraform apply "$backendConfigKey"
+#terraform apply "$backendConfigKey"
 if ( !$? ) { echo "Something went wrong during terraform apply" ; throw "Error" }
