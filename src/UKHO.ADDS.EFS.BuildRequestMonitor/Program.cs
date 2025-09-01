@@ -4,7 +4,7 @@ using UKHO.ADDS.Aspire.Configuration;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Builders;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Monitors;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Services;
-using UKHO.ADDS.EFS.Domain.Services.Configuration.Namespaces;
+using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 
 namespace UKHO.ADDS.EFS.BuildRequestMonitor
 {

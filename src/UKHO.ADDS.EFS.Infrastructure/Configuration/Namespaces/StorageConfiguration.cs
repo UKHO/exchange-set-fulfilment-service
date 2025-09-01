@@ -1,4 +1,4 @@
-﻿namespace UKHO.ADDS.EFS.Domain.Services.Configuration.Namespaces
+﻿namespace UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces
 {
     public static class StorageConfiguration
     {

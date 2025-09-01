@@ -1,5 +1,5 @@
 ﻿using Azure.Data.Tables;
-using UKHO.ADDS.EFS.Infrastructure.Tables;
+using UKHO.ADDS.EFS.Domain.Services.Storage;
 using UKHO.ADDS.Infrastructure.Results;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 

@@ -1,6 +1,6 @@
 ﻿using UKHO.ADDS.Infrastructure.Results;
 
-namespace UKHO.ADDS.EFS.Infrastructure.Tables
+namespace UKHO.ADDS.EFS.Domain.Services.Storage
 {
     public interface IRepository<TEntity> where TEntity : class
     {

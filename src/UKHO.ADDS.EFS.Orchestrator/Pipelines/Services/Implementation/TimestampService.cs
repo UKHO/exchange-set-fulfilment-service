@@ -1,5 +1,5 @@
 ﻿using UKHO.ADDS.EFS.Domain.Jobs;
-using UKHO.ADDS.EFS.Infrastructure.Tables;
+using UKHO.ADDS.EFS.Domain.Services.Storage;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Services.Implementation
 {

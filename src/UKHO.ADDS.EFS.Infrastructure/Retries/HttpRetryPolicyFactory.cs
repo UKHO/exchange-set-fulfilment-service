@@ -1,8 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Polly;
-using UKHO.ADDS.EFS.Domain.Services.Configuration.Orchestrator;
-using UKHO.ADDS.EFS.Domain.Services.Infrastructure.Retries;
+using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
 using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Infrastructure.Retries

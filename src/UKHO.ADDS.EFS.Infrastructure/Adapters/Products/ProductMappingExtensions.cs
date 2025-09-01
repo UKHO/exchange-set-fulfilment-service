@@ -2,7 +2,7 @@
 using UKHO.ADDS.Clients.Kiota.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Domain.Products;
 
-namespace UKHO.ADDS.EFS.Domain.Adapters.Products
+namespace UKHO.ADDS.EFS.Infrastructure.Adapters.Products
 {
     /// <summary>
     ///     Adapter extensions to convert Sales Catalogue client models to domain models.

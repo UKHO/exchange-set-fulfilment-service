@@ -1,6 +1,6 @@
 ﻿using Azure.Storage.Blobs;
 using UKHO.ADDS.EFS.Domain.Builds.S57;
-using UKHO.ADDS.EFS.Domain.Services.Configuration.Namespaces;
+using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.Implementation;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S57

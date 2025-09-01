@@ -14,7 +14,7 @@ using Projects;
 using Serilog;
 using UKHO.ADDS.Aspire.Configuration.Hosting;
 using UKHO.ADDS.EFS.Domain.Products;
-using UKHO.ADDS.EFS.Domain.Services.Configuration.Namespaces;
+using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 using UKHO.ADDS.EFS.LocalHost.Extensions;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
