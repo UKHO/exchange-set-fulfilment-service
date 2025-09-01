@@ -18,7 +18,7 @@ internal class S100UpdateSinceValidator : AbstractValidator<S100UpdatesSinceRequ
         // Uplifted validation for SinceDateTime property
         RuleFor(request => request.SinceDateTime)
             .NotEqual(default(DateTime))
-            .WithMessage("sinceDateTime cannot be empty.AAA")
+            .WithMessage("sinceDateTime cannot be empty.")
             .Must(IsValidFormat)
             .WithMessage("sinceDateTime must be in the format yyyy-MM-ddTHH:mm:ss.fffffffZ.")
             .Must(date => IsFutureDate(date))
