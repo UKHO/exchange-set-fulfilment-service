@@ -17,3 +17,5 @@ variables:
   value: efs-events-namespace
 - name: EFS_APP_CONFIGURATION_PARTIAL_NAME
   value: efsappconfig
+- name: EFS_STORAGE_ACCOUNT_PARTIAL_NAME
+  value: efsstorage
