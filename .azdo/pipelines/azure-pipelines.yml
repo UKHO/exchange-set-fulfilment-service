@@ -229,6 +229,14 @@ stages:
         DeployRedis: ${{ parameters.DeployRedis }}
         WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
 
+    - template: templates/continuous-deployment-apim.yml
+      parameters:
+          AzureDevOpsEnvironment: Ess-vnexte2e
+          ShortName: vnexte2e
+          DeployApim: ${{ parameters.DeployApim }}
+          ContinueEvenIfResourcesAreGettingDestroyed: ${{ parameters.ContinueEvenIfResourcesAreGettingDestroyed }}
+          ContainerImage: ${{ variables.Container }}
+
   - stage: iatDeploy
     dependsOn: []
    # - DevDeploy
