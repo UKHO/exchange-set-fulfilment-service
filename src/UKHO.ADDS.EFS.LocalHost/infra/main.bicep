@@ -46,7 +46,7 @@ resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
 
 module efs_app_insights 'efs-app-insights/efs-app-insights.module.bicep' = {
   name: 'efs-app-insights'
-  scope: resourceGroup(efsRetainResourceGroup)
+  scope: rg
   params: {
     efsApplicationInsightsName: efsApplicationInsightsName
     location: location
@@ -70,7 +70,7 @@ module efs_cae 'efs-cae/efs-cae.module.bicep' = {
 }
 module efs_cae_acr 'efs-cae-acr/efs-cae-acr.module.bicep' = {
   name: 'efs-cae-acr'
-  scope: resourceGroup(efsRetainResourceGroup)
+  scope: rg
   params: {
     efsContainerRegistryName: efsContainerRegistryName
     location: location
