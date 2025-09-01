@@ -34,9 +34,7 @@ jobs:
             azd config set auth.useAzCliAuth "true"
           displayName: Install azd
 
-        - template: get-retained-resource-details.yml
-
-        - template: get-retained-infrastructure-details.yml
+        - template: get-infrastructure-details.yml
           parameters:
             AzureSubscription: ${{ variables.AzureSubscription }}
 
