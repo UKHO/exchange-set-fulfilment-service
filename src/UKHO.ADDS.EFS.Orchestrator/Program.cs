@@ -57,7 +57,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                             .Enrich.WithProperty("NodeName", ServiceConfiguration.NodeName)
                             .WriteTo.EventHub(options =>
                             {
-                                options.Environment = builder.Environment.EnvironmentName;
+                                options.Environment = environment.ToString();
                                 options.System = ServiceConfiguration.ServiceName;
                                 options.Service = ServiceConfiguration.ServiceName;
                                 options.NodeName = ServiceConfiguration.NodeName;
