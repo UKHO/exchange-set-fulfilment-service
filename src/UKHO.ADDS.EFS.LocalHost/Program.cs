@@ -49,6 +49,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             var efsApplicationInsightsName = builder.AddParameter("efsApplicationInsightsName");
             var efsEventHubNamespaceName = builder.AddParameter("efsEventHubNamespaceName");
             var efsAppConfigurationName = builder.AddParameter("efsAppConfigurationName");
+            var efsStorageAccountName = builder.AddParameter("efsStorageAccountName");
             var addsEnvironment = builder.AddParameter("addsEnvironment");
 
             // Existing user managed identity
@@ -71,14 +72,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             var acaEnv = builder.AddAzureContainerAppEnvironment(ServiceConfiguration.AcaEnvironmentName).PublishAsExisting(efsContainerAppsEnvironmentName, efsRetainResourceGroup);
 
             // Storage configuration
-            var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e => { e.WithDataVolume(); });
-            storage.ConfigureInfrastructure(config =>
-            {
-                var storageAccount = config.GetProvisionableResources().OfType<StorageAccount>().Single();
-                storageAccount.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
-                storageAccount.AllowSharedKeyAccess = true;
-            });
-
+            var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e => { e.WithDataVolume(); }).PublishAsExisting(efsStorageAccountName, null);
             var storageQueue = storage.AddQueues(StorageConfiguration.QueuesName);
             var storageTable = storage.AddTables(StorageConfiguration.TablesName);
             var storageBlob = storage.AddBlobs(StorageConfiguration.BlobsName);
