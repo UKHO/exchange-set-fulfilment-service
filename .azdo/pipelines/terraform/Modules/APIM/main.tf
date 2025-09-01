@@ -28,9 +28,6 @@ resource "azurerm_api_management_product" "efs_product" {
   published             = true
   subscriptions_limit   = 1
 
-  depends_on = [
-    azurerm_api_management_product_api.efs_product_api_mapping
-  ]
 }
 
 # EFS product-Group mapping

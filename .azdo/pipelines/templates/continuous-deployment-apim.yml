@@ -56,5 +56,5 @@ jobs:
             ARM_SUBSCRIPTION_ID: $(TERRAFORM-SUBSCRIPTION-ID)
             TF_VAR_apim_rg: $(APIM_RESOURCE_GROUP_NAME)
             TF_VAR_apim_name: $(APIM_SERVICE_NAME)
-            TF_VAR_apim_api_backend_url: $(SERVICE_DNS_URL)
+            TF_VAR_apim_api_backend_url: $(EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN)
 
