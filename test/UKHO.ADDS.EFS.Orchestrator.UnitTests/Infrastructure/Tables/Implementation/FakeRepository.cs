@@ -1,5 +1,5 @@
 ﻿using System.Collections.Concurrent;
-using UKHO.ADDS.EFS.Domain.Services.Infrastructure.Tables;
+using UKHO.ADDS.EFS.Infrastructure.Tables;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
 using UKHO.ADDS.Infrastructure.Results;
 

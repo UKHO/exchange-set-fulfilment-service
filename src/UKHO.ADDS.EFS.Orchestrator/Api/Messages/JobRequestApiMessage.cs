@@ -9,7 +9,7 @@ namespace UKHO.ADDS.EFS.Domain.Messages
     {
         public DataStandard DataStandard { get; set; }
 
-        public required string[] Products { get; set; } = [];
+        public required string[] Products { get; set; }
 
         public required string Filter { get; set; }
     }

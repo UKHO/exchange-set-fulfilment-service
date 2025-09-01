@@ -10,4 +10,8 @@
     <ProjectReference Include="..\UKHO.ADDS.EFS.Domain\UKHO.ADDS.EFS.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="UKHO.ADDS.EFS.Domain.Services.UnitTests"/>
+  </ItemGroup>
+
 </Project>

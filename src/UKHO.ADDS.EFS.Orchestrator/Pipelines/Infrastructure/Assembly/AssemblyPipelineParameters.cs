@@ -54,7 +54,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
 
             try
             {
-                foreach (var product in messageProducts.Where(s => !string.IsNullOrEmpty(s))) // TODO Figure out why scalar adds an empty string sometimes
+                foreach (var product in messageProducts.Where(s => !string.IsNullOrEmpty(s))) // Scalar UI adds an empty product name by default as a placeholder/example
                 {
                     list.Add(ProductName.From(product));
                 }

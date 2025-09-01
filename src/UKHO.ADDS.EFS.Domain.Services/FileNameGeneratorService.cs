@@ -2,26 +2,19 @@
 using HandlebarsDotNet;
 using UKHO.ADDS.EFS.Domain.Jobs;
 
-namespace UKHO.ADDS.EFS.Domain.Services.Factories
+namespace UKHO.ADDS.EFS.Domain.Services
 {
-    public class FileNameGenerator
+    internal class FileNameGeneratorService : IFileNameGeneratorService
     {
-        private readonly string _template;
-
         public const string JobId = "jobid";
         public const string Date = "date";
 
-        public FileNameGenerator(string template)
-        {
-            _template = template;
-        }
-
-        public string GenerateFileName(JobId jobId, DateTime? date = null)
+        public string GenerateFileName(string template, JobId jobId, DateTime? date = null)
         {
             // Template uses [] rather than {{ }} to avoid being swapped out by the configuration service
-            var templateString = _template.Replace("[", "{{").Replace("]", "}}");
+            var templateString = template.Replace("[", "{{").Replace("]", "}}");
 
-            var template = Handlebars.Compile(templateString);
+            var compiledTemplate = Handlebars.Compile(templateString);
 
             var model = new ExpandoObject();
             model.TryAdd(JobId, jobId);
@@ -30,7 +23,7 @@ namespace UKHO.ADDS.EFS.Domain.Services.Factories
 
             model.TryAdd(Date, date.Value.ToString("yyyyMMdd"));
 
-            return template(model);
+            return compiledTemplate(model);
         }
     }
 }

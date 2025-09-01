@@ -1,6 +1,6 @@
 ﻿using System.Text;
 using Azure.Storage.Blobs;
-using UKHO.ADDS.EFS.Domain.Services.Infrastructure.Tables;
+using UKHO.ADDS.EFS.Infrastructure.Tables;
 using UKHO.ADDS.Infrastructure.Results;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 

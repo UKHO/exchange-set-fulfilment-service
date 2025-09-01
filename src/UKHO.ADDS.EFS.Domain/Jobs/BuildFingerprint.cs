@@ -1,6 +1,4 @@
-﻿using UKHO.ADDS.EFS.Domain.Jobs;
-
-namespace UKHO.ADDS.EFS.Orchestrator.Jobs
+﻿namespace UKHO.ADDS.EFS.Domain.Jobs
 {
     public class BuildFingerprint
     {

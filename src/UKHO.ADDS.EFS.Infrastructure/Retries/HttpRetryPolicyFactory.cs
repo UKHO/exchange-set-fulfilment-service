@@ -2,9 +2,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Polly;
 using UKHO.ADDS.EFS.Domain.Services.Configuration.Orchestrator;
+using UKHO.ADDS.EFS.Domain.Services.Infrastructure.Retries;
 using UKHO.ADDS.Infrastructure.Results;
 
-namespace UKHO.ADDS.EFS.Domain.Services.Infrastructure.Retries
+namespace UKHO.ADDS.EFS.Infrastructure.Retries
 {
     /// <summary>
     /// Provides Polly retry policies for HttpClient and custom result types to handle transient errors.
