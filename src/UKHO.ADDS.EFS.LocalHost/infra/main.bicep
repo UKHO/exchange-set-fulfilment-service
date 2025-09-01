@@ -32,6 +32,7 @@ param efsEventHubNamespaceName string
 })
 param efsRetainResourceGroup string
 param efsServiceIdentityName string
+param efsStorageAccountName string
 
 var tags = {
   'azd-env-name': environmentName
@@ -83,15 +84,6 @@ module efs_events_namespace 'efs-events-namespace/efs-events-namespace.module.bi
     location: location
   }
 }
-module efs_orchestrator_roles_efs_storage 'efs-orchestrator-roles-efs-storage/efs-orchestrator-roles-efs-storage.module.bicep' = {
-  name: 'efs-orchestrator-roles-efs-storage'
-  scope: rg
-  params: {
-    efs_storage_outputs_name: efs_storage.outputs.name
-    location: location
-    principalId: efs_service_identity.outputs.principalId
-  }
-}
 module efs_service_identity 'efs-service-identity/efs-service-identity.module.bicep' = {
   name: 'efs-service-identity'
   scope: resourceGroup(efsRetainResourceGroup)
@@ -104,6 +96,7 @@ module efs_storage 'efs-storage/efs-storage.module.bicep' = {
   name: 'efs-storage'
   scope: rg
   params: {
+    efsStorageAccountName: efsStorageAccountName
     location: location
   }
 }
