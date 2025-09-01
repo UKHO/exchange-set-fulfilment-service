@@ -48,6 +48,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             var efsContainerRegistryName = builder.AddParameter("efsContainerRegistryName");
             var efsApplicationInsightsName = builder.AddParameter("efsApplicationInsightsName");
             var efsEventHubNamespaceName = builder.AddParameter("efsEventHubNamespaceName");
+            var efsAppConfigurationName = builder.AddParameter("efsAppConfigurationName");
             var addsEnvironment = builder.AddParameter("addsEnvironment");
 
             // Existing user managed identity
@@ -153,12 +154,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             }
             else
             {
-                var appConfig = builder.AddConfiguration(ProcessNames.ConfigurationService, addsEnvironment, [orchestratorService]);
-                appConfig.ConfigureInfrastructure(config =>
-                {
-                    var appConfigResource = config.GetProvisionableResources().OfType<AppConfigurationStore>().Single();
-                    appConfigResource.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
-                });
+                var appConfig = builder.AddConfiguration(ProcessNames.ConfigurationService, addsEnvironment, [orchestratorService], true, efsAppConfigurationName);
             }
 
             if (builder.ExecutionContext.IsRunMode)

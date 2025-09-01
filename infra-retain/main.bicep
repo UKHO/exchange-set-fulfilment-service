@@ -6,6 +6,11 @@ targetScope = 'subscription'
 param resourceGroupName string
 
 @minLength(1)
+@maxLength(64)
+@description('Name of the resource group for applications.')
+param appResourceGroupName string
+
+@minLength(1)
 @description('The partial name (from the start) of the service identity resource.')
 param efsServiceIdentityPartialName string
 
@@ -33,6 +38,11 @@ resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
   location: location
 }
 
+resource app_rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
+  name: appResourceGroupName
+  location: location
+}
+
 module efs_service_identity 'efs-service-identity/efs-service-identity.module.bicep' = {
   name: 'efs-service-identity'
   scope: rg
@@ -55,6 +65,14 @@ module efs_app_insights 'efs-app-insights/efs-app-insights.module.bicep' = {
   scope: rg
   params: {
     efs_law_outputs_loganalyticsworkspaceid: efs_law.outputs.logAnalyticsWorkspaceId
+    location: location
+  }
+}
+
+module efs_appconfig 'efs-appconfig/efs-appconfig.module.bicep' = {
+  name: 'efs-appconfig'
+  scope: app_rg
+  params: {
     location: location
   }
 }
