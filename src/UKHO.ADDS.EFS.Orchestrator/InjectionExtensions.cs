@@ -126,31 +126,11 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 return factory.CreateClient(fssEndpoint.Uri!.ToString(), tokenProvider);
             });
 
-            // Register token provider for SalesCatalogueService health check
-            builder.Services.AddSingleton<IAuthenticationTokenProvider>(sp =>
-            {
-                var registry = sp.GetRequiredService<IExternalServiceRegistry>();
-                var scsEndpoint = registry.GetServiceEndpoint(ProcessNames.SalesCatalogueService);
-
-                if (addsEnvironment.IsLocal() || addsEnvironment.IsDev())
-                {
-                    return new AnonymousAuthenticationTokenProvider();
-                }
-                else
-                {
-                    return new TokenCredentialAuthenticationTokenProvider(new ManagedIdentityCredential(), [scsEndpoint.GetDefaultScope()]);
-                }
-            });
-
             builder.Services.AddSingleton<IOrchestratorSalesCatalogueClient, OrchestratorSalesCatalogueClient>();
             builder.Services.AddSingleton<IOrchestratorFileShareClient, OrchestratorFileShareClient>();
 
             // Register health checks
             builder.Services.AddHealthChecks()
-                //.AddCheck<SalesCatalogueHealthCheck>(
-                //    "sales-catalogue-service",
-                //    HealthStatus.Unhealthy,
-                //    tags: new[] { "live", "external-dependency" })
                 .AddCheck<FileShareServiceHealthCheck>(
                     "file-share-service",
                     HealthStatus.Unhealthy,
