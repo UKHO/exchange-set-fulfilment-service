@@ -154,7 +154,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             }
             else
             {
-                var appConfig = builder.AddConfiguration(ProcessNames.ConfigurationService, addsEnvironment, [orchestratorService], true, efsAppConfigurationName);
+                var appConfig = builder.AddConfiguration(ProcessNames.ConfigurationService, addsEnvironment, [orchestratorService]).PublishAsExisting(efsAppConfigurationName, null);
             }
 
             if (builder.ExecutionContext.IsRunMode)

@@ -20,6 +20,7 @@ param addsEnvironment string
 })
 @secure()
 param efs_redis_password string
+param efsAppConfigurationName string
 param efsApplicationInsightsName string
 param efsContainerAppsEnvironmentName string
 param efsContainerRegistryName string
@@ -54,6 +55,7 @@ module efs_appconfig 'efs-appconfig/efs-appconfig.module.bicep' = {
   name: 'efs-appconfig'
   scope: rg
   params: {
+    efsAppConfigurationName: efsAppConfigurationName
     location: location
   }
 }

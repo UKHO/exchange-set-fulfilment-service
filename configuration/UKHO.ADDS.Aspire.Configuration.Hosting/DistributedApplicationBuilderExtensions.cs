@@ -5,11 +5,9 @@ namespace UKHO.ADDS.Aspire.Configuration.Hosting
 {
     public static class DistributedApplicationBuilderExtensions
     {
-        public static IResourceBuilder<AzureAppConfigurationResource> AddConfiguration(this IDistributedApplicationBuilder builder, string configurationName, IResourceBuilder<ParameterResource> addsEnvironment, IEnumerable<IResourceBuilder<ProjectResource>> configurationAwareProjects, bool publishAsExisting = false, IResourceBuilder<ParameterResource>? existingName = null, IResourceBuilder<ParameterResource>? exisitingResourceGroup = null)
+        public static IResourceBuilder<AzureAppConfigurationResource> AddConfiguration(this IDistributedApplicationBuilder builder, string configurationName, IResourceBuilder<ParameterResource> addsEnvironment, IEnumerable<IResourceBuilder<ProjectResource>> configurationAwareProjects)
         {
-            var appConfig = publishAsExisting
-                ? builder.AddAzureAppConfiguration(configurationName)
-                : builder.AddAzureAppConfiguration(configurationName).PublishAsExisting(existingName!, exisitingResourceGroup);
+            var appConfig = builder.AddAzureAppConfiguration(configurationName);
 
             foreach (var project in configurationAwareProjects)
             {
