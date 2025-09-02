@@ -1,0 +1,21 @@
+variables:
+- name: EFS_RETAIN_RESOURCE_GROUP
+  value: efs-$(AZURE_ENV_NAME)-retain-rg
+- name: EFS_RESOURCE_GROUP
+  value: efs-$(AZURE_ENV_NAME)-rg
+- name: EFS_SERVICE_IDENTITY_PARTIAL_NAME
+  value: efs_service_identity
+- name: EFS_LOG_ANALYTICS_WORKSPACE_PARTIAL_NAME
+  value: efslaw
+- name: EFS_CONTAINER_REGISTRY_PARTIAL_NAME
+  value: efscaeacr
+- name: EFS_CONTAINER_APPS_ENVIRONMENT_PARTIAL_NAME
+  value: efscae
+- name: EFS_APPLICATION_INSIGHTS_PARTIAL_NAME
+  value: efs_app_insights
+- name: EFS_EVENT_HUB_NAMESPACE_PARTIAL_NAME
+  value: efs-events-namespace
+- name: EFS_APP_CONFIGURATION_PARTIAL_NAME
+  value: efsappconfig
+- name: EFS_STORAGE_ACCOUNT_PARTIAL_NAME
+  value: efsstorage
