@@ -39,6 +39,7 @@ When initiating high-level planning for unit tests across the repository, includ
   - HTTP clients/integrations: use HttpMessageHandler test doubles; no live network; verify serialization and error handling.
 - Output of this section
   - Table mapping each source class -> test class (existing/missing), with actions to create where missing.
+  - Do not assume existing test classes are complete. Include all existing test classes in the mapping and mark Action = Audit or Fix as needed with identified gaps.
   - Add corresponding Work Items in section 9 for each missing test class and/or project.
 
 Inputs you will receive (assume or ask to gather as needed)
@@ -64,7 +65,7 @@ Create a markdown plan named plan-tests-[scope]_v[version].md under docs/plans/t
 - List exclusions (if any).
 
 3) Baseline / Delta / Carry-over (Actions)
-- Baseline: List existing test classes and gaps.
+- Baseline: List existing test classes and gaps. Do not assume existing tests are complete; include them with explicit coverage gaps and required actions.
 - Delta: List new test classes/files to add.
 - Carry-over: List pending items from prior plans.
 
@@ -133,6 +134,7 @@ Authoring Guidance (for the generator)
 - Keep sections short and actionable
 - Use code snippets only when necessary to remove ambiguity
 - If information is missing, propose assumptions explicitly and proceed
+- Existing test classes may be partial/incomplete; always include them in the plan and mark required actions (Audit/Fix) with identified gaps.
 
 Template (STRICT) — Test Planning and Class Mapping
 
@@ -154,6 +156,7 @@ Related Plans: [links]
 Notes:
 - Enforce 1:1 mapping. Do not combine multiple production classes in one test class.
 - Mirror folder/namespace structure beyond project root.
+- If a test class exists, include it in the table; do not assume it is complete. Use Action = Audit for review or Fix when incomplete.
 
 1) Plan Metadata (Fill-in)
 - Title, Version, Date, Authors, Based on, Related Plans
