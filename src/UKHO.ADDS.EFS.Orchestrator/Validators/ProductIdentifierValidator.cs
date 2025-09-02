@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+
 namespace UKHO.ADDS.EFS.Orchestrator.Validators;
 
 /// <summary>
@@ -5,13 +7,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Validators;
 /// </summary>
 internal static class ProductIdentifierValidator
 {
-    public const string ValidationMessage = "productIdentifier cannot be null, empty, or contain whitespace.";
+    public const string ValidationMessage = "productIdentifier smust be exactly 4 characters: start with 'S' or 's' followed by three digits, with no spaces or extra characters.";
+
+    private static readonly Regex _productIdentifierRegex = new("^[Ss]\\d{3}$", RegexOptions.Compiled);
 
     public static bool IsValid(string? productIdentifier)
     {
-        // Return false if empty,or contains any whitespace
-        if (string.IsNullOrWhiteSpace(productIdentifier) || (productIdentifier?.Any(char.IsWhiteSpace) ?? false))
-            return false;
-        return true;
+        if (productIdentifier == null) return true;
+        return _productIdentifierRegex.IsMatch(productIdentifier);
     }
 }
