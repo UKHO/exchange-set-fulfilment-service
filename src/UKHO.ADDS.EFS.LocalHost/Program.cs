@@ -9,8 +9,10 @@ using Microsoft.Extensions.Configuration;
 using Projects;
 using Serilog;
 using UKHO.ADDS.Aspire.Configuration.Hosting;
-using UKHO.ADDS.EFS.Domain.Services.Configuration.Namespaces;
+using UKHO.ADDS.EFS.Domain.Products;
+using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 using UKHO.ADDS.EFS.LocalHost.Extensions;
+using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.LocalHost
 {
@@ -21,6 +23,14 @@ namespace UKHO.ADDS.EFS.LocalHost
     {
         private static async Task<int> Main(string[] args)
         {
+            var pnl = new ProductNameList
+            {
+                ProductName.From("101prod1"), ProductName.From("101prod2"), ProductName.From("101prod3")
+            };
+
+            var json = JsonCodec.Encode(pnl);
+            var decoded = JsonCodec.Decode<ProductNameList>(json);
+
             Log.Logger = new LoggerConfiguration()
                 .WriteTo.Console()
                 .CreateLogger();
