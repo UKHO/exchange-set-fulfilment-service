@@ -3,3 +3,5 @@ variables:
 - group: ESS-Deployment-Variables-IAT
 - name: AzureSubscription
   value: Exchange-Set-Service-IAT-A.011.08
+- name: ApimAzureSubscription
+  value: UKHO-APIM-SOLAS-NonLive
