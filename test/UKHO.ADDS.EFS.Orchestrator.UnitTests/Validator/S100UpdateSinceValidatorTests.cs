@@ -9,7 +9,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
     {
         private S100UpdateSinceValidator _s100UpdateSinceValidator;
         private const string VALID_CALLBACK_URI = "https://valid.com/callback";
-        private const string VALID_PRODUCT_IDENTIFIER = "ValidProduct";
+        private const string VALID_PRODUCT_IDENTIFIER = "s101";
 
         [SetUp]
         public void SetUp()
@@ -131,7 +131,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
         [TestCase("s456")]
         [TestCase("S000")]
         [TestCase("s999")]
-        public void WhenProductIdentifierIsValidFormat_ThenValidationSucceeds(string productIdentifier)
+        [TestCase(null)]
+        public void WhenProductIdentifierIsValidFormat_ThenValidationSucceeds(string? productIdentifier)
         {
             var request = CreateRequest(VALID_CALLBACK_URI, DateTime.UtcNow.AddDays(-1), productIdentifier);
             var result = _s100UpdateSinceValidator.Validate(request);
@@ -146,8 +147,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
         [TestCase("s12")]
         [TestCase("1234")]
         [TestCase("s1a3")]
-        [TestCase(null)]
-        public void WhenProductIdentifierIsInvalidFormat_ThenValidationFails(string? productIdentifier)
+        public void WhenProductIdentifierIsInvalidFormat_ThenValidationFails(string productIdentifier)
         {
             var request = CreateRequest(VALID_CALLBACK_URI, DateTime.UtcNow.AddDays(-1), productIdentifier);
             var result = _s100UpdateSinceValidator.Validate(request);
