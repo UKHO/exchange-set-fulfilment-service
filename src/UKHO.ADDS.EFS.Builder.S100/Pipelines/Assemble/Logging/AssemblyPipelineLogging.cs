@@ -17,6 +17,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
         private const int DownloadFilesNodeFssDownloadFailedId = BaseEventId + 5;
         private const int DownloadFilesNodeNoFilesToProcessErrorId = BaseEventId + 6;
         private const int ProductSearchNodeDataLogId = BaseEventId + 7;
+        private const int ProductSearchNodeFileShareSearchId = BaseEventId + 8;
 
         // The assembly pipeline failed
         public static readonly EventId AssemblyPipelineFailed = new(AssemblyPipelineFailedId, nameof(AssemblyPipelineFailed));
@@ -41,6 +42,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
 
         [LoggerMessage(ProductSearchNodeDataLogId, LogLevel.Information, "ProductSearchNode data: {@productSearchLog}", EventName = nameof(ProductSearchNodeDataLog))]
         public static partial void LogProductSearchNodeData(this ILogger logger, ProductSearchLogView productSearchLog);
+
+        //The Product Search node File Share search with filter
+        public static readonly EventId ProductSearchNodeFileShareSearch = new(ProductSearchNodeFileShareSearchId, nameof(ProductSearchNodeFileShareSearch));
+
+        [LoggerMessage(ProductSearchNodeFileShareSearchId, LogLevel.Information, "ProductSearchNode FileShare SearchAsync called with filter: {filter}, limit: {limit}, start: {start}, correlationId: {correlationId}", EventName = nameof(ProductSearchNodeFileShareSearch))]
+        public static partial void LogProductSearchNodeFileShareSearch(this ILogger logger, string filter, int limit, int start, string correlationId);
 
         //The Download Files Node failed
         public static readonly EventId DownloadFilesNodeFailed = new(DownloadFilesNodeFailedId, nameof(DownloadFilesNodeFailed));
