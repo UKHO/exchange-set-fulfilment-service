@@ -38,7 +38,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 {
                     builder.Services.AddSerilog((services, lc) =>
                         ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint)
-                            .Enrich.WithProperty("Environment", environment)
+                            .Enrich.WithProperty("Environment", environment.Value)
                             .Enrich.WithProperty("System", ServiceConfiguration.ServiceName)
                             .Enrich.WithProperty("Service", ServiceConfiguration.ServiceName)
                             .Enrich.WithProperty("NodeName", ServiceConfiguration.NodeName)
@@ -51,7 +51,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                     builder.Services.AddSerilog((services, lc) =>
                         ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint)
-                            .Enrich.WithProperty("Environment", environment)
+                            .Enrich.WithProperty("Environment", environment.Value)
                             .Enrich.WithProperty("System", ServiceConfiguration.ServiceName)
                             .Enrich.WithProperty("Service", ServiceConfiguration.ServiceName)
                             .Enrich.WithProperty("NodeName", ServiceConfiguration.NodeName)
