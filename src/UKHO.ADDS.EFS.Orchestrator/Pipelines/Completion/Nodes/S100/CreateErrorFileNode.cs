@@ -3,7 +3,7 @@ using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.Builds.S100;
 using UKHO.ADDS.EFS.Domain.Constants;
 using UKHO.ADDS.EFS.Domain.Jobs;
-using UKHO.ADDS.EFS.Domain.Services.Factories;
+using UKHO.ADDS.EFS.Domain.Services;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
@@ -19,15 +19,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
     internal class CreateErrorFileNode : CompletionPipelineNode<S100Build>
     {
         private readonly IOrchestratorFileShareClient _fileShareClient;
+        private readonly IFileNameGeneratorService _fileNameGeneratorService;
         private readonly ILogger<CreateErrorFileNode> _logger;
         private const string S100ErrorFileNameTemplate = "orchestrator:Errors:FileNameTemplate";
         private const string S100ErrorFileMessageTemplate = "orchestrator:Errors:Message";
 
-        public CreateErrorFileNode(CompletionNodeEnvironment nodeEnvironment, IOrchestratorFileShareClient fileShareClient, ILogger<CreateErrorFileNode> logger)
+        public CreateErrorFileNode(CompletionNodeEnvironment nodeEnvironment, IOrchestratorFileShareClient fileShareClient, IFileNameGeneratorService fileNameGeneratorService, ILogger<CreateErrorFileNode> logger)
             : base(nodeEnvironment)
         {
-            _fileShareClient = fileShareClient ?? throw new ArgumentNullException(nameof(fileShareClient));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _fileShareClient = fileShareClient;
+            _fileNameGeneratorService = fileNameGeneratorService;
+            _logger = logger;
         }
 
         public override Task<bool> ShouldExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
@@ -75,7 +77,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
 
         private string GetErrorFileName(JobId jobId)
         {
-            return new FileNameGenerator(Environment.Configuration[S100ErrorFileNameTemplate]!).GenerateFileName(jobId);
+            return _fileNameGeneratorService.GenerateFileName(Environment.Configuration[S100ErrorFileNameTemplate]!, jobId);
         }
          
         private string GetErrorFileMessage(JobId jobId)
