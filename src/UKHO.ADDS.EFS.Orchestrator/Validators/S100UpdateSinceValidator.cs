@@ -9,6 +9,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Validators;
 /// </summary>
 internal class S100UpdateSinceValidator : AbstractValidator<S100UpdatesSinceRequest>
 {
+    private const string ISO_8601_FORMAT = "yyyy-MM-ddTHH:mm:ss.fffffffZ";
+
     public S100UpdateSinceValidator()
     {
         RuleFor(request => request.CallbackUri)
@@ -19,11 +21,11 @@ internal class S100UpdateSinceValidator : AbstractValidator<S100UpdatesSinceRequ
         RuleFor(request => request.SinceDateTime)
             .NotEqual(default(DateTime))
             .WithMessage("sinceDateTime cannot be empty.")
-            .Must(IsValidFormat)
-            .WithMessage("sinceDateTime must be in the format yyyy-MM-ddTHH:mm:ss.fffffffZ.")
-            .Must(date => !IsFutureDate(date))
+            .Must(IsValidISO8601Format)
+            .WithMessage("sinceDateTime must be in the format"+ ISO_8601_FORMAT+".")
+            .Must(date => DateTime.Compare(date, DateTime.UtcNow) <= 0)
             .WithMessage("sinceDateTime cannot be a future date.")
-            .Must(date => !IsMoreThan28DaysInPast(date))
+            .Must(date => IsMoreThan28DaysInPast(date))
             .WithMessage("sinceDateTime cannot be more than 28 days in the past.");
 
         RuleFor(request => request.ProductIdentifier)
@@ -31,25 +33,20 @@ internal class S100UpdateSinceValidator : AbstractValidator<S100UpdatesSinceRequ
             .WithMessage(ProductIdentifierValidator.ValidationMessage);
     }
 
-    private static bool IsValidFormat(DateTime sinceDateTime)
+    private static bool IsValidISO8601Format(DateTime sinceDateTime)
     {
-        var sinceDateTimeString = sinceDateTime.ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ");
+        var sinceDateTimeString = sinceDateTime.ToString(ISO_8601_FORMAT);
         return DateTime.TryParseExact(
             sinceDateTimeString,
-            "yyyy-MM-ddTHH:mm:ss.fffffffZ",
+            ISO_8601_FORMAT,
             CultureInfo.InvariantCulture,
             DateTimeStyles.AdjustToUniversal,
             out _);
     }
 
-    private static bool IsFutureDate(DateTime sinceDateTime)
-    {
-        return sinceDateTime > DateTime.UtcNow;
-    }
-
     private static bool IsMoreThan28DaysInPast(DateTime sinceDateTime)
     {
-        return sinceDateTime < DateTime.UtcNow.AddDays(-28);
+        return DateTime.Compare(sinceDateTime, DateTime.UtcNow.AddDays(-Convert.ToInt32(28))) > 0;
     }
 }
 

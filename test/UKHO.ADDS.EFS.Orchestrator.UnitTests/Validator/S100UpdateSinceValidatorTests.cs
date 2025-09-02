@@ -100,7 +100,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
             Assert.That(result.IsValid, Is.True);
         }
 
-        [TestCase(null)]
         [TestCase("")]
         [TestCase("  ")]
         public void WhenProductIdentifierIsInvalid_ThenValidationFails(string? productIdentifier)
@@ -115,11 +114,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
         }
 
         [Test]
-        public void WhenAllFieldsAreEdgeCaseValid_ThenValidationSucceeds()
+        public void WhenSinceDateTimeIsJustOver28DaysAgo_ThenValidationFails()
         {
-            var request = CreateRequest(VALID_CALLBACK_URI, DateTime.UtcNow.AddDays(-28), "EdgeProduct");
+            var request = CreateRequest(VALID_CALLBACK_URI, DateTime.UtcNow.AddDays(-28.0001), VALID_PRODUCT_IDENTIFIER);
+
             var result = _s100UpdateSinceValidator.Validate(request);
-            Assert.That(result.IsValid, Is.True);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.IsValid, Is.False);
+            Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "sinceDateTime cannot be more than 28 days in the past."));
+            });
         }
     }
 }

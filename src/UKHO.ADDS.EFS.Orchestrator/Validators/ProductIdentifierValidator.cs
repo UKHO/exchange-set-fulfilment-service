@@ -9,7 +9,8 @@ internal static class ProductIdentifierValidator
 
     public static bool IsValid(string? productIdentifier)
     {
-        if ( productIdentifier == string.Empty)
+        // Return false if empty,or contains any whitespace
+        if (string.IsNullOrWhiteSpace(productIdentifier) || (productIdentifier?.Any(char.IsWhiteSpace) ?? false))
             return false;
         return true;
     }
