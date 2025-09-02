@@ -1,4 +1,4 @@
-﻿namespace UKHO.ADDS.EFS.Builder.Common.Pipelines
+﻿namespace UKHO.ADDS.EFS.Infrastructure.Builders.Pipelines
 {
     internal static class IncrementingCounter
     {

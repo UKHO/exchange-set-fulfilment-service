@@ -4,7 +4,7 @@ using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
-namespace UKHO.ADDS.EFS.Builder.Common.Pipelines
+namespace UKHO.ADDS.EFS.Infrastructure.Builders.Pipelines
 {
     public abstract class ExchangeSetPipelineNode<T, TBuild> : Node<T> where T : ExchangeSetPipelineContext<TBuild> where TBuild : Build 
     {

@@ -2,7 +2,7 @@
 using Serilog.Configuration;
 using Serilog.Formatting.Json;
 
-namespace UKHO.ADDS.EFS.Builder.Common.Logging
+namespace UKHO.ADDS.EFS.Infrastructure.Builders.Logging
 {
     public static class JsonMemorySinkExtensions
     {

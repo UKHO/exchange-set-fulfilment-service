@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 using FakeItEasy;
 using Microsoft.Extensions.Configuration;

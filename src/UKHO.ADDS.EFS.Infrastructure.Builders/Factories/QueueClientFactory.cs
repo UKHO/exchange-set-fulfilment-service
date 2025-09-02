@@ -3,7 +3,7 @@ using Azure.Storage.Queues;
 using Microsoft.Extensions.Configuration;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
 
-namespace UKHO.ADDS.EFS.Builder.Common.Factories
+namespace UKHO.ADDS.EFS.Infrastructure.Builders.Factories
 {
     public class QueueClientFactory
     {

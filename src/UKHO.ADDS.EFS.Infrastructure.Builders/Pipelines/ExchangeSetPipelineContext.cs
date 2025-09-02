@@ -1,13 +1,13 @@
 ﻿using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using UKHO.ADDS.EFS.Builder.Common.Factories;
-using UKHO.ADDS.EFS.Builder.Common.Logging;
 using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Infrastructure.Builders.Factories;
+using UKHO.ADDS.EFS.Infrastructure.Builders.Logging;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
-namespace UKHO.ADDS.EFS.Builder.Common.Pipelines
+namespace UKHO.ADDS.EFS.Infrastructure.Builders.Pipelines
 {
     public abstract class ExchangeSetPipelineContext<TBuild> where TBuild : Build
     {

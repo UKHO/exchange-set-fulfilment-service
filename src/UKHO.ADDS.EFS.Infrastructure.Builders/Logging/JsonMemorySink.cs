@@ -4,7 +4,7 @@ using Serilog.Core;
 using Serilog.Events;
 using Serilog.Formatting;
 
-namespace UKHO.ADDS.EFS.Builder.Common.Logging
+namespace UKHO.ADDS.EFS.Infrastructure.Builders.Logging
 {
     public class JsonMemorySink : ILogEventSink
     {

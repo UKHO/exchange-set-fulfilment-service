@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\UKHO.ADDS.EFS.Infrastructure\Configuration\Namespaces\ProcessNames.cs" Link="Configuration\Namespaces\ProcessNames.cs" />
+    <Compile Include="..\UKHO.ADDS.EFS.Infrastructure\Configuration\Namespaces\ServiceConfiguration.cs" Link="Configuration\Namespaces\ServiceConfiguration.cs" />
+    <Compile Include="..\UKHO.ADDS.EFS.Infrastructure\Configuration\Namespaces\StorageConfiguration.cs" Link="Configuration\Namespaces\StorageConfiguration.cs" />
+    <Compile Include="..\UKHO.ADDS.EFS.Infrastructure\Configuration\Orchestrator\BuilderEnvironmentVariables.cs" Link="Orchestrator\BuilderEnvironmentVariables.cs" />
+    <Compile Include="..\UKHO.ADDS.EFS.Infrastructure\Configuration\Orchestrator\GlobalEnvironmentVariables.cs" Link="Orchestrator\GlobalEnvironmentVariables.cs" />
+    <Compile Include="..\UKHO.ADDS.EFS.Infrastructure\Retries\HttpClientPolicyLogger.cs" Link="Retries\HttpClientPolicyLogger.cs" />
+    <Compile Include="..\UKHO.ADDS.EFS.Infrastructure\Retries\HttpRetryPolicyFactory.cs" Link="Retries\HttpRetryPolicyFactory.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Polly" Version="8.6.2" />
+    <PackageReference Include="Aspire.Azure.Data.Tables" Version="9.4.1" />
+    <PackageReference Include="Aspire.Azure.Storage.Queues" Version="9.4.1" />
+    <PackageReference Include="Aspire.Azure.Storage.Blobs" Version="9.4.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\UKHO.ADDS.EFS.Domain.Services\UKHO.ADDS.EFS.Domain.Services.csproj" />
+    <ProjectReference Include="..\UKHO.ADDS.Clients.Common\UKHO.ADDS.Clients.Common.csproj" />
+    <ProjectReference Include="..\UKHO.ADDS.Clients.FileShareService.ReadOnly\UKHO.ADDS.Clients.FileShareService.ReadOnly.csproj" />
+    <ProjectReference Include="..\UKHO.ADDS.Clients.FileShareService.ReadWrite\UKHO.ADDS.Clients.FileShareService.ReadWrite.csproj" />
+    <ProjectReference Include="..\UKHO.ADDS.Clients.SalesCatalogueService\UKHO.ADDS.Clients.SalesCatalogueService.csproj" />
+  </ItemGroup>
+
+</Project>
