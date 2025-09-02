@@ -119,7 +119,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 }
                 else
                 {
-                    tokenProvider = new TokenCredentialAuthenticationTokenProvider(new ManagedIdentityCredential(clientId: efsClientId), [fssEndpoint.GetDefaultScope()]);
+                    tokenProvider = new TokenCredentialAuthenticationTokenProvider(new ManagedIdentityCredential(clientId: efsClientId), ["api://75024e65-2fbc-4740-b874-ac314df6a49e/.default"]);
                 }
 
                 var factory = sp.GetRequiredService<IFileShareReadWriteClientFactory>();
