@@ -1,4 +1,4 @@
-﻿namespace UKHO.ADDS.EFS.Exceptions
+﻿namespace UKHO.ADDS.EFS.Domain.Exceptions
 {
     public class ValidationException : Exception
     {

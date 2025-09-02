@@ -1,7 +1,7 @@
-﻿using UKHO.ADDS.EFS.Jobs;
-using UKHO.ADDS.EFS.Messages;
+﻿using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Messages;
 
-namespace UKHO.ADDS.EFS.Builds
+namespace UKHO.ADDS.EFS.Domain.Builds
 {
     public abstract class BuildRequest
     {

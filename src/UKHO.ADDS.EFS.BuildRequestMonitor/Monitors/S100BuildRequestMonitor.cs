@@ -1,8 +1,8 @@
 using Azure.Storage.Queues;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Builders;
-using UKHO.ADDS.EFS.Builds.S100;
-using UKHO.ADDS.EFS.Configuration.Namespaces;
-using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.Domain.Builds.S100;
+using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Services.Configuration.Namespaces;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.BuildRequestMonitor.Monitors

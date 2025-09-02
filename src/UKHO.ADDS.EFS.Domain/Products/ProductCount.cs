@@ -1,7 +1,7 @@
-﻿using UKHO.ADDS.EFS.Exceptions;
+﻿using UKHO.ADDS.EFS.Domain.Exceptions;
 using Vogen;
 
-namespace UKHO.ADDS.EFS.Products
+namespace UKHO.ADDS.EFS.Domain.Products
 {
     [ValueObject<int>(Conversions.SystemTextJson, typeof(ValidationException))]
     [Instance("None", 0)]

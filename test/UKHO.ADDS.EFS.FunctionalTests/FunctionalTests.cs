@@ -1,4 +1,4 @@
-﻿using UKHO.ADDS.EFS.Configuration.Namespaces;
+﻿using UKHO.ADDS.EFS.Domain.Services.Configuration.Namespaces;
 using UKHO.ADDS.EFS.FunctionalTests.Services;
 using Xunit.Abstractions;
 

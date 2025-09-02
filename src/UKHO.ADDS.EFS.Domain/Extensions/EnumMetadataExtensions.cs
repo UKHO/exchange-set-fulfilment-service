@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 
-namespace UKHO.ADDS.EFS.Extensions
+namespace UKHO.ADDS.EFS.Domain.Extensions
 {
     internal static class EnumMetadataExtensions
     {

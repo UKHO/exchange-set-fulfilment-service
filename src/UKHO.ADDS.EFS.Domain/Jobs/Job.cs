@@ -1,9 +1,9 @@
 ﻿using System.Text.Json.Serialization;
-using UKHO.ADDS.EFS.Builds;
-using UKHO.ADDS.EFS.Implementation;
-using UKHO.ADDS.EFS.Products;
+using UKHO.ADDS.EFS.Domain.Builds;
+using UKHO.ADDS.EFS.Domain.External;
+using UKHO.ADDS.EFS.Domain.Products;
 
-namespace UKHO.ADDS.EFS.Jobs
+namespace UKHO.ADDS.EFS.Domain.Jobs
 {
     public partial class Job
     {

@@ -1,7 +1,7 @@
-﻿using UKHO.ADDS.EFS.Implementation;
-using UKHO.ADDS.EFS.Jobs;
-using UKHO.ADDS.EFS.Messages;
-using UKHO.ADDS.EFS.Products;
+﻿using UKHO.ADDS.EFS.Domain.External;
+using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Messages;
+using UKHO.ADDS.EFS.Domain.Products;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
 {
@@ -41,7 +41,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 DataStandard = message.DataStandard,
                 Products = message.Products,
                 Filter = message.Filter,
-                JobId = EFS.Jobs.JobId.From((string)correlationId),
+                JobId = Domain.Jobs.JobId.From((string)correlationId),
                 Configuration = configuration
             };
     }
