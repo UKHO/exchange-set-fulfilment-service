@@ -3,7 +3,7 @@ using FakeItEasy;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.Aspire.Configuration.Remote;
-using UKHO.ADDS.EFS.Domain.Services.Configuration.Namespaces;
+using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Orchestrator.Health;
 
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.HealthChecks
