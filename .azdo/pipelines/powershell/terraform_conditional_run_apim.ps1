@@ -47,5 +47,5 @@ if($totalDestroyLines -ge 2)
 }
 
 Write-output "Executing terraform apply..."
-#terraform apply "$backendConfigKey"
+terraform apply "$backendConfigKey"
 if ( !$? ) { echo "Something went wrong during terraform apply" ; throw "Error" }
