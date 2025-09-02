@@ -1,6 +1,7 @@
 ﻿using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Messages;
+using UKHO.ADDS.EFS.Domain.Services.Storage;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Extensions;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
@@ -22,7 +23,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                     {
                         var correlationId = httpContext.GetCorrelationId();
 
-                        var parameters = AssemblyPipelineParameters.CreateFrom(message, configuration, (string)correlationId);
+                        var parameters = AssemblyPipelineParameters.CreateFrom(message, configuration, correlationId);
                         var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
 
                         logger.LogAssemblyPipelineStarted(parameters);
@@ -41,9 +42,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 .WithRequiredHeader("x-correlation-id", "Correlation ID", $"job-{Guid.NewGuid():N}")
                 .WithDescription("Create a job request for the given data standard. To filter (S100) by product type, use the filter property \"startswith(ProductName, '101')\"");
 
-            jobsEndpoint.MapGet("/{jobId}", async (string jobId, ITable<Job> jobTable) =>
+            jobsEndpoint.MapGet("/{jobId}", async (string jobId, IRepository<Job> jobRepository) =>
             {
-                var jobResult = await jobTable.GetUniqueAsync(jobId);
+                var jobResult = await jobRepository.GetUniqueAsync(jobId);
 
                 if (jobResult.IsSuccess(out var job))
                 {
@@ -54,9 +55,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 return Results.NotFound();
             }).WithDescription("Gets the job for the given job id");
 
-            jobsEndpoint.MapGet("/{jobId}/build", async (string jobId, ITable<BuildMemento> mementoTable) =>
+            jobsEndpoint.MapGet("/{jobId}/build", async (string jobId, IRepository<BuildMemento> mementoRepository) =>
             {
-                var mementoResult = await mementoTable.GetUniqueAsync(jobId);
+                var mementoResult = await mementoRepository.GetUniqueAsync(jobId);
 
                 if (mementoResult.IsSuccess(out var memento))
                 {
@@ -66,19 +67,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 logger.LogGetJobRequestFailed(jobId);
                 return Results.NotFound();
             }).WithDescription("Gets the job build memento for the given job id");
-
-            //jobsEndpoint.MapGet("/{jobId}/status", async (string jobId, ITable<BuildStatus> table) =>
-            //    {
-            //        var statusResult = await table.GetUniqueAsync(jobId);
-
-            //        if (statusResult.IsSuccess(out var status))
-            //        {
-            //            return Results.Ok(status);
-            //        }
-
-            //        return Results.NotFound();
-            //    })
-            //    .WithDescription("Gets the build status for the given job request");
         }
     }
 }

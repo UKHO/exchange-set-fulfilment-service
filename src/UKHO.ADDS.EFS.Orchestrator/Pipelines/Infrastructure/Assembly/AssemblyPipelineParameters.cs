@@ -1,4 +1,6 @@
-﻿using UKHO.ADDS.EFS.Domain.Jobs;
+﻿using UKHO.ADDS.EFS.Domain.Exceptions;
+using UKHO.ADDS.EFS.Domain.External;
+using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Messages;
 using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Messages;
@@ -50,22 +52,19 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
             };
         }
 
-        public static AssemblyPipelineParameters CreateFrom(JobRequestApiMessage message, IConfiguration configuration,
-            string correlationId) =>
-            new()
+        public static AssemblyPipelineParameters CreateFrom(JobRequestApiMessage message, IConfiguration configuration, CorrelationId correlationId)
+        {
+            return new AssemblyPipelineParameters()
             {
-                Version = MessageVersion.From(1), // Default version since JobRequestApiMessage doesn't have Version
                 Timestamp = DateTime.UtcNow,
                 DataStandard = message.DataStandard,
-                Products = message.Products,
+                Products = CreateProductNameList(message.Products),
                 Filter = message.Filter,
-                JobId = Domain.Jobs.JobId.From(correlationId),
+                JobId = JobId.From((string)correlationId),
                 Configuration = configuration
             };
+        }
 
-        /// <summary>
-        /// Creates parameters from S100 Product Names request
-        /// </summary>
         public static AssemblyPipelineParameters CreateFromS100ProductNames(List<string> productNames,
             IConfiguration configuration, string correlationId, string? callbackUri = null) =>
             new()
@@ -73,7 +72,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 Version = MessageVersion.From(2),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                Products = CreateProductNameList(productNames),
+                Products = CreateProductNameList(productNames.ToArray()),
                 Filter = "productNames",
                 JobId = Domain.Jobs.JobId.From(correlationId),
                 Configuration = configuration,
@@ -121,43 +120,67 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 CallbackUri = callbackUri
             };
 
-        /// <summary>
-        /// Helper method to create ProductNameList from a list of product names
-        /// </summary>
-        private static ProductNameList CreateProductNameList(List<string> productNames)
+        private static ProductNameList CreateProductNameList(string[] messageProducts)
         {
-            var productNameList = new ProductNameList();
-            foreach (var productName in productNames)
+            var list = new ProductNameList();
+
+            try
             {
-                productNameList.Add(ProductName.From(productName));
+                foreach (var product in messageProducts.Where(s => !string.IsNullOrEmpty(s))) // Scalar UI adds an empty product name by default as a placeholder/example
+                {
+                    list.Add(ProductName.From(product));
+                }
             }
-            return productNameList;
+            catch (ValidationException ex)
+            {
+                throw new ArgumentException("One or more product names are invalid", ex);
+            }
+
+            return list;
         }
 
         /// <summary>
-        /// Helper method to create ProductNameList from a single string (used for "all" products)
-        /// </summary>
-        private static ProductNameList CreateProductNameListFromString(string productString)
-        {
-            var productNameList = new ProductNameList();
-            if (!string.IsNullOrEmpty(productString) && productString != "all")
-            {
-                productNameList.Add(ProductName.From(productString));
-            }
-            return productNameList;
-        }
-
-        /// <summary>
-        /// Helper method to create ProductNameList from S100ProductVersions
+        /// Creates a ProductNameList from S100 product versions
         /// </summary>
         private static ProductNameList CreateProductNameListFromVersions(List<S100ProductVersion> productVersions)
         {
-            var productNameList = new ProductNameList();
-            foreach (var productVersion in productVersions)
+            var list = new ProductNameList();
+
+            try
             {
-                productNameList.Add(ProductName.From(productVersion.ProductName));
+                foreach (var productVersion in productVersions.Where(pv => !string.IsNullOrEmpty(pv.ProductName)))
+                {
+                    list.Add(ProductName.From(productVersion.ProductName));
+                }
             }
-            return productNameList;
+            catch (ValidationException ex)
+            {
+                throw new ArgumentException("One or more product names from versions are invalid", ex);
+            }
+
+            return list;
+        }
+
+        /// <summary>
+        /// Creates a ProductNameList from a single string value
+        /// </summary>
+        private static ProductNameList CreateProductNameListFromString(string productName)
+        {
+            var list = new ProductNameList();
+
+            try
+            {
+                if (!string.IsNullOrEmpty(productName))
+                {
+                    list.Add(ProductName.From(productName));
+                }
+            }
+            catch (ValidationException ex)
+            {
+                throw new ArgumentException($"Product name '{productName}' is invalid", ex);
+            }
+
+            return list;
         }
     }
 }

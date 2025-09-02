@@ -43,11 +43,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Schedule
                 var message = new JobRequestApiMessage
                 {
                     DataStandard = DataStandard.S100,
-                    Products = new ProductNameList(),
+                    Products = [],
                     Filter = ""
                 };
 
-                var parameters = AssemblyPipelineParameters.CreateFrom(message, _config, (string)correlationId);
+                var parameters = AssemblyPipelineParameters.CreateFrom(message, _config, correlationId);
                 var pipeline = _pipelineFactory.CreateAssemblyPipeline(parameters);
 
                 var result = await pipeline.RunAsync(CancellationToken.None);

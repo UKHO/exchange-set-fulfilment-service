@@ -1,4 +1,4 @@
-﻿using UKHO.ADDS.EFS.Domain.Services.Configuration.Orchestrator;
+﻿using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
 
 namespace UKHO.ADDS.EFS.Builder.Common.Configuration
 {
