@@ -4,6 +4,7 @@ using UKHO.ADDS.EFS.Domain.Builds.S100;
 using UKHO.ADDS.EFS.Domain.Builds.S57;
 using UKHO.ADDS.EFS.Domain.Builds.S63;
 using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Domain.Services.Storage;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;

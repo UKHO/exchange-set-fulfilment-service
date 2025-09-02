@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace UKHO.ADDS.EFS.Domain.Jobs
+namespace UKHO.ADDS.EFS.Domain.Products
 {
     public enum DataStandardProductType
     {

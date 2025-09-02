@@ -1,6 +1,6 @@
 ﻿using Azure.Storage.Queues;
 using UKHO.ADDS.EFS.Domain.Builds;
-using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
 

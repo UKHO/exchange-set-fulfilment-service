@@ -1,8 +1,8 @@
-﻿using UKHO.ADDS.EFS.Domain.Exceptions;
+﻿using System.ComponentModel.DataAnnotations;
 using UKHO.ADDS.EFS.Domain.Implementation.Extensions;
 using Vogen;
 
-namespace UKHO.ADDS.EFS.Domain.Jobs
+namespace UKHO.ADDS.EFS.Domain.Products
 {
     [ValueObject<int>(Conversions.SystemTextJson, typeof(ValidationException))]
     public partial struct DataStandardProduct
@@ -35,15 +35,38 @@ namespace UKHO.ADDS.EFS.Domain.Jobs
 
         public string DisplayName => AsEnum.GetDisplayName();
 
-        public string Description => AsEnum.GetDisplayDescription() ?? AsEnum.ToString(); 
+        public string Description => AsEnum.GetDisplayDescription() ?? AsEnum.ToString();
 
         public static DataStandardProduct FromEnum(DataStandardProductType type) => DataStandardProduct.From((int)type);
+
+        /// <summary>
+        /// Creates a <see cref="DataStandardProduct"/> from the name of a <see cref="DataStandardProductType"/>.
+        /// </summary>
+        /// <param name="name">The string representation of the enum value (e.g. "S57").</param>
+        /// <exception cref="ValidationException">Thrown if the string does not correspond to a valid <see cref="DataStandardProductType"/>.</exception>
+        public static DataStandardProduct From(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                throw new ValidationException($"{nameof(DataStandardProduct)} cannot be created from an empty string.");
+            }
+
+            if (Enum.TryParse<DataStandardProductType>(name.Trim(), ignoreCase: true, out var parsed) &&
+                Enum.IsDefined(typeof(DataStandardProductType), parsed))
+            {
+                return FromEnum(parsed);
+            }
+
+            throw new ValidationException($"Unknown {nameof(DataStandardProduct)} name '{name}'.");
+        }
 
         public DataStandard DataStandard
         {
             get
             {
-                return Value == (int)DataStandardProductType.S57 ? DataStandard.S57 : DataStandard.S100;
+                return Value == (int)DataStandardProductType.S57
+                    ? DataStandard.S57
+                    : DataStandard.S100;
             }
         }
     }

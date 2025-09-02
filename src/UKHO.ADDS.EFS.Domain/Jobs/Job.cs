@@ -13,12 +13,6 @@ namespace UKHO.ADDS.EFS.Domain.Jobs
             BuildState = BuildState.None;
         }
 
-        public void DoIt()
-        {
-            JobState = JobState.Completed;
-            BuildState = BuildState.Succeeded;
-        }
-
         /// <summary>
         ///     The job id.
         /// </summary>

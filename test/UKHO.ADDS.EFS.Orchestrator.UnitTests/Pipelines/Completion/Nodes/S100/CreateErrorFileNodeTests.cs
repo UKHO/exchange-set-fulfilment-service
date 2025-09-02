@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 using FakeItEasy;
 using Microsoft.Extensions.Configuration;
@@ -5,8 +6,6 @@ using Microsoft.Extensions.Logging;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
 using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.Builds.S100;
-using UKHO.ADDS.EFS.Domain.Constants;
-using UKHO.ADDS.EFS.Domain.Exceptions;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Domain.Services;

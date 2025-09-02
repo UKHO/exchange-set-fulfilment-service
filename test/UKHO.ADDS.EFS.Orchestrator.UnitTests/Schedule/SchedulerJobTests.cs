@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Quartz;
 using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.EFS.Orchestrator.Schedule;
 
