@@ -1,236 +1,419 @@
-# GitHub Copilot Guidance for Exchange Set Fulfilment Service (EFS)
+# Copilot Instructions
+ 
+You are an agent. Continue working until the query is fully resolved.
+ 
+Be thorough in your reasoning, but avoid unnecessary repetition and verbosity. Aim for concise, complete solutions.
+ 
+Your training data is out of date; always assume you need to research current information.
+ 
+THE PROBLEM MAY REQUIRE EXTENSIVE INTERNET RESEARCH.
+ 
+---
+ 
+## Using MCP tools
+ 
+If the user intent relates to:
+ 
+- Azure DevOps: prioritize Azure DevOps MCP server tools.
 
-This document provides guidance for GitHub Copilot when assisting with the Exchange Set Fulfilment Service (EFS) project. Copilot should follow these guidelines when suggesting code, answering questions, or providing assistance.
+- GitHub: prioritize GitHub MCP server tools.
 
-## Project Overview
+- Microsoft technologies: prioritize  microsoft.docs.mcp MCP server tools.
+ 
+## Command Line Usage
 
-The Exchange Set Fulfilment Service (EFS) is a .NET-based application that processes and fulfills exchange set requests. The project uses:
-- C# and .NET 8/ASP.NET Core
-- Azure Storage (Blob, Tables, Queues)
-- Docker containerization
-- Microservice architecture with Aspire orchestration
+- After running a command, verify its success before proceeding.
 
-## Coding Standards
+- If a command fails, resolve the issue before moving on.
 
-### General C# Coding Guidelines
+- Do not chain commands with `&&`instead run them sequentially.
+ 
+## Specifications and Plans: Structure, Naming, Versioning
 
-Follow Microsoft's C# coding conventions:
+Follow a controlled requirements-gathering and documentation process.
+ 
+### Prompt Families and Phases (generalized)
 
-1. **Use consistent naming conventions:**
-   - Use PascalCase for class names, method names, and public members
-   - Use camelCase for local variables and method parameters
-   - Prefix interface names with 'I'
-   - Avoid Hungarian notation
+- Prompt files follow this pattern: `.github/prompts/{family}.{phase}.prompt.md`
 
-2. **Code Organization:**
-   - Place using directives outside the namespace declarations
-   - Use file-scoped block namespace declarations: `namespace UKHO.ADDS.EFS.Domain;`
-   - Organize members by accessibility (public, then internal, then private)
+  - family (examples): `spec`, `refactor`, `test`, `pipeline` (extensible)
 
-3. **Code Style:**
-   - Use four spaces for indentation, not tabs
-   - Use Allman style for braces (on new lines)
-   - Limit line length to a reasonable number of characters
-   - Add at least one blank line between method definitions
+  - phase: `innovate`, `plan`, `execute` (not all families require all phases)
 
-4. **Language Features:**
-   - Use string interpolation instead of string concatenation
-   - Use collection expressions where appropriate: `string[] vowels = ["a", "e", "i", "o", "u"];`
-   - Use implicit typing (var) where possible but maintain clarity
-   - Use async/await for asynchronous operations
-   - Use using statements for resources that implement IDisposable
-   - Use LINQ when it makes collection manipulation clearer, with proper indentation
-   - Use null conditional operators (?.) and null coalescing operators (??) where appropriate
+- Selection rules:
 
-5. **Error Handling:**
-   - Use specific exception types instead of general ones
-   - Only catch exceptions that can be properly handled
-   - Include meaningful error messages
-   - Use the try-catch statement for most exception handling
-   - Avoid empty catch blocks
+  - Use the family that matches the job at hand (e.g., `spec` for requirements, `refactor` for tech-debt, `test` for testing initiatives, `pipeline` for CI/CD work).
 
-### UKHO-Specific Standards
+  - Use the appropriate phase:
 
-1. **Structure and Naming:**
-   - Follow the existing project structure and naming conventions
-   - Use the UKHO.ADDS.EFS namespace prefix for all new code
-   - Name domain entities descriptively based on their purpose
+    - `innovate` for discovery/requirements (typically spec only)
 
-2. **Testing:**
-   - Write unit tests for all new functionality
-   - Follow the existing test structure (using xUnit)
-   - Test both success and failure paths
-   - Use meaningful test names that describe the scenario being tested
+    - `plan` to produce an implementation/refactor/test/pipeline plan
 
-3. **Documentation:**
-   - Use XML comments for public APIs
-   - Include summaries, param descriptions, and returns
-   - Document exceptions that might be thrown
-   - Comment complex algorithms or business logic
+    - `execute` to implement the selected plan
 
-## Security Standards
+  - Always prefer the latest version of the prompt for the chosen family/phase.
+ 
+### Specifications (Requirements)
 
-### Microsoft Security Practices
+- Authoring prompt: `.github/prompts/spec.innovate.prompt.md` (base on `docs/specs/spec-template_v1.1.md`).
 
-1. **Input Validation:**
-   - Validate all inputs, especially those from external sources
-   - Use parameterized queries or ORMs to prevent SQL injection
-   - Sanitize inputs to prevent XSS attacks
+- Location: store under `docs/specs/`, grouped by domain/service.
 
-2. **Authentication and Authorization:**
-   - Use proper authentication mechanisms
-   - Implement proper authorization checks
-   - Never hardcode credentials or secrets
+- Naming: `spec-[scope]-[type]_v[version].md` (e.g., `spec-api-functional_v1.0.md`, `spec-system-overview_v1.0.md`).
 
-3. **Data Protection:**
-   - Use encryption for sensitive data
-   - Use secure communication protocols (HTTPS)
-   - Follow the principle of least privilege
+- Versioning: never overwrite. Create a new file with an incremented version and update the internal Version field. Add a short "Supersedes: spec-[...]_v[prev].md" note and maintain a brief Change Log.
 
-### UKHO Security Policies
+- Each new version should include the previous document content updated for the new version, plus changes.
 
-1. **Secret Management:**
-   - Never include secrets in code or configuration files
-   - Use Azure Key Vault for storing and accessing secrets
-   - Use dependency injection for configuration
+- Start versioning from v0.01 for drafts, v1.0 for first official release.
 
-2. **Secure Development:**
-   - Follow the UKHO Secure Development policy
-   - Conduct threat modeling during development
-   - Report security vulnerabilities to UKHO-ITSO@gov.co.uk
-   - Use logging for security events and errors
-   - Include appropriate exception handling
+- If v1.0 has been planned and executed then increment towards v2.0 for the next changes and the next plan.
+ 
+### Plans (Implementation/Execution)
 
-3. **Code Review:**
-   - All security-related code should be reviewed
-   - Check for hardcoded credentials, keys, or other secrets
-   - Verify proper input validation
-   - Ensure secure configuration
+- Planning prompts:
 
-## Best Practices
+  - New features/implementation: `.github/prompts/spec.plan.prompt.md` ? execute with `.github/prompts/spec.execute.prompt.md`.
 
-1. **Cloud Services:**
-   - Follow Azure best practices for storage services (Blob, Queue, Table)
-   - Use appropriate storage options based on data characteristics
-   - Implement proper error handling for cloud service operations
+  - Refactoring/tech debt: `.github/prompts/refactor.plan.prompt.md` ? execute with `.github/prompts/refactor.execute.prompt.md`.
 
-2. **API Design:**
-   - Design RESTful APIs following standard conventions
-   - Use appropriate HTTP methods and status codes
-   - Include proper validation and error responses
-   - Use versioning for APIs
+  - Future families (examples): `.github/prompts/test.plan.prompt.md`, `.github/prompts/pipeline.plan.prompt.md` (and corresponding `.execute` prompts) as needed.
 
-3. **Microservices:**
-   - Keep services focused on specific business capabilities
-   - Use proper communication patterns between services
-   - Implement resilience patterns (retry, circuit breaker)
-   - Use distributed logging and tracing
+- Location: store under `docs/plans/` with area subfolders, e.g. `docs/plans/api`, `docs/plans/ui`, `docs/plans/backend`, `docs/plans/shared`, `docs/plans/infra`, `docs/plans/tests`.
 
-4. **Technical Debt:**
-   - Actively identify and address technical debt
-   - Follow the UKHO Technical Debt guidance
-   - Document known issues and planned improvements
+- Naming: `plan-[area]-[purpose]_v[version].md` (e.g., `plan-api-implementation_v1.0.md`, `plan-ui-featureX_v1.1.md`, `plan-backend-refactor-auth_v1.0.md`).
 
-## Contribution Guidelines
+- Versioning & continuity: never overwrite. Each new plan must:
 
-1. **Process:**
-   - For minor improvements, submit pull requests
-   - For significant changes, open an issue for discussion first
-   - Follow the process outlined in CONTRIBUTING.md
+  - Reference the spec versions it is based on (e.g., "Based on: spec-api-functional_v1.2.md").
 
-2. **Code Review:**
-   - All code must be reviewed before merging
-   - Address all review comments before merging
-   - Ensure tests pass and code meets quality standards
+  - Include Baseline (implemented), Delta (changes since last plan), and Carry-over (incomplete items).
 
-3. **Open Source:**
-   - Follow UKHO's Open Source Contribution Policy
-   - Include appropriate license information
-   - Respect third-party licenses and attributions
+  - Use the Work Item / Task / Step structure from the chosen family’s `plan` prompt.
+ 
+### Validation checklist (before publishing docs)
 
-## Performance Considerations
+- Files are in the correct folder (`docs/specs` or `docs/plans/[area]`).
 
-1. **Database and Storage:**
-   - Use asynchronous operations for all I/O bound operations
-   - Implement efficient querying with appropriate indexes
-   - Use pagination for large result sets
-   - Consider data partitioning strategies for Azure Tables and Blobs
+- Filenames match required patterns with incremented versions.
 
-2. **Memory Management:**
-   - Be cautious with large in-memory collections
-   - Dispose of resources properly using `IDisposable` or `using` statements
-   - Consider using memory-efficient data structures for large datasets
-   - Use string builders for string concatenation operations that involve loops
+- Spec documents' internal Version field matches filename; overview spec references all component specs.
 
-3. **Processing:**
-   - Use parallel processing for CPU-bound operations when appropriate
-   - Consider using background services for long-running operations
-   - Use caching strategies where appropriate (in-memory, distributed)
-   - Implement proper cancellation token support for long-running operations
+- Plans reference the spec versions they rely on and include Baseline/Delta/Carry-over.
 
-4. **Logging and Telemetry:**
-   - Follow appropriate logging levels
-   - Avoid excessive logging in hot paths
-   - Be cautious when logging the 'happy path' to avoid performance overhead
-   - Use structured logging for better analysis
-   - Implement proper application insights instrumentation
+- The chosen prompt family/phase is appropriate for the current job and references the latest prompt file.
+ 
+---
+ 
+## Architecture Overview
 
-## Dependency Management
+- .NET (latest C# features, file-scoped namespaces)
 
-1. **NuGet Packages:**
-   - Use explicit versioning for packages to ensure reproducibility
-   - Keep dependencies up to date, especially for security fixes
-   - Use internal UKHO package sources when appropriate
-   - Prefer official, well-maintained packages with active communities
+- Blazor for web UI
 
-2. **Package Organization:**
-   - Group related packages in Directory.Build.props when appropriate
-   - Use centralized package version management
-   - Document any non-standard or custom packages
-   - Regularly review for deprecated or vulnerable packages
+- ASP.Net Core for APIs
 
-3. **Dependency Injection:**
-   - Follow the dependency injection pattern throughout the application
-   - Register services with appropriate lifetimes (singleton, scoped, transient)
-   - Use constructor injection over property injection
-   - Avoid service locator pattern
+- .Net Aspire for orchestration/service discovery
 
-## CI/CD Integration
+- Bootstrap + custom CSS variables for theming
+ 
+### Core Projects
 
-1. **Build Pipeline:**
-   - Ensure all code builds cleanly in the CI pipeline before merging
-   - Pay attention to compiler warnings and static analysis results
-   - Follow the established branching strategy
-   - Use feature branches for development
+- Main web app
 
-2. **Testing:**
-   - All tests must pass in the pipeline before merging
-   - Add appropriate test coverage for new code
-   - Don't disable or ignore tests without proper justification
-   - Include integration tests for critical paths
+- Backend APIs
 
-3. **Deployment:**
-   - Be aware of the deployment stages (dev, vNextIAT, vNextE2E, IAT, PreProd, Production)
-   - Understand the rollback procedures
-   - Test deployment-specific configurations
-   - Review deployment logs after changes
+- Shared models/services/utilities
 
-## Accessibility Standards
+- Service orchestration
 
-1. **General Principles:**
-   - Follow WCAG 2.1 guidelines where applicable
-   - Ensure proper color contrast for text and UI elements
-   - Provide alternative text for images and non-text elements
-   - Ensure keyboard navigability for web interfaces
+- Unit/integration tests
+ 
+### External Integrations
 
-2. **Documentation:**
-   - Provide accessible documentation in standard formats
-   - Use descriptive names for files and resources
-   - Use clear language in user-facing instructions
-   - Provide alternative formats when necessary
+- [TBD]: [DESCRIPTION]
+ 
+## Folder Structure
 
-## Contact
+- `/.azure`: Azure deployment config
 
-For questions or issues about this guidance, please contact the technical lead for the project.
+- `/src`: Source code
 
-For security concerns, report to UKHO-ITSO@gov.co.uk.
+- `/infra`: Infrastructure as Code
+
+- `/docs`: Documentation
+
+  - `/docs/specs`: Specifications (versioned)
+
+  - `/docs/plans`: Plans (versioned)
+
+    - `/docs/plans/api`, `/docs/plans/ui`, `/docs/plans/backend`, `/docs/plans/shared`, `/docs/plans/infra`, `/docs/plans/tests`
+
+- `/tests`: Test projects/assets
+
+- `azure.yaml`: Main AZD config
+ 
+### Source Code
+
+- `/src/api`: Backend APIs
+
+- `/src/web`: Frontend web
+
+- `/src/shared`: Shared libraries
+
+- `/src/functions`: Azure Functions
+
+- `/src/workers`: Background services
+ 
+### Infrastructure
+
+- `/infra/`
+ 
+### Documentation
+
+- `/docs/`
+ 
+### Testing
+
+- `/tests/unit`: Unit tests
+
+- `/tests/integration`: Integration tests
+
+- `/tests/e2e`: End-to-end tests
+
+- `/tests/load`: Load/performance tests
+ 
+### AZD Config Example
+
+```yaml
+
+name: [PROJECT_NAME]
+
+infra:
+
+  provider: bicep
+
+  path: infra
+
+  module: main
+
+services:
+
+  api:
+
+    project: src/api/[API_PROJECT_NAME]
+
+    language: csharp
+
+    host: appservice
+
+  web:
+
+    project: src/web/[WEB_PROJECT_NAME]
+
+    language: js
+
+    host: staticwebapp
+
+```
+ 
+## Project Setup
+
+- Use namespace-based folder/project structure: [Company].[Project].[Component].[Function]
+ 
+---
+ 
+## Frontend Development
+
+- Add component-specific CSS files for each new component
+
+- Use scoped CSS; avoid global styles
+
+- Respect light/dark themes; use CSS variables for colors
+
+- Use semantic class names and framework spacing utilities
+
+- Document non-obvious style choices
+
+- Test components in both light and dark themes
+ 
+### Responsive & Accessible Design
+
+- Use rem/em units for sizing
+
+- Ensure semantic HTML and ARIA attributes
+
+- Test keyboard navigation and accessibility tools
+ 
+---
+ 
+## Code Style
+
+- Prefer async/await
+
+- Use nullable reference types
+
+- Use `var` for local variables
+
+- Implement `IDisposable` for event handlers/subscriptions
+
+- Use latest C# features
+
+- Consistent naming: PascalCase (public), camelCase (private)
+
+- Use dependency injection and interfaces
+
+- Organize using directives: System, Microsoft, then app namespaces; sort alphabetically
+ 
+---
+ 
+## Component Structure
+
+- Keep components small and focused
+
+- Extract reusable logic into services
+
+- Prefer parameters over cascading values
+ 
+---
+ 
+## Error Handling
+
+- Use try-catch in event handlers
+
+- Implement error boundaries
+
+- Display user-friendly error messages
+
+- Log errors appropriately
+ 
+---
+ 
+## Performance
+
+- Use proper lifecycle methods
+
+- Use `key` directive for lists
+
+- Avoid unnecessary renders
+
+- Use virtualization for large lists
+ 
+---
+ 
+## Testing
+
+- Write unit tests for complex logic
+
+- Test error scenarios
+
+- Mock dependencies
+
+- Use appropriate frameworks
+
+- Place tests in designated projects
+ 
+---
+ 
+## Documentation
+
+- Document public APIs and usage examples
+
+- Keep documentation current
+ 
+---
+ 
+## Security
+
+- Validate user input
+
+- Implement authentication and authorization
+
+- Follow framework security best practices
+
+- Keep dependencies updated
+ 
+---
+ 
+## Accessibility
+
+- Use semantic HTML
+
+- Include ARIA attributes
+
+- Ensure keyboard navigation
+
+- Test accessibility
+ 
+---
+ 
+## File Organization
+
+- Group related files
+
+- Use meaningful names
+
+- Follow consistent structure
+
+- Group by feature when possible
+ 
+---
+ 
+## Backend Development
+
+- Prefer minimal APIs over controllers for backend APIs to simplify routing, improve performance, and reduce boilerplate.
+
+- Create local settings files
+
+- Use storage emulators for local dev
+
+- Secure and document API keys
+
+- Document key endpoints
+
+- Target consistent .NET version with nullable reference types
+ 
+---
+ 
+## Domain Architecture & Data Flow
+
+- Document key domain entities and relationships
+
+- Organize models by domain
+
+- Use mock services and adapters for external dependencies
+
+- Document data collection, normalization, and caching
+ 
+---
+ 
+## Authentication & Security Patterns
+
+- Document authentication/access control for services
+
+- Manage API keys and secrets per environment
+ 
+---
+ 
+## Development Patterns
+
+- Use provided error handling and service registration patterns
+
+- Organize components by type (page, shared, form, result)
+
+- Use source-generated JSON serialization contexts
+
+- Follow consistent test naming conventions
+ 
+---
+ 
+## Integration Points
+
+- Document service orchestration and discovery
+
+- Manage environment configuration
+
+- Document API design, request/response, caching, and background processing
+
+- Document cross-component communication and shared contracts
