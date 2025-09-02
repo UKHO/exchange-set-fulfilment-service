@@ -1,6 +1,5 @@
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 using UKHO.ADDS.Aspire.Configuration.Remote;
-using UKHO.ADDS.EFS.Domain.Services.Configuration.Namespaces;
+using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Health;
 
