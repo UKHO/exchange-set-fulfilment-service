@@ -26,6 +26,11 @@ namespace UKHO.ADDS.EFS.Domain.Builds.S100
             set => _productEditions = value?.ToList() ?? [];
         }
 
+        /// <summary>
+        /// Gets or sets the build commit information containing file details with hash values.
+        /// </summary>
+        public BuildCommitInfo? BuildCommitInfo { get; set; }
+
         public override string GetProductDelimitedList() => (Products == null) ? string.Empty : string.Join(", ", Products.Select(p => p));
 
         public override string GetProductDiscriminant()

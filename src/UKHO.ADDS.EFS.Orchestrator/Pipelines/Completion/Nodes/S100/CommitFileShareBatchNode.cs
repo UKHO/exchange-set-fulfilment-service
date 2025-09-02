@@ -27,7 +27,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
         {
             var job = context.Subject.Job!;
-            
+
+            var buildCommitInfo = context.Subject.Build.BuildCommitInfo;
+            if (buildCommitInfo?.FileDetails.Any() == true)
+            {
+                foreach (var fileDetail in buildCommitInfo.FileDetails)
+                {
+                    // You can access fileDetail.FileName and fileDetail.Hash here
+                    // This data was stored during the UploadFilesNode execution
+                }
+            }
+
             var commitBatchResult = await _fileShareClient.CommitBatchAsync((string)job.BatchId!, (string)job.GetCorrelationId(), Environment.CancellationToken);
 
             if (!commitBatchResult.IsSuccess(out _, out _))
