@@ -1,6 +1,6 @@
 ﻿using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
 
-namespace UKHO.ADDS.EFS.Builder.Common.Configuration
+namespace UKHO.ADDS.EFS.Infrastructure.Builders.Configuration
 {
     public sealed class BuilderAddsEnvironment : IEquatable<BuilderAddsEnvironment>
     {
