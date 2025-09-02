@@ -113,6 +113,7 @@ paths:
           description: Not Modified
 components:
   schemas:
+    BatchId: {}     
     CustomExchangeSetResponse:
       required:
         - links
