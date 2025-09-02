@@ -1,6 +1,6 @@
 ﻿using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.Jobs;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
+using UKHO.ADDS.EFS.Domain.Services.Storage;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Services;
@@ -9,24 +9,26 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
 {
     internal class PipelineContextFactory<TBuild> where TBuild : Build, new()
     {
-        private readonly ITable<Job> _jobTable;
-        private readonly ITable<TBuild> _buildTable;
+        private readonly IRepository<Job> _jobRepository;
+        private readonly IRepository<TBuild> _buildRepository;
+
         private readonly IStorageService _storageService;
 
-        public PipelineContextFactory(ITable<Job> jobTable, ITable<TBuild> buildTable, IStorageService storageService)
+        public PipelineContextFactory(IRepository<Job> jobRepository, IRepository<TBuild> buildRepository, IStorageService storageService)
         {
-            _jobTable = jobTable;
-            _buildTable = buildTable;
+            _jobRepository = jobRepository;
+            _buildRepository = buildRepository;
             _storageService = storageService;
         }
 
+        // TODO Remove
         public async Task Persist(PipelineContext<TBuild> context)
         {
-            await _jobTable.UpsertAsync(context.Job);
+            await _jobRepository.UpsertAsync(context.Job);
 
             if (context.Build != null)
             {
-                await _buildTable.UpsertAsync(context.Build);
+                await _buildRepository.UpsertAsync(context.Build);
             }
         }
 
@@ -38,7 +40,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
             {
                 JobId = parameters.JobId,
                 DataStandard = parameters.DataStandard,
-                BatchId = BatchId.None
+                BatchId = BatchId.None,
             };
 
             var context = new PipelineContext<TBuild>(job, build, _storageService);
@@ -48,8 +50,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
 
         public async Task<PipelineContext<TBuild>> CreatePipelineContext(CompletionPipelineParameters parameters)
         {
-            var jobResult = await _jobTable.GetUniqueAsync((string)parameters.JobId);
-            var buildResult = await _buildTable.GetUniqueAsync((string)parameters.JobId);
+            var jobResult = await _jobRepository.GetUniqueAsync((string)parameters.JobId);
+            var buildResult = await _buildRepository.GetUniqueAsync((string)parameters.JobId);
 
             if (jobResult.IsSuccess(out var job) && buildResult.IsSuccess(out var build))
             {
