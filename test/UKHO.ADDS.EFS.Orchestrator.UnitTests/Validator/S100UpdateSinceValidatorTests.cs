@@ -126,5 +126,36 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
             Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "sinceDateTime cannot be more than 28 days in the past."));
             });
         }
+
+        [TestCase("S123")]
+        [TestCase("s456")]
+        [TestCase("S000")]
+        [TestCase("s999")]
+        public void WhenProductIdentifierIsValidFormat_ThenValidationSucceeds(string productIdentifier)
+        {
+            var request = CreateRequest(VALID_CALLBACK_URI, DateTime.UtcNow.AddDays(-1), productIdentifier);
+            var result = _s100UpdateSinceValidator.Validate(request);
+            Assert.That(result.IsValid, Is.True);
+        }
+
+        [TestCase("A123")]
+        [TestCase("S12")]
+        [TestCase("S1234")]
+        [TestCase("S12A")]
+        [TestCase("S 123")]
+        [TestCase("s12")]
+        [TestCase("1234")]
+        [TestCase("s1a3")]
+        [TestCase(null)]
+        public void WhenProductIdentifierIsInvalidFormat_ThenValidationFails(string? productIdentifier)
+        {
+            var request = CreateRequest(VALID_CALLBACK_URI, DateTime.UtcNow.AddDays(-1), productIdentifier);
+            var result = _s100UpdateSinceValidator.Validate(request);
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.IsValid, Is.False);
+                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == ProductIdentifierValidator.ValidationMessage));
+            });
+        }
     }
 }
