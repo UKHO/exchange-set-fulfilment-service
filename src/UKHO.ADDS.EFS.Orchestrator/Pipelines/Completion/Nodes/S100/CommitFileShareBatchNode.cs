@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.EFS.Domain.Builds;
+﻿using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
+using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.Builds.S100;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
@@ -27,8 +28,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
         {
             var job = context.Subject.Job!;
-            
-            var commitBatchResult = await _fileShareClient.CommitBatchAsync((string)job.BatchId!, (string)job.GetCorrelationId(), Environment.CancellationToken);
+            var buildCommitInfo = context.Subject.Build.BuildCommitInfo;
+
+            var batchHandle = new BatchHandle((string)job.BatchId!);
+
+            // Add file details to the batch handle for validation during commit
+            foreach (var fileDetail in buildCommitInfo!.FileDetails)
+            {
+                batchHandle.AddFile(fileDetail.FileName, fileDetail.Hash);
+            }
+
+            var commitBatchResult = await _fileShareClient.CommitBatchAsync(batchHandle, (string)job.GetCorrelationId(), Environment.CancellationToken);
 
             if (!commitBatchResult.IsSuccess(out _, out _))
             {

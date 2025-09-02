@@ -69,10 +69,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
         public async Task WhenCommitBatchAsyncIsCalled_ThenReturnsResultFromClient()
         {
             var expectedResult = A.Fake<IResult<CommitBatchResponse>>();
+            var batchHandle = new BatchHandle(BatchId);
             A.CallTo(() => _fakeFileShareReadWriteClient.CommitBatchAsync(A<BatchHandle>._, CorrelationId, CancellationToken.None))
                 .Returns(Task.FromResult(expectedResult));
 
-            var result = await _fileShareService.CommitBatchAsync(BatchId, CorrelationId, CancellationToken.None);
+            var result = await _fileShareService.CommitBatchAsync(batchHandle, CorrelationId, CancellationToken.None);
 
             A.CallTo(() => _fakeFileShareReadWriteClient.CommitBatchAsync(A<BatchHandle>.That.Matches(b => b.BatchId == BatchId), CorrelationId, CancellationToken.None)).MustHaveHappenedOnceExactly();
             Assert.That(result, Is.SameAs(expectedResult));
@@ -164,6 +165,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
             var fakeResult = A.Fake<IResult<CommitBatchResponse>>();
             IError expectedError = A.Fake<IError>();
             CommitBatchResponse dummyResponse = null;
+            var batchHandle = new BatchHandle(BatchId);
 
             A.CallTo(() => fakeResult.IsFailure(out expectedError, out dummyResponse))
                 .Returns(true);
@@ -171,7 +173,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
             A.CallTo(() => _fakeFileShareReadWriteClient.CommitBatchAsync(A<BatchHandle>._, CorrelationId, CancellationToken.None))
                 .Returns(Task.FromResult(fakeResult));
 
-            var result = await _fileShareService.CommitBatchAsync(BatchId, CorrelationId, CancellationToken.None);
+            var result = await _fileShareService.CommitBatchAsync(batchHandle, CorrelationId, CancellationToken.None);
 
             IError outError;
             var isFailureCalled = result.IsFailure(out outError, out _);
@@ -234,12 +236,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Services
             var fakeResult = A.Fake<IResult<CommitBatchResponse>>();
             var fakeError = A.Fake<IError>();
             CommitBatchResponse dummyResponse = null;
+            var batchHandle = new BatchHandle(BatchId);
 
             A.CallTo(() => fakeResult.IsFailure(out fakeError, out dummyResponse)).Returns(true);
             A.CallTo(() => _fakeFileShareReadWriteClient.CommitBatchAsync(A<BatchHandle>._, CorrelationId, CancellationToken.None))
                 .Returns(Task.FromResult(fakeResult));
 
-            await _fileShareService.CommitBatchAsync(BatchId, CorrelationId, CancellationToken.None);
+            await _fileShareService.CommitBatchAsync(batchHandle, CorrelationId, CancellationToken.None);
 
             A.CallTo(() => _logger.Log(A<LogLevel>._, A<EventId>._, A<LoggerMessageState>._, A<Exception>._, A<Func<LoggerMessageState, Exception?, string>>._)).MustHaveHappened();
         }

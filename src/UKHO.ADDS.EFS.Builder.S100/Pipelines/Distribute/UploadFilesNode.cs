@@ -1,7 +1,9 @@
-﻿using UKHO.ADDS.Clients.FileShareService.ReadWrite;
+﻿using System.Security.Cryptography;
+using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute.Logging;
+using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.Constants;
 using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.Jobs;
@@ -80,6 +82,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
                     return NodeResultStatus.Failed;
                 }
 
+                // Create and store build commit info with all zip files in the exchange set folder
+                var exchangeSetFolderPath = Path.Combine(context.Subject.ExchangeSetFilePath, context.Subject.ExchangeSetArchiveFolderName);
+                await CreateAndStoreBuildCommitInfoAsync(context, exchangeSetFolderPath);
+
                 return NodeResultStatus.Succeeded;
             }
             catch (Exception ex)
@@ -141,6 +147,30 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
             };
 
             _logger.LogUploadFilesNotFound(fileNotFoundLogView);
+        }
+
+        private static async Task CreateAndStoreBuildCommitInfoAsync(IExecutionContext<S100ExchangeSetPipelineContext> context, string exchangeSetFolderPath)
+        {
+            // Create BuildCommitInfo to store multiple file details
+            var buildCommitInfo = new BuildCommitInfo();
+            // Get all zip files in the exchange set folder
+            var zipFiles = Directory.GetFiles(exchangeSetFolderPath, "*.zip", SearchOption.TopDirectoryOnly);
+            // Process each zip file and calculate its hash
+            foreach (var zipFilePath in zipFiles)
+            {
+                var fileName = Path.GetFileName(zipFilePath);
+                // Calculate file hash using the same pattern as AddFiles method
+                await using var fileStream = CreateExchangeSetFileStream(zipFilePath);
+                fileStream.Seek(0, SeekOrigin.Begin);
+                using var md5 = MD5.Create();
+                var hashBytes = await md5.ComputeHashAsync(fileStream);
+                var fileHash = Convert.ToBase64String(hashBytes);
+                // Add file details to build commit info
+                buildCommitInfo.AddFileDetail(fileName, fileHash);
+            }
+
+            // Store the build commit info in the build object
+            context.Subject.Build.BuildCommitInfo = buildCommitInfo;
         }
     }
 }

@@ -22,7 +22,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result containing the commit batch response on success or error information on failure.</returns>
-        Task<IResult<CommitBatchResponse>> CommitBatchAsync(string batchId, string correlationId, CancellationToken cancellationToken);
+        Task<IResult<CommitBatchResponse>> CommitBatchAsync(BatchHandle batchHandle, string correlationId, CancellationToken cancellationToken);
 
         /// <summary>
         ///     Searches for committed batches in the File Share Service, excluding the current batch.

@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.EFS.Domain.Builds;
+﻿using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
+using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.Builds.S57;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
@@ -28,7 +29,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S57
         {
             var job = context.Subject.Job!;
 
-            var commitBatchResult = await _fileShareClient.CommitBatchAsync((string)job.BatchId!, (string)job.GetCorrelationId(), Environment.CancellationToken);
+            var batchHandle = new BatchHandle((string)job.BatchId!);
+
+            var commitBatchResult = await _fileShareClient.CommitBatchAsync(batchHandle, (string)job.GetCorrelationId(), Environment.CancellationToken);
 
             if (!commitBatchResult.IsSuccess(out _, out _))
             {

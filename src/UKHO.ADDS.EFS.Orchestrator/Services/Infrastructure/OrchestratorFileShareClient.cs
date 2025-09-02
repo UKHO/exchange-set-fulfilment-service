@@ -61,13 +61,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result containing the commit batch response on success or error information on failure.</returns>
-        public async Task<IResult<CommitBatchResponse>> CommitBatchAsync(string batchId, string correlationId, CancellationToken cancellationToken)
+        public async Task<IResult<CommitBatchResponse>> CommitBatchAsync(BatchHandle batchHandle, string correlationId, CancellationToken cancellationToken)
         {
-            var commitBatchResult = await _fileShareReadWriteClient.CommitBatchAsync(new BatchHandle(batchId), correlationId, cancellationToken);
+            var commitBatchResult = await _fileShareReadWriteClient.CommitBatchAsync(batchHandle, correlationId, cancellationToken);
 
             if (commitBatchResult.IsFailure(out var commitError, out _))
             {
-                LogFileShareServiceError(correlationId, CommitBatch, commitError, correlationId, batchId);
+                LogFileShareServiceError(correlationId, CommitBatch, commitError, correlationId, batchHandle.BatchId);
             }
 
             return commitBatchResult;
