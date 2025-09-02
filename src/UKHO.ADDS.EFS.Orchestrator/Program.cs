@@ -57,10 +57,10 @@ namespace UKHO.ADDS.EFS.Orchestrator
                             .Enrich.WithProperty("NodeName", ServiceConfiguration.NodeName)
                             .WriteTo.EventHub(options =>
                             {
-                                options.Environment = environment.ToString();
-                                options.System = ServiceConfiguration.ServiceName;
-                                options.Service = ServiceConfiguration.ServiceName;
-                                options.NodeName = ServiceConfiguration.NodeName;
+                                //options.Environment = environment.ToString();
+                                //options.System = ServiceConfiguration.ServiceName;
+                                //options.Service = ServiceConfiguration.ServiceName;
+                                //options.NodeName = ServiceConfiguration.NodeName;
                                 options.EventHubFullyQualifiedNamespace = fullyQualifiedNamespace;
                                 options.EventHubEntityPath = eventHubName;
                                 options.TokenCredential = new DefaultAzureCredential();
