@@ -1,5 +1,5 @@
 ﻿using UKHO.ADDS.EFS.Domain.Exceptions;
-using UKHO.ADDS.EFS.Domain.Extensions;
+using UKHO.ADDS.EFS.Domain.Implementation.Extensions;
 using Vogen;
 
 namespace UKHO.ADDS.EFS.Domain.Jobs

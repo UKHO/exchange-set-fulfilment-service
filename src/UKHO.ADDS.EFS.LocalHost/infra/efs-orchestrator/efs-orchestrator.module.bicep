@@ -146,7 +146,6 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2025-02-02-preview' = {
     type: 'UserAssigned'
     userAssignedIdentities: {
       '${efs_service_identity_outputs_id}': { }
-      '${efs_cae_outputs_azure_container_registry_managed_identity_id}': { }
     }
   }
   tags: {

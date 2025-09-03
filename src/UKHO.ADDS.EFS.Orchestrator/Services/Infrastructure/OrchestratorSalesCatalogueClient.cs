@@ -3,10 +3,10 @@ using Microsoft.Kiota.Abstractions;
 using Microsoft.Kiota.Http.HttpClientLibrary.Middleware.Options;
 using UKHO.ADDS.Clients.Kiota.SalesCatalogueService;
 using UKHO.ADDS.Clients.Kiota.SalesCatalogueService.Models;
-using UKHO.ADDS.EFS.Domain.Adapters.Products;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
-using UKHO.ADDS.EFS.Domain.Services.Implementation.Retries;
+using UKHO.ADDS.EFS.Infrastructure.Adapters.Products;
+using UKHO.ADDS.EFS.Infrastructure.Retries;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.Infrastructure.Results;
 

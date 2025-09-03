@@ -5,8 +5,8 @@ using UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute.Logging;
 using UKHO.ADDS.EFS.Domain.Constants;
 using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.Jobs;
-using UKHO.ADDS.EFS.Domain.Services.Factories;
-using UKHO.ADDS.EFS.Domain.Services.Implementation.Retries;
+using UKHO.ADDS.EFS.Domain.Services;
+using UKHO.ADDS.EFS.Infrastructure.Retries;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
@@ -19,6 +19,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
     internal class UploadFilesNode : S100ExchangeSetPipelineNode
     {
         private readonly IFileShareReadWriteClient _fileShareReadWriteClient;
+        private readonly IFileNameGeneratorService _fileNameGeneratorService;
         private ILogger _logger;
 
         private const int FileBufferSize = 81920;
@@ -27,10 +28,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
         /// Initializes a new instance of the <see cref="UploadFilesNode"/> class.
         /// </summary>
         /// <param name="fileShareReadWriteClient">The file share read/write client.</param>
+        /// <param name="fileNameGeneratorService">A file name generator service</param>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="fileShareReadWriteClient"/> is null.</exception>
-        public UploadFilesNode(IFileShareReadWriteClient fileShareReadWriteClient) : base()
+        public UploadFilesNode(IFileShareReadWriteClient fileShareReadWriteClient, IFileNameGeneratorService fileNameGeneratorService) : base()
         {
             _fileShareReadWriteClient = fileShareReadWriteClient ?? throw new ArgumentNullException(nameof(fileShareReadWriteClient));
+            _fileNameGeneratorService = fileNameGeneratorService;
         }
 
         /// <summary>
@@ -41,13 +44,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<S100ExchangeSetPipelineContext> context)
         {
             _logger = context.Subject.LoggerFactory.CreateLogger<UploadFilesNode>();
+
             var batchId = context.Subject.BatchId;
             var correlationId = context.Subject.Build.GetCorrelationId();
             var jobId = context.Subject.Build!.JobId;
 
-            var fileNameGenerator = new FileNameGenerator(context.Subject.ExchangeSetNameTemplate);
-
-            var fileName = fileNameGenerator.GenerateFileName(jobId);
+            var fileName = _fileNameGeneratorService.GenerateFileName(context.Subject.ExchangeSetNameTemplate, jobId);
             var filePath = Path.Combine(context.Subject.ExchangeSetFilePath, context.Subject.ExchangeSetArchiveFolderName, $"{jobId}.zip");
 
             if (!File.Exists(filePath))

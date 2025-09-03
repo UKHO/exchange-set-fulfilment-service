@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.EFS.Domain.External;
+﻿using UKHO.ADDS.EFS.Domain.Exceptions;
+using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Messages;
 using UKHO.ADDS.EFS.Domain.Products;
@@ -34,15 +35,36 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
             };
         }
 
-        public static AssemblyPipelineParameters CreateFrom(JobRequestApiMessage message, IConfiguration configuration, CorrelationId correlationId) =>
-            new()
+        public static AssemblyPipelineParameters CreateFrom(JobRequestApiMessage message, IConfiguration configuration, CorrelationId correlationId)
+        {
+            return new AssemblyPipelineParameters()
             {
                 Timestamp = DateTime.UtcNow,
                 DataStandard = message.DataStandard,
-                Products = message.Products,
+                Products = CreateProductNameList(message.Products),
                 Filter = message.Filter,
-                JobId = Domain.Jobs.JobId.From((string)correlationId),
+                JobId = JobId.From((string)correlationId),
                 Configuration = configuration
             };
+        }
+
+        private static ProductNameList CreateProductNameList(string[] messageProducts)
+        {
+            var list = new ProductNameList();
+
+            try
+            {
+                foreach (var product in messageProducts.Where(s => !string.IsNullOrEmpty(s))) // Scalar UI adds an empty product name by default as a placeholder/example
+                {
+                    list.Add(ProductName.From(product));
+                }
+            }
+            catch (ValidationException ex)
+            {
+                throw new ArgumentException("One or more product names are invalid", ex);
+            }
+
+            return list;
+        }
     }
 }
