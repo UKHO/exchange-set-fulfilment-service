@@ -1,5 +1,6 @@
 variables:
 - group: EFS-Dev-Variables
 - group: ESS-Deployment-Variables-DEV
+- template: resource-values.yml
 - name: AzureSubscription
   value: Exchange-Set-Service-Dev-A-008-02
