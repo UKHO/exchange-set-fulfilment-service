@@ -8,6 +8,7 @@ using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Domain.Services;
 using UKHO.ADDS.EFS.Domain.Services.Storage;
 using UKHO.ADDS.EFS.Infrastructure.Services;
+using UKHO.ADDS.EFS.Infrastructure.Storage.Queues;
 using UKHO.ADDS.EFS.Infrastructure.Storage.Repositories;
 using UKHO.ADDS.EFS.Infrastructure.Storage.Repositories.S100;
 using UKHO.ADDS.EFS.Infrastructure.Storage.Repositories.S57;
@@ -28,6 +29,8 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
             collection.AddSingleton<IRepository<BuildMemento>, BuildMementoRepository>();
 
             collection.AddTransient<IFileNameGeneratorService, TemplateFileNameGeneratorService>();
+
+            collection.AddSingleton<IQueueFactory, AzureQueueFactory>();
 
             collection.AddSingleton<IHashingService, BlakeHashingService>();
             collection.AddSingleton<IStorageService, StorageService>();

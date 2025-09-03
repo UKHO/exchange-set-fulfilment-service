@@ -2,7 +2,7 @@
 using UKHO.ADDS.EFS.Domain.Services.Storage;
 using UKHO.ADDS.Infrastructure.Results;
 
-namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Infrastructure.Tables.Implementation
+namespace UKHO.ADDS.EFS.Domain.Services.UnitTests.Storage.Repositories
 {
     /// <summary>
     ///     An in-memory fake implementation of IRepository for testing.

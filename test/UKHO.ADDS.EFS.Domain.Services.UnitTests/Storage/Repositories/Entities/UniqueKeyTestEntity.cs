@@ -1,4 +1,4 @@
-﻿namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Infrastructure.Tables.Implementation.Entities
+﻿namespace UKHO.ADDS.EFS.Domain.Services.UnitTests.Storage.Repositories.Entities
 {
     public class UniqueKeyTestEntity
     {

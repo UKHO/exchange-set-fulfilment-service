@@ -14,6 +14,7 @@ using UKHO.ADDS.EFS.Domain.Implementation.Extensions;
 using UKHO.ADDS.EFS.Domain.Services.Injection;
 using UKHO.ADDS.EFS.Infrastructure.Builders.Configuration;
 using UKHO.ADDS.EFS.Infrastructure.Builders.Factories;
+using UKHO.ADDS.EFS.Infrastructure.Builders.Injection;
 using UKHO.ADDS.EFS.Infrastructure.Builders.Logging;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
@@ -101,6 +102,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
             services.AddIICToolServices(configuration);
 
             services.AddDomain();
+            services.AddBuilderInfrastructure();
 
             return services;
         }

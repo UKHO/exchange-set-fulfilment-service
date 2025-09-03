@@ -1,8 +1,8 @@
-﻿using Azure.Storage.Queues;
-using UKHO.ADDS.EFS.Domain.Builds;
+﻿using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.Builds.S57;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Services;
+using UKHO.ADDS.EFS.Domain.Services.Storage;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
@@ -15,14 +15,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S57
     internal class ScheduleBuildNode : AssemblyPipelineNode<S57Build>
     {
         private readonly IStorageService _storageService;
-        private readonly QueueClient _queueClient;
+        private readonly IQueue _queue;
 
 
-        public ScheduleBuildNode(AssemblyNodeEnvironment nodeEnvironment, QueueServiceClient queueServiceClient, IStorageService storageService)
+        public ScheduleBuildNode(AssemblyNodeEnvironment nodeEnvironment, IQueueFactory queueFactory, IStorageService storageService)
             : base(nodeEnvironment)
         {
             _storageService = storageService;
-            _queueClient = queueServiceClient.GetQueueClient(StorageConfiguration.S57BuildRequestQueueName);
+            _queue = queueFactory.GetQueue(StorageConfiguration.S57BuildRequestQueueName);
         }
 
         public override Task<bool> ShouldExecuteAsync(IExecutionContext<PipelineContext<S57Build>> context)
@@ -53,7 +53,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S57
                 };
 
                 var messageJson = JsonCodec.Encode(request);
-                await _queueClient.SendMessageAsync(messageJson, Environment.CancellationToken);
+                await _queue.EnqueueAsync(messageJson, Environment.CancellationToken);
 
                 await context.Subject.SignalBuildScheduled();
 

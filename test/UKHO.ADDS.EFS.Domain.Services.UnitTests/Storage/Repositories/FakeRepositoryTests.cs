@@ -1,10 +1,10 @@
-﻿using UKHO.ADDS.EFS.Orchestrator.UnitTests.Infrastructure.Tables.Implementation.Entities;
+﻿using UKHO.ADDS.EFS.Domain.Services.UnitTests.Storage.Repositories.Entities;
 using UKHO.ADDS.Infrastructure.Results;
 using Xunit;
 using Xunit.Abstractions;
 using Assert = Xunit.Assert;
 
-namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Infrastructure.Tables.Implementation
+namespace UKHO.ADDS.EFS.Domain.Services.UnitTests.Storage.Repositories
 {
     public class FakeRepositoryTests : GivenWhenThenTest
     {
