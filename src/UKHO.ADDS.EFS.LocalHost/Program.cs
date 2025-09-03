@@ -57,7 +57,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             var efsContainerAppsEnvironmentName = builder.AddParameter("efsContainerAppsEnvironmentName");
             var efsContainerRegistryName = builder.AddParameter("efsContainerRegistryName");
             var efsApplicationInsightsName = builder.AddParameter("efsApplicationInsightsName");
-            var efsEventHubNamespaceName = builder.AddParameter("efsEventHubNamespaceName");
+            var efsEventHubsNamespaceName = builder.AddParameter("efsEventHubsNamespaceName");
             var efsAppConfigurationName = builder.AddParameter("efsAppConfigurationName");
             var efsStorageAccountName = builder.AddParameter("efsStorageAccountName");
             var addsEnvironment = builder.AddParameter("addsEnvironment");
@@ -72,7 +72,7 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             // Event hubs
             var eventHubs = builder.ExecutionContext.IsPublishMode
-                ? builder.AddAzureEventHubs(ServiceConfiguration.EventHubNamespaceName).PublishAsExisting(efsEventHubNamespaceName, efsRetainResourceGroup)
+                ? builder.AddAzureEventHubs(ServiceConfiguration.EventHubsNamespaceName).PublishAsExisting(efsEventHubsNamespaceName, efsRetainResourceGroup)
                 : null;
 
             // Container registry

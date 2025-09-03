@@ -13,7 +13,7 @@ variables:
   value: efscae
 - name: EFS_APPLICATION_INSIGHTS_PARTIAL_NAME
   value: efs_app_insights
-- name: EFS_EVENT_HUB_NAMESPACE_PARTIAL_NAME
+- name: EFS_EVENT_HUBS_NAMESPACE_PARTIAL_NAME
   value: efs-events-namespace
 - name: EFS_APP_CONFIGURATION_PARTIAL_NAME
   value: efsappconfig

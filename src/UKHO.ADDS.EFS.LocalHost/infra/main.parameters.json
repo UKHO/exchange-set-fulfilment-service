@@ -23,8 +23,8 @@
       "efsContainerRegistryName": {
         "value": "${AZURE_EFS_CONTAINER_REGISTRY_NAME}"
       },
-      "efsEventHubNamespaceName": {
-        "value": "${AZURE_EFS_EVENT_HUB_NAMESPACE_NAME}"
+      "efsEventHubsNamespaceName": {
+        "value": "${AZURE_EFS_EVENT_HUBS_NAMESPACE_NAME}"
       },
       "efsRetainResourceGroup": {
         "value": "${AZURE_EFS_RETAIN_RESOURCE_GROUP}"
@@ -43,4 +43,3 @@
       }
     }
   }
-  
