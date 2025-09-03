@@ -5,9 +5,9 @@ using UKHO.ADDS.EFS.Orchestrator.Validators;
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
 {
     [TestFixture]
-    public class S100ProductVersionsRequestValidatorTests
+    public class S100ProductVersionsValidatorTests
     {
-        private S100ProductVersionsRequestValidator _s100ProductVersionsRequestValidator;
+        private S100ProductVersionsValidator _s100ProductVersionsValidator;
         private const string VALID_CALLBACK_URI = "https://valid.com/callback";
         private const string INVALID_CALLBACK_URI = "http://invalid.com/callback";
         private const string VALID_PRODUCT_NAME = "ValidProduct";
@@ -16,16 +16,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
         [SetUp]
         public void SetUp()
         {
-            _s100ProductVersionsRequestValidator = new S100ProductVersionsRequestValidator();
-        }
-
-        private static S100ProductVersionsRequest CreateRequest(List<S100ProductVersion>? productVersions, string? callbackUri)
-        {
-            return new S100ProductVersionsRequest
-            {
-                ProductVersions = productVersions!,
-                CallbackUri = callbackUri
-            };
+            _s100ProductVersionsValidator = new S100ProductVersionsValidator();
         }
 
         private static S100ProductVersion CreateProductVersion(string productName, int editionNumber, int updateNumber)
@@ -46,16 +37,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
                 CreateProductVersion(VALID_PRODUCT_NAME, 1, 0),
                 CreateProductVersion("AnotherProduct", 2, 1)
             };
-            var request = CreateRequest(productVersions, VALID_CALLBACK_URI);
-            var result = _s100ProductVersionsRequestValidator.Validate(request);
+            var result = _s100ProductVersionsValidator.Validate((productVersions, VALID_CALLBACK_URI));
             Assert.That(result.IsValid, Is.True);
         }
 
         [Test]
         public void WhenProductVersionsIsNull_ThenValidationFails()
         {
-            var request = CreateRequest(null, VALID_CALLBACK_URI);
-            var result = _s100ProductVersionsRequestValidator.Validate(request);
+            var result = _s100ProductVersionsValidator.Validate((null!, VALID_CALLBACK_URI));
             Assert.Multiple(() =>
             {
                 Assert.That(result.IsValid, Is.False);
@@ -66,8 +55,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
         [Test]
         public void WhenProductVersionsIsEmpty_ThenValidationFails()
         {
-            var request = CreateRequest(new List<S100ProductVersion>(), VALID_CALLBACK_URI);
-            var result = _s100ProductVersionsRequestValidator.Validate(request);
+            var result = _s100ProductVersionsValidator.Validate((new List<S100ProductVersion>(), VALID_CALLBACK_URI));
             Assert.Multiple(() =>
             {
                 Assert.That(result.IsValid, Is.False);
@@ -83,8 +71,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
             {
                 CreateProductVersion(VALID_PRODUCT_NAME, editionNumber, updateNumber)
             };
-            var request = CreateRequest(productVersions, VALID_CALLBACK_URI);
-            var result = _s100ProductVersionsRequestValidator.Validate(request);
+            var result = _s100ProductVersionsValidator.Validate((productVersions, VALID_CALLBACK_URI));
             Assert.Multiple(() =>
             {
                 Assert.That(result.IsValid, Is.False);
@@ -99,8 +86,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
             {
                 CreateProductVersion(VALID_PRODUCT_NAME, 1, updateNumber)
             };
-            var request = CreateRequest(productVersions, VALID_CALLBACK_URI);
-            var result = _s100ProductVersionsRequestValidator.Validate(request);
+            var result = _s100ProductVersionsValidator.Validate((productVersions, VALID_CALLBACK_URI));
             Assert.Multiple(() =>
             {
                 Assert.That(result.IsValid, Is.False);
@@ -117,8 +103,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
             {
                 CreateProductVersion(productName, 1, 0)
             };
-            var request = CreateRequest(productVersions, VALID_CALLBACK_URI);
-            var result = _s100ProductVersionsRequestValidator.Validate(request);
+            var result = _s100ProductVersionsValidator.Validate((productVersions, VALID_CALLBACK_URI));
             Assert.Multiple(() =>
             {
                 Assert.That(result.IsValid, Is.False);
@@ -136,8 +121,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
             {
                 CreateProductVersion(VALID_PRODUCT_NAME, 1, 0)
             };
-            var request = CreateRequest(productVersions, callbackUri);
-            var result = _s100ProductVersionsRequestValidator.Validate(request);
+            var result = _s100ProductVersionsValidator.Validate((productVersions, callbackUri));
             if (isValid)
             {
                 Assert.That(result.IsValid, Is.True);
@@ -146,7 +130,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
             {
                 Assert.Multiple(() =>
                 {
-                       Assert.That(result.IsValid, Is.False);
+                    Assert.That(result.IsValid, Is.False);
                     Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "Invalid callbackUri format."));
                 });
             }
@@ -162,8 +146,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
                 CreateProductVersion("AnotherProduct", -1, 0),
                 CreateProductVersion("ThirdProduct", 1, -1)
             };
-            var request = CreateRequest(productVersions, INVALID_CALLBACK_URI);
-            var result = _s100ProductVersionsRequestValidator.Validate(request);
+            var result = _s100ProductVersionsValidator.Validate((productVersions, INVALID_CALLBACK_URI));
             Assert.Multiple(() =>
             {
                 Assert.That(result.IsValid, Is.False);

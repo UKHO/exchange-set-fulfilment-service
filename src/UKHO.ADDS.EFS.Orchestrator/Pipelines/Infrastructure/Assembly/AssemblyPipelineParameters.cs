@@ -84,14 +84,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         /// <summary>
         /// Creates parameters from S100 Product Versions request
         /// </summary>
-        public static AssemblyPipelineParameters CreateFromS100ProductVersions(S100ProductVersionsRequest request,
+        public static AssemblyPipelineParameters CreateFromS100ProductVersions(IEnumerable<S100ProductVersion> productVersions,
             IConfiguration configuration, string correlationId, string? callbackUri = null) =>
             new()
             {
                 Version = MessageVersion.From(2),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                Products = CreateProductNameListFromVersions(request.ProductVersions),
+                Products = CreateProductNameListFromVersions(productVersions),
                 Filter = "productVersions",
                 JobId = Domain.Jobs.JobId.From(correlationId),
                 Configuration = configuration,
@@ -143,7 +143,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         /// <summary>
         /// Creates a ProductNameList from S100 product versions
         /// </summary>
-        private static ProductNameList CreateProductNameListFromVersions(List<S100ProductVersion> productVersions)
+        private static ProductNameList CreateProductNameListFromVersions(IEnumerable<S100ProductVersion> productVersions)
         {
             var list = new ProductNameList();
 

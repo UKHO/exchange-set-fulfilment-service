@@ -17,20 +17,20 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
 {
     private readonly ILogger<CreateInputValidationNode> _logger;
     private readonly S100ProductNamesRequestValidator _productNamesValidator;
-    private readonly S100ProductVersionsRequestValidator _productVersionsRequestValidator;
+    private readonly S100ProductVersionsValidator _productVersionsValidator;
     private readonly S100UpdateSinceValidator _updateSinceValidator;
 
     public CreateInputValidationNode(
         AssemblyNodeEnvironment nodeEnvironment,
         ILogger<CreateInputValidationNode> logger,
         S100ProductNamesRequestValidator productNamesValidator,
-        S100ProductVersionsRequestValidator productVersionsRequestValidator,
+        S100ProductVersionsValidator productVersionsValidator,
         S100UpdateSinceValidator updateSinceValidator)
         : base(nodeEnvironment)
     {
         _logger = logger;
         _productNamesValidator = productNamesValidator;
-        _productVersionsRequestValidator = productVersionsRequestValidator;
+        _productVersionsValidator = productVersionsValidator;
         _updateSinceValidator = updateSinceValidator;
     }
 
@@ -120,10 +120,10 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
     {
         // Parse product versions from requested products
         var productVersions = job.RequestedProducts.Names
-            .Select(p => p.Value) 
+            .Select(p => p.Value)
             .Select(p =>
             {
-                var parts = p.Split(':'); 
+                var parts = p.Split(':');
                 return new S100ProductVersion
                 {
                     ProductName = parts.ElementAtOrDefault(0) ?? string.Empty,
@@ -133,13 +133,7 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
             })
             .ToList();
 
-        var request = new S100ProductVersionsRequest
-        {
-            ProductVersions = productVersions,
-            CallbackUri = job.CallbackUri
-        };
-
-        return await _productVersionsRequestValidator.ValidateAsync(request);
+        return await Task.FromResult(_productVersionsValidator.Validate((productVersions, job.CallbackUri)));
     }
 
     private async Task<FluentValidation.Results.ValidationResult> ValidateUpdateSinceRequest(Job job)
