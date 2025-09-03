@@ -28,14 +28,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             var job = context.Subject.Job;
             var build = context.Subject.Build;
 
-            var createBatchResponseResult = await _fileService.CreateBatchAsync((string)job.GetCorrelationId(), Environment.CancellationToken);
-
-            if (createBatchResponseResult.IsSuccess(out var batchHandle, out _))
+            try
             {
-                job.BatchId = BatchId.From(batchHandle.BatchId);
-                build.BatchId = BatchId.From(batchHandle.BatchId);
+                var batch = await _fileService.CreateBatchAsync((string)job.GetCorrelationId(), Environment.CancellationToken);
+
+                job.BatchId = batch.BatchId;
+                build.BatchId = batch.BatchId;
             }
-            else
+            catch (Exception ex)
             {
                 // Could not create a batch, so the job should fail
                 await context.Subject.SignalAssemblyError();

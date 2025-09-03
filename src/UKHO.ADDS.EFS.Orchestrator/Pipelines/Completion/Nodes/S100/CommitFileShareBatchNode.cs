@@ -27,14 +27,16 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
         {
             var job = context.Subject.Job!;
-            
-            var commitBatchResult = await _fileService.CommitBatchAsync((string)job.BatchId!, (string)job.GetCorrelationId(), Environment.CancellationToken);
 
-            if (!commitBatchResult.IsSuccess(out _, out _))
+            try
+            {
+                var commit = await _fileService.CommitBatchAsync((string)job.BatchId!, (string)job.GetCorrelationId(), Environment.CancellationToken);
+            }
+            catch (Exception ex)
             {
                 return NodeResultStatus.Failed;
             }
-
+            
             return NodeResultStatus.Succeeded;
         }
     }

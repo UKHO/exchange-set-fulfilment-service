@@ -166,8 +166,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         [LoggerMessage(CreateErrorFileNodeFailedId, LogLevel.Error, "CreateErrorFileNode failed for correlation ID: {correlationId} | Timestamp: {timestamp}", EventName = nameof(CreateErrorFileNodeFailed))]
         public static partial void LogCreateErrorFileNodeFailed(this ILogger logger, CorrelationId correlationId, DateTimeOffset timestamp, Exception exception);
 
-        [LoggerMessage(CreateErrorFileAddFileFailedId, LogLevel.Error, "Failed to add error file to batch for correlation ID: {correlationId} | Timestamp: {timestamp} | Error: {@error}", EventName = nameof(CreateErrorFileAddFileFailed))]
-        public static partial void LogCreateErrorFileAddFileFailed(this ILogger logger, CorrelationId correlationId, DateTimeOffset timestamp, [LogProperties] IError error);
+        [LoggerMessage(CreateErrorFileAddFileFailedId, LogLevel.Error, "Failed to add error file to batch for correlation ID: {correlationId} | Timestamp: {timestamp} | Error: {@message}", EventName = nameof(CreateErrorFileAddFileFailed))]
+        public static partial void LogCreateErrorFileAddFileFailed(this ILogger logger, CorrelationId correlationId, DateTimeOffset timestamp, string message);
 
         [LoggerMessage(SchedulerJobStartedId, LogLevel.Information, "SchedulerJob started for correlationId - {CorrelationId} at: {Time}", EventName = nameof(LogSchedulerJobStarted))]
         public static partial void LogSchedulerJobStarted(this ILogger logger, CorrelationId correlationId, DateTime? time);

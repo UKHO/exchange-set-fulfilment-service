@@ -47,23 +47,27 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
 
                 var fileName = GetErrorFileName(job.Id);
 
-                var addFileResult = await _fileService.AddFileToBatchAsync(
-                    (string)job.BatchId,
-                    errorFileStream,
-                    fileName,
-                    ApiHeaderKeys.ContentTypeTextPlain,
-                    (string)job.GetCorrelationId(),
-                    Environment.CancellationToken);
+                try
+                {
+                    var attributeList = await _fileService.AddFileToBatchAsync(
+                        (string)job.BatchId,
+                        errorFileStream,
+                        fileName,
+                        ApiHeaderKeys.ContentTypeTextPlain,
+                        (string)job.GetCorrelationId(),
+                        Environment.CancellationToken);
 
-                if (!addFileResult.IsSuccess(out _, out var error))
+                    context.Subject.IsErrorFileCreated = true;
+                    _logger.LogCreateErrorFile(job.GetCorrelationId(), DateTimeOffset.UtcNow);
+                }
+                catch (Exception e)
                 {
                     context.Subject.IsErrorFileCreated = false;
-                    _logger.LogCreateErrorFileAddFileFailed(job.GetCorrelationId(), DateTimeOffset.UtcNow, error);
+                    _logger.LogCreateErrorFileAddFileFailed(job.GetCorrelationId(), DateTimeOffset.UtcNow, e.Message);
                     return NodeResultStatus.Failed;
+
                 }
 
-                context.Subject.IsErrorFileCreated = true;
-                _logger.LogCreateErrorFile(job.GetCorrelationId(), DateTimeOffset.UtcNow);
                 return NodeResultStatus.Succeeded;
             }
             catch (Exception ex)

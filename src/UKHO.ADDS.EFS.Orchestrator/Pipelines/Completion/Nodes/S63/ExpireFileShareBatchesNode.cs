@@ -30,22 +30,25 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S63
         {
             var job = context.Subject.Job!;
 
-            var searchResult = await _fileService.SearchCommittedBatchesExcludingCurrentAsync((string)job.BatchId, (string)job.GetCorrelationId(), Environment.CancellationToken);
-            if (!searchResult.IsSuccess(out var searchResponse, out _))
+            try
+            {
+                var searchResult = await _fileService.SearchCommittedBatchesExcludingCurrentAsync((string)job.BatchId, (string)job.GetCorrelationId(), Environment.CancellationToken);
+
+                if (searchResult?.Entries == null || searchResult.Entries.Count == 0)
+                {
+                    return NodeResultStatus.Succeeded;
+                }
+
+                var expiryResult = await _fileService.SetExpiryDateAsync(searchResult.Entries, (string)job.GetCorrelationId(), Environment.CancellationToken);
+
+                await _timestampService.SetTimestampForJobAsync(job);
+            }
+            catch (Exception ex)
             {
                 return NodeResultStatus.Failed;
             }
 
-            if (searchResponse?.Entries == null || searchResponse.Entries.Count == 0)
-            {
-                return NodeResultStatus.Succeeded;
-            }
-
             // TODO State management
-
-            var expiryResult = await _fileService.SetExpiryDateAsync(searchResponse.Entries, (string)job.GetCorrelationId(), Environment.CancellationToken);
-
-            await _timestampService.SetTimestampForJobAsync(job);
 
             return NodeResultStatus.Succeeded;
         }
