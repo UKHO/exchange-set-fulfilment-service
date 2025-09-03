@@ -240,12 +240,6 @@ jobs:
                 AppName: adds-mocks-efs
                 MaxWaitTime: 1
 
-          # - template: check-container.yml
-          #   parameters:
-          #     AzureSubscription: ${{ variables.AzureSubscription }}
-          #     AppName: efs-redis
-          #     MaxWaitTime: 1
-
           - script: |
               DOMAIN=$(azd env get-value EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN)
               URL="https://efs-orchestrator.$DOMAIN"
