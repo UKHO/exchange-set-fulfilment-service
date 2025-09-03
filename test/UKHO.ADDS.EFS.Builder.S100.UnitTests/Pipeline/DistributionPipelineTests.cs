@@ -5,8 +5,9 @@ using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute;
-using UKHO.ADDS.EFS.Builds.S100;
-using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.Domain.Builds.S100;
+using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Services;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
@@ -15,6 +16,8 @@ using UKHO.ADDS.Infrastructure.Results;
 public class DistributionPipelineTests
 {
     private IFileShareReadWriteClient _fileShareReadWriteClient;
+    private IFileNameGeneratorService _fileNameGeneratorService;
+
     private DistributionPipeline _distributionPipeline;
     private IExecutionContext<S100ExchangeSetPipelineContext> _executionContext;
     private S100ExchangeSetPipelineContext _pipelineContext;
@@ -37,13 +40,15 @@ public class DistributionPipelineTests
     {
         var tempPath = Path.GetTempPath();
         _fileShareReadWriteClient = A.Fake<IFileShareReadWriteClient>();
-        _distributionPipeline = new DistributionPipeline(_fileShareReadWriteClient);
+        _fileNameGeneratorService = A.Fake<IFileNameGeneratorService>();
+
+        _distributionPipeline = new DistributionPipeline(_fileShareReadWriteClient, _fileNameGeneratorService);
         _pipelineContext = new S100ExchangeSetPipelineContext(null, _toolClient, null, null, _loggerFactory)
         {
             Build = new S100Build()
             {
-                JobId = "testId",
-                BatchId = "a-batch-id",
+                JobId = JobId.From("testId"),
+                BatchId = BatchId.From("a-batch-id"),
                 DataStandard = DataStandard.S100
             },
             WorkspaceAuthenticationKey = "authKey",
@@ -101,7 +106,7 @@ public class DistributionPipelineTests
     [Test]
     public void WhenFileShareReadWriteClientIsNull_ThenThrowsArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => new DistributionPipeline(null));
+        Assert.Throws<ArgumentNullException>(() => new DistributionPipeline(null, null));
     }
 
     [Test]
@@ -130,7 +135,7 @@ public class DistributionPipelineTests
         var fakeError = A.Fake<IError>();
 
         A.CallTo(() => fakeResult.IsFailure(out fakeError!, out outStream!)).Returns(true);
-        A.CallTo(() => _executionContext.Subject.ToolClient.ExtractExchangeSetAsync(A<string>._, A<string>._, A<string>._, A<string>._))
+        A.CallTo(() => _executionContext.Subject.ToolClient.ExtractExchangeSetAsync(A<JobId>._, A<string>._, A<string>._))
             .Returns(Task.FromResult(fakeResult));
 
         var result = await _distributionPipeline.ExecutePipeline(_pipelineContext);

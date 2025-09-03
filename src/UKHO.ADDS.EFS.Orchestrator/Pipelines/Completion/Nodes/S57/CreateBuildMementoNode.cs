@@ -1,7 +1,6 @@
-﻿using UKHO.ADDS.EFS.Builds;
-using UKHO.ADDS.EFS.Builds.S57;
-using UKHO.ADDS.EFS.Configuration.Orchestrator;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
+﻿using UKHO.ADDS.EFS.Domain.Builds;
+using UKHO.ADDS.EFS.Domain.Builds.S57;
+using UKHO.ADDS.EFS.Domain.Services.Storage;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
 using UKHO.ADDS.Infrastructure.Pipelines;
@@ -11,12 +10,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S57
 {
     internal class CreateBuildMementoNode : CompletionPipelineNode<S57Build>
     {
-        private readonly ITable<BuildMemento> _buildMementoTable;
+        private readonly IRepository<BuildMemento> _buildRepositoryTable;
 
-        public CreateBuildMementoNode(CompletionNodeEnvironment nodeEnvironment, ITable<BuildMemento> buildMementoTable)
+        public CreateBuildMementoNode(CompletionNodeEnvironment nodeEnvironment, IRepository<BuildMemento> buildRepositoryTable)
             : base(nodeEnvironment)
         {
-            _buildMementoTable = buildMementoTable;
+            _buildRepositoryTable = buildRepositoryTable;
         }
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<PipelineContext<S57Build>> context)
@@ -28,7 +27,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S57
                 BuilderSteps = context.Subject.Build.Statuses,
             };
 
-            await _buildMementoTable.AddAsync(memento);
+            await _buildRepositoryTable.AddAsync(memento);
 
             if (Environment.BuilderExitCode != BuilderExitCode.Success)
             {

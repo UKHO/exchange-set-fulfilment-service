@@ -2,11 +2,11 @@
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
-using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble;
-using UKHO.ADDS.EFS.Builds.S100;
-using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.Domain.Builds.S100;
+using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
@@ -40,21 +40,21 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
             {
                 Build = new S100Build
                 {
-                    JobId = "TestCorrelationId",
+                    JobId = JobId.From("TestCorrelationId"),
                     DataStandard = DataStandard.S100,
-                    BatchId = "a-batch-id",
-                    ProductNames =
+                    BatchId = BatchId.From("a-batch-id"),
+                    ProductEditions =
                     [
-                        new S100ProductNames 
+                        new ProductEdition 
                         {
-                            ProductName = "TestProduct",
-                            EditionNumber = 1,
+                            ProductName = ProductName.From("101TestProduct"),
+                            EditionNumber = EditionNumber.From(1),
                             UpdateNumbers = [0, 1]
                         },
-                        new S100ProductNames 
+                        new ProductEdition 
                         {
-                            ProductName = "TestProduct2",
-                            EditionNumber = 2,
+                            ProductName = ProductName.From("101TestProduct2"),
+                            EditionNumber = EditionNumber.From(2),
                             UpdateNumbers = [0, 1]
                         }
                     ]
@@ -97,7 +97,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         public async Task WhenPerformExecuteAsyncCalledWithNoProductsInContext_ThenReturnNoRun()
         {
             _executionContext.Subject.Build.Products = [];
-            _executionContext.Subject.Build.ProductNames = [];
+            _executionContext.Subject.Build.ProductEditions = [];
 
             var result = await _productSearchNode.ExecuteAsync(_executionContext);
 
@@ -135,7 +135,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [Test]
         public async Task WhenPerformExecuteAsyncIsCalled_ThenQueryIsCorrectlyConfigured()
         {
-            var searchQuery = "BusinessUnit eq 'ADDS-S100' and $batch(ProductType) eq 'S-100' and (($batch(ProductName) eq 'TestProduct2' and $batch(EditionNumber) eq '2' and (($batch(UpdateNumber) eq '1' ))))";
+            var searchQuery = "BusinessUnit eq 'ADDS-S100' and $batch(ProductType) eq 'S-100' and (($batch(ProductName) eq '101TESTPRODUCT2' and $batch(EditionNumber) eq '2' and (($batch(UpdateNumber) eq '1' ))))";
             string? capturedQuery = null;
             var batchResponse = new BatchSearchResponse
             {
@@ -149,12 +149,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
                 })
                 .Returns(Result.Success(batchResponse));
 
-            _executionContext.Subject.Build.ProductNames = new List<S100ProductNames>
+            _executionContext.Subject.Build.ProductEditions = new List<ProductEdition>
             {
                 new()
                 {
-                    ProductName = "TestProduct2",
-                    EditionNumber = 2,
+                    ProductName = ProductName.From("101TestProduct2"),
+                    EditionNumber = EditionNumber.From(2),
                     UpdateNumbers = new List<int> { 1 }
                 }
             };

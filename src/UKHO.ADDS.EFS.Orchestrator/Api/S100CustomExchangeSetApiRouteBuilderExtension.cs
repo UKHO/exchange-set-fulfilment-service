@@ -34,7 +34,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 {
                     var correlationId = httpContext.GetCorrelationId();
 
-                    var parameters = AssemblyPipelineParameters.CreateFromS100ProductNames(productNames, configuration, correlationId, callbackUri);
+                    var parameters = AssemblyPipelineParameters.CreateFromS100ProductNames(productNames, configuration, (string)correlationId, callbackUri);
                     var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
 
                     logger.LogAssemblyPipelineStarted(parameters);
@@ -75,7 +75,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 {
                     var correlationId = httpContext.GetCorrelationId();
 
-                    var parameters = AssemblyPipelineParameters.CreateFromS100ProductVersions(request, configuration, correlationId, callbackUri);
+                    var parameters = AssemblyPipelineParameters.CreateFromS100ProductVersions(request, configuration, (string)correlationId, callbackUri);
                     var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
 
                     logger.LogAssemblyPipelineStarted(parameters);
@@ -112,7 +112,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 {
                     var correlationId = httpContext.GetCorrelationId();
 
-                    var parameters = AssemblyPipelineParameters.CreateFromS100UpdatesSince(request, configuration, correlationId, productIdentifier, callbackUri);
+                    var parameters = AssemblyPipelineParameters.CreateFromS100UpdatesSince(request, configuration, (string)correlationId, productIdentifier, callbackUri);
                     var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
 
                     logger.LogAssemblyPipelineStarted(parameters);

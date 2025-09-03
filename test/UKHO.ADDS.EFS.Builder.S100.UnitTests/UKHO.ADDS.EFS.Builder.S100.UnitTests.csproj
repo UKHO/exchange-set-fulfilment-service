@@ -30,6 +30,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\mock\repo\src\UKHO.ADDS.Mocks.Client\UKHO.ADDS.Mocks.Client.csproj" />
     <ProjectReference Include="..\..\src\UKHO.ADDS.EFS.Builder.S100\UKHO.ADDS.EFS.Builder.S100.csproj" />
+    <ProjectReference Include="..\UKHO.ADDS.EFS.UnitTests\UKHO.ADDS.EFS.UnitTests.csproj" />
   </ItemGroup>
 
   <ItemGroup>

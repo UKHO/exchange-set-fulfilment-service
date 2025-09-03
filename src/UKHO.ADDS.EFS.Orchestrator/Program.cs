@@ -1,10 +1,12 @@
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Http.Json;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
 using UKHO.ADDS.Aspire.Configuration;
-using UKHO.ADDS.EFS.Configuration.Namespaces;
-using UKHO.ADDS.EFS.Configuration.Orchestrator;
+using UKHO.ADDS.EFS.Domain.Implementation.Serialization;
+using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
+using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Orchestrator.Api;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Middleware;
@@ -51,12 +53,8 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                 app.UseSerilogRequestLogging();
 
-                // Configure the HTTP request pipeline.
-                //if (app.Environment.IsDevelopment())
-                //{
                 app.MapOpenApi();
                 app.MapScalarApiReference(_ => _.Servers = []); // Stop OpenAPI specifying the wrong port in the generated OpenAPI doc
-                //}
 
                 app.UseMiddleware<CorrelationIdMiddleware>();
                 app.UseMiddleware<ExceptionHandlingMiddleware>();

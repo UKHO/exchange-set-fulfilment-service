@@ -1,16 +1,15 @@
-﻿using UKHO.ADDS.EFS.Jobs;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
-using UKHO.ADDS.EFS.Orchestrator.Jobs;
+﻿using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Services.Storage;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Services.Implementation
 {
     internal class TimestampService : ITimestampService
     {
-        private readonly ITable<DataStandardTimestamp> _timestampTable;
+        private readonly IRepository<DataStandardTimestamp> _timestampRepository;
 
-        public TimestampService(ITable<DataStandardTimestamp> timestampTable)
+        public TimestampService(IRepository<DataStandardTimestamp> timestampRepository)
         {
-            _timestampTable = timestampTable;
+            _timestampRepository = timestampRepository;
         }
 
         public async Task<DateTime> GetTimestampForJobAsync(Job job)
@@ -18,7 +17,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Services.Implementation
             var timestamp = DateTime.MinValue;
             var timestampKey = job.DataStandard.ToString().ToLowerInvariant();
 
-            var timestampResult = await _timestampTable.GetUniqueAsync(timestampKey);
+            var timestampResult = await _timestampRepository.GetUniqueAsync(timestampKey);
 
             if (timestampResult.IsSuccess(out var timestampEntity))
             {
@@ -34,7 +33,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Services.Implementation
         public async Task SetTimestampForJobAsync(Job job)
         {
             var updateTimestampEntity = new DataStandardTimestamp { DataStandard = job.DataStandard, Timestamp = job.DataStandardTimestamp };
-            await _timestampTable.UpsertAsync(updateTimestampEntity);
+            await _timestampRepository.UpsertAsync(updateTimestampEntity);
         }
     }
 }
