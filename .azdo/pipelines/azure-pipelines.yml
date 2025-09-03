@@ -161,8 +161,8 @@ stages:
 
   - stage: DevDeploy
     dependsOn:
-   - VulnerabilityChecks
-   - Test
+    - VulnerabilityChecks
+    - Test
     displayName: Dev deploy
     jobs:
     - template: templates/continuous-deployment.yml
@@ -176,14 +176,6 @@ stages:
         IncludeAddsMock: true
         DeployRedis: ${{ parameters.DeployRedis }}
         WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
-
-    - template: templates/continuous-deployment-apim.yml
-      parameters:
-          AzureDevOpsEnvironment: Ess-Dev
-          ShortName: dev
-          DeployApim: ${{ parameters.DeployApim }}
-          ContinueEvenIfResourcesAreGettingDestroyed: ${{ parameters.ContinueEvenIfResourcesAreGettingDestroyed }}
-          ContainerImage: ${{ variables.Container }}
 
   # - stage: vnextiatDeploy
   #   dependsOn:

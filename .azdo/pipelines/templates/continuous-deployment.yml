@@ -224,7 +224,6 @@ jobs:
             AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
             DeployApp: ${{ parameters.DeployBuilderS100 }}
 
-
         - ${{ if eq(parameters.WaitForContainersAfterDeploy, true) }}:
 
           - template: check-container.yml
