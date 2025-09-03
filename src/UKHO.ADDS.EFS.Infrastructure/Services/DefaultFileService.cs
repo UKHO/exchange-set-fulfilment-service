@@ -1,16 +1,16 @@
-﻿using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
+﻿using Microsoft.Extensions.Logging;
+using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
+using UKHO.ADDS.EFS.Domain.Services;
+using UKHO.ADDS.EFS.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.Infrastructure.Results;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
+namespace UKHO.ADDS.EFS.Infrastructure.Services
 {
-    /// <summary>
-    ///     Service for managing file share operations with the File Share Service.
-    /// </summary>
-    internal class OrchestratorFileShareClient : IOrchestratorFileShareClient
+    internal class DefaultFileService : IFileService
     {
         private const string BusinessUnit = "ADDS-S100";
         private const string ProductType = "S-100";
@@ -22,15 +22,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
         private const string CreateBatch = "CreateBatch";
         private const string AddFileToBatch = "AddFileToBatch";
         private readonly IFileShareReadWriteClient _fileShareReadWriteClient;
-        private readonly ILogger<OrchestratorFileShareClient> _logger;
+        private readonly ILogger<DefaultFileService> _logger;
 
         /// <summary>
-        ///     Initializes a new instance of the <see cref="OrchestratorFileShareClient" /> class.
+        ///     Initializes a new instance of the <see cref="DefaultFileService" /> class.
         /// </summary>
         /// <param name="fileShareReadWriteClient">The file share read-write client.</param>
         /// <param name="logger">The logger.</param>
         /// <exception cref="ArgumentNullException">Thrown when fileShareReadWriteClient or logger is null.</exception>
-        public OrchestratorFileShareClient(IFileShareReadWriteClient fileShareReadWriteClient, ILogger<OrchestratorFileShareClient> logger)
+        public DefaultFileService(IFileShareReadWriteClient fileShareReadWriteClient, ILogger<DefaultFileService> logger)
         {
             _fileShareReadWriteClient = fileShareReadWriteClient ?? throw new ArgumentNullException(nameof(fileShareReadWriteClient));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

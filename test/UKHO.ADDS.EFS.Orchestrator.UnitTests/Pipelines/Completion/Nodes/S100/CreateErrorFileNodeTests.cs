@@ -12,7 +12,6 @@ using UKHO.ADDS.EFS.Domain.Services;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
-using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
@@ -22,7 +21,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
     [TestFixture]
     internal class CreateErrorFileNodeTests
     {
-        private IOrchestratorFileShareClient _fileShareClient;
+        private IFileService _fileShareClient;
         private IFileNameGeneratorService _fileNameGeneratorService;
 
         private CreateErrorFileNode _createErrorFileNode;
@@ -40,7 +39,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
         [SetUp]
         public void SetUp()
         {
-            _fileShareClient = A.Fake<IOrchestratorFileShareClient>();
+            _fileShareClient = A.Fake<IFileService>();
             _fileNameGeneratorService = A.Fake<IFileNameGeneratorService>();
 
             _logger = A.Fake<ILogger<CreateErrorFileNode>>();

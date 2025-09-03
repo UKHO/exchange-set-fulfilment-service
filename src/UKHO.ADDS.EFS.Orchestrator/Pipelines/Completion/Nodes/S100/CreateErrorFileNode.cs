@@ -7,7 +7,6 @@ using UKHO.ADDS.EFS.Domain.Services;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
-using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
@@ -18,16 +17,16 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
     /// </summary>
     internal class CreateErrorFileNode : CompletionPipelineNode<S100Build>
     {
-        private readonly IOrchestratorFileShareClient _fileShareClient;
+        private readonly IFileService _fileService;
         private readonly IFileNameGeneratorService _fileNameGeneratorService;
         private readonly ILogger<CreateErrorFileNode> _logger;
         private const string S100ErrorFileNameTemplate = "orchestrator:Errors:FileNameTemplate";
         private const string S100ErrorFileMessageTemplate = "orchestrator:Errors:Message";
 
-        public CreateErrorFileNode(CompletionNodeEnvironment nodeEnvironment, IOrchestratorFileShareClient fileShareClient, IFileNameGeneratorService fileNameGeneratorService, ILogger<CreateErrorFileNode> logger)
+        public CreateErrorFileNode(CompletionNodeEnvironment nodeEnvironment, IFileService fileService, IFileNameGeneratorService fileNameGeneratorService, ILogger<CreateErrorFileNode> logger)
             : base(nodeEnvironment)
         {
-            _fileShareClient = fileShareClient;
+            _fileService = fileService;
             _fileNameGeneratorService = fileNameGeneratorService;
             _logger = logger;
         }
@@ -48,7 +47,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
 
                 var fileName = GetErrorFileName(job.Id);
 
-                var addFileResult = await _fileShareClient.AddFileToBatchAsync(
+                var addFileResult = await _fileService.AddFileToBatchAsync(
                     (string)job.BatchId,
                     errorFileStream,
                     fileName,

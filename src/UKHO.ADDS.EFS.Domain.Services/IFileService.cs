@@ -3,12 +3,12 @@ using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
 using UKHO.ADDS.Infrastructure.Results;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
+namespace UKHO.ADDS.EFS.Domain.Services
 {
-    internal interface IOrchestratorFileShareClient
+    public interface IFileService
     {
         /// <summary>
-        ///     Creates a new batch in the File Share Service.
+        ///     Creates a new batch.
         /// </summary>
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
@@ -16,7 +16,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
         Task<IResult<IBatchHandle>> CreateBatchAsync(string correlationId, CancellationToken cancellationToken);
 
         /// <summary>
-        ///     Commits a batch to the File Share Service.
+        ///     Commits a batch.
         /// </summary>
         /// <param name="batchId">The batch identifier to commit.</param>
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
@@ -25,7 +25,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
         Task<IResult<CommitBatchResponse>> CommitBatchAsync(string batchId, string correlationId, CancellationToken cancellationToken);
 
         /// <summary>
-        ///     Searches for committed batches in the File Share Service, excluding the current batch.
+        ///     Searches for committed batches, excluding the current batch.
         /// </summary>
         /// <param name="currentBatchId">The current batch identifier to exclude from results.</param>
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
@@ -34,7 +34,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
         Task<IResult<BatchSearchResponse>> SearchCommittedBatchesExcludingCurrentAsync(string currentBatchId, string correlationId, CancellationToken cancellationToken);
 
         /// <summary>
-        ///     Sets the expiry date for multiple batches in the File Share Service.
+        ///     Sets the expiry date for multiple batches.
         /// </summary>
         /// <param name="otherBatches">The list of batch details to set expiry dates for.</param>
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
@@ -46,7 +46,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
         Task<IResult<SetExpiryDateResponse>> SetExpiryDateAsync(List<BatchDetails> otherBatches, string correlationId, CancellationToken cancellationToken);
 
         /// <summary>
-        ///     Adds a file to the specified batch in the File Share Service.
+        ///     Adds a file to the specified batch.
         /// </summary>
         /// <param name="batchId">The batch identifier to add the file to.</param>
         /// <param name="fileStream">The stream containing the file data.</param>

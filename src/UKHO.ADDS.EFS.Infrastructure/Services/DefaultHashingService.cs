@@ -4,7 +4,7 @@ using UKHO.ADDS.EFS.Domain.Services;
 
 namespace UKHO.ADDS.EFS.Infrastructure.Services
 {
-    internal class BlakeHashingService : IHashingService
+    internal class DefaultHashingService : IHashingService
     {
         public string CalculateHash(string value)
         {

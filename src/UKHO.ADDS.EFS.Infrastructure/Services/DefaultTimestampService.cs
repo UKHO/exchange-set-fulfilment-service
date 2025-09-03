@@ -5,11 +5,11 @@ using UKHO.ADDS.EFS.Domain.Services.Storage;
 
 namespace UKHO.ADDS.EFS.Infrastructure.Services
 {
-    internal class TimestampService : ITimestampService
+    internal class DefaultTimestampService : ITimestampService
     {
         private readonly IRepository<DataStandardTimestamp> _timestampRepository;
 
-        public TimestampService(IRepository<DataStandardTimestamp> timestampRepository)
+        public DefaultTimestampService(IRepository<DataStandardTimestamp> timestampRepository)
         {
             _timestampRepository = timestampRepository;
         }

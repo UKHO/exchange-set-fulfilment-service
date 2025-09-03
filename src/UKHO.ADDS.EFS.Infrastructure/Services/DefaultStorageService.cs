@@ -8,14 +8,14 @@ using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Infrastructure.Services
 {
-    internal class StorageService : IStorageService
+    internal class DefaultStorageService : IStorageService
     {
         private readonly IRepository<Job> _jobRepository;
         private readonly IRepository<S100Build> _s100BuildRepository;
         private readonly IRepository<S63Build> _s63BuildRepository;
         private readonly IRepository<S57Build> _s57BuildRepository;
 
-        public StorageService(IRepository<Job> jobRepository, IRepository<S100Build> s100BuildRepository, IRepository<S63Build> s63BuildRepository, IRepository<S57Build> s57BuildRepository)
+        public DefaultStorageService(IRepository<Job> jobRepository, IRepository<S100Build> s100BuildRepository, IRepository<S63Build> s63BuildRepository, IRepository<S57Build> s57BuildRepository)
         {
             _jobRepository = jobRepository;
             _s100BuildRepository = s100BuildRepository;

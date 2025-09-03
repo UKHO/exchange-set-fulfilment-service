@@ -1,57 +1,43 @@
 ﻿using System.Net;
+using Microsoft.Extensions.Logging;
 using Microsoft.Kiota.Abstractions;
 using Microsoft.Kiota.Http.HttpClientLibrary.Middleware.Options;
 using UKHO.ADDS.Clients.Kiota.SalesCatalogueService;
 using UKHO.ADDS.Clients.Kiota.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
+using UKHO.ADDS.EFS.Domain.Services;
 using UKHO.ADDS.EFS.Infrastructure.Adapters.Products;
+using UKHO.ADDS.EFS.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Infrastructure.Retries;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.Infrastructure.Results;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
+namespace UKHO.ADDS.EFS.Infrastructure.Services
 {
-    /// <summary>
-    ///     Service responsible for retrieving product information from the Sales Catalogue.
-    /// </summary>
-    internal class OrchestratorSalesCatalogueClient : IOrchestratorSalesCatalogueClient
+    internal class DefaultProductService : IProductService
     {
-        private readonly ILogger<OrchestratorSalesCatalogueClient> _logger;
+        private readonly ILogger<DefaultProductService> _logger;
         private readonly KiotaSalesCatalogueService _salesCatalogueClient;
 
         /// <summary>
-        ///     Initializes a new instance of the <see cref="OrchestratorSalesCatalogueClient" /> class.
+        ///     Initializes a new instance of the <see cref="DefaultProductService" /> class.
         /// </summary>
         /// <param name="salesCatalogueClient">Client for interacting with the Sales Catalogue API.</param>
         /// <param name="logger">Logger for recording diagnostic information.</param>
-        public OrchestratorSalesCatalogueClient(
-            KiotaSalesCatalogueService salesCatalogueClient,
-            ILogger<OrchestratorSalesCatalogueClient> logger)
+        public DefaultProductService(KiotaSalesCatalogueService salesCatalogueClient, ILogger<DefaultProductService> logger)
         {
             _salesCatalogueClient = salesCatalogueClient ?? throw new ArgumentNullException(nameof(salesCatalogueClient));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        /// <summary>
-        ///     Retrieves S100 products that have been modified since a specific date.
-        /// </summary>
-        /// <param name="sinceDateTime">Optional date and time to filter products that have changed since this time.</param>
-        /// <param name="job">The build.</param>
-        /// <returns>
-        ///     A tuple containing:
-        ///     - s100SalesCatalogueData: The response from the Sales Catalogue API.
-        ///     - LastModified: The timestamp when the data was last modified. Will be the original sinceDateTime if response is
-        ///     NotModified.
-        /// </returns>
-        /// <remarks>
-        ///     The method returns an empty response with the original sinceDateTime when an error occurs or when
-        ///     an unexpected HTTP status code is returned from the API.
-        /// </remarks>
-        public async Task<(ProductList s100SalesCatalogueData, DateTime? LastModified)> GetS100ProductVersionListAsync(
-            DateTime? sinceDateTime,
-            Job job)
+        public async Task<(ProductList ProductList, DateTime? LastModified)> GetProductVersionListAsync(DataStandard dataStandard, DateTime? sinceDateTime, Job job)
         {
+            if (dataStandard != DataStandard.S100)
+            {
+                throw new NotImplementedException($"Data standard {dataStandard} is not supported.");
+            }
+
             var headersOption = new HeadersInspectionHandlerOption
             {
                 InspectResponseHeaders = true
@@ -60,7 +46,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
             try
             {
                 var headerDateString = sinceDateTime?.ToString("R");
-                var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<List<S100BasicCatalogue>?>(_logger, nameof(GetS100ProductVersionListAsync));
+                var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<List<S100BasicCatalogue>?>(_logger, nameof(GetProductVersionListAsync));
 
                 var s100BasicCatalogueResult = await retryPolicy.ExecuteAsync(async () =>
                 {
@@ -122,28 +108,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure
             }
         }
 
-        /// <summary>
-        ///     Retrieves S100 product names and their details from the Sales Catalogue Service.
-        /// </summary>
-        /// <param name="productNames">A collection of product names to retrieve.</param>
-        /// <param name="job">The job context for the request.</param>
-        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-        /// <returns>
-        ///     The response containing product details or an empty response if an error occurs.
-        /// </returns>
-        /// <remarks>
-        ///     The method returns an empty response when an error occurs or when
-        ///     an unexpected HTTP status code is returned from the API.
-        /// </remarks>
-        public async Task<ProductEditionList> GetS100ProductEditionListAsync(
-            IEnumerable<ProductName> productNames,
-            Job job,
-            CancellationToken cancellationToken)
+        public async Task<ProductEditionList> GetProductEditionListAsync(DataStandard dataStandard, IEnumerable<ProductName> productNames, Job job, CancellationToken cancellationToken)
         {
+            if (dataStandard != DataStandard.S100)
+            {
+                throw new NotImplementedException($"Data standard {dataStandard} is not supported.");
+            }
+
             try
             {
                 var retryPolicy =
-                    HttpRetryPolicyFactory.GetGenericResultRetryPolicy<S100ProductResponse?>(_logger, nameof(GetS100ProductEditionListAsync));
+                    HttpRetryPolicyFactory.GetGenericResultRetryPolicy<S100ProductResponse?>(_logger, nameof(GetProductEditionListAsync));
 
                 var s100ProductNamesResult = await retryPolicy.ExecuteAsync(async () =>
                 {

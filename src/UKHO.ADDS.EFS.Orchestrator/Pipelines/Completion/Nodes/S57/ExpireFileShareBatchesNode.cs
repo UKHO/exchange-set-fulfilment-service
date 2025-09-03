@@ -4,7 +4,6 @@ using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Services;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
-using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
@@ -12,13 +11,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S57
 {
     internal class ExpireFileShareBatchesNode : CompletionPipelineNode<S57Build>
     {
-        private readonly IOrchestratorFileShareClient _fileShareClient;
+        private readonly IFileService _fileService;
         private readonly ITimestampService _timestampService;
 
-        public ExpireFileShareBatchesNode(CompletionNodeEnvironment nodeEnvironment, IOrchestratorFileShareClient fileShareClient, ITimestampService timestampService)
+        public ExpireFileShareBatchesNode(CompletionNodeEnvironment nodeEnvironment, IFileService fileService, ITimestampService timestampService)
             : base(nodeEnvironment)
         {
-            _fileShareClient = fileShareClient;
+            _fileService = fileService;
             _timestampService = timestampService;
         }
 
@@ -31,7 +30,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S57
         {
             var job = context.Subject.Job!;
 
-            var searchResult = await _fileShareClient.SearchCommittedBatchesExcludingCurrentAsync((string)job.BatchId, (string)job.GetCorrelationId(), Environment.CancellationToken);
+            var searchResult = await _fileService.SearchCommittedBatchesExcludingCurrentAsync((string)job.BatchId, (string)job.GetCorrelationId(), Environment.CancellationToken);
             if (!searchResult.IsSuccess(out var searchResponse, out _))
             {
                 return NodeResultStatus.Failed;
@@ -44,7 +43,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S57
 
             // TODO State management
 
-            var expiryResult = await _fileShareClient.SetExpiryDateAsync(searchResponse.Entries, (string)job.GetCorrelationId(), Environment.CancellationToken);
+            var expiryResult = await _fileService.SetExpiryDateAsync(searchResponse.Entries, (string)job.GetCorrelationId(), Environment.CancellationToken);
 
             await _timestampService.SetTimestampForJobAsync(job);
 
