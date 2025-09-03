@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="UKHO.ADDS.EFS.Domain.UnitTests"/>
+    <InternalsVisibleTo Include="UKHO.ADDS.EFS.Domain.UnitTests" />
   </ItemGroup>
 
 </Project>
