@@ -50,17 +50,13 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     var eventHubName = ServiceConfiguration.EventHubName;                   
 
                     builder.Services.AddSerilog((services, lc) =>
-                        ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint)
-                            .Enrich.WithProperty("Environment", environment.Value)
-                            .Enrich.WithProperty("System", ServiceConfiguration.ServiceName)
-                            .Enrich.WithProperty("Service", ServiceConfiguration.ServiceName)
-                            .Enrich.WithProperty("NodeName", ServiceConfiguration.NodeName)
+                        ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint)                            
                             .WriteTo.EventHub(options =>
                             {
-                                //options.Environment = environment.ToString();
-                                //options.System = ServiceConfiguration.ServiceName;
-                                //options.Service = ServiceConfiguration.ServiceName;
-                                //options.NodeName = ServiceConfiguration.NodeName;
+                                options.Environment = environment.ToString();
+                                options.System = ServiceConfiguration.ServiceName;
+                                options.Service = ServiceConfiguration.ServiceName;
+                                options.NodeName = ServiceConfiguration.NodeName;
                                 options.EventHubFullyQualifiedNamespace = fullyQualifiedNamespace;
                                 options.EventHubEntityPath = eventHubName;
                                 options.TokenCredential = new DefaultAzureCredential();
