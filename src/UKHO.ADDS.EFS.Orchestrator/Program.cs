@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Http.Json;
+using Microsoft.Extensions.Compliance.Redaction;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
@@ -69,13 +70,13 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 // Map health check endpoints with custom configuration to exclude Redis checks
                 //It looks like the Redis service is degraded for some reason, so comment it out from the health checks for the time being.
                 app.MapHealthChecks("/health", HealthCheckOptionsFactory.CreateHealthCheckOptions(
-                    excludeServices: "redis"));
+                    excludeServices: new HashSet<string> { "redis" }));
 
                 // Only health checks tagged with the "live" tag must pass for app to be considered alive
                 // Also exclude Redis checks
                 app.MapHealthChecks("/alive", HealthCheckOptionsFactory.CreateHealthCheckOptions(
-                    tagsFilter: ["live"],
-                    excludeServices: "redis"));
+                    tagsFilter: new HashSet<string> { "live" },
+                    excludeServices: new HashSet<string> { "redis" }));
 
                 var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
 
