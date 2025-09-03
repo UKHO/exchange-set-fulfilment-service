@@ -12,10 +12,11 @@ using UKHO.ADDS.EFS.Builder.Common.Factories;
 using UKHO.ADDS.EFS.Builder.Common.Logging;
 using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
-using UKHO.ADDS.EFS.Domain.Extensions;
-using UKHO.ADDS.EFS.Domain.Services.Configuration.Namespaces;
-using UKHO.ADDS.EFS.Domain.Services.Configuration.Orchestrator;
-using UKHO.ADDS.EFS.Domain.Services.Implementation.Retries;
+using UKHO.ADDS.EFS.Domain.Implementation.Extensions;
+using UKHO.ADDS.EFS.Domain.Services.Injection;
+using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
+using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
+using UKHO.ADDS.EFS.Infrastructure.Retries;
 
 namespace UKHO.ADDS.EFS.Builder.S100
 {
@@ -97,6 +98,8 @@ namespace UKHO.ADDS.EFS.Builder.S100
             services.AddPipelineServices();
             services.AddFileShareServices(configuration);
             services.AddIICToolServices(configuration);
+
+            services.AddDomain();
 
             return services;
         }

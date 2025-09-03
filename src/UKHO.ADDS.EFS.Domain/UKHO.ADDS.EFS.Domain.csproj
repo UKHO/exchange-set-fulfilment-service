@@ -18,4 +18,8 @@
     <PackageReference Include="UKHO.ADDS.Infrastructure.Pipelines" Version="0.0.50327-alpha.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="UKHO.ADDS.EFS.Domain.UnitTests"/>
+  </ItemGroup>
+
 </Project>

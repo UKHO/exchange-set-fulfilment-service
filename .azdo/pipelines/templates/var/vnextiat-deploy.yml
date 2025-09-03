@@ -1,5 +1,6 @@
 variables:
 - group: EFS-vNextIAT-Variables
 - group: ESS-Deployment-Variables-vNextIAT
+- template: resource-values.yml
 - name: AzureSubscription
   value: Exchange-Set-Service-vNext-IAT-A.011.08

@@ -4,7 +4,7 @@ using Docker.DotNet.Models;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Builders;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Logging;
 using UKHO.ADDS.EFS.Domain.Builds;
-using UKHO.ADDS.EFS.Domain.Services.Configuration.Orchestrator;
+using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
 
 namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
 {

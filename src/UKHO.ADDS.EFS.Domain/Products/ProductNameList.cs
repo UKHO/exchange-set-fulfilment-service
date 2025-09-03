@@ -1,16 +1,19 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Collections;
+using System.Text.Json.Serialization;
+using UKHO.ADDS.EFS.Domain.Implementation.Serialization;
 
 namespace UKHO.ADDS.EFS.Domain.Products
 {
-    public sealed class ProductNameList
+    [JsonConverter(typeof(JsonListConverterFactory))]
+    public sealed class ProductNameList : IJsonList<ProductName>, IReadOnlyList<ProductName>
     {
-        [JsonInclude] [JsonPropertyName("names")] private List<ProductName> _products = [];
+        private readonly List<ProductName> _products = [];
 
-        [JsonIgnore] public IReadOnlyList<ProductName> Names => _products;
+        public IReadOnlyList<ProductName> Names => _products;
 
-        [JsonIgnore] public ProductCount Count => ProductCount.From(_products.Count);
+        public ProductCount Count => ProductCount.From(_products.Count);
 
-        [JsonIgnore] public bool HasProducts => _products.Count > 0;
+        public bool HasProducts => _products.Count > 0;
 
         public bool Add(ProductName product)
         {
@@ -26,5 +29,17 @@ namespace UKHO.ADDS.EFS.Domain.Products
         public bool Remove(ProductName product) => _products.Remove(product);
 
         public void Clear() => _products.Clear();
+
+        public IEnumerator<ProductName> GetEnumerator() => _products.GetEnumerator();
+
+        public ProductName this[int index] => _products[index];
+
+        void IJsonList<ProductName>.Add(ProductName item) => _products.Add(item);
+
+        IReadOnlyList<ProductName> IJsonList<ProductName>.Items => _products;
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        int IReadOnlyCollection<ProductName>.Count => _products.Count;
     }
 }
