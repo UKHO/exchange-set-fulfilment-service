@@ -1,8 +1,10 @@
-﻿using UKHO.ADDS.EFS.Messages;
+﻿using FluentValidation;
+using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Extensions;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
+using UKHO.ADDS.EFS.Orchestrator.Validators;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Api
 {
@@ -68,11 +70,37 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 IConfiguration configuration,
                 IAssemblyPipelineFactory pipelineFactory,
                 HttpContext httpContext,
+                S100ProductVersionsValidator productVersionsValidator,
                 string? callbackUri = null) =>
             {
                 try
                 {
                     var correlationId = httpContext.GetCorrelationId();
+
+                    // Validate input
+                    var validationResult = productVersionsValidator.Validate((productVersions, callbackUri));
+                    if (!validationResult.IsValid)
+                    {
+                        var errorResponse = new ErrorResponseModel
+                        {
+                            CorrelationId = (string)correlationId,
+                            Errors = [.. validationResult.Errors
+                                .Select(e => new ErrorDetail
+                                {
+                                    Source = e.PropertyName,
+                                    Description = e.ErrorMessage
+                                })]
+                        };
+
+                        var validationErrors = validationResult.Errors.Select(error => $"{error.ErrorMessage}").ToList();
+
+                        logger.S100InputValidationFailed(
+                            (string)correlationId,
+                            string.Join("; ", validationErrors));
+
+                        return Results.BadRequest(errorResponse);
+                    }
+                    logger.S100InputValidationSucceeded((string)correlationId, 0);
 
                     var parameters = AssemblyPipelineParameters.CreateFromS100ProductVersions(productVersions, configuration, (string)correlationId, callbackUri);
                     var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
@@ -80,12 +108,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                     logger.LogAssemblyPipelineStarted(parameters);
 
                     var result = await pipeline.RunAsync(httpContext.RequestAborted);
-
-                    // Check if there are validation errors
-                    if (result.ErrorResponse?.Errors?.Count > 0)
-                    {
-                        return Results.BadRequest(result.ErrorResponse);
-                    }
 
                     return Results.Accepted(null, result.ResponseData);
                 }
@@ -104,6 +126,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 IConfiguration configuration,
                 IAssemblyPipelineFactory pipelineFactory,
                 HttpContext httpContext,
+                S100UpdateSinceValidator updateSinceValidator,
                 string? callbackUri = null,
                 string? productIdentifier = null) =>
             {
@@ -111,18 +134,37 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 {
                     var correlationId = httpContext.GetCorrelationId();
 
+                    var validationResult = await updateSinceValidator.ValidateAsync((request, callbackUri, productIdentifier));
+                    if (!validationResult.IsValid)
+                    {
+                        var errorResponse = new ErrorResponseModel
+                        {
+                            CorrelationId = (string)correlationId,
+                            Errors = [.. validationResult.Errors
+                                .Select(e => new ErrorDetail
+                                {
+                                    Source = e.PropertyName,
+                                    Description = e.ErrorMessage
+                                })]
+                        };
+
+                        var validationErrors = validationResult.Errors.Select(error => $"{error.ErrorMessage}").ToList();
+
+                        logger.S100InputValidationFailed(
+                            (string)correlationId,
+                            string.Join("; ", validationErrors));
+
+                        return Results.BadRequest(errorResponse);
+                    }
+
+                    logger.S100InputValidationSucceeded((string)correlationId, 0);
+
                     var parameters = AssemblyPipelineParameters.CreateFromS100UpdatesSince(request, configuration, (string)correlationId, productIdentifier, callbackUri);
                     var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
 
                     logger.LogAssemblyPipelineStarted(parameters);
 
                     var result = await pipeline.RunAsync(httpContext.RequestAborted);
-
-                    // Check if there are validation errors
-                    if (result.ErrorResponse?.Errors?.Count > 0)
-                    {
-                        return Results.BadRequest(result.ErrorResponse);
-                    }
 
                     return Results.Accepted(null, result.ResponseData);
                 }

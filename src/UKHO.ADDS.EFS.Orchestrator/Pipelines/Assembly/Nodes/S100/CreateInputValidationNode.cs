@@ -50,8 +50,8 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
             FluentValidation.Results.ValidationResult validationResult = requestType switch
             {
                 RequestType.ProductNames => await ValidateProductNamesRequest(job),
-                RequestType.ProductVersions => await ValidateProductVersionsRequest(job),
-                RequestType.UpdatesSince => await ValidateUpdateSinceRequest(job),
+                //RequestType.ProductVersions => await ValidateProductVersionsRequest(job),
+                //RequestType.UpdatesSince => await ValidateUpdateSinceRequest(job),
                 _ => throw new ArgumentException($"Unsupported request type: {requestType}")
             };
 
@@ -116,45 +116,44 @@ internal class CreateInputValidationNode : AssemblyPipelineNode<S100Build>
         return await _productNamesValidator.ValidateAsync(request);
     }
 
-    private async Task<FluentValidation.Results.ValidationResult> ValidateProductVersionsRequest(Job job)
-    {
-        // Parse product versions from requested products
-        var productVersions = job.RequestedProducts.Names
-            .Select(p => p.Value)
-            .Select(p =>
-            {
-                var parts = p.Split(':');
-                return new S100ProductVersion
-                {
-                    ProductName = parts.ElementAtOrDefault(0) ?? string.Empty,
-                    EditionNumber = int.TryParse(parts.ElementAtOrDefault(1), out var edition) ? edition : 0,
-                    UpdateNumber = int.TryParse(parts.ElementAtOrDefault(2), out var update) ? update : 0
-                };
-            })
-            .ToList();
+    //private async Task<FluentValidation.Results.ValidationResult> ValidateProductVersionsRequest(Job job)
+    //{
+    //    // Parse product versions from requested products
+    //    var productVersions = job.RequestedProducts.Names
+    //        .Select(p => p.Value)
+    //        .Select(p =>
+    //        {
+    //            var parts = p.Split(':');
+    //            return new S100ProductVersion
+    //            {
+    //                ProductName = parts.ElementAtOrDefault(0) ?? string.Empty,
+    //                EditionNumber = int.TryParse(parts.ElementAtOrDefault(1), out var edition) ? edition : 0,
+    //                UpdateNumber = int.TryParse(parts.ElementAtOrDefault(2), out var update) ? update : 0
+    //            };
+    //        })
+    //        .ToList();
 
-        return await Task.FromResult(_productVersionsValidator.Validate((productVersions, job.CallbackUri)));
-    }
+    //    // Always return a valid result (true response)
+    //    return await Task.FromResult(new FluentValidation.Results.ValidationResult());
+    //}
 
-    private async Task<FluentValidation.Results.ValidationResult> ValidateUpdateSinceRequest(Job job)
-    {
-        var firstColonIndex = job.RequestedFilter.IndexOf(':');
-        var sinceDateTimeString = job.RequestedFilter.Length > firstColonIndex + 1
-            ? job.RequestedFilter.Substring(firstColonIndex + 1)
-            : string.Empty;
+    //private async Task<FluentValidation.Results.ValidationResult> ValidateUpdateSinceRequest(Job job)
+    //{
+    //    var firstColonIndex = job.RequestedFilter.IndexOf(':');
+    //    var sinceDateTimeString = job.RequestedFilter.Length > firstColonIndex + 1
+    //        ? job.RequestedFilter.Substring(firstColonIndex + 1)
+    //        : string.Empty;
 
-        var sinceDateTime = DateTime.TryParse(sinceDateTimeString, out var result) ? result : DateTime.MinValue;
+    //    var sinceDateTime = DateTime.TryParse(sinceDateTimeString, out var result) ? result : DateTime.MinValue;
 
 
-        var request = new S100UpdatesSinceRequest
-        {
-            SinceDateTime = sinceDateTime,
-            CallbackUri = job.CallbackUri,
-            ProductIdentifier = job.ProductIdentifier,
-        };
+    //    var request = new S100UpdatesSinceRequest
+    //    {
+    //        SinceDateTime = sinceDateTime
+    //    };
 
-        return await _updateSinceValidator.ValidateAsync(request);
-    }
+    //    return await _updateSinceValidator.ValidateAsync(request);
+    //}
 
     private static int GetProductCount(Job job, RequestType requestType)
     {

@@ -11,11 +11,5 @@ namespace UKHO.ADDS.EFS.Messages
         /// The date and time from which changes are requested
         /// </summary>
         public required DateTime SinceDateTime { get; set; }
-
-        [JsonIgnore]
-        public string? CallbackUri { get; set; }
-
-        [JsonIgnore]
-        public string? ProductIdentifier { get; set; }
     }
 }

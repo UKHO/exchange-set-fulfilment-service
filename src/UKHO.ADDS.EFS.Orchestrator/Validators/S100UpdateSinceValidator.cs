@@ -7,18 +7,18 @@ namespace UKHO.ADDS.EFS.Orchestrator.Validators;
 /// <summary>
 /// Validator for 'updatesSince' request filter format and sinceDateTime presence
 /// </summary>
-internal class S100UpdateSinceValidator : AbstractValidator<S100UpdatesSinceRequest>
+internal class S100UpdateSinceValidator : AbstractValidator<(S100UpdatesSinceRequest s100UpdatesSinceRequest, string? callbackUri, string? productIdentifier)>
 {
     private const string ISO_8601_FORMAT = "yyyy-MM-ddTHH:mm:ss.fffffffZ";
 
     public S100UpdateSinceValidator()
     {
-        RuleFor(request => request.CallbackUri)
+        RuleFor(request => request.callbackUri)
             .Must(CallbackUriValidator.IsValidCallbackUri)
             .WithMessage("Invalid callbackUri format.");
 
         // Uplifted validation for SinceDateTime property
-        RuleFor(request => request.SinceDateTime)
+        RuleFor(request => request.s100UpdatesSinceRequest.SinceDateTime)
             .NotEqual(default(DateTime))
             .WithMessage("sinceDateTime cannot be empty.")
             .Must(IsValidISO8601Format)
@@ -28,7 +28,7 @@ internal class S100UpdateSinceValidator : AbstractValidator<S100UpdatesSinceRequ
             .Must(date => IsMoreThan28DaysInPast(date))
             .WithMessage("sinceDateTime cannot be more than 28 days in the past.");
 
-        RuleFor(request => request.ProductIdentifier)
+        RuleFor(request => request.productIdentifier)
             .Must(ProductIdentifierValidator.IsValid)
             .WithMessage(ProductIdentifierValidator.ValidationMessage);
     }

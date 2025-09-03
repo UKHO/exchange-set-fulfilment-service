@@ -17,14 +17,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
             _s100UpdateSinceValidator = new S100UpdateSinceValidator();
         }
 
-        private static S100UpdatesSinceRequest CreateRequest(string? callbackUri, DateTime sinceDateTime, string? productIdentifier)
+        private static (S100UpdatesSinceRequest, string?, string?) CreateRequest(string? callbackUri, DateTime sinceDateTime, string? productIdentifier)
         {
-            return new S100UpdatesSinceRequest
+            return (new S100UpdatesSinceRequest
             {
-                CallbackUri = callbackUri,
-                SinceDateTime = sinceDateTime,
-                ProductIdentifier = productIdentifier
-            };
+                SinceDateTime = sinceDateTime
+            }, callbackUri, productIdentifier);
         }
 
         [Test]
@@ -52,7 +50,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
         {
             var request = CreateRequest(null, DateTime.UtcNow.AddDays(-1), VALID_PRODUCT_IDENTIFIER);
             var result = _s100UpdateSinceValidator.Validate(request);
-
             Assert.That(result.IsValid, Is.True);
         }
 
@@ -117,13 +114,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
         public void WhenSinceDateTimeIsJustOver28DaysAgo_ThenValidationFails()
         {
             var request = CreateRequest(VALID_CALLBACK_URI, DateTime.UtcNow.AddDays(-28.0001), VALID_PRODUCT_IDENTIFIER);
-
             var result = _s100UpdateSinceValidator.Validate(request);
-
             Assert.Multiple(() =>
             {
                 Assert.That(result.IsValid, Is.False);
-            Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "sinceDateTime cannot be more than 28 days in the past."));
+                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "sinceDateTime cannot be more than 28 days in the past."));
             });
         }
 

@@ -110,7 +110,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 Version = MessageVersion.From(2),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                Products = CreateProductNameListFromString("all"),
+                Products = CreateProductNameListFromString(string.Empty),
                 Filter =
                     $"updatesSince:{request.SinceDateTime:O}" +
                     (productIdentifier != null ? $",productIdentifier:{productIdentifier}" : ""),
