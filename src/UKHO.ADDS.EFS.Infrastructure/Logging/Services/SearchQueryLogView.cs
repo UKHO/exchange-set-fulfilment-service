@@ -1,4 +1,4 @@
-﻿namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
+﻿namespace UKHO.ADDS.EFS.Infrastructure.Logging.Services
 {
     internal class SearchQueryLogView
     {

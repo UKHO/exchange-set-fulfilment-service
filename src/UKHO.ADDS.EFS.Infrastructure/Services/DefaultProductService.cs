@@ -9,8 +9,8 @@ using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Domain.Services;
 using UKHO.ADDS.EFS.Infrastructure.Adapters.Products;
 using UKHO.ADDS.EFS.Infrastructure.Logging;
+using UKHO.ADDS.EFS.Infrastructure.Logging.Services;
 using UKHO.ADDS.EFS.Infrastructure.Retries;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Infrastructure.Services

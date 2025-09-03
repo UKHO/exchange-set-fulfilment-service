@@ -1,6 +1,4 @@
-﻿using System.Runtime.Serialization;
-
-namespace UKHO.ADDS.EFS.Domain.Files
+﻿namespace UKHO.ADDS.EFS.Domain.Files
 {
     public class BatchFile
     {

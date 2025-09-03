@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
+using UKHO.ADDS.EFS.Infrastructure.Logging.Services;
 
 namespace UKHO.ADDS.EFS.Infrastructure.Logging
 {

@@ -50,11 +50,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
                 try
                 {
                     var attributeList = await _fileService.AddFileToBatchAsync(
-                        (string)job.BatchId,
+                        job.BatchId,
                         errorFileStream,
                         fileName,
                         ApiHeaderKeys.ContentTypeTextPlain,
-                        (string)job.GetCorrelationId(),
+                        job.GetCorrelationId(),
                         Environment.CancellationToken);
 
                     context.Subject.IsErrorFileCreated = true;

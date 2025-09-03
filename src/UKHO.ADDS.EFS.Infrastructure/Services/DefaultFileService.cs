@@ -2,11 +2,12 @@
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
+using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.Files;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Services;
 using UKHO.ADDS.EFS.Infrastructure.Logging;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
+using UKHO.ADDS.EFS.Infrastructure.Logging.Services;
 using UKHO.ADDS.Infrastructure.Results;
 using Attribute = UKHO.ADDS.EFS.Domain.Files.Attribute;
 
@@ -44,13 +45,13 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result containing the batch handle on success or error information on failure.</returns>
-        public async Task<Batch> CreateBatchAsync(string correlationId, CancellationToken cancellationToken)
+        public async Task<Batch> CreateBatchAsync(CorrelationId correlationId, CancellationToken cancellationToken)
         {
-            var createBatchResponseResult = await _fileShareReadWriteClient.CreateBatchAsync(GetBatchModel(), correlationId, cancellationToken);
+            var createBatchResponseResult = await _fileShareReadWriteClient.CreateBatchAsync(GetBatchModel(), (string)correlationId, cancellationToken);
 
             if (createBatchResponseResult.IsFailure(out var error, out _))
             {
-                LogFileShareServiceError(correlationId, CreateBatch, error, correlationId);
+                LogFileShareServiceError(correlationId, CreateBatch, error, BatchId.None);
             }
 
             if (createBatchResponseResult.IsSuccess(out var response))
@@ -71,13 +72,13 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result containing the commit batch response on success or error information on failure.</returns>
-        public async Task<BatchCommit> CommitBatchAsync(string batchId, string correlationId, CancellationToken cancellationToken)
+        public async Task<BatchCommit> CommitBatchAsync(BatchId batchId, CorrelationId correlationId, CancellationToken cancellationToken)
         {
-            var commitBatchResult = await _fileShareReadWriteClient.CommitBatchAsync(new BatchHandle(batchId), correlationId, cancellationToken);
+            var commitBatchResult = await _fileShareReadWriteClient.CommitBatchAsync(new BatchHandle((string)batchId), (string)correlationId, cancellationToken);
 
             if (commitBatchResult.IsFailure(out var commitError, out _))
             {
-                LogFileShareServiceError(correlationId, CommitBatch, commitError, correlationId, batchId);
+                LogFileShareServiceError(correlationId, CommitBatch, commitError, batchId);
             }
 
             if (commitBatchResult.IsSuccess(out var commitResponse))
@@ -98,11 +99,11 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result containing the batch search response on success or error information on failure.</returns>
-        public async Task<BatchSearchResponse> SearchCommittedBatchesExcludingCurrentAsync(string currentBatchId, string correlationId, CancellationToken cancellationToken)
+        public async Task<BatchSearchResponse> SearchCommittedBatchesExcludingCurrentAsync(BatchId currentBatchId, CorrelationId correlationId, CancellationToken cancellationToken)
         {
             var filter = $"BusinessUnit eq '{BusinessUnit}' and {ProductTypeQueryClause}$batch(BatchId) ne '{currentBatchId}'";
 
-            var searchResultResponse = await _fileShareReadWriteClient.SearchAsync(filter, Limit, Start, correlationId, cancellationToken);
+            var searchResultResponse = await _fileShareReadWriteClient.SearchAsync(filter, Limit, Start, (string)correlationId, cancellationToken);
 
             if (searchResultResponse.IsFailure(out var error, out _))
             {
@@ -127,7 +128,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         ///     A result containing the last set expiry date response on success or error information on failure.
         ///     If no valid batches are found, returns a success result with an empty response.
         /// </returns>
-        public async Task<bool> SetExpiryDateAsync(List<BatchDetails> otherBatches, string correlationId, CancellationToken cancellationToken)
+        public async Task<bool> SetExpiryDateAsync(IEnumerable<BatchDetails> otherBatches, CorrelationId correlationId, CancellationToken cancellationToken)
         {
             // Filter valid batches before processing
             var validBatches = otherBatches.Where(b => !string.IsNullOrEmpty(b.BatchId)).ToList();
@@ -141,11 +142,11 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
 
             foreach (var batch in validBatches)
             {
-                var expiryResult = await _fileShareReadWriteClient.SetExpiryDateAsync(batch.BatchId, new BatchExpiryModel { ExpiryDate = DateTime.UtcNow }, correlationId, cancellationToken);
+                var expiryResult = await _fileShareReadWriteClient.SetExpiryDateAsync(batch.BatchId, new BatchExpiryModel { ExpiryDate = DateTime.UtcNow }, (string)correlationId, cancellationToken);
 
                 if (expiryResult.IsFailure(out var expiryError, out var expiry))
                 {
-                    LogFileShareServiceError(correlationId, SetExpiryDate, expiryError, correlationId, batch.BatchId);
+                    LogFileShareServiceError(correlationId, SetExpiryDate, expiryError, BatchId.From(batch.BatchId));
                     return false;
                 }
 
@@ -165,14 +166,14 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result containing the add file to batch response on success or error information on failure.</returns>
-        public async Task<AttributeList> AddFileToBatchAsync(string batchId, Stream fileStream, string fileName, string contentType, string correlationId, CancellationToken cancellationToken)
+        public async Task<AttributeList> AddFileToBatchAsync(BatchId batchId, Stream fileStream, string fileName, string contentType, CorrelationId correlationId, CancellationToken cancellationToken)
         {
-            var batchHandle = new BatchHandle(batchId);
-            var addFileResult = await _fileShareReadWriteClient.AddFileToBatchAsync(batchHandle, fileStream, fileName, contentType, correlationId, cancellationToken);
+            var batchHandle = new BatchHandle((string)batchId);
+            var addFileResult = await _fileShareReadWriteClient.AddFileToBatchAsync(batchHandle, fileStream, fileName, contentType, (string)correlationId, cancellationToken);
 
             if (addFileResult.IsFailure(out var error, out _))
             {
-                LogFileShareServiceError(correlationId, AddFileToBatch, error, correlationId, batchId);
+                LogFileShareServiceError(correlationId, AddFileToBatch, error, batchId);
                 throw new InvalidOperationException("Failed to add file to batch.");
             }
 
@@ -198,12 +199,12 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         private static BatchModel GetBatchModel() =>
             new() { BusinessUnit = "ADDS-S100", Acl = new Acl { ReadUsers = new List<string> { "public" }, ReadGroups = new List<string> { "public" } }, Attributes = new List<KeyValuePair<string, string>> { new("Exchange Set Type", "Base"), new("Frequency", "DAILY"), new("Product Type", "S-100"), new("Media Type", "Zip") }, ExpiryDate = null };
 
-        private void LogFileShareServiceError(string jobId, string endPoint, IError error, string correlationId, string batchId = "")
+        private void LogFileShareServiceError(CorrelationId correlationId, string endPoint, IError error, BatchId batchId)
         {
             var fileShareServiceLogView = new FileShareServiceLogView
             {
                 BatchId = batchId,
-                JobId = jobId,
+                JobId = JobId.From((string)correlationId), // TODO Tidy - not correct
                 EndPoint = endPoint,
                 CorrelationId = correlationId,
                 Error = error
@@ -212,7 +213,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
             _logger.LogFileShareError(fileShareServiceLogView);
         }
 
-        private void LogSearchCommittedBatchesError(string batchId, string correlationId, string filter, int limit, int start, IError error)
+        private void LogSearchCommittedBatchesError(BatchId batchId, CorrelationId correlationId, string filter, int limit, int start, IError error)
         {
             var searchQuery = new SearchQueryLogView { Filter = filter, Limit = limit, Start = start };
 

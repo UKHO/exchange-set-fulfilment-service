@@ -1,5 +1,7 @@
 ﻿using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
+using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.Files;
+using UKHO.ADDS.EFS.Domain.Jobs;
 
 namespace UKHO.ADDS.EFS.Domain.Services
 {
@@ -11,7 +13,7 @@ namespace UKHO.ADDS.EFS.Domain.Services
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result containing the batch handle on success or error information on failure.</returns>
-        Task<Batch> CreateBatchAsync(string correlationId, CancellationToken cancellationToken);
+        Task<Batch> CreateBatchAsync(CorrelationId correlationId, CancellationToken cancellationToken);
 
         /// <summary>
         ///     Commits a batch.
@@ -20,7 +22,7 @@ namespace UKHO.ADDS.EFS.Domain.Services
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result containing the commit batch response on success or error information on failure.</returns>
-        Task<BatchCommit> CommitBatchAsync(string batchId, string correlationId, CancellationToken cancellationToken);
+        Task<BatchCommit> CommitBatchAsync(BatchId batchId, CorrelationId correlationId, CancellationToken cancellationToken);
 
         /// <summary>
         ///     Searches for committed batches, excluding the current batch.
@@ -29,7 +31,7 @@ namespace UKHO.ADDS.EFS.Domain.Services
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result containing the batch search response on success or error information on failure.</returns>
-        Task<BatchSearchResponse> SearchCommittedBatchesExcludingCurrentAsync(string currentBatchId, string correlationId, CancellationToken cancellationToken);
+        Task<BatchSearchResponse> SearchCommittedBatchesExcludingCurrentAsync(BatchId currentBatchId, CorrelationId correlationId, CancellationToken cancellationToken);
 
         /// <summary>
         ///     Sets the expiry date for multiple batches.
@@ -41,7 +43,7 @@ namespace UKHO.ADDS.EFS.Domain.Services
         ///     A result containing the last set expiry date response on success or error information on failure.
         ///     If no valid batches are found, returns a success result with an empty response.
         /// </returns>
-        Task<bool> SetExpiryDateAsync(List<BatchDetails> otherBatches, string correlationId, CancellationToken cancellationToken);
+        Task<bool> SetExpiryDateAsync(IEnumerable<BatchDetails> otherBatches, CorrelationId correlationId, CancellationToken cancellationToken);
 
         /// <summary>
         ///     Adds a file to the specified batch.
@@ -53,6 +55,6 @@ namespace UKHO.ADDS.EFS.Domain.Services
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result containing the add file to batch response on success or error information on failure.</returns>
-        Task<AttributeList> AddFileToBatchAsync(string batchId, Stream fileStream, string fileName, string contentType, string correlationId, CancellationToken cancellationToken);
+        Task<AttributeList> AddFileToBatchAsync(BatchId batchId, Stream fileStream, string fileName, string contentType, CorrelationId correlationId, CancellationToken cancellationToken);
     }
 }

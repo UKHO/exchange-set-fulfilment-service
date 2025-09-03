@@ -30,7 +30,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S63
 
             try
             {
-                var commit = await _fileService.CommitBatchAsync((string)job.BatchId!, (string)job.GetCorrelationId(), Environment.CancellationToken);
+                var commit = await _fileService.CommitBatchAsync(job.BatchId!, job.GetCorrelationId(), Environment.CancellationToken);
             }
             catch (Exception ex)
             {

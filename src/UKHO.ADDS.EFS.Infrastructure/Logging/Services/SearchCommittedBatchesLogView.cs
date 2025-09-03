@@ -1,13 +1,15 @@
-﻿using UKHO.ADDS.Infrastructure.Results;
+﻿using UKHO.ADDS.EFS.Domain.External;
+using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.Infrastructure.Results;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
+namespace UKHO.ADDS.EFS.Infrastructure.Logging.Services
 {
     internal class SearchCommittedBatchesLogView
     {
         public string BusinessUnit { get; set; }
-        public string BatchId { get; set; }
+        public BatchId BatchId { get; set; }
         public string ProductType { get; set; }
-        public string CorrelationId { get; set; }
+        public CorrelationId CorrelationId { get; set; }
         public SearchQueryLogView Query { get; set; }
         public IError Error { get; set; }
     }

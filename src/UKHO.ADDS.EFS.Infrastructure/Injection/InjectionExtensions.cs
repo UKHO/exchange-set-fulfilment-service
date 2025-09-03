@@ -17,6 +17,7 @@ using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Domain.Services;
 using UKHO.ADDS.EFS.Domain.Services.Storage;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
+using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Infrastructure.Services;
 using UKHO.ADDS.EFS.Infrastructure.Storage.Queues;
 using UKHO.ADDS.EFS.Infrastructure.Storage.Repositories;
@@ -48,6 +49,8 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
             collection.AddSingleton<IStorageService, DefaultStorageService>();
             collection.AddSingleton<ITimestampService, DefaultTimestampService>();
 
+            var efsClientId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsClientId);
+
             collection.RegisterKiotaClient<KiotaSalesCatalogueService>(provider =>
             {
                 var registry = provider.GetRequiredService<IExternalServiceRegistry>();
@@ -58,7 +61,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                     return (scsEndpoint.Uri, new AnonymousAuthenticationProvider());
                 }
 
-                return (scsEndpoint.Uri, new AzureIdentityAuthenticationProvider(new ManagedIdentityCredential(), scopes: scsEndpoint.GetDefaultScope()));
+                return (scsEndpoint.Uri, new AzureIdentityAuthenticationProvider(new ManagedIdentityCredential(clientId: efsClientId), scopes: scsEndpoint.GetDefaultScope()));
             });
 
             collection.AddSingleton<IProductService, DefaultProductService>();
@@ -78,7 +81,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                 }
                 else
                 {
-                    tokenProvider = new TokenCredentialAuthenticationTokenProvider(new ManagedIdentityCredential(), [fssEndpoint.GetDefaultScope()]);
+                    tokenProvider = new TokenCredentialAuthenticationTokenProvider(new ManagedIdentityCredential(clientId: efsClientId), [fssEndpoint.GetDefaultScope()]);
                 }
 
                 var factory = sp.GetRequiredService<IFileShareReadWriteClientFactory>();

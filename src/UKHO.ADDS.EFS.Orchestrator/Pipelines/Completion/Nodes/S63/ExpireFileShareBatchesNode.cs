@@ -32,14 +32,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S63
 
             try
             {
-                var searchResult = await _fileService.SearchCommittedBatchesExcludingCurrentAsync((string)job.BatchId, (string)job.GetCorrelationId(), Environment.CancellationToken);
+                var searchResult = await _fileService.SearchCommittedBatchesExcludingCurrentAsync(job.BatchId, job.GetCorrelationId(), Environment.CancellationToken);
 
                 if (searchResult?.Entries == null || searchResult.Entries.Count == 0)
                 {
                     return NodeResultStatus.Succeeded;
                 }
 
-                var expiryResult = await _fileService.SetExpiryDateAsync(searchResult.Entries, (string)job.GetCorrelationId(), Environment.CancellationToken);
+                var expiryResult = await _fileService.SetExpiryDateAsync(searchResult.Entries, job.GetCorrelationId(), Environment.CancellationToken);
 
                 await _timestampService.SetTimestampForJobAsync(job);
             }
