@@ -14,8 +14,9 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
         /// </summary>
         public static async Task<string> SubmitJobAsync(HttpClient httpClient, string filter = "", int jobNumber = 1, string[]? products = null, string expectedJobStatus = "submitted", string expectedBuildStatus = "scheduled")
         {
+            products ??= Array.Empty<string>();
             var requestId = $"job-000{jobNumber}-" + Guid.NewGuid();
-            var payload = new { version = 1, dataStandard = "s100", products = products, filter = $"{filter}" };
+            var payload = new { version = 1, dataStandard = "s100", products = new { names = products}, filter = $"{filter}" };
             var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
             content.Headers.Add(ApiHeaderKeys.XCorrelationIdHeaderKey, requestId);
