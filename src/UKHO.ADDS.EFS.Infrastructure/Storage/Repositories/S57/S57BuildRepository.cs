@@ -1,9 +1,9 @@
 ﻿using Azure.Storage.Blobs;
 using UKHO.ADDS.EFS.Domain.Builds.S57;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.Implementation;
+using UKHO.ADDS.EFS.Infrastructure.Storage.Repositories.Implementation;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S57
+namespace UKHO.ADDS.EFS.Infrastructure.Storage.Repositories.S57
 {
     internal class S57BuildRepository : BlobRepository<S57Build>
     {

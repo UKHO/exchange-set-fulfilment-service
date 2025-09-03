@@ -3,7 +3,7 @@ using Azure.Data.Tables;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
-namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.Implementation
+namespace UKHO.ADDS.EFS.Infrastructure.Storage.Repositories.Implementation
 {
     internal class JsonEntity : ITableEntity
     {

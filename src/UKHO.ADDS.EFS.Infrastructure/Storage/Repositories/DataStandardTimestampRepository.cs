@@ -1,9 +1,9 @@
 ﻿using Azure.Data.Tables;
 using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.Implementation;
+using UKHO.ADDS.EFS.Infrastructure.Storage.Repositories.Implementation;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables
+namespace UKHO.ADDS.EFS.Infrastructure.Storage.Repositories
 {
     internal class DataStandardTimestampRepository : TableRepository<DataStandardTimestamp>
     {

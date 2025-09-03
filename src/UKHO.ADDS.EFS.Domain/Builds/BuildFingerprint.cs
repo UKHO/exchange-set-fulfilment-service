@@ -1,6 +1,7 @@
-﻿using UKHO.ADDS.EFS.Domain.Products;
+﻿using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Products;
 
-namespace UKHO.ADDS.EFS.Domain.Jobs
+namespace UKHO.ADDS.EFS.Domain.Builds
 {
     public class BuildFingerprint
     {

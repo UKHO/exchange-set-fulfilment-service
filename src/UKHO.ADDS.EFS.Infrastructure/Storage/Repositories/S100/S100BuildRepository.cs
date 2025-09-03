@@ -1,9 +1,9 @@
 ﻿using Azure.Storage.Blobs;
 using UKHO.ADDS.EFS.Domain.Builds.S100;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.Implementation;
+using UKHO.ADDS.EFS.Infrastructure.Storage.Repositories.Implementation;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S100
+namespace UKHO.ADDS.EFS.Infrastructure.Storage.Repositories.S100
 {
     internal class S100BuildRepository : BlobRepository<S100Build>
     {

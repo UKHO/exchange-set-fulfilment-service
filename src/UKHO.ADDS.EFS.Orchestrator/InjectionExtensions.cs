@@ -12,31 +12,22 @@ using UKHO.ADDS.Clients.Common.Authentication;
 using UKHO.ADDS.Clients.Common.MiddlewareExtensions;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.Kiota.SalesCatalogueService;
-using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.Builds.S100;
 using UKHO.ADDS.EFS.Domain.Builds.S57;
 using UKHO.ADDS.EFS.Domain.Builds.S63;
-using UKHO.ADDS.EFS.Domain.Jobs;
-using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Domain.Services.Injection;
-using UKHO.ADDS.EFS.Domain.Services.Storage;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
+using UKHO.ADDS.EFS.Infrastructure.Injection;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S100;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S57;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S63;
 using UKHO.ADDS.EFS.Orchestrator.Monitors;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
-using UKHO.ADDS.EFS.Orchestrator.Pipelines.Services;
-using UKHO.ADDS.EFS.Orchestrator.Pipelines.Services.Implementation;
 using UKHO.ADDS.EFS.Orchestrator.Schedule;
+using UKHO.ADDS.EFS.Orchestrator.Services;
 using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
-using UKHO.ADDS.EFS.Orchestrator.Services.Storage;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Orchestrator
@@ -75,22 +66,11 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddHostedService<S63BuildResponseMonitor>();
             builder.Services.AddHostedService<S57BuildResponseMonitor>();
 
-            builder.Services.AddSingleton<ITimestampService, TimestampService>();
-            builder.Services.AddSingleton<IStorageService, StorageService>();
-            builder.Services.AddSingleton<IHashingService, HashingService>();
-
-            builder.Services.AddSingleton<IRepository<S100Build>, S100BuildRepository>();
-            builder.Services.AddSingleton<IRepository<S63Build>, S63BuildRepository>();
-            builder.Services.AddSingleton<IRepository<S57Build>, S57BuildRepository>();
-
-            builder.Services.AddSingleton<IRepository<DataStandardTimestamp>, DataStandardTimestampRepository>();
-            builder.Services.AddSingleton<IRepository<Job>, JobRepository>();
-            builder.Services.AddSingleton<IRepository<BuildMemento>, BuildMementoRepository>();
-
             builder.Services.AddSingleton<IBuilderLogForwarder, BuilderLogForwarder>();
             builder.Services.AddSingleton<StorageInitializerService>();
 
             builder.Services.AddDomain();
+            builder.Services.AddInfrastructure();
 
             var addsEnvironment = AddsEnvironment.GetEnvironment();
 

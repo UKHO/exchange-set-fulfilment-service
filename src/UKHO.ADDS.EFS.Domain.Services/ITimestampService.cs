@@ -1,8 +1,8 @@
 ﻿using UKHO.ADDS.EFS.Domain.Jobs;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Services
+namespace UKHO.ADDS.EFS.Domain.Services
 {
-    internal interface ITimestampService
+    public interface ITimestampService
     {
         /// <summary>
         ///     Gets the timestamp for a given job.

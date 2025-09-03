@@ -2,11 +2,11 @@
 using UKHO.ADDS.EFS.Domain.Builds.S57;
 using UKHO.ADDS.EFS.Domain.Builds.S63;
 using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Services;
 using UKHO.ADDS.EFS.Domain.Services.Storage;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
 using UKHO.ADDS.Infrastructure.Results;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Services.Implementation
+namespace UKHO.ADDS.EFS.Infrastructure.Services
 {
     internal class StorageService : IStorageService
     {

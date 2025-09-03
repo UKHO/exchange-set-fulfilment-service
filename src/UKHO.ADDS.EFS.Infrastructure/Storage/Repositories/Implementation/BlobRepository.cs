@@ -4,7 +4,7 @@ using UKHO.ADDS.EFS.Domain.Services.Storage;
 using UKHO.ADDS.Infrastructure.Results;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.Implementation
+namespace UKHO.ADDS.EFS.Infrastructure.Storage.Repositories.Implementation
 {
     internal abstract class BlobRepository<TEntity> : IRepository<TEntity> where TEntity : class
     {

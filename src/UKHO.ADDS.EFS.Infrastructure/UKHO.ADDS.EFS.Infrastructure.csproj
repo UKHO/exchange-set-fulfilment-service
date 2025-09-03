@@ -8,6 +8,13 @@
 
   <ItemGroup>
     <PackageReference Include="Polly" Version="8.6.2" />
+    <PackageReference Include="Aspire.StackExchange.Redis.DistributedCaching" Version="9.4.1" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.25.0" />
+    <PackageReference Include="Aspire.Azure.Data.Tables" Version="9.4.1" />
+    <PackageReference Include="Aspire.Azure.Storage.Queues" Version="9.4.1" />
+    <PackageReference Include="Aspire.Azure.Storage.Blobs" Version="9.4.1" />
+    <PackageReference Include="Azure.Messaging.EventHubs" Version="5.12.2" />
+    <PackageReference Include="Konscious.Security.Cryptography.Blake2" Version="1.1.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -16,6 +23,10 @@
     <ProjectReference Include="..\UKHO.ADDS.Clients.FileShareService.ReadOnly\UKHO.ADDS.Clients.FileShareService.ReadOnly.csproj" />
     <ProjectReference Include="..\UKHO.ADDS.Clients.FileShareService.ReadWrite\UKHO.ADDS.Clients.FileShareService.ReadWrite.csproj" />
     <ProjectReference Include="..\UKHO.ADDS.Clients.SalesCatalogueService\UKHO.ADDS.Clients.SalesCatalogueService.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="UKHO.ADDS.EFS.Infrastructure.UnitTests"/>
   </ItemGroup>
 
 </Project>

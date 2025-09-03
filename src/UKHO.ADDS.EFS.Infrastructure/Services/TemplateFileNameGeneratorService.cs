@@ -1,10 +1,11 @@
 ﻿using System.Dynamic;
 using HandlebarsDotNet;
 using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Services;
 
-namespace UKHO.ADDS.EFS.Domain.Services
+namespace UKHO.ADDS.EFS.Infrastructure.Services
 {
-    internal class FileNameGeneratorService : IFileNameGeneratorService
+    internal class TemplateFileNameGeneratorService : IFileNameGeneratorService
     {
         public const string JobId = "jobid";
         public const string Date = "date";

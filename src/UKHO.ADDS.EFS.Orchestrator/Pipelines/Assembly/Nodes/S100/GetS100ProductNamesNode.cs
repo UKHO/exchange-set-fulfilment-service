@@ -53,7 +53,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                     }
 
                     // Log any requested products that weren't returned, but don't fail the build
-                    if (s100SalesCatalogueData.ProductCountSummary.MissingProducts.Count > 0)
+                    if (s100SalesCatalogueData.ProductCountSummary.MissingProducts.HasProducts)
                     {
                         _logger.LogSalesCatalogueProductsNotReturned(s100SalesCatalogueData.ProductCountSummary);
                     }

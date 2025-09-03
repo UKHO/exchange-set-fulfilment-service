@@ -1,9 +1,10 @@
 ﻿using System.Text;
 using Konscious.Security.Cryptography;
+using UKHO.ADDS.EFS.Domain.Services;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Services.Implementation
+namespace UKHO.ADDS.EFS.Infrastructure.Services
 {
-    internal class HashingService : IHashingService
+    internal class BlakeHashingService : IHashingService
     {
         public string CalculateHash(string value)
         {

@@ -1,4 +1,4 @@
-﻿namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.Implementation
+﻿namespace UKHO.ADDS.EFS.Infrastructure.Storage.Repositories.Implementation
 {
     internal static class JsonEntityBuilder
     {

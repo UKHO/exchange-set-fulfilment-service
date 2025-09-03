@@ -1,9 +1,9 @@
 ﻿using Azure.Storage.Blobs;
 using UKHO.ADDS.EFS.Domain.Builds.S63;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.Implementation;
+using UKHO.ADDS.EFS.Infrastructure.Storage.Repositories.Implementation;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.S63
+namespace UKHO.ADDS.EFS.Infrastructure.Storage.Repositories.S63
 {
     internal class S63BuildRepository : BlobRepository<S63Build>
     {

@@ -7,9 +7,8 @@ using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Domain.Services.Storage;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Services.Storage
+namespace UKHO.ADDS.EFS.Orchestrator.Services
 {
     internal class StorageInitializerService
     {

@@ -4,9 +4,9 @@ using UKHO.ADDS.EFS.Domain.Builds.S63;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.Infrastructure.Results;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Services
+namespace UKHO.ADDS.EFS.Domain.Services
 {
-    internal interface IStorageService
+    public interface IStorageService
     {
         Task<Result> CreateJobAsync(Job job);
 

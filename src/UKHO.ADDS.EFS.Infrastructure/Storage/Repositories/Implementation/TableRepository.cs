@@ -1,9 +1,10 @@
-﻿using Azure.Data.Tables;
+﻿using Azure;
+using Azure.Data.Tables;
 using UKHO.ADDS.EFS.Domain.Services.Storage;
 using UKHO.ADDS.Infrastructure.Results;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.Implementation
+namespace UKHO.ADDS.EFS.Infrastructure.Storage.Repositories.Implementation
 {
     internal abstract class TableRepository<TEntity> : IRepository<TEntity> where TEntity : class
     {
@@ -56,7 +57,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.Implementation
             rowKey = SanitizeKey(rowKey);
 
             var query = _tableClient.QueryAsync<JsonEntity>(e => e.PartitionKey == partitionKey && e.RowKey == rowKey);
-            var entities = await query.ToListAsync();
+            var entities = await ToListAsync(query);
 
             if (entities.Count == 0)
             {
@@ -72,7 +73,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.Implementation
             partitionKey = SanitizeKey(partitionKey);
 
             var query = _tableClient.QueryAsync<JsonEntity>(e => e.PartitionKey == partitionKey);
-            var entities = await query.ToListAsync();
+            var entities = await ToListAsync(query);
 
             if (entities.Count == 0)
             {
@@ -91,7 +92,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.Implementation
             // TODO Continuation logic etc
 
             var query = _tableClient.QueryAsync<JsonEntity>(e => true);
-            var results = await query.ToListAsync();
+            var results = await ToListAsync(query);
 
             return results.Select(entity =>
             {
@@ -173,7 +174,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.Implementation
             partitionKey = SanitizeKey(partitionKey);
 
             var query = _tableClient.QueryAsync<JsonEntity>(e => e.PartitionKey == partitionKey);
-            var entities = await query.ToListAsync();
+            var entities = await ToListAsync(query);
 
             foreach (var entity in entities)
             {
@@ -202,6 +203,18 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables.Implementation
             {
                 return Result.Failure($"Error creating table: {ex.Message}");
             }
+        }
+
+        private static async Task<List<T>> ToListAsync<T>(AsyncPageable<T> source)
+        {
+            var list = new List<T>();
+
+            await foreach (var item in source)
+            {
+                list.Add(item);
+            }
+
+            return list;
         }
 
         private static string SanitizeKey(string key) => key.Replace(" ", "_").Replace("/", "_").Replace("\\", "_");
