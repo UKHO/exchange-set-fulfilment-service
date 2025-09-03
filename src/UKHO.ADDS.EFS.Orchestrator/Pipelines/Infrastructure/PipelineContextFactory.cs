@@ -7,7 +7,7 @@ using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
 {
-    internal class PipelineContextFactory<TBuild> where TBuild : Build, new()
+    internal class PipelineContextFactory<TBuild> : IPipelineContextFactory<TBuild> where TBuild : Build, new()
     {
         private readonly IRepository<Job> _jobRepository;
         private readonly IRepository<TBuild> _buildRepository;
@@ -21,7 +21,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
             _storageService = storageService;
         }
 
-        // TODO Remove
         public async Task Persist(PipelineContext<TBuild> context)
         {
             await _jobRepository.UpsertAsync(context.Job);

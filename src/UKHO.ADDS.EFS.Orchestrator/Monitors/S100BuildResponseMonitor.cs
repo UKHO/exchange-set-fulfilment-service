@@ -8,9 +8,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Monitors
 {
     internal class S100BuildResponseMonitor : QueueMonitor<BuildResponse>
     {
-        private readonly CompletionPipelineFactory _pipelineFactory;
+        private readonly ICompletionPipelineFactory _pipelineFactory;
 
-        public S100BuildResponseMonitor(CompletionPipelineFactory pipelineFactory, IQueueFactory queueFactory, IConfiguration configuration, ILogger<S100BuildResponseMonitor> logger)
+        public S100BuildResponseMonitor(ICompletionPipelineFactory pipelineFactory, IQueueFactory queueFactory, IConfiguration configuration, ILogger<S100BuildResponseMonitor> logger)
             : base(StorageConfiguration.S100BuildResponseQueueName, "orchestrator:Builders:S100:Responses:PollingIntervalSeconds", "orchestrator:Builders:S100:Responses:BatchSize", queueFactory, configuration, logger) =>
             _pipelineFactory = pipelineFactory;
 

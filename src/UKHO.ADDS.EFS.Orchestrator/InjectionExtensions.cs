@@ -1,13 +1,8 @@
 ﻿using System.Text.Json;
-using Azure.Identity;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using Quartz;
-using UKHO.ADDS.Aspire.Configuration;
-using UKHO.ADDS.Aspire.Configuration.Remote;
-using UKHO.ADDS.Clients.Common.Authentication;
-using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.EFS.Domain.Builds.S100;
 using UKHO.ADDS.EFS.Domain.Builds.S57;
 using UKHO.ADDS.EFS.Domain.Builds.S63;
@@ -38,9 +33,9 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             builder.Services.Configure<JsonOptions>(options => JsonCodec.DefaultOptions.CopyTo(options.SerializerOptions));
 
-            builder.AddAzureQueueClient(StorageConfiguration.QueuesName);
-            builder.AddAzureTableClient(StorageConfiguration.TablesName);
-            builder.AddAzureBlobClient(StorageConfiguration.BlobsName);
+            builder.AddAzureQueueServiceClient(StorageConfiguration.QueuesName);
+            builder.AddAzureTableServiceClient(StorageConfiguration.TablesName);
+            builder.AddAzureBlobServiceClient(StorageConfiguration.BlobsName);
 
             builder.Services.AddAuthorization();
             builder.Services.AddOpenApi();
@@ -48,14 +43,14 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.ConfigureOpenApi();
 
             builder.Services.AddTransient<IAssemblyPipelineFactory, AssemblyPipelineFactory>();
-            builder.Services.AddTransient<AssemblyPipelineNodeFactory>();
+            builder.Services.AddTransient<IAssemblyPipelineNodeFactory, AssemblyPipelineNodeFactory>();
 
-            builder.Services.AddTransient<CompletionPipelineFactory>();
-            builder.Services.AddTransient<CompletionPipelineNodeFactory>();
+            builder.Services.AddTransient<ICompletionPipelineFactory, CompletionPipelineFactory>();
+            builder.Services.AddTransient<ICompletionPipelineNodeFactory, CompletionPipelineNodeFactory>();
 
-            builder.Services.AddSingleton<PipelineContextFactory<S100Build>>();
-            builder.Services.AddSingleton<PipelineContextFactory<S63Build>>();
-            builder.Services.AddSingleton<PipelineContextFactory<S57Build>>();
+            builder.Services.AddSingleton<IPipelineContextFactory<S100Build>, PipelineContextFactory<S100Build>>();
+            builder.Services.AddSingleton<IPipelineContextFactory<S63Build>, PipelineContextFactory<S63Build>>();
+            builder.Services.AddSingleton<IPipelineContextFactory<S57Build>, PipelineContextFactory<S57Build>>();
 
             builder.Services.AddHostedService<S100BuildResponseMonitor>();
             builder.Services.AddHostedService<S63BuildResponseMonitor>();
