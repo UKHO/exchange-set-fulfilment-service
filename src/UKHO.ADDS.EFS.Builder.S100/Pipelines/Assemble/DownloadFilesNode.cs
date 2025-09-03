@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Threading;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging;
@@ -216,9 +217,17 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                                 FileStreamBufferSize,
                                 FileOptions.Asynchronous);
 
-                            var streamResult = await retryPolicy.ExecuteAsync(() =>
-                                _fileShareReadOnlyClient.DownloadFileAsync(item.Batch.BatchId, item.FileName, outputFileStream, (string)correlationId, FileSizeInBytes));
+                            //var streamResult = await retryPolicy.ExecuteAsync(() =>
+                            //    _fileShareReadOnlyClient.DownloadFileAsync(item.Batch.BatchId, item.FileName, outputFileStream, (string)correlationId, FileSizeInBytes));
 
+                            var streamResult = await retryPolicy.ExecuteAsync(() =>
+                                _fileShareReadOnlyClient.DownloadFileAsync(item.Batch.BatchId, item.FileName));
+
+                            if (streamResult.IsSuccess(out var fileStream))
+                            {
+                                await fileStream.CopyToAsync(outputFileStream);
+                               
+                            }
                             if (streamResult.IsFailure(out var error, out var value))
                             {
                                 LogFssDownloadFailed(item.Batch, item.FileName, error, correlationId);
