@@ -1,5 +1,6 @@
 ﻿using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.Builds.S63;
+using UKHO.ADDS.EFS.Domain.Services.Storage;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
@@ -10,12 +11,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S63
 {
     internal class CreateBuildMementoNode : CompletionPipelineNode<S63Build>
     {
-        private readonly ITable<BuildMemento> _buildMementoTable;
+        private readonly IRepository<BuildMemento> _buildMementoRepository;
 
-        public CreateBuildMementoNode(CompletionNodeEnvironment nodeEnvironment, ITable<BuildMemento> buildMementoTable)
+        public CreateBuildMementoNode(CompletionNodeEnvironment nodeEnvironment, IRepository<BuildMemento> buildMementoRepository)
             : base(nodeEnvironment)
         {
-            _buildMementoTable = buildMementoTable;
+            _buildMementoRepository = buildMementoRepository;
         }
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<PipelineContext<S63Build>> context)
@@ -27,7 +28,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S63
                 BuilderSteps = context.Subject.Build.Statuses,
             };
 
-            await _buildMementoTable.AddAsync(memento);
+            await _buildMementoRepository.AddAsync(memento);
 
             if (Environment.BuilderExitCode != BuilderExitCode.Success)
             {

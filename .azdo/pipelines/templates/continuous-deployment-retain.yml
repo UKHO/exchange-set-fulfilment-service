@@ -28,8 +28,6 @@ jobs:
 
         - download: none
 
-        - template: get-retained-resource-details.yml
-
         - task: AzureCLI@2
           displayName: Deploy permanent infrastructure
           inputs:
@@ -57,6 +55,6 @@ jobs:
           env:
             PIPELINE-CLIENT-OBJECT-ID: $(PIPELINE-CLIENT-OBJECT-ID)
 
-        - template: get-retained-infrastructure-details.yml
+        - template: get-infrastructure-details.yml
           parameters:
             AzureSubscription: ${{ variables.AzureSubscription }}

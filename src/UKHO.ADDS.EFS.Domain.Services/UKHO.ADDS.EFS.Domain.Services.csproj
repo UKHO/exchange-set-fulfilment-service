@@ -7,11 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\UKHO.ADDS.EFS.Domain.Adapters\UKHO.ADDS.EFS.Domain.Adapters.csproj" />
+    <ProjectReference Include="..\UKHO.ADDS.EFS.Domain\UKHO.ADDS.EFS.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Polly" Version="8.6.2" />
+    <InternalsVisibleTo Include="UKHO.ADDS.EFS.Domain.Services.UnitTests"/>
   </ItemGroup>
 
 </Project>
