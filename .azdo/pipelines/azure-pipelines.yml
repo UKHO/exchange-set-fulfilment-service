@@ -86,14 +86,14 @@ resources:
     type: github
 
 stages:
-  # - stage: VulnerabilityChecks
-  #   displayName: "Snyk Checks"
-  #   dependsOn: []
-  #   jobs:
-  #   - template: templates/vulnerability-checks.yml
-  #     parameters:
-  #       SnykOnlyFailIfFixable: ${{ parameters.SnykOnlyFailIfFixable }}
-  #       SnykPassOnIssues: ${{ parameters.SnykPassOnIssues }}
+  - stage: VulnerabilityChecks
+    displayName: "Snyk Checks"
+    dependsOn: []
+    jobs:
+    - template: templates/vulnerability-checks.yml
+      parameters:
+        SnykOnlyFailIfFixable: ${{ parameters.SnykOnlyFailIfFixable }}
+        SnykPassOnIssues: ${{ parameters.SnykPassOnIssues }}
 
   - stage: Stryker_Mutator
     displayName: "Stryker Mutator"
@@ -153,40 +153,40 @@ stages:
             reportPattern: '$(Build.SourcesDirectory)/test/UKHO.ADDS.EFS.Builder.S100.UnitTests/**/mutation-report.html'
             reportDisplayName: 'EFS Builder S100 UnitTests'
 
-  # - stage: Test
-  #   displayName: Test
-  #   dependsOn: []
-  #   jobs:
-  #   - template: templates/test.yml
+  - stage: Test
+    displayName: Test
+    dependsOn: []
+    jobs:
+    - template: templates/test.yml
 
-  # - stage: DevDeploy
-  #   dependsOn: []
-  #  # - VulnerabilityChecks
-  #  # - Test
-  #   displayName: Dev deploy
-  #   jobs:
-  #   - template: templates/continuous-deployment.yml
-  #     parameters:
-  #       AzureDevOpsEnvironment: Ess-Dev
-  #       ShortName: dev
-  #       AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
-  #       DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
-  #       DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
-  #       DeployAddsMock: ${{ parameters.DeployAddsMock }}
-  #       IncludeAddsMock: true
-  #       DeployRedis: ${{ parameters.DeployRedis }}
-  #       WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
+  - stage: DevDeploy
+    dependsOn:
+   - VulnerabilityChecks
+   - Test
+    displayName: Dev deploy
+    jobs:
+    - template: templates/continuous-deployment.yml
+      parameters:
+        AzureDevOpsEnvironment: Ess-Dev
+        ShortName: dev
+        AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+        DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
+        DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
+        DeployAddsMock: ${{ parameters.DeployAddsMock }}
+        IncludeAddsMock: true
+        DeployRedis: ${{ parameters.DeployRedis }}
+        WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
 
-  #   - template: templates/continuous-deployment-apim.yml
-  #     parameters:
-  #         AzureDevOpsEnvironment: Ess-Dev
-  #         ShortName: dev
-  #         DeployApim: ${{ parameters.DeployApim }}
-  #         ContinueEvenIfResourcesAreGettingDestroyed: ${{ parameters.ContinueEvenIfResourcesAreGettingDestroyed }}
-  #         ContainerImage: ${{ variables.Container }}
+    - template: templates/continuous-deployment-apim.yml
+      parameters:
+          AzureDevOpsEnvironment: Ess-Dev
+          ShortName: dev
+          DeployApim: ${{ parameters.DeployApim }}
+          ContinueEvenIfResourcesAreGettingDestroyed: ${{ parameters.ContinueEvenIfResourcesAreGettingDestroyed }}
+          ContainerImage: ${{ variables.Container }}
 
   # - stage: vnextiatDeploy
-  #   dependsOn: []
+  #   dependsOn:
   #  # - DevDeploy
   #   displayName: vNext IAT Deploy
   #   #condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/dev/')))
@@ -236,13 +236,12 @@ stages:
           DeployApim: ${{ parameters.DeployApim }}
           ContinueEvenIfResourcesAreGettingDestroyed: ${{ parameters.ContinueEvenIfResourcesAreGettingDestroyed }}
           ContainerImage: ${{ variables.Container }}
-          OrchestratorUrl: $(ORCHESTRATOR_URL)
 
   - stage: iatDeploy
     dependsOn: []
-   # - DevDeploy
+    - DevDeploy
     displayName: IAT Deploy
-   # condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')))
+    condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')))
     jobs:
     - template: templates/continuous-deployment.yml
       parameters:
@@ -255,3 +254,11 @@ stages:
         IncludeAddsMock: false
         DeployRedis: ${{ parameters.DeployRedis }}
         WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
+
+    - template: templates/continuous-deployment-apim.yml
+      parameters:
+          AzureDevOpsEnvironment: Ess-iat
+          ShortName: iat
+          DeployApim: ${{ parameters.DeployApim }}
+          ContinueEvenIfResourcesAreGettingDestroyed: ${{ parameters.ContinueEvenIfResourcesAreGettingDestroyed }}
+          ContainerImage: ${{ variables.Container }}

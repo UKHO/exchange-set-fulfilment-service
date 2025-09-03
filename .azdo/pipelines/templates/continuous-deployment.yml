@@ -152,14 +152,6 @@ jobs:
             AZURE_EFS_APPLICATION_INSIGHTS_NAME: $(AZURE_EFS_APPLICATION_INSIGHTS_NAME)
             AZURE_EFS_EVENT_HUB_NAMESPACE_NAME: $(AZURE_EFS_EVENT_HUB_NAMESPACE_NAME)
 
-        - script: |
-              DOMAIN=$(azd env get-value EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN)
-              URL="https://efs-orchestrator.$DOMAIN"
-              echo "Orchestrator Endpoint: $URL"
-              echo "##vso[task.setvariable variable=ORCHESTRATOR_URL]$URL"
-          displayName: 'Set Orchestrator Endpoint Variable'
-          workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
-
         - task: AzureCLI@2
           displayName: Run configuration seeder
           inputs:

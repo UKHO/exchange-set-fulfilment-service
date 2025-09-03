@@ -16,9 +16,6 @@ parameters:
 # The container image to use for the deployment job.
 - name: ContainerImage
   type: string
-#url of the orchestrator service to be used in APIM as a backend service
-- name: OrchestratorUrl
-  type: string
 
 jobs:
 - deployment: ${{ parameters.ShortName }}APIMDeploy
@@ -59,5 +56,5 @@ jobs:
             ARM_SUBSCRIPTION_ID: $(TERRAFORM-SUBSCRIPTION-ID)
             TF_VAR_apim_rg: $(APIM_RESOURCE_GROUP_NAME)
             TF_VAR_apim_name: $(APIM_SERVICE_NAME)
-            TF_VAR_apim_api_backend_url: ${{ parameters.OrchestratorUrl}}
+            TF_VAR_apim_api_backend_url: $(APIM_API_BACKEND_URL)
 
