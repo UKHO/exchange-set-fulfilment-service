@@ -44,12 +44,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Schedule
                 {
                     _logger.LogSchedulerJobStarted(correlationId, DateTime.UtcNow);
 
-                    var message = new JobRequestApiMessage
-                    {
-                        DataStandard = DataStandard.S100,
-                        Products = new ProductNameList(),
-                        Filter = ""
-                    };
+                var message = new JobRequestApiMessage
+                {
+                    DataStandard = DataStandard.S100,
+                    Products = [],
+                    Filter = ""
+                };
 
                     var parameters = AssemblyPipelineParameters.CreateFrom(message, _config, correlationId);
                     var pipeline = _pipelineFactory.CreateAssemblyPipeline(parameters);

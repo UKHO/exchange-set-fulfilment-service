@@ -88,9 +88,7 @@ jobs:
             noCache: true
             nugetConfigPath: '$(Build.SourcesDirectory)/efs/BuildNuget.config'
 
-        - template: get-retained-resource-details.yml
-
-        - template: get-retained-infrastructure-details.yml
+        - template: get-infrastructure-details.yml
           parameters:
             AzureSubscription: ${{ variables.AzureSubscription }}
 
@@ -151,6 +149,8 @@ jobs:
             AZURE_EFS_CONTAINER_APPS_ENVIRONMENT_NAME: $(AZURE_EFS_CONTAINER_APPS_ENVIRONMENT_NAME)
             AZURE_EFS_APPLICATION_INSIGHTS_NAME: $(AZURE_EFS_APPLICATION_INSIGHTS_NAME)
             AZURE_EFS_EVENT_HUB_NAMESPACE_NAME: $(AZURE_EFS_EVENT_HUB_NAMESPACE_NAME)
+            AZURE_EFS_APP_CONFIGURATION_NAME: $(AZURE_EFS_APP_CONFIGURATION_NAME)
+            AZURE_EFS_STORAGE_ACCOUNT_NAME: $(AZURE_EFS_STORAGE_ACCOUNT_NAME)
 
         - task: AzureCLI@2
           displayName: Run configuration seeder
