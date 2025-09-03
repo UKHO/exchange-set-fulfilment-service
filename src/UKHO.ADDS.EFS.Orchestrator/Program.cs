@@ -35,41 +35,42 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 var oltpEndpoint = builder.Configuration[GlobalEnvironmentVariables.OtlpEndpoint]!;
 
                 builder.Services.AddHttpContextAccessor();
+                var environment = AddsEnvironment.GetEnvironment();
+                if (environment.IsLocal())
+                {
+                    builder.Services.AddSerilog((services, lc) =>
+                        ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint)
+                            .Enrich.WithProperty("Environment", environment.Value)
+                            .Enrich.WithProperty("System", ServiceConfiguration.ServiceName)
+                            .Enrich.WithProperty("Service", ServiceConfiguration.ServiceName)
+                            .Enrich.WithProperty("NodeName", ServiceConfiguration.NodeName)
+                    );
+                }
+                else
+                {
+                    var fullyQualifiedNamespace = Environment.GetEnvironmentVariable("ConnectionStrings__efs-events-namespace");
+                    var eventHubName = ServiceConfiguration.EventHubName;                   
+
+                    builder.Services.AddSerilog((services, lc) =>
+                        ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint)
+                            //.Enrich.WithProperty("Environment", environment.Value)
+                            //.Enrich.WithProperty("System", ServiceConfiguration.ServiceName)
+                            //.Enrich.WithProperty("Service", ServiceConfiguration.ServiceName)
+                            //.Enrich.WithProperty("NodeName", ServiceConfiguration.NodeName)
+                            .WriteTo.EventHub(options =>
+                            {
+                                options.Environment = environment.Value;
+                                options.System = ServiceConfiguration.ServiceName;
+                                options.Service = ServiceConfiguration.ServiceName;
+                                options.NodeName = ServiceConfiguration.NodeName;
+                                options.EventHubFullyQualifiedNamespace = fullyQualifiedNamespace;
+                                options.EventHubEntityPath = eventHubName;
+                                options.TokenCredential = new DefaultAzureCredential();
+                            })
+                    );
+                }
 
                 builder.AddConfiguration(ServiceConfiguration.ServiceName, ProcessNames.ConfigurationService);
-                //if (builder.Environment.IsDevelopment())
-                //{
-                //    builder.Services.AddSerilog((services, lc) =>
-                //        ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint)
-                //            .Enrich.WithProperty("Environment", builder.Environment.EnvironmentName)
-                //            .Enrich.WithProperty("System", ServiceConfiguration.ServiceName)
-                //            .Enrich.WithProperty("Service", ServiceConfiguration.ServiceName)
-                //            .Enrich.WithProperty("NodeName", ServiceConfiguration.NodeName)
-                //    );
-                //}
-                //else
-                //{
-                var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__efs-events-namespace");
-                var eventHubName = ServiceConfiguration.EventHubName;
-
-                builder.Services.AddSerilog((services, lc) =>
-                    ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint)
-                        .Enrich.WithProperty("Environment", builder.Environment.EnvironmentName)
-                        .Enrich.WithProperty("System", ServiceConfiguration.ServiceName)
-                        .Enrich.WithProperty("Service", ServiceConfiguration.ServiceName)
-                        .Enrich.WithProperty("NodeName", ServiceConfiguration.NodeName)
-                        .WriteTo.EventHub(options =>
-                        {
-                            options.Environment = builder.Environment.EnvironmentName;
-                            options.System = ServiceConfiguration.ServiceName;
-                            options.Service = ServiceConfiguration.ServiceName;
-                            options.NodeName = ServiceConfiguration.NodeName;
-                            options.EventHubFullyQualifiedNamespace = connectionString;
-                            options.EventHubEntityPath = eventHubName;
-                            options.TokenCredential = new DefaultAzureCredential();
-                        })
-                );
-            //}
 
                 builder.AddServiceDefaults().AddOrchestratorServices();
 
