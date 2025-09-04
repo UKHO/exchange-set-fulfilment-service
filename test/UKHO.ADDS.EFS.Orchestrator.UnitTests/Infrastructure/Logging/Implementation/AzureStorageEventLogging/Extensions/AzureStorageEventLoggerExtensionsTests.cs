@@ -96,11 +96,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Logging.Implementation.AzureStora
         [Test]
         public void WhenKeyExists_ThenGetLogEntryPropertyValueReturnsValue()
         {
-            var key = "test_key_exists";
+            var dictionaryKey = "test_key_exists";
             var expectedValue = "test_value";
-            var dictionary = new Dictionary<string, object> { { key, expectedValue } };
+            var dictionary = new Dictionary<string, object> { { dictionaryKey, expectedValue } };
 
-            var result = dictionary.GetLogEntryPropertyValue(key);
+            var result = dictionary.GetLogEntryPropertyValue(dictionaryKey);
 
             Assert.Multiple(() =>
             {
