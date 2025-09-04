@@ -10,7 +10,7 @@ using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Orchestrator.Api;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Middleware;
-using UKHO.ADDS.EFS.Orchestrator.Services.Storage;
+using UKHO.ADDS.EFS.Orchestrator.Services;
 
 namespace UKHO.ADDS.EFS.Orchestrator
 {

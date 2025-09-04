@@ -1,4 +1,5 @@
 ﻿using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Products;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 {
