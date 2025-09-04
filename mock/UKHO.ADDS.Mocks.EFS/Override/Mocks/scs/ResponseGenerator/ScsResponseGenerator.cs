@@ -1,6 +1,8 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Nodes;
+using UKHO.ADDS.Mocks.Files;
 using UKHO.ADDS.Mocks.Headers;
+using IResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
 {
@@ -30,6 +32,64 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
             catch (Exception ex)
             {
                 return Results.Problem($"Error processing request: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Provides a mock response for updates since a specified date using data from s100-updates-since.json file.
+        /// This follows the same file access pattern as GetBasicCatalogueEndpoint.
+        /// </summary>
+        public static async Task<IResult> ProvideUpdatesSinceResponse(DateTime sinceDateTime, string? productIdentifier, HttpRequest request, IMockFile file)
+        {
+            try
+            {
+                var now = DateTime.UtcNow;
+                var twentyEightDaysAgo = now.AddDays(-28);
+
+                if (sinceDateTime < twentyEightDaysAgo)
+                {
+                    return Results.Json(new
+                    {
+                        correlationId = request.Headers.ContainsKey(WellKnownHeader.CorrelationId)
+                            ? request.Headers[WellKnownHeader.CorrelationId].ToString()
+                            : string.Empty,
+                        errors = new[]
+                        {
+                            new
+                            {
+                                source = "sinceDateTime",
+                                description = "Date provided is more than 28 days in the past."
+                            }
+                        }
+                    }, statusCode: 400);
+                }
+
+                if (sinceDateTime > now)
+                {
+                    return Results.StatusCode(304);
+                }
+
+                if (!string.IsNullOrWhiteSpace(productIdentifier))
+                {
+                    var validIdentifiers = new[] { "s101", "s102", "s104", "s111" };
+                    if (!validIdentifiers.Contains(productIdentifier.ToLowerInvariant()))
+                    {
+                        return Results.Json(new
+                        {
+                            correlationId = request.Headers.ContainsKey(WellKnownHeader.CorrelationId)
+                                ? request.Headers[WellKnownHeader.CorrelationId].ToString()
+                                : string.Empty,
+                            details = "Product identifier not found"
+                        }, statusCode: 404);
+                    }
+                }
+
+                var response = await GenerateUpdatesSinceResponseFromFile(sinceDateTime, productIdentifier, file);
+                return Results.Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem($"Error processing UpdatesSince request: {ex.Message}");
             }
         }
 
@@ -183,6 +243,90 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
             productObj["fileSize"] = fileSize;
 
             return productObj;
+        }
+
+        private static async Task<JsonObject> GenerateUpdatesSinceResponseFromFile(DateTime sinceDateTime, string? productIdentifier, IMockFile file)
+        {
+            // Load and parse JSON data from file
+            var allProducts = await LoadProductsFromFileAsync(file);
+
+            // Filter products by identifier if specified
+            var filteredProducts = FilterProductsByIdentifier(allProducts, productIdentifier);
+
+            // Build response array
+            var productsArray = BuildProductsArray(filteredProducts);
+
+            return CreateResponseObject(productsArray);
+        }
+
+        private static async Task<List<JsonNode>> LoadProductsFromFileAsync(IMockFile file)
+        {
+            try
+            {
+                using var stream = file.Open();
+                using var reader = new StreamReader(stream);
+                var jsonContent = await reader.ReadToEndAsync();
+                var jsonArray = JsonNode.Parse(jsonContent);
+
+                return jsonArray is JsonArray array
+                    ? [.. array]
+                    : throw new InvalidOperationException("Invalid JSON format in s100-updates-since.json file - expected array");
+            }
+            catch (JsonException ex)
+            {
+                throw new InvalidOperationException("Failed to parse JSON content from s100-updates-since.json file", ex);
+            }
+        }
+
+        private static List<JsonNode> FilterProductsByIdentifier(List<JsonNode> allProducts, string? productIdentifier)
+        {
+            if (string.IsNullOrWhiteSpace(productIdentifier))
+                return allProducts;
+
+            var prefix = GetProductPrefix(productIdentifier.ToLowerInvariant());
+
+            return prefix is not null
+                ? allProducts.Where(p => p?["productName"]?.GetValue<string>()?.StartsWith(prefix) == true).ToList()
+                : new List<JsonNode>();
+        }
+
+        private static string? GetProductPrefix(string identifier) => identifier switch
+        {
+            "s101" => "101",
+            "s102" => "102",
+            "s104" => "104",
+            "s111" => "111",
+            _ => null
+        };
+
+        private static JsonArray BuildProductsArray(List<JsonNode> filteredProducts)
+        {
+            var productsArray = new JsonArray();
+
+            foreach (var product in filteredProducts)
+            {
+                if (product is not null)
+                {
+                    productsArray.Add(product.DeepClone());
+                }
+            }
+
+            return productsArray;
+        }
+
+        private static JsonObject CreateResponseObject(JsonArray productsArray)
+        {
+            return new JsonObject
+            {
+                ["productCounts"] = new JsonObject
+                {
+                    ["requestedProductCount"] = 0,
+                    ["returnedProductCount"] = productsArray.Count,
+                    ["requestedProductsAlreadyUpToDateCount"] = 0,
+                    ["requestedProductsNotReturned"] = new JsonArray()
+                },
+                ["products"] = productsArray
+            };
         }
 
         private static IResult CreateBadRequestResponse(HttpRequest requestMessage, string description)
