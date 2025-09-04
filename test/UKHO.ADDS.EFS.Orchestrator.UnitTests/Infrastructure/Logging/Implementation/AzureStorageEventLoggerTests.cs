@@ -127,6 +127,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Logging.Implementation.AzureStora
             Assert.That(result, Is.EqualTo(AzureStorageEventLogCancellationResult.CancellationFailed));
         }
 
+        [TearDown]
+        public void TearDown()
+        {
+            _azureStorageLogger?.Dispose();
+        }
         #endregion
 
         #region Helper Methods

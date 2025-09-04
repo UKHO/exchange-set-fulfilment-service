@@ -25,6 +25,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Seril
     public class EventHubBatchedSink : IBatchedLogEventSink, IDisposable
     {
         private readonly EventHubSink innerSink;
+        private bool _disposed;
 
         public EventHubBatchedSink(
             IEventHubLog eventHubLog,
@@ -59,9 +60,28 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Seril
             return Task.CompletedTask;
         }
 
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+                return;
+
+            if (disposing)
+            {
+                innerSink?.Dispose();
+            }
+
+            _disposed = true;
+        }
+
         public void Dispose()
         {
-            innerSink.Dispose();
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        ~EventHubBatchedSink()
+        {
+            Dispose(false);
         }
     }
 }

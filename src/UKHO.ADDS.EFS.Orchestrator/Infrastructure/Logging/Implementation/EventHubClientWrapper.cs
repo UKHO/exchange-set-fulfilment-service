@@ -37,6 +37,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
     internal class EventHubClientWrapper : IEventHubClientWrapper
     {
         private EventHubProducerClient eventHubClient;
+        private bool disposed;
+
         public AzureStorageBlobContainerBuilder AzureStorageBlobContainerBuilder { get; set; }
 
         public EventHubClientWrapper(string fullyQualifiedNamespace,
@@ -67,21 +69,24 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
             AzureStorageBlobContainerBuilder = azureStorageBlobContainerBuilder;
         }
 
-        private void ReleaseUnmanagedResources()
+        protected virtual void Dispose(bool disposing)
         {
-            eventHubClient?.CloseAsync();
-            eventHubClient = null;
+            if (disposed)
+                return;
+
+            if (disposing)
+            {
+                eventHubClient?.DisposeAsync();
+                eventHubClient = null;
+            }
+
+            disposed = true;
         }
 
         public void Dispose()
         {
-            ReleaseUnmanagedResources();
+            Dispose(true);
             GC.SuppressFinalize(this);
-        }
-
-        ~EventHubClientWrapper()
-        {
-            ReleaseUnmanagedResources();
         }
 
         public Task SendAsync(EventData eventData)

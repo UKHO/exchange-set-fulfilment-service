@@ -27,7 +27,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Azure
             if (!AzureStorageLoggerEnabled)
                 return;
 
-            AzureStorageCredential = credential ?? throw new NullReferenceException($"The {nameof(credential)} cannot be null when Azure storage option is set to enabled");
+            AzureStorageCredential = credential ?? throw new ArgumentNullException($"The {nameof(credential)} cannot be null when Azure storage option is set to enabled");
         }
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Azure
                 return;
 
             if (string.IsNullOrEmpty(AzureStorageContainerSasUrlString))
-                throw new NullReferenceException("The Azure storage container sas url cannot be null or empty when Azure storage option is set to enabled");
+                throw new ArgumentException("The Azure storage container sas url cannot be null or empty when Azure storage option is set to enabled");
             AzureStorageContainerSasUrl = ValidateSasUrl(azureStorageContainerSasUrlString);
         }
 
@@ -60,10 +60,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Azure
         {
             AzureStorageLoggerEnabled = azureStorageLoggerEnabled;
             SuccessfulMessageTemplate = string.IsNullOrEmpty(successfulMessageTemplate) || string.IsNullOrWhiteSpace(successfulMessageTemplate)
-                ? throw new NullReferenceException("The successful message template cannot be null.empty or whitespace")
+                ? throw new ArgumentException("The successful message template cannot be null.empty or whitespace")
                 : successfulMessageTemplate;
             FailedMessageTemplate = string.IsNullOrEmpty(failedMessageTemplate) || string.IsNullOrWhiteSpace(failedMessageTemplate)
-                ? throw new NullReferenceException("The failed message template cannot be null.empty or whitespace")
+                ? throw new ArgumentException("The failed message template cannot be null.empty or whitespace")
                 : failedMessageTemplate;
         }
 

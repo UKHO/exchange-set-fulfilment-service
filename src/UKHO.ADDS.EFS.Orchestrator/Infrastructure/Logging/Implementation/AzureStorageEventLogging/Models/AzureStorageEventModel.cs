@@ -9,8 +9,8 @@
         /// <param name="data"> The data ( string)></param>
         public AzureStorageEventModel(string fileFullName, string data)
         {
-            FileFullName = string.IsNullOrEmpty(fileFullName) ? throw new NullReferenceException(nameof(FileFullName)) : fileFullName;
-            Data = string.IsNullOrEmpty(data) ? throw new NullReferenceException(nameof(Data)) : data;
+            FileFullName = string.IsNullOrEmpty(fileFullName) ? throw new ArgumentNullException(nameof(FileFullName)) : fileFullName;
+            Data = string.IsNullOrEmpty(data) ? throw new ArgumentNullException(nameof(Data)) : data;
         }
 
         public string Data { get; private set; }

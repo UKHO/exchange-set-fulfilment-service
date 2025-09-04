@@ -28,6 +28,9 @@ namespace UKHO.ADDS.EFS.Builder.S100
                 var provider = ConfigureServices();
 
                 pipelineContext = provider.GetRequiredService<S100ExchangeSetPipelineContext>();
+                if (pipelineContext == null)
+                    throw new InvalidOperationException("S100ExchangeSetPipelineContext is not registered in the service provider.");
+
                 var startupPipeline = provider.GetRequiredService<StartupPipeline>();
 
                 configuration = provider.GetRequiredService<IConfiguration>();
@@ -42,55 +45,49 @@ namespace UKHO.ADDS.EFS.Builder.S100
                     exitCode = BuilderExitCode.Failed;
                 }
 
+                if (exitCode != BuilderExitCode.Success || string.IsNullOrEmpty(pipelineContext.JobId.ToString()))
+                    return (int)exitCode;
+
                 // Once we have JobId, establish correlation context for ALL subsequent operations
-                if (!string.IsNullOrEmpty(pipelineContext.JobId.ToString()))
+                using (LogContext.PushProperty("CorrelationId", pipelineContext.JobId))
                 {
-                    using (LogContext.PushProperty("CorrelationId", pipelineContext.JobId))
+                    var assemblyPipeline = provider.GetRequiredService<AssemblyPipeline>();
+                    var assemblyResult = await assemblyPipeline.ExecutePipeline(pipelineContext);
+
+                    if (assemblyResult.Status != NodeResultStatus.Succeeded)
                     {
-                        if (exitCode == BuilderExitCode.Success)
-                        {
-                            var assemblyPipeline = provider.GetRequiredService<AssemblyPipeline>();
-                            var assemblyResult = await assemblyPipeline.ExecutePipeline(pipelineContext);
+                        var logger = GetLogger<AssemblyPipeline>(provider);
+                        logger.LogAssemblyPipelineFailed(assemblyResult);
 
-                            if (assemblyResult.Status != NodeResultStatus.Succeeded)
-                            {
-                                var logger = GetLogger<AssemblyPipeline>(provider);
-                                logger.LogAssemblyPipelineFailed(assemblyResult);
-
-                                exitCode = BuilderExitCode.Failed;
-                            }
-                        }
-
-                        if (exitCode == BuilderExitCode.Success)
-                        {
-                            var creationPipeline = provider.GetRequiredService<CreationPipeline>();
-                            var creationResult = await creationPipeline.ExecutePipeline(pipelineContext);
-
-                            if (creationResult.Status != NodeResultStatus.Succeeded)
-                            {
-                                var logger = GetLogger<CreationPipeline>(provider);
-                                logger.LogCreationPipelineFailed(creationResult);
-
-                                exitCode = BuilderExitCode.Failed;
-                            }
-                        }
-
-                        if (exitCode == BuilderExitCode.Success)
-                        {
-                            var distributionPipeline = provider.GetRequiredService<DistributionPipeline>();
-                            var distributionResult = await distributionPipeline.ExecutePipeline(pipelineContext);
-
-                            if (distributionResult.Status != NodeResultStatus.Succeeded)
-                            {
-                                var logger = GetLogger<DistributionPipeline>(provider);
-                                logger.LogDistributionPipelineFailed(distributionResult);
-
-                                exitCode = BuilderExitCode.Failed;
-                            }
-                        }
+                        exitCode = BuilderExitCode.Failed;
+                        return (int)exitCode;
                     }
+
+                    var creationPipeline = provider.GetRequiredService<CreationPipeline>();
+                    var creationResult = await creationPipeline.ExecutePipeline(pipelineContext);
+
+                    if (creationResult.Status != NodeResultStatus.Succeeded)
+                    {
+                        var logger = GetLogger<CreationPipeline>(provider);
+                        logger.LogCreationPipelineFailed(creationResult);
+
+                        exitCode = BuilderExitCode.Failed;
+                        return (int)exitCode;
+                    }
+
+                    var distributionPipeline = provider.GetRequiredService<DistributionPipeline>();
+                    var distributionResult = await distributionPipeline.ExecutePipeline(pipelineContext);
+
+                    if (distributionResult.Status != NodeResultStatus.Succeeded)
+                    {
+                        var logger = GetLogger<DistributionPipeline>(provider);
+                        logger.LogDistributionPipelineFailed(distributionResult);
+
+                        exitCode = BuilderExitCode.Failed;
+                        return (int)exitCode;
+                    }
+                    return (int)exitCode;
                 }
-                return (int)exitCode;
             }
             catch (Exception ex)
             {
@@ -109,7 +106,9 @@ namespace UKHO.ADDS.EFS.Builder.S100
                 var correlationId = pipelineContext?.JobId.ToString() ?? "unknown";
                 using (LogContext.PushProperty("CorrelationId", correlationId))
                 {
-                    await pipelineContext.CompleteBuild(configuration, sink, exitCode);
+                    if (pipelineContext != null)
+                        await pipelineContext.CompleteBuild(configuration, sink, exitCode);
+
                 }
 
                 await Log.CloseAndFlushAsync();

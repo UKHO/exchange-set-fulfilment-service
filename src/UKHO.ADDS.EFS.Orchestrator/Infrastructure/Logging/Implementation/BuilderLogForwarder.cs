@@ -32,56 +32,32 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
         private void WriteLog(string log, ILogger logger, string builderName, string jobId)
         {
             if (string.IsNullOrWhiteSpace(log))
-            {
                 return;
-            }
 
             Dictionary<string, object>? parsedLog;
-
             try
             {
                 parsedLog = JsonCodec.Decode<Dictionary<string, object>>(log);
             }
-            catch (JsonException ex)
+            catch (JsonException)
             {
                 return;
             }
-
             if (parsedLog is null)
-            {
                 return;
-            }
 
-            // Extract correlation ID from nested Properties if it exists
             var correlationId = ExtractCorrelationId(parsedLog, jobId);
             var mergedLog = new Dictionary<string, object>(parsedLog) { ["server.name"] = builderName };
-
-            var logMessage = "(no message template)";
-
-            if (parsedLog.TryGetValue("MessageTemplate", out var messageTemplate) && messageTemplate is JsonElement messageTemplateElement)
-            {
-                if (messageTemplateElement.ValueKind == JsonValueKind.String)
-                {
-                    logMessage = messageTemplateElement.GetString() ?? "(no message template)";
-                }
-            }
-            else if (parsedLog.TryGetValue("message", out var fallbackMessage) && fallbackMessage is JsonElement { ValueKind: JsonValueKind.String } fallbackMessageElement)
-            {
-                logMessage = fallbackMessageElement.GetString() ?? "(no message)";
-            }
+            var logMessage = ExtractLogMessage(parsedLog);
 
             var effectiveLogLevel = DetermineLogLevel(parsedLog, _replayLevel);
 
-            // Use LogContext to ensure correlation ID appears at top level
             using (LogContext.PushProperty("CorrelationId", correlationId))
+            using (logger.BeginScope(mergedLog))
             {
-                // Flatten the dictionary into structured log properties
-                using (logger.BeginScope(mergedLog))
-                {
 #pragma warning disable LOG001
-                    logger.Log(effectiveLogLevel, $"{builderName}: {logMessage}");
+                logger.Log(effectiveLogLevel, $"{builderName}: {logMessage}");
 #pragma warning restore LOG001
-                }
             }
         }
 
@@ -172,5 +148,27 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
             // Fallback to job ID
             return fallbackJobId;
         }
+
+        /// <summary>
+        /// Extracts the log message from the parsed log entry dictionary
+        /// </summary>
+        /// <param name="parsedLog">The parsed log entry as a dictionary.<</param>
+        /// <returns></returns>
+        private static string ExtractLogMessage(Dictionary<string, object> parsedLog)
+        {
+            if (parsedLog.TryGetValue("MessageTemplate", out var messageTemplate) &&
+                messageTemplate is JsonElement messageTemplateElement &&
+                messageTemplateElement.ValueKind == JsonValueKind.String)
+            {
+                return messageTemplateElement.GetString() ?? "(no message template)";
+            }
+            if (parsedLog.TryGetValue("message", out var fallbackMessage) &&
+                fallbackMessage is JsonElement fallbackMessageElement &&
+                fallbackMessageElement.ValueKind == JsonValueKind.String)
+            {
+                return fallbackMessageElement.GetString() ?? "(no message)";
+            }
+            return "(no message template)";
+        }
     }
 }

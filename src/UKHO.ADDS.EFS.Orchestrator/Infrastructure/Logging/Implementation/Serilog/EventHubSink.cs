@@ -30,7 +30,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Seril
         private readonly string _service;
         private readonly string _nodeName;
         private readonly Action<IDictionary<string, object>> additionalValuesProvider;
-        private readonly ITextFormatter _formatter;
+        private bool _disposed;
 
         public EventHubSink(
             IEventHubLog eventHubLog,
@@ -47,7 +47,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Seril
             this._service = service ?? throw new ArgumentNullException(nameof(service));
             this._nodeName = nodeName ?? throw new ArgumentNullException(nameof(nodeName));
             this.additionalValuesProvider = additionalValuesProvider ?? (d => { });
-            this._formatter = formatter ?? new JsonFormatter();
         }
 
         public void Emit(LogEvent logEvent)
@@ -166,9 +165,28 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Seril
             }
         }
 
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+                return;
+
+            if (disposing)
+            {
+                _eventHubLog?.Dispose();
+            }
+
+            _disposed = true;
+        }
+
         public void Dispose()
         {
-            _eventHubLog?.Dispose();
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        ~EventHubSink()
+        {
+            Dispose(false);
         }
     }
 }

@@ -12,11 +12,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Azure
     /// <summary>
     ///     The Azure storage event logger model
     /// </summary>
-    public class AzureStorageEventLogger : IAzureStorageEventLogger
+    public class AzureStorageEventLogger : IAzureStorageEventLogger, IDisposable
     {
         private readonly BlobContainerClient _containerClient;
         private CancellationToken _cancellationToken;
         private CancellationTokenSource _cancellationTokenSource = new();
+        private bool _disposed;
 
         /// <summary>
         ///     Constructor
@@ -130,9 +131,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Azure
                                                       model.FileFullName);
             }
 
-            if (uploadBlobResponse.Value != null)
-                if ((uploadBlobResponse.GetRawResponse().Status == (int)HttpStatusCode.Created)
-                    && (uploadBlobResponse.GetRawResponse().ReasonPhrase == HttpStatusCode.Created.ToString()))
+            if (uploadBlobResponse.Value != null
+                && uploadBlobResponse.GetRawResponse().Status == (int)HttpStatusCode.Created
+                && uploadBlobResponse.GetRawResponse().ReasonPhrase == HttpStatusCode.Created.ToString())
                     isStored = true;
 
             return new AzureStorageEventLogResult(uploadBlobResponse.GetRawResponse().ReasonPhrase,
@@ -174,9 +175,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Azure
                                                       model.FileFullName);
             }
 
-            if (uploadBlobResponse.Value != null)
-                if ((uploadBlobResponse.GetRawResponse().Status == (int)HttpStatusCode.Created)
-                    && (uploadBlobResponse.GetRawResponse().ReasonPhrase == HttpStatusCode.Created.ToString()))
+            if (uploadBlobResponse.Value != null
+                && uploadBlobResponse.GetRawResponse().Status == (int)HttpStatusCode.Created
+                    && uploadBlobResponse.GetRawResponse().ReasonPhrase == HttpStatusCode.Created.ToString())
                     isStored = true;
 
             return new AzureStorageEventLogResult(uploadBlobResponse.GetRawResponse().ReasonPhrase,
@@ -196,5 +197,28 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Azure
         {
             _cancellationTokenSource = null;
         }
+        /// <summary>
+        ///     Disposes the cancellation token source.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+                return;
+
+            if (disposing)
+            {
+                _cancellationTokenSource?.Dispose();
+                _cancellationTokenSource = null;
+            }
+
+            _disposed = true;
+        }
+
     }
 }

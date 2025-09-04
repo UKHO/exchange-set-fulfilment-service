@@ -38,6 +38,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
         private readonly JsonSerializerOptions _errorSettings;
 
         private readonly AzureStorageBlobContainerBuilder azureStorageBlobContainerBuilder;
+        private bool disposed;
 
         public EventHubLog(IEventHubClientWrapper eventHubClientWrapper, IEnumerable<JsonConverter> customConverters)
         {
@@ -126,21 +127,28 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
             }
         }
 
-        private void ReleaseUnmanagedResources()
+        protected virtual void Dispose(bool disposing)
         {
-            eventHubClientWrapper?.Dispose();
-            eventHubClientWrapper = null;
-        }
+            if (disposed)
+                return;
 
+            if (disposing)
+            {
+                eventHubClientWrapper?.Dispose();
+                eventHubClientWrapper = null;
+            }
+
+            disposed = true;
+        }
         public void Dispose()
         {
-            ReleaseUnmanagedResources();
+            Dispose(true);
             GC.SuppressFinalize(this);
         }
 
         ~EventHubLog()
         {
-            ReleaseUnmanagedResources();
+            Dispose(false);
         }
     }
 }
