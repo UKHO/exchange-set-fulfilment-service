@@ -5,8 +5,12 @@ param principalId string
 
 param sku string = 'Standard'
 
+@minLength(1)
+@description('The partial name (from the start) of the event hub namespace resource.')
+param efsEventHubsNamespacePartialName string
+
 resource efs_events_namespace 'Microsoft.EventHub/namespaces@2024-01-01' = {
-  name: take('efs-events-namespace-${uniqueString(resourceGroup().id)}', 256)
+  name: take('${efsEventHubsNamespacePartialName}-${uniqueString(resourceGroup().id)}', 50)
   location: location
   properties: {
     disableLocalAuth: false
