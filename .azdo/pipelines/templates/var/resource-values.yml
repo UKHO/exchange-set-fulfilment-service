@@ -1,3 +1,5 @@
+# This contains the names (and partial names) of the resources to be created for EFS.
+# These values are passed through to the IaC during deployment.
 variables:
 - name: EFS_RETAIN_RESOURCE_GROUP
   value: efs-$(AZURE_ENV_NAME)-retain-rg
