@@ -24,7 +24,7 @@ param efsAppConfigurationName string
 param efsApplicationInsightsName string
 param efsContainerAppsEnvironmentName string
 param efsContainerRegistryName string
-param efsEventHubNamespaceName string
+param efsEventHubsNamespaceName string
 @metadata({azd: {
   type: 'resourceGroup'
   config: {}
@@ -80,7 +80,7 @@ module efs_events_namespace 'efs-events-namespace/efs-events-namespace.module.bi
   name: 'efs-events-namespace'
   scope: resourceGroup(efsRetainResourceGroup)
   params: {
-    efsEventHubNamespaceName: efsEventHubNamespaceName
+    efsEventHubsNamespaceName: efsEventHubsNamespaceName
     location: location
   }
 }

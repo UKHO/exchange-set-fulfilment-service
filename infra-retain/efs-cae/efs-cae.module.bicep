@@ -7,12 +7,16 @@ param subnetResourceId string
 
 param zoneRedundant bool
 
+@minLength(1)
+@description('The partial name (from the start) of the container apps environment resource.')
+param efsContainerAppsEnvironmentPartialName string
+
 resource efs_law 'Microsoft.OperationalInsights/workspaces@2025-02-01' existing = {
   name: efs_law_outputs_name
 }
 
 resource efs_cae 'Microsoft.App/managedEnvironments@2025-01-01' = {
-  name: take('efscae${uniqueString(resourceGroup().id)}', 24)
+  name: take('${efsContainerAppsEnvironmentPartialName}${uniqueString(resourceGroup().id)}', 24)
   location: location
   properties: {
     appLogsConfiguration: {
@@ -46,3 +50,6 @@ resource aspireDashboard 'Microsoft.App/managedEnvironments/dotNetComponents@202
   }
   parent: efs_cae
 }
+
+output name string = efs_cae.name
+output defaultDomain string = efs_cae.properties.defaultDomain
