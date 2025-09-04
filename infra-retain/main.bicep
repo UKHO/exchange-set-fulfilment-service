@@ -15,6 +15,34 @@ param appResourceGroupName string
 param efsServiceIdentityPartialName string
 
 @minLength(1)
+@description('The partial name (from the start) of the log analytics workspace resource.')
+param efsLogAnalyticsWorkspacePartialName string
+
+@minLength(1)
+@description('The partial name (from the start) of the application insights resource.')
+param efsApplicationInsightsPartialName string
+
+@minLength(1)
+@description('The partial name (from the start) of the app configuration resource.')
+param efsAppConfigurationPartialName string
+
+@minLength(1)
+@description('The partial name (from the start) of the event hub namespace resource.')
+param efsEventHubsNamespacePartialName string
+
+@minLength(1)
+@description('The partial name (from the start) of the container registry resource.')
+param efsContainerRegistryPartialName string
+
+@minLength(1)
+@description('The partial name (from the start) of the container apps environment resource.')
+param efsContainerAppsEnvironmentPartialName string
+
+@minLength(1)
+@description('The partial name (from the start) of the storage account resource.')
+param efsStorageAccountPartialName string
+
+@minLength(1)
 @description('The location used for all deployed resources')
 param location string
 
@@ -57,6 +85,7 @@ module efs_law 'efs-law/efs-law.module.bicep' = {
   scope: rg
   params: {
     location: location
+    efsLogAnalyticsWorkspacePartialName: efsLogAnalyticsWorkspacePartialName
   }
 }
 
@@ -66,6 +95,7 @@ module efs_app_insights 'efs-app-insights/efs-app-insights.module.bicep' = {
   params: {
     efs_law_outputs_loganalyticsworkspaceid: efs_law.outputs.logAnalyticsWorkspaceId
     location: location
+    efsApplicationInsightsPartialName: efsApplicationInsightsPartialName
   }
 }
 
@@ -75,6 +105,7 @@ module efs_appconfig 'efs-appconfig/efs-appconfig.module.bicep' = {
   params: {
     location: location
     principalId: efs_service_identity.outputs.principalId
+    efsAppConfigurationPartialName: efsAppConfigurationPartialName
   }
 }
 
@@ -84,6 +115,7 @@ module efs_events_namespace 'efs-events-namespace/efs-events-namespace.module.bi
   params: {
     location: location
     principalId: efs_service_identity.outputs.principalId
+    efsEventHubsNamespacePartialName: efsEventHubsNamespacePartialName
   }
 }
 
@@ -93,6 +125,7 @@ module efs_cae_acr 'efs-cae-acr/efs-cae-acr.module.bicep' = {
   params: {
     location: location
     principalId: efs_service_identity.outputs.principalId
+    efsContainerRegistryPartialName: efsContainerRegistryPartialName
   }
 }
 
@@ -104,6 +137,7 @@ module efs_cae 'efs-cae/efs-cae.module.bicep' = {
     location: location
     subnetResourceId: subnetResourceId
     zoneRedundant: zoneRedundant
+    efsContainerAppsEnvironmentPartialName: efsContainerAppsEnvironmentPartialName
   }
 }
 
@@ -113,6 +147,7 @@ module efs_storage 'efs-storage/efs-storage.module.bicep' = {
   params: {
     location: location
     principalId: efs_service_identity.outputs.principalId
+    efsStorageAccountPartialName: efsStorageAccountPartialName
   }
 }
 
@@ -123,10 +158,12 @@ module pipeline_roles 'pipeline-roles/pipeline-roles.module.bicep' = {
   }
 }
 
-output EFS_SERVICE_IDENTITY_RESOURCE_GROUP string = rg.name
-output EFS_SERVICE_IDENTITY_CLIENTID string = efs_service_identity.outputs.clientId
-output EFS_SERVICE_IDENTITY_PRINCIPALID string = efs_service_identity.outputs.principalId
-output EFS_SERVICE_IDENTITY_ID string = efs_service_identity.outputs.id
+output EFS_RETAIN_RESOURCE_GROUP string = rg.name
+output EFS_RESOURCE_GROUP string = app_rg.name
 output EFS_SERVICE_IDENTITY_NAME string = efs_service_identity.outputs.name
-output EFS_LAW_ID string = efs_law.outputs.logAnalyticsWorkspaceId
 output EFS_LAW_NAME string = efs_law.outputs.name
+output EFS_APP_INSIGHTS_NAME string = efs_app_insights.outputs.name
+output EFS_APPCONFIG_NAME string = efs_appconfig.outputs.name
+output EFS_EVENTS_NAMESPACE_NAME string = efs_events_namespace.outputs.name
+output EFS_CAE_NAME string = efs_cae.outputs.name
+output EFS_CAE_DEFAULT_DOMAIN string = efs_cae.outputs.defaultDomain
