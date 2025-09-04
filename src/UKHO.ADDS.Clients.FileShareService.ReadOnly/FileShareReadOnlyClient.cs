@@ -164,7 +164,7 @@ namespace UKHO.ADDS.Clients.FileShareService.ReadOnly
             try
             {
                 long startByte = 0;
-                var endByte = fileSizeInBytes < _maxDownloadBytes ? fileSizeInBytes : _maxDownloadBytes - 1;
+                var endByte = fileSizeInBytes < _maxDownloadBytes ? fileSizeInBytes - 1 : _maxDownloadBytes - 1;
 
                 while (startByte <= endByte)
                 {

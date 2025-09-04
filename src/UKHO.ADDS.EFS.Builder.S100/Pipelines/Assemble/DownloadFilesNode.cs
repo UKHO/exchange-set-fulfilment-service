@@ -143,16 +143,16 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             }
         }
 
-        private List<(BatchDetails Batch, string FileName)> GetAllFilesToProcess(IEnumerable<BatchDetails> latestBatches)
+        private List<(BatchDetails Batch, string FileName,long? FileSize)> GetAllFilesToProcess(IEnumerable<BatchDetails> latestBatches)
         {
             return latestBatches
                 .Where(batch => batch.Files.Any())
-                .SelectMany(batch => batch.Files.Select(file => (batch, file.Filename)))
+                .SelectMany(batch => batch.Files.Select(file => (batch, file.Filename,file.FileSize)))
                 .ToList();
         }
 
         private void CreateRequiredDirectories(
-            List<(BatchDetails Batch, string FileName)> allFilesToProcess,
+            List<(BatchDetails Batch, string FileName,long? FileSize)> allFilesToProcess,
             string workSpaceRootPath,
             string workSpaceSpoolDataSetFilesPath,
             string workSpaceSpoolSupportFilesPath,
@@ -173,7 +173,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         }
 
         private IEnumerable<Task> CreateDownloadTasks(
-            List<(BatchDetails Batch, string FileName)> allFilesToProcess,
+            List<(BatchDetails Batch, string FileName, long? FileSize)> allFilesToProcess,
             string workSpaceRootPath,
             string workSpaceSpoolDataSetFilesPath,
             string workSpaceSpoolSupportFilesPath,
@@ -217,11 +217,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                                 FileStreamBufferSize,
                                 FileOptions.Asynchronous);
 
-                            //var streamResult = await retryPolicy.ExecuteAsync(() =>
-                            //    _fileShareReadOnlyClient.DownloadFileAsync(item.Batch.BatchId, item.FileName, outputFileStream, (string)correlationId, FileSizeInBytes));
-
                             var streamResult = await retryPolicy.ExecuteAsync(() =>
-                                _fileShareReadOnlyClient.DownloadFileAsync(item.Batch.BatchId, item.FileName));
+                               _fileShareReadOnlyClient.DownloadFileAsync(item.Batch.BatchId, item.FileName, outputFileStream, (string)correlationId, item.FileSize ?? 0 ));
+
+                            //var streamResult = await retryPolicy.ExecuteAsync(() =>
+                            //    _fileShareReadOnlyClient.DownloadFileAsync(item.Batch.BatchId, item.FileName));
 
                             if (streamResult.IsSuccess(out var fileStream))
                             {
