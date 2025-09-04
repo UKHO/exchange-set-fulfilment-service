@@ -217,7 +217,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                                 FileOptions.Asynchronous);
 
                             var streamResult = await retryPolicy.ExecuteAsync(() =>
-                                _fileShareReadOnlyClient.DownloadFileAsync(item.Batch.BatchId, item.FileName, outputFileStream, (string)correlationId, FileSizeInBytes));
+                                _fileShareReadOnlyClient.DownloadFileAsync(item.Batch.BatchId, item.FileName));
+
+                            if (streamResult.IsSuccess(out var fileStream))
+                            {
+                                await fileStream.CopyToAsync(outputFileStream);
+
+                            }
 
                             if (streamResult.IsFailure(out var error, out var value))
                             {
