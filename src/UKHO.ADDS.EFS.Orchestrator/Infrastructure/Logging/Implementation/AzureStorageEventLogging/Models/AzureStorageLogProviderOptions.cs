@@ -59,10 +59,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Azure
             string failedMessageTemplate)
         {
             AzureStorageLoggerEnabled = azureStorageLoggerEnabled;
-            SuccessfulMessageTemplate = string.IsNullOrEmpty(successfulMessageTemplate) | string.IsNullOrWhiteSpace(successfulMessageTemplate)
+            SuccessfulMessageTemplate = string.IsNullOrEmpty(successfulMessageTemplate) || string.IsNullOrWhiteSpace(successfulMessageTemplate)
                 ? throw new NullReferenceException("The successful message template cannot be null.empty or whitespace")
                 : successfulMessageTemplate;
-            FailedMessageTemplate = string.IsNullOrEmpty(failedMessageTemplate) | string.IsNullOrWhiteSpace(failedMessageTemplate)
+            FailedMessageTemplate = string.IsNullOrEmpty(failedMessageTemplate) || string.IsNullOrWhiteSpace(failedMessageTemplate)
                 ? throw new NullReferenceException("The failed message template cannot be null.empty or whitespace")
                 : failedMessageTemplate;
         }

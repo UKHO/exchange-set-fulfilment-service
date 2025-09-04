@@ -11,7 +11,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
         private readonly ILoggerFactory _loggerFactory;
         private readonly LogLevel _replayLevel;
 
-
         public BuilderLogForwarder(IConfiguration configuration, ILoggerFactory loggerFactory)
         {
             _loggerFactory = loggerFactory;
@@ -75,13 +74,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
 
             // Use LogContext to ensure correlation ID appears at top level
             using (LogContext.PushProperty("CorrelationId", correlationId))
-
-            // Flatten the dictionary into structured log properties
-            using (logger.BeginScope(mergedLog))
             {
+                // Flatten the dictionary into structured log properties
+                using (logger.BeginScope(mergedLog))
+                {
 #pragma warning disable LOG001
-                logger.Log(effectiveLogLevel, $"{builderName}: {logMessage}");
+                    logger.Log(effectiveLogLevel, $"{builderName}: {logMessage}");
 #pragma warning restore LOG001
+                }
             }
         }
 

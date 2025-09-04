@@ -82,7 +82,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Azure
         {
             var keyExists = set.TryGetValue(key, out var value);
 
-            return keyExists & value != null ? value.ToString() : null;
+            return keyExists && value != null ? value.ToString() : null;
         }
 
         /// <summary>

@@ -84,7 +84,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Implementation
             var logProperties = new Dictionary<string, object>
             {
                 { "hi", "Guys" },
-                { "thowable", new ObjectThatThrows() }
+                { "throwable", new ObjectThatThrows() }
             };
             var testLogEntry = CreateLogEntry(logProperties: logProperties, level: "LogLevel");
             _eventHubLog.Log(testLogEntry);
@@ -98,7 +98,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Implementation
             Assert.That(jObject["Level"]?.ToString(), Is.EqualTo(testLogEntry.Level));
             Assert.That(jObject["Exception"]?["Message"]?.ToString(), Is.EqualTo(testLogEntry.Exception?.Message));
             Assert.That(jObject["Properties"]?["hi"]?.ToString(), Is.EqualTo("Guys"));
-            Assert.That(jObject["Properties"]?["thowable"]?["NotThrowable"]?.ToString(), Is.EqualTo("NotThrowing"));
+            Assert.That(jObject["Properties"]?["throwable"]?["NotThrowable"]?.ToString(), Is.EqualTo("NotThrowing"));
         }
 
 

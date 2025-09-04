@@ -132,7 +132,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Azure
 
             if (uploadBlobResponse.Value != null)
                 if ((uploadBlobResponse.GetRawResponse().Status == (int)HttpStatusCode.Created)
-                    & (uploadBlobResponse.GetRawResponse().ReasonPhrase == HttpStatusCode.Created.ToString()))
+                    && (uploadBlobResponse.GetRawResponse().ReasonPhrase == HttpStatusCode.Created.ToString()))
                     isStored = true;
 
             return new AzureStorageEventLogResult(uploadBlobResponse.GetRawResponse().ReasonPhrase,
@@ -176,7 +176,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Azure
 
             if (uploadBlobResponse.Value != null)
                 if ((uploadBlobResponse.GetRawResponse().Status == (int)HttpStatusCode.Created)
-                    & (uploadBlobResponse.GetRawResponse().ReasonPhrase == HttpStatusCode.Created.ToString()))
+                    && (uploadBlobResponse.GetRawResponse().ReasonPhrase == HttpStatusCode.Created.ToString()))
                     isStored = true;
 
             return new AzureStorageEventLogResult(uploadBlobResponse.GetRawResponse().ReasonPhrase,
