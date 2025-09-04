@@ -1,5 +1,4 @@
-﻿using UKHO.ADDS.EFS.Domain.Exceptions;
-using UKHO.ADDS.EFS.Domain.Jobs;
+﻿using System.ComponentModel.DataAnnotations;
 using Vogen;
 
 namespace UKHO.ADDS.EFS.Domain.Products
@@ -64,7 +63,7 @@ namespace UKHO.ADDS.EFS.Domain.Products
 
                 if (TryParseExactlyThreeDigits(span, out var code))
                 {
-                    return DataStandardProduct.From(code);
+                    return Products.DataStandardProduct.From(code);
                 }
 
                 if (span.Length == 8)

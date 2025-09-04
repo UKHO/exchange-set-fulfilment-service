@@ -1,7 +1,6 @@
 ﻿using Quartz;
 using Serilog.Context;
 using UKHO.ADDS.EFS.Domain.External;
-using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Messages;
 using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;

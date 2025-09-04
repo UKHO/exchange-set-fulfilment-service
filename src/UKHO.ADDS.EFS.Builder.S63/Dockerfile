@@ -9,7 +9,7 @@ WORKDIR /app
 
 # Copy csproj files first to leverage layer caching
 COPY ["UKHO.ADDS.EFS.Builder.S63/UKHO.ADDS.EFS.Builder.S63.csproj", "UKHO.ADDS.EFS.Builder.S63/"]
-COPY ["UKHO.ADDS.EFS.Builder.Common/UKHO.ADDS.EFS.Builder.Common.csproj", "UKHO.ADDS.EFS.Builder.Common/"]
+COPY ["UKHO.ADDS.EFS.Infrastructure.Builders/UKHO.ADDS.EFS.Infrastructure.Builders.csproj", "UKHO.ADDS.EFS.Infrastructure.Builders/"]
 COPY ["UKHO.ADDS.EFS.Domain/UKHO.ADDS.EFS.Domain.csproj", "UKHO.ADDS.EFS.Domain/"]
 COPY ["UKHO.ADDS.EFS.Domain.Services/UKHO.ADDS.EFS.Domain.Services.csproj", "UKHO.ADDS.EFS.Domain.Services/"]
 COPY ["UKHO.ADDS.EFS.Infrastructure/UKHO.ADDS.EFS.Infrastructure.csproj", "UKHO.ADDS.EFS.Infrastructure/"]

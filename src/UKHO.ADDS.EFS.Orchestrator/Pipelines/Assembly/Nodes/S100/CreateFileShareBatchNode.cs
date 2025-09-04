@@ -1,8 +1,8 @@
 ﻿using UKHO.ADDS.EFS.Domain.Builds.S100;
 using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Services;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
-using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
@@ -10,12 +10,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 {
     internal class CreateFileShareBatchNode : AssemblyPipelineNode<S100Build>
     {
-        private readonly IOrchestratorFileShareClient _fileShareClient;
+        private readonly IFileService _fileService;
 
-        public CreateFileShareBatchNode(AssemblyNodeEnvironment nodeEnvironment, IOrchestratorFileShareClient fileShareClient)
+        public CreateFileShareBatchNode(AssemblyNodeEnvironment nodeEnvironment, IFileService fileService)
             : base(nodeEnvironment)
         {
-            _fileShareClient = fileShareClient;
+            _fileService = fileService;
         }
 
         public override Task<bool> ShouldExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
@@ -28,14 +28,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             var job = context.Subject.Job;
             var build = context.Subject.Build;
 
-            var createBatchResponseResult = await _fileShareClient.CreateBatchAsync((string)job.GetCorrelationId(), Environment.CancellationToken);
-
-            if (createBatchResponseResult.IsSuccess(out var batchHandle, out _))
+            try
             {
-                job.BatchId = BatchId.From(batchHandle.BatchId);
-                build.BatchId = BatchId.From(batchHandle.BatchId);
+                var batch = await _fileService.CreateBatchAsync(job.GetCorrelationId(), Environment.CancellationToken);
+
+                job.BatchId = batch.BatchId;
+                build.BatchId = batch.BatchId;
             }
-            else
+            catch (Exception ex)
             {
                 // Could not create a batch, so the job should fail
                 await context.Subject.SignalAssemblyError();

@@ -9,7 +9,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion
 {
     internal class S100CompletionPipeline : CompletionPipeline<S100Build>
     {
-        public S100CompletionPipeline(CompletionPipelineParameters parameters, CompletionPipelineNodeFactory nodeFactory, PipelineContextFactory<S100Build> contextFactory, ILogger<S100CompletionPipeline> logger)
+        public S100CompletionPipeline(CompletionPipelineParameters parameters, ICompletionPipelineNodeFactory nodeFactory, IPipelineContextFactory<S100Build> contextFactory, ILogger<S100CompletionPipeline> logger)
             : base(parameters, nodeFactory, contextFactory, logger)
         {
         }

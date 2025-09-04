@@ -1,6 +1,6 @@
 ﻿namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
 {
-    internal class AssemblyPipelineNodeFactory 
+    internal class AssemblyPipelineNodeFactory : IAssemblyPipelineNodeFactory
     {
         private readonly IConfiguration _configuration;
         private readonly IServiceProvider _serviceProvider;
