@@ -1,4 +1,4 @@
-﻿using UKHO.ADDS.EFS.Domain.Exceptions;
+﻿using System.ComponentModel.DataAnnotations;
 using Vogen;
 
 namespace UKHO.ADDS.EFS.Domain.Messages

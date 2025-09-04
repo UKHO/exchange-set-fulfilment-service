@@ -151,23 +151,21 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
 
         private static async Task CreateAndStoreBuildCommitInfoAsync(IExecutionContext<S100ExchangeSetPipelineContext> context, string exchangeSetFolderPath)
         {
-            // Create BuildCommitInfo to store multiple file details
+            // Create BuildCommitInfo to store single file detail
             var buildCommitInfo = new BuildCommitInfo();
             // Get all zip files in the exchange set folder
             var zipFiles = Directory.GetFiles(exchangeSetFolderPath, "*.zip", SearchOption.TopDirectoryOnly);
-            // Process each zip file and calculate its hash
-            foreach (var zipFilePath in zipFiles)
-            {
-                var fileName = Path.GetFileName(zipFilePath);
-                // Calculate file hash using the same pattern as AddFiles method
-                await using var fileStream = CreateExchangeSetFileStream(zipFilePath);
-                fileStream.Seek(0, SeekOrigin.Begin);
-                using var md5 = MD5.Create();
-                var hashBytes = await md5.ComputeHashAsync(fileStream);
-                var fileHash = Convert.ToBase64String(hashBytes);
-                // Add file details to build commit info
-                buildCommitInfo.AddFileDetail(fileName, fileHash);
-            }
+            // Process the single zip file and calculate its hash
+            var zipFilePath = zipFiles.First();
+            var fileName = Path.GetFileName(zipFilePath);
+            // Calculate file hash using the same pattern as AddFiles method
+            await using var fileStream = CreateExchangeSetFileStream(zipFilePath);
+            fileStream.Seek(0, SeekOrigin.Begin);
+            using var md5 = MD5.Create();
+            var hashBytes = await md5.ComputeHashAsync(fileStream);
+            var fileHash = Convert.ToBase64String(hashBytes);
+            // Add file details to build commit info
+            buildCommitInfo.AddFileDetail(fileName, fileHash);
 
             // Store the build commit info in the build object
             context.Subject.Build.BuildCommitInfo = buildCommitInfo;

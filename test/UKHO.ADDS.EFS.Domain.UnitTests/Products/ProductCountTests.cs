@@ -1,4 +1,4 @@
-﻿using UKHO.ADDS.EFS.Domain.Exceptions;
+﻿using System.ComponentModel.DataAnnotations;
 using UKHO.ADDS.EFS.Domain.Products;
 using Xunit;
 

@@ -1,0 +1,21 @@
+﻿using UKHO.ADDS.EFS.Domain.Builds.S100;
+using UKHO.ADDS.EFS.Domain.Builds.S57;
+using UKHO.ADDS.EFS.Domain.Builds.S63;
+using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.Infrastructure.Results;
+
+namespace UKHO.ADDS.EFS.Domain.Services
+{
+    public interface IStorageService
+    {
+        Task<Result> CreateJobAsync(Job job);
+
+        Task<Result> UpdateJobAsync(Job job);
+
+        Task<Result> UpdateS100BuildAsync(S100Build build);
+
+        Task<Result> UpdateS63BuildAsync(S63Build build);
+
+        Task<Result> UpdateS57BuildAsync(S57Build build);
+    }
+}

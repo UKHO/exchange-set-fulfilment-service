@@ -13,13 +13,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion
     internal abstract class CompletionPipeline<TBuild> : CompletionPipeline where TBuild : Build, new()
     {
         private readonly ILogger _logger;
-        private readonly CompletionPipelineNodeFactory _nodeFactory;
-        private readonly PipelineContextFactory<TBuild> _contextFactory;
+        private readonly ICompletionPipelineNodeFactory _nodeFactory;
+        private readonly IPipelineContextFactory<TBuild> _contextFactory;
         private readonly CompletionPipelineParameters _parameters;
 
         private readonly PipelineNode<PipelineContext<TBuild>> _pipeline;
 
-        protected CompletionPipeline(CompletionPipelineParameters parameters, CompletionPipelineNodeFactory nodeFactory, PipelineContextFactory<TBuild> contextFactory, ILogger logger)
+        protected CompletionPipeline(CompletionPipelineParameters parameters, ICompletionPipelineNodeFactory nodeFactory, IPipelineContextFactory<TBuild> contextFactory, ILogger logger)
         {
             _parameters = parameters;
             _nodeFactory = nodeFactory;
@@ -40,7 +40,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion
 
         protected PipelineNode<PipelineContext<TBuild>> Pipeline => _pipeline;
 
-        protected PipelineContextFactory<TBuild> ContextFactory => _contextFactory;
+        protected IPipelineContextFactory<TBuild> ContextFactory => _contextFactory;
 
         protected abstract Task<PipelineContext<TBuild>> CreateContext();
 

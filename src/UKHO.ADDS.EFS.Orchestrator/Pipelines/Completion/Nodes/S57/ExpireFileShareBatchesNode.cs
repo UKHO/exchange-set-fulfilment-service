@@ -1,10 +1,9 @@
 ﻿using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.Builds.S57;
 using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Services;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
-using UKHO.ADDS.EFS.Orchestrator.Pipelines.Services;
-using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
@@ -12,13 +11,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S57
 {
     internal class ExpireFileShareBatchesNode : CompletionPipelineNode<S57Build>
     {
-        private readonly IOrchestratorFileShareClient _fileShareClient;
+        private readonly IFileService _fileService;
         private readonly ITimestampService _timestampService;
 
-        public ExpireFileShareBatchesNode(CompletionNodeEnvironment nodeEnvironment, IOrchestratorFileShareClient fileShareClient, ITimestampService timestampService)
+        public ExpireFileShareBatchesNode(CompletionNodeEnvironment nodeEnvironment, IFileService fileService, ITimestampService timestampService)
             : base(nodeEnvironment)
         {
-            _fileShareClient = fileShareClient;
+            _fileService = fileService;
             _timestampService = timestampService;
         }
 
@@ -31,22 +30,25 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S57
         {
             var job = context.Subject.Job!;
 
-            var searchResult = await _fileShareClient.SearchCommittedBatchesExcludingCurrentAsync((string)job.BatchId, (string)job.GetCorrelationId(), Environment.CancellationToken);
-            if (!searchResult.IsSuccess(out var searchResponse, out _))
+            try
+            {
+                var searchResult = await _fileService.SearchCommittedBatchesExcludingCurrentAsync(job.BatchId, job.GetCorrelationId(), Environment.CancellationToken);
+
+                if (searchResult?.Entries == null || searchResult.Entries.Count == 0)
+                {
+                    return NodeResultStatus.Succeeded;
+                }
+
+                var expiryResult = await _fileService.SetExpiryDateAsync(searchResult.Entries, job.GetCorrelationId(), Environment.CancellationToken);
+
+                await _timestampService.SetTimestampForJobAsync(job);
+            }
+            catch (Exception ex)
             {
                 return NodeResultStatus.Failed;
             }
 
-            if (searchResponse?.Entries == null || searchResponse.Entries.Count == 0)
-            {
-                return NodeResultStatus.Succeeded;
-            }
-
             // TODO State management
-
-            var expiryResult = await _fileShareClient.SetExpiryDateAsync(searchResponse.Entries, (string)job.GetCorrelationId(), Environment.CancellationToken);
-
-            await _timestampService.SetTimestampForJobAsync(job);
 
             return NodeResultStatus.Succeeded;
         }

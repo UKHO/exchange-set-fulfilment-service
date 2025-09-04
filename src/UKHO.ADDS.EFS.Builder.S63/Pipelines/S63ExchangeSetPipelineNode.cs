@@ -1,5 +1,5 @@
-﻿using UKHO.ADDS.EFS.Builder.Common.Pipelines;
-using UKHO.ADDS.EFS.Domain.Builds.S63;
+﻿using UKHO.ADDS.EFS.Domain.Builds.S63;
+using UKHO.ADDS.EFS.Infrastructure.Builders.Pipelines;
 
 namespace UKHO.ADDS.EFS.Builder.S63.Pipelines
 {

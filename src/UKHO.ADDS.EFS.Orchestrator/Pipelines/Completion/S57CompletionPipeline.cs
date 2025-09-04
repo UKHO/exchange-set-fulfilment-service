@@ -8,7 +8,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion
 {
     internal class S57CompletionPipeline : CompletionPipeline<S57Build>
     {
-        public S57CompletionPipeline(CompletionPipelineParameters parameters, CompletionPipelineNodeFactory nodeFactory, PipelineContextFactory<S57Build> contextFactory, ILogger<S57CompletionPipeline> logger)
+        public S57CompletionPipeline(CompletionPipelineParameters parameters, ICompletionPipelineNodeFactory nodeFactory, IPipelineContextFactory<S57Build> contextFactory, ILogger<S57CompletionPipeline> logger)
             : base(parameters, nodeFactory, contextFactory, logger)
         {
         }

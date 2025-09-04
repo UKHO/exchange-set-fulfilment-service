@@ -1,10 +1,11 @@
 ﻿using System.Net;
 using UKHO.ADDS.EFS.Domain.Builds.S100;
 using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Products;
+using UKHO.ADDS.EFS.Domain.Services;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
-using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
@@ -12,13 +13,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 {
     internal class GetS100ProductNamesNode : AssemblyPipelineNode<S100Build>
     {
-        private readonly IOrchestratorSalesCatalogueClient _salesCatalogueClient;
+        private readonly IProductService _productService;
         private readonly ILogger<GetS100ProductNamesNode> _logger;
 
-        public GetS100ProductNamesNode(AssemblyNodeEnvironment nodeEnvironment, IOrchestratorSalesCatalogueClient salesCatalogueClient, ILogger<GetS100ProductNamesNode> logger)
+        public GetS100ProductNamesNode(AssemblyNodeEnvironment nodeEnvironment, IProductService productService, ILogger<GetS100ProductNamesNode> logger)
             : base(nodeEnvironment)
         {
-            _salesCatalogueClient = salesCatalogueClient ?? throw new ArgumentNullException(nameof(salesCatalogueClient));
+            _productService = productService ?? throw new ArgumentNullException(nameof(productService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -37,7 +38,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                 //.Where(name => !string.IsNullOrWhiteSpace(name))
                 .ToArray() ?? [];
 
-            var s100SalesCatalogueData = await _salesCatalogueClient.GetS100ProductEditionListAsync(productNames, job, Environment.CancellationToken);
+            var s100SalesCatalogueData = await _productService.GetProductEditionListAsync(DataStandard.S100, productNames, job, Environment.CancellationToken);
 
             var nodeResult = NodeResultStatus.NotRun;
 
@@ -53,7 +54,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                     }
 
                     // Log any requested products that weren't returned, but don't fail the build
-                    if (s100SalesCatalogueData.ProductCountSummary.MissingProducts.Count > 0)
+                    if (s100SalesCatalogueData.ProductCountSummary.MissingProducts.HasProducts)
                     {
                         _logger.LogSalesCatalogueProductsNotReturned(s100SalesCatalogueData.ProductCountSummary);
                     }

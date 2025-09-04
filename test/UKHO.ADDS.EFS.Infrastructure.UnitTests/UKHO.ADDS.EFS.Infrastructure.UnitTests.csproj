@@ -33,6 +33,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\UKHO.ADDS.EFS.Infrastructure\UKHO.ADDS.EFS.Infrastructure.csproj" />
+    <ProjectReference Include="..\UKHO.ADDS.EFS.Domain.Services.UnitTests\UKHO.ADDS.EFS.Domain.Services.UnitTests.csproj" />
   </ItemGroup>
 
 </Project>
