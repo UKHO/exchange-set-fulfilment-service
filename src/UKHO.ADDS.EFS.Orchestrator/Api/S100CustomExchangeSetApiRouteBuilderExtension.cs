@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.EFS.Messages;
+﻿using UKHO.ADDS.EFS.Domain.Messages;
+using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Extensions;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;

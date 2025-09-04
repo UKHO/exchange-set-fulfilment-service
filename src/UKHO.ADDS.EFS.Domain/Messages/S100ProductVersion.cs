@@ -1,4 +1,4 @@
-﻿namespace UKHO.ADDS.EFS.Messages
+﻿namespace UKHO.ADDS.EFS.Domain.Messages
 {
     /// <summary>
     /// Represents a S100 product version with edition and update numbers

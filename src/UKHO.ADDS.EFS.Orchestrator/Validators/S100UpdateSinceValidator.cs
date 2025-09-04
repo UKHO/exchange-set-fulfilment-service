@@ -1,6 +1,6 @@
 using FluentValidation;
-using UKHO.ADDS.EFS.Messages;
 using System.Globalization;
+using UKHO.ADDS.EFS.Domain.Messages;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Validators;
 
@@ -21,7 +21,7 @@ internal class S100UpdateSinceValidator : AbstractValidator<(S100UpdatesSinceReq
         RuleFor(request => request.s100UpdatesSinceRequest.SinceDateTime)
             .NotEqual(default(DateTime))
             .WithMessage("sinceDateTime cannot be empty.")
-            .Must(IsValidISO8601Format)
+            .Must(date => IsValidISO8601Format(date.ToString(ISO_8601_FORMAT)))
             .WithMessage("sinceDateTime must be in the format"+ ISO_8601_FORMAT+".")
             .Must(date => DateTime.Compare(date, DateTime.UtcNow) <= 0)
             .WithMessage("sinceDateTime cannot be a future date.")
@@ -33,9 +33,8 @@ internal class S100UpdateSinceValidator : AbstractValidator<(S100UpdatesSinceReq
             .WithMessage(ProductIdentifierValidator.ValidationMessage);
     }
 
-    private static bool IsValidISO8601Format(DateTime sinceDateTime)
+    private static bool IsValidISO8601Format(string sinceDateTimeString)
     {
-        var sinceDateTimeString = sinceDateTime.ToString(ISO_8601_FORMAT);
         return DateTime.TryParseExact(
             sinceDateTimeString,
             ISO_8601_FORMAT,

@@ -1,5 +1,5 @@
 using FluentValidation.Results;
-using UKHO.ADDS.EFS.Messages;
+using UKHO.ADDS.EFS.Domain.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Validators;
 
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
@@ -151,6 +151,24 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
                 Assert.That(result.IsValid, Is.False);
                 Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == ProductIdentifierValidator.ValidationMessage));
             });
+        }
+
+        [Test]
+        public void IsValidISO8601Format_ReturnsTrue()
+        {
+            var validIsoString = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ");
+            var method = typeof(S100UpdateSinceValidator).GetMethod("IsValidISO8601Format", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+            var result = method.Invoke(null, new object[] { validIsoString });
+            Assert.That(result, Is.True);
+        }
+
+        [Test]
+        public void IsInValidISO8601Format_ReturnsFalse()
+        {
+            var invalidIsoString = "not-a-date";
+            var method = typeof(S100UpdateSinceValidator).GetMethod("IsValidISO8601Format", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+            var result = method.Invoke(null, new object[] { invalidIsoString });
+            Assert.That(result, Is.False);
         }
     }
 }

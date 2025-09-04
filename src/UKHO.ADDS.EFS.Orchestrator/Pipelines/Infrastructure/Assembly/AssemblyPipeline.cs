@@ -13,13 +13,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
     internal abstract class AssemblyPipeline<TBuild> : AssemblyPipeline where TBuild : Build, new()
     {
         private readonly ILogger _logger;
-        private readonly AssemblyPipelineNodeFactory _nodeFactory;
-        private readonly PipelineContextFactory<TBuild> _contextFactory;
+        private readonly IAssemblyPipelineNodeFactory _nodeFactory;
+        private readonly IPipelineContextFactory<TBuild> _contextFactory;
         private readonly AssemblyPipelineParameters _parameters;
 
         private readonly PipelineNode<PipelineContext<TBuild>> _pipeline;
 
-        protected AssemblyPipeline(AssemblyPipelineParameters parameters, AssemblyPipelineNodeFactory nodeFactory, PipelineContextFactory<TBuild> contextFactory, ILogger logger)
+        protected AssemblyPipeline(AssemblyPipelineParameters parameters, IAssemblyPipelineNodeFactory nodeFactory, IPipelineContextFactory<TBuild> contextFactory, ILogger logger)
         {
             _parameters = parameters;
             _nodeFactory = nodeFactory;
@@ -40,7 +40,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
 
         protected PipelineNode<PipelineContext<TBuild>> Pipeline => _pipeline;
 
-        protected PipelineContextFactory<TBuild> ContextFactory => _contextFactory;
+        protected IPipelineContextFactory<TBuild> ContextFactory => _contextFactory;
 
         protected abstract Task<PipelineContext<TBuild>> CreateContext();
 

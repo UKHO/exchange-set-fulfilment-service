@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
-namespace UKHO.ADDS.EFS.Messages
+﻿namespace UKHO.ADDS.EFS.Domain.Messages
 {
     /// <summary>
     /// Request model for S100 updates since datetime endpoint

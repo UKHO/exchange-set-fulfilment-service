@@ -1,5 +1,5 @@
 using FluentValidation;
-using UKHO.ADDS.EFS.Messages;
+using UKHO.ADDS.EFS.Domain.Messages;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Validators;
 

@@ -11,6 +11,9 @@
       "efs_redis_password": {
         "value": "${AZURE_EFS_REDIS_PASSWORD}"
       },
+      "efsAppConfigurationName": {
+        "value": "${AZURE_EFS_APP_CONFIGURATION_NAME}"
+      },
       "efsApplicationInsightsName": {
         "value": "${AZURE_EFS_APPLICATION_INSIGHTS_NAME}"
       },
@@ -28,6 +31,9 @@
       },
       "efsServiceIdentityName": {
         "value": "${AZURE_EFS_SERVICE_IDENTITY_NAME}"
+      },
+      "efsStorageAccountName": {
+        "value": "${AZURE_EFS_STORAGE_ACCOUNT_NAME}"
       },
       "environmentName": {
         "value": "${AZURE_ENV_NAME}"
