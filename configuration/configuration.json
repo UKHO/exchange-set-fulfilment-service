@@ -24,6 +24,11 @@
                 }
             },
             "AllowedHosts": "*",
+            "EFSAzureADConfiguration": {
+                "MicrosoftOnlineLoginUrl": "",
+                "TenantId": "",
+                "ClientId": ""
+            },
             "Deduplication": {
                 "Enabled": false, // Enable deduplication of requests
                 "Expiry": "23:00:00" // The timeframe for deduplication from first generation to expiry
@@ -73,6 +78,11 @@
                 }
             },
             "AllowedHosts": "*",
+            "EFSAzureADConfiguration": {
+                "MicrosoftOnlineLoginUrl": "",
+                "TenantId": "",
+                "ClientId": ""
+            },
             "Deduplication": {
                 "Enabled": false, // Enable deduplication of requests
                 "Expiry": "23:00:00" // The timeframe for deduplication from first generation to expiry
@@ -121,6 +131,11 @@
                 }
             },
             "AllowedHosts": "*",
+            "EFSAzureADConfiguration": {
+                "MicrosoftOnlineLoginUrl": "",
+                "TenantId": "",
+                "ClientId": ""
+            },
             "Deduplication": {
                 "Enabled": false, // Enable deduplication of requests
                 "Expiry": "23:00:00" // The timeframe for deduplication from first generation to expiry
@@ -169,6 +184,11 @@
                 }
             },
             "AllowedHosts": "*",
+            "EFSAzureADConfiguration": {
+                "MicrosoftOnlineLoginUrl": "",
+                "TenantId": "",
+                "ClientId": ""
+            },
             "Deduplication": {
                 "Enabled": false, // Enable deduplication of requests
                 "Expiry": "23:00:00" // The timeframe for deduplication from first generation to expiry
@@ -217,6 +237,11 @@
                 }
             },
             "AllowedHosts": "*",
+            "EFSAzureADConfiguration": {
+                "MicrosoftOnlineLoginUrl": "",
+                "TenantId": "",
+                "ClientId": ""
+            },
             "Deduplication": {
                 "Enabled": false, // Enable deduplication of requests
                 "Expiry": "23:00:00" // The timeframe for deduplication from first generation to expiry

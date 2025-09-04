@@ -59,6 +59,8 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 app.UseMiddleware<CorrelationIdMiddleware>();
                 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
+                // Add authentication and authorization middleware
+                app.UseAuthentication();
                 app.UseAuthorization();
 
                 var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();

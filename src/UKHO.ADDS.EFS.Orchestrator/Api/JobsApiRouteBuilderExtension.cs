@@ -5,7 +5,6 @@ using UKHO.ADDS.EFS.Domain.Services.Storage;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Extensions;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Api
@@ -18,7 +17,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             var jobsEndpoint = routeBuilder.MapGroup("/jobs");
 
             jobsEndpoint.MapPost("/", async (JobRequestApiMessage message, IConfiguration configuration, IAssemblyPipelineFactory pipelineFactory, HttpContext httpContext) =>
-                {
+            {
                     try
                     {
                         var correlationId = httpContext.GetCorrelationId();
@@ -37,10 +36,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                         logger.LogAssemblyPipelineFailed(message, e);
                         throw;
                     }
-                })
-                .Produces<AssemblyPipelineResponse>()
-                .WithRequiredHeader("x-correlation-id", "Correlation ID", $"job-{Guid.NewGuid():N}")
-                .WithDescription("Create a job request for the given data standard. To filter (S100) by product type, use the filter property \"startswith(ProductName, '101')\"");
+            })
+            .Produces<AssemblyPipelineResponse>()
+            .WithRequiredHeader("x-correlation-id", "Correlation ID", $"job-{Guid.NewGuid():N}")
+            .WithDescription("Create a job request for the given data standard. To filter (S100) by product type, use the filter property \"startswith(ProductName, '101')\"")
+            .RequireAuthorizationInNonLocalEnvironments("ExchangeSetFulfilmentServiceUser");
 
             jobsEndpoint.MapGet("/{jobId}", async (string jobId, IRepository<Job> jobRepository) =>
             {
@@ -53,7 +53,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                 logger.LogGetJobRequestFailed(jobId);
                 return Results.NotFound();
-            }).WithDescription("Gets the job for the given job id");
+            })
+            .WithDescription("Gets the job for the given job id")
+            .RequireAuthorizationInNonLocalEnvironments("ExchangeSetFulfilmentServiceUser");
 
             jobsEndpoint.MapGet("/{jobId}/build", async (string jobId, IRepository<BuildMemento> mementoRepository) =>
             {
@@ -66,7 +68,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                 logger.LogGetJobRequestFailed(jobId);
                 return Results.NotFound();
-            }).WithDescription("Gets the job build memento for the given job id");
+            })
+            .WithDescription("Gets the job build memento for the given job id")
+            .RequireAuthorizationInNonLocalEnvironments("ExchangeSetFulfilmentServiceUser");
         }
     }
 }

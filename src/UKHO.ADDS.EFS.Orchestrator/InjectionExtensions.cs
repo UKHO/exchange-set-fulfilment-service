@@ -1,5 +1,7 @@
 ﻿using System.Text.Json;
 using Azure.Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Kiota.Abstractions.Authentication;
 using Microsoft.Kiota.Authentication.Azure;
@@ -21,6 +23,7 @@ using UKHO.ADDS.EFS.Domain.Services.Injection;
 using UKHO.ADDS.EFS.Domain.Services.Storage;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
+using UKHO.ADDS.EFS.Orchestrator.Configuration;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Tables;
@@ -55,7 +58,70 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.AddAzureTableClient(StorageConfiguration.TablesName);
             builder.AddAzureBlobClient(StorageConfiguration.BlobsName);
 
-            builder.Services.AddAuthorization();
+            var addsEnvironment = AddsEnvironment.GetEnvironment();
+
+            // Configure Azure AD settings from configuration
+            var azureAdConfig = new EFSAzureADConfiguration();
+            configuration.GetSection("orchestrator:EFSAzureADConfiguration").Bind(azureAdConfig);
+            builder.Services.Configure<EFSAzureADConfiguration>(configuration.GetSection("orchestrator:EFSAzureADConfiguration"));
+
+            // Validate Azure AD configuration for non-dev/non-local environments
+            if (!addsEnvironment.IsLocal() && !addsEnvironment.IsDev())
+            {
+                azureAdConfig.ValidateForProductionEnvironment(addsEnvironment.ToString());
+            }
+
+            // Configure authentication - compulsory for all environments except dev and local
+            builder.Services.AddAuthentication(options =>
+            {
+                if (!addsEnvironment.IsLocal() && !addsEnvironment.IsDev())
+                {
+                    options.DefaultScheme = "AzureAd";
+                }
+            });
+
+            if (!addsEnvironment.IsLocal() && !addsEnvironment.IsDev())
+            {
+                builder.Services.AddAuthentication("AzureAd")
+                    .AddJwtBearer("AzureAd", options =>
+                    {
+                        options.Audience = azureAdConfig.ClientId;
+                        options.Authority = azureAdConfig.Authority;
+                        options.Events = new JwtBearerEvents
+                        {
+                            OnForbidden = context =>
+                            {
+                                context.Response.Headers.Append("origin", "JOBAPI");
+                                return Task.CompletedTask;
+                            },
+                            OnAuthenticationFailed = context =>
+                            {
+                                context.Response.Headers.Append("origin", "JOBAPI");
+                                return Task.CompletedTask;
+                            }
+                        };
+                    });
+            }
+
+            builder.Services.AddAuthorizationBuilder()
+                .SetDefaultPolicy(new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .AddAuthenticationSchemes("AzureAd")
+                    .Build())
+                .AddPolicy("ExchangeSetFulfilmentServiceUser", policy => 
+                {
+                    if (!addsEnvironment.IsLocal() && !addsEnvironment.IsDev())
+                    {
+                        // For non-dev/non-local environments, authentication is compulsory
+                        policy.RequireRole("ExchangeSetFulfilmentServiceUser");
+                    }
+                    else
+                    {
+                        // For local and dev environments only, allow anonymous access
+                        policy.RequireAssertion(_ => true);
+                    }
+                });
+
             builder.Services.AddOpenApi();
 
             builder.Services.ConfigureOpenApi();
@@ -90,8 +156,6 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddSingleton<StorageInitializerService>();
 
             builder.Services.AddDomain();
-
-            var addsEnvironment = AddsEnvironment.GetEnvironment();
 
             builder.Services.RegisterKiotaClient<KiotaSalesCatalogueService>(provider =>
             {
