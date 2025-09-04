@@ -1,5 +1,4 @@
-﻿using FluentValidation;
-using UKHO.ADDS.EFS.Messages;
+﻿using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Extensions;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
@@ -47,6 +46,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                     if (validationResponse != null)
                         return validationResponse;
 
+                    logger.S100InputValidationSucceeded((string)correlationId, RequestType.ProductNames.ToString());
+
                     var parameters = AssemblyPipelineParameters.CreateFromS100ProductNames(productNames, configuration, (string)correlationId, callbackUri);
                     var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
 
@@ -54,20 +55,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                     var result = await pipeline.RunAsync(httpContext.RequestAborted);
 
-                    // Check if there are validation errors
-                    if (result.ErrorResponse?.Errors?.Count > 0)
-                    {
-                        return Results.BadRequest(result.ErrorResponse);
-                    }
-
-                    // Return success response
-                    // Replace all instances of Results.Ok(result.ResponseData) with Results.Accepted(null, result.ResponseData)
-
                     return Results.Accepted(null, result.ResponseData);
                 }
                 catch (Exception)
                 {
-                    // Exception handling will be done by middleware
                     throw;
                 }
             })
@@ -94,7 +85,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                     var validationResponse = HandleValidationResult(validationResult, logger, (string)correlationId);
                     if (validationResponse != null)
                         return validationResponse;
-                    logger.S100InputValidationSucceeded((string)correlationId, 0);
+
+                    logger.S100InputValidationSucceeded((string)correlationId, RequestType.ProductVersions.ToString());
 
                     var parameters = AssemblyPipelineParameters.CreateFromS100ProductVersions(productVersions, configuration, (string)correlationId, callbackUri);
                     var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
@@ -133,7 +125,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                     if (validationResponse != null)
                         return validationResponse;
 
-                    logger.S100InputValidationSucceeded((string)correlationId, 0);
+                    logger.S100InputValidationSucceeded((string)correlationId, RequestType.UpdatesSince.ToString());
 
                     var parameters = AssemblyPipelineParameters.CreateFromS100UpdatesSince(request, configuration, (string)correlationId, productIdentifier, callbackUri);
                     var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
