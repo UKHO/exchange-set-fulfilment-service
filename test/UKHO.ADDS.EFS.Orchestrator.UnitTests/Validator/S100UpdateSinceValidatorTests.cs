@@ -1,6 +1,8 @@
 using FluentValidation.Results;
 using UKHO.ADDS.EFS.Domain.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Validators;
+using Microsoft.Extensions.Configuration;
+using FakeItEasy;
 
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
 {
@@ -11,10 +13,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
         private const string VALID_CALLBACK_URI = "https://valid.com/callback";
         private const string VALID_PRODUCT_IDENTIFIER = "s101";
 
-        [SetUp]
-        public void SetUp()
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
         {
-            _s100UpdateSinceValidator = new S100UpdateSinceValidator();
+            var configFake = A.Fake<IConfiguration>();
+            A.CallTo(() => configFake.GetValue<int>("orchestrator:ProductApiDateTimeLimitDays", 28)).Returns(28);
+            _s100UpdateSinceValidator = new S100UpdateSinceValidator(configFake);
         }
 
         private static (S100UpdatesSinceRequest, string?, string?) CreateRequest(string? callbackUri, DateTime sinceDateTime, string? productIdentifier)

@@ -10,9 +10,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Validators;
 internal class S100UpdateSinceValidator : AbstractValidator<(S100UpdatesSinceRequest s100UpdatesSinceRequest, string? callbackUri, string? productIdentifier)>
 {
     private const string ISO_8601_FORMAT = "yyyy-MM-ddTHH:mm:ss.fffffffZ";
+    private readonly int _productApiDateTimeLimitDays;
 
-    public S100UpdateSinceValidator()
+    public S100UpdateSinceValidator(IConfiguration configuration)
     {
+        // Read config value from orchestrator section, fallback to 28 if missing
+        _productApiDateTimeLimitDays = configuration.GetValue<int>("orchestrator:ProductApiDateTimeLimitDays", 28);
+
         RuleFor(request => request.callbackUri)
             .Must(CallbackUriValidator.IsValidCallbackUri)
             .WithMessage("Invalid callbackUri format.");
@@ -25,8 +29,8 @@ internal class S100UpdateSinceValidator : AbstractValidator<(S100UpdatesSinceReq
             .WithMessage("sinceDateTime must be in the format"+ ISO_8601_FORMAT+".")
             .Must(date => DateTime.Compare(date, DateTime.UtcNow) <= 0)
             .WithMessage("sinceDateTime cannot be a future date.")
-            .Must(date => IsMoreThan28DaysInPast(date))
-            .WithMessage("sinceDateTime cannot be more than 28 days in the past.");
+            .Must(date => IsMoreThanXDaysInPast(date, _productApiDateTimeLimitDays))
+            .WithMessage($"sinceDateTime cannot be more than {_productApiDateTimeLimitDays} days in the past.");
 
         RuleFor(request => request.productIdentifier)
             .Must(ProductIdentifierValidator.IsValid)
@@ -43,9 +47,9 @@ internal class S100UpdateSinceValidator : AbstractValidator<(S100UpdatesSinceReq
             out _);
     }
 
-    private static bool IsMoreThan28DaysInPast(DateTime sinceDateTime)
+    private static bool IsMoreThanXDaysInPast(DateTime sinceDateTime, int maxDays)
     {
-        return DateTime.Compare(sinceDateTime, DateTime.UtcNow.AddDays(-Convert.ToInt32(28))) > 0;
+        return DateTime.Compare(sinceDateTime, DateTime.UtcNow.AddDays(-maxDays)) > 0;
     }
 }
 
