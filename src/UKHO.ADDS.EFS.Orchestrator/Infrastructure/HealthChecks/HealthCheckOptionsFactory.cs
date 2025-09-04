@@ -25,8 +25,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.HealthChecks
                 Predicate = healthCheck =>
                 {
                     // First check if the health check name is in the excluded services set
-                    if (excludeServicesSet.Any(service => service.Equals(healthCheck.Name, StringComparison.OrdinalIgnoreCase)))
-                    {                        
+                    if (excludeServicesSet.Any(service => healthCheck.Name.Contains(service, StringComparison.OrdinalIgnoreCase)))
+                    {
                         return false;
                     }
                     // If we have a tags filter, check that at least one tag matches
