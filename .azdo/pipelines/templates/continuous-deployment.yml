@@ -249,7 +249,7 @@ jobs:
             workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
 
           - task: PowerShell@2
-            displayName: "healthcheck_validation"
+            displayName: "Check health endpoint"
             inputs:
               targetType: filePath
               filePath: "$(Build.SourcesDirectory)/efs/.azdo/pipelines/powershell/CheckServiceStatus.ps1"
