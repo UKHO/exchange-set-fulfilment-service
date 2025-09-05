@@ -42,7 +42,7 @@ parameters:
   type: boolean
   default: false
 - name: ContinueEvenIfResourcesAreGettingDestroyed
-  displayName: "Continue even if resources are getting destroyed"
+  displayName: "Continue even if resources are getting destroyed (APIM only)"
   type: boolean
   default: false
 - name: DeployApim
