@@ -175,18 +175,6 @@ namespace UKHO.ADDS.Clients.FileShareService.ReadWrite
             {
                 using var httpClient = await CreateHttpClientWithHeadersAsync(correlationId);
 
-                // Build request body as per OpenAPI spec: array of { filename, hash }
-                //var fileDetails = (batchHandle as UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.BatchHandle)?.FileDetails;
-                //List<object> requestBody;
-                //if (fileDetails != null)
-                //{
-                //    requestBody = fileDetails.Select(f => (object)new { filename = f.FileName, hash = f.Hash }).ToList();
-                //}
-                //else
-                //{
-                //    requestBody = new List<object>();
-                //}
-
                 var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, uri)
                 {
                     Content = new StringContent(JsonCodec.Encode(batchHandle.FileDetails), Encoding.UTF8, ApiHeaderKeys.ContentTypeJson)
