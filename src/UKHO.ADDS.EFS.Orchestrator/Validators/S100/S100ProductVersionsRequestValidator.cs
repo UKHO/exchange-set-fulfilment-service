@@ -3,14 +3,14 @@ using UKHO.ADDS.EFS.Domain.Messages;
 using UKHO.ADDS.EFS.Domain.Products;
 using Vogen;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Validators;
+namespace UKHO.ADDS.EFS.Orchestrator.Validators.S100;
 
 /// <summary>
 /// Validator for S100ProductVersion[] and callbackUri
 /// </summary>
-internal class S100ProductVersionsValidator : AbstractValidator<(IEnumerable<S100ProductVersion> productVersions, string? callbackUri)>
+internal class S100ProductVersionsRequestValidator : AbstractValidator<(IEnumerable<S100ProductVersion> productVersions, string? callbackUri)>
 {
-    public S100ProductVersionsValidator()
+    public S100ProductVersionsRequestValidator()
     {
         RuleFor(x => x.productVersions)
             .NotNull()

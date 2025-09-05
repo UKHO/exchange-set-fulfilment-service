@@ -3,17 +3,17 @@ using System.Net;
 using FluentValidation;
 using UKHO.ADDS.EFS.Domain.Messages;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Validators;
+namespace UKHO.ADDS.EFS.Orchestrator.Validators.S100;
 
 /// <summary>
 /// Validator for 'updatesSince' request filter format and sinceDateTime presence
 /// </summary>
-internal class S100UpdateSinceValidator : AbstractValidator<(S100UpdatesSinceRequest s100UpdatesSinceRequest, string? callbackUri, string? productIdentifier)>
+internal class S100UpdateSinceRequestValidator : AbstractValidator<(S100UpdatesSinceRequest s100UpdatesSinceRequest, string? callbackUri, string? productIdentifier)>
 {
     private const string ISO_8601_FORMAT = "yyyy-MM-ddTHH:mm:ss.fffffffZ";
     private readonly TimeSpan _maximumProductAge;
 
-    public S100UpdateSinceValidator(IConfiguration configuration)
+    public S100UpdateSinceRequestValidator(IConfiguration configuration)
     {
         _maximumProductAge = configuration.GetValue("orchestrator:MaximumProductAge", TimeSpan.FromDays(28));
 

@@ -3,13 +3,14 @@ using UKHO.ADDS.EFS.Domain.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Validators;
 using Microsoft.Extensions.Configuration;
 using FakeItEasy;
+using UKHO.ADDS.EFS.Orchestrator.Validators.S100;
 
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
 {
     [TestFixture]
     public class S100UpdateSinceValidatorTests
     {
-        private S100UpdateSinceValidator _s100UpdateSinceValidator;
+        private S100UpdateSinceRequestValidator _s100UpdateSinceValidator;
         private const string VALID_CALLBACK_URI = "https://valid.com/callback";
         private const string VALID_PRODUCT_IDENTIFIER = "s101";
 
@@ -18,7 +19,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
         {
             var configFake = A.Fake<IConfiguration>();
             A.CallTo(() => configFake.GetValue<TimeSpan>("orchestrator:MaximumProductAge", TimeSpan.FromDays(28))).Returns(TimeSpan.FromDays(28));
-            _s100UpdateSinceValidator = new S100UpdateSinceValidator(configFake);
+            _s100UpdateSinceValidator = new S100UpdateSinceRequestValidator(configFake);
         }
 
         private static (S100UpdatesSinceRequest, string?, string?) CreateRequest(string? callbackUri, DateTime sinceDateTime, string? productIdentifier)
@@ -162,7 +163,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
         public void IsValidISO8601Format_ReturnsTrue()
         {
             var validIsoString = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ");
-            var method = typeof(S100UpdateSinceValidator).GetMethod("IsValidISO8601Format", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+            var method = typeof(S100UpdateSinceRequestValidator).GetMethod("IsValidISO8601Format", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
             var result = method.Invoke(null, new object[] { validIsoString });
             Assert.That(result, Is.True);
         }
@@ -171,7 +172,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
         public void IsInValidISO8601Format_ReturnsFalse()
         {
             var invalidIsoString = "not-a-date";
-            var method = typeof(S100UpdateSinceValidator).GetMethod("IsValidISO8601Format", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+            var method = typeof(S100UpdateSinceRequestValidator).GetMethod("IsValidISO8601Format", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
             var result = method.Invoke(null, new object[] { invalidIsoString });
             Assert.That(result, Is.False);
         }

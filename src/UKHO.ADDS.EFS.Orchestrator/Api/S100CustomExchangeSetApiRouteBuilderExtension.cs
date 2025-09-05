@@ -4,7 +4,7 @@ using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Extensions;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
-using UKHO.ADDS.EFS.Orchestrator.Validators;
+using UKHO.ADDS.EFS.Orchestrator.Validators.S100;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Api
 {
@@ -74,7 +74,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 IConfiguration configuration,
                 IAssemblyPipelineFactory pipelineFactory,
                 HttpContext httpContext,
-                S100ProductVersionsValidator productVersionsValidator,
+                S100ProductVersionsRequestValidator productVersionsRequestValidator,
                 string? callbackUri = null) =>
             {
                 try
@@ -82,7 +82,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                     var correlationId = httpContext.GetCorrelationId();
 
                     // Validate input
-                    var validationResult = productVersionsValidator.Validate((productVersions, callbackUri));
+                    var validationResult = productVersionsRequestValidator.Validate((productVersions, callbackUri));
                     var validationResponse = HandleValidationResult(validationResult, logger, (string)correlationId);
                     if (validationResponse != null)
                         return validationResponse;
@@ -113,7 +113,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 IConfiguration configuration,
                 IAssemblyPipelineFactory pipelineFactory,
                 HttpContext httpContext,
-                S100UpdateSinceValidator updateSinceValidator,
+                S100UpdateSinceRequestValidator updateSinceRequestValidator,
                 string? callbackUri = null,
                 string? productIdentifier = null) =>
             {
@@ -121,7 +121,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 {
                     var correlationId = httpContext.GetCorrelationId();
 
-                    var validationResult = await updateSinceValidator.ValidateAsync((request, callbackUri, productIdentifier));
+                    var validationResult = await updateSinceRequestValidator.ValidateAsync((request, callbackUri, productIdentifier));
                     var validationResponse = HandleValidationResult(validationResult, logger, (string)correlationId);
                     if (validationResponse != null)
                         return validationResponse;

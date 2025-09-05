@@ -3,7 +3,7 @@ using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Domain.Products;
 using Vogen;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Validators;
+namespace UKHO.ADDS.EFS.Orchestrator.Validators.S100;
 
 /// <summary>
 /// Validator for S100ProductNamesRequest

@@ -2,6 +2,7 @@ using FluentValidation.TestHelper;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Validators;
 using UKHO.ADDS.EFS.Domain.Products;
+using UKHO.ADDS.EFS.Orchestrator.Validators.S100;
 
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator;
 

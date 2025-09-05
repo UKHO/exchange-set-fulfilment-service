@@ -23,7 +23,7 @@ using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
 using UKHO.ADDS.EFS.Orchestrator.Schedule;
 using UKHO.ADDS.EFS.Orchestrator.Services;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
-using UKHO.ADDS.EFS.Orchestrator.Validators;
+using UKHO.ADDS.EFS.Orchestrator.Validators.S100;
 
 namespace UKHO.ADDS.EFS.Orchestrator
 {
@@ -40,8 +40,8 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             // Add FluentValidation
             builder.Services.AddValidatorsFromAssemblyContaining<S100ProductNamesRequestValidator>();
-            builder.Services.AddValidatorsFromAssemblyContaining<S100ProductVersionsValidator>();
-            builder.Services.AddValidatorsFromAssemblyContaining<S100UpdateSinceValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<S100ProductVersionsRequestValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<S100UpdateSinceRequestValidator>();
 
             builder.AddAzureQueueServiceClient(StorageConfiguration.QueuesName);
             builder.AddAzureTableServiceClient(StorageConfiguration.TablesName);
@@ -59,8 +59,8 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddTransient<ICompletionPipelineFactory, CompletionPipelineFactory>();
             builder.Services.AddTransient<ICompletionPipelineNodeFactory, CompletionPipelineNodeFactory>();
             builder.Services.AddTransient<S100ProductNamesRequestValidator>();
-            builder.Services.AddTransient<S100ProductVersionsValidator>();
-            builder.Services.AddTransient<S100UpdateSinceValidator>();
+            builder.Services.AddTransient<S100ProductVersionsRequestValidator>();
+            builder.Services.AddTransient<S100UpdateSinceRequestValidator>();
 
             builder.Services.AddSingleton<PipelineContextFactory<S100Build>>();
             builder.Services.AddSingleton<IPipelineContextFactory<S100Build>, PipelineContextFactory<S100Build>>();
