@@ -1,7 +1,7 @@
 using FluentValidation.TestHelper;
 using UKHO.ADDS.EFS.Orchestrator.Validators;
 
-namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validators;
+namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator;
 
 [TestFixture]
 internal class CallbackUriValidatorTests
@@ -34,7 +34,7 @@ internal class CallbackUriValidatorTests
         
         var result = CallbackUriValidator.IsValidCallbackUri(callbackUri);
         
-        Assert.That(result, Is.True);
+        Assert.That(result, Is.False);
     }
 
     [Test]
@@ -44,7 +44,7 @@ internal class CallbackUriValidatorTests
         
         var result = CallbackUriValidator.IsValidCallbackUri(callbackUri);
 
-        Assert.That(result, Is.True);
+        Assert.That(result, Is.False);
     }
 
     [Test]
@@ -143,7 +143,8 @@ internal class CallbackUriValidatorTests
     {
         var result = _validator.TestValidate(string.Empty);
 
-        result.ShouldNotHaveAnyValidationErrors();
+        result.ShouldHaveValidationErrorFor(x => x)
+            .WithErrorMessage(CallbackUriValidationErrorMessage);
     }
 
     [Test]
@@ -151,7 +152,8 @@ internal class CallbackUriValidatorTests
     {
         var result = _validator.TestValidate("   ");
 
-        result.ShouldNotHaveAnyValidationErrors();
+        result.ShouldHaveValidationErrorFor(x => x)
+           .WithErrorMessage(CallbackUriValidationErrorMessage);
     }
 
     [Test]

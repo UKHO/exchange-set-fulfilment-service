@@ -10,7 +10,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
         private S100ProductVersionsValidator _s100ProductVersionsValidator;
         private const string VALID_CALLBACK_URI = "https://valid.com/callback";
         private const string INVALID_CALLBACK_URI = "http://invalid.com/callback";
-        private const string VALID_PRODUCT_NAME = "ValidProduct";
+        private const string VALID_PRODUCT_NAME = "101GB40079ABCDEFG";
         private const string EMPTY_PRODUCT_NAME = "";
 
         [SetUp]
@@ -107,7 +107,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
             Assert.Multiple(() =>
             {
                 Assert.That(result.IsValid, Is.False);
-                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "ProductNames cannot be null or empty.."));
+                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "ProductName cannot be null or empty"));
             });
         }
 
@@ -150,7 +150,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
             Assert.Multiple(() =>
             {
                 Assert.That(result.IsValid, Is.False);
-                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "ProductNames cannot be null or empty.."));
+                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "ProductName cannot be null or empty"));
                 Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "Edition number must be a positive integer."));
                 Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "Update number must be zero or a positive integer."));
                 Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "Invalid callbackUri format."));

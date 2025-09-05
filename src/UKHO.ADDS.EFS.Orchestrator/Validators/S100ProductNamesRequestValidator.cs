@@ -15,7 +15,7 @@ internal class S100ProductNamesRequestValidator : AbstractValidator<S100ProductN
         RuleFor(request => request.ProductNames)
             .NotNull()
             .Must(productNames => productNames.Count > 0)
-            .WithMessage("ProductNames cannot be null or empty.");
+            .WithMessage("ProductName cannot be null or empty.");
 
         RuleForEach(request => request.ProductNames)
             .Custom((name, context) =>
