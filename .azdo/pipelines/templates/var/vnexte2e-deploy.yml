@@ -4,3 +4,5 @@ variables:
 - template: resource-values.yml
 - name: AzureSubscription
   value: Exchange-Set-Service-vNext-E2E-A.011.08
+- name: ApimAzureSubscription
+  value: UKHO-APIM-SOLAS-NonLive
