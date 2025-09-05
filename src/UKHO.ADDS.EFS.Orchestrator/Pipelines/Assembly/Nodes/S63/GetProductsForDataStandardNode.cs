@@ -1,8 +1,8 @@
 ﻿using UKHO.ADDS.EFS.Domain.Builds.S63;
 using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Services;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
-using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
@@ -10,12 +10,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S63
 {
     internal class GetProductsForDataStandardNode : AssemblyPipelineNode<S63Build>
     {
-        private readonly IOrchestratorSalesCatalogueClient _salesCatalogueClient;
+        private readonly IProductService _productService;
 
-        public GetProductsForDataStandardNode(AssemblyNodeEnvironment nodeEnvironment, IOrchestratorSalesCatalogueClient salesCatalogueClient)
+        public GetProductsForDataStandardNode(AssemblyNodeEnvironment nodeEnvironment, IProductService productService)
             : base(nodeEnvironment)
         {
-            _salesCatalogueClient = salesCatalogueClient;
+            _productService = productService;
         }
 
         public override Task<bool> ShouldExecuteAsync(IExecutionContext<PipelineContext<S63Build>> context)
@@ -28,7 +28,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S63
             var job = context.Subject.Job;
             var build = context.Subject.Build;
 
-            build.Products = ["An S63 Product"];
+            build.Products = ["ABCDEF63"];
 
             await context.Subject.SignalBuildRequired();
 

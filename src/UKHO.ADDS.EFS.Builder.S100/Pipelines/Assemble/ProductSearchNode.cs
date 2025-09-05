@@ -57,7 +57,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                     {
                         ProductName = g.Key,
                         EditionNumber = g.First().EditionNumber,
-                        UpdateNumbers = g.SelectMany(p => p.UpdateNumbers.Cast<int?>()).ToList()
+                        UpdateNumbers = g.SelectMany(p => p.UpdateNumbers.Select(x => (int?)x)).ToList()
                     }).ToList();
 
                 var productGroupCount = (int)Math.Ceiling((double)products.Count() / MaxSearchOperations);

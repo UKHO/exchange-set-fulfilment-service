@@ -1,6 +1,8 @@
-﻿using UKHO.ADDS.EFS.Domain.Exceptions;
+﻿using System.ComponentModel.DataAnnotations;
 using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Products;
 using Xunit;
+using DataStandardProduct = UKHO.ADDS.EFS.Domain.Products.DataStandardProduct;
 
 namespace UKHO.ADDS.EFS.Domain.UnitTests.Products
 {
