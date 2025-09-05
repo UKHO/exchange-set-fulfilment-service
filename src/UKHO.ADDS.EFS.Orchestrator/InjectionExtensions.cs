@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using Microsoft.AspNetCore.Http.Json;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using Quartz;
@@ -10,6 +11,7 @@ using UKHO.ADDS.EFS.Domain.Services.Injection;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Infrastructure.Injection;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
+using UKHO.ADDS.EFS.Orchestrator.Health;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation;
 using UKHO.ADDS.EFS.Orchestrator.Monitors;
@@ -61,6 +63,13 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             builder.Services.AddDomain();
             builder.Services.AddInfrastructure();
+
+            // Register health checks
+            builder.Services.AddHealthChecks()
+                .AddCheck<FileShareServiceHealthCheck>(
+                    "file-share-service",
+                    HealthStatus.Unhealthy,
+                    tags: new[] { "live", "external-dependency" });
 
             //Added Dependencies for SchedulerJob
             builder.Services.AddQuartz(q =>

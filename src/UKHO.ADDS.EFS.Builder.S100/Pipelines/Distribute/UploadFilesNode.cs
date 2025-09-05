@@ -84,8 +84,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
 
                 // Create and store build commit info with all zip files in the exchange set folder
                 var exchangeSetFolderPath = Path.Combine(context.Subject.ExchangeSetFilePath, context.Subject.ExchangeSetArchiveFolderName);
-                await CreateAndStoreBuildCommitInfoAsync(context, exchangeSetFolderPath);
-
+                //await CreateAndStoreBuildCommitInfoAsync(context, exchangeSetFolderPath);
+                // Store the build commit info in the build object
+                foreach (var fileDetail in batchHandle.FileDetails)
+                {
+                    context.Subject.Build.BuildCommitInfo!.AddFileDetail(fileDetail.FileName, fileDetail.Hash);
+                }
                 return NodeResultStatus.Succeeded;
             }
             catch (Exception ex)
