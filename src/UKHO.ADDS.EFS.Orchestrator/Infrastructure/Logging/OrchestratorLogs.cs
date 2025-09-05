@@ -48,12 +48,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         private const int SchedulerJobCompletedId = BaseEventId + 28;
         private const int SchedulerJobNextRunId = BaseEventId + 29;
 
-        // S100 Input validation events
-        private const int S100InputValidationSucceededId = BaseEventId + 30;
-        private const int S100InputValidationFailedId = BaseEventId + 31;
-        private const int S100InputValidationErrorId = BaseEventId + 32;
+        // Health check specific event IDs
+        private const int HealthCheckWarningId = BaseEventId + 30;
+        private const int HealthCheckErrorId = BaseEventId + 31;
+        private const int HealthCheckFailedStatusCodeId = BaseEventId + 32;
 
-        private const int CreateResponseNodeExceptionId = BaseEventId + 34;
+        // S100 Input validation events
+        private const int S100InputValidationSucceededId = BaseEventId + 33;
+        private const int S100InputValidationFailedId = BaseEventId + 34;
+        private const int S100InputValidationErrorId = BaseEventId + 35;
+
+        private const int CreateResponseNodeExceptionId = BaseEventId + 36;
 
         // An unhandled HTTP error has occurred
         public static readonly EventId UnhandledHttpError = new(UnhandledHttpErrorId, nameof(UnhandledHttpError));
@@ -112,6 +117,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         public static readonly EventId CreateErrorFile = new(CreateErrorFileId, nameof(CreateErrorFile));
         public static readonly EventId CreateErrorFileNodeFailed = new(CreateErrorFileNodeFailedId, nameof(CreateErrorFileNodeFailed));
         public static readonly EventId CreateErrorFileAddFileFailed = new(CreateErrorFileAddFileFailedId, nameof(CreateErrorFileAddFileFailed));
+        
+        // Health check events
+        public static readonly EventId HealthCheckWarning = new(HealthCheckWarningId, nameof(HealthCheckWarning));
+        public static readonly EventId HealthCheckError = new(HealthCheckErrorId, nameof(HealthCheckError));
+        public static readonly EventId HealthCheckFailedStatusCode = new(HealthCheckFailedStatusCodeId, nameof(HealthCheckFailedStatusCode));
+
 
         public static readonly EventId CreateResponseNodeException = new(CreateResponseNodeExceptionId, nameof(CreateResponseNodeException));
 
@@ -190,6 +201,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         [LoggerMessage(SchedulerJobNextRunId, LogLevel.Information, "Next scheduled run at: {NextRun}", EventName = nameof(LogSchedulerJobNextRun))]
         public static partial void LogSchedulerJobNextRun(this ILogger logger, DateTime? nextRun);
 
+        [LoggerMessage(HealthCheckWarningId, LogLevel.Warning, "Health check for {ServiceName} failed with error: {ErrorMessage}", EventName = nameof(HealthCheckWarning))]
+        public static partial void LogHealthCheckWarning(this ILogger logger, string serviceName, string errorMessage);
+
+        [LoggerMessage(HealthCheckErrorId, LogLevel.Error, "Health check for {ServiceName} failed with exception", EventName = nameof(HealthCheckError))]
+        public static partial void LogHealthCheckError(this ILogger logger, string serviceName, Exception exception);
+            
+        [LoggerMessage(HealthCheckFailedStatusCodeId, LogLevel.Warning, "Health check for {ServiceName} failed with status code {StatusCode}", EventName = nameof(HealthCheckFailedStatusCode))]
+        public static partial void LogHealthCheckFailedStatusCode(this ILogger logger, string serviceName, int statusCode);
         // S100 Input validation logging methods
         [LoggerMessage(S100InputValidationSucceededId, LogLevel.Information, "S100 input validation succeeded for correlation ID: {correlationId} with request type : {productVersions}.", EventName = nameof(S100InputValidationSucceeded))]
         public static partial void S100InputValidationSucceeded(this ILogger logger, string correlationId, string productVersions);
