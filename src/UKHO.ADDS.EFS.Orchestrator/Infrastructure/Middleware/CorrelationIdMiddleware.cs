@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.EFS.Domain.Constants;
+﻿using Serilog.Context;
+using UKHO.ADDS.EFS.Domain.Constants;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Middleware
 {
@@ -27,7 +28,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Middleware
                 httpContext.Response.Headers[ApiHeaderKeys.XCorrelationIdHeaderKey] = correlationId;
             }
 
-            await _next(httpContext);
+            // Push correlation ID to Serilog LogContext for automatic inclusion in all logs
+            using (LogContext.PushProperty("CorrelationId", correlationId.ToString()))
+            {
+                await _next(httpContext);
+            }
         }
     }
 }

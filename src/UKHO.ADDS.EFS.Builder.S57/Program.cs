@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Text;
 using Serilog;
 using UKHO.ADDS.EFS.Builder.S57.Pipelines;
 using UKHO.ADDS.EFS.Builder.S57.Pipelines.Assemble.Logging;
@@ -8,7 +7,6 @@ using UKHO.ADDS.EFS.Builder.S57.Pipelines.Distribute.Logging;
 using UKHO.ADDS.EFS.Builder.S57.Pipelines.Startup.Logging;
 using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
-using UKHO.ADDS.Infrastructure.Serialization.Json;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace UKHO.ADDS.EFS.Builder.S57
@@ -122,7 +120,7 @@ namespace UKHO.ADDS.EFS.Builder.S57
 
             services.AddSingleton<IConfiguration>(x => configuration);
 
-            services.AddS100BuilderServices(configuration);
+            services.AddS57BuilderServices(configuration);
 
             return services.BuildServiceProvider();
         }
