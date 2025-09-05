@@ -41,6 +41,14 @@ parameters:
   displayName: "Enable optional pipeline debugging"
   type: boolean
   default: false
+- name: ContinueEvenIfResourcesAreGettingDestroyed
+  displayName: "Continue even if resources are getting destroyed"
+  type: boolean
+  default: false
+- name: DeployApim
+  displayName: "Deploy APIM"
+  type: boolean
+  default: true
 
 trigger: none
 
@@ -53,6 +61,10 @@ variables:
   value: "Mare Nubium"
 - name: snykAbzuOrganizationId
   value: aeb7543b-8394-457c-8334-a31493d8910d
+- name: LinuxPool
+  value: "Mare Nectaris"
+- name: Container
+  value: "ukhydrographicoffice/terraform-azure-powershell-unzip:1.13.0"
 
 stages:
 - stage: VulnerabilityChecks
@@ -165,3 +177,45 @@ stages:
         AzureDevOpsEnvironment: Ess-Iat
         ShortName: iat
         AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+
+- ${{ if eq(parameters.DeployApim, true) }}:
+  - stage: vNextIatDeployApim
+    dependsOn: []
+    displayName: vNext IAT Apim Deploy
+    condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/dev/')))
+    jobs:
+    - template: templates/continuous-deployment-apim.yml
+      parameters:
+          AzureDevOpsEnvironment: Ess-vnextiat
+          ShortName: vnextiat
+          DeployApim: ${{ parameters.DeployApim }}
+          ContinueEvenIfResourcesAreGettingDestroyed: ${{ parameters.ContinueEvenIfResourcesAreGettingDestroyed }}
+          ContainerImage: ${{ variables.Container }}
+
+  - stage: vNextE2eDeployApim
+    dependsOn:
+    - vNextIatDeployApim
+    displayName: vNext E2E Apim Deploy
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+    - template: templates/continuous-deployment-apim.yml
+      parameters:
+          AzureDevOpsEnvironment: Ess-vnexte2e
+          ShortName: vnexte2e
+          DeployApim: ${{ parameters.DeployApim }}
+          ContinueEvenIfResourcesAreGettingDestroyed: ${{ parameters.ContinueEvenIfResourcesAreGettingDestroyed }}
+          ContainerImage: ${{ variables.Container }}
+
+  - stage: iatDeployApim
+    dependsOn: []
+    displayName: IAT Apim deploy
+    jobs:
+    - template: templates/continuous-deployment-apim.yml
+      parameters:
+          AzureDevOpsEnvironment: Ess-iat
+          ShortName: iat
+          DeployApim: ${{ parameters.DeployApim }}
+          ContinueEvenIfResourcesAreGettingDestroyed: ${{ parameters.ContinueEvenIfResourcesAreGettingDestroyed }}
+          ContainerImage: ${{ variables.Container }}
+
+
