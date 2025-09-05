@@ -1,5 +1,6 @@
-using FluentValidation;
 using System.Globalization;
+using System.Net;
+using FluentValidation;
 using UKHO.ADDS.EFS.Domain.Messages;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Validators;
@@ -14,22 +15,21 @@ internal class S100UpdateSinceValidator : AbstractValidator<(S100UpdatesSinceReq
 
     public S100UpdateSinceValidator(IConfiguration configuration)
     {
-        // Read config value from orchestrator section, fallback to 28 if missing
         _productApiDateTimeLimitDays = configuration.GetValue<int>("orchestrator:ProductApiDateTimeLimitDays", 28);
 
         RuleFor(request => request.callbackUri)
             .Must(CallbackUriValidator.IsValidCallbackUri)
             .WithMessage(CallbackUriValidator.InvalidCallbackUriMessage);
 
-        // Uplifted validation for SinceDateTime property
         RuleFor(request => request.s100UpdatesSinceRequest.SinceDateTime)
-            .NotEqual(default(DateTime))
+            .NotEmpty()
             .WithMessage("sinceDateTime cannot be empty.")
-            .Must(date => IsValidISO8601Format(date.ToString(ISO_8601_FORMAT)))
-            .WithMessage("sinceDateTime must be in the format"+ ISO_8601_FORMAT+".")
-            .Must(date => DateTime.Compare(date, DateTime.UtcNow) <= 0)
+            .Must(IsValidISO8601Format)
+            .WithMessage("sinceDateTime must be in the format " + ISO_8601_FORMAT + ".")
+            .Must(dateStr => IsNotFutureDate(dateStr))
             .WithMessage("sinceDateTime cannot be a future date.")
-            .Must(date => IsMoreThanXDaysInPast(date, _productApiDateTimeLimitDays))
+            .WithErrorCode(HttpStatusCode.NotModified.ToString())
+            .Must(dateStr => IsNotTooOld(dateStr, _productApiDateTimeLimitDays))
             .WithMessage($"sinceDateTime cannot be more than {_productApiDateTimeLimitDays} days in the past.");
 
         RuleFor(request => request.productIdentifier)
@@ -47,9 +47,18 @@ internal class S100UpdateSinceValidator : AbstractValidator<(S100UpdatesSinceReq
             out _);
     }
 
-    private static bool IsMoreThanXDaysInPast(DateTime sinceDateTime, int maxDays)
+    private static bool IsNotFutureDate(string sinceDateTimeString)
     {
-        return DateTime.Compare(sinceDateTime, DateTime.UtcNow.AddDays(-maxDays)) > 0;
+        if (!DateTime.TryParseExact(sinceDateTimeString, ISO_8601_FORMAT, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out var date))
+            return true;
+        return DateTime.Compare(date, DateTime.UtcNow) <= 0;
+    }
+
+    private static bool IsNotTooOld(string sinceDateTimeString, int maxDays)
+    {
+        if (!DateTime.TryParseExact(sinceDateTimeString, ISO_8601_FORMAT, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out var date))
+            return true;
+        return DateTime.Compare(date, DateTime.UtcNow.AddDays(-maxDays)) > 0;
     }
 }
 

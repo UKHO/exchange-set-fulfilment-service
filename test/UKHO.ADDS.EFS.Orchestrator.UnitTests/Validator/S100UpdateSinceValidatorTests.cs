@@ -25,7 +25,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
         {
             return (new S100UpdatesSinceRequest
             {
-                SinceDateTime = sinceDateTime
+                SinceDateTime = sinceDateTime.ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ")
             }, callbackUri, productIdentifier);
         }
 

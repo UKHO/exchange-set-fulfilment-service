@@ -8,6 +8,6 @@
         /// <summary>
         /// The date and time from which changes are requested
         /// </summary>
-        public required DateTime SinceDateTime { get; set; }
+        public required string SinceDateTime { get; set; }
     }
 }
