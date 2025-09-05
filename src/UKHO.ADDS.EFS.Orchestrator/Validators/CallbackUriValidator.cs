@@ -16,7 +16,6 @@ public class CallbackUriValidator : AbstractValidator<string?>
     {
         RuleFor(callbackUri => callbackUri)
             .Must(IsValidCallbackUri)
-            .When(callbackUri => !string.IsNullOrWhiteSpace(callbackUri))
             .WithMessage(InvalidCallbackUriMessage);
     }
 
@@ -27,8 +26,7 @@ public class CallbackUriValidator : AbstractValidator<string?>
     /// <returns>True if the URI is valid HTTPS, false otherwise</returns>
     public static bool IsValidCallbackUri(string? callbackUri)
     {
-        if (string.IsNullOrWhiteSpace(callbackUri))
-            return true;
+        if (callbackUri == null) return true;
 
         try
         {

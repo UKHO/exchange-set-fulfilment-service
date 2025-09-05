@@ -7,7 +7,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Validators;
 /// </summary>
 internal static class ProductIdentifierValidator
 {
-    public const string ValidationMessage = "productIdentifier smust be exactly 4 characters: start with 'S' or 's' followed by three digits, with no spaces or extra characters.";
+    public const string ValidationMessage = "productIdentifier must be exactly 4 characters: start with 'S' or 's' followed by three digits, with no spaces or extra characters.";
 
     private static readonly Regex _productIdentifierRegex = new("^[Ss]\\d{3}$", RegexOptions.Compiled);
 
