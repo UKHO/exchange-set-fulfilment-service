@@ -1,4 +1,7 @@
 ﻿using Azure.Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Kiota.Abstractions.Authentication;
 using Microsoft.Kiota.Authentication.Azure;
@@ -48,6 +51,65 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
             collection.AddSingleton<IHashingService, DefaultHashingService>();
             collection.AddSingleton<IStorageService, DefaultStorageService>();
             collection.AddSingleton<ITimestampService, DefaultTimestampService>();
+
+            // Configure Azure AD settings from configuration
+            if (!addsEnvironment.IsLocal() && !addsEnvironment.IsDev())
+            {
+                collection.AddAuthentication("AzureAd")
+                    .AddJwtBearer("AzureAd", options =>
+                    {
+                        var clientId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsAppRegClientId);
+                        var tenantId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsAppRegTenantId);
+
+                        options.Audience = clientId;
+                        options.Authority = $"https://login.microsoftonline.com/{tenantId}/v2.0";
+                        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                        {
+                            ValidateIssuer = true,
+                            ValidateAudience = true,
+                            ValidateLifetime = true,
+                            ValidateIssuerSigningKey = true,
+                            ValidAudiences = new[] { clientId },
+                            ValidIssuers = new[] { $"https://login.microsoftonline.com/{tenantId}/v2.0" }
+                        };
+                        options.Events = new JwtBearerEvents
+                        {
+                            OnForbidden = context =>
+                            {
+                                context.Response.Headers.Append("origin", "JOBAPI");
+                                return Task.CompletedTask;
+                            },
+                            OnAuthenticationFailed = context =>
+                            {
+                                context.Response.Headers.Append("origin", "JOBAPI");
+                                return Task.CompletedTask;
+                            }
+                        };
+                    });
+            }
+
+            collection.AddAuthorization(options =>
+            {
+                options.DefaultPolicy = new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .AddAuthenticationSchemes("AzureAd")
+                    .Build();
+
+                options.AddPolicy("ExchangeSetFulfilmentServiceUser", policy =>
+                {
+                    if (!addsEnvironment.IsLocal() && !addsEnvironment.IsDev())
+                    {
+                        // For non-dev/non-local environments, authentication is compulsory
+                        policy.RequireRole("ExchangeSetFulfilmentServiceUser");
+                    }
+                    else
+                    {
+                        // For local and dev environments only, allow anonymous access
+                        policy.RequireAssertion(_ => true);
+                    }
+                });
+            });
+            // End Azure AD settings configuration
 
             var efsClientId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsClientId);
 
