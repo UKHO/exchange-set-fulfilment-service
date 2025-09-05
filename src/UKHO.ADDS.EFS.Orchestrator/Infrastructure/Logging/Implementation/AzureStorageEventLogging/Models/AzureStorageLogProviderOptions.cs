@@ -27,7 +27,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Azure
             if (!AzureStorageLoggerEnabled)
                 return;
 
-            AzureStorageCredential = credential ?? throw new ArgumentNullException($"The {nameof(credential)} cannot be null when Azure storage option is set to enabled");
+            AzureStorageCredential = credential ?? throw new ArgumentNullException(nameof(credential), "The credential cannot be null when Azure storage option is set to enabled");
         }
 
         /// <summary>

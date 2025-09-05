@@ -35,7 +35,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Logging.Implementation.AzureStora
         {
             string url = null;
 
-            var exception = Assert.Throws<NullReferenceException>(() =>
+            var exception = Assert.Throws<ArgumentException>(() =>
                                                                     new AzureStorageLogProviderOptions(url,
                                                                     true,
                                                                     resourcesFactory.SuccessTemplateMessage,
@@ -99,7 +99,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Logging.Implementation.AzureStora
         {
             TokenCredential tokenCredentials = null;
 
-            var exception = Assert.Throws<NullReferenceException>(() => new AzureStorageLogProviderOptions(new Uri(_validUrl),
+            var exception = Assert.Throws<ArgumentNullException>(() => new AzureStorageLogProviderOptions(new Uri(_validUrl),
                                                                 tokenCredentials,
                                                                 true,
                                                                 resourcesFactory.SuccessTemplateMessage,
@@ -107,7 +107,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Logging.Implementation.AzureStora
             Assert.Multiple(() =>
             {
                 Assert.That(exception, Is.Not.Null);
-                Assert.That(exception.Message, Is.EqualTo("The credential cannot be null when Azure storage option is set to enabled"));
+                Assert.That(exception.Message, Does.Contain("The credential cannot be null when Azure storage option is set to enabled"));
             });
         }
 
