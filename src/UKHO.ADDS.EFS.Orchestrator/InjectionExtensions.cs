@@ -58,9 +58,10 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             builder.Services.AddTransient<ICompletionPipelineFactory, CompletionPipelineFactory>();
             builder.Services.AddTransient<ICompletionPipelineNodeFactory, CompletionPipelineNodeFactory>();
-            builder.Services.AddTransient<S100ProductNamesRequestValidator>();
-            builder.Services.AddTransient<S100ProductVersionsRequestValidator>();
-            builder.Services.AddTransient<S100UpdateSinceRequestValidator>();
+
+            builder.Services.AddTransient<IS100ProductNamesRequestValidator, S100ProductNamesRequestValidator>();
+            builder.Services.AddTransient<IS100ProductVersionsRequestValidator, S100ProductVersionsRequestValidator>();
+            builder.Services.AddTransient<IS100UpdateSinceRequestValidator, S100UpdateSinceRequestValidator>();
 
             builder.Services.AddSingleton<PipelineContextFactory<S100Build>>();
             builder.Services.AddSingleton<IPipelineContextFactory<S100Build>, PipelineContextFactory<S100Build>>();

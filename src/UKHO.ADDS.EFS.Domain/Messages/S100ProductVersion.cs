@@ -3,7 +3,7 @@
     /// <summary>
     /// Represents a S100 product version with edition and update numbers
     /// </summary>
-    internal class S100ProductVersion
+    public class S100ProductVersion
     {
         /// <summary>
         /// The unique product identifier

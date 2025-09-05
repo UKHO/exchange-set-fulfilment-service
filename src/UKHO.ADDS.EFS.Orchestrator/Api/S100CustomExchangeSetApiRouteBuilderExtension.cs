@@ -29,7 +29,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 IConfiguration configuration,
                 IAssemblyPipelineFactory pipelineFactory,
                 HttpContext httpContext,
-                S100ProductNamesRequestValidator productNameValidator,
+                IS100ProductNamesRequestValidator productNameValidator,
                 string? callbackUri = null) =>
             {
                 try
@@ -74,7 +74,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 IConfiguration configuration,
                 IAssemblyPipelineFactory pipelineFactory,
                 HttpContext httpContext,
-                S100ProductVersionsRequestValidator productVersionsRequestValidator,
+                IS100ProductVersionsRequestValidator productVersionsRequestValidator,
                 string? callbackUri = null) =>
             {
                 try
@@ -113,7 +113,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 IConfiguration configuration,
                 IAssemblyPipelineFactory pipelineFactory,
                 HttpContext httpContext,
-                S100UpdateSinceRequestValidator updateSinceRequestValidator,
+                IS100UpdateSinceRequestValidator updateSinceRequestValidator,
                 string? callbackUri = null,
                 string? productIdentifier = null) =>
             {

@@ -5,10 +5,15 @@ using Vogen;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Validators.S100;
 
+public interface IS100ProductVersionsRequestValidator
+{
+    FluentValidation.Results.ValidationResult Validate((IEnumerable<S100ProductVersion> productVersions, string? callbackUri) request);
+}
+
 /// <summary>
 /// Validator for S100ProductVersion[] and callbackUri
 /// </summary>
-internal class S100ProductVersionsRequestValidator : AbstractValidator<(IEnumerable<S100ProductVersion> productVersions, string? callbackUri)>
+internal class S100ProductVersionsRequestValidator : AbstractValidator<(IEnumerable<S100ProductVersion> productVersions, string? callbackUri)>, IS100ProductVersionsRequestValidator
 {
     public S100ProductVersionsRequestValidator()
     {
@@ -37,5 +42,10 @@ internal class S100ProductVersionsRequestValidator : AbstractValidator<(IEnumera
         RuleFor(x => x.callbackUri)
             .Must(uri => CallbackUriValidator.IsValidCallbackUri(uri))
             .WithMessage(CallbackUriValidator.InvalidCallbackUriMessage);
+    }
+
+    public new FluentValidation.Results.ValidationResult Validate((IEnumerable<S100ProductVersion> productVersions, string? callbackUri) request)
+    {
+        return base.Validate(request);
     }
 }

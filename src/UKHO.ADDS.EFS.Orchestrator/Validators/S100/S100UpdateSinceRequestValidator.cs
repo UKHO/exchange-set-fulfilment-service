@@ -5,10 +5,15 @@ using UKHO.ADDS.EFS.Domain.Messages;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Validators.S100;
 
+public interface IS100UpdateSinceRequestValidator
+{
+    Task<FluentValidation.Results.ValidationResult> ValidateAsync((S100UpdatesSinceRequest s100UpdatesSinceRequest, string? callbackUri, string? productIdentifier) request);
+}
+
 /// <summary>
 /// Validator for 'updatesSince' request filter format and sinceDateTime presence
 /// </summary>
-internal class S100UpdateSinceRequestValidator : AbstractValidator<(S100UpdatesSinceRequest s100UpdatesSinceRequest, string? callbackUri, string? productIdentifier)>
+internal class S100UpdateSinceRequestValidator : AbstractValidator<(S100UpdatesSinceRequest s100UpdatesSinceRequest, string? callbackUri, string? productIdentifier)>, IS100UpdateSinceRequestValidator
 {
     private const string ISO_8601_FORMAT = "yyyy-MM-ddTHH:mm:ss.fffffffZ";
     private readonly TimeSpan _maximumProductAge;
@@ -35,6 +40,11 @@ internal class S100UpdateSinceRequestValidator : AbstractValidator<(S100UpdatesS
         RuleFor(request => request.productIdentifier)
             .Must(ProductIdentifierValidator.IsValid)
             .WithMessage(ProductIdentifierValidator.ValidationMessage);
+    }
+
+    public async Task<FluentValidation.Results.ValidationResult> ValidateAsync((S100UpdatesSinceRequest s100UpdatesSinceRequest, string? callbackUri, string? productIdentifier) request)
+    {
+        return await base.ValidateAsync(request);
     }
 
     private static bool IsValidISO8601Format(string sinceDateTimeString)

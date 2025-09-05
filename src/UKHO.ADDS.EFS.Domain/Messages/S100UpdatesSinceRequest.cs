@@ -3,7 +3,7 @@
     /// <summary>
     /// Request model for S100 updates since datetime endpoint
     /// </summary>
-    internal class S100UpdatesSinceRequest
+    public class S100UpdatesSinceRequest
     {
         /// <summary>
         /// The date and time from which changes are requested
