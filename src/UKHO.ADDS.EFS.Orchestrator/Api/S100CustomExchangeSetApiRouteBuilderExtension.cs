@@ -75,7 +75,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             int exchangeSetProductCount,
             int requestedProductsAlreadyUpToDateCount)
         {
-            var batchId = Guid.NewGuid().ToString("N"); // Simulate batch ID for demonstration purposes
+            var batchId = BatchId.From(Guid.NewGuid().ToString("N")); // Simulate batch ID for demonstration purposes
 
             return new CustomExchangeSetResponse
             {
@@ -83,12 +83,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 {
                     ExchangeSetBatchStatusUri = new Link { Uri = new Uri($"https://fss.ukho.gov.uk/batch/{batchId}/status") },
                     ExchangeSetBatchDetailsUri = new Link { Uri = new Uri($"https://fss.ukho.gov.uk/batch/{batchId}") },
-                    ExchangeSetFileUri = batchId != null ? new Link { Uri = new Uri($"https://fss.ukho.gov.uk/batch/{batchId}/files/exchangeset.zip") } : null
+                    ExchangeSetFileUri = new Link { Uri = new Uri($"https://fss.ukho.gov.uk/batch/{batchId}/files/exchangeset.zip") }
                 },
                 ExchangeSetUrlExpiryDateTime = DateTime.UtcNow.AddDays(7), // TODO: Get from configuration
-                RequestedProductCount = requestedProductCount,
-                ExchangeSetProductCount = exchangeSetProductCount,
-                RequestedProductsAlreadyUpToDateCount = requestedProductsAlreadyUpToDateCount,
+                RequestedProductCount = ProductCount.From(requestedProductCount),
+                ExchangeSetProductCount = ProductCount.From(exchangeSetProductCount),
+                RequestedProductsAlreadyUpToDateCount = ProductCount.From(requestedProductsAlreadyUpToDateCount),
                 RequestedProductsNotInExchangeSet =
                 [
                     new MissingProduct()
@@ -97,7 +97,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                             Reason = MissingProductReason.InvalidProduct
                         }
                 ],
-                FssBatchId = BatchId.From(batchId)
+                FssBatchId = batchId
             };
         }
     }

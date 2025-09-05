@@ -22,17 +22,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api.Messages
         /// <summary>
         /// Number of products explicitly requested
         /// </summary>
-        public int RequestedProductCount { get; set; }
+        public ProductCount RequestedProductCount { get; set; }
 
         /// <summary>
         /// Number of products that have data included in the produced Exchange Set
         /// </summary>
-        public int ExchangeSetProductCount { get; set; }
+        public ProductCount ExchangeSetProductCount { get; set; }
 
         /// <summary>
         /// Number of requested products that are already up to date
         /// </summary>
-        public int RequestedProductsAlreadyUpToDateCount { get; set; }
+        public ProductCount RequestedProductsAlreadyUpToDateCount { get; set; }
 
         /// <summary>
         /// Products that were requested but not included in the exchange set
