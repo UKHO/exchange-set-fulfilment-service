@@ -164,14 +164,13 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result containing the add file to batch response on success or error information on failure.</returns>
-        public async Task<AttributeList> AddFileToBatchAsync(BatchId batchId, Stream fileStream, string fileName, string contentType, CorrelationId correlationId, CancellationToken cancellationToken)
-        {
-            var batchHandle = new BatchHandle((string)batchId);
+        public async Task<AttributeList> AddFileToBatchAsync(BatchHandle batchHandle, Stream fileStream, string fileName, string contentType, CorrelationId correlationId, CancellationToken cancellationToken)
+        {            
             var addFileResult = await _fileShareReadWriteClient.AddFileToBatchAsync(batchHandle, fileStream, fileName, contentType, (string)correlationId, cancellationToken);
 
             if (addFileResult.IsFailure(out var error, out _))
             {
-                LogFileShareServiceError(correlationId, AddFileToBatch, error, batchId);
+                LogFileShareServiceError(correlationId, AddFileToBatch, error,BatchId.From(batchHandle.BatchId));
                 throw new InvalidOperationException("Failed to add file to batch.");
             }
 

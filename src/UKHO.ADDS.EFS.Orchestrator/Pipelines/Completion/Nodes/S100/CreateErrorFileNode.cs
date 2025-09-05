@@ -1,7 +1,10 @@
+using System.IO;
 using System.Text;
+using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.Builds.S100;
 using UKHO.ADDS.EFS.Domain.Constants;
+using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Services;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
@@ -49,15 +52,22 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
 
                 try
                 {
+                    var batchHandle = new BatchHandle((string)job.BatchId);
                     var attributeList = await _fileService.AddFileToBatchAsync(
-                        job.BatchId,
+                        batchHandle,
                         errorFileStream,
                         fileName,
                         ApiHeaderKeys.ContentTypeTextPlain,
                         job.GetCorrelationId(),
                         Environment.CancellationToken);
+                   
 
                     context.Subject.IsErrorFileCreated = true;
+
+                    foreach (var fileDetail in batchHandle.FileDetails)
+                    {
+                        context.Subject.Build.BuildCommitInfo!.AddFileDetail(fileDetail.FileName, fileDetail.Hash);
+                    }                    
                     _logger.LogCreateErrorFile(job.GetCorrelationId(), DateTimeOffset.UtcNow);
                 }
                 catch (Exception e)

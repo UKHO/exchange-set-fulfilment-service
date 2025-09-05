@@ -58,6 +58,6 @@ namespace UKHO.ADDS.EFS.Domain.Services
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result containing the add file to batch response on success or error information on failure.</returns>
-        Task<AttributeList> AddFileToBatchAsync(BatchId batchId, Stream fileStream, string fileName, string contentType, CorrelationId correlationId, CancellationToken cancellationToken);
+        Task<AttributeList> AddFileToBatchAsync(BatchHandle batchHandle, Stream fileStream, string fileName, string contentType, CorrelationId correlationId, CancellationToken cancellationToken);
     }
 }
