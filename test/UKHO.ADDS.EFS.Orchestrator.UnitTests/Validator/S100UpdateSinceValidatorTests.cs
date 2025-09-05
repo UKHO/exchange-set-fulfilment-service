@@ -17,7 +17,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
         public void OneTimeSetUp()
         {
             var configFake = A.Fake<IConfiguration>();
-            A.CallTo(() => configFake.GetValue<int>("orchestrator:ProductApiDateTimeLimitDays", 28)).Returns(28);
+            A.CallTo(() => configFake.GetValue<TimeSpan>("orchestrator:MaximumProductAge", TimeSpan.FromDays(28))).Returns(TimeSpan.FromDays(28));
             _s100UpdateSinceValidator = new S100UpdateSinceValidator(configFake);
         }
 
@@ -90,7 +90,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
             Assert.Multiple(() =>
             {
                 Assert.That(result.IsValid, Is.False);
-                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "sinceDateTime cannot be more than 28 days in the past."));
+                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "sinceDateTime cannot be older than 28 days in the past."));
             });
         }
 
@@ -123,7 +123,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
             Assert.Multiple(() =>
             {
                 Assert.That(result.IsValid, Is.False);
-                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "sinceDateTime cannot be more than 28 days in the past."));
+                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "sinceDateTime cannot be older than 28 days in the past."));
             });
         }
 

@@ -11,11 +11,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Validators;
 internal class S100UpdateSinceValidator : AbstractValidator<(S100UpdatesSinceRequest s100UpdatesSinceRequest, string? callbackUri, string? productIdentifier)>
 {
     private const string ISO_8601_FORMAT = "yyyy-MM-ddTHH:mm:ss.fffffffZ";
-    private readonly int _productApiDateTimeLimitDays;
+    private readonly TimeSpan _maximumProductAge;
 
     public S100UpdateSinceValidator(IConfiguration configuration)
     {
-        _productApiDateTimeLimitDays = configuration.GetValue<int>("orchestrator:ProductApiDateTimeLimitDays", 28);
+        _maximumProductAge = configuration.GetValue("orchestrator:MaximumProductAge", TimeSpan.FromDays(28));
 
         RuleFor(request => request.callbackUri)
             .Must(CallbackUriValidator.IsValidCallbackUri)
@@ -29,8 +29,8 @@ internal class S100UpdateSinceValidator : AbstractValidator<(S100UpdatesSinceReq
             .Must(dateStr => IsNotFutureDate(dateStr))
             .WithMessage("sinceDateTime cannot be a future date.")
             .WithErrorCode(HttpStatusCode.NotModified.ToString())
-            .Must(dateStr => IsNotTooOld(dateStr, _productApiDateTimeLimitDays))
-            .WithMessage($"sinceDateTime cannot be more than {_productApiDateTimeLimitDays} days in the past.");
+            .Must(dateStr => IsNotTooOld(dateStr, _maximumProductAge))
+            .WithMessage($"sinceDateTime cannot be older than {_maximumProductAge.TotalDays:0} days in the past.");
 
         RuleFor(request => request.productIdentifier)
             .Must(ProductIdentifierValidator.IsValid)
@@ -54,11 +54,11 @@ internal class S100UpdateSinceValidator : AbstractValidator<(S100UpdatesSinceReq
         return DateTime.Compare(date, DateTime.UtcNow) <= 0;
     }
 
-    private static bool IsNotTooOld(string sinceDateTimeString, int maxDays)
+    private static bool IsNotTooOld(string sinceDateTimeString, TimeSpan maxAge)
     {
         if (!DateTime.TryParseExact(sinceDateTimeString, ISO_8601_FORMAT, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out var date))
             return true;
-        return DateTime.Compare(date, DateTime.UtcNow.AddDays(-maxDays)) > 0;
+        return date >= DateTime.UtcNow.Subtract(maxAge);
     }
 }
 
