@@ -5,7 +5,7 @@ using UKHO.ADDS.EFS.Orchestrator.Validators.S100;
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
 {
     [TestFixture]
-    public class S100ProductVersionsRequestValidatorTests
+    public class S100ProductVersionsValidatorTests
     {
         private S100ProductVersionsRequestValidator _s100ProductVersionsRequestValidator;
         private const string VALID_CALLBACK_URI = "https://valid.com/callback";
