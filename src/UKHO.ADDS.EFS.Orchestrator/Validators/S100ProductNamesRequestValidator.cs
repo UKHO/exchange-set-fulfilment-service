@@ -1,5 +1,7 @@
 using FluentValidation;
 using UKHO.ADDS.EFS.Messages;
+using UKHO.ADDS.EFS.Domain.Products;
+using Vogen;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Validators;
 
@@ -11,14 +13,22 @@ internal class S100ProductNamesRequestValidator : AbstractValidator<S100ProductN
     public S100ProductNamesRequestValidator()
     {
         RuleFor(request => request.ProductNames)
-            .Must(product =>
-                product is { Count: > 0 } &&
-                product.TrueForAll(data => !string.IsNullOrWhiteSpace(data)))
+            .NotNull()
+            .Must(productNames => productNames.Count > 0)
             .WithMessage("ProductNames cannot be null or empty.");
+
+        RuleForEach(request => request.ProductNames)
+            .Custom((name, context) =>
+            {
+                var validation = ProductName.Validate(name!);
+                if (validation != Validation.Ok)
+                {
+                    context.AddFailure(validation.ErrorMessage ?? "ProductName is not valid.");
+                }
+            });
 
         RuleFor(request => request.CallbackUri)
             .Must(CallbackUriValidator.IsValidCallbackUri)
-            .When(request => !string.IsNullOrEmpty(request.CallbackUri))
-            .WithMessage("Invalid callbackUri format.");
+            .WithMessage(CallbackUriValidator.InvalidCallbackUriMessage);
     }
 }

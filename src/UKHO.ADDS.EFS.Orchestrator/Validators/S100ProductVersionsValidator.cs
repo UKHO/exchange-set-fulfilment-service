@@ -26,6 +26,6 @@ internal class S100ProductVersionsValidator : AbstractValidator<(IEnumerable<S10
 
         RuleFor(x => x.callbackUri)
             .Must(uri => CallbackUriValidator.IsValidCallbackUri(uri))
-            .WithMessage("Invalid callbackUri format.");
+            .WithMessage(CallbackUriValidator.InvalidCallbackUriMessage);
     }
 }

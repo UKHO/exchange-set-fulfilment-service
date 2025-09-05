@@ -7,6 +7,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Validators;
 /// </summary>
 public class CallbackUriValidator : AbstractValidator<string?>
 {
+
+    public const string InvalidCallbackUriMessage = "Invalid callbackUri format.";
     /// <summary>
     /// Initializes a new instance of the CallbackUriValidator class
     /// </summary>
@@ -15,7 +17,7 @@ public class CallbackUriValidator : AbstractValidator<string?>
         RuleFor(callbackUri => callbackUri)
             .Must(IsValidCallbackUri)
             .When(callbackUri => !string.IsNullOrWhiteSpace(callbackUri))
-            .WithMessage("Invalid callbackUri format.");
+            .WithMessage(InvalidCallbackUriMessage);
     }
 
     /// <summary>

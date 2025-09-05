@@ -6,7 +6,7 @@ namespace UKHO.ADDS.EFS.Domain.Products
     [ValueObject<string>(Conversions.SystemTextJson, typeof(ValidationException))]
     public partial struct ProductName
     {
-        private static Validation Validate(string input)
+        public static Validation Validate(string input)
         {
             if (string.IsNullOrEmpty(input))
             {

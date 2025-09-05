@@ -19,7 +19,7 @@ internal class S100UpdateSinceValidator : AbstractValidator<(S100UpdatesSinceReq
 
         RuleFor(request => request.callbackUri)
             .Must(CallbackUriValidator.IsValidCallbackUri)
-            .WithMessage("Invalid callbackUri format.");
+            .WithMessage(CallbackUriValidator.InvalidCallbackUriMessage);
 
         // Uplifted validation for SinceDateTime property
         RuleFor(request => request.s100UpdatesSinceRequest.SinceDateTime)
