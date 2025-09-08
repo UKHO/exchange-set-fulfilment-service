@@ -47,7 +47,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                             return ResponseHelper.CreateNotFoundResponse(request);
 
                         case WellKnownState.UnsupportedMediaType:
-                            return ResponseHelper.CreateUnsupportedMediaTypeResponse("https://example.com", "00-012-0123-01");
+                            return ResponseHelper.CreateUnsupportedMediaTypeResponse(ErrorResponseConstants.GenericErrorUri, "00-012-0123-01");
 
                         case WellKnownState.InternalServerError:
                             return ResponseHelper.CreateInternalServerErrorResponse(request);
