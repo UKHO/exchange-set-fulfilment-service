@@ -19,10 +19,6 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Azure.Messaging.EventHubs;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.AzureStorageEventLogging;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.AzureStorageEventLogging.Enums;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.AzureStorageEventLogging.Extensions;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.AzureStorageEventLogging.Models;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
@@ -36,9 +32,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
 
         private readonly JsonSerializerOptions _settings;
         private readonly JsonSerializerOptions _errorSettings;
-
-        //private readonly AzureStorageBlobContainerBuilder azureStorageBlobContainerBuilder;
-        private bool disposed;
+        private bool _disposed;
 
         public EventHubLog(IEventHubClientWrapper eventHubClientWrapper, IEnumerable<JsonConverter> customConverters)
         {
@@ -70,9 +64,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
             {
                 errorSettings.Converters.Add(converter);
             }
-
-
-            //azureStorageBlobContainerBuilder = eventHubClientWrapper.AzureStorageBlobContainerBuilder;
         }
 
         public async void Log(LogEntry logEntry)
@@ -97,28 +88,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
                     jsonLogEntry = JsonCodec.Encode(logEntry, _errorSettings);
                 }
 
-                //var azureStorageLoggingCheckResult = azureStorageBlobContainerBuilder.NeedsAzureStorageLogging(jsonLogEntry, 1);
-
-                //switch (azureStorageLoggingCheckResult)
-                //{
-                //    case AzureStorageLoggingCheckResult.LogWarningNoStorage:
-                //        jsonLogEntry = logEntry.ToLongMessageWarning(_settings);
-                //        break;
-                //    case AzureStorageLoggingCheckResult.LogWarningAndStoreMessage:
-                //        var azureLogger = new AzureStorageEventLogger(azureStorageBlobContainerBuilder.BlobContainerClient);
-                //        var blobFullName = azureLogger.GenerateBlobFullName(
-                //                                                               new AzureStorageBlobFullNameModel(azureLogger.GenerateServiceName(
-                //                                                                                                  logEntry.LogProperties.GetLogEntryPropertyValue("_Service"),
-                //                                                                                                  logEntry.LogProperties.GetLogEntryPropertyValue("_Environment")),
-                //                                                                                                 azureLogger.GeneratePathForErrorBlob(logEntry.Timestamp),
-                //                                                                                                 azureLogger.GenerateErrorBlobName()));
-                //        var azureStorageModel = new AzureStorageEventModel(blobFullName, jsonLogEntry);
-                //        var result = await azureLogger.StoreLogFileAsync(azureStorageModel);
-
-                //        jsonLogEntry = result.ToJsonLogEntryString(azureStorageBlobContainerBuilder.AzureStorageLogProviderOptions, logEntry, _settings);
-                //        break;
-                //}
-
                 await eventHubClientWrapper.SendAsync(new EventData(Encoding.UTF8.GetBytes(jsonLogEntry)));
             }
             catch (Exception e)
@@ -129,7 +98,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
 
         protected virtual void Dispose(bool disposing)
         {
-            if (disposed)
+            if (_disposed)
                 return;
 
             if (disposing)
@@ -138,7 +107,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
                 eventHubClientWrapper = null;
             }
 
-            disposed = true;
+            _disposed = true;
         }
         public void Dispose()
         {

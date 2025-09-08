@@ -80,11 +80,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Seril
         /// </summary>
         public Action<IDictionary<string, object>> AdditionalValuesProvider { get; set; } = d => { };
 
-        /// <summary>
-        /// The options for Azure Storage logging
-        /// </summary>
-        //public AzureStorageEventLogging.Models.AzureStorageLogProviderOptions AzureStorageLogProviderOptions { get; set; }
-
+        
         /// <summary>
         /// Enable connection validation with Event Hub
         /// </summary>
