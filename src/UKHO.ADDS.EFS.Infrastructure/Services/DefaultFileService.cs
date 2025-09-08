@@ -18,7 +18,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
     {
         private const string BusinessUnit = "ADDS-S100";
         private const string ProductType = "S-100";
-        private const string ProductTypeQueryClause = $"$batch(ProductType) eq '{ProductType}' and ";
+        private const string ProductTypeQueryClause = $"$batch(Product Code) eq '{ProductType}' and ";
         private const int Limit = 100;
         private const int Start = 0;
         private const string SetExpiryDate = "SetExpiryDate";
@@ -177,12 +177,15 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
             if (addFileResult.IsSuccess(out var response))
             {
                 var attributeList = new AttributeList();
-
-                foreach (var attribute in response.Attributes)
+                if (response != null)
                 {
-                    attributeList.Add(new Attribute { Key = attribute.Key, Value = attribute.Value });
-                }
 
+
+                    foreach (var attribute in response.Attributes)
+                    {
+                        attributeList.Add(new Attribute { Key = attribute.Key, Value = attribute.Value });
+                    }
+                }
                 return attributeList;
             }
 

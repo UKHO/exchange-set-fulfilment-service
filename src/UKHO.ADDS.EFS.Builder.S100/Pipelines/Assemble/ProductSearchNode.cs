@@ -18,12 +18,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private ILogger _logger;
         private const int DefaultSplitSize = 30;
 
-        private const string ProductNameQueryClause = "$batch(ProductName) eq '{0}' and ";
-        private const string EditionNumberQueryClause = "$batch(EditionNumber) eq '{0}' and ";
-        private const string UpdateNumberQueryClause = "$batch(UpdateNumber) eq '{0}' ";
+        private const string ProductNameQueryClause = "$batch(Product Name) eq '{0}' and ";
+        private const string EditionNumberQueryClause = "$batch(Edition Number) eq '{0}' and ";
+        private const string UpdateNumberQueryClause = "$batch(Update Number) eq '{0}' ";
         private const string BusinessUnit = "ADDS-S100";
         private const string ProductType = "S-100";
-        private const string ProductTypeQueryClause = $"$batch(ProductType) eq '{ProductType}' and ";
+        private const string ProductTypeQueryClause = $"$batch(Product Code) eq '{ProductType}' and ";
         private const int MaxSearchOperations = 5;
         private const int UpdateNumberLimit = 5;
         private const int ProductLimit = 4;

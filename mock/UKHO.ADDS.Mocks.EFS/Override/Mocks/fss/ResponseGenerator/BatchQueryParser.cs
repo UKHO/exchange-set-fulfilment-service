@@ -7,7 +7,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss.ResponseGenerator
     {
         private const string BatchPattern = @"\$batch\((?<Property>\w+)\) eq '(?<Value>[^']*)'";
         private static readonly Regex _businessUnitRegex = new(@"BusinessUnit\s*eq\s*'([^']*)'", RegexOptions.Compiled);
-        private static readonly Regex _productTypeRegex = new Regex(@"\$batch\(ProductType\) eq '(?<Value>[^']*)'", RegexOptions.Compiled);
+        private static readonly Regex _productTypeRegex = new Regex(@"\$batch\(Product Code\) eq '(?<Value>[^']*)'", RegexOptions.Compiled);
 
         public static FSSSearchFilterDetails ParseBatchQuery(string odataQuery)
         {
@@ -68,13 +68,13 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss.ResponseGenerator
 
                 switch (property)
                 {
-                    case "ProductName":
+                    case "Product Name":
                         product.ProductName = value;
                         break;
-                    case "EditionNumber" when int.TryParse(value, out var editionNumber):
+                    case "Edition Number" when int.TryParse(value, out var editionNumber):
                         product.EditionNumber = editionNumber;
                         break;
-                    case "UpdateNumber" when int.TryParse(value, out var updateNumber):
+                    case "Update Number" when int.TryParse(value, out var updateNumber):
                         product.UpdateNumbers.Add(updateNumber);
                         break;
                 }
