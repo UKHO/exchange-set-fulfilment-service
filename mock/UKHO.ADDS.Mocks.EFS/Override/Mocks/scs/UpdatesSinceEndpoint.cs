@@ -1,4 +1,5 @@
 using System.Globalization;
+using UKHO.ADDS.Mocks.Configuration.Mocks.scs.Helpers;
 using UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator;
 using UKHO.ADDS.Mocks.Headers;
 using UKHO.ADDS.Mocks.Markdown;
@@ -25,45 +26,17 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                                 !acceptHeader.Contains("application/json") &&
                                 !acceptHeader.Contains("*/*"))
                             {
-                                return Results.Json(new
-                                {
-                                    type = "https://tools.ietf.org/html/rfc9110#section-15.5.16",
-                                    title = "Unsupported Media Type",
-                                    status = 415,
-                                    traceId = Guid.NewGuid().ToString("D")[..23]
-                                }, statusCode: 415);
+                                return ResponseHelper.CreateUnsupportedMediaTypeResponse();
                             }
 
                             if (string.IsNullOrWhiteSpace(sinceDateTime))
                             {
-                                return Results.Json(new
-                                {
-                                    correlationId = request.Headers[WellKnownHeader.CorrelationId],
-                                    errors = new[]
-                                    {
-                                    new
-                                    {
-                                        source = "sinceDateTime",
-                                        description = "The sinceDateTime query parameter is required."
-                                    }
-                                }
-                                }, statusCode: 400);
+                                return ResponseHelper.CreateBadRequestResponse(request, "sinceDateTime", "The sinceDateTime query parameter is required.");
                             }
 
                             if (!DateTime.TryParse(sinceDateTime, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsedSinceDateTime))
                             {
-                                return Results.Json(new
-                                {
-                                    correlationId = request.Headers[WellKnownHeader.CorrelationId],
-                                    errors = new[]
-                                    {
-                                    new
-                                    {
-                                        source = "sinceDateTime",
-                                        description = "Provided date format is not valid."
-                                    }
-                                }
-                                }, statusCode: 400);
+                                return ResponseHelper.CreateBadRequestResponse(request, "sinceDateTime", "Provided date format is not valid.");
                             }
 
                             response.GetTypedHeaders().LastModified = DateTime.UtcNow;
@@ -84,41 +57,16 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                         return Results.StatusCode(304);
 
                     case WellKnownState.BadRequest:
-                        return Results.Json(new
-                        {
-                            correlationId = request.Headers[WellKnownHeader.CorrelationId],
-                            errors = new[]
-                            {
-                                new
-                                {
-                                    source = "Updates Since",
-                                    description = "Provided date format is not valid."
-                                }
-                            }
-                        }, statusCode: 400);
+                        return ResponseHelper.CreateBadRequestResponse(request, "Updates Since", "Provided date format is not valid.");
 
                     case WellKnownState.NotFound:
-                        return Results.Json(new
-                        {
-                            correlationId = request.Headers[WellKnownHeader.CorrelationId],
-                            details = "Not Found"
-                        }, statusCode: 404);
+                        return ResponseHelper.CreateNotFoundResponse(request);
 
                     case WellKnownState.UnsupportedMediaType:
-                        return Results.Json(new
-                        {
-                            type = "https://tools.ietf.org/html/rfc9110#section-15.5.16",
-                            title = "Unsupported Media Type",
-                            status = 415,
-                            traceId = Guid.NewGuid().ToString("D")[..23]
-                        }, statusCode: 415);
+                        return ResponseHelper.CreateUnsupportedMediaTypeResponse();
 
                     case WellKnownState.InternalServerError:
-                        return Results.Json(new
-                        {
-                            correlationId = request.Headers[WellKnownHeader.CorrelationId],
-                            details = "Internal Server Error"
-                        }, statusCode: 500);
+                        return ResponseHelper.CreateInternalServerErrorResponse(request);
 
                     default:
                         // Just send default responses

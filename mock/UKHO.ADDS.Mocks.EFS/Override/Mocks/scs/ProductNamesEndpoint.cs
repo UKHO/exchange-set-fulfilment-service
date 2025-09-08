@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator;
+﻿using UKHO.ADDS.Mocks.Configuration.Mocks.scs.Helpers;
+using UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator;
 using UKHO.ADDS.Mocks.Headers;
 using UKHO.ADDS.Mocks.Markdown;
 using UKHO.ADDS.Mocks.States;
@@ -27,18 +28,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
 
                             default:
 
-                                return Results.Json(new
-                                {
-                                    correlationId = request.Headers[WellKnownHeader.CorrelationId],
-                                    errors = new[]
-                                    {
-                                        new
-                                        {
-                                            source = "No productType set",
-                                            description = "Bad Request."
-                                        }
-                                    }
-                                }, statusCode: 400);
+                                return ResponseHelper.CreateBadRequestResponse(request, "No productType set", "Bad Request.");
                         }
                     }
 
@@ -53,41 +43,16 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                         return await ScsResponseGenerator.ProvideProductNamesResponse(request, state);
 
                     case WellKnownState.BadRequest:
-                        return Results.Json(new
-                        {
-                            correlationId = request.Headers[WellKnownHeader.CorrelationId],
-                            errors = new[]
-                            {
-                                    new
-                                    {
-                                        source = "Product Names",
-                                        description = "Bad Request."
-                                    }
-                                }
-                        }, statusCode: 400);
+                        return ResponseHelper.CreateBadRequestResponse(request, "Product Names", "Bad Request.");
 
                     case WellKnownState.NotFound:
-                        return Results.Json(new
-                        {
-                            correlationId = request.Headers[WellKnownHeader.CorrelationId],
-                            details = "Not Found"
-                        }, statusCode: 404);
+                        return ResponseHelper.CreateNotFoundResponse(request);
 
                     case WellKnownState.UnsupportedMediaType:
-                        return Results.Json(new
-                        {
-                            type = "https://example.com",
-                            title = "Unsupported Media Type",
-                            status = 415,
-                            traceId = "00-012-0123-01"
-                        }, statusCode: 415);
+                        return ResponseHelper.CreateUnsupportedMediaTypeResponse("https://example.com", "00-012-0123-01");
 
                     case WellKnownState.InternalServerError:
-                        return Results.Json(new
-                        {
-                            correlationId = request.Headers[WellKnownHeader.CorrelationId],
-                            details = "Internal Server Error"
-                        }, statusCode: 500);
+                        return ResponseHelper.CreateInternalServerErrorResponse(request);
 
                     default:
                         // Just send default responses

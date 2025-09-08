@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Nodes;
+using UKHO.ADDS.Mocks.Configuration.Mocks.scs.Helpers;
 using UKHO.ADDS.Mocks.Files;
 using UKHO.ADDS.Mocks.Headers;
 using IResult = Microsoft.AspNetCore.Http.IResult;
@@ -47,20 +48,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
 
                 if (sinceDateTime < twentyEightDaysAgo)
                 {
-                    return Results.Json(new
-                    {
-                        correlationId = request.Headers.ContainsKey(WellKnownHeader.CorrelationId)
-                            ? request.Headers[WellKnownHeader.CorrelationId].ToString()
-                            : string.Empty,
-                        errors = new[]
-                        {
-                            new
-                            {
-                                source = "sinceDateTime",
-                                description = "Date provided is more than 28 days in the past."
-                            }
-                        }
-                    }, statusCode: 400);
+                    return ResponseHelper.CreateBadRequestResponse(request, "sinceDateTime", "Date provided is more than 28 days in the past.");
                 }
 
                 if (sinceDateTime > now)
@@ -73,13 +61,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
                     var validIdentifiers = new[] { "s101", "s102", "s104", "s111" };
                     if (!validIdentifiers.Contains(productIdentifier.ToLowerInvariant()))
                     {
-                        return Results.Json(new
-                        {
-                            correlationId = request.Headers.ContainsKey(WellKnownHeader.CorrelationId)
-                                ? request.Headers[WellKnownHeader.CorrelationId].ToString()
-                                : string.Empty,
-                            details = "Product identifier not found"
-                        }, statusCode: 404);
+                        return ResponseHelper.CreateNotFoundResponse(request, "Product identifier not found");
                     }
                 }
 
@@ -327,18 +309,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
 
         private static IResult CreateBadRequestResponse(HttpRequest requestMessage, string description)
         {
-            var correlationId = requestMessage.Headers.ContainsKey(WellKnownHeader.CorrelationId)
-                ? requestMessage.Headers[WellKnownHeader.CorrelationId].ToString()
-                : string.Empty;
-
-            return Results.BadRequest(new
-            {
-                correlationId,
-                errors = new[]
-                {
-                    new { source = "Product Names", description }
-                }
-            });
+            return ResponseHelper.CreateBadRequestResponse(requestMessage, "Product Names", description);
         }
     }
 }
