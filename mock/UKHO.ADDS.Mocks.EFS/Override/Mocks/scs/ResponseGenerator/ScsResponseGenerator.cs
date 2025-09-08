@@ -38,21 +38,11 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
 
         /// <summary>
         /// Provides a mock response for updates since a specified date using data from s100-updates-since.json file.
-        /// Note: As a mock endpoint, date validation is not implemented - all valid dates are accepted.
         /// </summary>
         public static async Task<IResult> ProvideUpdatesSinceResponse(DateTime sinceDateTime, string? productIdentifier, HttpRequest request, IMockFile file)
         {
             try
             {
-                if (!string.IsNullOrWhiteSpace(productIdentifier))
-                {
-                    var validIdentifiers = new[] { "s101", "s102", "s104", "s111" };
-                    if (!validIdentifiers.Contains(productIdentifier.ToLowerInvariant()))
-                    {
-                        return ResponseHelper.CreateNotFoundResponse(request, "Product identifier not found");
-                    }
-                }
-
                 var response = await GenerateUpdatesSinceResponseFromFile(productIdentifier, file);
                 return Results.Ok(response);
             }
@@ -216,13 +206,10 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
 
         private static async Task<JsonObject> GenerateUpdatesSinceResponseFromFile(string? productIdentifier, IMockFile file)
         {
-            // Load and parse JSON data from file
             var allProducts = await LoadProductsFromFileAsync(file);
 
-            // Filter products by identifier if specified
             var filteredProducts = FilterProductsByIdentifier(allProducts, productIdentifier);
 
-            // Build response array
             var productsArray = BuildProductsArray(filteredProducts);
 
             return CreateResponseObject(productsArray);

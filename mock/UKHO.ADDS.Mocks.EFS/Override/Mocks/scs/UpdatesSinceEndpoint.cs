@@ -20,7 +20,6 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                 {
                     case WellKnownState.Default:
                         {
-                            // Check Accept header for unsupported media types (415)
                             var acceptHeader = request.Headers.Accept.ToString();
                             if (!string.IsNullOrEmpty(acceptHeader) &&
                                 !acceptHeader.Contains("application/json") &&
@@ -29,23 +28,15 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                                 return ResponseHelper.CreateUnsupportedMediaTypeResponse();
                             }
 
-                            if (string.IsNullOrWhiteSpace(sinceDateTime))
-                            {
-                                return ResponseHelper.CreateBadRequestResponse(request, "sinceDateTime", "The sinceDateTime query parameter is required.");
-                            }
-
-                            if (!DateTime.TryParse(sinceDateTime, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsedSinceDateTime))
-                            {
-                                return ResponseHelper.CreateBadRequestResponse(request, "sinceDateTime", "Provided date format is not valid.");
-                            }
-
                             response.GetTypedHeaders().LastModified = DateTime.UtcNow;
 
-                            // Use the same file access pattern as GetBasicCatalogueEndpoint
                             var pathResult = GetFile("s100-updates-since.json");
                             if (pathResult.IsSuccess(out var file))
                             {
-                                // Call the response generator with the file
+                                var parsedSinceDateTime = DateTime.TryParse(sinceDateTime, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed)
+                                    ? parsed
+                                    : DateTime.UtcNow;
+
                                 return await ScsResponseGenerator.ProvideUpdatesSinceResponse(parsedSinceDateTime, productIdentifier, request, file);
                             }
 
@@ -69,7 +60,6 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                         return ResponseHelper.CreateInternalServerErrorResponse(request);
 
                     default:
-                        // Just send default responses
                         return WellKnownStateHandler.HandleWellKnownState(state);
                 }
             })
@@ -80,7 +70,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                     d.Append(new MarkdownParagraph("This endpoint returns all releasable changes to products since a specified date."));
                     d.Append(new MarkdownParagraph("**Required Parameter:** sinceDateTime - The date and time from which changes are requested (ISO 8601 format)."));
                     d.Append(new MarkdownParagraph("**Optional Parameter:** productIdentifier - Filter by S-100 standard specification (e.g., 's101')."));
-                    d.Append(new MarkdownParagraph(new MarkdownEmphasis("Note: The list is static in nature loaded from s100-updates-since.json. Only one identifier at a time is allowed (e.g., s101) to get 101 products. As a mock endpoint, date range validations are not enforced.")));
+                    d.Append(new MarkdownParagraph(new MarkdownEmphasis("Note: The list is static in nature loaded from s100-updates-since.json. Only one identifier at a time is allowed (e.g., s101) to get 101 products. As a mock endpoint, date range validations are not enforced but the sinceDateTime parameter is used as-is when valid.")));
                 });
     }
 }
