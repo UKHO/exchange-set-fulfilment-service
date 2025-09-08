@@ -40,12 +40,12 @@
         },
         "location": {
             "value": "${AZURE_LOCATION}"
-        },
-        "efs_app_reg_clientid": {
-            "value": "${AZURE_EFS_APP_REG_CLIENTID}"
-        },
-        "efs_app_reg_tenantid": {
-            "value": "${AZURE_EFS_APP_REG_TENANTID}"
         }
+        //"efs_app_reg_clientid": {
+        //    "value": "${AZURE_EFS_APP_REG_CLIENTID}"
+        //},
+        //"efs_app_reg_tenantid": {
+        //    "value": "${AZURE_EFS_APP_REG_TENANTID}"
+        //}
     }
   }
