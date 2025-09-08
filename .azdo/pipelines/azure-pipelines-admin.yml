@@ -56,7 +56,7 @@ variables:
 
 stages:
 - stage: VulnerabilityChecks
-  displayName: "Snyk Checks"
+  displayName: Vulnerability checks
   dependsOn: []
   jobs:
   - template: templates/vulnerability-checks.yml
