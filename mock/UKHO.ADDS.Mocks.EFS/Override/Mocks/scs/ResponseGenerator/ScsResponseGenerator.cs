@@ -37,7 +37,6 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
 
         /// <summary>
         /// Provides a mock response for updates since a specified date using data from s100-updates-since.json file.
-        /// This follows the same file access pattern as GetBasicCatalogueEndpoint.
         /// </summary>
         public static async Task<IResult> ProvideUpdatesSinceResponse(DateTime sinceDateTime, string? productIdentifier, HttpRequest request, IMockFile file)
         {
@@ -84,7 +83,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
                     }
                 }
 
-                var response = await GenerateUpdatesSinceResponseFromFile(sinceDateTime, productIdentifier, file);
+                var response = await GenerateUpdatesSinceResponseFromFile(productIdentifier, file);
                 return Results.Ok(response);
             }
             catch (Exception ex)
@@ -245,7 +244,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
             return productObj;
         }
 
-        private static async Task<JsonObject> GenerateUpdatesSinceResponseFromFile(DateTime sinceDateTime, string? productIdentifier, IMockFile file)
+        private static async Task<JsonObject> GenerateUpdatesSinceResponseFromFile(string? productIdentifier, IMockFile file)
         {
             // Load and parse JSON data from file
             var allProducts = await LoadProductsFromFileAsync(file);
