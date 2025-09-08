@@ -21,6 +21,19 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Helpers
     }
 
     /// <summary>
+    /// Constants for trace ID generation
+    /// </summary>
+    public static class TraceConstants
+    {
+        /// <summary>
+        /// Length of trace ID substring when generated from GUID.
+        /// Takes first 23 characters of GUID (format: "12345678-1234-1234-1234-123") 
+        /// to create a shorter, readable trace ID for mock responses.
+        /// </summary>
+        public const int MockTraceIdLength = 23;
+    }
+
+    /// <summary>
     /// Helper class to reduce duplication in mock endpoint response generation
     /// </summary>
     public static class ResponseHelper
@@ -90,7 +103,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Helpers
                 type = typeUri ?? ErrorResponseConstants.UnsupportedMediaTypeUri,
                 title = "Unsupported Media Type",
                 status = 415,
-                traceId = traceId ?? Guid.NewGuid().ToString("D")[..23]
+                traceId = traceId ?? Guid.NewGuid().ToString("D")[..TraceConstants.MockTraceIdLength]
             }, statusCode: 415);
         }
 

@@ -254,9 +254,12 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
 
             var prefix = GetProductPrefix(productIdentifier.ToLowerInvariant());
 
-            return prefix is not null
-                ? allProducts.Where(p => p?["productName"]?.GetValue<string>()?.StartsWith(prefix) == true).ToList()
-                : new List<JsonNode>();
+            if (prefix is null)
+                return new List<JsonNode>();
+
+            return allProducts
+                .Where(p => p?["productName"]?.GetValue<string>()?.StartsWith(prefix) == true)
+                .ToList();
         }
 
         private static string? GetProductPrefix(string identifier) => identifier switch
@@ -272,7 +275,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
         {
             var productsArray = new JsonArray();
 
-            foreach (var product in filteredProducts.Where(p => p is not null))
+            foreach (var product in filteredProducts)
             {
                 productsArray.Add(product.DeepClone());
             }
