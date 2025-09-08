@@ -5,11 +5,6 @@ using Vogen;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Validators.S100;
 
-public interface IS100ProductNamesRequestValidator
-{
-    Task<FluentValidation.Results.ValidationResult> ValidateAsync(S100ProductNamesRequest request);
-}
-
 /// <summary>
 /// Validator for S100ProductNamesRequest
 /// </summary>

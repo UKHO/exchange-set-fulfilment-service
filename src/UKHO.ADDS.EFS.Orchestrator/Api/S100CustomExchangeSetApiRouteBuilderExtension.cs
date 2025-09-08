@@ -25,7 +25,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
             // POST /v2/exchangeSet/s100/productNames
             exchangeSetEndpoint.MapPost("/productNames", async (
-                List<string> productNames,
+                List<string>? productNames,
                 IConfiguration configuration,
                 IAssemblyPipelineFactory pipelineFactory,
                 HttpContext httpContext,
@@ -82,7 +82,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                     var correlationId = httpContext.GetCorrelationId();
 
                     // Validate input
-                    var validationResult = productVersionsRequestValidator.Validate((productVersions, callbackUri));
+                    var validationResult = await productVersionsRequestValidator.ValidateAsync((productVersions, callbackUri));
                     var validationResponse = HandleValidationResult(validationResult, logger, (string)correlationId);
                     if (validationResponse != null)
                         return validationResponse;
