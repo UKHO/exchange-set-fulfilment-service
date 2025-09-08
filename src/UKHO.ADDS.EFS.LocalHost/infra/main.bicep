@@ -20,10 +20,11 @@ param addsEnvironment string
 })
 @secure()
 param efs_redis_password string
+param efsAppConfigurationName string
 param efsApplicationInsightsName string
 param efsContainerAppsEnvironmentName string
 param efsContainerRegistryName string
-param efsEventHubNamespaceName string
+param efsEventHubsNamespaceName string
 @metadata({azd: {
   type: 'resourceGroup'
   config: {}
@@ -31,6 +32,7 @@ param efsEventHubNamespaceName string
 })
 param efsRetainResourceGroup string
 param efsServiceIdentityName string
+param efsStorageAccountName string
 
 var tags = {
   'azd-env-name': environmentName
@@ -44,7 +46,7 @@ resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
 
 module efs_app_insights 'efs-app-insights/efs-app-insights.module.bicep' = {
   name: 'efs-app-insights'
-  scope: resourceGroup(efsRetainResourceGroup)
+  scope: rg
   params: {
     efsApplicationInsightsName: efsApplicationInsightsName
     location: location
@@ -54,6 +56,7 @@ module efs_appconfig 'efs-appconfig/efs-appconfig.module.bicep' = {
   name: 'efs-appconfig'
   scope: rg
   params: {
+    efsAppConfigurationName: efsAppConfigurationName
     location: location
   }
 }
@@ -67,7 +70,7 @@ module efs_cae 'efs-cae/efs-cae.module.bicep' = {
 }
 module efs_cae_acr 'efs-cae-acr/efs-cae-acr.module.bicep' = {
   name: 'efs-cae-acr'
-  scope: resourceGroup(efsRetainResourceGroup)
+  scope: rg
   params: {
     efsContainerRegistryName: efsContainerRegistryName
     location: location
@@ -77,26 +80,8 @@ module efs_events_namespace 'efs-events-namespace/efs-events-namespace.module.bi
   name: 'efs-events-namespace'
   scope: resourceGroup(efsRetainResourceGroup)
   params: {
-    efsEventHubNamespaceName: efsEventHubNamespaceName
+    efsEventHubsNamespaceName: efsEventHubsNamespaceName
     location: location
-  }
-}
-module efs_orchestrator_roles_efs_appconfig 'efs-orchestrator-roles-efs-appconfig/efs-orchestrator-roles-efs-appconfig.module.bicep' = {
-  name: 'efs-orchestrator-roles-efs-appconfig'
-  scope: rg
-  params: {
-    efs_appconfig_outputs_name: efs_appconfig.outputs.name
-    location: location
-    principalId: efs_service_identity.outputs.principalId
-  }
-}
-module efs_orchestrator_roles_efs_storage 'efs-orchestrator-roles-efs-storage/efs-orchestrator-roles-efs-storage.module.bicep' = {
-  name: 'efs-orchestrator-roles-efs-storage'
-  scope: rg
-  params: {
-    efs_storage_outputs_name: efs_storage.outputs.name
-    location: location
-    principalId: efs_service_identity.outputs.principalId
   }
 }
 module efs_service_identity 'efs-service-identity/efs-service-identity.module.bicep' = {
@@ -111,6 +96,7 @@ module efs_storage 'efs-storage/efs-storage.module.bicep' = {
   name: 'efs-storage'
   scope: rg
   params: {
+    efsStorageAccountName: efsStorageAccountName
     location: location
   }
 }

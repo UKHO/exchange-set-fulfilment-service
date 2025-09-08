@@ -3,6 +3,7 @@
     public interface IBatchHandle
     {
         string BatchId { get; }
+        List<FileDetail> FileDetails { get; }
     }
 
     public class BatchHandle : IBatchHandle

@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Http.Json;
+using Microsoft.Extensions.Compliance.Redaction;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
@@ -8,9 +9,10 @@ using UKHO.ADDS.EFS.Domain.Implementation.Serialization;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Orchestrator.Api;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.HealthChecks;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Middleware;
-using UKHO.ADDS.EFS.Orchestrator.Services.Storage;
+using UKHO.ADDS.EFS.Orchestrator.Services;
 
 namespace UKHO.ADDS.EFS.Orchestrator
 {
@@ -64,6 +66,18 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
 
                 app.RegisterJobsApi(loggerFactory);
+                app.RegisterS100CustomExchangeSetApi(loggerFactory);
+
+                // Map health check endpoints with custom configuration to exclude Redis checks
+                //It looks like the Redis service is degraded for some reason, so comment it out from the health checks for the time being.
+                app.MapHealthChecks("/health", HealthCheckOptionsFactory.CreateHealthCheckOptions(
+                    excludeServices: new HashSet<string> { "redis" }));
+
+                // Only health checks tagged with the "live" tag must pass for app to be considered alive
+                // Also exclude Redis checks
+                app.MapHealthChecks("/alive", HealthCheckOptionsFactory.CreateHealthCheckOptions(
+                    tagsFilter: new HashSet<string> { "live" },
+                    excludeServices: new HashSet<string> { "redis" }));
 
                 var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
 

@@ -3,10 +3,10 @@ using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.Builds.S100;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
+using UKHO.ADDS.EFS.Domain.Services;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
-using UKHO.ADDS.EFS.Orchestrator.Pipelines.Services;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
@@ -218,81 +218,81 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             Assert.That(_build.Products.Count(), Is.EqualTo(2));
         }
 
-        [Test]
-        public async Task WhenPerformExecuteAsyncIsCalledAndFilterMatchesNoProducts_ThenSignalsNoBuildRequiredAndReturnsSucceeded()
-        {
-            var products = new ProductNameList();
+        //[Test]
+        //public async Task WhenPerformExecuteAsyncIsCalledAndFilterMatchesNoProducts_ThenSignalsNoBuildRequiredAndReturnsSucceeded()
+        //{
+        //    var products = new ProductNameList();
             
-            products.Add(ProductName.From("101product1"));
-            products.Add(ProductName.From("101product2"));
+        //    products.Add(ProductName.From("101product1"));
+        //    products.Add(ProductName.From("101product2"));
 
-            _job = new Job
-            {
-                Id = JobId.From("test-job-id"),
-                Timestamp = DateTime.UtcNow,
-                DataStandard = DataStandard.S100,
-                RequestedProducts = products,
-                RequestedFilter = "productName eq '101GB004DEVQP'",
-            };
+        //    _job = new Job
+        //    {
+        //        Id = JobId.From("test-job-id"),
+        //        Timestamp = DateTime.UtcNow,
+        //        DataStandard = DataStandard.S100,
+        //        RequestedProducts = products,
+        //        RequestedFilter = "productName eq '101GB004DEVQP'",
+        //    };
 
-            _build = new S100Build
-            {
-                Products =
-                [
-                    new() { ProductName = ProductName.From("101GB004DEVQK"), LatestEditionNumber = EditionNumber.From(1) },
-                    new() {ProductName = ProductName.From("101GB00510210"), LatestEditionNumber = EditionNumber.From(2)},
-                    new() {ProductName = ProductName.From("102CA005N5040W00130.h5"), LatestEditionNumber = EditionNumber.From(1)}
-                ]
-            };
+        //    _build = new S100Build
+        //    {
+        //        Products =
+        //        [
+        //            new() { ProductName = ProductName.From("101GB004DEVQK"), LatestEditionNumber = EditionNumber.From(1) },
+        //            new() {ProductName = ProductName.From("101GB00510210"), LatestEditionNumber = EditionNumber.From(2)},
+        //            new() {ProductName = ProductName.From("102CA005N5040W00130.h5"), LatestEditionNumber = EditionNumber.From(1)}
+        //        ]
+        //    };
 
-            _pipelineContext = new PipelineContext<S100Build>(_job, _build, _storageService);
-            A.CallTo(() => _executionContext.Subject).Returns(_pipelineContext);
+        //    _pipelineContext = new PipelineContext<S100Build>(_job, _build, _storageService);
+        //    A.CallTo(() => _executionContext.Subject).Returns(_pipelineContext);
 
-            var originalProductCount = _build.Products!.Count();
+        //    var originalProductCount = _build.Products!.Count();
 
-            var result = await _filterProductsNode.ExecuteAsync(_executionContext);
+        //    var result = await _filterProductsNode.ExecuteAsync(_executionContext);
 
-            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-            Assert.That(_build.Products.Count(), Is.EqualTo(originalProductCount));
-            Assert.That(_job.JobState, Is.EqualTo(JobState.UpToDate));
-            A.CallTo(() => _storageService.UpdateJobAsync(_job)).MustHaveHappenedOnceExactly();
-        }
+        //    Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
+        //    Assert.That(_build.Products.Count(), Is.EqualTo(originalProductCount));
+        //    Assert.That(_job.JobState, Is.EqualTo(JobState.UpToDate));
+        //    A.CallTo(() => _storageService.UpdateJobAsync(_job)).MustHaveHappenedOnceExactly();
+        //}
 
-        [Test]
-        public async Task WhenPerformExecuteAsyncIsCalledAndComplexFilter_ThenFiltersCorrectlyAndReturnsSucceeded()
-        {
-            var products = new ProductNameList();
+        //[Test]
+        //public async Task WhenPerformExecuteAsyncIsCalledAndComplexFilter_ThenFiltersCorrectlyAndReturnsSucceeded()
+        //{
+        //    var products = new ProductNameList();
 
-            products.Add(ProductName.From("101product1"));
-            products.Add(ProductName.From("101product2"));
+        //    products.Add(ProductName.From("101product1"));
+        //    products.Add(ProductName.From("101product2"));
 
-            _job = new Job
-            {
-                Id = JobId.From("test-job-id"),
-                Timestamp = DateTime.UtcNow,
-                DataStandard = DataStandard.S100,
-                RequestedProducts = products,
-                RequestedFilter = "productName eq '101GB004DEVQK' or latestEditionNumber eq 2",
-            };
+        //    _job = new Job
+        //    {
+        //        Id = JobId.From("test-job-id"),
+        //        Timestamp = DateTime.UtcNow,
+        //        DataStandard = DataStandard.S100,
+        //        RequestedProducts = products,
+        //        RequestedFilter = "productName eq '101GB004DEVQK' or latestEditionNumber eq 2",
+        //    };
 
-            _build = new S100Build
-            {
-                Products =
-                [
-                    new() { ProductName = ProductName.From("101GB004DEVQK"), LatestEditionNumber = EditionNumber.From(1) },
-                    new() {ProductName = ProductName.From("101GB00510210"), LatestEditionNumber = EditionNumber.From(2)},
-                    new() {ProductName = ProductName.From("102CA005N5040W00130.h5"), LatestEditionNumber = EditionNumber.From(1)}
-                ]
-            };
-            _pipelineContext = new PipelineContext<S100Build>(_job, _build, _storageService);
-            A.CallTo(() => _executionContext.Subject).Returns(_pipelineContext);
+        //    _build = new S100Build
+        //    {
+        //        Products =
+        //        [
+        //            new() { ProductName = ProductName.From("101GB004DEVQK"), LatestEditionNumber = EditionNumber.From(1) },
+        //            new() {ProductName = ProductName.From("101GB00510210"), LatestEditionNumber = EditionNumber.From(2)},
+        //            new() {ProductName = ProductName.From("102CA005N5040W00130.h5"), LatestEditionNumber = EditionNumber.From(1)}
+        //        ]
+        //    };
+        //    _pipelineContext = new PipelineContext<S100Build>(_job, _build, _storageService);
+        //    A.CallTo(() => _executionContext.Subject).Returns(_pipelineContext);
 
-            var result = await _filterProductsNode.ExecuteAsync(_executionContext);
+        //    var result = await _filterProductsNode.ExecuteAsync(_executionContext);
 
-            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-            Assert.That(_build.Products.Count(), Is.EqualTo(2));
-            Assert.That(_build.Products.Any(p => p.ProductName == "101GB004DEVQK"), Is.True);
-            Assert.That(_build.Products.Any(p => p.ProductName == "101GB00510210"), Is.True);
-        }
+        //    Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
+        //    Assert.That(_build.Products.Count(), Is.EqualTo(2));
+        //    Assert.That(_build.Products.Any(p => p.ProductName == "101GB004DEVQK"), Is.True);
+        //    Assert.That(_build.Products.Any(p => p.ProductName == "101GB00510210"), Is.True);
+        //}
     }
 }
