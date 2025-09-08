@@ -95,50 +95,56 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
         {
             var productsArray = new JsonArray();
             var notReturnedArray = new JsonArray();
+            var productCount = requestedProducts.Count;
 
-            if (state == "get-allinvalidproducts")
+            switch (state)
             {
-                foreach (var productName in requestedProducts)
-                {
-                    notReturnedArray.Add(CreateProductNotReturnedObject(productName, "invalidProduct"));
-                }
-            }
-            else if (state == "get-invalidproducts" && requestedProducts.Count > 0)
-            {
-                foreach (var productName in requestedProducts.SkipLast(1))
-                    productsArray.Add(GenerateProductJson(productName));
+                case "get-allinvalidproducts":
+                    foreach (var productName in requestedProducts)
+                    {
+                        notReturnedArray.Add(CreateProductNotReturnedObject(productName, "invalidProduct"));
+                    }
+                    break;
 
-                var lastProduct = requestedProducts.Last();
-                notReturnedArray.Add(CreateProductNotReturnedObject(lastProduct, "invalidProduct"));
-            }
-            else if (state == "get-cancelledproducts" && requestedProducts.Count > 0)
-            {
-                foreach (var productName in requestedProducts.SkipLast(1))
-                    productsArray.Add(GenerateProductJson(productName));
+                case "get-invalidproducts" when productCount > 0:
+                    foreach (var productName in requestedProducts.SkipLast(1))
+                        productsArray.Add(GenerateProductJson(productName));
 
-                var lastProduct = requestedProducts.Last();
-                productsArray.Add(GenerateProductJson(lastProduct, true));
-            }
-            else if (state == "get-productswithdrawn" && requestedProducts.Count > 0)
-            {
-                foreach (var productName in requestedProducts.SkipLast(1))
-                    productsArray.Add(GenerateProductJson(productName));
+                    notReturnedArray.Add(CreateProductNotReturnedObject(requestedProducts.Last(), "invalidProduct"));
+                    break;
 
-                var lastProduct = requestedProducts.Last();
-                notReturnedArray.Add(CreateProductNotReturnedObject(lastProduct, "productWithdrawn"));
-            }
-            else
-            {
-                foreach (var productName in requestedProducts)
-                    productsArray.Add(GenerateProductJson(productName));
-            }
 
+                case "get-cancelledproducts" when productCount > 0:
+
+                    foreach (var productName in requestedProducts.SkipLast(1))
+                        productsArray.Add(GenerateProductJson(productName));
+
+                    productsArray.Add(GenerateProductJson(requestedProducts.Last(), true));
+                    break;
+
+                case "get-productswithdrawn" when productCount > 0:
+
+                    foreach (var productName in requestedProducts.SkipLast(1))
+                        productsArray.Add(GenerateProductJson(productName));
+
+                    notReturnedArray.Add(CreateProductNotReturnedObject(requestedProducts.Last(), "productWithdrawn"));
+                    break;
+
+                default:
+
+                    foreach (var productName in requestedProducts)
+                        productsArray.Add(GenerateProductJson(productName));
+                    break;
+            }
+            var returnedProductCount = state == "get-invalidproducts" && productCount > 0
+? productCount - notReturnedArray.Count
+: productsArray.Count;
             return new JsonObject
             {
                 ["productCounts"] = new JsonObject
                 {
-                    ["requestedProductCount"] = requestedProducts.Count,
-                    ["returnedProductCount"] = (state == "get-invalidproducts" && requestedProducts.Count > 0) ? requestedProducts.Count - notReturnedArray.Count : productsArray.Count,
+                    ["requestedProductCount"] = productCount,
+                    ["returnedProductCount"] = returnedProductCount,
                     ["requestedProductsAlreadyUpToDateCount"] = 0,
                     ["requestedProductsNotReturned"] = notReturnedArray
                 },
@@ -238,17 +244,17 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
         private static async Task<List<string>> ExtractProductNamesFromRequestAsync(HttpRequest request)
         {
             request.EnableBuffering();
-            
+
             using var reader = new StreamReader(request.Body, leaveOpen: true);
             var requestBody = await reader.ReadToEndAsync();
             request.Body.Position = 0;
-            
+
             using var doc = JsonDocument.Parse(requestBody);
             var requestedProducts = new List<string>(doc.RootElement.GetArrayLength());
-            
+
             foreach (var element in doc.RootElement.EnumerateArray())
             {
-                if (element.TryGetProperty("productName", out var productNameProperty) && 
+                if (element.TryGetProperty("productName", out var productNameProperty) &&
                     productNameProperty.ValueKind == JsonValueKind.String)
                 {
                     var productName = productNameProperty.GetString();
@@ -258,7 +264,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
                     }
                 }
             }
-            
+
             return requestedProducts;
         }
     }
