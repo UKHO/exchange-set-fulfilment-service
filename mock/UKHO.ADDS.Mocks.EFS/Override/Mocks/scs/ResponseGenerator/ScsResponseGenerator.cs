@@ -27,7 +27,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
                 if (validationResult.errorResult != null)
                     return validationResult.errorResult;
 
-                var response = GenerateProductNamesResponse(validationResult.requestedProducts, state);
+                var response = GenerateProductsResponse(validationResult.requestedProducts, state);
                 return Results.Ok(response);
             }
             catch (Exception ex)
@@ -40,11 +40,9 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
         {
             try
             {
-                var validationResult = await ValidateProductVersionsRequestAsync(requestMessage);
-                if (validationResult.errorResult != null)
-                    return validationResult.errorResult;
+                var requestedProducts = await ExtractProductNamesFromRequestAsync(requestMessage);
 
-                var response = GenerateProductNamesResponse(validationResult.requestedProducts, state);
+                var response = GenerateProductsResponse(requestedProducts, state);
                 return Results.Ok(response);
             }
             catch (Exception ex)
@@ -93,7 +91,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
             }
         }
 
-        private static JsonObject GenerateProductNamesResponse(List<string> requestedProducts, string state = "")
+        private static JsonObject GenerateProductsResponse(List<string> requestedProducts, string state = "")
         {
             var productsArray = new JsonArray();
             var notReturnedArray = new JsonArray();
@@ -237,64 +235,31 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
             });
         }
 
-        private static async Task<(IResult? errorResult, List<string> requestedProducts)> ValidateProductVersionsRequestAsync(HttpRequest request)
+        private static async Task<List<string>> ExtractProductNamesFromRequestAsync(HttpRequest request)
         {
-            var requestedProducts = new List<string>();
-
             request.EnableBuffering();
-            string requestBody;
-            using (var reader = new StreamReader(request.Body, leaveOpen: true))
+            
+            using var reader = new StreamReader(request.Body, leaveOpen: true);
+            var requestBody = await reader.ReadToEndAsync();
+            request.Body.Position = 0;
+            
+            using var doc = JsonDocument.Parse(requestBody);
+            var requestedProducts = new List<string>(doc.RootElement.GetArrayLength());
+            
+            foreach (var element in doc.RootElement.EnumerateArray())
             {
-                requestBody = await reader.ReadToEndAsync();
-                request.Body.Position = 0;
-            }
-
-            if (string.IsNullOrWhiteSpace(requestBody))
-                return (CreateBadRequestResponse(request, "Request body is required", ProductVersionsEndpointSource), requestedProducts);
-
-            try
-            {
-                using var doc = JsonDocument.Parse(requestBody);
-                if (doc.RootElement.ValueKind != JsonValueKind.Array)
-                    return (CreateBadRequestResponse(request, "Request body must be a JSON array of productVersions objects.", ProductVersionsEndpointSource), requestedProducts);
-
-                foreach (var element in doc.RootElement.EnumerateArray())
+                if (element.TryGetProperty("productName", out var productNameProperty) && 
+                    productNameProperty.ValueKind == JsonValueKind.String)
                 {
-                    if (element.ValueKind != JsonValueKind.Object)
-                        return (CreateBadRequestResponse(request, "All items in the array must be productVersions objects with productName, editionNumber, and updateNumber properties.", ProductVersionsEndpointSource), requestedProducts);
-
-                    // Validate productName property
-                    if (!element.TryGetProperty("productName", out var productNameProperty) ||
-                        productNameProperty.ValueKind != JsonValueKind.String ||
-                        string.IsNullOrWhiteSpace(productNameProperty.GetString()))
-                        return (CreateBadRequestResponse(request, "Each productVersions object must have a non-empty 'productName' string property.", ProductVersionsEndpointSource), requestedProducts);
-
-                    // Validate editionNumber property
-                    if (!element.TryGetProperty("editionNumber", out var editionNumberProperty) ||
-                        editionNumberProperty.ValueKind != JsonValueKind.Number ||
-                        !editionNumberProperty.TryGetInt32(out var editionNumber) ||
-                        editionNumber < 1)
-                        return (CreateBadRequestResponse(request, "Each productVersions object must have an 'editionNumber' integer property with a value greater than 0.", ProductVersionsEndpointSource), requestedProducts);
-
-                    // Validate updateNumber property
-                    if (!element.TryGetProperty("updateNumber", out var updateNumberProperty) ||
-                        updateNumberProperty.ValueKind != JsonValueKind.Number ||
-                        !updateNumberProperty.TryGetInt32(out var updateNumber) ||
-                        updateNumber < 0)
-                        return (CreateBadRequestResponse(request, "Each productVersions object must have an 'updateNumber' integer property with a value greater than or equal to 0.", ProductVersionsEndpointSource), requestedProducts);
-
-                    requestedProducts.Add(productNameProperty.GetString()!);
+                    var productName = productNameProperty.GetString();
+                    if (!string.IsNullOrEmpty(productName))
+                    {
+                        requestedProducts.Add(productName);
+                    }
                 }
-
-                if (!requestedProducts.Any())
-                    return (CreateBadRequestResponse(request, "At least one product must be provided.", ProductVersionsEndpointSource), requestedProducts);
-
-                return (null, requestedProducts);
             }
-            catch (JsonException)
-            {
-                return (CreateBadRequestResponse(request, "Invalid JSON format.", ProductVersionsEndpointSource), requestedProducts);
-            }
+            
+            return requestedProducts;
         }
     }
 }
