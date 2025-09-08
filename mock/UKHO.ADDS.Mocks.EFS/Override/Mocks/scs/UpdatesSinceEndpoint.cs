@@ -33,11 +33,8 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                             var pathResult = GetFile("s100-updates-since.json");
                             if (pathResult.IsSuccess(out var file))
                             {
-                                var parsedSinceDateTime = DateTime.TryParse(sinceDateTime, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed)
-                                    ? parsed
-                                    : DateTime.UtcNow;
-
-                                return await ScsResponseGenerator.ProvideUpdatesSinceResponse(parsedSinceDateTime, productIdentifier, request, file);
+                                // Call the response generator with the file - mock endpoint returns static data
+                                return await ScsResponseGenerator.ProvideUpdatesSinceResponse(productIdentifier, request, file);
                             }
 
                             return Results.NotFound("Could not find s100-updates-since.json file");

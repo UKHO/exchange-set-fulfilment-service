@@ -38,8 +38,9 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
 
         /// <summary>
         /// Provides a mock response for updates since a specified date using data from s100-updates-since.json file.
+        /// Note: As a mock endpoint, this method returns static data regardless of date parameters.
         /// </summary>
-        public static async Task<IResult> ProvideUpdatesSinceResponse(DateTime sinceDateTime, string? productIdentifier, HttpRequest request, IMockFile file)
+        public static async Task<IResult> ProvideUpdatesSinceResponse(string? productIdentifier, HttpRequest request, IMockFile file)
         {
             try
             {
@@ -65,30 +66,30 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
             }
 
             if (string.IsNullOrWhiteSpace(requestBody))
-                return (CreateBadRequestResponse(request, "Request body is required"), requestedProducts);
+                return (ResponseHelper.CreateBadRequestResponse(request, "Request Body", "Request body is required"), requestedProducts);
 
             try
             {
                 using var doc = JsonDocument.Parse(requestBody);
                 if (doc.RootElement.ValueKind != JsonValueKind.Array)
-                    return (CreateBadRequestResponse(request, "Request body must be a JSON array of product names."), requestedProducts);
+                    return (ResponseHelper.CreateBadRequestResponse(request, "Request Body", "Request body must be a JSON array of product names."), requestedProducts);
 
                 foreach (var element in doc.RootElement.EnumerateArray())
                 {
                     if (element.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(element.GetString()))
-                        return (CreateBadRequestResponse(request, "All items in the array must be non-empty strings."), requestedProducts);
+                        return (ResponseHelper.CreateBadRequestResponse(request, "Product Names", "All items in the array must be non-empty strings."), requestedProducts);
 
                     requestedProducts.Add(element.GetString()!);
                 }
 
                 if (!requestedProducts.Any())
-                    return (CreateBadRequestResponse(request, "Empty product name is not allowed."), requestedProducts);
+                    return (ResponseHelper.CreateBadRequestResponse(request, "Product Names", "Empty product name is not allowed."), requestedProducts);
 
                 return (null, requestedProducts);
             }
             catch (JsonException)
             {
-                return (CreateBadRequestResponse(request, "Invalid JSON format."), requestedProducts);
+                return (ResponseHelper.CreateBadRequestResponse(request, "JSON Format", "Invalid JSON format."), requestedProducts);
             }
         }
 
@@ -283,11 +284,6 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
                 },
                 ["products"] = productsArray
             };
-        }
-
-        private static IResult CreateBadRequestResponse(HttpRequest requestMessage, string description)
-        {
-            return ResponseHelper.CreateBadRequestResponse(requestMessage, "Product Names", description);
         }
     }
 }
