@@ -28,7 +28,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
     {
         Task SendAsync(EventData eventData);
 
-        AzureStorageBlobContainerBuilder AzureStorageBlobContainerBuilder { get; set; }
+        //AzureStorageBlobContainerBuilder AzureStorageBlobContainerBuilder { get; set; }
 
         void ValidateConnection();
     }
@@ -39,12 +39,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
         private EventHubProducerClient eventHubClient;
         private bool disposed;
 
-        public AzureStorageBlobContainerBuilder AzureStorageBlobContainerBuilder { get; set; }
+        //public AzureStorageBlobContainerBuilder AzureStorageBlobContainerBuilder { get; set; }
 
         public EventHubClientWrapper(string fullyQualifiedNamespace,
                                      string eventHubName,
-                                     TokenCredential credentials,
-                                     AzureStorageLogProviderOptions azureStorageLogProviderOptions)
+                                     TokenCredential credentials
+                                     /*AzureStorageLogProviderOptions azureStorageLogProviderOptions*/)
         {
             eventHubClient = new EventHubProducerClient(fullyQualifiedNamespace, eventHubName, credentials, clientOptions: new EventHubProducerClientOptions
             {
@@ -53,21 +53,21 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
                     TransportType = EventHubsTransportType.AmqpWebSockets // supports firewall/proxy environments
                 }
             });
-            SetupAzureStorageBlobContainer(azureStorageLogProviderOptions);
+            //SetupAzureStorageBlobContainer(azureStorageLogProviderOptions);
         }
 
-        public EventHubClientWrapper(string eventHubConnectionString, string eventHubEntityPath, AzureStorageLogProviderOptions azureStorageLogProviderOptions)
+        public EventHubClientWrapper(string eventHubConnectionString, string eventHubEntityPath/*, AzureStorageLogProviderOptions azureStorageLogProviderOptions*/)
         {
             eventHubClient = new EventHubProducerClient(eventHubConnectionString, eventHubEntityPath);
-            SetupAzureStorageBlobContainer(azureStorageLogProviderOptions);
+            //SetupAzureStorageBlobContainer(azureStorageLogProviderOptions);
         }
 
-        private void SetupAzureStorageBlobContainer(AzureStorageLogProviderOptions azureStorageLogProviderOptions)
-        {
-            var azureStorageBlobContainerBuilder = new AzureStorageBlobContainerBuilder(azureStorageLogProviderOptions);
-            azureStorageBlobContainerBuilder.Build();
-            AzureStorageBlobContainerBuilder = azureStorageBlobContainerBuilder;
-        }
+        //private void SetupAzureStorageBlobContainer(AzureStorageLogProviderOptions azureStorageLogProviderOptions)
+        //{
+        //    var azureStorageBlobContainerBuilder = new AzureStorageBlobContainerBuilder(azureStorageLogProviderOptions);
+        //    //azureStorageBlobContainerBuilder.Build();
+        //    AzureStorageBlobContainerBuilder = azureStorageBlobContainerBuilder;
+        //}
 
         protected virtual void Dispose(bool disposing)
         {

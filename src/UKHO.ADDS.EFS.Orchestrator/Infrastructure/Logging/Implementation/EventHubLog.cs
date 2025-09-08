@@ -37,7 +37,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
         private readonly JsonSerializerOptions _settings;
         private readonly JsonSerializerOptions _errorSettings;
 
-        private readonly AzureStorageBlobContainerBuilder azureStorageBlobContainerBuilder;
+        //private readonly AzureStorageBlobContainerBuilder azureStorageBlobContainerBuilder;
         private bool disposed;
 
         public EventHubLog(IEventHubClientWrapper eventHubClientWrapper, IEnumerable<JsonConverter> customConverters)
@@ -72,7 +72,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
             }
 
 
-            azureStorageBlobContainerBuilder = eventHubClientWrapper.AzureStorageBlobContainerBuilder;
+            //azureStorageBlobContainerBuilder = eventHubClientWrapper.AzureStorageBlobContainerBuilder;
         }
 
         public async void Log(LogEntry logEntry)
@@ -97,27 +97,27 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
                     jsonLogEntry = JsonCodec.Encode(logEntry, _errorSettings);
                 }
 
-                var azureStorageLoggingCheckResult = azureStorageBlobContainerBuilder.NeedsAzureStorageLogging(jsonLogEntry, 1);
+                //var azureStorageLoggingCheckResult = azureStorageBlobContainerBuilder.NeedsAzureStorageLogging(jsonLogEntry, 1);
 
-                switch (azureStorageLoggingCheckResult)
-                {
-                    case AzureStorageLoggingCheckResult.LogWarningNoStorage:
-                        jsonLogEntry = logEntry.ToLongMessageWarning(_settings);
-                        break;
-                    case AzureStorageLoggingCheckResult.LogWarningAndStoreMessage:
-                        var azureLogger = new AzureStorageEventLogger(azureStorageBlobContainerBuilder.BlobContainerClient);
-                        var blobFullName = azureLogger.GenerateBlobFullName(
-                                                                               new AzureStorageBlobFullNameModel(azureLogger.GenerateServiceName(
-                                                                                                                  logEntry.LogProperties.GetLogEntryPropertyValue("_Service"),
-                                                                                                                  logEntry.LogProperties.GetLogEntryPropertyValue("_Environment")),
-                                                                                                                 azureLogger.GeneratePathForErrorBlob(logEntry.Timestamp),
-                                                                                                                 azureLogger.GenerateErrorBlobName()));
-                        var azureStorageModel = new AzureStorageEventModel(blobFullName, jsonLogEntry);
-                        var result = await azureLogger.StoreLogFileAsync(azureStorageModel);
+                //switch (azureStorageLoggingCheckResult)
+                //{
+                //    case AzureStorageLoggingCheckResult.LogWarningNoStorage:
+                //        jsonLogEntry = logEntry.ToLongMessageWarning(_settings);
+                //        break;
+                //    case AzureStorageLoggingCheckResult.LogWarningAndStoreMessage:
+                //        var azureLogger = new AzureStorageEventLogger(azureStorageBlobContainerBuilder.BlobContainerClient);
+                //        var blobFullName = azureLogger.GenerateBlobFullName(
+                //                                                               new AzureStorageBlobFullNameModel(azureLogger.GenerateServiceName(
+                //                                                                                                  logEntry.LogProperties.GetLogEntryPropertyValue("_Service"),
+                //                                                                                                  logEntry.LogProperties.GetLogEntryPropertyValue("_Environment")),
+                //                                                                                                 azureLogger.GeneratePathForErrorBlob(logEntry.Timestamp),
+                //                                                                                                 azureLogger.GenerateErrorBlobName()));
+                //        var azureStorageModel = new AzureStorageEventModel(blobFullName, jsonLogEntry);
+                //        var result = await azureLogger.StoreLogFileAsync(azureStorageModel);
 
-                        jsonLogEntry = result.ToJsonLogEntryString(azureStorageBlobContainerBuilder.AzureStorageLogProviderOptions, logEntry, _settings);
-                        break;
-                }
+                //        jsonLogEntry = result.ToJsonLogEntryString(azureStorageBlobContainerBuilder.AzureStorageLogProviderOptions, logEntry, _settings);
+                //        break;
+                //}
 
                 await eventHubClientWrapper.SendAsync(new EventData(Encoding.UTF8.GetBytes(jsonLogEntry)));
             }

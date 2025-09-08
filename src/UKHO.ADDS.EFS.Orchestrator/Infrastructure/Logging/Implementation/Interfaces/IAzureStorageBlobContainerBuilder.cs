@@ -23,21 +23,21 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Azure
     /// <summary>
     ///     The Azure storage blob container builder interface
     /// </summary>
-    public interface IAzureStorageBlobContainerBuilder
-    {
-        /// <summary>
-        ///     The azure storage log provider options
-        /// </summary>
-        AzureStorageLogProviderOptions AzureStorageLogProviderOptions { get; }
+    //public interface IAzureStorageBlobContainerBuilder
+    //{
+    //    /// <summary>
+    //    ///     The azure storage log provider options
+    //    /// </summary>
+    //    AzureStorageLogProviderOptions AzureStorageLogProviderOptions { get; }
 
-        /// <summary>
-        ///     The blob container client
-        /// </summary>
-        BlobContainerClient BlobContainerClient { get; }
+    //    /// <summary>
+    //    ///     The blob container client
+    //    /// </summary>
+    //    BlobContainerClient BlobContainerClient { get; }
 
-        /// <summary>
-        ///     The build method
-        /// </summary>
-        void Build();
-    }
+    //    /// <summary>
+    //    ///     The build method
+    //    /// </summary>
+    //    void Build();
+    //}
 }

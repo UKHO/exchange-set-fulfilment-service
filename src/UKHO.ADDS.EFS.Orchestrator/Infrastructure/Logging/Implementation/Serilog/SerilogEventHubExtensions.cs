@@ -53,16 +53,16 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Seril
                 clientWrapper = new EventHubClientWrapper(
                     options.EventHubFullyQualifiedNamespace,
                     options.EventHubEntityPath,
-                    options.TokenCredential,
-                    options.AzureStorageLogProviderOptions);
+                    options.TokenCredential
+                    /*options.AzureStorageLogProviderOptions*/);
             }
             else
             {
                 ValidateConnectionStringOptions(options);
                 clientWrapper = new EventHubClientWrapper(
                     options.EventHubConnectionString,
-                    options.EventHubEntityPath,
-                    options.AzureStorageLogProviderOptions);
+                    options.EventHubEntityPath
+                    /*options.AzureStorageLogProviderOptions*/);
             }
 
             // Validate connection if requested
