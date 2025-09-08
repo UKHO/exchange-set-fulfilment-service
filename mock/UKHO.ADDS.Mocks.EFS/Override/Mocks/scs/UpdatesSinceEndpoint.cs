@@ -1,3 +1,4 @@
+using System.Globalization;
 using UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator;
 using UKHO.ADDS.Mocks.Headers;
 using UKHO.ADDS.Mocks.Markdown;
@@ -8,7 +9,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
     public class UpdatesSinceEndpoint : ServiceEndpointMock
     {
         public override void RegisterSingleEndpoint(IEndpointMock endpoint) =>
-            endpoint.MapGet("/v2/products/s100/updatesSince", (string sinceDateTime, string? productIdentifier, HttpRequest request, HttpResponse response) =>
+            endpoint.MapGet("/v2/products/s100/updatesSince", async (string sinceDateTime, string? productIdentifier, HttpRequest request, HttpResponse response) =>
             {
                 EchoHeaders(request, response, [WellKnownHeader.CorrelationId]);
 
@@ -22,8 +23,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                             var acceptHeader = request.Headers.Accept.ToString();
                             if (!string.IsNullOrEmpty(acceptHeader) &&
                                 !acceptHeader.Contains("application/json") &&
-                                !acceptHeader.Contains("*/*") &&
-                                acceptHeader.Contains("application/xml"))
+                                !acceptHeader.Contains("*/*"))
                             {
                                 return Results.Json(new
                                 {
@@ -50,7 +50,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                                 }, statusCode: 400);
                             }
 
-                            if (!DateTime.TryParse(sinceDateTime, out var parsedSinceDateTime))
+                            if (!DateTime.TryParse(sinceDateTime, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsedSinceDateTime))
                             {
                                 return Results.Json(new
                                 {
@@ -73,8 +73,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                             if (pathResult.IsSuccess(out var file))
                             {
                                 // Call the response generator with the file
-                                var task = ScsResponseGenerator.ProvideUpdatesSinceResponse(parsedSinceDateTime, productIdentifier, request, file);
-                                return task.GetAwaiter().GetResult();
+                                return await ScsResponseGenerator.ProvideUpdatesSinceResponse(parsedSinceDateTime, productIdentifier, request, file);
                             }
 
                             return Results.NotFound("Could not find s100-updates-since.json file");

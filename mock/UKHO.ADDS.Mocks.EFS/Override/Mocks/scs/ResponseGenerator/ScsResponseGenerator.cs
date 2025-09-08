@@ -269,7 +269,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
                 var jsonArray = JsonNode.Parse(jsonContent);
 
                 return jsonArray is JsonArray array
-                    ? [.. array]
+                    ? array.ToList()
                     : throw new InvalidOperationException("Invalid JSON format in s100-updates-since.json file - expected array");
             }
             catch (JsonException ex)
@@ -303,12 +303,9 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
         {
             var productsArray = new JsonArray();
 
-            foreach (var product in filteredProducts)
+            foreach (var product in filteredProducts.Where(p => p is not null))
             {
-                if (product is not null)
-                {
-                    productsArray.Add(product.DeepClone());
-                }
+                productsArray.Add(product.DeepClone());
             }
 
             return productsArray;
