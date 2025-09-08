@@ -38,24 +38,12 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
 
         /// <summary>
         /// Provides a mock response for updates since a specified date using data from s100-updates-since.json file.
+        /// Note: As a mock endpoint, date validation is not implemented - all valid dates are accepted.
         /// </summary>
         public static async Task<IResult> ProvideUpdatesSinceResponse(DateTime sinceDateTime, string? productIdentifier, HttpRequest request, IMockFile file)
         {
             try
             {
-                var now = DateTime.UtcNow;
-                var twentyEightDaysAgo = now.AddDays(-28);
-
-                if (sinceDateTime < twentyEightDaysAgo)
-                {
-                    return ResponseHelper.CreateBadRequestResponse(request, "sinceDateTime", "Date provided is more than 28 days in the past.");
-                }
-
-                if (sinceDateTime > now)
-                {
-                    return Results.StatusCode(304);
-                }
-
                 if (!string.IsNullOrWhiteSpace(productIdentifier))
                 {
                     var validIdentifiers = new[] { "s101", "s102", "s104", "s111" };

@@ -80,7 +80,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                     d.Append(new MarkdownParagraph("This endpoint returns all releasable changes to products since a specified date."));
                     d.Append(new MarkdownParagraph("**Required Parameter:** sinceDateTime - The date and time from which changes are requested (ISO 8601 format)."));
                     d.Append(new MarkdownParagraph("**Optional Parameter:** productIdentifier - Filter by S-100 standard specification (e.g., 's101')."));
-                    d.Append(new MarkdownParagraph(new MarkdownEmphasis("Note: The list is static in nature loaded from s100-updates-since.json. Only one identifier at a time is allowed (e.g., s101) to get 101 products.")));
+                    d.Append(new MarkdownParagraph(new MarkdownEmphasis("Note: The list is static in nature loaded from s100-updates-since.json. Only one identifier at a time is allowed (e.g., s101) to get 101 products. As a mock endpoint, date range validations are not enforced.")));
                 });
     }
 }
