@@ -1,23 +1,12 @@
-using FluentValidation;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Validators;
 
 /// <summary>
 /// Validator for callback URI format and security requirements
 /// </summary>
-public class CallbackUriValidator : AbstractValidator<string?>
+public class CallbackUriValidator 
 {
-
     public const string INVALID_CALLBACK_URI_MESSAGE = "Invalid callbackUri format.";
-    /// <summary>
-    /// Initializes a new instance of the CallbackUriValidator class
-    /// </summary>
-    public CallbackUriValidator()
-    {
-        RuleFor(callbackUri => callbackUri)
-            .Must(IsValidCallbackUri)
-            .WithMessage(INVALID_CALLBACK_URI_MESSAGE);
-    }
 
     /// <summary>
     /// Validates that the callback URI is a valid HTTPS URI

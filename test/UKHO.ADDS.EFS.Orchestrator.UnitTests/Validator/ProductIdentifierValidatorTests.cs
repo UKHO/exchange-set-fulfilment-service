@@ -52,7 +52,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
             Assert.That(result, Is.True);    
         }
 
-        private bool ActIsValid(string? productIdentifier)
+        private static bool ActIsValid(string? productIdentifier)
         {
             return ProductIdentifierValidator.IsValid(productIdentifier);
         }
