@@ -70,8 +70,6 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     "file-share-service",
                     HealthStatus.Unhealthy,
                     tags: new[] { "live", "external-dependency" });
-            builder.Services.AddSingleton<IOrchestratorSalesCatalogueClient, OrchestratorSalesCatalogueClient>();
-            builder.Services.AddSingleton<IOrchestratorFileShareClient, OrchestratorFileShareClient>();
 
             //Added Dependencies for SchedulerJob
             builder.Services.AddQuartz(q =>

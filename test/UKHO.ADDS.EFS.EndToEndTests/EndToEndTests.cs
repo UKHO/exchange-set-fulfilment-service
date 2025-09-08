@@ -2,6 +2,7 @@
 using System.Text;
 using System.Text.Json;
 using Aspire.Hosting;
+using UKHO.ADDS.Clients.Common.Constants;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 using Xunit.Abstractions;
 
@@ -67,7 +68,7 @@ namespace UKHO.ADDS.EFS.EndToEndTests
                 """,
                 Encoding.UTF8, "application/json");
             var requestId = Guid.NewGuid().ToString();
-            content.Headers.Add("x-correlation-id", $"job-0001-{requestId}");
+            content.Headers.Add(ApiHeaderKeys.XCorrelationIdHeaderKey, $"job-0001-{requestId}");
 
 
             var jobSubmitResponse = await httpClient.PostAsync("/jobs", content);
@@ -152,7 +153,7 @@ namespace UKHO.ADDS.EFS.EndToEndTests
                 }
                 """,
                 Encoding.UTF8, "application/json");
-                content.Headers.Add("x-correlation-id", $"job-{jobNumber}-{requestId}");
+                content.Headers.Add(ApiHeaderKeys.XCorrelationIdHeaderKey, $"job-{jobNumber}-{requestId}");
 
                 var jobSubmitResponse = await httpClient.PostAsync("/jobs", content);
                 Assert.True(jobSubmitResponse.IsSuccessStatusCode, "Expected success status code but got: " + jobSubmitResponse.StatusCode);

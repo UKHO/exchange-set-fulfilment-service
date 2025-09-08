@@ -1,7 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-using UKHO.ADDS.Aspire.Configuration;
-using UKHO.ADDS.EFS.Orchestrator.Configuration;
+﻿using UKHO.ADDS.Aspire.Configuration;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Api.Metadata
 {
