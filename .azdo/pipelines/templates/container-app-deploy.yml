@@ -26,15 +26,13 @@ steps:
     ${{ if eq(parameters.AdditionalDebugging, true) }}:
       inlineScript: |
         set -e
+
+        azd deploy ${{ parameters.AppName }} --no-prompt --debug
+
         echo "Current azd variables:"
         echo "--------------------------------------------------------------------------------"
         azd env get-values
         echo "--------------------------------------------------------------------------------"
-        echo "azure env variables"
-        env
-        echo "--------------------------------------------------------------------------------"
-        azd deploy ${{ parameters.AppName }} --no-prompt --debug
-
        
     ${{ else }}:
       inlineScript: |
@@ -45,5 +43,5 @@ steps:
     AZURE_LOCATION: $(AZURE_LOCATION)
     AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
     AZURE_ADDS_ENVIRONMENT: $(AZURE_ENV_NAME)
-    EFS_APP_REG_CLIENTID: $(EFS_APP_REG_CLIENTID)
-    EFS_APP_REG_TENANTID: $(EFS_APP_REG_TENANTID)
+    AZURE_EFS_APP_REG_CLIENTID: $(AZURE_EFS_APP_REG_CLIENTID)
+    AZURE_EFS_APP_REG_TENANTID: $(AZURE_EFS_APP_REG_TENANTID)
