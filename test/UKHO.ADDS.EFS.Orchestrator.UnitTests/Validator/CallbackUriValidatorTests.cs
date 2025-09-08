@@ -7,7 +7,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator;
 internal class CallbackUriValidatorTests
 {
     private CallbackUriValidator _callBackUriValidator;
-    private const string CallbackUriValidationErrorMessage = "Invalid callbackUri format.";
+    private const string CALLBACK_URI_VALIDATION_ERROR_MESSAGE = "Invalid callbackUri format.";
 
     [SetUp]
     public void SetUp()
@@ -57,7 +57,7 @@ internal class CallbackUriValidatorTests
         Assert.Multiple(() =>
         {
             result.ShouldHaveValidationErrorFor(x => x)
-                .WithErrorMessage(CallbackUriValidationErrorMessage);
+                .WithErrorMessage(CALLBACK_URI_VALIDATION_ERROR_MESSAGE);
         });
     }
 

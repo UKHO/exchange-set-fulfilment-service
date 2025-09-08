@@ -7,17 +7,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100;
 internal class S100ProductNamesRequestValidatorTests
 {
     private S100ProductNamesRequestValidator _validator;
-    private const string ValidCallbackUri = "https://valid.com/callback";
-    private const string InvalidCallbackUri = "http://invalid.com/callback";
-    private const string NotAUri = "not-a-uri";
-    private const string ValidS100ProductName = "101GB4007";
-    private const string ValidS57ProductName = "ABCDEFGH";
-    private const string InvalidProductName = "ABC";
-    private const string EmptyProductName = "";
-    private const string NullProductName = null;
-    private const string ProductNameCannotBeNullOrEmptyMessage = "ProductName cannot be null or empty.";
-    private const string InvalidCallbackUriFormatMessage = "Invalid callbackUri format.";
-    private const string IsNotValidMessage = "is not valid";
+    private const string VALID_CALLBACK_URI = "https://valid.com/callback";
+    private const string INVALID_CALLBACK_URI = "http://invalid.com/callback";
+    private const string NOT_A_URI = "not-a-uri";
+    private const string VALID_S100_PRODUCT_NAME = "101GB4007";
+    private const string VALID_S57_PRODUCT_NAME = "ABCDEFGH";
+    private const string INVALID_PRODUCT_NAME = "ABC";
+    private const string EMPTY_PRODUCT_NAME = "";
+    private const string NULL_PRODUCT_NAME = null;
+    private const string PRODUCT_NAME_CANNOT_BE_NULL_OR_EMPTY_MESSAGE = "ProductName cannot be null or empty.";
+    private const string INVALID_CALLBACK_URI_FORMAT_MESSAGE = "Invalid callbackUri format.";
+    private const string IS_NOT_VALID_MESSAGE = "is not valid";
 
     [OneTimeSetUp]
     public void OneTimeSetUp()
@@ -33,7 +33,7 @@ internal class S100ProductNamesRequestValidatorTests
     [Test]
     public async Task WhenAllFieldsAreValid_ThenValidationSucceeds()
     {
-        var result = await ValidateAsync(new List<string> { ValidS100ProductName, ValidS57ProductName }, ValidCallbackUri);
+        var result = await ValidateAsync(new List<string> { VALID_S100_PRODUCT_NAME, VALID_S57_PRODUCT_NAME }, VALID_CALLBACK_URI);
         Assert.Multiple(() =>
         {
             Assert.That(result.IsValid, Is.True);
@@ -44,7 +44,7 @@ internal class S100ProductNamesRequestValidatorTests
     [Test]
     public async Task WhenProductNamesIsNull_ThenValidationFails()
     {
-        var result = await ValidateAsync(null, ValidCallbackUri);
+        var result = await ValidateAsync(null, VALID_CALLBACK_URI);
         Assert.Multiple(() =>
         {
             Assert.That(result.IsValid, Is.False);
@@ -55,45 +55,45 @@ internal class S100ProductNamesRequestValidatorTests
     [Test]
     public async Task WhenProductNamesIsEmpty_ThenValidationFails()
     {
-        var result = await ValidateAsync(new List<string>(), ValidCallbackUri);
+        var result = await ValidateAsync(new List<string>(), VALID_CALLBACK_URI);
         Assert.Multiple(() =>
         {
             Assert.That(result.IsValid, Is.False);
-            Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == ProductNameCannotBeNullOrEmptyMessage));
+            Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == PRODUCT_NAME_CANNOT_BE_NULL_OR_EMPTY_MESSAGE));
         });
     }
 
-    [TestCase(EmptyProductName)]
-    [TestCase(NullProductName)]
+    [TestCase(EMPTY_PRODUCT_NAME)]
+    [TestCase(NULL_PRODUCT_NAME)]
     public async Task WhenProductNameIsNullOrWhitespace_ThenValidationFails(string? productName)
     {
-        var result = await ValidateAsync(new List<string> { productName }, ValidCallbackUri);
+        var result = await ValidateAsync(new List<string> { productName }, VALID_CALLBACK_URI);
         Assert.Multiple(() =>
         {
             Assert.That(result.IsValid, Is.False);
-            Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == ProductNameCannotBeNullOrEmptyMessage));
+            Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == PRODUCT_NAME_CANNOT_BE_NULL_OR_EMPTY_MESSAGE));
         });
     }
 
-    [TestCase(InvalidProductName)]
+    [TestCase(INVALID_PRODUCT_NAME)]
     [TestCase("   ")]
     public async Task WhenProductNameIsInvalidFormat_ThenValidationFails(string productName)
     {
-        var result = await ValidateAsync(new List<string> { productName }, ValidCallbackUri);
+        var result = await ValidateAsync(new List<string> { productName }, VALID_CALLBACK_URI);
         Assert.Multiple(() =>
         {
             Assert.That(result.IsValid, Is.False);
-            Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage.Contains(IsNotValidMessage)));
+            Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage.Contains(IS_NOT_VALID_MESSAGE)));
         });
     }
 
-    [TestCase(ValidCallbackUri, true)]
+    [TestCase(VALID_CALLBACK_URI, true)]
     [TestCase(null, true)]
-    [TestCase(InvalidCallbackUri, false)]
-    [TestCase(NotAUri, false)]
+    [TestCase(INVALID_CALLBACK_URI, false)]
+    [TestCase(NOT_A_URI, false)]
     public async Task WhenCallbackUriIsTested_ThenValidationResultIsAsExpected(string? callbackUri, bool isValid)
     {
-        var result = await ValidateAsync(new List<string> { ValidS100ProductName }, callbackUri);
+        var result = await ValidateAsync(new List<string> { VALID_S100_PRODUCT_NAME }, callbackUri);
         Assert.Multiple(() =>
         {
             if (isValid)
@@ -104,7 +104,7 @@ internal class S100ProductNamesRequestValidatorTests
             else
             {
                 Assert.That(result.IsValid, Is.False);
-                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == InvalidCallbackUriFormatMessage));
+                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == INVALID_CALLBACK_URI_FORMAT_MESSAGE));
             }
         });
     }
@@ -112,13 +112,13 @@ internal class S100ProductNamesRequestValidatorTests
     [Test]
     public async Task WhenMultipleProductNamesWithMixedValidity_ThenValidationFailsWithAllErrors()
     {
-        var result = await ValidateAsync(new List<string> { ValidS100ProductName, EmptyProductName, InvalidProductName, ValidS57ProductName }, InvalidCallbackUri);
+        var result = await ValidateAsync(new List<string> { VALID_S100_PRODUCT_NAME, EMPTY_PRODUCT_NAME, INVALID_PRODUCT_NAME, VALID_S57_PRODUCT_NAME }, INVALID_CALLBACK_URI);
         Assert.Multiple(() =>
         {
             Assert.That(result.IsValid, Is.False);
-            Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == ProductNameCannotBeNullOrEmptyMessage));
-            Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage.Contains(IsNotValidMessage)));
-            Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == InvalidCallbackUriFormatMessage));
+            Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == PRODUCT_NAME_CANNOT_BE_NULL_OR_EMPTY_MESSAGE));
+            Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage.Contains(IS_NOT_VALID_MESSAGE)));
+            Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == INVALID_CALLBACK_URI_FORMAT_MESSAGE));
         });
     }
 }

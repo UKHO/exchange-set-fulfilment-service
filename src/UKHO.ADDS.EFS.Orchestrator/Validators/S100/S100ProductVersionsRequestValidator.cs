@@ -35,7 +35,7 @@ internal class S100ProductVersionsRequestValidator : AbstractValidator<(IEnumera
 
         RuleFor(x => x.callbackUri)
             .Must(uri => CallbackUriValidator.IsValidCallbackUri(uri))
-            .WithMessage(CallbackUriValidator.InvalidCallbackUriMessage);
+            .WithMessage(CallbackUriValidator.INVALID_CALLBACK_URI_MESSAGE);
     }
 
 

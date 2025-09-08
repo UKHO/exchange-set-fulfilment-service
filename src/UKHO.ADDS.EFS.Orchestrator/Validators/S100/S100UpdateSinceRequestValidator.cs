@@ -17,7 +17,7 @@ internal class S100UpdateSinceRequestValidator : AbstractValidator<(S100UpdatesS
 
         RuleFor(request => request.callbackUri)
             .Must(CallbackUriValidator.IsValidCallbackUri)
-            .WithMessage(CallbackUriValidator.InvalidCallbackUriMessage);
+            .WithMessage(CallbackUriValidator.INVALID_CALLBACK_URI_MESSAGE);
 
         RuleFor(date => date.s100UpdatesSinceRequest!.SinceDateTime)
             .Must(sinceDateTime => sinceDateTime!.Value.Kind != DateTimeKind.Unspecified)
@@ -33,7 +33,7 @@ internal class S100UpdateSinceRequestValidator : AbstractValidator<(S100UpdatesS
 
         RuleFor(request => request.productIdentifier)
             .Must(ProductIdentifierValidator.IsValid)
-            .WithMessage(ProductIdentifierValidator.ValidationMessage);
+            .WithMessage(ProductIdentifierValidator.VALIDATION_MESSAGE);
     }
 
     public async Task<ValidationResult> ValidateAsync((S100UpdatesSinceRequest s100UpdatesSinceRequest, string? callbackUri, string? productIdentifier) request)

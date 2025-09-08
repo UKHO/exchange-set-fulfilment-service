@@ -28,7 +28,7 @@ internal class S100ProductNamesRequestValidator : AbstractValidator<(List<string
 
         RuleFor(request => request.callbackUri)
             .Must(CallbackUriValidator.IsValidCallbackUri)
-            .WithMessage(CallbackUriValidator.InvalidCallbackUriMessage);
+            .WithMessage(CallbackUriValidator.INVALID_CALLBACK_URI_MESSAGE);
     }
 
     public async Task<ValidationResult> ValidateAsync((List<string>? productNames, string? callbackUri) request)
