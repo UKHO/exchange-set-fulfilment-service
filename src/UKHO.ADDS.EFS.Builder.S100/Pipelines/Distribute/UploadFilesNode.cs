@@ -81,10 +81,17 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
                     LogAddFileToBatchError(fileName, batchId, error);
                     return NodeResultStatus.Failed;
                 }
+                // Create and store BuildCommitInfo with file details
+                context.Subject.Build.BuildCommitInfo = new BuildCommitInfo();
+                // Add file details to the build commit info for future reference
+                foreach (var fileDetails in batchHandle.FileDetails)
+                {
+                    context.Subject.Build.BuildCommitInfo!.AddFileDetail(fileDetails.FileName, fileDetails.Hash);
+                }
 
                 // Create and store build commit info with all zip files in the exchange set folder
-                var exchangeSetFolderPath = Path.Combine(context.Subject.ExchangeSetFilePath, context.Subject.ExchangeSetArchiveFolderName);
-                await CreateAndStoreBuildCommitInfoAsync(context, exchangeSetFolderPath);
+                //var exchangeSetFolderPath = Path.Combine(context.Subject.ExchangeSetFilePath, context.Subject.ExchangeSetArchiveFolderName);
+                //await CreateAndStoreBuildCommitInfoAsync(context, exchangeSetFolderPath);
 
                 return NodeResultStatus.Succeeded;
             }
