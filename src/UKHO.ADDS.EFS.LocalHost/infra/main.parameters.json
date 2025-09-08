@@ -2,45 +2,50 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-      "principalId": {
-        "value": "${AZURE_PRINCIPAL_ID}"
-      },
-      "addsEnvironment": {
-        "value": "${AZURE_ADDS_ENVIRONMENT}"
-      },
-      "efs_redis_password": {
-        "value": "${AZURE_EFS_REDIS_PASSWORD}"
-      },
-      "efsAppConfigurationName": {
-        "value": "${AZURE_EFS_APP_CONFIGURATION_NAME}"
-      },
-      "efsApplicationInsightsName": {
-        "value": "${AZURE_EFS_APPLICATION_INSIGHTS_NAME}"
-      },
-      "efsContainerAppsEnvironmentName": {
-        "value": "${AZURE_EFS_CONTAINER_APPS_ENVIRONMENT_NAME}"
-      },
-      "efsContainerRegistryName": {
-        "value": "${AZURE_EFS_CONTAINER_REGISTRY_NAME}"
-      },
-      "efsEventHubsNamespaceName": {
-        "value": "${AZURE_EFS_EVENT_HUBS_NAMESPACE_NAME}"
-      },
-      "efsRetainResourceGroup": {
-        "value": "${AZURE_EFS_RETAIN_RESOURCE_GROUP}"
-      },
-      "efsServiceIdentityName": {
-        "value": "${AZURE_EFS_SERVICE_IDENTITY_NAME}"
-      },
-      "efsStorageAccountName": {
-        "value": "${AZURE_EFS_STORAGE_ACCOUNT_NAME}"
-      },
-      "environmentName": {
-        "value": "${AZURE_ENV_NAME}"
-      },
-      "location": {
-        "value": "${AZURE_LOCATION}"
-      }
+        "principalId": {
+            "value": "${AZURE_PRINCIPAL_ID}"
+        },
+        "addsEnvironment": {
+            "value": "${AZURE_ADDS_ENVIRONMENT}"
+        },
+        "efs_redis_password": {
+            "value": "${AZURE_EFS_REDIS_PASSWORD}"
+        },
+        "efsAppConfigurationName": {
+            "value": "${AZURE_EFS_APP_CONFIGURATION_NAME}"
+        },
+        "efsApplicationInsightsName": {
+            "value": "${AZURE_EFS_APPLICATION_INSIGHTS_NAME}"
+        },
+        "efsContainerAppsEnvironmentName": {
+            "value": "${AZURE_EFS_CONTAINER_APPS_ENVIRONMENT_NAME}"
+        },
+        "efsContainerRegistryName": {
+            "value": "${AZURE_EFS_CONTAINER_REGISTRY_NAME}"
+        },
+        "efsEventHubsNamespaceName": {
+            "value": "${AZURE_EFS_EVENT_HUBS_NAMESPACE_NAME}"
+        },
+        "efsRetainResourceGroup": {
+            "value": "${AZURE_EFS_RETAIN_RESOURCE_GROUP}"
+        },
+        "efsServiceIdentityName": {
+            "value": "${AZURE_EFS_SERVICE_IDENTITY_NAME}"
+        },
+        "efsStorageAccountName": {
+            "value": "${AZURE_EFS_STORAGE_ACCOUNT_NAME}"
+        },
+        "environmentName": {
+            "value": "${AZURE_ENV_NAME}"
+        },
+        "location": {
+            "value": "${AZURE_LOCATION}"
+        },
+        "efs_app_reg_clientid": {
+            "value": "${AZURE_EFS_APP_REG_CLIENTID}"
+        },
+        "efs_app_reg_tenantid": {
+            "value": "${AZURE_EFS_APP_REG_TENANTID}"
+        }
     }
   }
-  
