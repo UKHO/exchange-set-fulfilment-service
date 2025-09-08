@@ -80,7 +80,7 @@ stages:
     displayName: Checks
     dependsOn: []
     jobs:
-    - template: templates/vulnerability-checks.yml
+    - template: templates/checks.yml
       parameters:
         SnykOnlyFailIfFixable: ${{ parameters.SnykOnlyFailIfFixable }}
         SnykPassOnIssues: ${{ parameters.SnykPassOnIssues }}
