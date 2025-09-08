@@ -134,10 +134,15 @@ namespace UKHO.ADDS.EFS.Infrastructure.Adapters.Products
 
             foreach (var r in source.RequestedProductsNotReturned ?? [])
             {
+                if (!Enum.TryParse(r.Reason?.ToString(), out MissingProductReason missingProductReason))
+                {
+                    missingProductReason = MissingProductReason.None;
+                }
+
                 summary.MissingProducts.Add(new MissingProduct
                 {
                     ProductName = ProductName.From(r.ProductName!),
-                    Reason = r.Reason?.ToString() ?? string.Empty
+                    Reason = missingProductReason
                 });
             }
 
