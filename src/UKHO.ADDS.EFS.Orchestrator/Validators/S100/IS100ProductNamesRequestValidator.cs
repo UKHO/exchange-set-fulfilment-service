@@ -6,5 +6,5 @@ namespace UKHO.ADDS.EFS.Orchestrator.Validators.S100;
 
 public interface IS100ProductNamesRequestValidator
 {
-    Task<ValidationResult> ValidateAsync(S100ProductNamesRequest request);
+    Task<ValidationResult> ValidateAsync(S100ProductNamesRequest request, string? callbackUri = null);
 }

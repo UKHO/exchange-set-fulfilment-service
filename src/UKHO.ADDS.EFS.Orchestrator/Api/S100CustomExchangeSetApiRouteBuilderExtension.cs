@@ -42,7 +42,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                         CallbackUri = callbackUri
                     };
 
-                    var validationResult = await productNameValidator.ValidateAsync(request);
+                    var validationResult = await productNameValidator.ValidateAsync(request, callbackUri);
                     var validationResponse = HandleValidationResult(validationResult, logger, (string)correlationId);
                     if (validationResponse != null)
                         return validationResponse;
@@ -70,7 +70,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
             // POST /v2/exchangeSet/s100/productVersions
             exchangeSetEndpoint.MapPost("/productVersions", async (
-                List<S100ProductVersion> productVersions,
+                List<S100ProductVersion>? productVersions,
                 IConfiguration configuration,
                 IAssemblyPipelineFactory pipelineFactory,
                 HttpContext httpContext,
@@ -109,7 +109,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
             // POST /v2/exchangeSet/s100/updatesSince
             exchangeSetEndpoint.MapPost("/updatesSince", async (
-                S100UpdatesSinceRequest request,
+                S100UpdatesSinceRequest? request,
                 IConfiguration configuration,
                 IAssemblyPipelineFactory pipelineFactory,
                 HttpContext httpContext,
