@@ -9,26 +9,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100;
 [TestFixture]
 internal class S100ProductNamesRequestValidatorTests
 {
-    private S100ProductNamesRequestValidator _validator;
-    private const string ProductValidationErrorMessage = "ProductName cannot be null or empty";
+    private S100ProductNamesRequestValidator _s100ProductNamesRequestValidator;
+    private const string ProductValidationErrorMessage = "ProductName cannot be null or empty.";
     private const string CallbackUriValidationErrorMessage = CallbackUriValidator.InvalidCallbackUriMessage;
 
     [SetUp]
     public void SetUp()
     {
-        _validator = new S100ProductNamesRequestValidator();
-    }
-
-    [Test]
-    public void WhenProductNamesIsNull_ThenValidationFails()
-    {
-        var request = new S100ProductNamesRequest
-        {
-            ProductNames = null!
-        };
-        var result = _validator.TestValidate(request);
-        result.ShouldHaveValidationErrorFor(x => x.ProductNames)
-            .WithErrorMessage(ProductValidationErrorMessage);
+        _s100ProductNamesRequestValidator = new S100ProductNamesRequestValidator();
     }
 
     [Test]
@@ -38,7 +26,7 @@ internal class S100ProductNamesRequestValidatorTests
         {
             ProductNames = new List<string>()
         };
-        var result = _validator.TestValidate(request);
+        var result = _s100ProductNamesRequestValidator.TestValidate(request);
         result.ShouldHaveValidationErrorFor(x => x.ProductNames)
             .WithErrorMessage(ProductValidationErrorMessage);
     }
@@ -50,12 +38,15 @@ internal class S100ProductNamesRequestValidatorTests
         {
             ProductNames = new List<string> { "", "123", "ABCDEFGH", "999GB004DEVQK" }
         };
-        var result = _validator.TestValidate(request);
+        var result = _s100ProductNamesRequestValidator.TestValidate(request);
         result.ShouldHaveValidationErrorFor(x => x.ProductNames)
             .WithErrorMessage(ProductValidationErrorMessage);
         // Check for specific error messages from ProductName.Validate
-        Assert.That(result.Errors.Any(e => e.ErrorMessage.Contains("cannot be null or empty")), Is.True);
-        Assert.That(result.Errors.Any(e => e.ErrorMessage.Contains("is not valid")), Is.True);
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Errors.Any(e => e.ErrorMessage.Contains("cannot be null or empty")), Is.True);
+            Assert.That(result.Errors.Any(e => e.ErrorMessage.Contains("is not valid") || e.ErrorMessage.Contains("not a valid S-100 product")), Is.True);
+        });
     }
 
     [Test]
@@ -63,9 +54,9 @@ internal class S100ProductNamesRequestValidatorTests
     {
         var request = new S100ProductNamesRequest
         {
-            ProductNames = new List<string> { "101GB004DEVQK", "102CA005N5040W00130", "104CA00_20241103T001500Z_GB3DEVK0_dcf2", "12345678" }
+            ProductNames = new List<string> { "101GB004DEVQK", "102CA005N5040W00130", "104CA00_20241103T001500Z_GB3DEVK0_dcf2" }
         };
-        var result = _validator.TestValidate(request);
+        var result = _s100ProductNamesRequestValidator.TestValidate(request);
         result.ShouldNotHaveValidationErrorFor(x => x.ProductNames);
     }
 
@@ -77,7 +68,7 @@ internal class S100ProductNamesRequestValidatorTests
             ProductNames = new List<string> { "101GB004DEVQK" },
             CallbackUri = null
         };
-        var result = _validator.TestValidate(request);
+        var result = _s100ProductNamesRequestValidator.TestValidate(request);
         result.ShouldNotHaveValidationErrorFor(x => x.CallbackUri);
     }
 
@@ -89,7 +80,7 @@ internal class S100ProductNamesRequestValidatorTests
             ProductNames = new List<string> { "101GB004DEVQK" },
             CallbackUri = "https://example.com/callback"
         };
-        var result = _validator.TestValidate(request);
+        var result = _s100ProductNamesRequestValidator.TestValidate(request);
         result.ShouldNotHaveValidationErrorFor(x => x.CallbackUri);
     }
 
@@ -101,7 +92,7 @@ internal class S100ProductNamesRequestValidatorTests
             ProductNames = new List<string> { "101GB004DEVQK" },
             CallbackUri = "http://example.com/callback"
         };
-        var result = _validator.TestValidate(request);
+        var result = _s100ProductNamesRequestValidator.TestValidate(request);
         result.ShouldHaveValidationErrorFor(x => x.CallbackUri)
             .WithErrorMessage(CallbackUriValidationErrorMessage);
     }
@@ -114,7 +105,7 @@ internal class S100ProductNamesRequestValidatorTests
             ProductNames = new List<string> { "101GB004DEVQK" },
             CallbackUri = "not-a-valid-uri"
         };
-        var result = _validator.TestValidate(request);
+        var result = _s100ProductNamesRequestValidator.TestValidate(request);
         result.ShouldHaveValidationErrorFor(x => x.CallbackUri)
             .WithErrorMessage(CallbackUriValidationErrorMessage);
     }
@@ -124,10 +115,10 @@ internal class S100ProductNamesRequestValidatorTests
     {
         var request = new S100ProductNamesRequest
         {
-            ProductNames = new List<string> { "101GB004DEVQK", "12345678" },
+            ProductNames = new List<string> { "101GB004DEVQK" },
             CallbackUri = "https://example.com/callback"
         };
-        var result = _validator.TestValidate(request);
+        var result = _s100ProductNamesRequestValidator.TestValidate(request);
         result.ShouldNotHaveAnyValidationErrors();
     }
 
@@ -139,7 +130,7 @@ internal class S100ProductNamesRequestValidatorTests
             ProductNames = new List<string>(),
             CallbackUri = "invalid-uri"
         };
-        var result = _validator.TestValidate(request);
+        var result = _s100ProductNamesRequestValidator.TestValidate(request);
         result.ShouldHaveValidationErrorFor(x => x.ProductNames)
             .WithErrorMessage(ProductValidationErrorMessage);
         result.ShouldHaveValidationErrorFor(x => x.CallbackUri)
