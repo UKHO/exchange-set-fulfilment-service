@@ -24,10 +24,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
 
         private static (S100UpdatesSinceRequest, string?, string?) CreateRequest(string? callbackUri, DateTime sinceDateTime, string? productIdentifier)
         {
-            var sinceDateTimeString = sinceDateTime == default ? string.Empty : sinceDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ");
             return (new S100UpdatesSinceRequest
             {
-                SinceDateTime = sinceDateTimeString
+                SinceDateTime = sinceDateTime
             }, callbackUri, productIdentifier);
         }
 

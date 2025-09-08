@@ -1,5 +1,5 @@
 using FluentValidation;
-using UKHO.ADDS.EFS.Messages;
+using FluentValidation.Results;
 using UKHO.ADDS.EFS.Domain.Products;
 using Vogen;
 
@@ -8,15 +8,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.Validators.S100;
 /// <summary>
 /// Validator for S100ProductNamesRequest
 /// </summary>
-internal class S100ProductNamesRequestValidator : AbstractValidator<S100ProductNamesRequest>, IS100ProductNamesRequestValidator
+internal class S100ProductNamesRequestValidator : AbstractValidator<(List<string>? productNames, string? callbackUri)>, IS100ProductNamesRequestValidator
 {
     public S100ProductNamesRequestValidator()
     {
-        RuleFor(request => request.ProductNames)
+        RuleFor(request => request.productNames)
        .Must(productNames => productNames != null && productNames.Count > 0)
        .WithMessage($"{nameof(ProductName)} cannot be null or empty.");
 
-        RuleForEach(request => request.ProductNames)
+        RuleForEach(request => request.productNames)
          .Custom((name, context) =>
          {
              var validation = ProductName.Validate(name!);
@@ -26,21 +26,19 @@ internal class S100ProductNamesRequestValidator : AbstractValidator<S100ProductN
              }
          });
 
-        RuleFor(request => request.CallbackUri)
+        RuleFor(request => request.callbackUri)
             .Must(CallbackUriValidator.IsValidCallbackUri)
             .WithMessage(CallbackUriValidator.InvalidCallbackUriMessage);
     }
 
-    public async Task<FluentValidation.Results.ValidationResult> ValidateAsync(S100ProductNamesRequest request, string? callbackUri = null)
+    public async Task<ValidationResult> ValidateAsync((List<string>? productNames, string? callbackUri) request)
     {
-        // If callbackUri is provided, override the request.CallbackUri
-        if (callbackUri != null)
+        if (request.productNames == null)
         {
-            request = new S100ProductNamesRequest
+            return new ValidationResult(new[]
             {
-                ProductNames = request.ProductNames,
-                CallbackUri = callbackUri
-            };
+                new ValidationFailure(nameof(request.productNames), "No product Names provided.")
+            });
         }
         return await base.ValidateAsync(request);
     }

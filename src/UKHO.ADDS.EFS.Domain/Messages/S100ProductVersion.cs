@@ -8,17 +8,17 @@
         /// <summary>
         /// The unique product identifier
         /// </summary>
-        public required string ProductName { get; set; }
+        public string? ProductName { get; set; }
 
         /// <summary>
         /// The edition number
         /// </summary>
-        public required int EditionNumber { get; set; }
+        public int? EditionNumber { get; set; }
 
         /// <summary>
         /// The update number, if applicable
         /// </summary>
-        public int UpdateNumber { get; set; }
+        public int? UpdateNumber { get; set; }
     }
 }
 

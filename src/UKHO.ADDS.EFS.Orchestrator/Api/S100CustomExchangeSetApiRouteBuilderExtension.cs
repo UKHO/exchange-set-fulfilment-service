@@ -36,20 +36,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 {
                     var correlationId = httpContext.GetCorrelationId();
 
-                    var request = new S100ProductNamesRequest
-                    {
-                        ProductNames = productNames,
-                        CallbackUri = callbackUri
-                    };
-
-                    var validationResult = await productNameValidator.ValidateAsync(request, callbackUri);
+                    var validationResult = await productNameValidator.ValidateAsync((productNames, callbackUri));
                     var validationResponse = HandleValidationResult(validationResult, logger, (string)correlationId);
                     if (validationResponse != null)
                         return validationResponse;
 
                     logger.S100InputValidationSucceeded((string)correlationId, RequestType.ProductNames.ToString());
 
-                    var parameters = AssemblyPipelineParameters.CreateFromS100ProductNames(productNames, configuration, (string)correlationId, callbackUri);
+                    var parameters = AssemblyPipelineParameters.CreateFromS100ProductNames(productNames!, configuration, (string)correlationId, callbackUri);
                     var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
 
                     logger.LogAssemblyPipelineStarted(parameters);
@@ -89,7 +83,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                     logger.S100InputValidationSucceeded((string)correlationId, RequestType.ProductVersions.ToString());
 
-                    var parameters = AssemblyPipelineParameters.CreateFromS100ProductVersions(productVersions, configuration, (string)correlationId, callbackUri);
+                    var parameters = AssemblyPipelineParameters.CreateFromS100ProductVersions(productVersions!, configuration, (string)correlationId, callbackUri);
                     var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
 
                     logger.LogAssemblyPipelineStarted(parameters);
