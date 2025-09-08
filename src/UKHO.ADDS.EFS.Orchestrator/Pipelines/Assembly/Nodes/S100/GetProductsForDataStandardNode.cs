@@ -22,7 +22,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
         public override Task<bool> ShouldExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
         {
-            return Task.FromResult(context.Subject.Job.JobState == JobState.Created);
+            var job = context.Subject.Job;
+
+            return Task.FromResult(context.Subject.Job.JobState == JobState.Created && !job.RequestedProducts.HasProducts);
         }
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)

@@ -33,12 +33,18 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             var job = context.Subject.Job;
             var build = context.Subject.Build;
 
-            var productNames = build.Products?
-                .Select(p => p.ProductName)
-                //.Where(name => !string.IsNullOrWhiteSpace(name))
-                .ToArray() ?? [];
+            var productNameList = new List<ProductName>();
 
-            var s100SalesCatalogueData = await _productService.GetProductEditionListAsync(DataStandard.S100, productNames, job, Environment.CancellationToken);
+            if (job.RequestedProducts.HasProducts)
+            {
+                productNameList.AddRange(job.RequestedProducts);
+            }
+            else
+            {
+                productNameList.AddRange(build.Products?.Select(p => p.ProductName) ?? []);
+            }
+
+            var s100SalesCatalogueData = await _productService.GetProductEditionListAsync(DataStandard.S100, productNameList, job, Environment.CancellationToken);
 
             var nodeResult = NodeResultStatus.NotRun;
 

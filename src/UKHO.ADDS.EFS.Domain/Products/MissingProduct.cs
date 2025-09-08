@@ -3,6 +3,6 @@
     public class MissingProduct
     {
         public ProductName ProductName { get; set; }
-        public string Reason { get; set; }
+        public MissingProductReason Reason { get; set; }
     }
 }
