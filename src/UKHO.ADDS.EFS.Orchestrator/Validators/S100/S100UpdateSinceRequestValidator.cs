@@ -41,10 +41,7 @@ internal class S100UpdateSinceRequestValidator : AbstractValidator<(S100UpdatesS
 
         if (request.s100UpdatesSinceRequest == null || !request.s100UpdatesSinceRequest!.SinceDateTime.HasValue)
         {
-            return new ValidationResult(new[]
-            {
-                    new ValidationFailure(nameof(request.s100UpdatesSinceRequest.SinceDateTime), "No since date time provided.")
-              });
+            return new ValidationResult([new ValidationFailure(nameof(request.s100UpdatesSinceRequest.SinceDateTime), "No since date time provided.") ]);
         }
 
         return await base.ValidateAsync(request);

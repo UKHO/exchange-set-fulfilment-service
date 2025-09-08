@@ -35,10 +35,7 @@ internal class S100ProductNamesRequestValidator : AbstractValidator<(List<string
     {
         if (request.productNames == null)
         {
-            return new ValidationResult(new[]
-            {
-                new ValidationFailure(nameof(request.productNames), "No product Names provided.")
-            });
+            return new ValidationResult([ new ValidationFailure(nameof(request.productNames), "No product Names provided.") ]);
         }
         return await base.ValidateAsync(request);
     }

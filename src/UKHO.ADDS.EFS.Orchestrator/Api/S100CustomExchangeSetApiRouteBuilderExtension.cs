@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.EFS.Domain.Messages;
+﻿using FluentValidation.Results;
+using UKHO.ADDS.EFS.Domain.Messages;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Extensions;
@@ -115,14 +116,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 {
                     var correlationId = httpContext.GetCorrelationId();
 
-                    var validationResult = await updateSinceRequestValidator.ValidateAsync((request, callbackUri, productIdentifier));
+                    var validationResult = await updateSinceRequestValidator.ValidateAsync((request!, callbackUri, productIdentifier));
                     var validationResponse = HandleValidationResult(validationResult, logger, (string)correlationId);
                     if (validationResponse != null)
                         return validationResponse;
 
                     logger.S100InputValidationSucceeded((string)correlationId, RequestType.UpdatesSince.ToString());
 
-                    var parameters = AssemblyPipelineParameters.CreateFromS100UpdatesSince(request, configuration, (string)correlationId, productIdentifier, callbackUri);
+                    var parameters = AssemblyPipelineParameters.CreateFromS100UpdatesSince(request!, configuration, (string)correlationId, productIdentifier, callbackUri);
                     var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
 
                     logger.LogAssemblyPipelineStarted(parameters);
@@ -141,7 +142,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             .WithRequiredHeader("x-correlation-id", "Correlation ID", $"job-{Guid.NewGuid():N}")
             .WithDescription("Provide all the releasable S100 data after a datetime.");
 
-            static IResult HandleValidationResult(FluentValidation.Results.ValidationResult validationResult, ILogger logger, string correlationId)
+            static IResult HandleValidationResult(ValidationResult validationResult, ILogger logger, string correlationId)
             {
                 if (!validationResult.IsValid)
                 {

@@ -43,10 +43,7 @@ internal class S100ProductVersionsRequestValidator : AbstractValidator<(IEnumera
     {
         if (request.productVersions == null)
         {
-            return new ValidationResult(new[]
-            {
-                new ValidationFailure(nameof(request.productVersions), "No Product Versions provided.")
-            });
+            return new ValidationResult([ new ValidationFailure(nameof(request.productVersions), "No Product Versions provided.")]);
         }
 
         return await base.ValidateAsync(request);
