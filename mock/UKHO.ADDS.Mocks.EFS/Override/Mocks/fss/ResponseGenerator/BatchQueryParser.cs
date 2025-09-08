@@ -5,7 +5,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss.ResponseGenerator
 {
     public class BatchQueryParser
     {
-        private const string BatchPattern = @"\$batch\((?<Property>\w+)\) eq '(?<Value>[^']*)'";
+        private const string BatchPattern = @"\$batch\((?<Property>[^)]+)\) eq '(?<Value>[^']*)'";
         private static readonly Regex _businessUnitRegex = new(@"BusinessUnit\s*eq\s*'([^']*)'", RegexOptions.Compiled);
         private static readonly Regex _productTypeRegex = new Regex(@"\$batch\(Product Code\) eq '(?<Value>[^']*)'", RegexOptions.Compiled);
 
