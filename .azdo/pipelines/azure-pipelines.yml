@@ -77,7 +77,7 @@ resources:
 
 stages:
   - stage: VulnerabilityChecks
-    displayName: Vulnerability checks
+    displayName: Checks
     dependsOn: []
     jobs:
     - template: templates/vulnerability-checks.yml
