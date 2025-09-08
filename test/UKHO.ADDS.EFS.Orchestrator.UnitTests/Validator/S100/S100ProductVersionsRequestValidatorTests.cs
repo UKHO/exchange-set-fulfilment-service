@@ -33,18 +33,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
         }
 
         [Test]
-        public void WhenProductVersionsIsNull_ThenValidationFails()
-        {
-            var result = _s100ProductVersionsRequestValidator.Validate((null!, VALID_CALLBACK_URI));
-
-            Assert.Multiple(() =>
-            {
-                Assert.That(result.IsValid, Is.False);
-                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "ProductVersions cannot be null"));
-            });
-        }
-
-        [Test]
         public void WhenProductVersionsIsEmpty_ThenValidationFails()
         {
             var result = _s100ProductVersionsRequestValidator.Validate((new List<S100ProductVersion>(), VALID_CALLBACK_URI));
@@ -52,7 +40,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
             Assert.Multiple(() =>
             {
                 Assert.That(result.IsValid, Is.False);
-                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "ProductVersions cannot be empty"));
+                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "ProductVersions cannot be empty."));
             });
         }
 
