@@ -13,8 +13,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
         private const string VALID_PRODUCT_NAME = "101GB40079ABCDEFG";
         private const string EMPTY_PRODUCT_NAME = "";
 
-        [SetUp]
-        public void SetUp()
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
         {
             _s100ProductVersionsRequestValidator = S100ProductVersionsRequestValidator();
         }
