@@ -60,6 +60,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
                         Environment.CancellationToken);
 
                     context.Subject.IsErrorFileCreated = true;
+
+                    context.Subject.Build.BuildCommitInfo = new BuildCommitInfo();
+                    context.Subject.Build.BuildCommitInfo!.AddFileDetail(batchHandle.FileDetails.First().FileName, batchHandle.FileDetails.First().Hash);
+
                     _logger.LogCreateErrorFile(job.GetCorrelationId(), DateTimeOffset.UtcNow);
                 }
                 catch (Exception e)
