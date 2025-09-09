@@ -35,7 +35,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
         [Test]
         public async Task WhenRequestIsNullOrSinceDateTimeIsNull_ThenValidationFails()
         {
-            // The validator expects a non-null S100UpdatesSinceRequest, so only test for SinceDateTime = null
             var result = await ValidateAsync(null, VALID_CALLBACK_URI, VALID_PRODUCT_IDENTIFIER);
             Assert.Multiple(() =>
             {
