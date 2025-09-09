@@ -21,7 +21,7 @@ internal class S100UpdateSinceRequestValidator : AbstractValidator<(S100UpdatesS
 
         RuleFor(date => date.s100UpdatesSinceRequest!.SinceDateTime)
             .Must(sinceDateTime => sinceDateTime!.Value.Kind != DateTimeKind.Unspecified)
-            .WithMessage("No time zone provided.");
+            .WithMessage("Provided updatesSince is either invalid or invalid format, the valid format is 'ISO 8601 format' (e.g. '2025-09-29T00:00:00Z').");
 
         RuleFor(date => date.s100UpdatesSinceRequest!.SinceDateTime)
             .GreaterThan(DateTime.UtcNow.AddDays(-_maximumProductAge.TotalDays))

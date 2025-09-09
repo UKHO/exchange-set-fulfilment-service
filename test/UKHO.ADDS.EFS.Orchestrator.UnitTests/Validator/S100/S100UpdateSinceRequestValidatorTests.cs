@@ -2,7 +2,6 @@ using FluentValidation.Results;
 using UKHO.ADDS.EFS.Domain.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Validators;
 using Microsoft.Extensions.Configuration;
-using FakeItEasy;
 using UKHO.ADDS.EFS.Orchestrator.Validators.S100;
 
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
@@ -16,6 +15,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
         private const string INVALID_CALLBACK_URI = "http://invalid.com/callback";
         private const string VALID_PRODUCT_IDENTIFIER = "S123";
         private const string INVALID_PRODUCT_IDENTIFIER = "X123";
+        private const string INVALID_DATE_FORMAT = "Provided updatesSince is either invalid or invalid format, the valid format is 'ISO 8601 format' (e.g. '2025-09-29T00:00:00Z').";
         private readonly TimeSpan _defaultMaxAge = TimeSpan.FromDays(28);
 
         [SetUp]
@@ -84,7 +84,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
             Assert.Multiple(() =>
             {
                 Assert.That(result.IsValid, Is.False);
-                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "No time zone provided."));
+                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == INVALID_DATE_FORMAT));
             });
         }
 
@@ -166,14 +166,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
             Assert.Multiple(() =>
             {
                 Assert.That(result.IsValid, Is.False);
-                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "No time zone provided."));
+                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == INVALID_DATE_FORMAT));
                 Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == $"Date time provided is more than {_defaultMaxAge.TotalDays} days in the past."));
                 Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == CallbackUriValidator.INVALID_CALLBACK_URI_MESSAGE));
                 Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == ProductIdentifierValidator.VALIDATION_MESSAGE));
             });
         }
 
-        private S100UpdatesSinceRequest CreateRequest(DateTime? sinceDateTime)
+        private static S100UpdatesSinceRequest CreateRequest(DateTime? sinceDateTime)
         {
             return new S100UpdatesSinceRequest { SinceDateTime = sinceDateTime };
         }
