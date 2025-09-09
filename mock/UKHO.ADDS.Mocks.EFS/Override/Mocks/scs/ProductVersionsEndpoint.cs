@@ -57,7 +57,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                         response.GetTypedHeaders().LastModified = DateTime.UtcNow;
                         return await ScsResponseGenerator.ProvideProductVersionsResponse(request, state);
 
-                    case "get-productswithdrawn":
+                    case "get-productwithdrawn":
 
                         response.GetTypedHeaders().LastModified = DateTime.UtcNow;
                         return await ScsResponseGenerator.ProvideProductVersionsResponse(request, state);

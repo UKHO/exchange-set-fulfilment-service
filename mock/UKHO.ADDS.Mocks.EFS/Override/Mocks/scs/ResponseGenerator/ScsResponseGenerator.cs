@@ -122,7 +122,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
                     productsArray.Add(GenerateProductJson(requestedProducts.Last(), true));
                     break;
 
-                case "get-productswithdrawn" when productCount > 0:
+                case "get-productwithdrawn" when productCount > 0:
 
                     foreach (var productName in requestedProducts.SkipLast(1))
                         productsArray.Add(GenerateProductJson(productName));
@@ -220,7 +220,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
                 };
             }
 
-            productObj["fileSize"] = fileSize;
+            productObj["fileSize"] = cancelled ? 0 : fileSize;
 
             return productObj;
         }
