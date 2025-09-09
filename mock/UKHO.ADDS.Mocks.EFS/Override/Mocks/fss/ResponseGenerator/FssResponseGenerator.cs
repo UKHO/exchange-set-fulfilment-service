@@ -46,7 +46,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss.ResponseGenerator
         {
             var entries = new JsonArray();
 
-            if (!string.IsNullOrEmpty(filterDetails.BusinessUnit) && !string.IsNullOrEmpty(filterDetails.ProductType) && filterDetails.Products.Count == 0)
+            if (!string.IsNullOrEmpty(filterDetails.BusinessUnit) && !string.IsNullOrEmpty(filterDetails.ProductCode) && filterDetails.Products.Count == 0)
             {
                 // Special case for empty products
                 var batchId = Guid.NewGuid().ToString();
@@ -55,7 +55,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss.ResponseGenerator
                     ["batchId"] = batchId,
                     ["status"] = "Committed",
                     ["allFilesZipSize"] = null,
-                    ["attributes"] = new JsonArray { CreateAttribute("Product Code", filterDetails.ProductType), CreateAttribute("Media Type", "Zip") },
+                    ["attributes"] = new JsonArray { CreateAttribute("Product Code", filterDetails.ProductCode), CreateAttribute("Media Type", "Zip") },
                     ["businessUnit"] = filterDetails.BusinessUnit,
                     ["batchPublishedDate"] = DateTime.UtcNow.AddDays(-1).ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
                     ["expiryDate"] = null, // Empty expiryDate
@@ -76,7 +76,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss.ResponseGenerator
                             ["batchId"] = batchId,
                             ["status"] = "Committed",
                             ["allFilesZipSize"] = null,
-                            ["attributes"] = new JsonArray { CreateAttribute("Product Name", product.ProductName), CreateAttribute("Edition Number", product.EditionNumber.ToString()), CreateAttribute("Update Number", updateNumber.ToString()), CreateAttribute("Product Code", filterDetails.ProductType) },
+                            ["attributes"] = new JsonArray { CreateAttribute("Product Name", product.ProductName), CreateAttribute("Edition Number", product.EditionNumber.ToString()), CreateAttribute("Update Number", updateNumber.ToString()), CreateAttribute("Product Code", filterDetails.ProductCode) },
                             ["businessUnit"] = filterDetails.BusinessUnit,
                             ["batchPublishedDate"] = DateTime.UtcNow.AddMonths(-2).ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
                             ["expiryDate"] = DateTime.UtcNow.AddMonths(2).ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
@@ -90,7 +90,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss.ResponseGenerator
             jsonTemplate["count"] = entries.Count;
             jsonTemplate["total"] = entries.Count;
             jsonTemplate["entries"] = entries;
-            jsonTemplate["_links"] = CreateLinkObject(filterDetails.ProductType, filterDetails.Products.FirstOrDefault());
+            jsonTemplate["_links"] = CreateLinkObject(filterDetails.ProductCode, filterDetails.Products.FirstOrDefault());
         }
 
         private static JsonObject CreateAttribute(string attr, object value) =>
@@ -141,11 +141,11 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss.ResponseGenerator
                 ["links"] = new JsonObject { ["get"] = new JsonObject { ["href"] = $"/batch/{batchId}/files/{productName}{extension}" } }
             };
 
-        private static JsonObject CreateLinkObject(string productType, Product product)
+        private static JsonObject CreateLinkObject(string productCode, Product product)
         {
             var filterValue = !string.IsNullOrEmpty(product?.ProductName)
-                ? $"$batch(Product Code) eq '{productType}' and $batch(Product Name) eq '{product.ProductName}' and $batch(Edition Number) eq '{product.EditionNumber}' and $batch(Update Number) eq '{product.UpdateNumbers.FirstOrDefault()}'"
-                : $"$batch(Product Code) eq '{productType}'";
+                ? $"$batch(Product Code) eq '{productCode}' and $batch(Product Name) eq '{product.ProductName}' and $batch(Edition Number) eq '{product.EditionNumber}' and $batch(Update Number) eq '{product.UpdateNumbers.FirstOrDefault()}'"
+                : $"$batch(Product Code) eq '{productCode}'";
 
             var encodedFilterUrl = $"/batch?limit=10&start=0&$filter={Uri.EscapeDataString(filterValue)}";
 

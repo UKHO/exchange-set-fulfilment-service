@@ -3,6 +3,7 @@ using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging;
 using UKHO.ADDS.EFS.Domain.External;
+using UKHO.ADDS.EFS.Domain.Files;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Infrastructure.Retries;
 using UKHO.ADDS.Infrastructure.Pipelines;
@@ -142,16 +143,21 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             }
         }
 
-        private List<(BatchDetails Batch, string FileName, long? FileSize)> GetAllFilesToProcess(IEnumerable<BatchDetails> latestBatches)
+        private List<(BatchDetails Batch, string FileName, FileSize FileSize)> GetAllFilesToProcess(IEnumerable<BatchDetails> latestBatches)
         {
             return latestBatches
                 .Where(batch => batch.Files.Any())
-                .SelectMany(batch => batch.Files.Select(file => (batch, file.Filename, file.FileSize)))
+                .SelectMany(batch => batch.Files.Select(file => (batch, file.Filename, GetFileSize(file.FileSize))))
                 .ToList();
         }
 
+        private static FileSize GetFileSize(long? nullableFileSize)
+        {
+            return nullableFileSize.HasValue ? FileSize.From(nullableFileSize.Value) : FileSize.Zero;
+        }
+
         private void CreateRequiredDirectories(
-            List<(BatchDetails Batch, string FileName, long? FileSize)> allFilesToProcess,
+            List<(BatchDetails Batch, string FileName, FileSize FileSize)> allFilesToProcess,
             string workSpaceRootPath,
             string workSpaceSpoolDataSetFilesPath,
             string workSpaceSpoolSupportFilesPath,
@@ -172,7 +178,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         }
 
         private IEnumerable<Task> CreateDownloadTasks(
-            List<(BatchDetails Batch, string FileName, long? FileSize)> allFilesToProcess,
+            List<(BatchDetails Batch, string FileName, FileSize FileSize)> allFilesToProcess,
             string workSpaceRootPath,
             string workSpaceSpoolDataSetFilesPath,
             string workSpaceSpoolSupportFilesPath,
@@ -217,7 +223,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                                 FileOptions.Asynchronous);
 
                             var streamResult = await retryPolicy.ExecuteAsync(() =>
-                                _fileShareReadOnlyClient.DownloadFileAsync(item.Batch.BatchId, item.FileName, outputFileStream, (string)correlationId, item.FileSize ?? 0));
+                                _fileShareReadOnlyClient.DownloadFileAsync(item.Batch.BatchId, item.FileName, outputFileStream, (string)correlationId, item.FileSize.Value));
 
                             if (streamResult.IsFailure(out var error, out var value))
                             {

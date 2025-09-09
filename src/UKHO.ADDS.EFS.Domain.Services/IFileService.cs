@@ -4,7 +4,6 @@ using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
 using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.Files;
 using UKHO.ADDS.EFS.Domain.Jobs;
-using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Domain.Services
 {
@@ -24,8 +23,8 @@ namespace UKHO.ADDS.EFS.Domain.Services
         /// <param name="batchId">The batch identifier to commit.</param>
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A result containing the commit batch response on success or error information on failure.</returns>
-        Task<IResult<CommitBatchResponse>> CommitBatchAsync(BatchHandle batchHandle, string correlationId, CancellationToken cancellationToken);
+        /// <returns>The commit batch response on success or throws an exception on failure.</returns>
+        Task<CommitBatchResponse> CommitBatchAsync(BatchHandle batchHandle, string correlationId, CancellationToken cancellationToken);
 
         /// <summary>
         ///     Searches for committed batches, excluding the current batch.

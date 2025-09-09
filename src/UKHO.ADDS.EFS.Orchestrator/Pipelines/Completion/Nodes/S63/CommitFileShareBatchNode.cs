@@ -29,14 +29,16 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S63
         {
             var job = context.Subject.Job!;
             var batchHandle = new BatchHandle((string)job.BatchId!);
-            var commitBatchResult = await _fileService.CommitBatchAsync(batchHandle, (string)job.GetCorrelationId(), Environment.CancellationToken);
-
-            if (!commitBatchResult.IsSuccess(out _, out _))
+            
+            try
+            {
+                var commitBatchResult = await _fileService.CommitBatchAsync(batchHandle, (string)job.GetCorrelationId(), Environment.CancellationToken);
+                return NodeResultStatus.Succeeded;
+            }
+            catch (Exception)
             {
                 return NodeResultStatus.Failed;
             }
-
-            return NodeResultStatus.Succeeded;
         }
     }
 }

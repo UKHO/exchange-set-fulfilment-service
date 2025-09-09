@@ -22,8 +22,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private const string EditionNumberQueryClause = "$batch(Edition Number) eq '{0}' and ";
         private const string UpdateNumberQueryClause = "$batch(Update Number) eq '{0}' ";
         private const string BusinessUnit = "ADDS-S100";
-        private const string ProductType = "S-100";
-        private const string ProductTypeQueryClause = $"$batch(Product Code) eq '{ProductType}' and ";
+        private const string ProductCode = "S-100";
+        private const string ProductCodeQueryClause = $"$batch(Product Code) eq '{ProductCode}' and ";
         private const int MaxSearchOperations = 5;
         private const int UpdateNumberLimit = 5;
         private const int ProductLimit = 4;
@@ -32,7 +32,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private const string QueryLimit = "limit";
         private const string QueryStart = "start";
         private const string QueryFilter = "$filter";
-
 
         public ProductSearchNode(IFileShareReadOnlyClient fileShareReadOnlyClient) : base()
         {
@@ -107,7 +106,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             var productQuery = GenerateQueryForFss(products);
             var totalUpdateCount = products.Sum(p => p.UpdateNumbers.ToList().Count);
             var queryCount = 0;
-            var filter = $"BusinessUnit eq '{BusinessUnit}' and {ProductTypeQueryClause}{productQuery}";
+            var filter = $"BusinessUnit eq '{BusinessUnit}' and {ProductCodeQueryClause}{productQuery}";
             var limit = Limit;
             var start = Start;
             var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<BatchSearchResponse>(_logger, "SearchAsync");
@@ -162,7 +161,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 BatchProducts = products,
                 CorrelationId = correlationId,
                 BusinessUnit = BusinessUnit,
-                ProductType = ProductType,
+                ProductCode = ProductCode,
                 Query = searchQuery,
                 Error = error
             };

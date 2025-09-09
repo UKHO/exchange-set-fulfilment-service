@@ -17,8 +17,8 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
     internal class DefaultFileService : IFileService
     {
         private const string BusinessUnit = "ADDS-S100";
-        private const string ProductType = "S-100";
-        private const string ProductTypeQueryClause = $"$batch(Product Code) eq '{ProductType}' and ";
+        private const string ProductCode = "S-100";
+        private const string ProductCodeQueryClause = $"$batch(Product Code) eq '{ProductCode}' and ";
         private const int Limit = 100;
         private const int Start = 0;
         private const string SetExpiryDate = "SetExpiryDate";
@@ -72,19 +72,20 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         /// <param name="batchId">The batch identifier to commit.</param>
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A result containing the commit batch response on success or error information on failure.</returns>
-        public async Task<IResult<CommitBatchResponse>> CommitBatchAsync(BatchHandle batchHandle, string correlationId, CancellationToken cancellationToken)
+        /// <returns>The commit batch response on success or throws an exception on failure.</returns>
+        public async Task<CommitBatchResponse> CommitBatchAsync(BatchHandle batchHandle, string correlationId, CancellationToken cancellationToken)
         {
             var commitBatchResult = await _fileShareReadWriteClient.CommitBatchAsync(batchHandle, correlationId, cancellationToken);
 
             if (commitBatchResult.IsFailure(out var commitError, out _))
             {
                 LogFileShareServiceError(CorrelationId.From(correlationId), CommitBatch, commitError, BatchId.From(batchHandle.BatchId));
+                throw new InvalidOperationException("Failed to commit batch.");
             }
 
             if (commitBatchResult.IsSuccess(out var commitResponse))
             {
-                return Result.Success(commitResponse);
+                return commitResponse;
             }
 
             throw new InvalidOperationException("Failed to commit batch.");
@@ -99,7 +100,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         /// <returns>A result containing the batch search response on success or error information on failure.</returns>
         public async Task<BatchSearchResponse> SearchCommittedBatchesExcludingCurrentAsync(BatchId currentBatchId, CorrelationId correlationId, CancellationToken cancellationToken)
         {
-            var filter = $"BusinessUnit eq '{BusinessUnit}' and {ProductTypeQueryClause}$batch(BatchId) ne '{currentBatchId}'";
+            var filter = $"BusinessUnit eq '{BusinessUnit}' and {ProductCodeQueryClause}$batch(BatchId) ne '{currentBatchId}'";
 
             var searchResultResponse = await _fileShareReadWriteClient.SearchAsync(filter, Limit, Start, (string)correlationId, cancellationToken);
 
@@ -222,7 +223,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                 BatchId = batchId,
                 CorrelationId = correlationId,
                 BusinessUnit = BusinessUnit,
-                ProductType = ProductType,
+                ProductCode = ProductCode,
                 Query = searchQuery,
                 Error = error
             };
