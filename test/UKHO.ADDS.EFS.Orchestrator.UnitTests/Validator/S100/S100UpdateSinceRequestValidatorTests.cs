@@ -18,8 +18,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
         private const string INVALID_DATE_FORMAT = "Provided updatesSince is either invalid or invalid format, the valid format is 'ISO 8601 format' (e.g. '2025-09-29T00:00:00Z').";
         private readonly TimeSpan _defaultMaxAge = TimeSpan.FromDays(28);
 
-        [SetUp]
-        public void SetUp()
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
         {
             var inMemorySettings = new Dictionary<string, string> {
                 {"orchestrator:MaximumProductAge", _defaultMaxAge.ToString()}
