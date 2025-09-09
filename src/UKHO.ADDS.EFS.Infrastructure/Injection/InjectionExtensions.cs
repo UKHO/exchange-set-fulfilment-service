@@ -62,15 +62,15 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                         var tenantId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsAppRegTenantId);
 
                         options.Audience = clientId;
-                        options.Authority = $"https://login.microsoftonline.com/{tenantId}/v2.0";
+                        options.Authority = $"https://login.microsoftonline.com/{tenantId}";
                         options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
                         {
                             ValidateIssuer = true,
                             ValidateAudience = true,
                             ValidateLifetime = true,
                             ValidateIssuerSigningKey = true,
-                            ValidAudiences = new[] { clientId },
-                            ValidIssuers = new[] { $"https://login.microsoftonline.com/{tenantId}/v2.0" }
+                            ValidAudiences = [clientId],
+                            ValidIssuers = [$"https://login.microsoftonline.com/{tenantId}"]
                         };
                         options.Events = new JwtBearerEvents
                         {
