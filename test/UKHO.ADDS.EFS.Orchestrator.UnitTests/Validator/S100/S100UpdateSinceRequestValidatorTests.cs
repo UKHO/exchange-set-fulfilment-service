@@ -10,7 +10,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
     [TestFixture]
     public class S100UpdateSinceRequestValidatorTests
     {
-        private S100UpdateSinceRequestValidator _validator;
+        private S100UpdateSinceRequestValidator _s100UpdateSinceRequestvalidator;
         private IConfiguration _configuration;
         private const string VALID_CALLBACK_URI = "https://valid.com/callback";
         private const string INVALID_CALLBACK_URI = "http://invalid.com/callback";
@@ -21,33 +21,26 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
         [SetUp]
         public void SetUp()
         {
-            _configuration = A.Fake<IConfiguration>();
-            A.CallTo(() => _configuration["orchestrator:MaximumProductAge"]).Returns(_defaultMaxAge.ToString());
-            _validator = new S100UpdateSinceRequestValidator(_configuration);
-        }
+            var inMemorySettings = new Dictionary<string, string> {
+                {"orchestrator:MaximumProductAge", _defaultMaxAge.ToString()}
+            };
 
-        private S100UpdatesSinceRequest CreateRequest(DateTime? sinceDateTime)
-        {
-            return new S100UpdatesSinceRequest { SinceDateTime = sinceDateTime };
-        }
+            _configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(inMemorySettings)
+                .Build();
 
-        private async Task<ValidationResult> ValidateAsync(DateTime? sinceDateTime, string? callbackUri, string? productIdentifier)
-        {
-            var req = (CreateRequest(sinceDateTime), callbackUri, productIdentifier);
-            return await _validator.ValidateAsync(req);
+            _s100UpdateSinceRequestvalidator = new S100UpdateSinceRequestValidator(_configuration);
         }
 
         [Test]
         public async Task WhenRequestIsNullOrSinceDateTimeIsNull_ThenValidationFails()
         {
-            var result1 = await _validator.ValidateAsync((null, VALID_CALLBACK_URI, VALID_PRODUCT_IDENTIFIER));
-            var result2 = await ValidateAsync(null, VALID_CALLBACK_URI, VALID_PRODUCT_IDENTIFIER);
+            // The validator expects a non-null S100UpdatesSinceRequest, so only test for SinceDateTime = null
+            var result = await ValidateAsync(null, VALID_CALLBACK_URI, VALID_PRODUCT_IDENTIFIER);
             Assert.Multiple(() =>
             {
-                Assert.That(result1.IsValid, Is.False);
-                Assert.That(result1.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "No since date time provided."));
-                Assert.That(result2.IsValid, Is.False);
-                Assert.That(result2.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "No since date time provided."));
+                Assert.That(result.IsValid, Is.False);
+                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "No since date time provided."));
             });
         }
 
@@ -179,6 +172,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
                 Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == CallbackUriValidator.INVALID_CALLBACK_URI_MESSAGE));
                 Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == ProductIdentifierValidator.VALIDATION_MESSAGE));
             });
+        }
+
+        private S100UpdatesSinceRequest CreateRequest(DateTime? sinceDateTime)
+        {
+            return new S100UpdatesSinceRequest { SinceDateTime = sinceDateTime };
+        }
+
+        private async Task<ValidationResult> ValidateAsync(DateTime? sinceDateTime, string? callbackUri, string? productIdentifier)
+        {
+            var req = (CreateRequest(sinceDateTime), callbackUri, productIdentifier);
+            return await _s100UpdateSinceRequestvalidator.ValidateAsync(req);
         }
     }
 }
