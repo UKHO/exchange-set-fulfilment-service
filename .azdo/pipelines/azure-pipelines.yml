@@ -168,7 +168,7 @@ stages:
         waitforcontainersafterdeploy: ${{ parameters.waitforcontainersafterdeploy }}
 
   - stage: vnextiatDeploy
-    dependsOn: []
+    dependsOn:
     - DevDeploy
     displayName: vNext IAT Deploy
     condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/dev/')))
@@ -186,7 +186,7 @@ stages:
         WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
 
   - stage: vnexte2eDeploy
-    dependsOn: []
+    dependsOn:
     - vnextiatDeploy
     displayName: vNext E2E Deploy
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
