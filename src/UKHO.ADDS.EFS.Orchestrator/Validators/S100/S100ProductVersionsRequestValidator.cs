@@ -14,8 +14,14 @@ internal class S100ProductVersionsRequestValidator : AbstractValidator<(IEnumera
     public S100ProductVersionsRequestValidator()
     {
         RuleFor(x => x.productVersions)
-            .NotEmpty()
-            .WithMessage("ProductVersions cannot be empty.");
+            .Custom((productVersions, context) =>
+            {
+                if (productVersions == null || !productVersions.Any())
+                {
+                    context.AddFailure(new ValidationFailure("productVersions", "ProductVersions cannot be empty."));
+                    return;
+                }
+            });
 
         RuleFor(x => x.productVersions)
             .Custom((productVersions, context) =>

@@ -48,8 +48,13 @@ internal class S100UpdateSinceRequestValidator : AbstractValidator<(S100UpdatesS
             });
 
         RuleFor(request => request.productIdentifier)
-            .Must(ProductIdentifierValidator.IsValid)
-            .WithMessage(ProductIdentifierValidator.VALIDATION_MESSAGE);
+            .Custom((productIdentifier, context) =>
+            {
+                if (!ProductIdentifierValidator.IsValid(productIdentifier))
+                {
+                    context.AddFailure(new ValidationFailure("productIdentifier", ProductIdentifierValidator.VALIDATION_MESSAGE));
+                }
+            });
     }
 
     public async Task<ValidationResult> ValidateAsync((S100UpdatesSinceRequest s100UpdatesSinceRequest, string? callbackUri, string? productIdentifier) request)
