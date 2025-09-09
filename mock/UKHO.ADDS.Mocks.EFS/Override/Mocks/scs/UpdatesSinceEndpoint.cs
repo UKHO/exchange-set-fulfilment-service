@@ -45,7 +45,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                         return Results.StatusCode(304);
 
                     case WellKnownState.BadRequest:
-                        return ResponseHelper.CreateBadRequestResponse(request, "Updates Since", "Provided date format is not valid.");
+                        return ResponseHelper.CreateBadRequestResponse(request, "Updates Since", "Bad Request.");
 
                     case WellKnownState.NotFound:
                         return ResponseHelper.CreateNotFoundResponse(request);
