@@ -1,6 +1,8 @@
 ﻿using FluentValidation.Results;
+using UKHO.ADDS.Clients.Common.Constants;
 using UKHO.ADDS.EFS.Domain.Messages;
 using UKHO.ADDS.EFS.Messages;
+using UKHO.ADDS.EFS.Orchestrator.Api.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Extensions;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
@@ -12,7 +14,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
     /// <summary>
     /// Extension methods for registering S100 Exchange Set API endpoints
     /// </summary>
-    public static class S100CustomExchangeSetApiRouteBuilderExtension
+    internal static class S100CustomExchangeSetApiRouteBuilderExtension
     {
         /// <summary>
         /// Registers S100 Exchange Set API endpoints
@@ -32,7 +34,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 HttpContext httpContext,
                 IS100ProductNamesRequestValidator productNameValidator,
                 string? callbackUri = null) =>
-            {
+                 {
                 try
                 {
                     var correlationId = httpContext.GetCorrelationId();
@@ -52,15 +54,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                     var result = await pipeline.RunAsync(httpContext.RequestAborted);
 
                     return Results.Accepted(null, result.ResponseData);
-                }
+                     }
                 catch (Exception)
                 {
                     throw;
                 }
             })
-            .Produces<S100CustomExchangeSetResponse>(202)
-            .Produces<ErrorResponseModel>(400)
-            .WithRequiredHeader("x-correlation-id", "Correlation ID", $"job-{Guid.NewGuid():N}")
+            .Produces<CustomExchangeSetResponse>(202)
+            .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", Guid.NewGuid().ToString("N"))
             .WithDescription("Provide all the latest releasable baseline data for a specified set of S100 Products.");
 
             // POST /v2/exchangeSet/s100/productVersions
@@ -98,8 +99,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                     throw;
                 }
             })
-            .Produces<S100CustomExchangeSetResponse>(202)
-            .WithRequiredHeader("x-correlation-id", "Correlation ID", $"job-{Guid.NewGuid():N}")
+            .Produces<CustomExchangeSetResponse>(202)
+            .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", Guid.NewGuid().ToString("N"))
             .WithDescription("Given a set of S100 Product versions (e.g. Edition x Update y) provide any later releasable files.");
 
             // POST /v2/exchangeSet/s100/updatesSince
@@ -137,37 +138,37 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                     throw;
                 }
             })
-            .Produces<S100CustomExchangeSetResponse>(202)
+            .Produces<CustomExchangeSetResponse>(202)
             .Produces(304)
-            .WithRequiredHeader("x-correlation-id", "Correlation ID", $"job-{Guid.NewGuid():N}")
+            .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", Guid.NewGuid().ToString("N"))
             .WithDescription("Provide all the releasable S100 data after a datetime.");
+        }
 
-            static IResult HandleValidationResult(ValidationResult validationResult, ILogger logger, string correlationId)
+        static IResult HandleValidationResult(ValidationResult validationResult, ILogger logger, string correlationId)
+        {
+            if (!validationResult.IsValid)
             {
-                if (!validationResult.IsValid)
+                var errorResponse = new ErrorResponseModel
                 {
-                    var errorResponse = new ErrorResponseModel
-                    {
-                        CorrelationId = correlationId,
-                        Errors = validationResult.Errors
-                            .Select(e => new ErrorDetail
-                            {
-                                Source = e.PropertyName,
-                                Description = e.ErrorMessage
-                            })
-                            .ToList()
-                    };
+                    CorrelationId = correlationId,
+                    Errors = validationResult.Errors
+                        .Select(e => new ErrorDetail
+                        {
+                            Source = e.PropertyName,
+                            Description = e.ErrorMessage
+                        })
+                        .ToList()
+                };
 
-                    var validationErrors = validationResult.Errors.Select(error => $"{error.ErrorMessage}").ToList();
+                var validationErrors = validationResult.Errors.Select(error => $"{error.ErrorMessage}").ToList();
 
-                    logger.S100InputValidationFailed(
-                        correlationId,
-                        string.Join("; ", validationErrors));
+                logger.S100InputValidationFailed(
+                    correlationId,
+                    string.Join("; ", validationErrors));
 
-                    return Results.BadRequest(errorResponse);
-                }
-                return null;
+                return Results.BadRequest(errorResponse);
             }
+            return null;
         }
     }
 }
