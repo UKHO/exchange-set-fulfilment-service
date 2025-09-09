@@ -1,21 +1,4 @@
-﻿// British Crown Copyright © 2019,
-// All rights reserved.
-// 
-// You may not copy the Software, rent, lease, sub-license, loan, translate, merge, adapt, vary
-// re-compile or modify the Software without written permission from UKHO.
-// 
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-// OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
-// SHALL CROWN OR THE SECRETARY OF STATE FOR DEFENCE BE LIABLE FOR ANY DIRECT, INDIRECT,
-// INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
-// TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
-// BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
-// OF SUCH DAMAGE.
-
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using Azure.Core;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
@@ -33,14 +16,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
     [ExcludeFromCodeCoverage] // not testable as it's just a wrapper for EventHubClient
     internal class EventHubClientWrapper : IEventHubClientWrapper
     {
-        private EventHubProducerClient eventHubClient;
+        private EventHubProducerClient _eventHubClient;
         private bool _disposed;
 
-        public EventHubClientWrapper(string fullyQualifiedNamespace,
-                                     string eventHubName,
-                                     TokenCredential credentials)
+        public EventHubClientWrapper(string fullyQualifiedNamespace, string eventHubName, TokenCredential credentials)
         {
-            eventHubClient = new EventHubProducerClient(fullyQualifiedNamespace, eventHubName, credentials, clientOptions: new EventHubProducerClientOptions
+            _eventHubClient = new EventHubProducerClient(fullyQualifiedNamespace, eventHubName, credentials, clientOptions: new EventHubProducerClientOptions
             {
                 ConnectionOptions = new EventHubConnectionOptions
                 {
@@ -51,18 +32,19 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
 
         public EventHubClientWrapper(string eventHubConnectionString, string eventHubEntityPath)
         {
-            eventHubClient = new EventHubProducerClient(eventHubConnectionString, eventHubEntityPath);
+            _eventHubClient = new EventHubProducerClient(eventHubConnectionString, eventHubEntityPath);
         }        
 
         protected virtual void Dispose(bool disposing)
         {
             if (_disposed)
+            {
                 return;
+            }                
 
             if (disposing)
             {
-                eventHubClient?.DisposeAsync();
-                eventHubClient = null;
+                _eventHubClient?.DisposeAsync();
             }
 
             _disposed = true;
@@ -76,14 +58,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
 
         public Task SendAsync(EventData eventData)
         {
-            return eventHubClient.SendAsync(new List<EventData> { eventData });
+            return _eventHubClient.SendAsync(new List<EventData> { eventData });
         }
 
         public void ValidateConnection()
         {
             try
             {
-                eventHubClient.GetPartitionIdsAsync().Wait();
+                _eventHubClient.GetPartitionIdsAsync().Wait();
             }
             catch (AggregateException e)
             {

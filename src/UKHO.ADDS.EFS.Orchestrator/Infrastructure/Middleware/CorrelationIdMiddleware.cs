@@ -29,7 +29,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Middleware
             }
 
             // Push correlation ID to Serilog LogContext for automatic inclusion in all logs
-            using (LogContext.PushProperty("CorrelationId", correlationId.ToString()))
+            using (LogContext.PushProperty(LogProperties.CorrelationId, correlationId.ToString()))
             {
                 await _next(httpContext);
             }

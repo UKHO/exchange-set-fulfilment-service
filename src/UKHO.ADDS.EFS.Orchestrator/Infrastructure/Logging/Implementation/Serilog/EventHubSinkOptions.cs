@@ -1,21 +1,5 @@
-﻿// British Crown Copyright © 2024,
-// All rights reserved.
-// 
-// You may not copy the Software, rent, lease, sub-license, loan, translate, merge, adapt, vary
-// re-compile or modify the Software without written permission from UKHO.
-// 
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-// OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
-// SHALL CROWN OR THE SECRETARY OF STATE FOR DEFENCE BE LIABLE FOR ANY DIRECT, INDIRECT,
-// INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
-// TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
-// BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
-// OF SUCH DAMAGE.
-
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
+using Azure.Core;
 using Serilog.Formatting;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Serilog
@@ -46,7 +30,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Seril
         /// <summary>
         /// The TokenCredential for Managed Identity authentication
         /// </summary>
-        public Azure.Core.TokenCredential TokenCredential { get; set; }
+        public TokenCredential TokenCredential { get; set; }
 
         /// <summary>
         /// The environment value that will be included in all log entries

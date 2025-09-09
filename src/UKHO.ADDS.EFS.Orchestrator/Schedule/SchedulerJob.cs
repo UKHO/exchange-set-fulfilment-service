@@ -1,5 +1,6 @@
 ﻿using Quartz;
 using Serilog.Context;
+using UKHO.ADDS.EFS.Domain.Constants;
 using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.Messages;
 using UKHO.ADDS.EFS.Domain.Products;
@@ -37,7 +38,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Schedule
             var correlationId = CorrelationId.From($"{CorrelationIdPrefix}{Guid.NewGuid():N}");
 
             // Properly push correlation ID to Serilog LogContext for the entire request
-            using (LogContext.PushProperty("CorrelationId", correlationId))
+            using (LogContext.PushProperty(LogProperties.CorrelationId, correlationId))
             {
                 try
                 {

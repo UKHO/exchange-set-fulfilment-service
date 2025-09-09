@@ -7,6 +7,7 @@ using UKHO.ADDS.EFS.Builder.S100.Pipelines.Create.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging;
 using UKHO.ADDS.EFS.Domain.Builds;
+using UKHO.ADDS.EFS.Domain.Constants;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
@@ -29,7 +30,9 @@ namespace UKHO.ADDS.EFS.Builder.S100
 
                 pipelineContext = provider.GetRequiredService<S100ExchangeSetPipelineContext>();
                 if (pipelineContext == null)
-                    throw new InvalidOperationException("S100ExchangeSetPipelineContext is not registered in the service provider.");
+                {
+                    throw new InvalidOperationException($"{nameof(S100ExchangeSetPipelineContext)} is not registered in the service provider.");
+                }
 
                 var startupPipeline = provider.GetRequiredService<StartupPipeline>();
 
@@ -46,10 +49,12 @@ namespace UKHO.ADDS.EFS.Builder.S100
                 }
 
                 if (exitCode != BuilderExitCode.Success || string.IsNullOrEmpty(pipelineContext.JobId.ToString()))
+                {
                     return (int)exitCode;
+                }                    
 
                 // Once we have JobId, establish correlation context for ALL subsequent operations
-                using (LogContext.PushProperty("CorrelationId", pipelineContext.JobId))
+                using (LogContext.PushProperty(LogProperties.CorrelationId, pipelineContext.JobId))
                 {
                     var assemblyPipeline = provider.GetRequiredService<AssemblyPipeline>();
                     var assemblyResult = await assemblyPipeline.ExecutePipeline(pipelineContext);
@@ -92,7 +97,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
             catch (Exception ex)
             {
                 var correlationId = pipelineContext?.JobId.ToString() ?? "unknown";
-                using (LogContext.PushProperty("CorrelationId", correlationId))
+                using (LogContext.PushProperty(LogProperties.CorrelationId, correlationId))
                 {
 #pragma warning disable LOG001
                     Log.Fatal(ex, $"An unhandled exception occurred during execution : {ex.Message}");
@@ -104,11 +109,12 @@ namespace UKHO.ADDS.EFS.Builder.S100
             {
                 // Ensure correlation context for completion
                 var correlationId = pipelineContext?.JobId.ToString() ?? "unknown";
-                using (LogContext.PushProperty("CorrelationId", correlationId))
+                using (LogContext.PushProperty(LogProperties.CorrelationId, correlationId))
                 {
                     if (pipelineContext != null)
+                    {
                         await pipelineContext.CompleteBuild(configuration, sink, exitCode);
-
+                    }
                 }
 
                 await Log.CloseAndFlushAsync();

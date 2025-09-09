@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using Serilog.Context;
+using UKHO.ADDS.EFS.Domain.Constants;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
@@ -52,7 +53,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
 
             var effectiveLogLevel = DetermineLogLevel(parsedLog, _replayLevel);
 
-            using (LogContext.PushProperty("CorrelationId", correlationId))
+            using (LogContext.PushProperty(LogProperties.CorrelationId, correlationId))
             using (logger.BeginScope(mergedLog))
             {
 #pragma warning disable LOG001

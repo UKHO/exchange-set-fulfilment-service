@@ -1,5 +1,6 @@
 ﻿using Serilog.Context;
 using UKHO.ADDS.EFS.Domain.Builds.S100;
+using UKHO.ADDS.EFS.Domain.Constants;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
@@ -26,7 +27,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion
             AddPipelineNode<ExpireFileShareBatchesNode>(cancellationToken);
             AddPipelineNode<CompleteJobNode>(cancellationToken);
 
-            using (LogContext.PushProperty("CorrelationId", context.Job.GetCorrelationId().ToString()))
+            using (LogContext.PushProperty(LogProperties.CorrelationId, context.Job.GetCorrelationId().ToString()))
             {
                 var result = await Pipeline.ExecuteAsync(context);
 
