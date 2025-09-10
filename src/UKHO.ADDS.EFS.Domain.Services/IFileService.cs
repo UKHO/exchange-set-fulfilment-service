@@ -24,7 +24,7 @@ namespace UKHO.ADDS.EFS.Domain.Services
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The commit batch response on success or throws an exception on failure.</returns>
-        Task<CommitBatchResponse> CommitBatchAsync(BatchHandle batchHandle, string correlationId, CancellationToken cancellationToken);
+        Task<CommitBatchResponse> CommitBatchAsync(BatchHandle batchHandle, CorrelationId correlationId, CancellationToken cancellationToken);
 
         /// <summary>
         ///     Searches for committed batches, excluding the current batch.

@@ -32,15 +32,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
 
             var batchHandle = new BatchHandle((string)job.BatchId!);
 
-            // Add file details to the batch handle for validation during commit
-            foreach (var fileDetail in buildCommitInfo!.FileDetails)
+            if (batchHandle.FileDetails?.Count > 0)
             {
-                batchHandle.AddFile(fileDetail.FileName, fileDetail.Hash);
+                var firstFileDetail = batchHandle.FileDetails.First();
+                context.Subject.Build.BuildCommitInfo.AddFileDetail(firstFileDetail.FileName, firstFileDetail.Hash);
             }
 
             try
             {
-                var commitBatchResult = await _fileService.CommitBatchAsync(batchHandle, (string)job.GetCorrelationId(), Environment.CancellationToken);
+                var commitBatchResult = await _fileService.CommitBatchAsync(batchHandle, job.GetCorrelationId(), Environment.CancellationToken);
                 return NodeResultStatus.Succeeded;
             }
             catch (Exception)

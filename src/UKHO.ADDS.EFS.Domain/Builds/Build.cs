@@ -13,6 +13,7 @@ namespace UKHO.ADDS.EFS.Domain.Builds
         {
             _statuses = [];
             _logMessages = [];
+            BuildCommitInfo = new BuildCommitInfo();
         }
 
         public JobId JobId { get; init; }
@@ -53,7 +54,7 @@ namespace UKHO.ADDS.EFS.Domain.Builds
         /// <summary>
         /// Gets or sets the build commit information containing file details with hash values.
         /// </summary>
-        public BuildCommitInfo? BuildCommitInfo { get; set; }
+        public BuildCommitInfo BuildCommitInfo { get; set; }
 
         /// <summary>
         ///     Gets the correlation ID for the build.

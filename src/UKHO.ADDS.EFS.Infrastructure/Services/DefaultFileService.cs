@@ -73,13 +73,13 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The commit batch response on success or throws an exception on failure.</returns>
-        public async Task<CommitBatchResponse> CommitBatchAsync(BatchHandle batchHandle, string correlationId, CancellationToken cancellationToken)
+        public async Task<CommitBatchResponse> CommitBatchAsync(BatchHandle batchHandle, CorrelationId correlationId, CancellationToken cancellationToken)
         {
-            var commitBatchResult = await _fileShareReadWriteClient.CommitBatchAsync(batchHandle, correlationId, cancellationToken);
+            var commitBatchResult = await _fileShareReadWriteClient.CommitBatchAsync(batchHandle, (string)correlationId, cancellationToken);
 
             if (commitBatchResult.IsFailure(out var commitError, out _))
             {
-                LogFileShareServiceError(CorrelationId.From(correlationId), CommitBatch, commitError, BatchId.From(batchHandle.BatchId));
+                LogFileShareServiceError(correlationId, CommitBatch, commitError, BatchId.From(batchHandle.BatchId));
                 throw new InvalidOperationException("Failed to commit batch.");
             }
 
@@ -198,7 +198,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         /// </summary>
         /// <returns>A configured batch model with appropriate access control and attributes.</returns>
         private static BatchModel GetBatchModel() =>
-            new() { BusinessUnit = "ADDS-S100", Acl = new Acl { ReadUsers = new List<string> { "public" }, ReadGroups = new List<string> { "public" } }, Attributes = new List<KeyValuePair<string, string>> { new("Exchange Set Type", "Base"), new("Frequency", "DAILY"), new("Product Type", "S-100"), new("Media Type", "Zip") }, ExpiryDate = null };
+            new() { BusinessUnit = "ADDS-S100", Acl = new Acl { ReadUsers = new List<string> { "public" }, ReadGroups = new List<string> { "public" } }, Attributes = new List<KeyValuePair<string, string>> { new("Exchange Set Type", "Base"), new("Frequency", "DAILY"), new("Product Code", "S-100"), new("Media Type", "Zip") }, ExpiryDate = null };
 
         private void LogFileShareServiceError(CorrelationId correlationId, string endPoint, IError error, BatchId batchId)
         {

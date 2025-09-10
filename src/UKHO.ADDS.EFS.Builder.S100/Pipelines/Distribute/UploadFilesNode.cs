@@ -1,9 +1,7 @@
-﻿using System.Security.Cryptography;
-using UKHO.ADDS.Clients.FileShareService.ReadWrite;
+﻿using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute.Logging;
-using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.Constants;
 using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.Jobs;
@@ -81,8 +79,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
                     LogAddFileToBatchError(fileName, batchId, error);
                     return NodeResultStatus.Failed;
                 }
-                // Create and store BuildCommitInfo with file details
-                context.Subject.Build.BuildCommitInfo = new BuildCommitInfo();
 
                 // Add file details to the build commit info for future reference
                 context.Subject.Build.BuildCommitInfo!.AddFileDetail(batchHandle.FileDetails.First().FileName, batchHandle.FileDetails.First().Hash);

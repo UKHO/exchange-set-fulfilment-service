@@ -222,15 +222,17 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                                 FileStreamBufferSize,
                                 FileOptions.Asynchronous);
 
-                            var streamResult = await retryPolicy.ExecuteAsync(() =>
-                                _fileShareReadOnlyClient.DownloadFileAsync(item.Batch.BatchId, item.FileName, outputFileStream, (string)correlationId, item.FileSize.Value));
-
-                            if (streamResult.IsFailure(out var error, out var value))
+                            if (item.FileSize != FileSize.Zero)
                             {
-                                LogFssDownloadFailed(item.Batch, item.FileName, error, correlationId);
-                                throw new Exception($"Failed to download {item.FileName}");
-                            }
+                                var streamResult = await retryPolicy.ExecuteAsync(() =>
+                                    _fileShareReadOnlyClient.DownloadFileAsync(item.Batch.BatchId, item.FileName, outputFileStream, (string)correlationId, item.FileSize.Value));
 
+                                if (streamResult.IsFailure(out var error, out var value))
+                                {
+                                    LogFssDownloadFailed(item.Batch, item.FileName, error, correlationId);
+                                    throw new Exception($"Failed to download {item.FileName}");
+                                }
+                            }
                             // Ensure all data is written to disk
                             await outputFileStream.FlushAsync();
                         }

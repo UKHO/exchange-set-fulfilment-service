@@ -60,9 +60,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
                         Environment.CancellationToken);
 
                     context.Subject.IsErrorFileCreated = true;
-
-                    context.Subject.Build.BuildCommitInfo = new BuildCommitInfo();
-                    context.Subject.Build.BuildCommitInfo!.AddFileDetail(batchHandle.FileDetails.First().FileName, batchHandle.FileDetails.First().Hash);
+                    
+                    if (batchHandle.FileDetails?.Count > 0)
+                    {
+                        var firstFileDetail = batchHandle.FileDetails.First();
+                        context.Subject.Build.BuildCommitInfo?.AddFileDetail(firstFileDetail.FileName, firstFileDetail.Hash);
+                    }
 
                     _logger.LogCreateErrorFile(job.GetCorrelationId(), DateTimeOffset.UtcNow);
                 }
@@ -71,7 +74,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
                     context.Subject.IsErrorFileCreated = false;
                     _logger.LogCreateErrorFileAddFileFailed(job.GetCorrelationId(), DateTimeOffset.UtcNow, e.Message);
                     return NodeResultStatus.Failed;
-
                 }
 
                 return NodeResultStatus.Succeeded;
