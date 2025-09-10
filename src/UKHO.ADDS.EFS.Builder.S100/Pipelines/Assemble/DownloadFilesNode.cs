@@ -143,7 +143,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             }
         }
 
-        private List<(BatchDetails Batch, string FileName, FileSize FileSize)> GetAllFilesToProcess(IEnumerable<BatchDetails> latestBatches)
+        private List<(BatchDetails batch, string fileName, FileSize fileSize)> GetAllFilesToProcess(IEnumerable<BatchDetails> latestBatches)
         {
             return latestBatches
                 .Where(batch => batch.Files.Any())
