@@ -1,4 +1,6 @@
 ﻿using Quartz;
+using Serilog.Context;
+using UKHO.ADDS.EFS.Domain.Constants;
 using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.Messages;
 using UKHO.ADDS.EFS.Domain.Products;
@@ -33,11 +35,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Schedule
         /// <returns>Task representing the asynchronous job execution.</returns>
         public async Task Execute(IJobExecutionContext context)
         {
-            try
-            {
-                var correlationId = CorrelationId.From($"{CorrelationIdPrefix}{Guid.NewGuid():N}");
+            var correlationId = CorrelationId.From($"{CorrelationIdPrefix}{Guid.NewGuid():N}");
 
-                _logger.LogSchedulerJobStarted(correlationId, DateTime.UtcNow);
+            // Properly push correlation ID to Serilog LogContext for the entire request
+            using (LogContext.PushProperty(LogProperties.CorrelationId, correlationId))
+            {
+                try
+                {
+                    _logger.LogSchedulerJobStarted(correlationId, DateTime.UtcNow);
 
                 var message = new JobRequestApiMessage
                 {
@@ -46,20 +51,22 @@ namespace UKHO.ADDS.EFS.Orchestrator.Schedule
                     Filter = ""
                 };
 
-                var parameters = AssemblyPipelineParameters.CreateFrom(message, _config, correlationId);
-                var pipeline = _pipelineFactory.CreateAssemblyPipeline(parameters);
+                    var parameters = AssemblyPipelineParameters.CreateFrom(message, _config, correlationId);
+                    var pipeline = _pipelineFactory.CreateAssemblyPipeline(parameters);
 
-                var result = await pipeline.RunAsync(CancellationToken.None);
+                    var result = await pipeline.RunAsync(CancellationToken.None);
 
-                _logger.LogSchedulerJobCompleted(correlationId, result);
+                    _logger.LogSchedulerJobCompleted(correlationId, result);
 
-                _logger.LogSchedulerJobNextRun(context.Trigger.GetNextFireTimeUtc()?.DateTime);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogSchedulerJobException(ex);
-                throw;
+                    _logger.LogSchedulerJobNextRun(context.Trigger.GetNextFireTimeUtc()?.DateTime);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogSchedulerJobException(ex);
+                    throw;
+                }
             }
         }
+
     }
 }
