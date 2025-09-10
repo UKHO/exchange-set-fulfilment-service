@@ -32,10 +32,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
 
             var batchHandle = new BatchHandle((string)job.BatchId!);
 
-            if (batchHandle.FileDetails?.Count > 0)
+            // Add file details to the batch handle for validation during commit
+            if (buildCommitInfo?.FileDetails is not null)
             {
-                var firstFileDetail = batchHandle.FileDetails.First();
-                context.Subject.Build.BuildCommitInfo.AddFileDetail(firstFileDetail.FileName, firstFileDetail.Hash);
+                var firstFileDetail = buildCommitInfo.FileDetails.First();
+                batchHandle.AddFile(firstFileDetail.FileName, firstFileDetail.Hash);
             }
 
             try
