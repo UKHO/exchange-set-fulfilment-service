@@ -59,6 +59,8 @@ variables:
   value: $[counter(format('{0:yyyyMMdd}', pipeline.startTime), 1)]
 - name: WindowsPool
   value: "Mare Nubium"
+- name: LinuxPool
+  value: "Mare Nectaris"
 - name: snykAbzuOrganizationId
   value: aeb7543b-8394-457c-8334-a31493d8910d
 - name: LinuxPool
@@ -68,10 +70,10 @@ variables:
 
 stages:
 - stage: VulnerabilityChecks
-  displayName: "Snyk Checks"
+  displayName: Checks
   dependsOn: []
   jobs:
-  - template: templates/vulnerability-checks.yml
+  - template: templates/checks.yml
     parameters:
       SnykOnlyFailIfFixable: ${{ parameters.SnykOnlyFailIfFixable }}
       SnykPassOnIssues: ${{ parameters.SnykPassOnIssues }}
