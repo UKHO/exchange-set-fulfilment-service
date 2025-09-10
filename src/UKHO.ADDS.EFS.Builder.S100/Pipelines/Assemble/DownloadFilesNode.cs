@@ -21,9 +21,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private ILogger _logger;
 
         private const long FileSizeInBytes = 10485760;
-        private const string ProductName = "ProductName";
-        private const string EditionNumber = "EditionNumber";
-        private const string UpdateNumber = "UpdateNumber";
+        private const string ProductName = "Product Name";
+        private const string EditionNumber = "Edition Number";
+        private const string UpdateNumber = "Update Number";
         private const int ProducerCodeStartIndex = 3;
         private const int ProducerCodeLength = 4;
         private const string H5Extension = ".h5";
