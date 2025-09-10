@@ -89,7 +89,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                     d.Append(new MarkdownParagraph("The response mimics a situation where ALL requested products are invalid. No products are returned and all requested products are flagged as 'not returned' with reason 'invalidProduct'. This simulates the scenario where an error should be logged and no exchange set should be created."));
 
                     d.Append(new MarkdownHeader("Try out the get-cancelledproducts state!", 3));
-                    d.Append(new MarkdownParagraph("The response mimics a situation where one of the requested products is cancelled. The final item in the request is marked as cancelled and cancellation details are added in the response with 'filesize' 0 "));
+                    d.Append(new MarkdownParagraph("The response mimics a situation where one of the requested products is cancelled. The final item in the request is marked as cancelled and cancellation details are added in the response with file size 0. "));
 
                     d.Append(new MarkdownHeader("Try out the get-productwithdrawn state!", 3));
                     d.Append(new MarkdownParagraph("The response mimics a situation where one of the requested products is withdrawn. The final item in the request is omitted from the returned list and is instead flagged as 'withdrawn', along with a reason like 'productWithdrawn'."));

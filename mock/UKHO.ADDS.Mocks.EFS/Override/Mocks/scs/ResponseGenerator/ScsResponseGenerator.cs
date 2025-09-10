@@ -102,6 +102,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
             switch (state)
             {
                 case "get-allinvalidproducts":
+
                     foreach (var productName in requestedProducts)
                     {
                         notReturnedArray.Add(CreateProductNotReturnedObject(productName, "invalidProduct"));
@@ -110,7 +111,9 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
 
                 case "get-invalidproducts" when productCount > 0:
                 case "get-productwithdrawn" when productCount > 0:
+
                     var reason = state == "get-invalidproducts" ? "invalidProduct" : "productWithdrawn";
+
                     foreach (var productName in requestedProducts.SkipLast(1))
                         productsArray.Add(GenerateProductJson(productName));
 
@@ -126,23 +129,14 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
                     productsArray.Add(GenerateProductJson(requestedProducts.Last(), true));
                     break;
 
-                case "get-productwithdrawn" when productCount > 0:
-
-                    foreach (var productName in requestedProducts.SkipLast(1))
-                        productsArray.Add(GenerateProductJson(productName));
-
-                    notReturnedArray.Add(CreateProductNotReturnedObject(requestedProducts.Last(), "productWithdrawn"));
-                    break;
-
                 default:
 
                     foreach (var productName in requestedProducts)
                         productsArray.Add(GenerateProductJson(productName));
                     break;
             }
-            var returnedProductCount = state == "get-invalidproducts" && productCount > 0
-? productCount - notReturnedArray.Count
-: productsArray.Count;
+            var returnedProductCount = state == "get-invalidproducts" || state == "get-productwithdrawn" && productCount > 0 ? productCount - notReturnedArray.Count : productsArray.Count;
+
             return new JsonObject
             {
                 ["productCounts"] = new JsonObject
