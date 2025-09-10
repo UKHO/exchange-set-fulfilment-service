@@ -13,19 +13,19 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
             {
                 EchoHeaders(request, response, [WellKnownHeader.CorrelationId]);
 
-                var state = GetState(request);
+                var contentTypeHeader = request.Headers.ContentType.ToString();
+                if (string.IsNullOrEmpty(contentTypeHeader) ||
+                    !contentTypeHeader.Contains("application/json"))
+                {
+                    return ResponseHelper.CreateUnsupportedMediaTypeResponse();
+                }
+
+                var state = GetState(request);                
 
                 switch (state)
                 {
                     case WellKnownState.Default:
-                        {
-                            var contentTypeHeader = request.Headers.ContentType.ToString();
-                            if (string.IsNullOrEmpty(contentTypeHeader) ||
-                                !contentTypeHeader.Contains("application/json"))
-                            {
-                                return ResponseHelper.CreateUnsupportedMediaTypeResponse();
-                            }
-
+                        {                          
                             switch (productType.ToLowerInvariant())
                             {
                                 case "s100":

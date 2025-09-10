@@ -35,6 +35,9 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
             }
         }
 
+        /// <summary>
+        /// Provides a mock response for product names based on the requested products.
+        /// </summary>
         public static async Task<IResult> ProvideProductVersionsResponse(HttpRequest requestMessage, string state = "")
         {
             try
