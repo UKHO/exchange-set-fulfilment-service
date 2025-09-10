@@ -6,19 +6,18 @@ using UKHO.ADDS.Mocks.States;
 
 namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
 {
-    public class ProductVersionsEndpoint : ServiceEndpointMock
+    public class ProductVersionsEndpoint : ScsEndpointBase
     {
         public override void RegisterSingleEndpoint(IEndpointMock endpoint) =>
             endpoint.MapPost("/v2/products/{productType}/ProductVersions", async (string productType, HttpRequest request, HttpResponse response) =>
             {
                 EchoHeaders(request, response, [WellKnownHeader.CorrelationId]);
 
-                var contentTypeHeader = request.Headers.ContentType.ToString();
-                if (string.IsNullOrEmpty(contentTypeHeader) ||
-                    !contentTypeHeader.Contains("application/json"))
+                var contentTypeValidation = ValidateContentType(request);
+                if (contentTypeValidation != null)
                 {
-                    return ResponseHelper.CreateUnsupportedMediaTypeResponse();
-                }
+                    return contentTypeValidation;
+                }                
 
                 var state = GetState(request);                
 
@@ -34,7 +33,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                                     return await ScsResponseGenerator.ProvideProductVersionsResponse(request);
 
                                 default:
-                                    return ResponseHelper.CreateBadRequestResponse(request, "Product Versions", "Bad Request.");
+                                    return ResponseHelper.CreateBadRequestResponse(request, "No productType set", "Bad Request.");
                             }
                         }
 
@@ -76,23 +75,14 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                         return WellKnownStateHandler.HandleWellKnownState(state);
                 }
             })
-                .Produces<string>()
-                .WithEndpointMetadata(endpoint, d =>
-                {
-                    d.Append(new MarkdownHeader("Product Versions Endpoint", 3));
-                    d.Append(new MarkdownParagraph("This endpoint is used to retrieve the latest baseline, releasable versions for requested products since a specified version."));
-
-                    d.Append(new MarkdownHeader("Try out the get-invalidproducts state!", 3));
-                    d.Append(new MarkdownParagraph("The response mimics a situation where one of the requested products is unavailable. The final item in the request is omitted from the returned list and is instead flagged as 'not returned', along with a reason like 'invalidProduct'."));
-
-                    d.Append(new MarkdownHeader("Try out the get-allinvalidproducts state!", 3));
-                    d.Append(new MarkdownParagraph("The response mimics a situation where ALL requested products are invalid. No products are returned and all requested products are flagged as 'not returned' with reason 'invalidProduct'. This simulates the scenario where an error should be logged and no exchange set should be created."));
-
-                    d.Append(new MarkdownHeader("Try out the get-cancelledproducts state!", 3));
-                    d.Append(new MarkdownParagraph("The response mimics a situation where one of the requested products is cancelled. The final item in the request is marked as cancelled and cancellation details are added in the response with file size 0. "));
-
-                    d.Append(new MarkdownHeader("Try out the get-productwithdrawn state!", 3));
-                    d.Append(new MarkdownParagraph("The response mimics a situation where one of the requested products is withdrawn. The final item in the request is omitted from the returned list and is instead flagged as 'withdrawn', along with a reason like 'productWithdrawn'."));
-                });
+                 .Produces<string>()
+                .WithEndpointMetadata(endpoint, d => ConfigureEndpointMetadata(
+                    endpoint,
+                    d,
+                    "Product Versions Endpoint",
+                    "This endpoint is used to retrieve the latest baseline, releasable versions for requested products since a specified version.",
+                    ("Try out the get-cancelledproducts state!", "The response mimics a situation where one of the requested products is cancelled. The final item in the request is marked as cancelled and cancellation details are added in the response with file size 0."),
+                    ("Try out the get-productwithdrawn state!", "The response mimics a situation where one of the requested products is withdrawn. The final item in the request is omitted from the returned list and is instead flagged as 'withdrawn', along with a reason like 'productWithdrawn'.")
+                ));
     }
 }
