@@ -157,7 +157,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         }
 
         private void CreateRequiredDirectories(
-            List<(BatchDetails Batch, string FileName, FileSize FileSize)> allFilesToProcess,
+            List<(BatchDetails batch, string fileName, FileSize fileSize)> allFilesToProcess,
             string workSpaceRootPath,
             string workSpaceSpoolDataSetFilesPath,
             string workSpaceSpoolSupportFilesPath,
@@ -166,7 +166,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             var fileDirectoryPaths = allFilesToProcess
                 .Select(item => GetDirectoryPathForFile(
                     workSpaceRootPath,
-                    item.FileName,
+                    item.fileName,
                     workSpaceSpoolDataSetFilesPath,
                     workSpaceSpoolSupportFilesPath))
                 .Distinct();
@@ -178,7 +178,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         }
 
         private IEnumerable<Task> CreateDownloadTasks(
-            List<(BatchDetails Batch, string FileName, FileSize FileSize)> allFilesToProcess,
+            List<(BatchDetails batch, string fileName, FileSize fileSize)> allFilesToProcess,
             string workSpaceRootPath,
             string workSpaceSpoolDataSetFilesPath,
             string workSpaceSpoolSupportFilesPath,
@@ -194,10 +194,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 {
                     var directoryPath = GetDirectoryPathForFile(
                         workSpaceRootPath,
-                        item.FileName,
+                        item.fileName,
                         workSpaceSpoolDataSetFilesPath,
                         workSpaceSpoolSupportFilesPath);
-                    var downloadPath = Path.Combine(directoryPath, item.FileName);
+                    var downloadPath = Path.Combine(directoryPath, item.fileName);
 
                     // Get or create a semaphore for this specific file to prevent concurrent access
                     var fileLock = fileLocks.GetOrAdd(downloadPath, _ => new SemaphoreSlim(1, 1));
@@ -222,15 +222,15 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                                 FileStreamBufferSize,
                                 FileOptions.Asynchronous);
 
-                            if (item.FileSize != FileSize.Zero)
+                            if (item.fileSize != FileSize.Zero)
                             {
                                 var streamResult = await retryPolicy.ExecuteAsync(() =>
-                                    _fileShareReadOnlyClient.DownloadFileAsync(item.Batch.BatchId, item.FileName, outputFileStream, (string)correlationId, item.FileSize.Value));
+                                    _fileShareReadOnlyClient.DownloadFileAsync(item.batch.BatchId, item.fileName, outputFileStream, (string)correlationId, item.fileSize.Value));
 
                                 if (streamResult.IsFailure(out var error, out var value))
                                 {
-                                    LogFssDownloadFailed(item.Batch, item.FileName, error, correlationId);
-                                    throw new Exception($"Failed to download {item.FileName}");
+                                    LogFssDownloadFailed(item.batch, item.fileName, error, correlationId);
+                                    throw new Exception($"Failed to download {item.fileName}");
                                 }
                             }
                             // Ensure all data is written to disk
