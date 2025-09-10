@@ -8,13 +8,14 @@ using Serilog.Formatting.Json;
 using UKHO.ADDS.Clients.Common.Authentication;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
-using UKHO.ADDS.EFS.Builder.Common.Configuration;
-using UKHO.ADDS.EFS.Builder.Common.Factories;
-using UKHO.ADDS.EFS.Builder.Common.Logging;
 using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Domain.Implementation.Extensions;
 using UKHO.ADDS.EFS.Domain.Services.Injection;
+using UKHO.ADDS.EFS.Infrastructure.Builders.Configuration;
+using UKHO.ADDS.EFS.Infrastructure.Builders.Factories;
+using UKHO.ADDS.EFS.Infrastructure.Builders.Injection;
+using UKHO.ADDS.EFS.Infrastructure.Builders.Logging;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Infrastructure.Retries;
@@ -27,7 +28,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
         public static JsonMemorySink ConfigureSerilog()
         {
             Log.Logger = new LoggerConfiguration()
-                .Enrich.FromLogContext()
+                .Enrich.FromLogContext() // This is the key - enables LogContext.PushProperty
                 .WriteTo.Console(new JsonFormatter())
                 .WriteTo.JsonMemorySink(new JsonFormatter(), out var sink)
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
@@ -101,6 +102,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
             services.AddIICToolServices(configuration);
 
             services.AddDomain();
+            services.AddBuilderInfrastructure();
 
             return services;
         }
@@ -139,7 +141,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
             var fileShareEndpoint = configuration[BuilderEnvironmentVariables.FileShareEndpoint] ?? configuration["DebugEndpoints:FileShareService"]!;
 
             IAuthenticationTokenProvider? tokenProvider = null;
-            var fileShareScope = $"api://{fileShareClientId}/.default";
+            var fileShareScope = $"{fileShareClientId}/.default";
 
             if (addsEnvironment.IsLocal() || addsEnvironment.IsDev())
             {
@@ -147,7 +149,9 @@ namespace UKHO.ADDS.EFS.Builder.S100
             }
             else
             {
-                tokenProvider = new TokenCredentialAuthenticationTokenProvider(new ManagedIdentityCredential(), [fileShareScope]);
+                var efsClientId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsClientId);
+
+                tokenProvider = new TokenCredentialAuthenticationTokenProvider(new ManagedIdentityCredential(clientId: efsClientId), [fileShareScope]);
             }
 
             // Read-Write Client

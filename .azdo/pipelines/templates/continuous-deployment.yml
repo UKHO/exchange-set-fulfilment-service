@@ -88,9 +88,7 @@ jobs:
             noCache: true
             nugetConfigPath: '$(Build.SourcesDirectory)/efs/BuildNuget.config'
 
-        - template: get-retained-resource-details.yml
-
-        - template: get-retained-infrastructure-details.yml
+        - template: get-infrastructure-details.yml
           parameters:
             AzureSubscription: ${{ variables.AzureSubscription }}
 
@@ -150,7 +148,9 @@ jobs:
             AZURE_EFS_CONTAINER_REGISTRY_NAME: $(AZURE_EFS_CONTAINER_REGISTRY_NAME)
             AZURE_EFS_CONTAINER_APPS_ENVIRONMENT_NAME: $(AZURE_EFS_CONTAINER_APPS_ENVIRONMENT_NAME)
             AZURE_EFS_APPLICATION_INSIGHTS_NAME: $(AZURE_EFS_APPLICATION_INSIGHTS_NAME)
-            AZURE_EFS_EVENT_HUB_NAMESPACE_NAME: $(AZURE_EFS_EVENT_HUB_NAMESPACE_NAME)
+            AZURE_EFS_EVENT_HUBS_NAMESPACE_NAME: $(AZURE_EFS_EVENT_HUBS_NAMESPACE_NAME)
+            AZURE_EFS_APP_CONFIGURATION_NAME: $(AZURE_EFS_APP_CONFIGURATION_NAME)
+            AZURE_EFS_STORAGE_ACCOUNT_NAME: $(AZURE_EFS_STORAGE_ACCOUNT_NAME)
 
         - task: AzureCLI@2
           displayName: Run configuration seeder
@@ -230,7 +230,7 @@ jobs:
             parameters:
               AzureSubscription: ${{ variables.AzureSubscription }}
               AppName: efs-orchestrator
-              MaxWaitTime: 1
+              MaxWaitTime: 15
 
           - ${{ if eq(parameters.IncludeAddsMock, true) }}:
 
@@ -240,8 +240,18 @@ jobs:
                 AppName: adds-mocks-efs
                 MaxWaitTime: 1
 
-          - template: check-container.yml
-            parameters:
-              AzureSubscription: ${{ variables.AzureSubscription }}
-              AppName: efs-redis
-              MaxWaitTime: 1
+          - script: |
+              DOMAIN=$(azd env get-value EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN)
+              URL="https://efs-orchestrator.$DOMAIN"
+              echo "Orchestrator Endpoint: $URL"
+              echo "##vso[task.setvariable variable=ORCHESTRATOR_URL]$URL"
+            displayName: 'Set Orchestrator Endpoint Variable'
+            workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
+
+          - task: PowerShell@2
+            displayName: "Check health endpoint"
+            inputs:
+              targetType: filePath
+              filePath: "$(Build.SourcesDirectory)/efs/.azdo/pipelines/powershell/CheckServiceStatus.ps1"
+              arguments: "-healthEndPointUrl $(ORCHESTRATOR_URL)/health -waitTimeInMinute 2 -onErrorContinue 0"
+

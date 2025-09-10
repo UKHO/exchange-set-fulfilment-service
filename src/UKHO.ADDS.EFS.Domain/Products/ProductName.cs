@@ -1,5 +1,4 @@
-﻿using UKHO.ADDS.EFS.Domain.Exceptions;
-using UKHO.ADDS.EFS.Domain.Jobs;
+﻿using System.ComponentModel.DataAnnotations;
 using Vogen;
 
 namespace UKHO.ADDS.EFS.Domain.Products
@@ -7,11 +6,11 @@ namespace UKHO.ADDS.EFS.Domain.Products
     [ValueObject<string>(Conversions.SystemTextJson, typeof(ValidationException))]
     public partial struct ProductName
     {
-        private static Validation Validate(string input)
+        public static Validation Validate(string input)
         {
             if (string.IsNullOrEmpty(input))
             {
-                return Validation.Invalid($"{nameof(ProductName)} cannot be null or empty");
+                return Validation.Invalid($"{nameof(ProductName)} cannot be null or empty.");
             }
 
             var span = input.AsSpan();
@@ -24,7 +23,7 @@ namespace UKHO.ADDS.EFS.Domain.Products
                     return Validation.Ok;
                 }
 
-                return Validation.Invalid($"'{input}' starts with digits '{code:000}' but that is not a valid S-100 product");
+                return Validation.Invalid($"'{input}' starts with digits '{code:000}' but that is not a valid S-100 product.");
             }
 
             // Else, check for S-57
@@ -33,7 +32,7 @@ namespace UKHO.ADDS.EFS.Domain.Products
                 return Validation.Ok;
             }
 
-            return Validation.Invalid($"'{input}' is not valid: it neither starts with a 3-digit S-100 code nor has length 8 for S-57");
+            return Validation.Invalid($"'{input}' is not valid: it neither starts with a 3-digit S-100 code nor has length 8 for S-57.");
         }
 
         public DataStandard DataStandard
@@ -64,7 +63,7 @@ namespace UKHO.ADDS.EFS.Domain.Products
 
                 if (TryParseExactlyThreeDigits(span, out var code))
                 {
-                    return DataStandardProduct.From(code);
+                    return Products.DataStandardProduct.From(code);
                 }
 
                 if (span.Length == 8)

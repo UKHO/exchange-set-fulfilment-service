@@ -6,9 +6,9 @@ namespace UKHO.ADDS.EFS.Domain.Products
         
         public ProductName ProductName { get; set; }
         
-        public List<int> UpdateNumbers { get; set; } = new List<int>();
+        public UpdateNumberList UpdateNumbers { get; set; } = new UpdateNumberList();
         
-        public List<ProductDate> Dates { get; set; } = new List<ProductDate>();
+        public ProductDateList Dates { get; set; } = new ProductDateList();
         
         public int FileSize { get; set; }
         

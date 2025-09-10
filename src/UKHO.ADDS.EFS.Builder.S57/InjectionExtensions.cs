@@ -5,10 +5,10 @@ using Serilog.Events;
 using Serilog.Formatting.Json;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
-using UKHO.ADDS.EFS.Builder.Common.Factories;
-using UKHO.ADDS.EFS.Builder.Common.Logging;
 using UKHO.ADDS.EFS.Builder.S57.Pipelines;
 using UKHO.ADDS.EFS.Domain.Implementation.Extensions;
+using UKHO.ADDS.EFS.Infrastructure.Builders.Factories;
+using UKHO.ADDS.EFS.Infrastructure.Builders.Logging;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
 
@@ -82,7 +82,7 @@ namespace UKHO.ADDS.EFS.Builder.S57
             return configurationBuilder;
         }
 
-        public static IServiceCollection AddS100BuilderServices(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddS57BuilderServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddLogging(ConfigureLogging);
             services.AddHttpClient();

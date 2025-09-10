@@ -45,10 +45,18 @@ namespace UKHO.ADDS.EFS.Infrastructure.Adapters.Products
                 throw new ArgumentNullException(nameof(source));
             }
 
-            return new ProductList
+            var list = new ProductList
             {
-                Products = source.Select(x => x.ToDomain()).ToList(), LastModified = lastModified ?? default, ResponseCode = HttpStatusCode.OK
+                LastModified = lastModified ?? default,
+                ResponseCode = HttpStatusCode.OK
             };
+
+            foreach (var item in source)
+            {
+                list.Add(item.ToDomain());
+            }
+
+            return list;
         }
 
         public static ProductEdition ToDomain(this ProductNames source)
@@ -61,7 +69,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Adapters.Products
             var dates = source.Dates?.Select(d => new ProductDate
             {
                 IssueDate = d.IssueDate?.DateTime ?? default, UpdateApplicationDate = d.UpdateApplicationDate?.DateTime ?? default, UpdateNumber = d.UpdateNumber.HasValue ? UpdateNumber.From(d.UpdateNumber.Value) : UpdateNumber.NotSet
-            }).ToList() ?? new List<ProductDate>();
+            }).ToList() ?? [];
 
             ProductCancellation? cancellation = null;
             if (source.Cancellation is not null)
@@ -77,17 +85,28 @@ namespace UKHO.ADDS.EFS.Infrastructure.Adapters.Products
                 };
             }
 
-            return new ProductEdition
+            var edition = new ProductEdition
             {
                 ProductName = ProductName.From(source.ProductName!),
                 EditionNumber = source.EditionNumber.HasValue ? EditionNumber.From(source.EditionNumber.Value) : EditionNumber.NotSet,
-                UpdateNumbers = source.UpdateNumbers != null
-                    ? source.UpdateNumbers.Where(i => i.HasValue).Select(i => i!.Value).ToList()
-                    : new List<int>(),
-                Dates = dates,
                 FileSize = source.FileSize ?? 0,
                 Cancellation = cancellation
             };
+
+            foreach (var d in dates)
+            {
+                edition.Dates.Add(d);
+            }
+
+            if (source.UpdateNumbers != null)
+            {
+                foreach (var n in source.UpdateNumbers.Where(i => i.HasValue).Select(i => i!.Value))
+                {
+                    edition.UpdateNumbers.Add(UpdateNumber.From(n));
+                }
+            }
+
+            return edition;
         }
 
         public static List<ProductEdition> ToDomain(this IList<ProductNames>? source) => source?.Select(p => p.ToDomain()).ToList() ?? new List<ProductEdition>();
@@ -99,7 +118,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Adapters.Products
                 return null;
             }
 
-            return new ProductCountSummary
+            var summary = new ProductCountSummary
             {
                 RequestedProductCount = source.RequestedProductCount.HasValue
                     ? ProductCount.From(source.RequestedProductCount.Value)
@@ -110,11 +129,24 @@ namespace UKHO.ADDS.EFS.Infrastructure.Adapters.Products
                 RequestedProductsAlreadyUpToDateCount = source.RequestedProductsAlreadyUpToDateCount.HasValue
                     ? ProductCount.From(source.RequestedProductsAlreadyUpToDateCount.Value)
                     : ProductCount.None,
-                MissingProducts = source.RequestedProductsNotReturned?.Select(r => new MissingProduct
-                {
-                    ProductName = ProductName.From(r.ProductName!), Reason = r.Reason?.ToString() ?? string.Empty
-                }).ToList() ?? new List<MissingProduct>()
+                MissingProducts = new MissingProductList()
             };
+
+            foreach (var r in source.RequestedProductsNotReturned ?? [])
+            {
+                if (!Enum.TryParse(r.Reason?.ToString(), out MissingProductReason missingProductReason))
+                {
+                    missingProductReason = MissingProductReason.None;
+                }
+
+                summary.MissingProducts.Add(new MissingProduct
+                {
+                    ProductName = ProductName.From(r.ProductName!),
+                    Reason = missingProductReason
+                });
+            }
+
+            return summary;
         }
 
         public static ProductEditionList ToDomain(this S100ProductResponse source)
@@ -124,10 +156,18 @@ namespace UKHO.ADDS.EFS.Infrastructure.Adapters.Products
                 throw new ArgumentNullException(nameof(source));
             }
 
-            return new ProductEditionList
+            var list = new ProductEditionList
             {
-                Products = source.Products.ToDomain(), ProductCountSummary = source.ProductCounts.ToDomain(), ResponseCode = HttpStatusCode.OK
+                ProductCountSummary = source.ProductCounts.ToDomain() ?? new ProductCountSummary(),
+                ResponseCode = HttpStatusCode.OK
             };
+
+            foreach (var p in source.Products ?? [])
+            {
+                list.Add(p.ToDomain());
+            }
+
+            return list;
         }
     }
 }

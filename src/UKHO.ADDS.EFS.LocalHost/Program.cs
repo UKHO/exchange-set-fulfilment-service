@@ -1,7 +1,5 @@
 using System.Runtime.InteropServices;
 using Aspire.Hosting.Azure;
-using Azure.Provisioning.AppConfiguration;
-using Azure.Provisioning.Storage;
 using CliWrap;
 using Docker.DotNet;
 using Docker.DotNet.Models;
@@ -9,10 +7,8 @@ using Microsoft.Extensions.Configuration;
 using Projects;
 using Serilog;
 using UKHO.ADDS.Aspire.Configuration.Hosting;
-using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 using UKHO.ADDS.EFS.LocalHost.Extensions;
-using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.LocalHost
 {
@@ -23,14 +19,6 @@ namespace UKHO.ADDS.EFS.LocalHost
     {
         private static async Task<int> Main(string[] args)
         {
-            var pnl = new ProductNameList
-            {
-                ProductName.From("101prod1"), ProductName.From("101prod2"), ProductName.From("101prod3")
-            };
-
-            var json = JsonCodec.Encode(pnl);
-            var decoded = JsonCodec.Decode<ProductNameList>(json);
-
             Log.Logger = new LoggerConfiguration()
                 .WriteTo.Console()
                 .CreateLogger();
@@ -57,7 +45,9 @@ namespace UKHO.ADDS.EFS.LocalHost
             var efsContainerAppsEnvironmentName = builder.AddParameter("efsContainerAppsEnvironmentName");
             var efsContainerRegistryName = builder.AddParameter("efsContainerRegistryName");
             var efsApplicationInsightsName = builder.AddParameter("efsApplicationInsightsName");
-            var efsEventHubNamespaceName = builder.AddParameter("efsEventHubNamespaceName");
+            var efsEventHubsNamespaceName = builder.AddParameter("efsEventHubsNamespaceName");
+            var efsAppConfigurationName = builder.AddParameter("efsAppConfigurationName");
+            var efsStorageAccountName = builder.AddParameter("efsStorageAccountName");
             var addsEnvironment = builder.AddParameter("addsEnvironment");
 
             // Existing user managed identity
@@ -65,29 +55,22 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             // App insights
             var appInsights = builder.ExecutionContext.IsPublishMode
-                ? builder.AddAzureApplicationInsights(ServiceConfiguration.AppInsightsName).PublishAsExisting(efsApplicationInsightsName, efsRetainResourceGroup)
+                ? builder.AddAzureApplicationInsights(ServiceConfiguration.AppInsightsName).PublishAsExisting(efsApplicationInsightsName, null)
                 : null;
 
             // Event hubs
             var eventHubs = builder.ExecutionContext.IsPublishMode
-                ? builder.AddAzureEventHubs(ServiceConfiguration.EventHubNamespaceName).PublishAsExisting(efsEventHubNamespaceName, efsRetainResourceGroup)
+                ? builder.AddAzureEventHubs(ServiceConfiguration.EventHubsNamespaceName).PublishAsExisting(efsEventHubsNamespaceName, efsRetainResourceGroup)
                 : null;
 
             // Container registry
-            var acr = builder.AddAzureContainerRegistry(ServiceConfiguration.ContainerRegistryName).PublishAsExisting(efsContainerRegistryName, efsRetainResourceGroup);
+            var acr = builder.AddAzureContainerRegistry(ServiceConfiguration.ContainerRegistryName).PublishAsExisting(efsContainerRegistryName, null);
 
             // Container apps environment
             var acaEnv = builder.AddAzureContainerAppEnvironment(ServiceConfiguration.AcaEnvironmentName).PublishAsExisting(efsContainerAppsEnvironmentName, efsRetainResourceGroup);
 
             // Storage configuration
-            var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e => { e.WithDataVolume(); });
-            storage.ConfigureInfrastructure(config =>
-            {
-                var storageAccount = config.GetProvisionableResources().OfType<StorageAccount>().Single();
-                storageAccount.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
-                storageAccount.AllowSharedKeyAccess = true;
-            });
-
+            var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e => { e.WithDataVolume(); }).PublishAsExisting(efsStorageAccountName, null);
             var storageQueue = storage.AddQueues(StorageConfiguration.QueuesName);
             var storageTable = storage.AddTables(StorageConfiguration.TablesName);
             var storageBlob = storage.AddBlobs(StorageConfiguration.BlobsName);
@@ -163,12 +146,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             }
             else
             {
-                var appConfig = builder.AddConfiguration(ProcessNames.ConfigurationService, addsEnvironment, [orchestratorService]);
-                appConfig.ConfigureInfrastructure(config =>
-                {
-                    var appConfigResource = config.GetProvisionableResources().OfType<AppConfigurationStore>().Single();
-                    appConfigResource.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
-                });
+                var appConfig = builder.AddConfiguration(ProcessNames.ConfigurationService, addsEnvironment, [orchestratorService]).PublishAsExisting(efsAppConfigurationName, null);
             }
 
             if (builder.ExecutionContext.IsRunMode)

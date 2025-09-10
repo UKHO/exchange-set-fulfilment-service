@@ -1,9 +1,8 @@
-﻿using UKHO.ADDS.EFS.Domain.Exceptions;
+﻿using System.ComponentModel.DataAnnotations;
 using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Messages;
 using UKHO.ADDS.EFS.Domain.Products;
-using UKHO.ADDS.EFS.Messages;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
 {
@@ -48,7 +47,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 RequestedProducts = Products,
                 RequestedFilter = Filter,
                 BatchId = BatchId.None,
-                CallbackUri = CallbackUri
+                CallbackUri = CallbackUri,
+                ProductIdentifier = ProductIdentifier
             };
         }
 
@@ -83,14 +83,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         /// <summary>
         /// Creates parameters from S100 Product Versions request
         /// </summary>
-        public static AssemblyPipelineParameters CreateFromS100ProductVersions(S100ProductVersionsRequest request,
+        public static AssemblyPipelineParameters CreateFromS100ProductVersions(IEnumerable<S100ProductVersion> productVersions,
             IConfiguration configuration, string correlationId, string? callbackUri = null) =>
             new()
             {
                 Version = MessageVersion.From(2),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                Products = CreateProductNameListFromVersions(request.ProductVersions),
+                Products = CreateProductNameListFromVersions(productVersions),
                 Filter = "productVersions",
                 JobId = Domain.Jobs.JobId.From(correlationId),
                 Configuration = configuration,
@@ -109,7 +109,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 Version = MessageVersion.From(2),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                Products = CreateProductNameListFromString("all"),
+                Products = CreateProductNameListFromString(string.Empty),
                 Filter =
                     $"updatesSince:{request.SinceDateTime:O}" +
                     (productIdentifier != null ? $",productIdentifier:{productIdentifier}" : ""),
@@ -142,7 +142,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         /// <summary>
         /// Creates a ProductNameList from S100 product versions
         /// </summary>
-        private static ProductNameList CreateProductNameListFromVersions(List<S100ProductVersion> productVersions)
+        private static ProductNameList CreateProductNameListFromVersions(IEnumerable<S100ProductVersion> productVersions)
         {
             var list = new ProductNameList();
 

@@ -1,4 +1,6 @@
-﻿using UKHO.ADDS.EFS.Domain.Builds.S100;
+﻿using Serilog.Context;
+using UKHO.ADDS.EFS.Domain.Builds.S100;
+using UKHO.ADDS.EFS.Domain.Constants;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
@@ -8,7 +10,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion
 {
     internal class S100CompletionPipeline : CompletionPipeline<S100Build>
     {
-        public S100CompletionPipeline(CompletionPipelineParameters parameters, CompletionPipelineNodeFactory nodeFactory, PipelineContextFactory<S100Build> contextFactory, ILogger<S100CompletionPipeline> logger)
+        public S100CompletionPipeline(CompletionPipelineParameters parameters, ICompletionPipelineNodeFactory nodeFactory, IPipelineContextFactory<S100Build> contextFactory, ILogger<S100CompletionPipeline> logger)
             : base(parameters, nodeFactory, contextFactory, logger)
         {
         }
@@ -25,14 +27,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion
             AddPipelineNode<ExpireFileShareBatchesNode>(cancellationToken);
             AddPipelineNode<CompleteJobNode>(cancellationToken);
 
-            var result = await Pipeline.ExecuteAsync(context);
-
-            switch (result.Status)
+            using (LogContext.PushProperty(LogProperties.CorrelationId, context.Job.GetCorrelationId().ToString()))
             {
-                case NodeResultStatus.NotRun:
-                case NodeResultStatus.Failed:
-                    await context.SignalCompletionFailure();
-                    break;
+                var result = await Pipeline.ExecuteAsync(context);
+
+                switch (result.Status)
+                {
+                    case NodeResultStatus.NotRun:
+                    case NodeResultStatus.Failed:
+                        await context.SignalCompletionFailure();
+                        break;
+                }
             }
         }
 

@@ -75,5 +75,7 @@ namespace UKHO.ADDS.EFS.Domain.Jobs
         public CorrelationId GetCorrelationId() => CorrelationId.From((string)Id);
 
         public string? CallbackUri { get; init; }
+
+        public string? ProductIdentifier { get; init; }
     }
 }

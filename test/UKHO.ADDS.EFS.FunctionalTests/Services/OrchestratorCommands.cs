@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Text.Json;
+using UKHO.ADDS.Clients.Common.Constants;
 
 namespace UKHO.ADDS.EFS.FunctionalTests.Services
 {
@@ -18,7 +19,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
 
             var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
-            content.Headers.Add("x-correlation-id", requestId);
+            content.Headers.Add(ApiHeaderKeys.XCorrelationIdHeaderKey, requestId);
 
             var response = await httpClient.PostAsync("/jobs", content);
 
@@ -77,7 +78,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
         /// <summary>
         /// Verifies the product names endpoint response.
         /// </summary>
-        public static async Task VerifyProductNamesEndpointResponse(object productNames, HttpClient httpClient, string callbackUri, HttpStatusCode expectedStatusCode, string expectedErrorMessage, int jobNumber = 1, bool includeRequestId = true)
+        public static async Task VerifyProductNamesEndpointResponse(object productNames, HttpClient httpClient, string? callbackUri, HttpStatusCode expectedStatusCode, string expectedErrorMessage, int jobNumber = 1, bool includeRequestId = true)
         {
             var requestId = includeRequestId ? $"job-000{jobNumber}-" + Guid.NewGuid() : string.Empty;
 

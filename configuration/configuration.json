@@ -60,7 +60,8 @@
             },
             "SchedulerJob": {
                 "ExchangeSetGenerationSchedule": "0 0 0 * * ?" //Quartz Cron expression for scheduling ExchangeSet generation
-            }
+            },
+            "MaximumProductAge": "28.00:00:00"
         }
     },
     "dev": {
@@ -108,7 +109,8 @@
             },
             "SchedulerJob": {
                 "ExchangeSetGenerationSchedule": "0 0 0 * * ?" //Quartz Cron expression for scheduling ExchangeSet generation
-            }
+            },
+            "MaximumProductAge": "28.00:00:00"
         }
     },
     "vni": {
@@ -156,7 +158,8 @@
             },
             "SchedulerJob": {
                 "ExchangeSetGenerationSchedule": "0 0 0 * * ?" //Quartz Cron expression for scheduling ExchangeSet generation
-            }
+            },
+            "MaximumProductAge": "28.00:00:00"
         }
     },
     "vne": {
@@ -204,7 +207,8 @@
             },
             "SchedulerJob": {
                 "ExchangeSetGenerationSchedule": "0 0 0 * * ?" //Quartz Cron expression for scheduling ExchangeSet generation
-            }
+            },
+            "MaximumProductAge": "28.00:00:00"
         }
     },
     "iat": {
@@ -252,7 +256,8 @@
             },
             "SchedulerJob": {
                 "ExchangeSetGenerationSchedule": "0 0 0 * * ?" //Quartz Cron expression for scheduling ExchangeSet generation
-            }
+            },
+            "MaximumProductAge": "28.00:00:00"
         }
     }
 }

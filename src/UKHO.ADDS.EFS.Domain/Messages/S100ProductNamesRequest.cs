@@ -3,7 +3,7 @@
     /// <summary>
     /// Request model for S100 product names endpoint
     /// </summary>
-    internal class S100ProductNamesRequest
+    public class S100ProductNamesRequest
     {
         /// <summary>
         /// List of S100 product names to request
