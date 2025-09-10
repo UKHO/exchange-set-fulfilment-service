@@ -1,4 +1,6 @@
-﻿using UKHO.ADDS.EFS.Domain.Builds.S63;
+﻿using Serilog.Context;
+using UKHO.ADDS.EFS.Domain.Builds.S63;
+using UKHO.ADDS.EFS.Domain.Constants;
 using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
@@ -23,7 +25,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S63
             var job = context.Subject.Job;
             var build = context.Subject.Build;
 
-            await _logForwarder.ForwardLogsAsync(build.LogMessages!, DataStandard.S100, job.Id);
+            // Ensure correlation ID is in LogContext when forwarding logs
+            using (LogContext.PushProperty(LogProperties.CorrelationId, job.GetCorrelationId()))
+            {
+                await _logForwarder.ForwardLogsAsync(build.LogMessages!, DataStandard.S63, job.Id);
+            }
 
             return NodeResultStatus.Succeeded;
         }

@@ -28,7 +28,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
         public static JsonMemorySink ConfigureSerilog()
         {
             Log.Logger = new LoggerConfiguration()
-                .Enrich.FromLogContext()
+                .Enrich.FromLogContext() // This is the key - enables LogContext.PushProperty
                 .WriteTo.Console(new JsonFormatter())
                 .WriteTo.JsonMemorySink(new JsonFormatter(), out var sink)
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
