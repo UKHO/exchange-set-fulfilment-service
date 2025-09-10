@@ -43,7 +43,6 @@ variable "api_description" {
 variable "env_suffix" {
   type = map(string)
   default = {
-    "dev"         = "DEV"
     "vne"         = "VNE"
     "vni"         = "VNI"
     "iat"         = "IAT"

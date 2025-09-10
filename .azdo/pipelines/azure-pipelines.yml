@@ -197,9 +197,9 @@ stages:
 
   - stage: vnexte2eDeploy
     dependsOn: []
-   # - vnextiatDeploy
+    - vnextiatDeploy
     displayName: vNext E2E Deploy
-   # condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
     jobs:
     - template: templates/continuous-deployment.yml
       parameters:
