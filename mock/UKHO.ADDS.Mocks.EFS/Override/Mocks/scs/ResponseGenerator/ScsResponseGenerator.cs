@@ -40,7 +40,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
         /// Provides a mock response for updates since a specified date using data from s100-updates-since.json file.
         /// Note: As a mock endpoint, this method returns static data regardless of date parameters.
         /// </summary>
-        public static async Task<IResult> ProvideUpdatesSinceResponse(string? productIdentifier, HttpRequest request, IMockFile file)
+        public static async Task<IResult> ProvideUpdatesSinceResponse(string? productIdentifier, IMockFile file)
         {
             try
             {

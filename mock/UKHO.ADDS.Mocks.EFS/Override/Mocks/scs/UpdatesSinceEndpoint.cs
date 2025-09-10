@@ -24,7 +24,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
 
                 return state switch
                 {
-                    WellKnownState.Default => await HandleDefaultRequest(productIdentifier, request, response),
+                    WellKnownState.Default => await HandleDefaultRequest(productIdentifier, response),
                     WellKnownState.NotModified => HandleNotModified(response),
                     WellKnownState.BadRequest => ResponseHelper.CreateBadRequestResponse(request, "Updates Since", "Bad Request."),
                     WellKnownState.NotFound => ResponseHelper.CreateNotFoundResponse(request),
@@ -55,7 +55,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
         /// <summary>
         /// Handles the default request scenario by loading data from the static JSON file.
         /// </summary>
-        private async Task<IResult> HandleDefaultRequest(string? productIdentifier, HttpRequest request, HttpResponse response)
+        private async Task<IResult> HandleDefaultRequest(string? productIdentifier, HttpResponse response)
         {
             response.GetTypedHeaders().LastModified = DateTime.UtcNow;
 
@@ -65,7 +65,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                 return Results.NotFound($"Could not find {DataFileName} file");
             }
 
-            return await ScsResponseGenerator.ProvideUpdatesSinceResponse(productIdentifier, request, file);
+            return await ScsResponseGenerator.ProvideUpdatesSinceResponse(productIdentifier, file);
         }
 
         /// <summary>
