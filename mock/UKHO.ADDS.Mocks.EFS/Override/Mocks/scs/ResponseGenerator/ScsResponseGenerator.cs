@@ -109,10 +109,12 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
                     break;
 
                 case "get-invalidproducts" when productCount > 0:
+                case "get-productwithdrawn" when productCount > 0:
+                    var reason = state == "get-invalidproducts" ? "invalidProduct" : "productWithdrawn";
                     foreach (var productName in requestedProducts.SkipLast(1))
                         productsArray.Add(GenerateProductJson(productName));
 
-                    notReturnedArray.Add(CreateProductNotReturnedObject(requestedProducts.Last(), "invalidProduct"));
+                    notReturnedArray.Add(CreateProductNotReturnedObject(requestedProducts.Last(), reason));
                     break;
 
 
