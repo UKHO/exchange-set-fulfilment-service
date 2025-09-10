@@ -1,16 +1,14 @@
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.AspNetCore.Http.Json;
-using Microsoft.Extensions.Compliance.Redaction;
+using Azure.Identity;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
 using UKHO.ADDS.Aspire.Configuration;
-using UKHO.ADDS.EFS.Domain.Implementation.Serialization;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Orchestrator.Api;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.HealthChecks;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Serilog;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Middleware;
 using UKHO.ADDS.EFS.Orchestrator.Services;
 
@@ -35,14 +33,36 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                 var oltpEndpoint = builder.Configuration[GlobalEnvironmentVariables.OtlpEndpoint]!;
 
-                if (builder.Environment.IsDevelopment())
+                builder.Services.AddHttpContextAccessor();
+                var environment = AddsEnvironment.GetEnvironment();
+                if (environment.IsLocal())
                 {
-                    builder.Services.AddSerilog((services, lc) => ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint));
+                    builder.Services.AddSerilog((services, lc) =>
+                        ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint)
+                            .Enrich.WithProperty("Environment", environment.Value)
+                            .Enrich.WithProperty("System", ServiceConfiguration.ServiceName)
+                            .Enrich.WithProperty("Service", ServiceConfiguration.ServiceName)
+                            .Enrich.WithProperty("NodeName", ServiceConfiguration.NodeName)
+                    );
                 }
                 else
                 {
-                    builder.Services.AddSerilog((services, lc) => ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint)
-                        .WriteTo.Sink(new EventHubSerilogSink()));
+                    var fullyQualifiedNamespace = Environment.GetEnvironmentVariable("ConnectionStrings__efs-events-namespace");
+                    var eventHubName = ServiceConfiguration.EventHubName;                   
+
+                    builder.Services.AddSerilog((services, lc) =>
+                        ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint)                            
+                            .WriteTo.EventHub(options =>
+                            {
+                                options.Environment = environment.ToString();
+                                options.System = ServiceConfiguration.ServiceName;
+                                options.Service = ServiceConfiguration.ServiceName;
+                                options.NodeName = ServiceConfiguration.NodeName;
+                                options.EventHubFullyQualifiedNamespace = fullyQualifiedNamespace;
+                                options.EventHubEntityPath = eventHubName;
+                                options.TokenCredential = new DefaultAzureCredential();
+                            })
+                    );
                 }
 
                 builder.AddConfiguration(ServiceConfiguration.ServiceName, ProcessNames.ConfigurationService);
@@ -66,6 +86,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
 
                 app.RegisterJobsApi(loggerFactory);
+                app.RegisterS100CustomExchangeSetApi(loggerFactory);
 
                 // Map health check endpoints with custom configuration to exclude Redis checks
                 //It looks like the Redis service is degraded for some reason, so comment it out from the health checks for the time being.
