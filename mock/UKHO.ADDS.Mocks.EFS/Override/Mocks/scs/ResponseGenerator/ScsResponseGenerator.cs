@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Nodes;
+using UKHO.ADDS.Mocks.Configuration.Mocks.scs.Helpers;
 using UKHO.ADDS.Mocks.Headers;
 using IResult = Microsoft.AspNetCore.Http.IResult;
 
@@ -13,8 +14,6 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
         private static readonly int MinFileSize = 2000;
         private static readonly int MaxFileSize = 15000;
         private static readonly Random RandomInstance = Random.Shared;
-        private static readonly string ProductNamesEndpointSource = "Product Names";
-        private static readonly string ProductVersionsEndpointSource = "Product Versions";
 
         /// <summary>
         /// Provides a mock response for product names based on the requested products.
@@ -64,30 +63,30 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
             }
 
             if (string.IsNullOrWhiteSpace(requestBody))
-                return (CreateBadRequestResponse(request, "Request body is required", ProductNamesEndpointSource), requestedProducts);
+                return (ResponseHelper.CreateBadRequestResponse(request, "Request Body", "Request body is required"), requestedProducts);
 
             try
             {
                 using var doc = JsonDocument.Parse(requestBody);
                 if (doc.RootElement.ValueKind != JsonValueKind.Array)
-                    return (CreateBadRequestResponse(request, "Request body must be a JSON array of product names.", ProductNamesEndpointSource), requestedProducts);
+                    return (ResponseHelper.CreateBadRequestResponse(request, "Request Body", "Request body must be a JSON array of product names."), requestedProducts);
 
                 foreach (var element in doc.RootElement.EnumerateArray())
                 {
                     if (element.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(element.GetString()))
-                        return (CreateBadRequestResponse(request, "All items in the array must be non-empty strings.", ProductNamesEndpointSource), requestedProducts);
+                        return (ResponseHelper.CreateBadRequestResponse(request, "Product Names", "All items in the array must be non-empty strings."), requestedProducts);
 
                     requestedProducts.Add(element.GetString()!);
                 }
 
                 if (!requestedProducts.Any())
-                    return (CreateBadRequestResponse(request, "Empty product name is not allowed.", ProductNamesEndpointSource), requestedProducts);
+                    return (ResponseHelper.CreateBadRequestResponse(request, "Product Names", "Empty product name is not allowed."), requestedProducts);
 
                 return (null, requestedProducts);
             }
             catch (JsonException)
             {
-                return (CreateBadRequestResponse(request, "Invalid JSON format.", ProductNamesEndpointSource), requestedProducts);
+                return (ResponseHelper.CreateBadRequestResponse(request, "JSON Format", "Invalid JSON format."), requestedProducts);
             }
         }
 
@@ -223,22 +222,6 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
             productObj["fileSize"] = cancelled ? 0 : fileSize;
 
             return productObj;
-        }
-
-        private static IResult CreateBadRequestResponse(HttpRequest requestMessage, string description, string endpointSource)
-        {
-            var correlationId = requestMessage.Headers.ContainsKey(WellKnownHeader.CorrelationId)
-                ? requestMessage.Headers[WellKnownHeader.CorrelationId].ToString()
-                : string.Empty;
-
-            return Results.BadRequest(new
-            {
-                correlationId,
-                errors = new[]
-                {
-                    new { source = endpointSource, description }
-                }
-            });
         }
 
         private static async Task<List<string>> ExtractProductNamesFromRequestAsync(HttpRequest request)
