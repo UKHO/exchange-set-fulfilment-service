@@ -37,14 +37,6 @@ parameters:
     displayName: "Enable optional pipeline debugging"
     type: boolean
     default: false
-  - name: ContinueEvenIfResourcesAreGettingDestroyed
-    displayName: "Continue even if resources are getting destroyed"
-    type: boolean
-    default: false
-  - name: DeployApim
-    displayName: "Deploy APIM"
-    type: boolean
-    default: true
 
 trigger:
   - main
@@ -74,8 +66,6 @@ variables:
     value: "Mare Nectaris"
   - name: snykAbzuOrganizationId
     value: aeb7543b-8394-457c-8334-a31493d8910d
-  - name: Container
-    value: "ukhydrographicoffice/terraform-azure-powershell-unzip:1.13.0"
 
 resources:
   repositories:
@@ -212,14 +202,6 @@ stages:
         IncludeAddsMock: false
         DeployRedis: ${{ parameters.DeployRedis }}
         WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
-
-    - template: templates/continuous-deployment-apim.yml
-      parameters:
-          AzureDevOpsEnvironment: Ess-vnexte2e
-          ShortName: vnexte2e
-          DeployApim: ${{ parameters.DeployApim }}
-          ContinueEvenIfResourcesAreGettingDestroyed: ${{ parameters.ContinueEvenIfResourcesAreGettingDestroyed }}
-          ContainerImage: ${{ variables.Container }}
 
   - stage: iatDeploy
     dependsOn:
