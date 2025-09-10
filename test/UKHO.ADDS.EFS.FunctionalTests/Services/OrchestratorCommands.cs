@@ -74,5 +74,30 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
 
             Assert.Equal("success", builderExitCode);
         }
+
+        /// <summary>
+        /// Verifies the product names endpoint response.
+        /// </summary>
+        public static async Task VerifyProductNamesEndpointResponse(object productNames, HttpClient httpClient, string? callbackUri, HttpStatusCode expectedStatusCode, string expectedErrorMessage, int jobNumber = 1, bool includeRequestId = true)
+        {
+            var requestId = includeRequestId ? $"job-000{jobNumber}-" + Guid.NewGuid() : string.Empty;
+
+            var content = new StringContent(JsonSerializer.Serialize(productNames), Encoding.UTF8, "application/json");
+
+            if (includeRequestId)
+            {
+                content.Headers.Add("x-correlation-id", requestId);
+            }
+
+            var response = await httpClient.PostAsync($"/v2/exchangeSet/s100/productNames?callbackUri={callbackUri}", content);
+
+            Assert.Equal(expectedStatusCode, response.StatusCode);
+
+            if (expectedStatusCode != HttpStatusCode.Accepted && expectedErrorMessage != "")
+            {
+                var responseBody = await response.Content.ReadAsStringAsync();
+                Assert.Contains(expectedErrorMessage, responseBody);
+            }
+        }
     }
 }
