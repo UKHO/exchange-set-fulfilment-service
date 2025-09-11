@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Nodes;
 using UKHO.ADDS.Mocks.Configuration.Mocks.scs.Helpers;
+using UKHO.ADDS.Mocks.EFS.Override.Mocks.scs.Models;
 using UKHO.ADDS.Mocks.Headers;
 using IResult = Microsoft.AspNetCore.Http.IResult;
 
@@ -26,7 +27,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
                 if (validationResult.errorResult != null)
                     return validationResult.errorResult;
 
-                var response = GenerateProductsResponse(validationResult.requestedProducts, state);
+                var response = GenerateProductNamesResponse(validationResult.requestedProducts, state);
                 return Results.Ok(response);
             }
             catch (Exception ex)
@@ -93,56 +94,38 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
             }
         }
 
-        private static JsonObject GenerateProductsResponse(List<string> requestedProducts, string state = "")
+        private static JsonObject GenerateProductNamesResponse(List<string> requestedProducts, string state = "")
         {
             var productsArray = new JsonArray();
             var notReturnedArray = new JsonArray();
-            var productCount = requestedProducts.Count;
 
-            switch (state)
+            if (state == "get-allinvalidproducts")
             {
-                case "get-allinvalidproducts":
-
-                    foreach (var productName in requestedProducts)
-                    {
-                        notReturnedArray.Add(CreateProductNotReturnedObject(productName, "invalidProduct"));
-                    }
-                    break;
-
-                case "get-invalidproducts" when productCount > 0:
-                case "get-productwithdrawn" when productCount > 0:
-
-                    var reason = state == "get-invalidproducts" ? "invalidProduct" : "productWithdrawn";
-
-                    foreach (var productName in requestedProducts.SkipLast(1))
-                        productsArray.Add(GenerateProductJson(productName));
-
-                    notReturnedArray.Add(CreateProductNotReturnedObject(requestedProducts.Last(), reason));
-                    break;
-
-
-                case "get-cancelledproducts" when productCount > 0:
-
-                    foreach (var productName in requestedProducts.SkipLast(1))
-                        productsArray.Add(GenerateProductJson(productName));
-
-                    productsArray.Add(GenerateProductJson(requestedProducts.Last(), true));
-                    break;
-
-                default:
-
-                    foreach (var productName in requestedProducts)
-                        productsArray.Add(GenerateProductJson(productName));
-                    break;
+                foreach (var productName in requestedProducts)
+                {
+                    notReturnedArray.Add(CreateProductNotReturnedObject(productName, "invalidProduct"));
+                }
             }
-            var returnedProductCount = state == "get-invalidproducts" || state == "get-productwithdrawn" && productCount > 0 ? productCount - notReturnedArray.Count : productsArray.Count;
+            else if (state == "get-invalidproducts" && requestedProducts.Count > 0)
+            {
+                foreach (var productName in requestedProducts.SkipLast(1))
+                    productsArray.Add(GenerateProductJson(productName));
+
+                var lastProduct = requestedProducts.Last();
+                notReturnedArray.Add(CreateProductNotReturnedObject(lastProduct, "invalidProduct"));
+            }
+            else
+            {
+                foreach (var productName in requestedProducts)
+                    productsArray.Add(GenerateProductJson(productName));
+            }
 
             return new JsonObject
             {
                 ["productCounts"] = new JsonObject
                 {
-                    ["requestedProductCount"] = productCount,
-                    ["returnedProductCount"] = returnedProductCount,
+                    ["requestedProductCount"] = requestedProducts.Count,
+                    ["returnedProductCount"] = (state == "get-invalidproducts" && requestedProducts.Count > 0) ? requestedProducts.Count - notReturnedArray.Count : productsArray.Count,
                     ["requestedProductsAlreadyUpToDateCount"] = 0,
                     ["requestedProductsNotReturned"] = notReturnedArray
                 },
@@ -231,7 +214,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
             };
         }
 
-        private static JsonObject GenerateProductJson(string productName, bool cancelled = false)
+        private static JsonObject GenerateProductJson(string productName)
         {
             var editionNumber = RandomInstance.Next(MinEditionNumber, MaxEditionNumber);
             var fileSize = RandomInstance.Next(MinFileSize, MaxFileSize);
@@ -277,7 +260,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
             };
 
             // 30% chance to add cancellation
-            if (cancelled)
+            if (RandomInstance.Next(0, 10) < 3)
             {
                 var updateNumber = updateNumbersArray.Count > 0
                     ? updateNumbersArray.Max(node => node.GetValue<int>())
@@ -290,19 +273,19 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
                 };
             }
 
-            productObj["fileSize"] = cancelled ? 0 : fileSize;
+            productObj["fileSize"] = fileSize;
 
             return productObj;
         }
 
         private static JsonObject GenerateProductsVersionsJson(ProductVersionRequest productRequest, bool cancelled = false)
         {
-            var editionNumber = productRequest.ProductName.StartsWith("101") ? productRequest.EditionNumber : productRequest.EditionNumber + 1; //RandomInstance.Next(MinEditionNumber, MaxEditionNumber);
+            var editionNumber = productRequest.ProductName.StartsWith("101") ? productRequest.EditionNumber : productRequest.EditionNumber + 1;
             var fileSize = RandomInstance.Next(MinFileSize, MaxFileSize);
             var baseDate = DateTime.UtcNow;
 
             var updateNumbersArray = new JsonArray { 0 };
-            var updateNumbersArray1 = new JsonArray { productRequest.UpdateNumber + 1 };
+            var updateNumbersArrayS101 = new JsonArray { productRequest.UpdateNumber + 1 };
             var datesArray = new JsonArray
     {
         new JsonObject
@@ -315,14 +298,13 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
 
             if (productRequest.ProductName.StartsWith("101"))
             {
-                //var updateNumbersArray1 = new JsonArray {  };
-                var additionalUpdateCount = 3;// RandomInstance.Next(0, MaxAdditionalUpdates);
+                var additionalUpdateCount = 3;
 
                 var updates = Enumerable.Range(productRequest.UpdateNumber + 2, additionalUpdateCount)
                     .Select(i =>
                     {
                         var currentDate = baseDate.AddDays(i * 5);
-                        updateNumbersArray1.Add(i);
+                        updateNumbersArrayS101.Add(i);
                         return new JsonObject
                         {
                             ["issueDate"] = currentDate.ToString("o"),
@@ -338,16 +320,14 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
             {
                 ["editionNumber"] = editionNumber,
                 ["productName"] = productRequest.ProductName,
-                ["updateNumbers"] = productRequest.ProductName.StartsWith("101") ? updateNumbersArray1 : updateNumbersArray,
+                ["updateNumbers"] = productRequest.ProductName.StartsWith("101") ? updateNumbersArrayS101 : updateNumbersArray,
                 ["dates"] = datesArray
             };
 
             // 30% chance to add cancellation
             if (cancelled)
             {
-                var updateNumber = updateNumbersArray.Count > 0
-                    ? updateNumbersArray.Max(node => node.GetValue<int>())
-                    : 0;
+                var updateNumber = productRequest.ProductName.StartsWith("101") ? updateNumbersArrayS101.Max(node => node.GetValue<int>()) : updateNumbersArray.Max(node => node.GetValue<int>());
 
                 productObj["cancellation"] = new JsonObject
                 {
@@ -405,13 +385,6 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
             }
 
             return requestedProducts;
-        }
-
-        public class ProductVersionRequest
-        {
-            public string ProductName { get; set; } = string.Empty;
-            public int? EditionNumber { get; set; }
-            public int UpdateNumber { get; set; }
         }
     }
 }
