@@ -29,28 +29,20 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
             setEnvironmentFunc?.Invoke(environment);
 
             //rhz: Ensure the custom bridge network exists and connect the storage container to it
-            var cntnrs = await _dockerClient.Containers.ListContainersAsync(new ContainersListParameters
-            {
-                All = true,
+            //var cntnrs = await _dockerClient.Containers.ListContainersAsync(new ContainersListParameters
+            //{
+            //    All = true,
                 
-                //Filters = new Dictionary<string, IDictionary<string, bool>>
-                //{
-                //    {
-                //        "name", new Dictionary<string, bool>
-                //        {
-                //            { StorageConfiguration.StorageName, true }
-                //        }
-                //    }
-                //}
-            });
+                
+            //});
 
-            foreach (var cntnr in cntnrs)
-            {
-                if (cntnr.Names.Any(n => n.TrimStart('/').Equals(StorageConfiguration.StorageName, StringComparison.OrdinalIgnoreCase)))
-                {
-                    Log.Information($"Found existing container with name {StorageConfiguration.StorageName} and ID {cntnr.ID}. Continuing.");
-                }
-            }
+            //foreach (var cntnr in cntnrs)
+            //{
+            //    if (cntnr.Names.Any(n => n.TrimStart('/').Equals(StorageConfiguration.StorageName, StringComparison.OrdinalIgnoreCase)))
+            //    {
+            //        Log.Information($"Found existing container with name {StorageConfiguration.StorageName} and ID {cntnr.ID}. Continuing.");
+            //    }
+            //}
 
             var networkParams = new NetworksCreateParameters
             {
