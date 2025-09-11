@@ -50,6 +50,8 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
                 Driver = "bridge"
             };
 
+            Log.Information($"Attempt to create docker custom network {networkParams.Name}. ");
+
             //var networks = await _dockerClient.Networks.ListNetworksAsync();
 
 
