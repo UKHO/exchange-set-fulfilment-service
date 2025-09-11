@@ -41,8 +41,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                     var validationResult = await productNameValidator.ValidateAsync((productNames, callbackUri));
                     var validationResponse = HandleValidationResult(validationResult, logger, (string)correlationId);
-                    if (validationResponse != null)
-                        return validationResponse;
+                         if (validationResponse != null)
+                         {
+                             return validationResponse;
+                         }
 
                     logger.S100InputValidationSucceeded((string)correlationId, RequestType.ProductNames.ToString());
 
@@ -81,7 +83,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                     var validationResult = await productVersionsRequestValidator.ValidateAsync((productVersions, callbackUri));
                     var validationResponse = HandleValidationResult(validationResult, logger, (string)correlationId);
                     if (validationResponse != null)
+                    {
                         return validationResponse;
+                    }
 
                     logger.S100InputValidationSucceeded((string)correlationId, RequestType.ProductVersions.ToString());
 
@@ -120,7 +124,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                     var validationResult = await updateSinceRequestValidator.ValidateAsync((request!, callbackUri, productIdentifier));
                     var validationResponse = HandleValidationResult(validationResult, logger, (string)correlationId);
                     if (validationResponse != null)
+                    {
                         return validationResponse;
+                    }
 
                     logger.S100InputValidationSucceeded((string)correlationId, RequestType.UpdatesSince.ToString());
 

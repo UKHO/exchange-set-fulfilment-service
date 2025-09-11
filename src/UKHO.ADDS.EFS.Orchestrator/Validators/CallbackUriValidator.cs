@@ -15,7 +15,10 @@ public class CallbackUriValidator
     /// <returns>True if the URI is valid HTTPS, false otherwise</returns>
     public static bool IsValidCallbackUri(string? callbackUri)
     {
-        if (callbackUri == null) return true;
+        if (callbackUri == null)
+        {
+            return true;
+        }
 
         try
         {

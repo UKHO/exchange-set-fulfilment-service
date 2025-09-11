@@ -13,7 +13,10 @@ internal static class ProductIdentifierValidator
 
     public static bool IsValid(string? productIdentifier)
     {
-        if (productIdentifier == null) return true;
+        if (productIdentifier == null)
+        {
+            return true;
+        }
         return _productIdentifierRegex.IsMatch(productIdentifier);
     }
 }
