@@ -38,20 +38,8 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                         }
 
                     case "get-invalidproducts":
-
-                        response.GetTypedHeaders().LastModified = DateTime.UtcNow;
-                        return await ScsResponseGenerator.ProvideProductVersionsResponse(request, state);
-
                     case "get-allinvalidproducts":
-
-                        response.GetTypedHeaders().LastModified = DateTime.UtcNow;
-                        return await ScsResponseGenerator.ProvideProductVersionsResponse(request, state);
-
                     case "get-cancelledproducts":
-
-                        response.GetTypedHeaders().LastModified = DateTime.UtcNow;
-                        return await ScsResponseGenerator.ProvideProductVersionsResponse(request, state);
-
                     case "get-productwithdrawn":
                     case "get-productalreadytuptodate":
 
