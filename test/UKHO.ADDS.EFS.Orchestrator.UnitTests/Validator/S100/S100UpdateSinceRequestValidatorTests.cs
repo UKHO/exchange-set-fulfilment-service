@@ -55,7 +55,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
         }
 
         [TestCase(null, true)]
-        [TestCase("", false)]
+        [TestCase("", true)]
         [TestCase("   ", false)]
         [TestCase("https://valid.com/callback", true)]
         [TestCase("http://invalid.com/callback", false)]

@@ -5,7 +5,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Validators;
 /// </summary>
 public class CallbackUriValidator
 {
-    public const string INVALID_CALLBACK_URI_MESSAGE = "Please provide a callbackUri in a valid HTTPS format.";
+    public const string INVALID_CALLBACK_URI_MESSAGE = "Please enter a valid callback URI in HTTPS format.";
 
     /// <summary>
     /// Validates that the callback URI is a valid HTTPS URI
@@ -14,7 +14,7 @@ public class CallbackUriValidator
     /// <returns>True if the URI is valid HTTPS, false otherwise</returns>
     public static bool IsValidCallbackUri(string? callbackUri)
     {
-        if (callbackUri == null)
+        if (string.IsNullOrEmpty(callbackUri))
         {
             return true;
         }

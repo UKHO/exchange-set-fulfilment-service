@@ -7,7 +7,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator;
 internal class CallbackUriValidatorTests
 {
     [TestCase(null, true)]
-    [TestCase("", false)]
+    [TestCase("", true)]
     [TestCase("   ", false)]
     [TestCase("https://example.com/callback", true)]
     [TestCase("http://example.com/callback", false)]

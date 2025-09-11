@@ -107,7 +107,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
                 else
                 {
                     Assert.That(result.IsValid, Is.False);
-                    Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "Invalid callbackUri format."));
+                    Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "Please enter a valid callback URI in HTTPS format."));
                 }
             });
         }
@@ -129,13 +129,16 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
                 Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "ProductName cannot be null or empty."));
                 Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "Edition number must be a positive integer."));
                 Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "Update number must be zero or a positive integer."));
-                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "Invalid callbackUri format."));
+                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "Please enter a valid callback URI in HTTPS format."));
                 Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "'AnotherProduct' is not valid: it neither starts with a 3-digit S-100 code nor has length 8 for S-57."));
                 Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "'ThirdProduct' is not valid: it neither starts with a 3-digit S-100 code nor has length 8 for S-57."));
             });
         }
 
-        private S100ProductVersionsRequestValidator S100ProductVersionsRequestValidator() => new S100ProductVersionsRequestValidator();
+        private S100ProductVersionsRequestValidator S100ProductVersionsRequestValidator()
+        {
+            return new();
+        }
 
         private S100ProductVersion CreateProductVersion(string? productName, int editionNumber, int updateNumber)
         {
