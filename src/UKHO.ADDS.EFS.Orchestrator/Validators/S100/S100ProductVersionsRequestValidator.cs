@@ -27,7 +27,10 @@ internal class S100ProductVersionsRequestValidator : AbstractValidator<(IEnumera
             .Custom((productVersions, context) =>
             {
                 if (productVersions == null)
+                {
                     return;
+                }
+
                 int index = 0;
                 foreach (var product in productVersions)
                 {
