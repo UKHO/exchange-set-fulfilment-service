@@ -46,8 +46,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                              return validationResponse;
                          }
 
-                    logger.S100InputValidationSucceeded((string)correlationId, RequestType.ProductNames.ToString());
-
                     var parameters = AssemblyPipelineParameters.CreateFromS100ProductNames(productNames!, configuration, (string)correlationId, callbackUri);
                     var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
 
@@ -87,8 +85,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                         return validationResponse;
                     }
 
-                    logger.S100InputValidationSucceeded((string)correlationId, RequestType.ProductVersions.ToString());
-
                     var parameters = AssemblyPipelineParameters.CreateFromS100ProductVersions(productVersions!, configuration, (string)correlationId, callbackUri);
                     var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
 
@@ -127,8 +123,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                     {
                         return validationResponse;
                     }
-
-                    logger.S100InputValidationSucceeded((string)correlationId, RequestType.UpdatesSince.ToString());
 
                     var parameters = AssemblyPipelineParameters.CreateFromS100UpdatesSince(request!, configuration, (string)correlationId, productIdentifier, callbackUri);
                     var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);

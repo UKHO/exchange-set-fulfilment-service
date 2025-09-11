@@ -1,12 +1,11 @@
-
 namespace UKHO.ADDS.EFS.Orchestrator.Validators;
 
 /// <summary>
 /// Validator for callback URI format and security requirements
 /// </summary>
-public class CallbackUriValidator 
+public class CallbackUriValidator
 {
-    public const string INVALID_CALLBACK_URI_MESSAGE = "Invalid callbackUri format.";
+    public const string INVALID_CALLBACK_URI_MESSAGE = "Please provide a callbackUri in a valid HTTPS format.";
 
     /// <summary>
     /// Validates that the callback URI is a valid HTTPS URI
@@ -23,7 +22,14 @@ public class CallbackUriValidator
         try
         {
             var baseUri = new Uri(callbackUri);
-            return (baseUri.Scheme == Uri.UriSchemeHttps);
+            if (baseUri.Scheme == Uri.UriSchemeHttps)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
         catch (FormatException)
         {

@@ -209,9 +209,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
             
         [LoggerMessage(HealthCheckFailedStatusCodeId, LogLevel.Warning, "Health check for {ServiceName} failed with status code {StatusCode}", EventName = nameof(HealthCheckFailedStatusCode))]
         public static partial void LogHealthCheckFailedStatusCode(this ILogger logger, string serviceName, int statusCode);
-        // S100 Input validation logging methods
-        [LoggerMessage(S100InputValidationSucceededId, LogLevel.Information, "S100 input validation succeeded for correlation ID: {correlationId} with request type : {productVersions}.", EventName = nameof(S100InputValidationSucceeded))]
-        public static partial void S100InputValidationSucceeded(this ILogger logger, string correlationId, string productVersions);
 
         [LoggerMessage(S100InputValidationFailedId, LogLevel.Error, "S100 input validation failed for correlation ID: {correlationId} - Errors: {validationErrors}", EventName = nameof(S100InputValidationFailed))]
         public static partial void S100InputValidationFailed(this ILogger logger, string correlationId, string validationErrors);
