@@ -113,12 +113,12 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Helpers
         /// <param name="request">The HTTP request</param>
         /// <param name="details">Optional details for the error</param>
         /// <returns>A 500 Internal Server Error IResult</returns>
-        public static IResult CreateInternalServerErrorResponse(HttpRequest request, string details = "Internal Server Error")
+        public static IResult CreateInternalServerErrorResponse(HttpRequest request, string detail = "Internal Server Error")
         {
             return Results.Json(new
             {
                 correlationId = GetCorrelationId(request),
-                details
+                detail
             }, statusCode: 500);
         }
     }

@@ -53,6 +53,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                         return await ScsResponseGenerator.ProvideProductVersionsResponse(request, state);
 
                     case "get-productwithdrawn":
+                    case "get-productalreadytuptodate":
 
                         response.GetTypedHeaders().LastModified = DateTime.UtcNow;
                         return await ScsResponseGenerator.ProvideProductVersionsResponse(request, state);
@@ -82,7 +83,8 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                     "Product Versions Endpoint",
                     "This endpoint is used to retrieve the latest baseline, releasable versions for requested products since a specified version.",
                     ("Try out the get-cancelledproducts state!", "The response mimics a situation where one of the requested products is cancelled. The final item in the request is marked as cancelled and cancellation details are added in the response with file size 0."),
-                    ("Try out the get-productwithdrawn state!", "The response mimics a situation where one of the requested products is withdrawn. The final item in the request is omitted from the returned list and is instead flagged as 'withdrawn', along with a reason like 'productWithdrawn'.")
+                    ("Try out the get-productwithdrawn state!", "The response mimics a situation where one of the requested products is withdrawn. The final item in the request is omitted from the returned list and is instead flagged as 'withdrawn', along with a reason like 'productWithdrawn'."),
+                    ("Try out the get-productalreadytuptodate state!", "The response mimics a situation where one of the requested products is up to date. The final item in the request is omitted from the returned list and count is shown in requestedProductsAlreadyUpToDateCount property.")
                 ));
     }
 }
