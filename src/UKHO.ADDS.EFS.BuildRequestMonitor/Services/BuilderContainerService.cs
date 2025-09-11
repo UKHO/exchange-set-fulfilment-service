@@ -50,27 +50,40 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
                 Driver = "bridge"
             };
 
-            var networks = await _dockerClient.Networks.ListNetworksAsync();
-            var existingNetwork = networks.FirstOrDefault(n => n.Name == "efs_test_bridge") != null;
+            //var networks = await _dockerClient.Networks.ListNetworksAsync();
 
 
-            if (!existingNetwork)
+            //var existingNetwork = networks.FirstOrDefault(n => n.Name == "efs_test_bridge") != null;
+
+
+            try
             {
-                try
-                {
-                    await _dockerClient.Networks.CreateNetworkAsync(networkParams);
-                    Log.Information($"Created docker custome network {networkParams.Name}. Continuing.");
-                }
-                catch (Exception ex)
-                {
-                    Log.Warning(ex, "Failed to create docker network {NetworkName}. Continuing.", networkParams.Name);
-
-                } 
+                await _dockerClient.Networks.CreateNetworkAsync(networkParams);
+                Log.Information($"Created docker custom network {networkParams.Name}. Continuing.");
             }
-            else
+            catch (Exception ex)
             {
-                Log.Information($"Docker custome network {networks.FirstOrDefault(n => n.Name == "efs_test_bridge")} already exists. Continuing.");
+                Log.Warning(ex, "Failed to create docker network {NetworkName}. Continuing.", networkParams.Name);
+
             }
+
+            //if (!existingNetwork)
+            //{
+            //    try
+            //    {
+            //        await _dockerClient.Networks.CreateNetworkAsync(networkParams);
+            //        Log.Information($"Created docker custome network {networkParams.Name}. Continuing.");
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        Log.Warning(ex, "Failed to create docker network {NetworkName}. Continuing.", networkParams.Name);
+
+            //    } 
+            //}
+            //else
+            //{
+            //    Log.Information($"Docker custome network {networks.FirstOrDefault(n => n.Name == "efs_test_bridge")} already exists. Continuing.");
+            //}
 
 
             await _dockerClient.Networks.ConnectNetworkAsync("efs_test_bridge", new NetworkConnectParameters
