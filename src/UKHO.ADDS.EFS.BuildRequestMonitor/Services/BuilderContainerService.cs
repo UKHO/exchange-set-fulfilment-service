@@ -65,7 +65,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, "Failed to create docker network {NetworkName}. Continuing.", networkParams.Name);
+                Log.Warning(ex, "Attempt failed, docker network {NetworkName} not created. Error {exMessage}.", networkParams.Name, ex.Message);
 
             }
 
