@@ -61,7 +61,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
 
                     context.Subject.IsErrorFileCreated = true;
                     
-                    if (batchHandle.FileDetails?.Count > 0)
+                    if (batchHandle.FileDetails.Count > 0)
                     {
                         var firstFileDetail = batchHandle.FileDetails.First();
                         context.Subject.Build.BuildCommitInfo?.AddFileDetail(firstFileDetail.FileName, firstFileDetail.Hash);
