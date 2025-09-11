@@ -76,7 +76,12 @@ namespace UKHO.ADDS.EFS.LocalHost
             });
 
             // Storage configuration
-            var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e => { e.WithDataVolume(); });
+            var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e =>
+            {
+                e.WithDataVolume()
+                .WithContainerName(StorageConfiguration.StorageName);
+            });
+
             storage.ConfigureInfrastructure(config =>
             {
                 var storageAccount = config.GetProvisionableResources().OfType<StorageAccount>().Single();

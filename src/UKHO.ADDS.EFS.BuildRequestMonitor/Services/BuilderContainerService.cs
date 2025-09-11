@@ -4,6 +4,7 @@ using Docker.DotNet.Models;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Builders;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Logging;
 using UKHO.ADDS.EFS.Builds;
+using UKHO.ADDS.EFS.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Configuration.Orchestrator;
 
 namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
@@ -26,6 +27,38 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
             var environment = new BuilderEnvironment();
             setEnvironmentFunc?.Invoke(environment);
 
+            //rhz: Ensure the custom bridge network exists and connect the storage container to it
+            var networkParams = new NetworksCreateParameters
+            {
+                Name = "efs_test_bridge",
+                Driver = "bridge"
+            };
+
+            var networks = await _dockerClient.Networks.ListNetworksAsync();
+            var existingNetwork = networks.FirstOrDefault(n => n.Name == "efs_test_bridge") != null;
+
+
+            if (!existingNetwork)
+            {
+                try
+                {
+                    await _dockerClient.Networks.CreateNetworkAsync(networkParams);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to create docker network {NetworkName}. Continuing.", networkParams.Name);
+
+                } 
+            }
+            
+
+            await _dockerClient.Networks.ConnectNetworkAsync("efs_test_bridge", new NetworkConnectParameters
+            {
+                Container = StorageConfiguration.StorageName,
+            });
+
+            //rhz: End custom bridge network setup
+
             var response = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters
             {
                 Image = image,
@@ -36,6 +69,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
                 Tty = false,
                 HostConfig = new HostConfig
                 {
+                    NetworkMode = "efs_test_bridge", //rhz: Use the custom bridge network
                     ExtraHosts = new[]
                     {
                         "host.docker.internal:host-gateway"

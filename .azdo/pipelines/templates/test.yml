@@ -6,7 +6,6 @@ parameters:
 
 jobs:
 - job: UnitTestsAndCodeCoverage
-  pool: Mare Nubium
   workspace:
     clean: all
   displayName: Unit tests and code coverage
@@ -59,7 +58,7 @@ jobs:
         ArtifactName: codecoveragereport
 
 - job: FunctionalTests
-  pool: Mare Nubium
+  pool: $(LinuxPool)
   displayName: 'Run functional tests'
   workspace:
     clean: all
