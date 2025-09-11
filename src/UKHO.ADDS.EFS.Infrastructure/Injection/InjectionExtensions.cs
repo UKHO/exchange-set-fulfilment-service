@@ -76,12 +76,12 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                         {
                             OnForbidden = context =>
                             {
-                                context.Response.Headers.Append("origin", "JOBAPI");
+                                //context.Response.Headers.Append("origin", "JOBAPI");
                                 return Task.CompletedTask;
                             },
                             OnAuthenticationFailed = context =>
                             {
-                                context.Response.Headers.Append("origin", "JOBAPI");
+                                //context.Response.Headers.Append("origin", "JOBAPI");
                                 return Task.CompletedTask;
                             }
                         };
