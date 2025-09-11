@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using Serilog;
+using System.Runtime.InteropServices;
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Builders;
@@ -28,6 +29,29 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
             setEnvironmentFunc?.Invoke(environment);
 
             //rhz: Ensure the custom bridge network exists and connect the storage container to it
+            var cntnrs = await _dockerClient.Containers.ListContainersAsync(new ContainersListParameters
+            {
+                All = true,
+                
+                //Filters = new Dictionary<string, IDictionary<string, bool>>
+                //{
+                //    {
+                //        "name", new Dictionary<string, bool>
+                //        {
+                //            { StorageConfiguration.StorageName, true }
+                //        }
+                //    }
+                //}
+            });
+
+            foreach (var cntnr in cntnrs)
+            {
+                if (cntnr.Names.Any(n => n.TrimStart('/').Equals(StorageConfiguration.StorageName, StringComparison.OrdinalIgnoreCase)))
+                {
+                    Log.Information($"Found existing container with name {StorageConfiguration.StorageName} and ID {cntnr.ID}. Continuing.");
+                }
+            }
+
             var networkParams = new NetworksCreateParameters
             {
                 Name = "efs_test_bridge",
@@ -43,6 +67,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
                 try
                 {
                     await _dockerClient.Networks.CreateNetworkAsync(networkParams);
+                    Log.Information($"Created docker custome network {networkParams.Name}. Continuing.");
                 }
                 catch (Exception ex)
                 {
@@ -56,6 +81,9 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
             {
                 Container = StorageConfiguration.StorageName,
             });
+            Log.Information($"Attempted to connect docker custome network {networkParams.Name} to {StorageConfiguration.StorageName}.");
+
+
 
             //rhz: End custom bridge network setup
 
