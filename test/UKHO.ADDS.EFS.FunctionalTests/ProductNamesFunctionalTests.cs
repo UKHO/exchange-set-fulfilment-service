@@ -6,13 +6,6 @@ namespace UKHO.ADDS.EFS.FunctionalTests
 {
     public class ProductNamesFunctionalTests : TestBase
     {
-        private readonly ITestOutputHelper _output;
-
-        public ProductNamesFunctionalTests(ITestOutputHelper output)
-        {
-            _output = output;
-        }
-
         //PBI 242670 - Input validation for the ESS API - Product Name Endpoint
         [Theory]
         [InlineData(new object[] { "101GB40079ABCDEFG", "102NO32904820801012", "104US00_CHES_TYPE1_20210630_0600", "111US00_ches_dcf8_20190703T00Z" }, "https://valid.com/callback", HttpStatusCode.Accepted, "")] // Test Case 243519 - Valid input
