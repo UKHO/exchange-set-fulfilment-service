@@ -63,16 +63,20 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Failed to create docker network {NetworkName}. Continuing.", networkParams.Name);
+                    Log.Warning(ex, "Failed to create docker network {NetworkName}. Continuing.", networkParams.Name);
 
                 } 
             }
-            
+            else
+            {
+                Log.Information($"Docker custome network {networks.FirstOrDefault(n => n.Name == "efs_test_bridge")} already exists. Continuing.");
+            }
+
 
             await _dockerClient.Networks.ConnectNetworkAsync("efs_test_bridge", new NetworkConnectParameters
-            {
-                Container = StorageConfiguration.StorageName,
-            });
+                {
+                    Container = StorageConfiguration.StorageName,
+                });
             Log.Information($"Attempted to connect docker custome network {networkParams.Name} to {StorageConfiguration.StorageName}.");
 
 
