@@ -6,6 +6,7 @@ parameters:
 
 jobs:
 - job: UnitTestsAndCodeCoverage
+  pool: Mare Nubium
   workspace:
     clean: all
   displayName: Unit tests and code coverage
