@@ -11,12 +11,12 @@ using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 {
-    internal class newGetS100ProductNamesNode : AssemblyPipelineNode<S100Build>
+    internal class S100ProductEditionRetrievalNode : AssemblyPipelineNode<S100Build>
     {
         private readonly IProductService _productService;
-        private readonly ILogger<GetS100ProductNamesNode> _logger;
+        private readonly ILogger<S100ProductEditionRetrievalNode> _logger;
 
-        public newGetS100ProductNamesNode(AssemblyNodeEnvironment nodeEnvironment, IProductService productService, ILogger<GetS100ProductNamesNode> logger)
+        public S100ProductEditionRetrievalNode(AssemblyNodeEnvironment nodeEnvironment, IProductService productService, ILogger<S100ProductEditionRetrievalNode> logger)
             : base(nodeEnvironment)
         {
             _productService = productService ?? throw new ArgumentNullException(nameof(productService));
