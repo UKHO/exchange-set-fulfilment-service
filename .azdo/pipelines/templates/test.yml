@@ -59,7 +59,7 @@ jobs:
         ArtifactName: codecoveragereport
 
 - job: FunctionalTests
-  pool: $(LinuxPool)
+  pool: Mare Nubium
   displayName: 'Run functional tests'
   workspace:
     clean: all
