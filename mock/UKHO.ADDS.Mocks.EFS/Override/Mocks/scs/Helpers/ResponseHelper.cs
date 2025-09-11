@@ -77,14 +77,14 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Helpers
         /// Creates a standardized 404 Not Found response with correlation ID
         /// </summary>
         /// <param name="request">The HTTP request</param>
-        /// <param name="details">Optional details for the not found response</param>
+        /// <param name="detail">Optional details for the not found response</param>
         /// <returns>A 404 Not Found IResult</returns>
-        public static IResult CreateNotFoundResponse(HttpRequest request, string details = "Not Found")
+        public static IResult CreateNotFoundResponse(HttpRequest request, string detail = "Not Found")
         {
             return Results.Json(new
             {
                 correlationId = GetCorrelationId(request),
-                details
+                detail
             }, statusCode: 404);
         }
 
@@ -111,14 +111,14 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Helpers
         /// Creates a standardized 500 Internal Server Error response with correlation ID
         /// </summary>
         /// <param name="request">The HTTP request</param>
-        /// <param name="details">Optional details for the error</param>
+        /// <param name="detail">Optional details for the error</param>
         /// <returns>A 500 Internal Server Error IResult</returns>
-        public static IResult CreateInternalServerErrorResponse(HttpRequest request, string details = "Internal Server Error")
+        public static IResult CreateInternalServerErrorResponse(HttpRequest request, string detail = "Internal Server Error")
         {
             return Results.Json(new
             {
                 correlationId = GetCorrelationId(request),
-                details
+                detail
             }, statusCode: 500);
         }
     }

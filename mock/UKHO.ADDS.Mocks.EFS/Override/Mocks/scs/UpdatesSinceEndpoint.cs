@@ -25,7 +25,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                 return state switch
                 {
                     WellKnownState.Default => await HandleDefaultRequest(productIdentifier, response),
-                    WellKnownState.NotModified => HandleNotModified(response),
+                    WellKnownState.NotModified => HandleNotModified(response, sinceDateTime),
                     WellKnownState.BadRequest => ResponseHelper.CreateBadRequestResponse(request, "Updates Since", "Bad Request."),
                     WellKnownState.NotFound => ResponseHelper.CreateNotFoundResponse(request),
                     WellKnownState.UnsupportedMediaType => ResponseHelper.CreateUnsupportedMediaTypeResponse(),
@@ -71,9 +71,9 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
         /// <summary>
         /// Handles the NotModified state (304 response).
         /// </summary>
-        private static IResult HandleNotModified(HttpResponse response)
+        private static IResult HandleNotModified(HttpResponse response, string sinceDateTime)
         {
-            response.GetTypedHeaders().LastModified = DateTime.UtcNow;
+            response.Headers.LastModified = sinceDateTime;
             return Results.StatusCode(304);
         }
     }
