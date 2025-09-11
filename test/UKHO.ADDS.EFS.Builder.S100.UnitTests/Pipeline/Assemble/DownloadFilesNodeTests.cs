@@ -119,13 +119,23 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         }
 
         [Test]
-        public async Task WhenBatchFilesIsEmpty_ThenReturnsFailed()
+        public async Task WhenBatchFilesIsEmpty_ThenReturnsSucceeded()
         {
+            // Updated test to expect Succeeded status for empty files
             var batch = CreateBatchDetails(fileNames: Array.Empty<string>());
             _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
             var result = await _downloadFilesNode.ExecuteAsync(_executionContext);
 
-            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
+            
+            // Verify that the appropriate log message is generated
+            A.CallTo(() => _logger.Log<LoggerMessageState>(
+                LogLevel.Error,
+                A<EventId>.That.Matches(e => e.Name == "DownloadFilesNodeNoFilesToProcessError"),
+                A<LoggerMessageState>._,
+                null,
+                A<Func<LoggerMessageState, Exception?, string>>._))
+            .MustHaveHappenedOnceExactly();
         }
 
         [Test]

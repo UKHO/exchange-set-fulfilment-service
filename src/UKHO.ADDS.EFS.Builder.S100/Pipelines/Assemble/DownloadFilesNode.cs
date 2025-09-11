@@ -55,6 +55,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
             try
             {
+                if (context.Subject.BatchDetails == null || context.Subject.BatchDetails.Count() == 0)
+                {
+                    return NodeResultStatus.NotRun;
+                }
+
                 var downloadPath = Path.Combine(context.Subject.WorkSpaceRootPath, context.Subject.WorkSpaceSpoolPath);
 
                 CreateDirectoryIfNotExists(downloadPath);
@@ -98,8 +103,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             var allFilesToProcess = GetAllFilesToProcess(latestBatches);
             if (allFilesToProcess.Count == 0)
             {
-                _logger.LogDownloadFilesNodeNoFilesToProcessError("No files found for processing");
-                return NodeResultStatus.Failed;
+                // Changed to return Succeeded for empty file lists
+                // This allows the pipeline to continue and generate an empty exchange set
+                _logger.LogDownloadFilesNodeNoFilesToProcessError("No files found for processing, continuing with empty exchange set generation");
+                return NodeResultStatus.Succeeded;
             }
 
             CreateRequiredDirectories(

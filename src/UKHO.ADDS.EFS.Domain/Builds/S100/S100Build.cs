@@ -8,11 +8,13 @@ namespace UKHO.ADDS.EFS.Domain.Builds.S100
     {
         private List<Product> _products;
         private List<ProductEdition> _productEditions;
+        private MissingProductList _missingProducts;
 
         public S100Build()
         {
             _products = [];
             _productEditions = [];
+            _missingProducts = new MissingProductList();
         }
 
         public IEnumerable<Product>? Products
@@ -25,6 +27,12 @@ namespace UKHO.ADDS.EFS.Domain.Builds.S100
         {
             get => _productEditions;
             set => _productEditions = value?.ToList() ?? [];
+        }
+
+        public MissingProductList MissingProducts
+        {
+            get => _missingProducts;
+            set => _missingProducts = value ?? new MissingProductList();
         }
 
         /// <summary>
