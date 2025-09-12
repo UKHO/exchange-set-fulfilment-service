@@ -18,7 +18,14 @@ internal class S100CustomAssemblyPipeline : AssemblyPipeline<S100Build>
 
         AddPipelineNode<CreateJobNode>(cancellationToken);
         AddPipelineNode<GetDataStandardTimestampNode>(cancellationToken);
+        AddPipelineNode<S100ProductEditionRetrievalNode>(cancellationToken);
+     
+        AddPipelineNode<CheckFingerprintNode>(cancellationToken);
+        AddPipelineNode<CreateFileShareBatchNode>(cancellationToken);
         AddPipelineNode<CreateResponseNode>(cancellationToken);
+        AddPipelineNode<ScheduleBuildNode>(cancellationToken);
+        AddPipelineNode<CreateFingerprintNode>(cancellationToken);
+ 
 
         var result = await Pipeline.ExecuteAsync(context);
 

@@ -48,7 +48,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
 
             if (validContentPaths.Length == 0)
             {
-                return NodeResultStatus.Failed;
+                return NodeResultStatus.Succeeded;
             }
 
             return NodeResultStatus.Succeeded;
