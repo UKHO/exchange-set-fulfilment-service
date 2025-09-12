@@ -18,7 +18,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
         {
             var logger = context.Subject.LoggerFactory.CreateLogger<SignExchangeSetNode>();
 
-            var result = await context.Subject.ToolClient.SignExchangeSetAsync(context.Subject.JobId, context.Subject.WorkspaceAuthenticationKey, context.Subject.Build.GetCorrelationId());
+            var result = await context.Subject.ToolClient.SignExchangeSetAsync(context.Subject.JobId, context.Subject.WorkspaceAuthenticationKey);
 
             if (!result.IsSuccess(out _, out var error))
             {

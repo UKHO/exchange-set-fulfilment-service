@@ -1,5 +1,5 @@
-﻿using UKHO.ADDS.EFS.Configuration.Namespaces;
-using UKHO.ADDS.EFS.FunctionalTests.Services;
+﻿using UKHO.ADDS.EFS.FunctionalTests.Services;
+using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 using Xunit.Abstractions;
 
 namespace UKHO.ADDS.EFS.FunctionalTests

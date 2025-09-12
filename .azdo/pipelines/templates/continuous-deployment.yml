@@ -91,31 +91,9 @@ jobs:
             noCache: true
             nugetConfigPath: '$(Build.SourcesDirectory)/efs/BuildNuget.config'
 
-        - template: get-retained-resource-details.yml
-
-        - task: AzureCLI@2
-          displayName: Get retained infrastructure details
-          inputs:
-            azureSubscription: ${{ variables.AzureSubscription }}
-            workingDirectory: $(Build.SourcesDirectory)/efs
-            scriptType: bash
-            scriptLocation: inlineScript
-            inlineScript: |
-              set -e
-              echo "Getting  managed identity name..."
-              EFS_SERVICE_IDENTITY_NAME=$(az identity list --resource-group $EFS_RETAIN_RESOURCE_GROUP --query "[?starts_with(name, '$(EFS_SERVICE_IDENTITY_PARTIAL_NAME)')].name" --output tsv)
-
-              echo "Storing variables..."
-              echo "##vso[task.setvariable variable=AZURE_EFS_SERVICE_IDENTITY_RESOURCE_GROUP;]$EFS_RETAIN_RESOURCE_GROUP"
-              echo "##vso[task.setvariable variable=AZURE_EFS_SERVICE_IDENTITY_NAME;]$EFS_SERVICE_IDENTITY_NAME"
-
-              if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
-                echo "Job variables:"
-                echo "--------------------------------------------------------------------------------"
-                echo $EFS_RETAIN_RESOURCE_GROUP
-                echo $EFS_SERVICE_IDENTITY_NAME
-                echo "--------------------------------------------------------------------------------"
-              fi
+        - template: get-infrastructure-details.yml
+          parameters:
+            AzureSubscription: ${{ variables.AzureSubscription }}
 
         - task: AzureCLI@2
           displayName: Package application
@@ -167,8 +145,15 @@ jobs:
             AZURE_LOCATION: $(AZURE_LOCATION)
             AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
             AZURE_ADDS_ENVIRONMENT: $(AZURE_ENV_NAME)
-            AZURE_EFS_SERVICE_IDENTITY_RESOURCE_GROUP: $(AZURE_EFS_SERVICE_IDENTITY_RESOURCE_GROUP)
+            AZURE_EFS_RETAIN_RESOURCE_GROUP: $(AZURE_EFS_RETAIN_RESOURCE_GROUP)
             AZURE_EFS_SERVICE_IDENTITY_NAME: $(AZURE_EFS_SERVICE_IDENTITY_NAME)
+            AZURE_EFS_LOG_ANALYTICS_WORKSPACE_NAME: $(AZURE_EFS_LOG_ANALYTICS_WORKSPACE_NAME)
+            AZURE_EFS_CONTAINER_REGISTRY_NAME: $(AZURE_EFS_CONTAINER_REGISTRY_NAME)
+            AZURE_EFS_CONTAINER_APPS_ENVIRONMENT_NAME: $(AZURE_EFS_CONTAINER_APPS_ENVIRONMENT_NAME)
+            AZURE_EFS_APPLICATION_INSIGHTS_NAME: $(AZURE_EFS_APPLICATION_INSIGHTS_NAME)
+            AZURE_EFS_EVENT_HUBS_NAMESPACE_NAME: $(AZURE_EFS_EVENT_HUBS_NAMESPACE_NAME)
+            AZURE_EFS_APP_CONFIGURATION_NAME: $(AZURE_EFS_APP_CONFIGURATION_NAME)
+            AZURE_EFS_STORAGE_ACCOUNT_NAME: $(AZURE_EFS_STORAGE_ACCOUNT_NAME)
 
         - task: AzureCLI@2
           displayName: Run configuration seeder
@@ -248,7 +233,7 @@ jobs:
             parameters:
               AzureSubscription: ${{ variables.AzureSubscription }}
               AppName: efs-orchestrator
-              MaxWaitTime: 1
+              MaxWaitTime: 15
 
           - ${{ if eq(parameters.IncludeAddsMock, true) }}:
 
@@ -258,8 +243,18 @@ jobs:
                 AppName: adds-mocks-efs
                 MaxWaitTime: 1
 
-          - template: check-container.yml
-            parameters:
-              AzureSubscription: ${{ variables.AzureSubscription }}
-              AppName: efs-redis
-              MaxWaitTime: 1
+          - script: |
+              DOMAIN=$(azd env get-value EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN)
+              URL="https://efs-orchestrator.$DOMAIN"
+              echo "Orchestrator Endpoint: $URL"
+              echo "##vso[task.setvariable variable=ORCHESTRATOR_URL]$URL"
+            displayName: 'Set Orchestrator Endpoint Variable'
+            workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
+
+          - task: PowerShell@2
+            displayName: "Check health endpoint"
+            inputs:
+              targetType: filePath
+              filePath: "$(Build.SourcesDirectory)/efs/.azdo/pipelines/powershell/CheckServiceStatus.ps1"
+              arguments: "-healthEndPointUrl $(ORCHESTRATOR_URL)/health -waitTimeInMinute 2 -onErrorContinue 0"
+

@@ -1,6 +1,6 @@
 ﻿using System.IO.Compression;
 using Aspire.Hosting;
-using UKHO.ADDS.EFS.Configuration.Namespaces;
+using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 
 namespace UKHO.ADDS.EFS.FunctionalTests.Services
 {

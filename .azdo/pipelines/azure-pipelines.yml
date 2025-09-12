@@ -80,14 +80,14 @@ resources:
     type: github
 
 stages:
-  # - stage: VulnerabilityChecks
-  #   displayName: "Snyk Checks"
-  #   dependsOn: []
-  #   jobs:
-  #   - template: templates/vulnerability-checks.yml
-  #     parameters:
-  #       SnykOnlyFailIfFixable: ${{ parameters.SnykOnlyFailIfFixable }}
-  #       SnykPassOnIssues: ${{ parameters.SnykPassOnIssues }}
+  - stage: VulnerabilityChecks
+    displayName: Checks
+    dependsOn: []
+    jobs:
+    - template: templates/checks.yml
+      parameters:
+        SnykOnlyFailIfFixable: ${{ parameters.SnykOnlyFailIfFixable }}
+        SnykPassOnIssues: ${{ parameters.SnykPassOnIssues }}
 
   - stage: Stryker_Mutator
     displayName: "Stryker Mutator"

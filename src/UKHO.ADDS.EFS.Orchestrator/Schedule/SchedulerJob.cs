@@ -1,6 +1,9 @@
 ﻿using Quartz;
-using UKHO.ADDS.EFS.Jobs;
-using UKHO.ADDS.EFS.Messages;
+using Serilog.Context;
+using UKHO.ADDS.EFS.Domain.Constants;
+using UKHO.ADDS.EFS.Domain.External;
+using UKHO.ADDS.EFS.Domain.Messages;
+using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 
@@ -16,7 +19,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Schedule
         private readonly ILogger<SchedulerJob> _logger;
         private readonly IConfiguration _config;
         private readonly IAssemblyPipelineFactory _pipelineFactory;
-        private const string CorrelationIdPrefix = "job-";
+        private const string CorrelationIdPrefix = "sched-";
 
         public SchedulerJob(ILogger<SchedulerJob> logger, IConfiguration config, IAssemblyPipelineFactory pipelineFactory)
         {
@@ -32,34 +35,38 @@ namespace UKHO.ADDS.EFS.Orchestrator.Schedule
         /// <returns>Task representing the asynchronous job execution.</returns>
         public async Task Execute(IJobExecutionContext context)
         {
-            try
-            {
-                var correlationId = $"{CorrelationIdPrefix}{Guid.NewGuid():N}";
+            var correlationId = CorrelationId.From($"{CorrelationIdPrefix}{Guid.NewGuid():N}");
 
-                _logger.LogSchedulerJobStarted(correlationId, DateTime.UtcNow);
+            // Properly push correlation ID to Serilog LogContext for the entire request
+            using (LogContext.PushProperty(LogProperties.CorrelationId, correlationId))
+            {
+                try
+                {
+                    _logger.LogSchedulerJobStarted(correlationId, DateTime.UtcNow);
 
                 var message = new JobRequestApiMessage
                 {
-                    Version = 1,
                     DataStandard = DataStandard.S100,
-                    Products = "",
+                    Products = [],
                     Filter = ""
                 };
 
-                var parameters = AssemblyPipelineParameters.CreateFrom(message, _config, correlationId);
-                var pipeline = _pipelineFactory.CreateAssemblyPipeline(parameters);
+                    var parameters = AssemblyPipelineParameters.CreateFrom(message, _config, correlationId);
+                    var pipeline = _pipelineFactory.CreateAssemblyPipeline(parameters);
 
-                var result = await pipeline.RunAsync(CancellationToken.None);
+                    var result = await pipeline.RunAsync(CancellationToken.None);
 
-                _logger.LogSchedulerJobCompleted(correlationId, result);
+                    _logger.LogSchedulerJobCompleted(correlationId, result);
 
-                _logger.LogSchedulerJobNextRun(context.Trigger.GetNextFireTimeUtc()?.DateTime);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogSchedulerJobException(ex);
-                throw;
+                    _logger.LogSchedulerJobNextRun(context.Trigger.GetNextFireTimeUtc()?.DateTime);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogSchedulerJobException(ex);
+                    throw;
+                }
             }
         }
+
     }
 }

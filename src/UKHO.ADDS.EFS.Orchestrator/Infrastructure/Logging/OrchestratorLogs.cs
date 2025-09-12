@@ -1,5 +1,7 @@
-﻿using UKHO.ADDS.EFS.Builds;
-using UKHO.ADDS.EFS.Messages;
+﻿using UKHO.ADDS.EFS.Domain.Builds;
+using UKHO.ADDS.EFS.Domain.External;
+using UKHO.ADDS.EFS.Domain.Messages;
+using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.Infrastructure.Results;
 
@@ -22,8 +24,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         private const int JobUpdatedId = BaseEventId + 7;
         private const int JobCompletedId = BaseEventId + 8;
 
-        private const int SalesCatalogueErrorId = BaseEventId + 9;
-
         private const int ContainerExecutionFailedId = BaseEventId + 10;
         private const int ContainerTimeoutId = BaseEventId + 11;
         private const int ContainerWaitFailedId = BaseEventId + 12;
@@ -37,9 +37,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         private const int LogForwardParseFailedId = BaseEventId + 17;
         private const int LogForwardParseNullId = BaseEventId + 18;
 
-        private const int SalesCatalogueUnexpectedStatusCodeId = BaseEventId + 19;
-        private const int SearchCommittedBatchesFailedId = BaseEventId + 20;
-        private const int FileShareServiceOperationFailedId = BaseEventId + 21;
         private const int SalesCatalogueProductsNotReturnedId = BaseEventId + 22;
 
         private const int CreateErrorFileId = BaseEventId + 23;
@@ -50,6 +47,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         private const int SchedulerJobExceptionId = BaseEventId + 27;
         private const int SchedulerJobCompletedId = BaseEventId + 28;
         private const int SchedulerJobNextRunId = BaseEventId + 29;
+
+        // Health check specific event IDs
+        private const int HealthCheckWarningId = BaseEventId + 30;
+        private const int HealthCheckErrorId = BaseEventId + 31;
+        private const int HealthCheckFailedStatusCodeId = BaseEventId + 32;
 
         // An unhandled HTTP error has occurred
         public static readonly EventId UnhandledHttpError = new(UnhandledHttpErrorId, nameof(UnhandledHttpError));
@@ -74,12 +76,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 
         // A job has been completed
         public static readonly EventId JobCompleted = new(JobCompletedId, nameof(JobCompleted));
-
-        // SCS has returned an error
-        public static readonly EventId SalesCatalogueError = new(SalesCatalogueErrorId, nameof(SalesCatalogueError));
-
-        // SCS has returned an Unexpected status Code
-        public static readonly EventId SalesCatalogueUnexpectedStatusCode = new(SalesCatalogueUnexpectedStatusCodeId, nameof(SalesCatalogueUnexpectedStatusCode));
 
         // The container execution failed
         public static readonly EventId ContainerExecutionFailed = new(ContainerExecutionFailedId, nameof(ContainerExecutionFailed));
@@ -108,18 +104,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         // The log forwarder failed to parse a message (null)
         public static readonly EventId LogForwardParseNull = new(LogForwardParseNullId, nameof(LogForwardParseNull));
 
-        // File Share Service operation failed
-        public static readonly EventId FileShareServiceOperationFailed = new(FileShareServiceOperationFailedId, nameof(FileShareServiceOperationFailed));
-
-        // Search committed batches failed
-        public static readonly EventId SearchCommittedBatchesFailed = new(SearchCommittedBatchesFailedId, nameof(SearchCommittedBatchesFailed));
-
         public static readonly EventId SalesCatalogueProductsNotReturned = new(SalesCatalogueProductsNotReturnedId, nameof(SalesCatalogueProductsNotReturned));
 
         // Error file creation events
         public static readonly EventId CreateErrorFile = new(CreateErrorFileId, nameof(CreateErrorFile));
         public static readonly EventId CreateErrorFileNodeFailed = new(CreateErrorFileNodeFailedId, nameof(CreateErrorFileNodeFailed));
         public static readonly EventId CreateErrorFileAddFileFailed = new(CreateErrorFileAddFileFailedId, nameof(CreateErrorFileAddFileFailed));
+        
+        // Health check events
+        public static readonly EventId HealthCheckWarning = new(HealthCheckWarningId, nameof(HealthCheckWarning));
+        public static readonly EventId HealthCheckError = new(HealthCheckErrorId, nameof(HealthCheckError));
+        public static readonly EventId HealthCheckFailedStatusCode = new(HealthCheckFailedStatusCodeId, nameof(HealthCheckFailedStatusCode));
 
         [LoggerMessage(UnhandledHttpErrorId, LogLevel.Error, "An unhandled exception was caught by the HTTP pipeline: {@message}", EventName = nameof(UnhandledHttpError))]
         public static partial void LogUnhandledHttpError(this ILogger logger, string message, Exception exception);
@@ -137,22 +132,16 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         public static partial void LogGetJobRequestFailed(this ILogger logger, string jobId);
 
         [LoggerMessage(JobCreatedId, LogLevel.Information, "Job created : {@job}", EventName = nameof(JobCreated))]
-        public static partial void LogJobCreated(this ILogger logger, [LogProperties] EFSJobLogView job);
+        public static partial void LogJobCreated(this ILogger logger, [LogProperties] JobLogView job);
 
         [LoggerMessage(JobUpdatedId, LogLevel.Information, "Job updated: {@job}", EventName = nameof(JobUpdated))]
-        public static partial void LogJobUpdated(this ILogger logger, [LogProperties] EFSJobLogView job);
+        public static partial void LogJobUpdated(this ILogger logger, [LogProperties] JobLogView job);
 
         [LoggerMessage(JobCompletedId, LogLevel.Information, "Job completed: {@job}", EventName = nameof(JobCompleted))]
-        public static partial void LogJobCompleted(this ILogger logger, [LogProperties] EFSJobLogView job);
-
-        [LoggerMessage(SalesCatalogueErrorId, LogLevel.Error, "Sales Catalogue error: {@message}", EventName = nameof(SalesCatalogueError))]
-        public static partial void LogSalesCatalogueApiError(this ILogger logger, [LogProperties] SalesCatalogApiErrorLogView message);
-
-        [LoggerMessage(SalesCatalogueUnexpectedStatusCodeId, LogLevel.Error, "Sales Catalogue Unexpected Status Code: {@salesCatalogueLog}", EventName = nameof(SalesCatalogueUnexpectedStatusCode))]
-        public static partial void LogUnexpectedSalesCatalogueStatusCode(this ILogger logger, SalesCatalogUnexpectedStatusLogView salesCatalogueLog);
+        public static partial void LogJobCompleted(this ILogger logger, [LogProperties] JobLogView job);
 
         [LoggerMessage(ContainerExecutionFailedId, LogLevel.Error, "Builder container failed: {@job}", EventName = nameof(ContainerExecutionFailed))]
-        public static partial void LogContainerExecutionFailed(this ILogger logger, [LogProperties] EFSJobLogView job, Exception exception);
+        public static partial void LogContainerExecutionFailed(this ILogger logger, [LogProperties] JobLogView job, Exception exception);
 
         [LoggerMessage(ContainerStartFailedId, LogLevel.Error, "Builder container start failed: {@containerId}", EventName = nameof(ContainerStartFailed))]
         public static partial void LogContainerStartFailed(this ILogger logger, string containerId);
@@ -167,7 +156,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         public static partial void LogJobCreationFailed(this ILogger logger, Exception exception);
 
         [LoggerMessage(ContainerTimeoutId, LogLevel.Error, "Builder container timed out: {@containerId} {@job}", EventName = nameof(ContainerTimeout))]
-        public static partial void LogContainerTimeout(this ILogger logger, string containerId, [LogProperties] EFSJobLogView job);
+        public static partial void LogContainerTimeout(this ILogger logger, string containerId, [LogProperties] JobLogView job);
 
         [LoggerMessage(QueueServiceMessageReadFailedId, LogLevel.Error, "Queue monitor {@queueMonitor} failed to read message", EventName = nameof(QueueServiceMessageReadFailed))]
         public static partial void LogQueueServiceMessageReadFailed(this ILogger logger, string queueMonitor, Exception exception);
@@ -178,35 +167,37 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         [LoggerMessage(LogForwardParseNullId, LogLevel.Error, "Log forwarding parse failure: {@line}", EventName = nameof(LogForwardParseNull))]
         public static partial void LogForwarderParseNull(this ILogger logger, string line);
 
-        [LoggerMessage(FileShareServiceOperationFailedId, LogLevel.Error, "File Share Service operation failed: {@fileShareServiceLog}", EventName = nameof(FileShareServiceOperationFailed))]
-        public static partial void LogFileShareError(this ILogger logger, [LogProperties] FileShareServiceLogView fileShareServiceLog);
-
-        [LoggerMessage(SearchCommittedBatchesFailedId, LogLevel.Error, "Search committed batches failed: {@searchCommittedBatchesLogView}", EventName = nameof(SearchCommittedBatchesFailed))]
-        public static partial void LogFileShareSearchCommittedBatchesError(this ILogger logger, [LogProperties] SearchCommittedBatchesLogView searchCommittedBatchesLogView);
-
         [LoggerMessage(SalesCatalogueProductsNotReturnedId, LogLevel.Warning, "Sales Catalogue products not returned: {@salesCatalogueLog}", EventName = nameof(SalesCatalogueProductsNotReturned))]
-        public static partial void LogSalesCatalogueProductsNotReturned(this ILogger logger, [LogProperties] SalesCatalogServiceProductsNotReturnedView salesCatalogueLog);
+        public static partial void LogSalesCatalogueProductsNotReturned(this ILogger logger, [LogProperties] ProductCountSummary salesCatalogueLog);
 
         [LoggerMessage(CreateErrorFileId, LogLevel.Error, "Error file created for correlation ID: {correlationId} | Timestamp: {timestamp}", EventName = nameof(CreateErrorFile))]
-        public static partial void LogCreateErrorFile(this ILogger logger, string correlationId, DateTimeOffset timestamp);
+        public static partial void LogCreateErrorFile(this ILogger logger, CorrelationId correlationId, DateTimeOffset timestamp);
 
         [LoggerMessage(CreateErrorFileNodeFailedId, LogLevel.Error, "CreateErrorFileNode failed for correlation ID: {correlationId} | Timestamp: {timestamp}", EventName = nameof(CreateErrorFileNodeFailed))]
-        public static partial void LogCreateErrorFileNodeFailed(this ILogger logger, string correlationId, DateTimeOffset timestamp, Exception exception);
+        public static partial void LogCreateErrorFileNodeFailed(this ILogger logger, CorrelationId correlationId, DateTimeOffset timestamp, Exception exception);
 
-        [LoggerMessage(CreateErrorFileAddFileFailedId, LogLevel.Error, "Failed to add error file to batch for correlation ID: {correlationId} | Timestamp: {timestamp} | Error: {@error}", EventName = nameof(CreateErrorFileAddFileFailed))]
-        public static partial void LogCreateErrorFileAddFileFailed(this ILogger logger, string correlationId, DateTimeOffset timestamp, [LogProperties] IError error);
+        [LoggerMessage(CreateErrorFileAddFileFailedId, LogLevel.Error, "Failed to add error file to batch for correlation ID: {correlationId} | Timestamp: {timestamp} | Error: {@message}", EventName = nameof(CreateErrorFileAddFileFailed))]
+        public static partial void LogCreateErrorFileAddFileFailed(this ILogger logger, CorrelationId correlationId, DateTimeOffset timestamp, string message);
 
         [LoggerMessage(SchedulerJobStartedId, LogLevel.Information, "SchedulerJob started for correlationId - {CorrelationId} at: {Time}", EventName = nameof(LogSchedulerJobStarted))]
-        public static partial void LogSchedulerJobStarted(this ILogger logger, string correlationId, DateTime? time);
+        public static partial void LogSchedulerJobStarted(this ILogger logger, CorrelationId correlationId, DateTime? time);
 
         [LoggerMessage(SchedulerJobExceptionId, LogLevel.Error, "Exception occurred in SchedulerJob.", EventName = nameof(LogSchedulerJobException))]
         public static partial void LogSchedulerJobException(this ILogger logger, Exception exception);
 
         [LoggerMessage(SchedulerJobCompletedId, LogLevel.Information, "SchedulerJob completed for correlationId: {CorrelationId}, Result: {@result}", EventName = nameof(LogSchedulerJobCompleted))]
-        public static partial void LogSchedulerJobCompleted(this ILogger logger, string correlationId, [LogProperties] AssemblyPipelineResponse result);
+        public static partial void LogSchedulerJobCompleted(this ILogger logger, CorrelationId correlationId, [LogProperties] AssemblyPipelineResponse result);
 
         [LoggerMessage(SchedulerJobNextRunId, LogLevel.Information, "Next scheduled run at: {NextRun}", EventName = nameof(LogSchedulerJobNextRun))]
         public static partial void LogSchedulerJobNextRun(this ILogger logger, DateTime? nextRun);
 
+        [LoggerMessage(HealthCheckWarningId, LogLevel.Warning, "Health check for {ServiceName} failed with error: {ErrorMessage}", EventName = nameof(HealthCheckWarning))]
+        public static partial void LogHealthCheckWarning(this ILogger logger, string serviceName, string errorMessage);
+
+        [LoggerMessage(HealthCheckErrorId, LogLevel.Error, "Health check for {ServiceName} failed with exception", EventName = nameof(HealthCheckError))]
+        public static partial void LogHealthCheckError(this ILogger logger, string serviceName, Exception exception);
+            
+        [LoggerMessage(HealthCheckFailedStatusCodeId, LogLevel.Warning, "Health check for {ServiceName} failed with status code {StatusCode}", EventName = nameof(HealthCheckFailedStatusCode))]
+        public static partial void LogHealthCheckFailedStatusCode(this ILogger logger, string serviceName, int statusCode);
     }
 }

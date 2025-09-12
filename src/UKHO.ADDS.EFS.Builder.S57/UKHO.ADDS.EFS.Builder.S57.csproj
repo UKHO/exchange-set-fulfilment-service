@@ -32,7 +32,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\UKHO.ADDS.EFS.Builder.Common\UKHO.ADDS.EFS.Builder.Common.csproj" />
+    <ProjectReference Include="..\UKHO.ADDS.EFS.Infrastructure.Builders\UKHO.ADDS.EFS.Infrastructure.Builders.csproj" />
   </ItemGroup>
 
   <ItemGroup>

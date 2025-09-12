@@ -7,7 +7,6 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
-using Serilog;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.Hosting
@@ -102,17 +101,17 @@ namespace Microsoft.Extensions.Hosting
 
         public static WebApplication MapDefaultEndpoints(this WebApplication app)
         {
-            // Adding health checks endpoints to applications in non-development environments has security implications.
-            // See https://aka.ms/dotnet/aspire/healthchecks for details before enabling these endpoints in non-development environments.
-            if (app.Environment.IsDevelopment())
-            {
-                // All health checks must pass for app to be considered ready to accept traffic after starting
-                app.MapHealthChecks("/health");
+            // Health check endpoints are now available in all environments
+            // Note: Previously this was restricted to development environments only
+            
+            // All health checks must pass for app to be considered ready to accept traffic after starting
+            app.MapHealthChecks("/health");
 
-                // Only health checks tagged with the "live" tag must pass for app to be considered alive
-                app.MapHealthChecks("/alive", new HealthCheckOptions { Predicate = r => r.Tags.Contains("live") });
-            }
-
+            // Only health checks tagged with the "live" tag must pass for app to be considered alive
+            app.MapHealthChecks("/alive", new HealthCheckOptions { 
+                Predicate = r => r.Tags.Contains("live")
+            });
+            
             return app;
         }
     }

@@ -1,4 +1,4 @@
-﻿using UKHO.ADDS.EFS.Builds.S57;
+﻿using UKHO.ADDS.EFS.Domain.Builds.S57;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S57;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
@@ -8,7 +8,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly
 {
     internal class S57AssemblyPipeline : AssemblyPipeline<S57Build>
     {
-        public S57AssemblyPipeline(AssemblyPipelineParameters parameters, AssemblyPipelineNodeFactory nodeFactory, PipelineContextFactory<S57Build> contextFactory, ILogger<S57AssemblyPipeline> logger)
+        public S57AssemblyPipeline(AssemblyPipelineParameters parameters, IAssemblyPipelineNodeFactory nodeFactory, IPipelineContextFactory<S57Build> contextFactory, ILogger<S57AssemblyPipeline> logger)
             : base(parameters, nodeFactory, contextFactory, logger)
         {
         }
