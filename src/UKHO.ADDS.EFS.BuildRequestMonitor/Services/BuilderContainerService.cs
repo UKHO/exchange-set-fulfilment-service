@@ -32,67 +32,70 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
 
             //rhz: Ensure the custom bridge network exists and connect the storage container to it
 
-            var networkParams = new NetworksCreateParameters
-            {
-                Name = _networkName,
-                Driver = "bridge"
-            };
+            //var networkParams = new NetworksCreateParameters
+            //{
+            //    Name = _networkName,
+            //    Driver = "bridge"
+            //};
 
-            Log.Information($"Attempt to create docker custom network {networkParams.Name}. ");
+            //Log.Information($"Attempt to create docker custom network {networkParams.Name}. ");
 
             //var networks = await _dockerClient.Networks.ListNetworksAsync();
-            var existing = await _dockerClient.Networks.ListNetworksAsync(new NetworksListParameters
-            {
-                Filters = new Dictionary<string, IDictionary<string, bool>>
-                {
-                    ["name"] = new Dictionary<string, bool> { [networkParams.Name] = true }
-                }
-            });
 
-            var networkExists = existing.Any();
-            if (!networkExists)
-            {
-                try
-                {
-                    await _dockerClient.Networks.CreateNetworkAsync(networkParams);
-                    Log.Information("Created docker custom network {NetworkName}.", networkParams.Name);
-                }
-                catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
-                {
-                    Log.Information("Network {NetworkName} already created by another process.", networkParams.Name);
-                }
-            }
-            else
-            {
-                Log.Information("Docker custom network {NetworkName} already exists.", networkParams.Name);
-            }
+            //var existing = await _dockerClient.Networks.ListNetworksAsync(new NetworksListParameters
+            //{
+            //    Filters = new Dictionary<string, IDictionary<string, bool>>
+            //    {
+            //        ["name"] = new Dictionary<string, bool> { [networkParams.Name] = true }
+            //    }
+            //});
 
+            //var networkExists = existing.Any();
+            //if (!networkExists)
+            //{
+            //    try
+            //    {
+            //        await _dockerClient.Networks.CreateNetworkAsync(networkParams);
+            //        Log.Information("Created docker custom network {NetworkName}.", networkParams.Name);
+            //    }
+            //    catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+            //    {
+            //        Log.Information("Network {NetworkName} already created by another process.", networkParams.Name);
+            //    }
+            //}
+            //else
+            //{
+            //    Log.Information("Docker custom network {NetworkName} already exists.", networkParams.Name);
+            //}
 
-            if (await ContainerExistsAsync(StorageConfiguration.StorageName))
-            {
-                try
-                {
-                    await _dockerClient.Networks.ConnectNetworkAsync(networkParams.Name, new NetworkConnectParameters
-                    {
-                        Container = StorageConfiguration.StorageName
-                    });
-                    Log.Information("Connected container {Container} to network {Network}.", StorageConfiguration.StorageName, networkParams.Name);
-                }
-                catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotModified ||
-                                                   ex.StatusCode == System.Net.HttpStatusCode.Conflict)
-                {
-                    Log.Information("Container {Container} already connected to network {Network}.", StorageConfiguration.StorageName, networkParams.Name);
-                }
-            }
-            else
-            {
-                Log.Warning("Container {Container} not found; skipping network connection.", StorageConfiguration.StorageName);
-            }
-
-            //Log.Information($"Attempted to connect docker custome network {networkParams.Name} to {StorageConfiguration.StorageName}.");
+            await CreateCustomNetworkBridgeAsync(_networkName);
+            await AttachContainerToNetworkAsync(containerName: StorageConfiguration.StorageName, networkName: _networkName);
 
 
-            
+            //if (await ContainerExistsAsync(StorageConfiguration.StorageName))
+            //{
+            //    try
+            //    {
+            //        await _dockerClient.Networks.ConnectNetworkAsync(networkParams.Name, new NetworkConnectParameters
+            //        {
+            //            Container = StorageConfiguration.StorageName
+            //        });
+            //        Log.Information("Connected container {Container} to network {Network}.", StorageConfiguration.StorageName, networkParams.Name);
+            //    }
+            //    catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotModified ||
+            //                                       ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+            //    {
+            //        Log.Information("Container {Container} already connected to network {Network}.", StorageConfiguration.StorageName, networkParams.Name);
+            //    }
+            //}
+            //else
+            //{
+            //    Log.Warning("Container {Container} not found; skipping network connection.", StorageConfiguration.StorageName);
+            //}
+
+
+
+
             //rhz: End custom bridge network setup
 
 
@@ -106,7 +109,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
                 Tty = false,
                 HostConfig = new HostConfig
                 {
-                    NetworkMode = networkParams.Name, //rhz: Use the custom bridge network
+                    //NetworkMode = networkParams.Name, //rhz: Use the custom bridge network
                     ExtraHosts = new[]
                     {
                         "host.docker.internal:host-gateway"
@@ -127,7 +130,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
                     $"{BuilderEnvironmentVariables.RetryDelayMilliseconds}={environment.RetryDelayMilliseconds}",
                     $"{BuilderEnvironmentVariables.ConcurrentDownloadLimitCount}={environment.ConcurrentDownloadLimitCount}",
                 }
-                
+
             };
             var response = await _dockerClient.Containers.CreateContainerAsync(containerParams);
             _dynamicContainerName = containerParams.Name;
@@ -142,20 +145,22 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
                 throw new Exception("Failed to start container");
             }
 
+            await AttachContainerToNetworkAsync(_dynamicContainerName, _networkName);
+
             // rhz: Attach to network bridge if not already attached
-            try
-            {
-                await _dockerClient.Networks.ConnectNetworkAsync(_networkName, new NetworkConnectParameters
-                {
-                    Container = _dynamicContainerName
-                });
-                Log.Information("Connected container {Container} to network {Network}.", _dynamicContainerName, _networkName);
-            }
-            catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotModified ||
-                                               ex.StatusCode == System.Net.HttpStatusCode.Conflict)
-            {
-                Log.Information("Container {Container} already connected to network {Network}.", _dynamicContainerName, _networkName);
-            }
+            //try
+            //{
+            //    await _dockerClient.Networks.ConnectNetworkAsync(_networkName, new NetworkConnectParameters
+            //    {
+            //        Container = _dynamicContainerName
+            //    });
+            //    Log.Information("Connected container {Container} to network {Network}.", _dynamicContainerName, _networkName);
+            //}
+            //catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotModified ||
+            //                                   ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+            //{
+            //    Log.Information("Container {Container} already connected to network {Network}.", _dynamicContainerName, _networkName);
+            //}
             // rhz end attach to network bridge
 
             var streamer = new BuilderLogStreamer(_dockerClient);
@@ -205,6 +210,62 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
                 c.Names.Any(n => string.Equals(n.TrimStart('/'), containerName, StringComparison.OrdinalIgnoreCase)));
         }
 
+        private async Task CreateCustomNetworkBridgeAsync(string name)
+        {
+            var networkParams = new NetworksCreateParameters
+            {
+                Name = name,
+                Driver = "bridge"
+            };
 
+            var existing = await _dockerClient.Networks.ListNetworksAsync(new NetworksListParameters
+            {
+                Filters = new Dictionary<string, IDictionary<string, bool>>
+                {
+                    ["name"] = new Dictionary<string, bool> { [networkParams.Name] = true }
+                }
+            });
+
+            var networkExists = existing.Any();
+            if (!networkExists)
+            {
+                try
+                {
+                    await _dockerClient.Networks.CreateNetworkAsync(networkParams);
+                    Log.Information("Created docker custom network {NetworkName}.", networkParams.Name);
+                }
+                catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+                {
+                    Log.Information("Network {NetworkName} already created by another process.", networkParams.Name);
+                }
+            }
+            else
+            {
+                Log.Information("Docker custom network {NetworkName} already exists.", networkParams.Name);
+            }
+        }
+
+        private async Task AttachContainerToNetworkAsync(string containerName, string networkName)
+        {
+            if (await ContainerExistsAsync(containerName))
+            {
+                try
+                {
+                    await _dockerClient.Networks.ConnectNetworkAsync(networkName, new NetworkConnectParameters
+                    {
+                        Container = containerName
+                    });
+                    Log.Information("Connected container {Container} to network {Network}.", containerName, networkName);
+                }
+                catch (AggregateException ae) when (ae.InnerExceptions.Any(e => e is DockerApiException dex && (dex.StatusCode == System.Net.HttpStatusCode.NotModified || dex.StatusCode == System.Net.HttpStatusCode.Conflict)))
+                {
+                    Log.Information("Container {Container} already connected to network {Network}.", containerName, networkName);
+                }
+            }
+            else
+            {
+                Log.Warning("Container {Container} not found; skipping network connection.", containerName);
+            }
+        }
     }
 }
