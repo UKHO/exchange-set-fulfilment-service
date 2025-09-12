@@ -51,6 +51,11 @@ namespace UKHO.ADDS.EFS.Domain.Builds
         }
 
         /// <summary>
+        /// Gets or sets the build commit information containing file details with hash values.
+        /// </summary>
+        public BuildCommitInfo BuildCommitInfo { get; init; }
+
+        /// <summary>
         ///     Gets the correlation ID for the build.
         /// </summary>
         /// <remarks>This is always the Job ID.</remarks>

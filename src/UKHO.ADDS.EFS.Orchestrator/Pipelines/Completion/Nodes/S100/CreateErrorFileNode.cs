@@ -1,4 +1,5 @@
 using System.Text;
+using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.Builds.S100;
 using UKHO.ADDS.EFS.Domain.Constants;
@@ -49,8 +50,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
 
                 try
                 {
+                    var batchHandle = new BatchHandle((string)job.BatchId!);
                     var attributeList = await _fileService.AddFileToBatchAsync(
-                        job.BatchId,
+                        batchHandle,
                         errorFileStream,
                         fileName,
                         ApiHeaderKeys.ContentTypeTextPlain,
@@ -58,6 +60,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
                         Environment.CancellationToken);
 
                     context.Subject.IsErrorFileCreated = true;
+                    
+                    if (batchHandle.FileDetails.Count > 0)
+                    {
+                        var firstFileDetail = batchHandle.FileDetails.First();
+                        context.Subject.Build.BuildCommitInfo?.AddFileDetail(firstFileDetail.FileName, firstFileDetail.Hash);
+                    }
+
                     _logger.LogCreateErrorFile(job.GetCorrelationId(), DateTimeOffset.UtcNow);
                 }
                 catch (Exception e)
@@ -65,7 +74,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
                     context.Subject.IsErrorFileCreated = false;
                     _logger.LogCreateErrorFileAddFileFailed(job.GetCorrelationId(), DateTimeOffset.UtcNow, e.Message);
                     return NodeResultStatus.Failed;
-
                 }
 
                 return NodeResultStatus.Succeeded;

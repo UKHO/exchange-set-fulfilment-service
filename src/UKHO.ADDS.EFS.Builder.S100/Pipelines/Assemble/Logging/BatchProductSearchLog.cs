@@ -7,7 +7,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
     {
         public IEnumerable<BatchProductDetail> BatchProducts { get; set; }
         public string BusinessUnit { get; set; }
-        public string ProductType { get; set; }
+        public string ProductCode { get; set; }
         public string CorrelationId { get; set; }
         public SearchQuery Query { get; set; }
         public IError Error { get; set; }

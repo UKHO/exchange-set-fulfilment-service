@@ -1,4 +1,6 @@
 ﻿using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
+using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
+using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
 using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.Files;
 using UKHO.ADDS.EFS.Domain.Jobs;
@@ -21,8 +23,8 @@ namespace UKHO.ADDS.EFS.Domain.Services
         /// <param name="batchId">The batch identifier to commit.</param>
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A result containing the commit batch response on success or error information on failure.</returns>
-        Task<BatchCommit> CommitBatchAsync(BatchId batchId, CorrelationId correlationId, CancellationToken cancellationToken);
+        /// <returns>The commit batch response on success or throws an exception on failure.</returns>
+        Task<CommitBatchResponse> CommitBatchAsync(BatchHandle batchHandle, CorrelationId correlationId, CancellationToken cancellationToken);
 
         /// <summary>
         ///     Searches for committed batches, excluding the current batch.
@@ -55,6 +57,6 @@ namespace UKHO.ADDS.EFS.Domain.Services
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result containing the add file to batch response on success or error information on failure.</returns>
-        Task<AttributeList> AddFileToBatchAsync(BatchId batchId, Stream fileStream, string fileName, string contentType, CorrelationId correlationId, CancellationToken cancellationToken);
+        Task<AttributeList> AddFileToBatchAsync(BatchHandle batchHandle, Stream fileStream, string fileName, string contentType, CorrelationId correlationId, CancellationToken cancellationToken);
     }
 }
