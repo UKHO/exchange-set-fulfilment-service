@@ -88,7 +88,7 @@ namespace UKHO.ADDS.Clients.FileShareService.ReadWrite
         {
             return await CommitBatchInternalAsync(batchHandle, cancellationToken, correlationId);
         }
-        
+
         public Task<IResult<ReplaceAclResponse>> ReplaceAclAsync(string batchId, Acl acl, CancellationToken cancellationToken = default) => Task.FromResult<IResult<ReplaceAclResponse>>(Result.Success(new ReplaceAclResponse()));
 
         public Task<IResult> RollBackBatchAsync(IBatchHandle batchHandle) => Task.FromResult<IResult>(Result.Success());
@@ -102,7 +102,7 @@ namespace UKHO.ADDS.Clients.FileShareService.ReadWrite
 
         public async Task<IResult<SetExpiryDateResponse>> SetExpiryDateAsync(string batchId, BatchExpiryModel batchExpiry, string correlationId, CancellationToken cancellationToken = default)
         {
-            return await SetExpiryDateInternalAsync(batchId, batchExpiry, cancellationToken ,correlationId);
+            return await SetExpiryDateInternalAsync(batchId, batchExpiry, cancellationToken, correlationId);
         }
 
         private async Task<IResult<IBatchHandle>> CreateBatchInternalAsync(BatchModel batchModel, CancellationToken cancellationToken, string? correlationId = null)
@@ -145,7 +145,7 @@ namespace UKHO.ADDS.Clients.FileShareService.ReadWrite
 
                 var formattedExpiryDate = batchExpiryModel.ExpiryDate?.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
 
-                
+
                 var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, uri)
                 {
                     Content = new StringContent(JsonCodec.Encode(new { ExpiryDate = formattedExpiryDate }), Encoding.UTF8, ApiHeaderKeys.ContentTypeJson)
@@ -177,7 +177,7 @@ namespace UKHO.ADDS.Clients.FileShareService.ReadWrite
 
                 var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, uri)
                 {
-                    Content = new StringContent(JsonCodec.Encode(batchHandle), Encoding.UTF8, ApiHeaderKeys.ContentTypeJson)
+                    Content = new StringContent(JsonCodec.Encode(batchHandle.FileDetails), Encoding.UTF8, ApiHeaderKeys.ContentTypeJson)
                 };
 
                 var response = await httpClient.SendAsync(httpRequestMessage, cancellationToken);

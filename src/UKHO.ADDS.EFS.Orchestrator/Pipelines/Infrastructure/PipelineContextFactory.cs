@@ -40,6 +40,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
                 JobId = parameters.JobId,
                 DataStandard = parameters.DataStandard,
                 BatchId = BatchId.None,
+                BuildCommitInfo = new BuildCommitInfo()
             };
 
             var context = new PipelineContext<TBuild>(job, build, _storageService, parameters.RequestType);
