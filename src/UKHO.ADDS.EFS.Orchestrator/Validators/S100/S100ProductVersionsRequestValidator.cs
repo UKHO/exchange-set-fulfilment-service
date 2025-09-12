@@ -71,10 +71,6 @@ internal class S100ProductVersionsRequestValidator : AbstractValidator<(IEnumera
 
     public async Task<ValidationResult> ValidateAsync((IEnumerable<S100ProductVersion>? productVersions, string? callbackUri) request)
     {
-        if (request.productVersions == null)
-        {
-            return new ValidationResult([ new ValidationFailure(nameof(request.productVersions), "No Product Versions provided.")]);
-        }
 
         return await base.ValidateAsync(request);
     }

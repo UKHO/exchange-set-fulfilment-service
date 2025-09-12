@@ -48,7 +48,7 @@ internal class S100ProductNamesRequestValidatorTests
         Assert.Multiple(() =>
         {
             Assert.That(result.IsValid, Is.False);
-            Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "No product Names provided."));
+            Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "ProductName cannot be null or empty."));
         });
     }
 

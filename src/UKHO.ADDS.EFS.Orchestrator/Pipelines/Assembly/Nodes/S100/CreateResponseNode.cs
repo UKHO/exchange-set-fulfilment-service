@@ -60,11 +60,11 @@ internal class CreateResponseNode : AssemblyPipelineNode<S100Build>
 
         return new S100CustomExchangeSetResponse
         {
-            Links = new S100ExchangeSetLinks
+            Links = new ExchangeSetLinks
             {
-                ExchangeSetBatchStatusUri = new S100Link { Href = $"http://fss.ukho.gov.uk/batch/{batchId}/status" },
-                ExchangeSetBatchDetailsUri = new S100Link { Href = $"http://fss.ukho.gov.uk/batch/{batchId}" },
-                ExchangeSetFileUri = batchId != null ? new S100Link { Href = $"http://fss.ukho.gov.uk/batch/{batchId}/files/exchangeset.zip" } : null
+                ExchangeSetBatchStatusUri = new Link { Href = $"http://fss.ukho.gov.uk/batch/{batchId}/status" },
+                ExchangeSetBatchDetailsUri = new Link { Href = $"http://fss.ukho.gov.uk/batch/{batchId}" },
+                ExchangeSetFileUri = batchId != null ? new Link { Href = $"http://fss.ukho.gov.uk/batch/{batchId}/files/exchangeset.zip" } : null
             },
             ExchangeSetUrlExpiryDateTime = DateTime.UtcNow.AddDays(7), // TODO: Get from configuration
             RequestedProductCount = requestedProductCount,

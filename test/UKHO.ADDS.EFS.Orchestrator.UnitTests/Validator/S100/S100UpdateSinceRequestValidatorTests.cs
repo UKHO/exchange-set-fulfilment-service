@@ -39,7 +39,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
             Assert.Multiple(() =>
             {
                 Assert.That(result.IsValid, Is.False);
-                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "No since date time provided."));
+                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "No UpdateSince date time provided."));
             });
         }
 
@@ -108,7 +108,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
             Assert.Multiple(() =>
             {
                 Assert.That(result.IsValid, Is.False);
-                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "sinceDateTime cannot be a future date."));
+                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "UpdateSince date cannot be a future date."));
             });
         }
 
@@ -180,7 +180,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
             Assert.Multiple(() =>
             {
                 Assert.That(result.IsValid, Is.False);
-                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "No since date time provided."));
+                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "No UpdateSince date time provided."));
             });
         }
 

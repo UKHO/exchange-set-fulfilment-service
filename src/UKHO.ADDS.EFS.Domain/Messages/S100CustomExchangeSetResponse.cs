@@ -8,7 +8,7 @@
         /// <summary>
         /// Links to related resources
         /// </summary>
-        public required S100ExchangeSetLinks Links { get; set; }
+        public required ExchangeSetLinks Links { get; set; }
 
         /// <summary>
         /// The expiry date and time for the exchange set URL

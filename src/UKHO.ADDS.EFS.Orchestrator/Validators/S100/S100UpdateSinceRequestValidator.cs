@@ -32,7 +32,7 @@ internal class S100UpdateSinceRequestValidator : AbstractValidator<(S100UpdatesS
                 var sinceDateTimeStr = s100UpdatesSinceRequest?.SinceDateTime;
                 if (string.IsNullOrWhiteSpace(sinceDateTimeStr))
                 {
-                    context.AddFailure(new ValidationFailure("sinceDateTime", "No since date time provided."));
+                    context.AddFailure(new ValidationFailure("sinceDateTime", "No UpdateSince date time provided."));
                     return;
                 }
                 if (!DateTime.TryParse(sinceDateTimeStr, null, DateTimeStyles.RoundtripKind, out var sinceDateTime))
@@ -50,7 +50,7 @@ internal class S100UpdateSinceRequestValidator : AbstractValidator<(S100UpdatesS
                 }
                 if (!IsNotFutureDate(sinceDateTime))
                 {
-                    context.AddFailure(new ValidationFailure("sinceDateTime", "sinceDateTime cannot be a future date."));
+                    context.AddFailure(new ValidationFailure("sinceDateTime", "UpdateSince date cannot be a future date."));
                 }
             });
 
@@ -66,10 +66,6 @@ internal class S100UpdateSinceRequestValidator : AbstractValidator<(S100UpdatesS
 
     public async Task<ValidationResult> ValidateAsync((S100UpdatesSinceRequest s100UpdatesSinceRequest, string? callbackUri, string? productIdentifier) request)
     {
-        if (request.s100UpdatesSinceRequest == null || string.IsNullOrWhiteSpace(request.s100UpdatesSinceRequest.SinceDateTime))
-        {
-            return new ValidationResult([new ValidationFailure("sinceDateTime", "No since date time provided.") ]);
-        }
         return await base.ValidateAsync(request);
     }
 
