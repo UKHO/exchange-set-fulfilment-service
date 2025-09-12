@@ -15,6 +15,7 @@ using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.Builds.S100;
 using UKHO.ADDS.EFS.Domain.Builds.S57;
 using UKHO.ADDS.EFS.Domain.Builds.S63;
+using UKHO.ADDS.EFS.Domain.Constants;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Domain.Services;
@@ -52,17 +53,16 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
             collection.AddSingleton<IStorageService, DefaultStorageService>();
             collection.AddSingleton<ITimestampService, DefaultTimestampService>();
 
-            // Configure Azure AD settings from configuration
             if (!addsEnvironment.IsLocal() && !addsEnvironment.IsDev())
             {
-                collection.AddAuthentication("AzureAd")
-                    .AddJwtBearer("AzureAd", options =>
+                collection.AddAuthentication(EfsConstants.AzureAdScheme)
+                    .AddJwtBearer(EfsConstants.AzureAdScheme, options =>
                     {
                         var clientId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsAppRegClientId);
                         var tenantId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsAppRegTenantId);
 
                         options.Audience = clientId;
-                        options.Authority = $"https://login.microsoftonline.com/{tenantId}";
+                        options.Authority = $"{EfsConstants.MicrosoftLoginUrl}{tenantId}";
                         options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
                         {
                             ValidateIssuer = true,
@@ -70,37 +70,34 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                             ValidateLifetime = true,
                             ValidateIssuerSigningKey = true,
                             ValidAudiences = [clientId],
-                            ValidIssuers = [$"https://login.microsoftonline.com/{tenantId}"]
+                            ValidIssuers = [$"{EfsConstants.MicrosoftLoginUrl}{tenantId}"]
                         };
                         options.Events = new JwtBearerEvents
                         {
                             OnForbidden = context =>
                             {
-                                //context.Response.Headers.Append("origin", "JOBAPI");
+                                context.Response.Headers.Append(EfsConstants.OriginHeaderKey, EfsConstants.EfsService);
                                 return Task.CompletedTask;
                             },
                             OnAuthenticationFailed = context =>
                             {
-                                //context.Response.Headers.Append("origin", "JOBAPI");
+                                context.Response.Headers.Append(EfsConstants.OriginHeaderKey, EfsConstants.EfsService);
                                 return Task.CompletedTask;
                             }
                         };
                     });
             }
 
-            collection.AddAuthorization(options =>
-            {
-                options.DefaultPolicy = new AuthorizationPolicyBuilder()
+            collection.AddAuthorizationBuilder()
+                .SetDefaultPolicy(new AuthorizationPolicyBuilder()
                     .RequireAuthenticatedUser()
-                    .AddAuthenticationSchemes("AzureAd")
-                    .Build();
-
-                options.AddPolicy("ExchangeSetFulfilmentServiceUser", policy =>
+                    .AddAuthenticationSchemes(EfsConstants.AzureAdScheme)
+                    .Build())
+                .AddPolicy(EfsConstants.EfsRole, policy =>
                 {
                     if (!addsEnvironment.IsLocal() && !addsEnvironment.IsDev())
                     {
-                        // For non-dev/non-local environments, authentication is compulsory
-                        policy.RequireRole("ExchangeSetFulfilmentServiceUser");
+                        policy.RequireRole(EfsConstants.EfsRole);
                     }
                     else
                     {
@@ -108,8 +105,6 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                         policy.RequireAssertion(_ => true);
                     }
                 });
-            });
-            // End Azure AD settings configuration
 
             var efsClientId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsClientId);
 

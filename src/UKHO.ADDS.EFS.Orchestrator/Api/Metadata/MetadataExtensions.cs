@@ -18,11 +18,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api.Metadata
         /// <param name="builder">The route handler builder</param>
         /// <param name="policyName">The authorization policy name to require</param>
         /// <returns>The route handler builder for chaining</returns>
-        public static RouteHandlerBuilder RequireAuthorizationInNonLocalEnvironments(this RouteHandlerBuilder builder, string policyName)
+        public static RouteHandlerBuilder WithRequiredAuthorization(this RouteHandlerBuilder builder, string policyName)
         {
             var addsEnvironment = AddsEnvironment.GetEnvironment();
 
-            // Authorization is compulsory for all environments except local and dev
             if (!addsEnvironment.IsLocal() && !addsEnvironment.IsDev())
             {
                 builder.RequireAuthorization(policyName);
