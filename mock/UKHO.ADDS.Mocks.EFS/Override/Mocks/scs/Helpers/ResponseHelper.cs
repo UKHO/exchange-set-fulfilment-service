@@ -1,38 +1,10 @@
 using System.Text.Json.Nodes;
+using UKHO.ADDS.Mocks.EFS.Override.Mocks.scs.Constants;
 using UKHO.ADDS.Mocks.Headers;
 using IResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Helpers
 {
-    /// <summary>
-    /// Constants for standardized error response URIs
-    /// </summary>
-    public static class ErrorResponseConstants
-    {
-        /// <summary>
-        /// RFC 9110 Section 15.5.16 - Unsupported Media Type
-        /// </summary>
-        public const string UnsupportedMediaTypeUri = "https://tools.ietf.org/html/rfc9110#section-15.5.16";
-        
-        /// <summary>
-        /// Default fallback URI for generic error responses
-        /// </summary>
-        public const string GenericErrorUri = "https://example.com";
-    }
-
-    /// <summary>
-    /// Constants for trace ID generation
-    /// </summary>
-    public static class TraceConstants
-    {
-        /// <summary>
-        /// Length of trace ID substring when generated from GUID.
-        /// Takes first 23 characters of GUID (format: "12345678-1234-1234-1234-123") 
-        /// to create a shorter, readable trace ID for mock responses.
-        /// </summary>
-        public const int MockTraceIdLength = 23;
-    }
-
     /// <summary>
     /// Helper class to reduce duplication in mock endpoint response generation
     /// </summary>
@@ -95,7 +67,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Helpers
         /// <param name="traceId">Optional trace ID</param>
         /// <returns>A 415 Unsupported Media Type IResult</returns>
         public static IResult CreateUnsupportedMediaTypeResponse(
-            string? typeUri = null, 
+            string? typeUri = null,
             string? traceId = null)
         {
             return Results.Json(new

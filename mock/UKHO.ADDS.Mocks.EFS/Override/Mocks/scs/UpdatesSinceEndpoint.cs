@@ -14,6 +14,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
     public class UpdatesSinceEndpoint : ServiceEndpointMock
     {
         private const string DataFileName = "s100-updates-since.json";
+        private const string dateTimeFormat = "yyyy-MM-ddTHH:mm:ssZ";
 
         public override void RegisterSingleEndpoint(IEndpointMock endpoint) =>
             endpoint.MapGet("/v2/products/s100/updatesSince", async (string sinceDateTime, string? productIdentifier, HttpRequest request, HttpResponse response) =>
@@ -24,7 +25,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
 
                 return state switch
                 {
-                    WellKnownState.Default => await HandleDefaultRequest(productIdentifier, response),
+                    WellKnownState.Default => await HandleDefaultRequest(productIdentifier, sinceDateTime, response),
                     WellKnownState.NotModified => HandleNotModified(response, sinceDateTime),
                     WellKnownState.BadRequest => ResponseHelper.CreateBadRequestResponse(request, "Updates Since", "Bad Request."),
                     WellKnownState.NotFound => ResponseHelper.CreateNotFoundResponse(request),
@@ -55,9 +56,17 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
         /// <summary>
         /// Handles the default request scenario by loading data from the static JSON file.
         /// </summary>
-        private async Task<IResult> HandleDefaultRequest(string? productIdentifier, HttpResponse response)
+        private async Task<IResult> HandleDefaultRequest(string? productIdentifier, string sinceDateTime, HttpResponse response)
         {
-            response.GetTypedHeaders().LastModified = DateTime.UtcNow;
+            if (DateTime.TryParse(sinceDateTime, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsedDate))
+            {
+                var modifiedDate = parsedDate.AddDays(1);
+                response.Headers.LastModified = modifiedDate.ToString(dateTimeFormat, CultureInfo.InvariantCulture);
+            }
+            else
+            {
+                response.Headers.LastModified = sinceDateTime;
+            }
 
             var pathResult = GetFile(DataFileName);
             if (!pathResult.IsSuccess(out var file))
@@ -73,7 +82,16 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
         /// </summary>
         private static IResult HandleNotModified(HttpResponse response, string sinceDateTime)
         {
-            response.Headers.LastModified = sinceDateTime;
+            if (DateTime.TryParse(sinceDateTime, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsedDate))
+            {
+                var modifiedDate = parsedDate.AddDays(-1);
+                response.Headers.LastModified = modifiedDate.ToString(dateTimeFormat, CultureInfo.InvariantCulture);
+            }
+            else
+            {
+                response.Headers.LastModified = sinceDateTime;
+            }
+            
             return Results.StatusCode(304);
         }
     }
