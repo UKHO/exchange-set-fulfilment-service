@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.EFS.Domain.Builds;
+﻿using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
+using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.Builds.S57;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Services;
@@ -28,16 +29,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S57
         {
             var job = context.Subject.Job!;
 
+            var batchHandle = new BatchHandle((string)job.BatchId!);
+
             try
             {
-                var commit = await _fileService.CommitBatchAsync(job.BatchId!, job.GetCorrelationId(), Environment.CancellationToken);
+                var commitBatchResult = await _fileService.CommitBatchAsync(batchHandle, job.GetCorrelationId(), Environment.CancellationToken);
+                return NodeResultStatus.Succeeded;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return NodeResultStatus.Failed;
             }
-
-            return NodeResultStatus.Succeeded;
         }
     }
 }

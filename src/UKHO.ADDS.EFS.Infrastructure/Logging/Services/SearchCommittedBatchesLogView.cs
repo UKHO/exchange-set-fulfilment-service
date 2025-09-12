@@ -8,7 +8,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Logging.Services
     {
         public string BusinessUnit { get; set; }
         public BatchId BatchId { get; set; }
-        public string ProductType { get; set; }
+        public string ProductCode { get; set; }
         public CorrelationId CorrelationId { get; set; }
         public SearchQueryLogView Query { get; set; }
         public IError Error { get; set; }
