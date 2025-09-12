@@ -1,0 +1,66 @@
+[
+  {
+    "productName": "102NO32904820801012",
+    "editionNumber": 5,
+    "updateNumbers": [0],
+    "dates": [
+      {
+        "updateNumber": 0,
+        "updateApplicationDate": "2019-10-27T00:00:00.0000000Z",
+        "issueDate": "2025-06-27T00:00:00.0000000Z"
+      }
+    ],
+    "cancellation": {
+      "editionNumber": 0,
+      "updateNumber": 8
+    },
+    "fileSize": 0
+  },
+  {
+    "productName": "101GB40079ABCDEFG",
+    "editionNumber": 5,
+    "updateNumbers": [0, 1, 2],
+    "dates": [
+      {
+        "updateNumber": 0,
+        "updateApplicationDate": "2019-10-27T00:00:00.0000000Z",
+        "issueDate": "2025-06-27T00:00:00.0000000Z"
+      },
+      {
+        "updateNumber": 1,
+        "issueDate": "2025-07-07T00:00:00.0000000Z"
+      },
+      {
+        "updateNumber": 2,
+        "issueDate": "2025-07-17T00:00:00.0000000Z"
+      }
+    ],
+    "fileSize": 1234
+  },
+  {
+    "productName": "104US00_CHES_TYPE1_20210630_0600",
+    "editionNumber": 2,
+    "updateNumbers": [0],
+    "dates": [
+      {
+        "updateNumber": 0,
+        "updateApplicationDate": "2019-10-27T00:00:00.0000000Z",
+        "issueDate": "2025-06-27T00:00:00.0000000Z"
+      }
+    ],
+    "fileSize": 1234
+  },
+  {
+    "productName": "111US00_ches_dcf8_20190703T00Z",
+    "editionNumber": 11,
+    "updateNumbers": [0],
+    "dates": [
+      {
+        "updateNumber": 0,
+        "updateApplicationDate": "2019-10-27T00:00:00.0000000Z",
+        "issueDate": "2025-06-27T00:00:00.0000000Z"
+      }
+    ],
+    "fileSize": 4567
+  }
+]
