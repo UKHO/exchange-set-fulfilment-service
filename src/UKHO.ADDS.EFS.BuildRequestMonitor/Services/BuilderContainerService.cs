@@ -29,20 +29,6 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
             setEnvironmentFunc?.Invoke(environment);
 
             //rhz: Ensure the custom bridge network exists and connect the storage container to it
-            //var cntnrs = await _dockerClient.Containers.ListContainersAsync(new ContainersListParameters
-            //{
-            //    All = true,
-                
-                
-            //});
-
-            //foreach (var cntnr in cntnrs)
-            //{
-            //    if (cntnr.Names.Any(n => n.TrimStart('/').Equals(StorageConfiguration.StorageName, StringComparison.OrdinalIgnoreCase)))
-            //    {
-            //        Log.Information($"Found existing container with name {StorageConfiguration.StorageName} and ID {cntnr.ID}. Continuing.");
-            //    }
-            //}
 
             var networkParams = new NetworksCreateParameters
             {
@@ -53,45 +39,54 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
             Log.Information($"Attempt to create docker custom network {networkParams.Name}. ");
 
             //var networks = await _dockerClient.Networks.ListNetworksAsync();
-
-
-            //var existingNetwork = networks.FirstOrDefault(n => n.Name == "efs_test_bridge") != null;
-
-
-            try
+            var existing = await _dockerClient.Networks.ListNetworksAsync(new NetworksListParameters
             {
-                await _dockerClient.Networks.CreateNetworkAsync(networkParams);
-                Log.Information($"Created docker custom network {networkParams.Name}. Continuing.");
-            }
-            catch (Exception ex)
-            {
-                Log.Warning(ex, "Attempt failed, docker network {NetworkName} not created. Error {exMessage}.", networkParams.Name, ex.Message);
-
-            }
-
-            //if (!existingNetwork)
-            //{
-            //    try
-            //    {
-            //        await _dockerClient.Networks.CreateNetworkAsync(networkParams);
-            //        Log.Information($"Created docker custome network {networkParams.Name}. Continuing.");
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        Log.Warning(ex, "Failed to create docker network {NetworkName}. Continuing.", networkParams.Name);
-
-            //    } 
-            //}
-            //else
-            //{
-            //    Log.Information($"Docker custome network {networks.FirstOrDefault(n => n.Name == "efs_test_bridge")} already exists. Continuing.");
-            //}
-
-
-            await _dockerClient.Networks.ConnectNetworkAsync("efs_test_bridge", new NetworkConnectParameters
+                Filters = new Dictionary<string, IDictionary<string, bool>>
                 {
-                    Container = StorageConfiguration.StorageName,
-                });
+                    ["name"] = new Dictionary<string, bool> { [networkParams.Name] = true }
+                }
+            });
+
+            var networkExists = existing.Any();
+            if (!networkExists)
+            {
+                try
+                {
+                    await _dockerClient.Networks.CreateNetworkAsync(networkParams);
+                    Log.Information("Created docker custom network {NetworkName}.", networkParams.Name);
+                }
+                catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+                {
+                    Log.Information("Network {NetworkName} already created by another process.", networkParams.Name);
+                }
+            }
+            else
+            {
+                Log.Information("Docker custom network {NetworkName} already exists.", networkParams.Name);
+            }
+
+
+            if (await ContainerExistsAsync(StorageConfiguration.StorageName))
+            {
+                try
+                {
+                    await _dockerClient.Networks.ConnectNetworkAsync(networkParams.Name, new NetworkConnectParameters
+                    {
+                        Container = StorageConfiguration.StorageName
+                    });
+                    Log.Information("Connected container {Container} to network {Network}.", StorageConfiguration.StorageName, networkParams.Name);
+                }
+                catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotModified ||
+                                                   ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+                {
+                    Log.Information("Container {Container} already connected to network {Network}.", StorageConfiguration.StorageName, networkParams.Name);
+                }
+            }
+            else
+            {
+                Log.Warning("Container {Container} not found; skipping network connection.", StorageConfiguration.StorageName);
+            }
+
             Log.Information($"Attempted to connect docker custome network {networkParams.Name} to {StorageConfiguration.StorageName}.");
 
 
@@ -108,7 +103,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
                 Tty = false,
                 HostConfig = new HostConfig
                 {
-                    NetworkMode = "efs_test_bridge", //rhz: Use the custom bridge network
+                    NetworkMode = networkParams.Name, //rhz: Use the custom bridge network
                     ExtraHosts = new[]
                     {
                         "host.docker.internal:host-gateway"
@@ -167,5 +162,28 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
         private static Uri GetDockerEndpoint() => RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? new Uri("npipe://./pipe/docker_engine")
             : new Uri("unix:///var/run/docker.sock");
+
+
+        private async Task<bool> ContainerExistsAsync(string containerName)
+        {
+            if (string.IsNullOrWhiteSpace(containerName))
+            {
+                return false;
+            }
+
+            var containers = await _dockerClient.Containers.ListContainersAsync(new ContainersListParameters
+            {
+                All = true,
+                Filters = new Dictionary<string, IDictionary<string, bool>>
+                {
+                    ["name"] = new Dictionary<string, bool> { [containerName] = true }
+                }
+            });
+
+            return containers.Any(c =>
+                c.Names.Any(n => string.Equals(n.TrimStart('/'), containerName, StringComparison.OrdinalIgnoreCase)));
+        }
+
+
     }
 }
