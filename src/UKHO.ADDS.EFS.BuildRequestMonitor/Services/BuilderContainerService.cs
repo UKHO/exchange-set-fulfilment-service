@@ -106,7 +106,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
                 Tty = false,
                 HostConfig = new HostConfig
                 {
-                    //NetworkMode = networkParams.Name, //rhz: Use the custom bridge network
+                    NetworkMode = networkParams.Name, //rhz: Use the custom bridge network
                     ExtraHosts = new[]
                     {
                         "host.docker.internal:host-gateway"
