@@ -10,7 +10,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Seril
         private readonly string _system;
         private readonly string _service;
         private readonly string _nodeName;
-        private readonly Action<IDictionary<string, object>> additionalValuesProvider;
+        private readonly Action<IDictionary<string, object>> _additionalValuesProvider;
         private bool _disposed;
 
         public EventHubSink(IEventHubLog eventHubLog, string environment, string system, string service, string nodeName,
@@ -21,7 +21,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Seril
             _system = system ?? throw new ArgumentNullException(nameof(system));
             _service = service ?? throw new ArgumentNullException(nameof(service));
             _nodeName = nodeName ?? throw new ArgumentNullException(nameof(nodeName));
-            additionalValuesProvider = additionalValuesProvider ?? (d => { });
+            _additionalValuesProvider = additionalValuesProvider ?? (d => { });
         }
 
         public void Emit(LogEvent logEvent)
@@ -41,7 +41,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Seril
                 { EventHubConstant.System, _system },
                 { EventHubConstant.Service, _service },
                 { EventHubConstant.NodeName, _nodeName },
-                { EventHubConstant.Service, logEvent.Properties.ContainsKey("SourceContext")
+                { EventHubConstant.ComponentName, logEvent.Properties.ContainsKey("SourceContext")
                                    ? logEvent.Properties["SourceContext"].ToString().Trim('"')
                                    : "Unknown" }
             };
@@ -49,7 +49,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Seril
             // Add additional values if configured
             try
             {
-                additionalValuesProvider(properties);
+                _additionalValuesProvider(properties);
             }
             catch (Exception e)
             {

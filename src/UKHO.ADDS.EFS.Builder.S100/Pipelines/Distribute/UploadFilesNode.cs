@@ -80,6 +80,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
                     return NodeResultStatus.Failed;
                 }
 
+                if (batchHandle.FileDetails?.Count > 0)
+                {
+                    var firstFileDetail = batchHandle.FileDetails.First();
+                    context.Subject.Build.BuildCommitInfo?.AddFileDetail(firstFileDetail.FileName, firstFileDetail.Hash);
+                }
+
                 return NodeResultStatus.Succeeded;
             }
             catch (Exception ex)
