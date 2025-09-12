@@ -1,0 +1,217 @@
+openapi: 3.0.1
+info:
+  title: UKHO.ADDS.EFS.Orchestrator | v1
+  version: 1.0.0
+servers:
+  - url: https://efs-orchestrator.mangomeadow-42e84c72.uksouth.azurecontainerapps.io/
+paths:
+  /v2/exchangeSet/s100/productNames:
+    post:
+      tags:
+        - UKHO.ADDS.EFS.Orchestrator
+      description: Provide all the latest releasable baseline data for a specified set
+        of S100 Products.
+      parameters:
+        - name: callbackUri
+          in: query
+          schema:
+            type: string
+            default: null
+        - name: x-correlation-id
+          in: header
+          description: Correlation ID
+          required: true
+          schema:
+            type: string
+            default: 1dee7c991e3e49358619d6538b56b998
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+        required: true
+      responses:
+        "202":
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomExchangeSetResponse"
+  /v2/exchangeSet/s100/productVersions:
+    post:
+      tags:
+        - UKHO.ADDS.EFS.Orchestrator
+      description: Given a set of S100 Product versions (e.g. Edition x Update y)
+        provide any later releasable files.
+      parameters:
+        - name: callbackUri
+          in: query
+          schema:
+            type: string
+            default: null
+        - name: x-correlation-id
+          in: header
+          description: Correlation ID
+          required: true
+          schema:
+            type: string
+            default: 4c546aeafda34e9fb851e939cf6d8323
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/S100ProductVersionsRequest"
+        required: true
+      responses:
+        "202":
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomExchangeSetResponse"
+  /v2/exchangeSet/s100/updatesSince:
+    post:
+      tags:
+        - UKHO.ADDS.EFS.Orchestrator
+      description: Provide all the releasable S100 data after a datetime.
+      parameters:
+        - name: callbackUri
+          in: query
+          schema:
+            type: string
+            default: null
+        - name: productIdentifier
+          in: query
+          schema:
+            type: string
+            default: null
+        - name: x-correlation-id
+          in: header
+          description: Correlation ID
+          required: true
+          schema:
+            type: string
+            default: 96f71c03f61242e38a5a519246a514c3
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/S100UpdatesSinceRequest"
+        required: true
+      responses:
+        "202":
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomExchangeSetResponse"
+        "304":
+          description: Not Modified
+components:
+  schemas:
+    BatchId: {}     
+    CustomExchangeSetResponse:
+      required:
+        - links
+        - exchangeSetUrlExpiryDateTime
+      type: object
+      properties:
+        links:
+          $ref: "#/components/schemas/ExchangeSetLinks"
+        exchangeSetUrlExpiryDateTime:
+          type: string
+          format: date-time
+        requestedProductCount:
+          type: integer
+          format: int32
+        exchangeSetProductCount:
+          type: integer
+          format: int32
+        requestedProductsAlreadyUpToDateCount:
+          type: integer
+          format: int32
+        requestedProductsNotInExchangeSet:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductNotInExchangeSet"
+        fssBatchId:
+          $ref: "#/components/schemas/BatchId"    
+    ExchangeSetLinks:
+      required:
+        - exchangeSetBatchStatusUri
+        - exchangeSetBatchDetailsUri
+      type: object
+      properties:
+        exchangeSetBatchStatusUri:
+          $ref: "#/components/schemas/Link"
+        exchangeSetBatchDetailsUri:
+          $ref: "#/components/schemas/Link"
+        exchangeSetFileUri:
+          $ref: "#/components/schemas/Link2"    
+    Link:
+      required:
+        - href
+      type: object
+      properties:
+        href:
+          type: string
+    Link2:
+      required:
+        - href
+      type: object
+      properties:
+        href:
+          type: string
+      nullable: true
+    ProductNotIncludedReason:
+      enum:
+        - productWithdrawn
+        - invalidProduct
+        - noDataAvailableForCancelledProduct
+    ProductNotInExchangeSet:
+      required:
+        - productName
+        - reason
+      type: object
+      properties:
+        productName:
+          type: string
+        reason:
+          $ref: "#/components/schemas/ProductNotIncludedReason"
+    S100ProductVersion:
+      required:
+        - productName
+        - editionNumber
+      type: object
+      properties:
+        productName:
+          type: string
+        editionNumber:
+          type: integer
+          format: int32
+        updateNumber:
+          type: integer
+          format: int32
+    S100ProductVersionsRequest:
+      required:
+        - productVersions
+      type: object
+      properties:
+        productVersions:
+          type: array
+          items:
+            $ref: "#/components/schemas/S100ProductVersion"
+    S100UpdatesSinceRequest:
+      required:
+        - sinceDateTime
+      type: object
+      properties:
+        sinceDateTime:
+          type: string
+          format: date-time
+tags:
+  - name: UKHO.ADDS.EFS.Orchestrator
