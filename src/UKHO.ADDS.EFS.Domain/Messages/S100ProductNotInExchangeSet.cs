@@ -1,5 +1,7 @@
 namespace UKHO.ADDS.EFS.Messages
 {
+    using UKHO.ADDS.EFS.Domain.Products;
+    
     /// <summary>
     /// Represents a product that was requested but not included in the exchange set
     /// </summary>
@@ -13,6 +15,6 @@ namespace UKHO.ADDS.EFS.Messages
         /// <summary>
         /// The reason why the product was not included
         /// </summary>
-        public required S100ProductNotIncludedReason Reason { get; set; }
+        public required MissingProductReason Reason { get; set; }
     }
 }

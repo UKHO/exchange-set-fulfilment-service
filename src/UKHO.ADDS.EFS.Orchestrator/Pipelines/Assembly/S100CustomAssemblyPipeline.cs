@@ -18,7 +18,7 @@ internal class S100CustomAssemblyPipeline : AssemblyPipeline<S100Build>
 
         AddPipelineNode<CreateJobNode>(cancellationToken);
         AddPipelineNode<GetDataStandardTimestampNode>(cancellationToken);
-        AddPipelineNode<S100ProductEditionRetrievalNode>(cancellationToken);
+        AddPipelineNode<ProductEditionRetrievalNode>(cancellationToken);
      
         AddPipelineNode<CheckFingerprintNode>(cancellationToken);
         AddPipelineNode<CreateFileShareBatchNode>(cancellationToken);

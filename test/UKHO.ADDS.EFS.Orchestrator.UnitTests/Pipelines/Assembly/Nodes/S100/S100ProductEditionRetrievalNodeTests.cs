@@ -20,20 +20,20 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         private IExecutionContext<PipelineContext<S100Build>> _executionContext;
         private AssemblyNodeEnvironment _nodeEnvironment;
         private IProductService _productService;
-        private ILogger<S100ProductEditionRetrievalNode> _logger;
+        private ILogger<ProductEditionRetrievalNode> _logger;
         private Job _job;
         private S100Build _build;
         private PipelineContext<S100Build> _pipelineContext;
-        private S100ProductEditionRetrievalNode _node;
+        private ProductEditionRetrievalNode _node;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
             _nodeEnvironment = A.Fake<AssemblyNodeEnvironment>();
             _productService = A.Fake<IProductService>();
-            _logger = A.Fake<ILogger<S100ProductEditionRetrievalNode>>();
+            _logger = A.Fake<ILogger<ProductEditionRetrievalNode>>();
             _executionContext = A.Fake<IExecutionContext<PipelineContext<S100Build>>>();
-            _node = new S100ProductEditionRetrievalNode(_nodeEnvironment, _productService, _logger);
+            _node = new ProductEditionRetrievalNode(_nodeEnvironment, _productService, _logger);
         }
 
         [SetUp]

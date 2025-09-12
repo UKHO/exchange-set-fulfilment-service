@@ -8,11 +8,13 @@ namespace UKHO.ADDS.EFS.Domain.Builds
     {
         private List<string> _logMessages;
         private List<BuildNodeStatus> _statuses;
+        private MissingProductList _missingProducts;
 
         protected Build()
         {
             _statuses = [];
             _logMessages = [];
+            _missingProducts = new MissingProductList();
         }
 
         public JobId JobId { get; init; }
@@ -48,6 +50,15 @@ namespace UKHO.ADDS.EFS.Domain.Builds
         {
             get => _logMessages;
             set => _logMessages = value?.ToList() ?? [];
+        }
+
+        /// <summary>
+        ///     Gets or sets the list of products that were requested but couldn't be included in the build.
+        /// </summary>
+        public MissingProductList MissingProducts
+        {
+            get => _missingProducts;
+            set => _missingProducts = value ?? new MissingProductList();
         }
 
         /// <summary>

@@ -49,17 +49,17 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             _downloadFileConcurrencyLimiter = new SemaphoreSlim(_maxConcurrentDownloads);
         }
 
+        public override Task<bool> ShouldExecuteAsync(IExecutionContext<S100ExchangeSetPipelineContext> context)
+        {
+            return Task.FromResult(context.Subject.BatchDetails != null && context.Subject.BatchDetails.Any());
+        }
+
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<S100ExchangeSetPipelineContext> context)
         {
             _logger = context.Subject.LoggerFactory.CreateLogger<DownloadFilesNode>();
 
             try
             {
-                if (context.Subject.BatchDetails == null || context.Subject.BatchDetails.Count() == 0)
-                {
-                    return NodeResultStatus.NotRun;
-                }
-
                 var downloadPath = Path.Combine(context.Subject.WorkSpaceRootPath, context.Subject.WorkSpaceSpoolPath);
 
                 CreateDirectoryIfNotExists(downloadPath);

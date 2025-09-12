@@ -44,25 +44,27 @@ internal class CreateResponseNode : AssemblyPipelineNode<S100Build>
         try
         {
             // Get the product count metrics - eventually these will come from the context
-            var requestedProductCount = job.RequestedProducts?.Count.Value ?? 0;
+            var requestedProductCount = job.RequestedProducts?.Count.IsInitialized() == true
+                                        ? job.RequestedProducts.Count
+                                        : ProductCount.From(0); // Updated to use ProductCount.From(int)
             // TODO: Replace placeholder values with actual counts from context
             var exchangeSetProductCount = build.ProductEditions?.Count() ?? 0;
             var alreadyUpToDateCount = 0;
 
             var response = CreateResponse(
-                job.BatchId, 
-                requestedProductCount, 
-                exchangeSetProductCount, 
+                job.BatchId,
+                requestedProductCount,
+                exchangeSetProductCount,
                 alreadyUpToDateCount,
                 build.MissingProducts);
-            
+
             // Store the response data for later retrieval
             build.ResponseData = response;
 
             //_logger.LogInformation(
             //    "Created S100 response. JobId: {JobId}, BatchId: {BatchId}, RequestedProductCount: {RequestedProductCount}, ExchangeSetProductCount: {ExchangeSetProductCount}", 
             //    correlationId, job.BatchId, requestedProductCount, exchangeSetProductCount);
-            
+
             return NodeResultStatus.Succeeded;
         }
         catch (Exception ex)
@@ -82,15 +84,15 @@ internal class CreateResponseNode : AssemblyPipelineNode<S100Build>
     /// <param name="missingProducts">List of products that were requested but not included</param>
     /// <returns>A populated S100CustomExchangeSetResponse object</returns>
     private S100CustomExchangeSetResponse CreateResponse(
-        BatchId batchId,
-        int requestedProductCount,
-        int exchangeSetProductCount,
-        int requestedProductsAlreadyUpToDateCount,
-        MissingProductList missingProducts)
+    BatchId batchId,
+    ProductCount requestedProductCount,
+    int exchangeSetProductCount,
+    int requestedProductsAlreadyUpToDateCount,
+    MissingProductList missingProducts)
     {
         // Get the FileShare base URL from configuration or use default
         var fileShareBaseUrl = Environment.Configuration[FileShareBaseUrlConfigKey] ?? DefaultFileShareBaseUrl;
-        
+
         // Get the URL expiry days from configuration or use default
         if (!int.TryParse(Environment.Configuration[ExchangeSetUrlExpiryDaysConfigKey], out var expiryDays))
         {
@@ -98,7 +100,7 @@ internal class CreateResponseNode : AssemblyPipelineNode<S100Build>
         }
 
         var expiryDateTime = DateTime.UtcNow.AddDays(expiryDays);
-        
+
         // Only include ExchangeSetFileUri if we have a valid batchId
         S100Link? exchangeSetFileUri = null;
         if (batchId != BatchId.None)
@@ -115,7 +117,7 @@ internal class CreateResponseNode : AssemblyPipelineNode<S100Build>
                 requestedProductsNotInExchangeSet.Add(new S100ProductNotInExchangeSet
                 {
                     ProductName = missingProduct.ProductName.ToString(),
-                    Reason = MapMissingProductReasonToS100Reason(missingProduct.Reason)
+                    Reason = missingProduct.Reason
                 });
             }
         }
@@ -129,28 +131,11 @@ internal class CreateResponseNode : AssemblyPipelineNode<S100Build>
                 ExchangeSetFileUri = exchangeSetFileUri
             },
             ExchangeSetUrlExpiryDateTime = expiryDateTime,
-            RequestedProductCount = requestedProductCount,
+            RequestedProductCount = requestedProductCount.Value, // Explicitly use the Value property of ProductCount
             ExchangeSetProductCount = exchangeSetProductCount,
             RequestedProductsAlreadyUpToDateCount = requestedProductsAlreadyUpToDateCount,
             RequestedProductsNotInExchangeSet = requestedProductsNotInExchangeSet,
             FssBatchId = (string)batchId
-        };
-    }
-
-    /// <summary>
-    /// Maps MissingProductReason to S100ProductNotIncludedReason
-    /// </summary>
-    /// <param name="reason">The MissingProductReason to map</param>
-    /// <returns>The corresponding S100ProductNotIncludedReason</returns>
-    private static S100ProductNotIncludedReason MapMissingProductReasonToS100Reason(MissingProductReason reason)
-    {
-        return reason switch
-        {
-            MissingProductReason.ProductWithdrawn => S100ProductNotIncludedReason.ProductWithdrawn,
-            MissingProductReason.NoDataAvailableForCancelledProduct => S100ProductNotIncludedReason.NoDataAvailableForCancelledProduct,
-            MissingProductReason.InvalidProduct => S100ProductNotIncludedReason.InvalidProduct,
-            MissingProductReason.DuplicateProduct => S100ProductNotIncludedReason.InvalidProduct, // Map DuplicateProduct to InvalidProduct since there's no direct equivalent
-            _ => S100ProductNotIncludedReason.InvalidProduct // Default to InvalidProduct for any other reason
         };
     }
 }
