@@ -30,73 +30,8 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
             var environment = new BuilderEnvironment();
             setEnvironmentFunc?.Invoke(environment);
 
-            //rhz: Ensure the custom bridge network exists and connect the storage container to it
-
-            //var networkParams = new NetworksCreateParameters
-            //{
-            //    Name = _networkName,
-            //    Driver = "bridge"
-            //};
-
-            //Log.Information($"Attempt to create docker custom network {networkParams.Name}. ");
-
-            //var networks = await _dockerClient.Networks.ListNetworksAsync();
-
-            //var existing = await _dockerClient.Networks.ListNetworksAsync(new NetworksListParameters
-            //{
-            //    Filters = new Dictionary<string, IDictionary<string, bool>>
-            //    {
-            //        ["name"] = new Dictionary<string, bool> { [networkParams.Name] = true }
-            //    }
-            //});
-
-            //var networkExists = existing.Any();
-            //if (!networkExists)
-            //{
-            //    try
-            //    {
-            //        await _dockerClient.Networks.CreateNetworkAsync(networkParams);
-            //        Log.Information("Created docker custom network {NetworkName}.", networkParams.Name);
-            //    }
-            //    catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
-            //    {
-            //        Log.Information("Network {NetworkName} already created by another process.", networkParams.Name);
-            //    }
-            //}
-            //else
-            //{
-            //    Log.Information("Docker custom network {NetworkName} already exists.", networkParams.Name);
-            //}
-
             await CreateCustomNetworkBridgeAsync(_networkName);
             await AttachContainerToNetworkAsync(containerName: StorageConfiguration.StorageName, networkName: _networkName);
-
-
-            //if (await ContainerExistsAsync(StorageConfiguration.StorageName))
-            //{
-            //    try
-            //    {
-            //        await _dockerClient.Networks.ConnectNetworkAsync(networkParams.Name, new NetworkConnectParameters
-            //        {
-            //            Container = StorageConfiguration.StorageName
-            //        });
-            //        Log.Information("Connected container {Container} to network {Network}.", StorageConfiguration.StorageName, networkParams.Name);
-            //    }
-            //    catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotModified ||
-            //                                       ex.StatusCode == System.Net.HttpStatusCode.Conflict)
-            //    {
-            //        Log.Information("Container {Container} already connected to network {Network}.", StorageConfiguration.StorageName, networkParams.Name);
-            //    }
-            //}
-            //else
-            //{
-            //    Log.Warning("Container {Container} not found; skipping network connection.", StorageConfiguration.StorageName);
-            //}
-
-
-
-
-            //rhz: End custom bridge network setup
 
 
             var containerParams = new CreateContainerParameters
@@ -109,7 +44,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
                 Tty = false,
                 HostConfig = new HostConfig
                 {
-                    //NetworkMode = networkParams.Name, //rhz: Use the custom bridge network
+                    NetworkMode = _networkName, //rhz: Use the custom bridge network
                     ExtraHosts = new[]
                     {
                         "host.docker.internal:host-gateway"
@@ -146,22 +81,6 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
             }
 
             await AttachContainerToNetworkAsync(_dynamicContainerName, _networkName);
-
-            // rhz: Attach to network bridge if not already attached
-            //try
-            //{
-            //    await _dockerClient.Networks.ConnectNetworkAsync(_networkName, new NetworkConnectParameters
-            //    {
-            //        Container = _dynamicContainerName
-            //    });
-            //    Log.Information("Connected container {Container} to network {Network}.", _dynamicContainerName, _networkName);
-            //}
-            //catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotModified ||
-            //                                   ex.StatusCode == System.Net.HttpStatusCode.Conflict)
-            //{
-            //    Log.Information("Container {Container} already connected to network {Network}.", _dynamicContainerName, _networkName);
-            //}
-            // rhz end attach to network bridge
 
             var streamer = new BuilderLogStreamer(_dockerClient);
 
@@ -212,6 +131,12 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
 
         private async Task CreateCustomNetworkBridgeAsync(string name)
         {
+            if (!IsRunningInPipeline())
+            {
+                Log.Information("Not running in a pipeline; skipping custom network creation.");
+                return;
+            }
+
             var networkParams = new NetworksCreateParameters
             {
                 Name = name,
@@ -247,6 +172,12 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
 
         private async Task AttachContainerToNetworkAsync(string containerName, string networkName)
         {
+            if (!IsRunningInPipeline())
+            {
+                Log.Information("Not running in a pipeline; skipping custom network creation.");
+                return;
+            }
+
             if (await ContainerExistsAsync(containerName))
             {
                 try
@@ -267,5 +198,22 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
                 Log.Warning("Container {Container} not found; skipping network connection.", containerName);
             }
         }
+
+        private bool IsRunningInPipeline()
+        {
+            // Common environment variables for CI/CD pipelines
+            var ci = Environment.GetEnvironmentVariable("CI");
+            var tfBuild = Environment.GetEnvironmentVariable("TF_BUILD");
+            var githubActions = Environment.GetEnvironmentVariable("GITHUB_ACTIONS");
+            var azurePipeline = Environment.GetEnvironmentVariable("AGENT_NAME");
+
+            return !string.IsNullOrEmpty(ci)
+                || !string.IsNullOrEmpty(tfBuild)
+                || !string.IsNullOrEmpty(githubActions)
+                || !string.IsNullOrEmpty(azurePipeline);
+            //return false; // Temporarily disable pipeline-specific tests
+
+        }
+
     }
 }
