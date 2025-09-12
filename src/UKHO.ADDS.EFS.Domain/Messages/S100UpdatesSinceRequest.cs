@@ -5,9 +5,6 @@
     /// </summary>
     public class S100UpdatesSinceRequest
     {
-        /// <summary>
-        /// The date and time from which changes are requested
-        /// </summary>
         public DateTime? SinceDateTime { get; set; }
     }
 }
