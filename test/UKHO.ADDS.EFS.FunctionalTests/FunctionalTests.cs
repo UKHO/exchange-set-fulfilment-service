@@ -45,9 +45,9 @@ namespace UKHO.ADDS.EFS.FunctionalTests
 
             var response = await httpClient.PostAsync("/jobs", content);
 
-            //_output.WriteLine($"Job ID: {requestId}");
+            _output.WriteLine($"Job ID: {requestId}");
 
-            //await Task.Delay(120000);
+            await Task.Delay(120000);
 
             var logs = LoggerProvider.GetLogs();
             ////_output.WriteLine($"Logs for Job ID {requestId}:\n{string.Join("\n", logs.Select(log => $"{log.LogLevel}: {log.Message}"))}");
@@ -73,9 +73,9 @@ namespace UKHO.ADDS.EFS.FunctionalTests
             //var jobId = await OrchestratorCommands.SubmitJobAsync(httpClient, filter);
             //_output.WriteLine($"Job ID: {jobId}");
 
-            await OrchestratorCommands.WaitForJobCompletionAsync(httpClient, jobId);
+            //await OrchestratorCommands.WaitForJobCompletionAsync(httpClient, jobId);
             //var logs = LoggerProvider.GetLogs();
-            _output.WriteLine($"Logs for Job ID {jobId}:\n{string.Join("\n", logs.Select(log => $"{log.LogLevel}: {log.Message}"))}");
+            //_output.WriteLine($"Logs for Job ID {jobId}:\n{string.Join("\n", logs.Select(log => $"{log.LogLevel}: {log.Message}"))}");
 
             await OrchestratorCommands.VerifyBuildStatusAsync(httpClient, jobId);
 
