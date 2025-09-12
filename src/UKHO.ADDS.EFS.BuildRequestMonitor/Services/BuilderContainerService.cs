@@ -15,6 +15,8 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger<BuilderContainerService> _logger;
         private readonly DockerClient _dockerClient;
+        private string _dynamicContainerName;
+        private string _networkName = "efs_test_bridge";
 
         public BuilderContainerService(ILoggerFactory loggerFactory)
         {
@@ -32,7 +34,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
 
             var networkParams = new NetworksCreateParameters
             {
-                Name = "efs_test_bridge",
+                Name = _networkName,
                 Driver = "bridge"
             };
 
@@ -87,13 +89,14 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
                 Log.Warning("Container {Container} not found; skipping network connection.", StorageConfiguration.StorageName);
             }
 
-            Log.Information($"Attempted to connect docker custome network {networkParams.Name} to {StorageConfiguration.StorageName}.");
+            //Log.Information($"Attempted to connect docker custome network {networkParams.Name} to {StorageConfiguration.StorageName}.");
 
 
-
+            
             //rhz: End custom bridge network setup
 
-            var response = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters
+
+            var containerParams = new CreateContainerParameters
             {
                 Image = image,
                 Name = name + Guid.NewGuid().ToString("N"),
@@ -124,8 +127,10 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
                     $"{BuilderEnvironmentVariables.RetryDelayMilliseconds}={environment.RetryDelayMilliseconds}",
                     $"{BuilderEnvironmentVariables.ConcurrentDownloadLimitCount}={environment.ConcurrentDownloadLimitCount}",
                 }
-            });
-
+                
+            };
+            var response = await _dockerClient.Containers.CreateContainerAsync(containerParams);
+            _dynamicContainerName = containerParams.Name;
             return response.ID;
         }
 
@@ -136,6 +141,22 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
             {
                 throw new Exception("Failed to start container");
             }
+
+            //rhz: Attach to network bridge if not already attached
+            try
+            {
+                await _dockerClient.Networks.ConnectNetworkAsync(_networkName, new NetworkConnectParameters
+                {
+                    Container = _dynamicContainerName
+                });
+                Log.Information("Connected container {Container} to network {Network}.", _dynamicContainerName, _networkName);
+            }
+            catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotModified ||
+                                               ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+            {
+                Log.Information("Container {Container} already connected to network {Network}.", _dynamicContainerName, _networkName);
+            }
+            //rhz end attach to network bridge
 
             var streamer = new BuilderLogStreamer(_dockerClient);
 
