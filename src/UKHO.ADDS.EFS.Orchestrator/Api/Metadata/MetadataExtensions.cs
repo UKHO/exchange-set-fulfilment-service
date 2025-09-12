@@ -1,4 +1,6 @@
-﻿namespace UKHO.ADDS.EFS.Orchestrator.Api.Metadata
+﻿using UKHO.ADDS.Aspire.Configuration;
+
+namespace UKHO.ADDS.EFS.Orchestrator.Api.Metadata
 {
     internal static class MetadataExtensions
     {
@@ -8,5 +10,25 @@
 
             return builder;
         }
+
+        /// <summary>
+        /// Requires authorization for non-local and non-development environments.
+        /// Authentication is compulsory for all environments except dev and local.
+        /// </summary>
+        /// <param name="builder">The route handler builder</param>
+        /// <param name="policyName">The authorization policy name to require</param>
+        /// <returns>The route handler builder for chaining</returns>
+        public static RouteHandlerBuilder WithRequiredAuthorization(this RouteHandlerBuilder builder, string policyName)
+        {
+            var addsEnvironment = AddsEnvironment.GetEnvironment();
+
+            if (!addsEnvironment.IsLocal() && !addsEnvironment.IsDev())
+            {
+                builder.RequireAuthorization(policyName);
+            }
+
+            return builder;
+        }
+
     }
 }

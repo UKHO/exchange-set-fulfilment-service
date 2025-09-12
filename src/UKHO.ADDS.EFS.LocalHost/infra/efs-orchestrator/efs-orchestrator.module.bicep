@@ -34,6 +34,10 @@ param addsenvironment_value string
 
 param efs_service_identity_outputs_clientid string
 
+param efs_app_reg_clientid string
+
+param efs_app_reg_tenantid string
+
 resource efs_orchestrator 'Microsoft.App/containerApps@2025-02-02-preview' = {
   name: 'efs-orchestrator'
   location: location
@@ -133,6 +137,14 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2025-02-02-preview' = {
             {
               name: 'AZURE_CLIENT_ID'
               value: efs_service_identity_outputs_clientid
+            }
+            {
+              name: 'EFS_APP_REG_CLIENTID'
+              value: efs_app_reg_clientid
+            }
+            {
+              name: 'EFS_APP_REG_TENANTID'
+              value: efs_app_reg_tenantid
             }
           ]
         }
