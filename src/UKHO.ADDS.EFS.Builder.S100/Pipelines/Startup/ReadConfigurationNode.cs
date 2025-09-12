@@ -26,6 +26,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
 
                 var request = JsonCodec.Decode<S100BuildRequest>(requestMessage.Value.MessageText)!;
 
+                Log.Information($"Queue accessed Jobid is {request.JobId} and BatchId is {request.BatchId}");
+
                 // TODO Decide on retry strategy for queues and move this as necessary
                 await requestQueue.DeleteMessageAsync(requestMessage.Value.MessageId, requestMessage.Value.PopReceipt);
 
