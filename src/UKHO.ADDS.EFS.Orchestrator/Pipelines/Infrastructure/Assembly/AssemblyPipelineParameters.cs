@@ -22,6 +22,21 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
 
         public required IConfiguration Configuration { get; init; }
 
+        /// <summary>
+        /// The original request type for S100 endpoints
+        /// </summary>
+        public Messages.RequestType? RequestType { get; init; }
+
+        /// <summary>
+        /// The callback URI for asynchronous notifications
+        /// </summary>
+        public string? CallbackUri { get; init; }
+
+        /// <summary>
+        /// Product identifier filter for S100 updates since requests (s101, s102, s104, s111)
+        /// </summary>
+        public string? ProductIdentifier { get; init; }
+
         public Job CreateJob()
         {
             return new Job()
@@ -31,7 +46,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 DataStandard = DataStandard,
                 RequestedProducts = Products,
                 RequestedFilter = Filter,
-                BatchId = BatchId.None
+                BatchId = BatchId.None,
+                CallbackUri = CallbackUri,
+                ProductIdentifier = ProductIdentifier
             };
         }
 
@@ -48,6 +65,61 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
             };
         }
 
+        public static AssemblyPipelineParameters CreateFromS100ProductNames(List<string> productNames,
+            IConfiguration configuration, string correlationId, string? callbackUri = null) =>
+            new()
+            {
+                Version = MessageVersion.From(2),
+                Timestamp = DateTime.UtcNow,
+                DataStandard = DataStandard.S100,
+                Products = CreateProductNameList(productNames.ToArray()),
+                Filter = "productNames",
+                JobId = Domain.Jobs.JobId.From(correlationId),
+                Configuration = configuration,
+                RequestType = Messages.RequestType.ProductNames,
+                CallbackUri = callbackUri
+            };
+
+        /// <summary>
+        /// Creates parameters from S100 Product Versions request
+        /// </summary>
+        public static AssemblyPipelineParameters CreateFromS100ProductVersions(IEnumerable<S100ProductVersion> productVersions,
+            IConfiguration configuration, string correlationId, string? callbackUri = null) =>
+            new()
+            {
+                Version = MessageVersion.From(2),
+                Timestamp = DateTime.UtcNow,
+                DataStandard = DataStandard.S100,
+                Products = CreateProductNameListFromVersions(productVersions),
+                Filter = "productVersions",
+                JobId = Domain.Jobs.JobId.From(correlationId),
+                Configuration = configuration,
+                RequestType = Messages.RequestType.ProductVersions,
+                CallbackUri = callbackUri
+            };
+
+        /// <summary>
+        /// Creates parameters from S100 Updates Since request
+        /// </summary>
+        public static AssemblyPipelineParameters CreateFromS100UpdatesSince(S100UpdatesSinceRequest request,
+            IConfiguration configuration, string correlationId, string? productIdentifier = null,
+            string? callbackUri = null) =>
+            new()
+            {
+                Version = MessageVersion.From(2),
+                Timestamp = DateTime.UtcNow,
+                DataStandard = DataStandard.S100,
+                Products = CreateProductNameListFromString(string.Empty),
+                Filter =
+                    $"updatesSince:{request.SinceDateTime:O}" +
+                    (productIdentifier != null ? $",productIdentifier:{productIdentifier}" : ""),
+                JobId = Domain.Jobs.JobId.From(correlationId),
+                Configuration = configuration,
+                RequestType = Messages.RequestType.UpdatesSince,
+                ProductIdentifier = productIdentifier,
+                CallbackUri = callbackUri
+            };
+
         private static ProductNameList CreateProductNameList(string[] messageProducts)
         {
             var list = new ProductNameList();
@@ -62,6 +134,50 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
             catch (ValidationException ex)
             {
                 throw new ArgumentException("One or more product names are invalid", ex);
+            }
+
+            return list;
+        }
+
+        /// <summary>
+        /// Creates a ProductNameList from S100 product versions
+        /// </summary>
+        private static ProductNameList CreateProductNameListFromVersions(IEnumerable<S100ProductVersion> productVersions)
+        {
+            var list = new ProductNameList();
+
+            try
+            {
+                foreach (var productVersion in productVersions.Where(pv => !string.IsNullOrEmpty(pv.ProductName)))
+                {
+                    list.Add(ProductName.From(productVersion.ProductName));
+                }
+            }
+            catch (ValidationException ex)
+            {
+                throw new ArgumentException("One or more product names from versions are invalid", ex);
+            }
+
+            return list;
+        }
+
+        /// <summary>
+        /// Creates a ProductNameList from a single string value
+        /// </summary>
+        private static ProductNameList CreateProductNameListFromString(string productName)
+        {
+            var list = new ProductNameList();
+
+            try
+            {
+                if (!string.IsNullOrEmpty(productName))
+                {
+                    list.Add(ProductName.From(productName));
+                }
+            }
+            catch (ValidationException ex)
+            {
+                throw new ArgumentException($"Product name '{productName}' is invalid", ex);
             }
 
             return list;

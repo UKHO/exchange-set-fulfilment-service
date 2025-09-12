@@ -43,7 +43,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
                 BuildCommitInfo = new BuildCommitInfo()
             };
 
-            var context = new PipelineContext<TBuild>(job, build, _storageService);
+            var context = new PipelineContext<TBuild>(job, build, _storageService, parameters.RequestType);
 
             return Task.FromResult(context);
         }

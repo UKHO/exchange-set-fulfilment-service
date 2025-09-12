@@ -53,6 +53,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         private const int HealthCheckErrorId = BaseEventId + 31;
         private const int HealthCheckFailedStatusCodeId = BaseEventId + 32;
 
+        // S100 Input validation events
+        private const int S100InputValidationSucceededId = BaseEventId + 33;
+        private const int S100InputValidationFailedId = BaseEventId + 34;
+        private const int S100InputValidationErrorId = BaseEventId + 35;
+
+        private const int CreateResponseNodeExceptionId = BaseEventId + 36;
+
         // An unhandled HTTP error has occurred
         public static readonly EventId UnhandledHttpError = new(UnhandledHttpErrorId, nameof(UnhandledHttpError));
 
@@ -115,6 +122,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         public static readonly EventId HealthCheckWarning = new(HealthCheckWarningId, nameof(HealthCheckWarning));
         public static readonly EventId HealthCheckError = new(HealthCheckErrorId, nameof(HealthCheckError));
         public static readonly EventId HealthCheckFailedStatusCode = new(HealthCheckFailedStatusCodeId, nameof(HealthCheckFailedStatusCode));
+
+
+        public static readonly EventId CreateResponseNodeException = new(CreateResponseNodeExceptionId, nameof(CreateResponseNodeException));
 
         [LoggerMessage(UnhandledHttpErrorId, LogLevel.Error, "An unhandled exception was caught by the HTTP pipeline: {@message}", EventName = nameof(UnhandledHttpError))]
         public static partial void LogUnhandledHttpError(this ILogger logger, string message, Exception exception);
@@ -199,5 +209,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
             
         [LoggerMessage(HealthCheckFailedStatusCodeId, LogLevel.Warning, "Health check for {ServiceName} failed with status code {StatusCode}", EventName = nameof(HealthCheckFailedStatusCode))]
         public static partial void LogHealthCheckFailedStatusCode(this ILogger logger, string serviceName, int statusCode);
+
+        [LoggerMessage(S100InputValidationFailedId, LogLevel.Error, "S100 input validation failed for correlation ID: {correlationId} - Errors: {validationErrors}", EventName = nameof(S100InputValidationFailed))]
+        public static partial void S100InputValidationFailed(this ILogger logger, string correlationId, string validationErrors);
+
+        [LoggerMessage(S100InputValidationErrorId, LogLevel.Error, "S100 input validation error for correlation ID: {correlationId}", EventName = nameof(S100InputValidationError))]
+        public static partial void S100InputValidationError(this ILogger logger, string correlationId, Exception exception);
+
+        [LoggerMessage(CreateResponseNodeExceptionId, LogLevel.Error, "Exception in CreateResponseNode for correlation ID: {correlationId}", EventName = nameof(CreateResponseNodeException))]
+        public static partial void LogCreateResponseNodeException(this ILogger logger, string correlationId, Exception exception);
+
     }
 }
