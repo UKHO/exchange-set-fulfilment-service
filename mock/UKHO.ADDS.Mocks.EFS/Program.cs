@@ -14,7 +14,10 @@ namespace UKHO.ADDS.Mocks.EFS
 
             ServiceRegistry.AddDefinition(new ServiceDefinition("scs", "Sales Catalogue Service", [
                 new StateDefinition("get-invalidproducts", "Gets invalid products"),
-                new StateDefinition("get-allinvalidproducts", "Gets all invalid products - no products returned")
+                new StateDefinition("get-allinvalidproducts", "Gets all invalid products - no products returned"),
+                new StateDefinition("get-cancelledproducts", "Gets cancelled products"),
+                new StateDefinition("get-productwithdrawn", "Gets withdrawn products"),
+                new StateDefinition("get-productalreadytuptodate", "Gets up to date products ")
             ]));
 
             ServiceRegistry.AddDefinitionState("sample", new StateDefinition("get-jpeg", "Gets a JPEG file"));
