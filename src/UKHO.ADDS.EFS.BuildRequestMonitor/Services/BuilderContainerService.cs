@@ -106,7 +106,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
                 Tty = false,
                 HostConfig = new HostConfig
                 {
-                    NetworkMode = networkParams.Name, //rhz: Use the custom bridge network
+                    //NetworkMode = networkParams.Name, //rhz: Use the custom bridge network
                     ExtraHosts = new[]
                     {
                         "host.docker.internal:host-gateway"
@@ -143,19 +143,19 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
             }
 
             //rhz: Attach to network bridge if not already attached
-            try
-            {
-                await _dockerClient.Networks.ConnectNetworkAsync(_networkName, new NetworkConnectParameters
-                {
-                    Container = _dynamicContainerName
-                });
-                Log.Information("Connected container {Container} to network {Network}.", _dynamicContainerName, _networkName);
-            }
-            catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotModified ||
-                                               ex.StatusCode == System.Net.HttpStatusCode.Conflict)
-            {
-                Log.Information("Container {Container} already connected to network {Network}.", _dynamicContainerName, _networkName);
-            }
+            //try
+            //{
+            //    await _dockerClient.Networks.ConnectNetworkAsync(_networkName, new NetworkConnectParameters
+            //    {
+            //        Container = _dynamicContainerName
+            //    });
+            //    Log.Information("Connected container {Container} to network {Network}.", _dynamicContainerName, _networkName);
+            //}
+            //catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotModified ||
+            //                                   ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+            //{
+            //    Log.Information("Container {Container} already connected to network {Network}.", _dynamicContainerName, _networkName);
+            //}
             //rhz end attach to network bridge
 
             var streamer = new BuilderLogStreamer(_dockerClient);
