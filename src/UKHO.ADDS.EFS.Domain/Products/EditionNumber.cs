@@ -4,11 +4,11 @@ using Vogen;
 namespace UKHO.ADDS.EFS.Domain.Products
 {
     [ValueObject<int>(Conversions.SystemTextJson, typeof(ValidationException))]
-    [Instance("NotRequired", 0)]
-    [Instance("NotSet", 0)]
+    [Instance("NotRequired", 1)]
+    [Instance("NotSet", 1)]
     public partial struct EditionNumber
     {
-        internal static Validation Validate(int input)
+        public static Validation Validate(int input)
         {
             if (input >= 1)
             {

@@ -7,17 +7,10 @@ namespace UKHO.ADDS.EFS.Domain.UnitTests.Products
     public sealed class EditionNumberTests
     {
         [Fact]
-        public void From_Zero_Succeeds_And_Equals_Instances()
+        public void From_Zero_ThrowsValidationException()
         {
-            var v = EditionNumber.From(0);
-
-            Assert.Equal(0, v.Value);
-            Assert.Equal(0, EditionNumber.NotRequired.Value);
-            Assert.Equal(0, EditionNumber.NotSet.Value);
-
-            Assert.Equal(EditionNumber.NotRequired, v);
-            Assert.Equal(EditionNumber.NotSet, v);
-            Assert.Equal(EditionNumber.NotRequired, EditionNumber.NotSet);
+            var ex = Assert.Throws<ValidationException>(() => EditionNumber.From(0));
+            Assert.Contains("must be a positive integer.", ex.Message, StringComparison.Ordinal);
         }
 
         [Theory]
@@ -45,13 +38,10 @@ namespace UKHO.ADDS.EFS.Domain.UnitTests.Products
         }
 
         [Fact]
-        public void TryFrom_Zero_ReturnsTrue_AndOutputsZero()
+        public void TryFrom_Zero_ReturnsFalse_AndOutputsDefault()
         {
             var ok = EditionNumber.TryFrom(0, out var v);
-            Assert.True(ok);
-            Assert.Equal(0, v.Value);
-            Assert.Equal(EditionNumber.NotSet, v);        // instances are 0
-            Assert.Equal(EditionNumber.NotRequired, v);   // instances are 0
+            Assert.False(ok);
         }
 
         [Theory]
@@ -65,11 +55,11 @@ namespace UKHO.ADDS.EFS.Domain.UnitTests.Products
         }
 
         [Fact]
-        public void Instances_AreEqual_And_ShareSameHash_And_Equal_FromZero()
+        public void Instances_AreEqual_And_ShareSameHash_And_Equal_FromOne()
         {
             var a = EditionNumber.NotRequired;
             var b = EditionNumber.NotSet;
-            var z = EditionNumber.From(0);
+            var z = EditionNumber.From(1);
 
             Assert.Equal(a, b);
             Assert.Equal(a.GetHashCode(), b.GetHashCode());
