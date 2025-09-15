@@ -53,6 +53,11 @@ namespace UKHO.ADDS.EFS.Domain.Builds
         }
 
         /// <summary>
+        /// Gets or sets the build commit information containing file details with hash values.
+        /// </summary>
+        public BuildCommitInfo BuildCommitInfo { get; init; }
+
+        /// <summary>
         ///     Gets or sets the list of products that were requested but couldn't be included in the build.
         /// </summary>
         public MissingProductList MissingProducts

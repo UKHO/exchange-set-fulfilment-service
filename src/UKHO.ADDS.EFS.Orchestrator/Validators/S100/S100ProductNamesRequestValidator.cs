@@ -42,10 +42,6 @@ internal class S100ProductNamesRequestValidator : AbstractValidator<(List<string
 
     public async Task<ValidationResult> ValidateAsync((List<string>? productNames, string? callbackUri) request)
     {
-        if (request.productNames == null)
-        {
-            return new ValidationResult([ new ValidationFailure(nameof(request.productNames), "No product Names provided.") ]);
-        }
         return await base.ValidateAsync(request);
     }
 }

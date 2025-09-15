@@ -102,10 +102,10 @@ internal class CreateResponseNode : AssemblyPipelineNode<S100Build>
         var expiryDateTime = DateTime.UtcNow.AddDays(expiryDays);
 
         // Only include ExchangeSetFileUri if we have a valid batchId
-        S100Link? exchangeSetFileUri = null;
+        Link? exchangeSetFileUri = null;
         if (batchId != BatchId.None)
         {
-            exchangeSetFileUri = new S100Link { Href = $"{fileShareBaseUrl}/batch/{batchId}/files/exchangeset.zip" };
+            exchangeSetFileUri = new Link { Href = $"{fileShareBaseUrl}/batch/{batchId}/files/exchangeset.zip" };
         }
 
         // Map MissingProducts to S100ProductNotInExchangeSet
@@ -124,10 +124,10 @@ internal class CreateResponseNode : AssemblyPipelineNode<S100Build>
 
         return new S100CustomExchangeSetResponse
         {
-            Links = new S100ExchangeSetLinks
+            Links = new ExchangeSetLinks
             {
-                ExchangeSetBatchStatusUri = new S100Link { Href = $"{fileShareBaseUrl}/batch/{batchId}/status" },
-                ExchangeSetBatchDetailsUri = new S100Link { Href = $"{fileShareBaseUrl}/batch/{batchId}" },
+                ExchangeSetBatchStatusUri = new Link { Href = $"{fileShareBaseUrl}/batch/{batchId}/status" },
+                ExchangeSetBatchDetailsUri = new Link { Href = $"{fileShareBaseUrl}/batch/{batchId}" },
                 ExchangeSetFileUri = exchangeSetFileUri
             },
             ExchangeSetUrlExpiryDateTime = expiryDateTime,

@@ -28,30 +28,35 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
             // POST /v2/exchangeSet/s100/productNames
             exchangeSetEndpoint.MapPost("/productNames", async (
-                List<string>? productNames,
+                List<string> productNames,
                 IConfiguration configuration,
                 IAssemblyPipelineFactory pipelineFactory,
                 HttpContext httpContext,
                 IS100ProductNamesRequestValidator productNameValidator,
                 string? callbackUri = null) =>
                  {
-                try
-                {
-                    var correlationId = httpContext.GetCorrelationId();
+                     try
+                     {
+                         var correlationId = httpContext.GetCorrelationId();
 
-                    var validationResult = await productNameValidator.ValidateAsync((productNames, callbackUri));
-                    var validationResponse = HandleValidationResult(validationResult, logger, (string)correlationId);
-                    if (validationResponse != null)
-                        return validationResponse;
+                         if (productNames == null || productNames.Count == 0)
+                         {
+                             return BadRequestForMalformedBody(correlationId.ToString(), logger);
+                         }
 
-                    logger.S100InputValidationSucceeded((string)correlationId, RequestType.ProductNames.ToString());
+                         var validationResult = await productNameValidator.ValidateAsync((productNames, callbackUri));
+                         var validationResponse = HandleValidationResult(validationResult, logger, (string)correlationId);
+                         if (validationResponse != null)
+                         {
+                             return validationResponse;
+                         }
 
-                    var parameters = AssemblyPipelineParameters.CreateFromS100ProductNames(productNames!, configuration, (string)correlationId, callbackUri);
-                    var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
+                         var parameters = AssemblyPipelineParameters.CreateFromS100ProductNames(productNames!, configuration, (string)correlationId, callbackUri);
+                         var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
 
-                    logger.LogAssemblyPipelineStarted(parameters);
+                         logger.LogAssemblyPipelineStarted(parameters);
 
-                    var result = await pipeline.RunAsync(httpContext.RequestAborted);
+                         var result = await pipeline.RunAsync(httpContext.RequestAborted);
 
                     return Results.Ok(result.ResponseData);
                 }
@@ -66,7 +71,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
             // POST /v2/exchangeSet/s100/productVersions
             exchangeSetEndpoint.MapPost("/productVersions", async (
-                List<S100ProductVersion>? productVersions,
+                List<S100ProductVersion> productVersions,
                 IConfiguration configuration,
                 IAssemblyPipelineFactory pipelineFactory,
                 HttpContext httpContext,
@@ -77,13 +82,18 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 {
                     var correlationId = httpContext.GetCorrelationId();
 
+                    if (productVersions == null || productVersions.Count == 0)
+                    {
+                        return BadRequestForMalformedBody(correlationId.ToString(), logger);
+                    }
+
                     // Validate input
                     var validationResult = await productVersionsRequestValidator.ValidateAsync((productVersions, callbackUri));
                     var validationResponse = HandleValidationResult(validationResult, logger, (string)correlationId);
                     if (validationResponse != null)
+                    {
                         return validationResponse;
-
-                    logger.S100InputValidationSucceeded((string)correlationId, RequestType.ProductVersions.ToString());
+                    }
 
                     var parameters = AssemblyPipelineParameters.CreateFromS100ProductVersions(productVersions!, configuration, (string)correlationId, callbackUri);
                     var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
@@ -105,7 +115,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
             // POST /v2/exchangeSet/s100/updatesSince
             exchangeSetEndpoint.MapPost("/updatesSince", async (
-                S100UpdatesSinceRequest? request,
+                S100UpdatesSinceRequest updatesSinceRequest,
                 IConfiguration configuration,
                 IAssemblyPipelineFactory pipelineFactory,
                 HttpContext httpContext,
@@ -117,14 +127,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 {
                     var correlationId = httpContext.GetCorrelationId();
 
-                    var validationResult = await updateSinceRequestValidator.ValidateAsync((request!, callbackUri, productIdentifier));
+                    var validationResult = await updateSinceRequestValidator.ValidateAsync((updatesSinceRequest!, callbackUri, productIdentifier));
                     var validationResponse = HandleValidationResult(validationResult, logger, (string)correlationId);
                     if (validationResponse != null)
+                    {
                         return validationResponse;
+                    }
 
-                    logger.S100InputValidationSucceeded((string)correlationId, RequestType.UpdatesSince.ToString());
-
-                    var parameters = AssemblyPipelineParameters.CreateFromS100UpdatesSince(request!, configuration, (string)correlationId, productIdentifier, callbackUri);
+                    var parameters = AssemblyPipelineParameters.CreateFromS100UpdatesSince(updatesSinceRequest!, configuration, (string)correlationId, productIdentifier, callbackUri);
                     var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
 
                     logger.LogAssemblyPipelineStarted(parameters);
@@ -169,6 +179,24 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 return Results.BadRequest(errorResponse);
             }
             return null;
+        }
+
+        private static IResult BadRequestForMalformedBody(string correlationId, ILogger logger)
+        {
+            var errorResponse = new ErrorResponseModel
+            {
+                CorrelationId = correlationId.ToString(),
+                Errors = new List<ErrorDetail>
+                {
+                    new()
+                    {
+                        Source = "requestBody",
+                        Description = "Either body is null or malformed."
+                    }
+                }
+            };
+            logger.S100InputValidationFailed(correlationId.ToString(), "requestBody: Either body is null or malformed.");
+            return Results.BadRequest(errorResponse);
         }
     }
 }

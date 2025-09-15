@@ -1,6 +1,7 @@
 using FluentValidation;
 using FluentValidation.Results;
 using UKHO.ADDS.EFS.Domain.Messages;
+using System.Globalization;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Validators.S100;
 
@@ -9,6 +10,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Validators.S100;
 /// </summary>
 internal class S100UpdateSinceRequestValidator : AbstractValidator<(S100UpdatesSinceRequest? s100UpdatesSinceRequest, string? callbackUri, string? productIdentifier)>, IS100UpdateSinceRequestValidator
 {
+    private const string INVALID_UPDATES_SINCE_FORMAT_MESSAGE = "Provided updatesSince is either invalid or invalid format, the valid format is 'ISO 8601 format' (e.g. '2025-09-29T00:00:00Z').";
     private readonly TimeSpan _maximumProductAge;
 
     public S100UpdateSinceRequestValidator(IConfiguration configuration)
@@ -27,15 +29,20 @@ internal class S100UpdateSinceRequestValidator : AbstractValidator<(S100UpdatesS
         RuleFor(request => request.s100UpdatesSinceRequest)
             .Custom((s100UpdatesSinceRequest, context) =>
             {
-                if (s100UpdatesSinceRequest == null || !s100UpdatesSinceRequest.SinceDateTime.HasValue)
+                var sinceDateTimeStr = s100UpdatesSinceRequest?.SinceDateTime;
+                if (string.IsNullOrWhiteSpace(sinceDateTimeStr))
                 {
-                    context.AddFailure(new ValidationFailure("sinceDateTime", "No since date time provided."));
+                    context.AddFailure(new ValidationFailure("sinceDateTime", "No UpdateSince date time provided."));
                     return;
                 }
-                var sinceDateTime = s100UpdatesSinceRequest.SinceDateTime.Value;
+                if (!DateTime.TryParse(sinceDateTimeStr, null, DateTimeStyles.RoundtripKind, out var sinceDateTime))
+                {
+                    context.AddFailure(new ValidationFailure("sinceDateTime", INVALID_UPDATES_SINCE_FORMAT_MESSAGE));
+                    return;
+                }
                 if (sinceDateTime.Kind == DateTimeKind.Unspecified)
                 {
-                    context.AddFailure(new ValidationFailure("sinceDateTime", "Provided updatesSince is either invalid or invalid format, the valid format is 'ISO 8601 format' (e.g. '2025-09-29T00:00:00Z')."));
+                    context.AddFailure(new ValidationFailure("sinceDateTime", INVALID_UPDATES_SINCE_FORMAT_MESSAGE));
                 }
                 if (sinceDateTime < DateTime.UtcNow.AddDays(-_maximumProductAge.TotalDays))
                 {
@@ -43,7 +50,7 @@ internal class S100UpdateSinceRequestValidator : AbstractValidator<(S100UpdatesS
                 }
                 if (!IsNotFutureDate(sinceDateTime))
                 {
-                    context.AddFailure(new ValidationFailure("sinceDateTime", "sinceDateTime cannot be a future date."));
+                    context.AddFailure(new ValidationFailure("sinceDateTime", "UpdateSince date cannot be a future date."));
                 }
             });
 
@@ -59,10 +66,6 @@ internal class S100UpdateSinceRequestValidator : AbstractValidator<(S100UpdatesS
 
     public async Task<ValidationResult> ValidateAsync((S100UpdatesSinceRequest s100UpdatesSinceRequest, string? callbackUri, string? productIdentifier) request)
     {
-        if (request.s100UpdatesSinceRequest == null || !request.s100UpdatesSinceRequest!.SinceDateTime.HasValue)
-        {
-            return new ValidationResult([new ValidationFailure("sinceDateTime", "No since date time provided.") ]);
-        }
         return await base.ValidateAsync(request);
     }
 

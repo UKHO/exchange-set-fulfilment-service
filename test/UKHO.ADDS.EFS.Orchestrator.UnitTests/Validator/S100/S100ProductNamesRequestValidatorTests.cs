@@ -16,7 +16,7 @@ internal class S100ProductNamesRequestValidatorTests
     private const string EMPTY_PRODUCT_NAME = "";
     private const string NULL_PRODUCT_NAME = null;
     private const string PRODUCT_NAME_CANNOT_BE_NULL_OR_EMPTY_MESSAGE = "ProductName cannot be null or empty.";
-    private const string INVALID_CALLBACK_URI_FORMAT_MESSAGE = "Invalid callbackUri format.";
+    private const string INVALID_CALLBACK_URI_FORMAT_MESSAGE = "Please enter a valid callback URI in HTTPS format.";
     private const string IS_NOT_VALID_MESSAGE = "is not valid";
 
     [OneTimeSetUp]
@@ -48,7 +48,7 @@ internal class S100ProductNamesRequestValidatorTests
         Assert.Multiple(() =>
         {
             Assert.That(result.IsValid, Is.False);
-            Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "No product Names provided."));
+            Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "ProductName cannot be null or empty."));
         });
     }
 

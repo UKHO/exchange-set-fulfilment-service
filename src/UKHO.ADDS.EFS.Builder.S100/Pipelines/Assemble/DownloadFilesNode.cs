@@ -3,6 +3,7 @@ using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging;
 using UKHO.ADDS.EFS.Domain.External;
+using UKHO.ADDS.EFS.Domain.Files;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Infrastructure.Retries;
 using UKHO.ADDS.Infrastructure.Pipelines;
@@ -20,9 +21,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private ILogger _logger;
 
         private const long FileSizeInBytes = 10485760;
-        private const string ProductName = "ProductName";
-        private const string EditionNumber = "EditionNumber";
-        private const string UpdateNumber = "UpdateNumber";
+        private const string ProductName = "Product Name";
+        private const string EditionNumber = "Edition Number";
+        private const string UpdateNumber = "Update Number";
         private const int ProducerCodeStartIndex = 3;
         private const int ProducerCodeLength = 4;
         private const string H5Extension = ".h5";
@@ -38,14 +39,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         {
             _fileShareReadOnlyClient = fileShareReadOnlyClient ?? throw new ArgumentNullException(nameof(fileShareReadOnlyClient));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            
+
             // First try to get the configuration from the UKHO.ADDS.EFS.Builder.S100 section
             if (!int.TryParse(_configuration[BuilderEnvironmentVariables.ConcurrentDownloadLimitCount], out _maxConcurrentDownloads))
             {
                 // Fall back to default value if not configured
                 _maxConcurrentDownloads = DefaultConcurrentDownloads;
             }
-            
+
             _downloadFileConcurrencyLimiter = new SemaphoreSlim(_maxConcurrentDownloads);
         }
 
@@ -119,7 +120,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             // Create a shared dictionary for file locks that will be used during download
             // This dictionary is managed throughout the download process
             var fileLocks = new ConcurrentDictionary<string, SemaphoreSlim>();
-            
+
             try
             {
                 var downloadTasks = CreateDownloadTasks(
@@ -149,16 +150,21 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             }
         }
 
-        private List<(BatchDetails Batch, string FileName)> GetAllFilesToProcess(IEnumerable<BatchDetails> latestBatches)
+        private List<(BatchDetails batch, string fileName, FileSize fileSize)> GetAllFilesToProcess(IEnumerable<BatchDetails> latestBatches)
         {
             return latestBatches
                 .Where(batch => batch.Files.Any())
-                .SelectMany(batch => batch.Files.Select(file => (batch, file.Filename)))
+                .SelectMany(batch => batch.Files.Select(file => (batch, file.Filename, GetFileSize(file.FileSize))))
                 .ToList();
         }
 
+        private static FileSize GetFileSize(long? nullableFileSize)
+        {
+            return nullableFileSize.HasValue ? FileSize.From(nullableFileSize.Value) : FileSize.Zero;
+        }
+
         private void CreateRequiredDirectories(
-            List<(BatchDetails Batch, string FileName)> allFilesToProcess,
+            List<(BatchDetails batch, string fileName, FileSize fileSize)> allFilesToProcess,
             string workSpaceRootPath,
             string workSpaceSpoolDataSetFilesPath,
             string workSpaceSpoolSupportFilesPath,
@@ -167,7 +173,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             var fileDirectoryPaths = allFilesToProcess
                 .Select(item => GetDirectoryPathForFile(
                     workSpaceRootPath,
-                    item.FileName,
+                    item.fileName,
                     workSpaceSpoolDataSetFilesPath,
                     workSpaceSpoolSupportFilesPath))
                 .Distinct();
@@ -179,7 +185,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         }
 
         private IEnumerable<Task> CreateDownloadTasks(
-            List<(BatchDetails Batch, string FileName)> allFilesToProcess,
+            List<(BatchDetails batch, string fileName, FileSize fileSize)> allFilesToProcess,
             string workSpaceRootPath,
             string workSpaceSpoolDataSetFilesPath,
             string workSpaceSpoolSupportFilesPath,
@@ -195,10 +201,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 {
                     var directoryPath = GetDirectoryPathForFile(
                         workSpaceRootPath,
-                        item.FileName,
+                        item.fileName,
                         workSpaceSpoolDataSetFilesPath,
                         workSpaceSpoolSupportFilesPath);
-                    var downloadPath = Path.Combine(directoryPath, item.FileName);
+                    var downloadPath = Path.Combine(directoryPath, item.fileName);
 
                     // Get or create a semaphore for this specific file to prevent concurrent access
                     var fileLock = fileLocks.GetOrAdd(downloadPath, _ => new SemaphoreSlim(1, 1));
@@ -223,15 +229,17 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                                 FileStreamBufferSize,
                                 FileOptions.Asynchronous);
 
-                            var streamResult = await retryPolicy.ExecuteAsync(() =>
-                                _fileShareReadOnlyClient.DownloadFileAsync(item.Batch.BatchId, item.FileName, outputFileStream, (string)correlationId, FileSizeInBytes));
-
-                            if (streamResult.IsFailure(out var error, out var value))
+                            if (item.fileSize != FileSize.Zero)
                             {
-                                LogFssDownloadFailed(item.Batch, item.FileName, error, correlationId);
-                                throw new Exception($"Failed to download {item.FileName}");
-                            }
+                                var streamResult = await retryPolicy.ExecuteAsync(() =>
+                                    _fileShareReadOnlyClient.DownloadFileAsync(item.batch.BatchId, item.fileName, outputFileStream, (string)correlationId, item.fileSize.Value));
 
+                                if (streamResult.IsFailure(out var error, out var value))
+                                {
+                                    LogFssDownloadFailed(item.batch, item.fileName, error, correlationId);
+                                    throw new Exception($"Failed to download {item.fileName}");
+                                }
+                            }
                             // Ensure all data is written to disk
                             await outputFileStream.FlushAsync();
                         }

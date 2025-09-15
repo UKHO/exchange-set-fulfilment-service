@@ -103,6 +103,58 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
         }
 
         /// <summary>
+        /// Verifies the product version endpoint response.
+        /// </summary>
+        public static async Task VerifyProductVersionEndpointResponse(string productVersion, string callbackUri, HttpClient httpClient,
+            HttpStatusCode expectedStatusCode, string expectedErrorMessage, int jobNumber = 1)
+        {
+            var requestId = $"job-000{jobNumber}-" + Guid.NewGuid();
+
+            var content = new StringContent(productVersion, Encoding.UTF8, "application/json");
+
+            content.Headers.Add("x-correlation-id", requestId);
+
+            // Send the POST request
+            var response = await httpClient.PostAsync($"/v2/exchangeSet/s100/productVersions?callbackUri={callbackUri}", content);
+
+            // Validate the response status code
+            Assert.Equal(expectedStatusCode, response.StatusCode);
+
+            if (expectedStatusCode != HttpStatusCode.Accepted && expectedErrorMessage != "")
+            {
+                var responseBody = await response.Content.ReadAsStringAsync();
+                Assert.Contains(expectedErrorMessage, responseBody);
+            }
+        }
+
+        /// <summary>
+        /// Verifies the Update Since endpoint response.
+        /// </summary>
+        public static async Task VerifyUpdateSinceEndpointResponse(string sinceDateTime, string callbackUri, string productIdentifier,
+            HttpClient httpClient, HttpStatusCode expectedStatusCode, string expectedErrorMessage, int jobNumber = 1)
+        {
+            var requestId = $"job-000{jobNumber}-" + Guid.NewGuid();
+
+            var requestPayload = $"{{ \"sinceDateTime\": \"{sinceDateTime}\" }}";
+
+            var content = new StringContent(requestPayload, Encoding.UTF8, "application/json");
+
+            content.Headers.Add("x-correlation-id", requestId);
+
+            // Send the POST request
+            var response = await httpClient.PostAsync($"/v2/exchangeSet/s100/updatesSince?callbackUri={callbackUri}&productIdentifier={productIdentifier}", content);
+            
+            // Validate the response status code
+            Assert.Equal(expectedStatusCode, response.StatusCode);
+
+            if (expectedStatusCode != HttpStatusCode.Accepted && expectedErrorMessage != "")
+            {
+                var responseBody = await response.Content.ReadAsStringAsync();
+                Assert.Contains(expectedErrorMessage, responseBody);
+            }
+        }
+
+        /// <summary>
         /// Submits a productNames endpoint and asserts the requestedProductCount and exchangeSetProductCount.
         /// </summary>
         public static async Task<string> ProductNamesInCustomAssemblyPipelineSubmitJobAsync(HttpClient httpClient, string? callbackUri, object[]? products = null)
