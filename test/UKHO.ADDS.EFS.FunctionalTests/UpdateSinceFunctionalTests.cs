@@ -57,7 +57,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         }
 
         [Theory]
-        [InlineData(-28, "https://valid.com/callback", "s101", HttpStatusCode.BadRequest, "Date time provided is more than 28 days in the past.")] // Test Case 245720 - Date is of 28th day in the past
+        [InlineData(-28, "https://valid.com/callback", "s101", HttpStatusCode.BadRequest, "Date time provided is more than 28 days in the past.")] // Test Case 244584 - Date is of 28th day in the past
         [InlineData(-14, "https://valid.com/callback", "s102", HttpStatusCode.Accepted, "")] // Test Case 245730 - Past Date less than 28 days
         [InlineData(-35, "https://valid.com/callback", "s104", HttpStatusCode.BadRequest, "Date time provided is more than 28 days in the past.")] // Test Case 245720 - Date more than 28 days in the past
         [InlineData(1, "https://valid.com/callback", "s111", HttpStatusCode.BadRequest, "UpdateSince date cannot be a future date.")] // Test Case 245121 - Future Date

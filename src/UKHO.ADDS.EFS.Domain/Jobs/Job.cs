@@ -2,6 +2,7 @@
 using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.Products;
+using UKHO.ADDS.EFS.Messages;
 
 namespace UKHO.ADDS.EFS.Domain.Jobs
 {
@@ -66,6 +67,11 @@ namespace UKHO.ADDS.EFS.Domain.Jobs
         ///     The FSS Batch ID associated with the job.
         /// </summary>
         public BatchId BatchId { get; set; }
+
+        /// <summary>
+        /// The response data for successful S100 requests
+        /// </summary>
+        internal S100CustomExchangeSetResponse? ResponseData { get; set; }
 
         /// <summary>
         ///     Gets the correlation ID for the job.

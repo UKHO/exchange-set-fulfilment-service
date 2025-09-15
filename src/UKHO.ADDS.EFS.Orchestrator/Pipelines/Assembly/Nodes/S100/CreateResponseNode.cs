@@ -38,7 +38,7 @@ internal class CreateResponseNode : AssemblyPipelineNode<S100Build>
         {
             var response = CreateResponse(5, 4, 1); // TODO: Replace with actual counts from build context
             
-            context.Subject.Build.ResponseData = response;
+            context.Subject.Job.ResponseData = response;
 
             return NodeResultStatus.Succeeded;
         }
