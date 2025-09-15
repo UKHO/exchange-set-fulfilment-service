@@ -70,7 +70,12 @@ namespace UKHO.ADDS.EFS.LocalHost
             var acaEnv = builder.AddAzureContainerAppEnvironment(ServiceConfiguration.AcaEnvironmentName).PublishAsExisting(efsContainerAppsEnvironmentName, efsRetainResourceGroup);
 
             // Storage configuration
-            var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e => { e.WithDataVolume(); }).PublishAsExisting(efsStorageAccountName, null);
+            var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e =>
+            {
+                e.WithDataVolume()
+                 .WithContainerName(StorageConfiguration.StorageName);
+            }).PublishAsExisting(efsStorageAccountName, null);
+
             var storageQueue = storage.AddQueues(StorageConfiguration.QueuesName);
             var storageTable = storage.AddTables(StorageConfiguration.TablesName);
             var storageBlob = storage.AddBlobs(StorageConfiguration.BlobsName);

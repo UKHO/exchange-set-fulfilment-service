@@ -1,9 +1,11 @@
 ﻿using System.Runtime.InteropServices;
 using Docker.DotNet;
 using Docker.DotNet.Models;
+using Serilog;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Builders;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Logging;
 using UKHO.ADDS.EFS.Domain.Builds;
+using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
 
 namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
@@ -13,6 +15,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger<BuilderContainerService> _logger;
         private readonly DockerClient _dockerClient;
+        private string _networkName = "efs_test_bridge";
 
         public BuilderContainerService(ILoggerFactory loggerFactory)
         {
@@ -26,6 +29,9 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
             var environment = new BuilderEnvironment();
             setEnvironmentFunc?.Invoke(environment);
 
+            await CreateCustomNetworkBridgeAsync(_networkName);
+            await AttachContainerToNetworkAsync(containerName: StorageConfiguration.StorageName, networkName: _networkName);
+
             var response = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters
             {
                 Image = image,
@@ -34,6 +40,14 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
                 AttachStdout = true,
                 AttachStderr = true,
                 Tty = false,
+                HostConfig = new HostConfig
+                {
+                    NetworkMode = _networkName, //rhz: Use the custom bridge network
+                    ExtraHosts = new[]
+                    {
+                        "host.docker.internal:host-gateway"
+                    }
+                },
                 Env = new List<string>
                 {
                     $"{BuilderEnvironmentVariables.RequestQueueName}={environment.RequestQueueName}",
@@ -87,5 +101,112 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
         private static Uri GetDockerEndpoint() => RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? new Uri("npipe://./pipe/docker_engine")
             : new Uri("unix:///var/run/docker.sock");
+
+
+        private async Task<bool> ContainerExistsAsync(string containerName)
+        {
+            if (string.IsNullOrWhiteSpace(containerName))
+            {
+                return false;
+            }
+
+            var containers = await _dockerClient.Containers.ListContainersAsync(new ContainersListParameters
+            {
+                All = true,
+                Filters = new Dictionary<string, IDictionary<string, bool>>
+                {
+                    ["name"] = new Dictionary<string, bool> { [containerName] = true }
+                }
+            });
+
+            return containers.Any(c =>
+                c.Names.Any(n => string.Equals(n.TrimStart('/'), containerName, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        private async Task CreateCustomNetworkBridgeAsync(string name)
+        {
+            if (!IsRunningInPipeline())
+            {
+                Log.Information("Not running in a pipeline; skipping custom network creation.");
+                _networkName = string.Empty;
+                return;
+            }
+
+            var networkParams = new NetworksCreateParameters
+            {
+                Name = name,
+                Driver = "bridge"
+            };
+
+            var existing = await _dockerClient.Networks.ListNetworksAsync(new NetworksListParameters
+            {
+                Filters = new Dictionary<string, IDictionary<string, bool>>
+                {
+                    ["name"] = new Dictionary<string, bool> { [networkParams.Name] = true }
+                }
+            });
+
+            var networkExists = existing.Any();
+            if (!networkExists)
+            {
+                try
+                {
+                    await _dockerClient.Networks.CreateNetworkAsync(networkParams);
+                    Log.Information("Created docker custom network {NetworkName}.", networkParams.Name);
+                }
+                catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+                {
+                    Log.Information("Network {NetworkName} already created by another process.", networkParams.Name);
+                }
+            }
+            else
+            {
+                Log.Information("Docker custom network {NetworkName} already exists.", networkParams.Name);
+            }
+        }
+
+        private async Task AttachContainerToNetworkAsync(string containerName, string networkName)
+        {
+            if (!IsRunningInPipeline())
+            {
+                Log.Information("Not running in a pipeline; skipping custom network creation.");
+                return;
+            }
+
+            if (await ContainerExistsAsync(containerName))
+            {
+                try
+                {
+                    await _dockerClient.Networks.ConnectNetworkAsync(networkName, new NetworkConnectParameters
+                    {
+                        Container = containerName
+                    });
+                    Log.Information("Connected container {Container} to network {Network}.", containerName, networkName);
+                }
+                catch (AggregateException ae) when (ae.InnerExceptions.Any(e => e is DockerApiException dex && (dex.StatusCode == System.Net.HttpStatusCode.NotModified || dex.StatusCode == System.Net.HttpStatusCode.Conflict)))
+                {
+                    Log.Information("Container {Container} already connected to network {Network}.", containerName, networkName);
+                }
+            }
+            else
+            {
+                Log.Warning("Container {Container} not found; skipping network connection.", containerName);
+            }
+        }
+
+        private bool IsRunningInPipeline()
+        {
+            // Common environment variables for CI/CD pipelines
+            var ci = Environment.GetEnvironmentVariable("CI");
+            var tfBuild = Environment.GetEnvironmentVariable("TF_BUILD");
+            var githubActions = Environment.GetEnvironmentVariable("GITHUB_ACTIONS");
+            var azurePipeline = Environment.GetEnvironmentVariable("AGENT_NAME");
+
+            return !string.IsNullOrEmpty(ci)
+                || !string.IsNullOrEmpty(tfBuild)
+                || !string.IsNullOrEmpty(githubActions)
+                || !string.IsNullOrEmpty(azurePipeline);
+
+        }
     }
 }

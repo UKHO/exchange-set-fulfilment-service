@@ -60,10 +60,11 @@ namespace UKHO.ADDS.EFS.EndToEndTests
             var content = new StringContent(
                 """
                 {
-                    "version": 1,
-                    "dataStandard": "s100",
-                    "products": "",
-                    "filter": ""
+                  "dataStandard": "s100",
+                  "products": [
+                    ""
+                  ],
+                  "filter": ""
                 }
                 """,
                 Encoding.UTF8, "application/json");
@@ -146,10 +147,11 @@ namespace UKHO.ADDS.EFS.EndToEndTests
                 content = new StringContent(
                 """
                 {
-                    "version": 1,
-                    "dataStandard": "s100",
-                    "products": "",
-                    "filter": ""
+                  "dataStandard": "s100",
+                  "products": [
+                    ""
+                  ],
+                  "filter": ""
                 }
                 """,
                 Encoding.UTF8, "application/json");
