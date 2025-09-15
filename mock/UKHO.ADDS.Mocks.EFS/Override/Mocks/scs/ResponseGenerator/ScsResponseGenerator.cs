@@ -76,17 +76,27 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
         private static JsonObject GenerateProductNamesResponse(List<string> requestedProducts, string state = "")
         {
             var productsArray = new JsonArray();
-            foreach (var productName in requestedProducts)
-                productsArray.Add(GenerateProductJson(productName));
-
             var notReturnedArray = new JsonArray();
 
-            if (state == "get-invalidproducts" && requestedProducts.Count > 0)
+            if (state == "get-allinvalidproducts")
             {
+                foreach (var productName in requestedProducts)
+                {
+                    notReturnedArray.Add(CreateProductNotReturnedObject(productName, "invalidProduct"));
+                }
+            }
+            else if (state == "get-invalidproducts" && requestedProducts.Count > 0)
+            {
+                foreach (var productName in requestedProducts.SkipLast(1))
+                    productsArray.Add(GenerateProductJson(productName));
+
                 var lastProduct = requestedProducts.Last();
                 notReturnedArray.Add(CreateProductNotReturnedObject(lastProduct, "invalidProduct"));
-
-                productsArray.Remove(productsArray.Last());
+            }
+            else
+            {
+                foreach (var productName in requestedProducts)
+                    productsArray.Add(GenerateProductJson(productName));
             }
 
             return new JsonObject
@@ -94,7 +104,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
                 ["productCounts"] = new JsonObject
                 {
                     ["requestedProductCount"] = requestedProducts.Count,
-                    ["returnedProductCount"] = requestedProducts.Count - (notReturnedArray.Count > 0 ? 1 : 0),
+                    ["returnedProductCount"] = (state == "get-invalidproducts" && requestedProducts.Count > 0) ? requestedProducts.Count - notReturnedArray.Count : productsArray.Count,
                     ["requestedProductsAlreadyUpToDateCount"] = 0,
                     ["requestedProductsNotReturned"] = notReturnedArray
                 },

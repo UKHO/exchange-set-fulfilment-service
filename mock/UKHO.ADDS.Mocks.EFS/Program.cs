@@ -12,7 +12,10 @@ namespace UKHO.ADDS.Mocks.EFS
 
             ServiceRegistry.AddDefinition(new ServiceDefinition("fss", "FileShare Service", []));
 
-            ServiceRegistry.AddDefinition(new ServiceDefinition("scs", "Sales Catalogue Service", [new StateDefinition("get-invalidproducts", "Gets invalid products")]));
+            ServiceRegistry.AddDefinition(new ServiceDefinition("scs", "Sales Catalogue Service", [
+                new StateDefinition("get-invalidproducts", "Gets invalid products"),
+                new StateDefinition("get-allinvalidproducts", "Gets all invalid products - no products returned")
+            ]));
 
             ServiceRegistry.AddDefinitionState("sample", new StateDefinition("get-jpeg", "Gets a JPEG file"));
 

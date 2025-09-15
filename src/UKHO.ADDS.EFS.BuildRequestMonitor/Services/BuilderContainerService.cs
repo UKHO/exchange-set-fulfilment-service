@@ -3,8 +3,8 @@ using Docker.DotNet;
 using Docker.DotNet.Models;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Builders;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Logging;
-using UKHO.ADDS.EFS.Builds;
-using UKHO.ADDS.EFS.Configuration.Orchestrator;
+using UKHO.ADDS.EFS.Domain.Builds;
+using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
 
 namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
 {
@@ -43,6 +43,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
                     $"{BuilderEnvironmentVariables.BlobContainerName}={environment.BlobContainerName}",
                     $"{BuilderEnvironmentVariables.FileShareEndpoint}={environment.FileShareEndpoint}",
                     $"{BuilderEnvironmentVariables.FileShareHealthEndpoint}={environment.FileShareHealthEndpoint}",
+                    $"{BuilderEnvironmentVariables.FileShareClientId}={string.Empty}",
                     $"{BuilderEnvironmentVariables.AddsEnvironment}={environment.AddsEnvironment}",
                     $"{BuilderEnvironmentVariables.MaxRetryAttempts}={environment.MaxRetryAttempts}",
                     $"{BuilderEnvironmentVariables.RetryDelayMilliseconds}={environment.RetryDelayMilliseconds}",

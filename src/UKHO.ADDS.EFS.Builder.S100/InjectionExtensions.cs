@@ -1,18 +1,24 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using System.Text.Json.Nodes;
+using Azure.Identity;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Json;
+using UKHO.ADDS.Clients.Common.Authentication;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
-using UKHO.ADDS.EFS.Builder.Common.Factories;
-using UKHO.ADDS.EFS.Builder.Common.Logging;
 using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
-using UKHO.ADDS.EFS.Configuration.Namespaces;
-using UKHO.ADDS.EFS.Configuration.Orchestrator;
-using UKHO.ADDS.EFS.Extensions;
-using UKHO.ADDS.EFS.RetryPolicy;
+using UKHO.ADDS.EFS.Domain.Implementation.Extensions;
+using UKHO.ADDS.EFS.Domain.Services.Injection;
+using UKHO.ADDS.EFS.Infrastructure.Builders.Configuration;
+using UKHO.ADDS.EFS.Infrastructure.Builders.Factories;
+using UKHO.ADDS.EFS.Infrastructure.Builders.Injection;
+using UKHO.ADDS.EFS.Infrastructure.Builders.Logging;
+using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
+using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
+using UKHO.ADDS.EFS.Infrastructure.Retries;
 
 namespace UKHO.ADDS.EFS.Builder.S100
 {
@@ -22,7 +28,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
         public static JsonMemorySink ConfigureSerilog()
         {
             Log.Logger = new LoggerConfiguration()
-                .Enrich.FromLogContext()
+                .Enrich.FromLogContext() // This is the key - enables LogContext.PushProperty
                 .WriteTo.Console(new JsonFormatter())
                 .WriteTo.JsonMemorySink(new JsonFormatter(), out var sink)
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
@@ -50,6 +56,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
             if (isManualRun)
             {
                 Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.AddsEnvironment, "local");
+                Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.FileShareClientId, "");
                 Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.RequestQueueName, StorageConfiguration.S100BuildRequestQueueName);
                 Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.ResponseQueueName, StorageConfiguration.S100BuildResponseQueueName);
                 Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.BlobContainerName, StorageConfiguration.S100BuildContainer);
@@ -94,6 +101,9 @@ namespace UKHO.ADDS.EFS.Builder.S100
             services.AddFileShareServices(configuration);
             services.AddIICToolServices(configuration);
 
+            services.AddDomain();
+            services.AddBuilderInfrastructure();
+
             return services;
         }
 
@@ -125,26 +135,41 @@ namespace UKHO.ADDS.EFS.Builder.S100
 
         private static IServiceCollection AddFileShareServices(this IServiceCollection services, IConfiguration configuration)
         {
+            var addsEnvironment = BuilderAddsEnvironment.GetEnvironment();
+            var fileShareClientId = configuration[BuilderEnvironmentVariables.FileShareClientId] ?? string.Empty;
+
             var fileShareEndpoint = configuration[BuilderEnvironmentVariables.FileShareEndpoint] ?? configuration["DebugEndpoints:FileShareService"]!;
 
+            IAuthenticationTokenProvider? tokenProvider = null;
+            var fileShareScope = $"{fileShareClientId}/.default";
+
+            if (addsEnvironment.IsLocal() || addsEnvironment.IsDev())
+            {
+                tokenProvider = new AnonymousAuthenticationTokenProvider();
+            }
+            else
+            {
+                var efsClientId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsClientId);
+
+                tokenProvider = new TokenCredentialAuthenticationTokenProvider(new ManagedIdentityCredential(clientId: efsClientId), [fileShareScope]);
+            }
+
             // Read-Write Client
-            services.AddSingleton<IFileShareReadWriteClientFactory>(provider =>
-                new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
+            services.AddSingleton<IFileShareReadWriteClientFactory>(provider => new FileShareReadWriteClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
 
             services.AddSingleton(provider =>
             {
                 var factory = provider.GetRequiredService<IFileShareReadWriteClientFactory>();
-                return factory.CreateClient(fileShareEndpoint.RemoveControlCharacters(), string.Empty);
+                return factory.CreateClient(fileShareEndpoint.RemoveControlCharacters(), tokenProvider);
             });
 
             // Read-Only Client
-            services.AddSingleton<IFileShareReadOnlyClientFactory>(provider =>
-                new FileShareReadOnlyClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
+            services.AddSingleton<IFileShareReadOnlyClientFactory>(provider => new FileShareReadOnlyClientFactory(provider.GetRequiredService<IHttpClientFactory>()));
 
             services.AddSingleton(provider =>
             {
                 var factory = provider.GetRequiredService<IFileShareReadOnlyClientFactory>();
-                return factory.CreateClient(fileShareEndpoint.RemoveControlCharacters(), string.Empty);
+                return factory.CreateClient(fileShareEndpoint.RemoveControlCharacters(), tokenProvider);
             });
 
             return services;

@@ -3,12 +3,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
-using UKHO.ADDS.Clients.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble;
-using UKHO.ADDS.EFS.Builds.S100;
-using UKHO.ADDS.EFS.Configuration.Orchestrator;
-using UKHO.ADDS.EFS.Jobs;
+using UKHO.ADDS.EFS.Domain.Builds.S100;
+using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Products;
+using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
+using UKHO.ADDS.EFS.Infrastructure.Retries;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
@@ -44,20 +45,20 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         {
             _configuration = A.Fake<IConfiguration>();
             A.CallTo(() => _configuration["HttpRetry:RetryDelayInMilliseconds"]).Returns(RetryDelayInMilliseconds.ToString());
-            UKHO.ADDS.EFS.RetryPolicy.HttpRetryPolicyFactory.SetConfiguration(_configuration);
+            HttpRetryPolicyFactory.SetConfiguration(_configuration);
 
             var exchangeSetPipelineContext = new S100ExchangeSetPipelineContext(null, null, null, null, _loggerFactory)
             {
                 WorkSpaceRootPath = Path.GetTempPath(),
                 Build = new S100Build
                 {
-                    JobId = "TestCorrelationId",
+                    JobId = JobId.From("TestCorrelationId"),
                     DataStandard = DataStandard.S100,
-                    BatchId = "a-batch-id",
+                    BatchId = BatchId.From("a-batch-id"),
                     Products =
                     [
-                        new S100Products { ProductName = "Product1", LatestEditionNumber = 1, LatestUpdateNumber = 0 },
-                        new S100Products { ProductName = "Product2", LatestEditionNumber = 2, LatestUpdateNumber = 1 }
+                        new Product { ProductName = ProductName.From("Product1"), LatestEditionNumber = EditionNumber.From(1), LatestUpdateNumber = UpdateNumber.From(0) },
+                        new Product { ProductName = ProductName.From("Product2"), LatestEditionNumber = EditionNumber.From(2), LatestUpdateNumber = UpdateNumber.From(1) }
                     ]
                 }
             };
@@ -74,7 +75,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
 
             var fakeResult = A.Fake<IResult<Stream>>();
             var outError = A.Fake<IError>();
-            Stream outStream = null;
+            Stream? outStream = null;
 
             A.CallTo(() => fakeResult.IsFailure(out outError, out outStream)).Returns(true);
 
@@ -134,8 +135,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
             _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
 
             var fakeResult = A.Fake<IResult<Stream>>();
-            IError outError = null;
-            Stream outStream = new MemoryStream();
+            IError? outError = null;
+            Stream? outStream = new MemoryStream();
             A.CallTo(() => fakeResult.IsFailure(out outError, out outStream)).Returns(false);
             A.CallTo(() => _fileShareReadOnlyClient.DownloadFileAsync(A<string>._, A<string>._, A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._))
                 .Returns(Task.FromResult(fakeResult));
@@ -153,8 +154,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
             _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch1, batch2 };
 
             var fakeResult = A.Fake<IResult<Stream>>();
-            IError outError = null;
-            Stream outStream = new MemoryStream();
+            IError? outError = null;
+            Stream? outStream = new MemoryStream();
             A.CallTo(() => fakeResult.IsFailure(out outError, out outStream)).Returns(false);
             A.CallTo(() => _fileShareReadOnlyClient.DownloadFileAsync(A<string>._, A<string>._, A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._))
                 .Returns(Task.FromResult(fakeResult));
@@ -171,10 +172,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
             _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
 
             A.CallTo(() => _fileShareReadOnlyClient.DownloadFileAsync(A<string>._, A<string>._, A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._))
-                .ReturnsLazily(() =>
+                .ReturnsLazily((call) =>
                 {
                     callCount++;
-                    return UKHO.ADDS.Infrastructure.Results.Result.Failure<Stream>(new UKHO.ADDS.Infrastructure.Results.Error("Retriable error", new Dictionary<string, object> { { "StatusCode", 503 } }));
+                    return Task.FromResult<IResult<Stream>>(UKHO.ADDS.Infrastructure.Results.Result.Failure<Stream>(new UKHO.ADDS.Infrastructure.Results.Error("Retriable error", new Dictionary<string, object> { { "StatusCode", 503 } })));
                 });
 
             var result = await _downloadFilesNode.ExecuteAsync(_executionContext);
@@ -192,13 +193,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
             _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
 
             var fakeResult = A.Fake<IResult<Stream>>();
-            IError outError = null;
-            Stream outStream = new MemoryStream();
+            IError? outError = null;
+            Stream? outStream = new MemoryStream();
             A.CallTo(() => fakeResult.IsFailure(out outError, out outStream)).Returns(false);
 
             // Simulate delay for each download to test parallelism
             A.CallTo(() => _fileShareReadOnlyClient.DownloadFileAsync(A<string>._, A<string>._, A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._))
-                .ReturnsLazily(async () => { await Task.Delay(500); return fakeResult; });
+                .Returns(DelayAndReturnResult(fakeResult));
 
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
@@ -237,6 +238,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
                 .MustHaveHappenedOnceExactly();
         }
 
+        private static async Task<IResult<Stream>> DelayAndReturnResult(IResult<Stream> result)
+        {
+            await Task.Delay(500);
+            return result;
+        }
+
         private static BatchDetails CreateBatchDetails(string batchId = "b1", string[]? fileNames = null, List<BatchDetailsAttributes>? attributes = null)
         {
             return new BatchDetails(
@@ -248,14 +255,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
                     new BatchDetailsAttributes("UpdateNumber", "1")
                 },
                 batchPublishedDate: DateTime.UtcNow,
-                files: fileNames?.Select(f => new BatchDetailsFiles(f)).ToList() ?? new List<BatchDetailsFiles> { new BatchDetailsFiles("file1.txt") }
+                files: fileNames?.Select(f => new BatchDetailsFiles(f, 1000)).ToList() ?? new List<BatchDetailsFiles> { new BatchDetailsFiles("file1.txt", 1000) }
             );
         }
 
         [TearDown]
         public void TearDown()
         {
-            UKHO.ADDS.EFS.RetryPolicy.HttpRetryPolicyFactory.SetConfiguration(null);
+            HttpRetryPolicyFactory.SetConfiguration(null);
         }
 
 

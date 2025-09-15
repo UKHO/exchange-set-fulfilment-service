@@ -1,11 +1,12 @@
-﻿using UKHO.ADDS.EFS.Builds.S57;
-using UKHO.ADDS.EFS.Jobs;
+﻿using UKHO.ADDS.EFS.Domain.Builds.S57;
+using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Products;
 
 namespace UKHO.ADDS.EFS.Builder.S57.Pipelines.Startup.Logging
 {
     internal class S57BuildLogView
     {
-        public required string Id { get; init; }
+        public required JobId Id { get; init; }
 
         public required DateTime? SalesCatalogueTimestamp { get; init; }
 

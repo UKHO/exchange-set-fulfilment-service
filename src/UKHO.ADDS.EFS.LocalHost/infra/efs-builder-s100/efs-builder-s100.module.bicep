@@ -22,6 +22,8 @@ param fss_endpoint string
 
 param fss_endpoint_health string
 
+param fss_client_id string
+
 param azure_env_name string
 
 param max_retry_attempts string
@@ -37,7 +39,6 @@ resource efsbuilders100 'Microsoft.App/jobs@2025-01-01' = {
   identity: {
     type: 'UserAssigned'
     userAssignedIdentities: {
-      '${efs_cae_outputs_azure_container_registry_managed_identity_id}': {}
       '${efs_service_identity_id}': {}
     }
   }
@@ -70,12 +71,8 @@ resource efsbuilders100 'Microsoft.App/jobs@2025-01-01' = {
                 queueLength: '1'
                 queueName: 's100buildrequest'
               }
-              auth: [
-                {
-                  secretRef: 'connection-string-secret'
-                  triggerParameter: 'connection'
-                }
-              ]
+              auth: []
+              identity: efs_service_identity_id
             }
           ]
         }
@@ -101,6 +98,10 @@ resource efsbuilders100 'Microsoft.App/jobs@2025-01-01' = {
             {
               name: 'FSS_ENDPOINT_HEALTH'
               value: fss_endpoint_health
+            }
+            {
+              name: 'FSS_CLIENT_ID'
+              value: fss_client_id
             }
             {
               name: 'REQUEST_QUEUE_NAME'

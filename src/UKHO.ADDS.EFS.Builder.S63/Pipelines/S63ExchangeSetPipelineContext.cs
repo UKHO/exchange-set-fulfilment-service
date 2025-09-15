@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using UKHO.ADDS.EFS.Builder.Common.Factories;
-using UKHO.ADDS.EFS.Builder.Common.Pipelines;
-using UKHO.ADDS.EFS.Builds.S63;
+using UKHO.ADDS.EFS.Domain.Builds.S63;
+using UKHO.ADDS.EFS.Infrastructure.Builders.Factories;
+using UKHO.ADDS.EFS.Infrastructure.Builders.Pipelines;
 
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.

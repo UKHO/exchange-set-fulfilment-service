@@ -12,7 +12,7 @@ namespace UKHO.ADDS.Aspire.Configuration.Remote
             _configuration = configuration;
         }
 
-        public async Task<IExternalEndpoint> GetServiceEndpointAsync(string serviceName, string tag = "", EndpointHostSubstitution host = EndpointHostSubstitution.None)
+        public IExternalEndpoint GetServiceEndpoint(string serviceName, string tag = "", EndpointHostSubstitution host = EndpointHostSubstitution.None)
         {
             var serviceKey = $"{WellKnownConfigurationName.ExternalServiceKeyPrefix}:{serviceName}";
             var serviceDefinitionJson = _configuration[serviceKey]!;
@@ -32,6 +32,7 @@ namespace UKHO.ADDS.Aspire.Configuration.Remote
             }
 
             var url = endpoint.ResolvedUrl;
+            var clientId = serviceDefinition.ClientId;
 
             switch (host)
             {
@@ -53,7 +54,8 @@ namespace UKHO.ADDS.Aspire.Configuration.Remote
             {
                 Host = host,
                 Tag = tag,
-                Uri = new Uri(url)
+                Uri = new Uri(url),
+                ClientId = clientId
             };
 
         }

@@ -1,8 +1,8 @@
-﻿using UKHO.ADDS.EFS.Configuration.Orchestrator;
+﻿using UKHO.ADDS.EFS.Domain.Builds;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion
 {
-    internal class CompletionPipelineNodeFactory
+    internal class CompletionPipelineNodeFactory : ICompletionPipelineNodeFactory
     {
         private readonly IConfiguration _configuration;
         private readonly IServiceProvider _serviceProvider;

@@ -4,8 +4,8 @@ using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Models;
-using UKHO.ADDS.EFS.Exceptions;
-using UKHO.ADDS.EFS.RetryPolicy;
+using UKHO.ADDS.EFS.Domain.Exceptions;
+using UKHO.ADDS.EFS.Infrastructure.Retries;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
@@ -18,12 +18,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private ILogger _logger;
         private const int DefaultSplitSize = 30;
 
-        private const string ProductNameQueryClause = "$batch(ProductName) eq '{0}' and ";
-        private const string EditionNumberQueryClause = "$batch(EditionNumber) eq '{0}' and ";
-        private const string UpdateNumberQueryClause = "$batch(UpdateNumber) eq '{0}' ";
+        private const string ProductNameQueryClause = "$batch(Product Name) eq '{0}' and ";
+        private const string EditionNumberQueryClause = "$batch(Edition Number) eq '{0}' and ";
+        private const string UpdateNumberQueryClause = "$batch(Update Number) eq '{0}' ";
         private const string BusinessUnit = "ADDS-S100";
-        private const string ProductType = "S-100";
-        private const string ProductTypeQueryClause = $"$batch(ProductType) eq '{ProductType}' and ";
+        private const string ProductCode = "S-100";
+        private const string ProductCodeQueryClause = $"$batch(Product Code) eq '{ProductCode}' and ";
         private const int MaxSearchOperations = 5;
         private const int UpdateNumberLimit = 5;
         private const int ProductLimit = 4;
@@ -32,7 +32,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private const string QueryLimit = "limit";
         private const string QueryStart = "start";
         private const string QueryFilter = "$filter";
-
 
         public ProductSearchNode(IFileShareReadOnlyClient fileShareReadOnlyClient) : base()
         {
@@ -44,7 +43,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             try
             {
                 _logger = context.Subject.LoggerFactory.CreateLogger<ProductSearchNode>();
-                var products = context.Subject.Build?.ProductNames;
+                var products = context.Subject.Build?.ProductEditions;
                 if (products == null || products.Count() == 0)
                 {
                     return NodeResultStatus.NotRun;
@@ -57,7 +56,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                     {
                         ProductName = g.Key,
                         EditionNumber = g.First().EditionNumber,
-                        UpdateNumbers = g.SelectMany(p => p.UpdateNumbers.Cast<int?>()).ToList()
+                        UpdateNumbers = g.SelectMany(p => p.UpdateNumbers.Select(x => (int?)x)).ToList()
                     }).ToList();
 
                 var productGroupCount = (int)Math.Ceiling((double)products.Count() / MaxSearchOperations);
@@ -65,7 +64,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
                 foreach (var productGroup in productsList)
                 {
-                    var batchDetails = await QueryFileShareServiceFilesAsync(productGroup, context.Subject.Build?.GetCorrelationId()!);
+                    var batchDetails = await QueryFileShareServiceFilesAsync(productGroup, (string)context.Subject.Build?.GetCorrelationId()!);
                     if (batchDetails != null)
                     {
                         batchList.AddRange(batchDetails);
@@ -107,7 +106,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             var productQuery = GenerateQueryForFss(products);
             var totalUpdateCount = products.Sum(p => p.UpdateNumbers.ToList().Count);
             var queryCount = 0;
-            var filter = $"BusinessUnit eq '{BusinessUnit}' and {ProductTypeQueryClause}{productQuery}";
+            var filter = $"BusinessUnit eq '{BusinessUnit}' and {ProductCodeQueryClause}{productQuery}";
             var limit = Limit;
             var start = Start;
             var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<BatchSearchResponse>(_logger, "SearchAsync");
@@ -162,7 +161,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 BatchProducts = products,
                 CorrelationId = correlationId,
                 BusinessUnit = BusinessUnit,
-                ProductType = ProductType,
+                ProductCode = ProductCode,
                 Query = searchQuery,
                 Error = error
             };

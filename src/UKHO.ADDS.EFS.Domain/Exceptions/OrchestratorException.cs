@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 
-namespace UKHO.ADDS.EFS.Exceptions
+namespace UKHO.ADDS.EFS.Domain.Exceptions
 {
     [ExcludeFromCodeCoverage]
     public class OrchestratorException : Exception

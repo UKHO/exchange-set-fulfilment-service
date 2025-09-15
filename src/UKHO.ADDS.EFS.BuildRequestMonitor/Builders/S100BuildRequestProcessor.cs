@@ -1,8 +1,8 @@
 ﻿using UKHO.ADDS.Aspire.Configuration;
 using UKHO.ADDS.Aspire.Configuration.Remote;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Services;
-using UKHO.ADDS.EFS.Builds.S100;
-using UKHO.ADDS.EFS.Configuration.Namespaces;
+using UKHO.ADDS.EFS.Domain.Builds.S100;
+using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 
 namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
 {
@@ -37,7 +37,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
             var queuePort = ExtractPort(queueConnectionString, "QueueEndpoint");
             var blobPort = ExtractPort(blobConnectionString, "BlobEndpoint");
 
-            var s100FileShareEndpoint = await _externalServiceRegistry.GetServiceEndpointAsync(ProcessNames.FileShareService, "", EndpointHostSubstitution.Docker);
+            var s100FileShareEndpoint = _externalServiceRegistry.GetServiceEndpoint(ProcessNames.FileShareService, "", EndpointHostSubstitution.Docker);
             var s100FileShareUri = s100FileShareEndpoint.Uri;
 
             var s100FileShareHealthUri = new Uri(s100FileShareUri!, "health");

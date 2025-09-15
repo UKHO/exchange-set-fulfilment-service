@@ -1,6 +1,8 @@
-﻿using UKHO.ADDS.EFS.Jobs;
+﻿using UKHO.ADDS.EFS.Domain.External;
+using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Products;
 
-namespace UKHO.ADDS.EFS.Builds
+namespace UKHO.ADDS.EFS.Domain.Builds
 {
     public abstract class Build
     {
@@ -13,7 +15,7 @@ namespace UKHO.ADDS.EFS.Builds
             _logMessages = [];
         }
 
-        public string JobId { get; init; }
+        public JobId JobId { get; init; }
 
         /// <summary>
         ///     The Sales Catalogue timestamp queried for this job.
@@ -28,7 +30,7 @@ namespace UKHO.ADDS.EFS.Builds
         /// <summary>
         ///     The FSS Batch ID associated with the build.
         /// </summary>
-        public string? BatchId { get; set; }
+        public BatchId BatchId { get; set; }
 
         /// <summary>
         ///     Gets the collection of node statuses for this build.
@@ -49,11 +51,16 @@ namespace UKHO.ADDS.EFS.Builds
         }
 
         /// <summary>
+        /// Gets or sets the build commit information containing file details with hash values.
+        /// </summary>
+        public BuildCommitInfo BuildCommitInfo { get; init; }
+
+        /// <summary>
         ///     Gets the correlation ID for the build.
         /// </summary>
         /// <remarks>This is always the Job ID.</remarks>
         /// <returns></returns>
-        public string GetCorrelationId() => JobId;
+        public CorrelationId GetCorrelationId() => CorrelationId.From((string)JobId);
 
         /// <summary>
         ///     Gets a list of products in a delimited format.

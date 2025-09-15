@@ -1,8 +1,10 @@
-﻿using UKHO.ADDS.EFS.Builds.S100;
-using UKHO.ADDS.EFS.Configuration.Orchestrator;
+﻿using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
+using UKHO.ADDS.EFS.Domain.Builds;
+using UKHO.ADDS.EFS.Domain.Builds.S100;
+using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Services;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
-using UKHO.ADDS.EFS.Orchestrator.Services.Infrastructure;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
@@ -10,32 +12,41 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
 {
     internal class CommitFileShareBatchNode : CompletionPipelineNode<S100Build>
     {
-        private readonly IOrchestratorFileShareClient _fileShareClient;
+        private readonly IFileService _fileService;
 
-        public CommitFileShareBatchNode(CompletionNodeEnvironment nodeEnvironment, IOrchestratorFileShareClient fileShareClient)
+        public CommitFileShareBatchNode(CompletionNodeEnvironment nodeEnvironment, IFileService fileService)
             : base(nodeEnvironment)
         {
-            _fileShareClient = fileShareClient;
+            _fileService = fileService;
         }
 
         public override Task<bool> ShouldExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
         {
-            return Task.FromResult(!string.IsNullOrEmpty(context.Subject.Job.BatchId)
-                                   && (Environment.BuilderExitCode == BuilderExitCode.Success || context.Subject.IsErrorFileCreated));
+            return Task.FromResult(context.Subject.Job.BatchId != BatchId.None && (Environment.BuilderExitCode == BuilderExitCode.Success || context.Subject.IsErrorFileCreated));
         }
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
         {
             var job = context.Subject.Job!;
-            
-            var commitBatchResult = await _fileShareClient.CommitBatchAsync(job.BatchId!, job.GetCorrelationId(), Environment.CancellationToken);
+            var buildCommitInfo = context.Subject.Build.BuildCommitInfo;
 
-            if (!commitBatchResult.IsSuccess(out _, out _))
+            var batchHandle = new BatchHandle((string)job.BatchId!);
+            
+            if (buildCommitInfo.FileDetails.Any())
+            {
+                var firstFileDetail = buildCommitInfo.FileDetails.First();
+                batchHandle.AddFile(firstFileDetail.FileName, firstFileDetail.Hash);
+            }
+
+            try
+            {
+                var commitBatchResult = await _fileService.CommitBatchAsync(batchHandle, job.GetCorrelationId(), Environment.CancellationToken);
+                return NodeResultStatus.Succeeded;
+            }
+            catch (Exception)
             {
                 return NodeResultStatus.Failed;
             }
-
-            return NodeResultStatus.Succeeded;
         }
     }
 }
