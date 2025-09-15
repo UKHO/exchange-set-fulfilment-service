@@ -122,6 +122,21 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
             });
         }
 
+        [TestCase(0)]
+        [TestCase(null)]
+        public void WhenS102ProductWithValidUpdateNumber_ThenValidationSucceeds(int? updateNumber)
+        {
+            // S102 product name starts with "102"
+            var productVersions = CreateProductVersions(("102GB40079ABCDEFG", 1, 0));
+            var result = _s100ProductVersionsRequestValidator.Validate((productVersions, VALID_CALLBACK_URI));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.IsValid, Is.True);
+                Assert.That(result.Errors, Is.Empty);
+            });
+        }
+
         private S100ProductVersionsRequestValidator S100ProductVersionsRequestValidator()
         {
             return new();
