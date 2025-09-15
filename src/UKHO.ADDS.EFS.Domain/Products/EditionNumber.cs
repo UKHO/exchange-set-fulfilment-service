@@ -4,13 +4,13 @@ using Vogen;
 namespace UKHO.ADDS.EFS.Domain.Products
 {
     [ValueObject<int>(Conversions.SystemTextJson, typeof(ValidationException))]
-    [Instance("NotRequired", 1)]
-    [Instance("NotSet", 1)]
+    [Instance("NotRequired", 0)]
+    [Instance("NotSet", 0)]
     public partial struct EditionNumber
     {
         public static Validation Validate(int input)
         {
-            if (input >= 1)
+            if (input >= 0)
             {
                 return Validation.Ok;
             }

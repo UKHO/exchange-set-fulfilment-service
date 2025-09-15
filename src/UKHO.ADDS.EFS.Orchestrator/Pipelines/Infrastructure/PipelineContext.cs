@@ -1,7 +1,7 @@
 ﻿using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Messages;
 using UKHO.ADDS.EFS.Domain.Services;
-using UKHO.ADDS.EFS.Messages;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
 {

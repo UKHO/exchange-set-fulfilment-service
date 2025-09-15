@@ -26,7 +26,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         /// <summary>
         /// The original request type for S100 endpoints
         /// </summary>
-        public Messages.RequestType? RequestType { get; init; }
+        public RequestType? RequestType { get; init; }
 
         /// <summary>
         /// The callback URI for asynchronous notifications
@@ -38,20 +38,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         /// </summary>
         public string? ProductIdentifier { get; init; }
 
-        public Job CreateJob()
+        public Job CreateJob() => new Job()
         {
-            return new Job()
-            {
-                Id = JobId,
-                Timestamp = Timestamp,
-                DataStandard = DataStandard,
-                RequestedProducts = Products,
-                RequestedFilter = Filter,
-                BatchId = BatchId.None,
-                CallbackUri = CallbackUri,
-                ProductIdentifier = ProductIdentifier
-            };
-        }
+            Id = JobId,
+            Timestamp = Timestamp,
+            DataStandard = DataStandard,
+            RequestedProducts = Products,
+            RequestedFilter = Filter,
+            BatchId = BatchId.None,
+            CallbackUri = CallbackUri,
+            ProductIdentifier = ProductIdentifier
+        };
 
         public static AssemblyPipelineParameters CreateFrom(JobRequestApiMessage message, IConfiguration configuration, CorrelationId correlationId)
         {
@@ -77,7 +74,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 Filter = "productNames",
                 JobId = Domain.Jobs.JobId.From(correlationId),
                 Configuration = configuration,
-                RequestType = Messages.RequestType.ProductNames,
+                RequestType = Domain.Messages.RequestType.ProductNames,
                 CallbackUri = callbackUri
             };
 
@@ -95,7 +92,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 Filter = "productVersions",
                 JobId = Domain.Jobs.JobId.From(correlationId),
                 Configuration = configuration,
-                RequestType = Messages.RequestType.ProductVersions,
+                RequestType = Domain.Messages.RequestType.ProductVersions,
                 CallbackUri = callbackUri
             };
 
@@ -116,7 +113,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                     (productIdentifier != null ? $",productIdentifier:{productIdentifier}" : ""),
                 JobId = Domain.Jobs.JobId.From(correlationId),
                 Configuration = configuration,
-                RequestType = Messages.RequestType.UpdatesSince,
+                RequestType = Domain.Messages.RequestType.UpdatesSince,
                 ProductIdentifier = productIdentifier,
                 CallbackUri = callbackUri
             };

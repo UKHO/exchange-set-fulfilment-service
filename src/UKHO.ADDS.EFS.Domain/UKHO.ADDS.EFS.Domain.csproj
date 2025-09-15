@@ -8,6 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Messages\ExchangeSetLinks.cs" />
+    <Compile Remove="Messages\Link.cs" />
+    <Compile Remove="Messages\S100ProductNotIncludedReason.cs" />
+    <Compile Remove="Messages\S100ProductNotInExchangeSet.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <InternalsVisibleTo Include="UKHO.ADDS.EFS.Orchestrator" />
     <InternalsVisibleTo Include="UKHO.ADDS.EFS.Orchestrator.UnitTests" />
   </ItemGroup>

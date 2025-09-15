@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace UKHO.ADDS.EFS.Messages
+namespace UKHO.ADDS.EFS.Domain.Messages
 {
     /// <summary>
     /// Represents a response containing error details for a request
