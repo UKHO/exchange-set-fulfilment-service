@@ -30,13 +30,13 @@ param max_retry_attempts string
 
 param retry_delay_ms string
 
-param s100_builder_cpu string
+param azure_s100_builder_cpu string
 
-param s100_builder_memory string
+param azure_s100_builder_memory string
 
-param s100_max_executions int
+param azure_s100_max_executions int
 
-param s100_polling_interval int
+param azure_s100_polling_interval int
 
 resource efsbuilders100 'Microsoft.App/jobs@2025-01-01' = {
   name: 'efs-builder-s100'
@@ -68,8 +68,8 @@ resource efsbuilders100 'Microsoft.App/jobs@2025-01-01' = {
         parallelism: 1
         scale: {
           minExecutions: 0
-          maxExecutions: s100_max_executions
-          pollingInterval: s100_polling_interval
+          maxExecutions: azure_s100_max_executions
+          pollingInterval: azure_s100_polling_interval
           rules: [
             {
               name: 'request-queue'
@@ -149,8 +149,8 @@ resource efsbuilders100 'Microsoft.App/jobs@2025-01-01' = {
             }
           ]
           resources: {
-            cpu: json(s100_builder_cpu)
-            memory: '${s100_builder_memory}Gi'
+            cpu: json(azure_s100_builder_cpu)
+            memory: azure_s100_builder_memory
           }
         }
       ]
