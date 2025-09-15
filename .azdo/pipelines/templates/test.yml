@@ -57,7 +57,7 @@ jobs:
   displayName: 'Run functional tests'
   workspace:
     clean: all
-  condition: eq('${{ parameters.RunFunctionalTests }}', true)
+  ## condition: eq('${{ parameters.RunFunctionalTests }}', true)
   steps:
     - checkout: self
       clean: true
