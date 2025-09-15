@@ -52,6 +52,18 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
             Assert.That(result, Is.True);    
         }
 
+        [Test]
+        public void WhenRegexMatchTimeoutExceptionOccurs_ThenIsValidReturnsFalse()
+        {
+            // Use a pathological input to force a timeout
+            string pathologicalInput = new string('(', 10000); // Unclosed parentheses can cause catastrophic backtracking
+            int veryShortTimeoutMs = 1; // 1ms timeout to force RegexMatchTimeoutException
+
+            var result = ProductIdentifierValidator.IsValid(pathologicalInput, veryShortTimeoutMs);
+
+            Assert.That(result, Is.False);
+        }
+
         private static bool ActIsValid(string? productIdentifier)
         {
             return ProductIdentifierValidator.IsValid(productIdentifier);
