@@ -49,6 +49,8 @@ namespace UKHO.ADDS.EFS.LocalHost
             var efsAppConfigurationName = builder.AddParameter("efsAppConfigurationName");
             var efsStorageAccountName = builder.AddParameter("efsStorageAccountName");
             var addsEnvironment = builder.AddParameter("addsEnvironment");
+            var orchestratorCpu = builder.AddParameter("orchestratorCpu");
+            var orchestratorMemory = builder.AddParameter("orchestratorMemory");
 
             // Existing user managed identity
             var efsServiceIdentity = builder.AddAzureUserAssignedIdentity(ServiceConfiguration.EfsServiceIdentity).PublishAsExisting(efsServiceIdentityName, efsRetainResourceGroup);
@@ -124,6 +126,9 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .PublishAsAzureContainerApp((infra, app) =>
                 {
                     app.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
+                    var container = app.Template.Containers.Single().Value!;
+                    container.Resources.Cpu = orchestratorCpu.AsProvisioningParameter(infra, "orchestratorCpu");
+                    container.Resources.Memory = orchestratorMemory.AsProvisioningParameter(infra, "orchestratorMemory");
                 });
 
             if (builder.ExecutionContext.IsPublishMode)
