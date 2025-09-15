@@ -1,5 +1,4 @@
 ﻿using UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators;
-using UKHO.ADDS.Mocks.Configuration.Mocks.scs.Helpers;
 using UKHO.ADDS.Mocks.Headers;
 using UKHO.ADDS.Mocks.Markdown;
 using UKHO.ADDS.Mocks.States;
@@ -17,14 +16,14 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                 if (contentTypeValidation != null)
                 {
                     return contentTypeValidation;
-                }                
+                }
 
-                var state = GetState(request);                
+                var state = GetState(request);
 
                 switch (state)
                 {
                     case WellKnownState.Default:
-                        {                          
+                        {
                             switch (productType.ToLowerInvariant())
                             {
                                 case "s100":
@@ -51,13 +50,13 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                         return Results.StatusCode(304);
 
                     case WellKnownState.BadRequest:
-                        return ResponseHelper.CreateBadRequestResponse(request, "Product Versions", "Bad Request.");
+                        return ResponseGenerator.CreateBadRequestResponse(request, "Product Versions", "Bad Request.");
 
                     case WellKnownState.UnsupportedMediaType:
-                        return ResponseHelper.CreateUnsupportedMediaTypeResponse();
+                        return ResponseGenerator.CreateUnsupportedMediaTypeResponse();
 
                     case WellKnownState.InternalServerError:
-                        return ResponseHelper.CreateInternalServerErrorResponse(request);
+                        return ResponseGenerator.CreateInternalServerErrorResponse(request);
 
                     default:
                         // Just send default responses

@@ -1,7 +1,5 @@
-using UKHO.ADDS.Mocks.Configuration.Mocks.scs.Helpers;
-using UKHO.ADDS.Mocks.Headers;
+using UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators;
 using UKHO.ADDS.Mocks.Markdown;
-using UKHO.ADDS.Mocks.States;
 
 namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
 {
@@ -22,7 +20,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
             if (string.IsNullOrEmpty(contentTypeHeader) || 
                 !contentTypeHeader.Contains(ApplicationJson, StringComparison.OrdinalIgnoreCase))
             {
-                return ResponseHelper.CreateUnsupportedMediaTypeResponse();
+                return ResponseGenerator.CreateUnsupportedMediaTypeResponse();
             }
 
             return null;
