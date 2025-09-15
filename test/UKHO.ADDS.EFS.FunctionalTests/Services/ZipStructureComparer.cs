@@ -88,8 +88,8 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
                 //added file expected other than product name
                 expectedProductPaths.Add("S100_ROOT/CATALOG");
 
-                // Extract actual product file names from the source archive
-                var actualProductPaths = sourceArchive.Entries
+                // Extract actual product file names from the target archive
+                var actualProductPaths = targetArchive.Entries
                     .Where(e => e.FullName.Contains('.')) // Assuming product files have extensions
                     .Select(e => e.FullName[..e.FullName.IndexOf('.')]) // Get the file name without extension
                     .Distinct()
