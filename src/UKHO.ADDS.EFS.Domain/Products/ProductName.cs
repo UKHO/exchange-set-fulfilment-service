@@ -75,7 +75,7 @@ namespace UKHO.ADDS.EFS.Domain.Products
             }
         }
 
-        private static bool TryParseExactlyThreeDigits(ReadOnlySpan<char> span, out int value)
+        internal static bool TryParseExactlyThreeDigits(ReadOnlySpan<char> span, out int value)
         {
             value = 0;
 

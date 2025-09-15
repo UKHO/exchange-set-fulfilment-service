@@ -1,8 +1,8 @@
 using FluentValidation.Results;
-using UKHO.ADDS.EFS.Domain.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Validators;
 using Microsoft.Extensions.Configuration;
 using UKHO.ADDS.EFS.Orchestrator.Validators.S100;
+using UKHO.ADDS.EFS.Orchestrator.Api.Messages;
 
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
 {
@@ -195,9 +195,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
             });
         }
 
-        private static S100UpdatesSinceRequest CreateRequest(string? sinceDateTime)
+        private static UpdatesSinceRequest CreateRequest(string? sinceDateTime)
         {
-            return new S100UpdatesSinceRequest { SinceDateTime = sinceDateTime };
+            return new UpdatesSinceRequest { SinceDateTime = sinceDateTime };
         }
 
         private async Task<ValidationResult> ValidateAsync(string? sinceDateTime, string? callbackUri, string? productIdentifier)

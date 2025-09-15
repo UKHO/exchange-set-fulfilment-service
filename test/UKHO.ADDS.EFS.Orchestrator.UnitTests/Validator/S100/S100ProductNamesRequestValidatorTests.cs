@@ -41,28 +41,6 @@ internal class S100ProductNamesRequestValidatorTests
         });
     }
 
-    [Test]
-    public async Task WhenProductNamesIsNull_ThenValidationFails()
-    {
-        var result = await ValidateAsync(null, VALID_CALLBACK_URI);
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.IsValid, Is.False);
-            Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "ProductName cannot be null or empty."));
-        });
-    }
-
-    [Test]
-    public async Task WhenProductNamesIsEmpty_ThenValidationFails()
-    {
-        var result = await ValidateAsync(new List<string>(), VALID_CALLBACK_URI);
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.IsValid, Is.False);
-            Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == PRODUCT_NAME_CANNOT_BE_NULL_OR_EMPTY_MESSAGE));
-        });
-    }
-
     [TestCase(EMPTY_PRODUCT_NAME)]
     [TestCase(NULL_PRODUCT_NAME)]
     public async Task WhenProductNameIsNullOrWhitespace_ThenValidationFails(string? productName)

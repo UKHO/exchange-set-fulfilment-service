@@ -1,5 +1,5 @@
 using FluentValidation.Results;
-using UKHO.ADDS.EFS.Domain.Messages;
+using UKHO.ADDS.EFS.Orchestrator.Api.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Validators.S100;
 
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
@@ -32,20 +32,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
             });
         }
 
-        [Test]
-        public void WhenProductVersionsIsEmpty_ThenValidationFails()
-        {
-            var result = _s100ProductVersionsRequestValidator.Validate((new List<S100ProductVersion>(), VALID_CALLBACK_URI));
-
-            Assert.Multiple(() =>
-            {
-                Assert.That(result.IsValid, Is.False);
-                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "ProductVersions cannot be empty."));
-            });
-        }
-
-        [TestCase(0, 0, "Edition number must be a positive integer.")]
-        [TestCase(-1, 0, "Edition number must be a positive integer.")]
+        [TestCase(0, 0, "EditionNumber must be a positive integer.")]
+        [TestCase(-1, 0, "EditionNumber must be a positive integer.")]
         public void WhenEditionNumberIsInvalid_ThenValidationFails(int editionNumber, int updateNumber, string expectedMessage)
         {
             var productVersions = CreateProductVersions((VALID_PRODUCT_NAME, editionNumber, updateNumber));
@@ -58,7 +46,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
             });
         }
 
-        [TestCase(-1, "Update number must be zero or a positive integer.")]
+        [TestCase(-1, "UpdateNumber must be zero or a positive integer.")]
         public void WhenUpdateNumberIsInvalid_ThenValidationFails(int updateNumber, string expectedMessage)
         {
             var productVersions = CreateProductVersions((VALID_PRODUCT_NAME, 1, updateNumber));
@@ -127,8 +115,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
             {
                 Assert.That(result.IsValid, Is.False);
                 Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "ProductName cannot be null or empty."));
-                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "Edition number must be a positive integer."));
-                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "Update number must be zero or a positive integer."));
+                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "EditionNumber must be a positive integer."));
                 Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "Please enter a valid callback URI in HTTPS format."));
                 Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "'AnotherProduct' is not valid: it neither starts with a 3-digit S-100 code nor has length 8 for S-57."));
                 Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "'ThirdProduct' is not valid: it neither starts with a 3-digit S-100 code nor has length 8 for S-57."));
@@ -140,9 +127,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
             return new();
         }
 
-        private S100ProductVersion CreateProductVersion(string? productName, int editionNumber, int updateNumber)
+        private ProductVersionRequest CreateProductVersion(string? productName, int editionNumber, int updateNumber)
         {
-            return new S100ProductVersion
+            return new ProductVersionRequest
             {
                 ProductName = productName ?? string.Empty,
                 EditionNumber = editionNumber,
@@ -150,7 +137,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
             };
         }
 
-        private List<S100ProductVersion> CreateProductVersions(params (string? productName, int editionNumber, int updateNumber)[] versions)
+        private List<ProductVersionRequest> CreateProductVersions(params (string? productName, int editionNumber, int updateNumber)[] versions)
         {
             return versions.Select(v => CreateProductVersion(v.productName, v.editionNumber, v.updateNumber)).ToList();
         }

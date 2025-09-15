@@ -1,4 +1,3 @@
-
 using FluentValidation;
 using FluentValidation.Results;
 using UKHO.ADDS.EFS.Domain.Products;
@@ -12,9 +11,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Validators.S100;
 /// </summary>
 internal class S100ProductVersionsRequestValidator : AbstractValidator<(IEnumerable<ProductVersionRequest>? productVersionsRequest, string? callbackUri)>, IS100ProductVersionsRequestValidator
 {
-    private const string EDITION_NUMBER = "editionNumber";
-    private const string UPDATE_NUMBER = "updateNumber";
-    private const string PRODUCT_NAME = "productName";
+    private const string EDITION_NUMBER = nameof(EditionNumber);
+    private const string UPDATE_NUMBER = nameof(UpdateNumber);
+    private const string PRODUCT_NAME = nameof(ProductName);
 
 
     public S100ProductVersionsRequestValidator()
@@ -42,7 +41,7 @@ internal class S100ProductVersionsRequestValidator : AbstractValidator<(IEnumera
                 {
                     if (string.IsNullOrWhiteSpace(product.ProductName))
                     {
-                        context.AddFailure(new ValidationFailure(PRODUCT_NAME, "ProductName cannot be null or empty."));
+                        context.AddFailure(new ValidationFailure(PRODUCT_NAME, nameof(ProductName)+" cannot be null or empty."));
                     }
                     else
                     {
@@ -55,7 +54,7 @@ internal class S100ProductVersionsRequestValidator : AbstractValidator<(IEnumera
 
                     if (product.EditionNumber is null)
                     {
-                        context.AddFailure(new ValidationFailure(EDITION_NUMBER, "Edition number cannot be null."));
+                        context.AddFailure(new ValidationFailure(EDITION_NUMBER, nameof(EditionNumber)+ " cannot be null."));
                     }
                     else
                     {
@@ -66,15 +65,23 @@ internal class S100ProductVersionsRequestValidator : AbstractValidator<(IEnumera
                         }
                     }
 
-                    if (product.UpdateNumber!=null)
+                    ProductName.TryParseExactlyThreeDigits(product.ProductName!, out var code);
+
+                    if (code == (int)DataStandardProductType.S101)
                     {
-                        var updateNumberValidation = UpdateNumber.Validate((int)product.UpdateNumber!);
-                        if (updateNumberValidation != Validation.Ok)
+                        if (product.UpdateNumber == null)
                         {
-                            context.AddFailure(new ValidationFailure(UPDATE_NUMBER, updateNumberValidation.ErrorMessage ?? nameof(UpdateNumber) + " is not valid."));
+                            context.AddFailure(new ValidationFailure(UPDATE_NUMBER, nameof(UpdateNumber)+ " cannot be null."));
+                        }
+                        else
+                        {
+                            var updateNumberValidation = UpdateNumber.Validate((int)product.UpdateNumber!);
+                            if (updateNumberValidation != Validation.Ok)
+                            {
+                                context.AddFailure(new ValidationFailure(UPDATE_NUMBER, updateNumberValidation.ErrorMessage ?? nameof(UpdateNumber) + " is not valid."));
+                            }
                         }
                     }
-
                     index++;
                 }
             });

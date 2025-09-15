@@ -42,12 +42,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                          {
                              return BadRequestForMalformedBody(correlationId.ToString(), logger);
                          }
-
-                         var validationResult = await productNameValidator.ValidateAsync((productNamesRequest, callbackUri));
-                         var validationResponse = HandleValidationResult(validationResult, logger, (string)correlationId);
-                         if (validationResponse != null)
+                         else
                          {
-                             return validationResponse;
+                             var validationResult = await productNameValidator.ValidateAsync((productNamesRequest, callbackUri));
+                             var validationResponse = HandleValidationResult(validationResult, logger, (string)correlationId);
+                             if (validationResponse != null)
+                             {
+                                 return validationResponse;
+                             }
                          }
 
                          var parameters = AssemblyPipelineParameters.CreateFromS100ProductNames(productNamesRequest!, configuration, (string)correlationId, callbackUri);
@@ -85,13 +87,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                     {
                         return BadRequestForMalformedBody(correlationId.ToString(), logger);
                     }
-
-                    // Validate input
-                    var validationResult = await productVersionsRequestValidator.ValidateAsync((productVersionsRequest, callbackUri));
-                    var validationResponse = HandleValidationResult(validationResult, logger, (string)correlationId);
-                    if (validationResponse != null)
+                    else
                     {
-                        return validationResponse;
+                        // Validate input
+                        var validationResult = await productVersionsRequestValidator.ValidateAsync((productVersionsRequest, callbackUri));
+                        var validationResponse = HandleValidationResult(validationResult, logger, (string)correlationId);
+                        if (validationResponse != null)
+                        {
+                            return validationResponse;
+                        }
                     }
 
                     var parameters = AssemblyPipelineParameters.CreateFromS100ProductVersions(productVersionsRequest!, configuration, (string)correlationId, callbackUri);

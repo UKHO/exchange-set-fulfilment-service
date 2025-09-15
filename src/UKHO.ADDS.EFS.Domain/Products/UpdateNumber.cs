@@ -14,7 +14,7 @@ namespace UKHO.ADDS.EFS.Domain.Products
                 return Validation.Ok;
             }
 
-            return Validation.Invalid($"{nameof(UpdateNumber)} Update number must be zero or a positive integer.");
+            return Validation.Invalid($"{nameof(UpdateNumber)} must be zero or a positive integer.");
         }
     }
 }
