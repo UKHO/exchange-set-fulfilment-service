@@ -30,7 +30,7 @@ internal class S100CustomAssemblyPipeline : AssemblyPipeline<S100Build>
             BuildStatus = context.Job.BuildState,
             BatchId = context.Job.BatchId,
             ErrorResponse = context.ErrorResponse?.Errors?.Count > 0 ? context.ErrorResponse : null,
-            ResponseData = context.Build.ResponseData
+            ResponseData = context.Job.ResponseData
         };
     }
 
