@@ -15,7 +15,6 @@ using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.Builds.S100;
 using UKHO.ADDS.EFS.Domain.Builds.S57;
 using UKHO.ADDS.EFS.Domain.Builds.S63;
-using UKHO.ADDS.EFS.Domain.Constants;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Domain.Services;
@@ -40,7 +39,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
             collection.AddSingleton<IRepository<S100Build>, S100BuildRepository>();
             collection.AddSingleton<IRepository<S63Build>, S63BuildRepository>();
             collection.AddSingleton<IRepository<S57Build>, S57BuildRepository>();
-            
+
             collection.AddSingleton<IRepository<DataStandardTimestamp>, DataStandardTimestampRepository>();
             collection.AddSingleton<IRepository<Job>, JobRepository>();
             collection.AddSingleton<IRepository<BuildMemento>, BuildMementoRepository>();
@@ -53,58 +52,8 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
             collection.AddSingleton<IStorageService, DefaultStorageService>();
             collection.AddSingleton<ITimestampService, DefaultTimestampService>();
 
-            if (!addsEnvironment.IsLocal() && !addsEnvironment.IsDev())
-            {
-                collection.AddAuthentication(EfsConstants.AzureAdScheme)
-                    .AddJwtBearer(EfsConstants.AzureAdScheme, options =>
-                    {
-                        var clientId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsAppRegClientId);
-                        var tenantId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsAppRegTenantId);
-
-                        options.Audience = clientId;
-                        options.Authority = $"{EfsConstants.MicrosoftLoginUrl}{tenantId}";
-                        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
-                        {
-                            ValidateIssuer = true,
-                            ValidateAudience = true,
-                            ValidateLifetime = true,
-                            ValidateIssuerSigningKey = true,
-                            ValidAudiences = [clientId],
-                            ValidIssuers = [$"{EfsConstants.MicrosoftLoginUrl}{tenantId}"]
-                        };
-                        options.Events = new JwtBearerEvents
-                        {
-                            OnForbidden = context =>
-                            {
-                                context.Response.Headers.Append(EfsConstants.OriginHeaderKey, EfsConstants.EfsService);
-                                return Task.CompletedTask;
-                            },
-                            OnAuthenticationFailed = context =>
-                            {
-                                context.Response.Headers.Append(EfsConstants.OriginHeaderKey, EfsConstants.EfsService);
-                                return Task.CompletedTask;
-                            }
-                        };
-                    });
-            }
-
-            collection.AddAuthorizationBuilder()
-                .SetDefaultPolicy(new AuthorizationPolicyBuilder()
-                    .RequireAuthenticatedUser()
-                    .AddAuthenticationSchemes(EfsConstants.AzureAdScheme)
-                    .Build())
-                .AddPolicy(EfsConstants.EfsRole, policy =>
-                {
-                    if (!addsEnvironment.IsLocal() && !addsEnvironment.IsDev())
-                    {
-                        policy.RequireRole(EfsConstants.EfsRole);
-                    }
-                    else
-                    {
-                        // For local and dev environments only, allow anonymous access
-                        policy.RequireAssertion(_ => true);
-                    }
-                });
+            // Configure authentication
+            collection.AddAuthentication(addsEnvironment);
 
             var efsClientId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsClientId);
 
@@ -146,6 +95,64 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
             });
 
             collection.AddSingleton<IFileService, DefaultFileService>();
+
+            return collection;
+        }
+
+        private static IServiceCollection AddAuthentication(this IServiceCollection collection, AddsEnvironment addsEnvironment)
+        {
+            if (!addsEnvironment.IsLocal() && !addsEnvironment.IsDev())
+            {
+                collection.AddAuthentication(AuthenticationConstants.AzureAdScheme)
+                    .AddJwtBearer(AuthenticationConstants.AzureAdScheme, options =>
+                    {
+                        var clientId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsAppRegClientId);
+                        var tenantId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsAppRegTenantId);
+
+                        options.Audience = clientId;
+                        options.Authority = $"{AuthenticationConstants.MicrosoftLoginUrl}{tenantId}";
+                        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                        {
+                            ValidateIssuer = true,
+                            ValidateAudience = true,
+                            ValidateLifetime = true,
+                            ValidateIssuerSigningKey = true,
+                            ValidAudiences = [clientId],
+                            ValidIssuers = [$"{AuthenticationConstants.MicrosoftLoginUrl}{tenantId}"]
+                        };
+                        options.Events = new JwtBearerEvents
+                        {
+                            OnForbidden = context =>
+                            {
+                                context.Response.Headers.Append(AuthenticationConstants.OriginHeaderKey, AuthenticationConstants.EfsService);
+                                return Task.CompletedTask;
+                            },
+                            OnAuthenticationFailed = context =>
+                            {
+                                context.Response.Headers.Append(AuthenticationConstants.OriginHeaderKey, AuthenticationConstants.EfsService);
+                                return Task.CompletedTask;
+                            }
+                        };
+                    });
+            }
+
+            collection.AddAuthorizationBuilder()
+                .SetDefaultPolicy(new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .AddAuthenticationSchemes(AuthenticationConstants.AzureAdScheme)
+                    .Build())
+                .AddPolicy(AuthenticationConstants.EfsRole, policy =>
+                {
+                    if (!addsEnvironment.IsLocal() && !addsEnvironment.IsDev())
+                    {
+                        policy.RequireRole(AuthenticationConstants.EfsRole);
+                    }
+                    else
+                    {
+                        // For local and dev environments only, allow anonymous access
+                        policy.RequireAssertion(_ => true);
+                    }
+                });
 
             return collection;
         }
