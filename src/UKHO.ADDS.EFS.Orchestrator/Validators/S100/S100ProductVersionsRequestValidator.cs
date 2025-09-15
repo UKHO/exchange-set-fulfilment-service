@@ -1,7 +1,8 @@
+
 using FluentValidation;
 using FluentValidation.Results;
-using UKHO.ADDS.EFS.Domain.Messages;
 using UKHO.ADDS.EFS.Domain.Products;
+using UKHO.ADDS.EFS.Orchestrator.Api.Messages;
 using Vogen;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Validators.S100;
@@ -9,21 +10,26 @@ namespace UKHO.ADDS.EFS.Orchestrator.Validators.S100;
 /// <summary>
 /// Validator for S100ProductVersion[] and callbackUri
 /// </summary>
-internal class S100ProductVersionsRequestValidator : AbstractValidator<(IEnumerable<S100ProductVersion>? productVersions, string? callbackUri)>, IS100ProductVersionsRequestValidator
+internal class S100ProductVersionsRequestValidator : AbstractValidator<(IEnumerable<ProductVersionRequest>? productVersionsRequest, string? callbackUri)>, IS100ProductVersionsRequestValidator
 {
+    private const string EDITION_NUMBER = "editionNumber";
+    private const string UPDATE_NUMBER = "updateNumber";
+    private const string PRODUCT_NAME = "productName";
+
+
     public S100ProductVersionsRequestValidator()
     {
-        RuleFor(x => x.productVersions)
-            .Custom((productVersions, context) =>
-            {
-                if (productVersions == null || !productVersions.Any())
-                {
-                    context.AddFailure(new ValidationFailure("productVersions", "ProductVersions cannot be empty."));
-                    return;
-                }
-            });
+        //RuleFor(x => x.productVersionsRequest)
+        //    .Custom((productVersions, context) =>
+        //    {
+        //        if (productVersions == null || !productVersions.Any())
+        //        {
+        //            context.AddFailure(new ValidationFailure("productVersions", "ProductVersions cannot be empty."));
+        //            return;
+        //        }
+        //    });
 
-        RuleFor(x => x.productVersions)
+        RuleFor(x => x.productVersionsRequest)
             .Custom((productVersions, context) =>
             {
                 if (productVersions == null)
@@ -34,26 +40,41 @@ internal class S100ProductVersionsRequestValidator : AbstractValidator<(IEnumera
                 int index = 0;
                 foreach (var product in productVersions)
                 {
-                    if (product.EditionNumber is null || product.EditionNumber <= 0)
-                    {
-                        context.AddFailure(new ValidationFailure("editionNumber", "Edition number must be a positive integer."));
-                    }
-                    if (product.UpdateNumber is null || product.UpdateNumber < 0)
-                    {
-                        context.AddFailure(new ValidationFailure("updateNumber", "Update number must be zero or a positive integer."));
-                    }
                     if (string.IsNullOrWhiteSpace(product.ProductName))
                     {
-                        context.AddFailure(new ValidationFailure("productName", "ProductName cannot be null or empty."));
+                        context.AddFailure(new ValidationFailure(PRODUCT_NAME, "ProductName cannot be null or empty."));
                     }
                     else
                     {
                         var validation = ProductName.Validate(product.ProductName!);
                         if (validation != Validation.Ok)
                         {
-                            context.AddFailure(new ValidationFailure("productName", validation.ErrorMessage ?? nameof(ProductName) + " is not valid."));
+                            context.AddFailure(new ValidationFailure(PRODUCT_NAME, validation.ErrorMessage ?? nameof(ProductName) + " is not valid."));
                         }
                     }
+
+                    if (product.EditionNumber is null)
+                    {
+                        context.AddFailure(new ValidationFailure(EDITION_NUMBER, "Edition number cannot be null."));
+                    }
+                    else
+                    {
+                        var editionNumberValidation = EditionNumber.Validate((int)product.EditionNumber!);
+                        if (editionNumberValidation != Validation.Ok)
+                        {
+                            context.AddFailure(new ValidationFailure(EDITION_NUMBER, editionNumberValidation.ErrorMessage ?? nameof(EditionNumber) + " is not valid."));
+                        }
+                    }
+
+                    if (product.UpdateNumber!=null)
+                    {
+                        var updateNumberValidation = UpdateNumber.Validate((int)product.UpdateNumber!);
+                        if (updateNumberValidation != Validation.Ok)
+                        {
+                            context.AddFailure(new ValidationFailure(UPDATE_NUMBER, updateNumberValidation.ErrorMessage ?? nameof(UpdateNumber) + " is not valid."));
+                        }
+                    }
+
                     index++;
                 }
             });
@@ -69,9 +90,8 @@ internal class S100ProductVersionsRequestValidator : AbstractValidator<(IEnumera
     }
 
 
-    public async Task<ValidationResult> ValidateAsync((IEnumerable<S100ProductVersion>? productVersions, string? callbackUri) request)
+    public async Task<ValidationResult> ValidateAsync((IEnumerable<ProductVersionRequest>? productVersionsRequest, string? callbackUri) request)
     {
-
         return await base.ValidateAsync(request);
     }
 }

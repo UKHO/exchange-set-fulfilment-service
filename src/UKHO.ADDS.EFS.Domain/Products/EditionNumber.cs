@@ -8,14 +8,14 @@ namespace UKHO.ADDS.EFS.Domain.Products
     [Instance("NotSet", 0)]
     public partial struct EditionNumber
     {
-        private static Validation Validate(int input)
+        internal static Validation Validate(int input)
         {
-            if (input >= 0)
+            if (input >= 1)
             {
                 return Validation.Ok;
             }
 
-            return Validation.Invalid($"{nameof(EditionNumber)} must be >= 0");
+            return Validation.Invalid($"{nameof(EditionNumber)} must be a positive integer.");
         }
     }
 }

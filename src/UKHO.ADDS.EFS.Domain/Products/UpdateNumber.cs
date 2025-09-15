@@ -7,14 +7,14 @@ namespace UKHO.ADDS.EFS.Domain.Products
     [Instance("NotSet", 0)]
     public partial struct UpdateNumber
     {
-        private static Validation Validate(int input)
+        internal static Validation Validate(int input)
         {
             if (input >= 0)
             {
                 return Validation.Ok;
             }
 
-            return Validation.Invalid($"{nameof(UpdateNumber)} must be >= 0");
+            return Validation.Invalid($"{nameof(UpdateNumber)} Update number must be zero or a positive integer.");
         }
     }
 }

@@ -1,14 +1,14 @@
 using FluentValidation;
 using FluentValidation.Results;
-using UKHO.ADDS.EFS.Domain.Messages;
 using System.Globalization;
+using UKHO.ADDS.EFS.Orchestrator.Api.Messages;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Validators.S100;
 
 /// <summary>
 /// Validator for 'updatesSince' request filter format and sinceDateTime presence
 /// </summary>
-internal class S100UpdateSinceRequestValidator : AbstractValidator<(S100UpdatesSinceRequest? s100UpdatesSinceRequest, string? callbackUri, string? productIdentifier)>, IS100UpdateSinceRequestValidator
+internal class S100UpdateSinceRequestValidator : AbstractValidator<(UpdatesSinceRequest? s100UpdatesSinceRequest, string? callbackUri, string? productIdentifier)>, IS100UpdateSinceRequestValidator
 {
     private const string INVALID_UPDATES_SINCE_FORMAT_MESSAGE = "Provided updatesSince is either invalid or invalid format, the valid format is 'ISO 8601 format' (e.g. '2025-09-29T00:00:00Z').";
     private readonly TimeSpan _maximumProductAge;
@@ -64,7 +64,7 @@ internal class S100UpdateSinceRequestValidator : AbstractValidator<(S100UpdatesS
             });
     }
 
-    public async Task<ValidationResult> ValidateAsync((S100UpdatesSinceRequest s100UpdatesSinceRequest, string? callbackUri, string? productIdentifier) request)
+    public async Task<ValidationResult> ValidateAsync((UpdatesSinceRequest updatesSinceRequest, string? callbackUri, string? productIdentifier) request)
     {
         return await base.ValidateAsync(request);
     }

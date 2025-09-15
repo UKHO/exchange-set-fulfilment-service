@@ -1,9 +1,9 @@
 using FluentValidation.Results;
-using UKHO.ADDS.EFS.Domain.Messages;
+using UKHO.ADDS.EFS.Orchestrator.Api.Messages;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Validators.S100;
 
-public interface IS100UpdateSinceRequestValidator
+internal interface IS100UpdateSinceRequestValidator
 {
-    Task<ValidationResult> ValidateAsync((S100UpdatesSinceRequest s100UpdatesSinceRequest, string? callbackUri, string? productIdentifier) request);
+    Task<ValidationResult> ValidateAsync((UpdatesSinceRequest updatesSinceRequest, string? callbackUri, string? productIdentifier) request);
 }
