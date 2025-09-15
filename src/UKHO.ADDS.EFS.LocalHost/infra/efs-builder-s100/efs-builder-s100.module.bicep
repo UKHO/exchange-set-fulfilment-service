@@ -34,6 +34,10 @@ param s100_builder_cpu string
 
 param s100_builder_memory string
 
+param s100_max_executions int
+
+param s100_polling_interval int
+
 resource efsbuilders100 'Microsoft.App/jobs@2025-01-01' = {
   name: 'efs-builder-s100'
   location: location
@@ -64,8 +68,8 @@ resource efsbuilders100 'Microsoft.App/jobs@2025-01-01' = {
         parallelism: 1
         scale: {
           minExecutions: 0
-          maxExecutions: 10
-          pollingInterval: 10
+          maxExecutions: s100_max_executions
+          pollingInterval: s100_polling_interval
           rules: [
             {
               name: 'request-queue'
