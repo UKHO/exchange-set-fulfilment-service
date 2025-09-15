@@ -50,3 +50,60 @@ jobs:
       inputs:
         PathtoPublish: "$(Build.ArtifactStagingDirectory)/codecoveragereport"
         ArtifactName: codecoveragereport
+
+# Rhz: Add functional tests job
+- job: FunctionalTests
+  pool: $(LinuxPool)
+  displayName: 'Run functional tests'
+  workspace:
+    clean: all
+  condition: eq('${{ parameters.RunFunctionalTests }}', true)
+  steps:
+    - checkout: self
+      clean: true
+      submodules: true
+      path: s/efs
+
+    - checkout: PrivateEfs
+      clean: true
+      path: s/pvtefs
+
+    - script: |
+        cp "$(Build.SourcesDirectory)/pvtefs/root3.tar.gz" "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Builder.S100/root3.tar.gz"
+        cp "$(Build.SourcesDirectory)/pvtefs/xchg-7.4.war" "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Builder.S100/xchg-7.4.war"
+      displayName: Copy S100 builder files
+
+    - task: PowerShell@2
+      displayName: 'List folders in efs/test'
+      inputs:
+        targetType: 'inline'
+        script: |
+          Write-Host "Listing folders in $(Build.SourcesDirectory)/efs/test"
+          Get-ChildItem -Path "$(Build.SourcesDirectory)/efs/test" -Directory | ForEach-Object { Write-Host $_.FullName }
+
+    - task: UseDotNet@2
+      displayName: 'Use .NET SDK $(SdkVersion)'
+      inputs:
+        packageType: sdk
+        version: $(SdkVersion)
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Restore NuGet packages for Functional Tests'
+      condition: always()
+      inputs:
+        command: restore
+        projects: '**/*UKHO.ADDS.EFS.FunctionalTests.csproj'
+        feedsToUse: config
+        noCache: true
+        nugetConfigPath: '$(Build.SourcesDirectory)/efs/BuildNuget.config'
+        workingDirectory: '$(Build.SourcesDirectory)/efs/test/UKHO.ADDS.EFS.FunctionalTests'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Run Functional Tests'
+      condition: always()
+      inputs:
+        command: test
+        projects: '**/*UKHO.ADDS.EFS.FunctionalTests.csproj'
+        arguments: '--configuration Release --no-restore --logger trx'
+        workingDirectory: '$(Build.SourcesDirectory)/efs/test/UKHO.ADDS.EFS.FunctionalTests'
+
