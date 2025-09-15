@@ -17,10 +17,16 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
                 var logger = context.Subject.LoggerFactory.CreateLogger<ReadConfigurationNode>();
                 var configuration = context.Subject.Configuration;
 
+                Log.Information("About to create Request Queue Client. "); //rhz
+
                 var requestQueue = context.Subject.QueueClientFactory.CreateRequestQueueClient(context.Subject.Configuration);
                 var requestMessage = await requestQueue.ReceiveMessageAsync();
 
+                Log.Information($"Queue accessed for account {requestQueue.AccountName}" ); //rhz:
+
                 var request = JsonCodec.Decode<S100BuildRequest>(requestMessage.Value.MessageText)!;
+
+                Log.Information($"Queue Message Jobid is {request.JobId} and BatchId is {request.BatchId}");
 
                 // TODO Decide on retry strategy for queues and move this as necessary
                 await requestQueue.DeleteMessageAsync(requestMessage.Value.MessageId, requestMessage.Value.PopReceipt);
@@ -53,7 +59,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
             catch (Exception ex)
             {
 #pragma warning disable LOG001
-                Log.Fatal(ex, $"An unhandled exception occurred during execution : {ex.Message}");
+                Log.Fatal(ex, $"An unhandled exception occurred during execution (s100-rhz) : {ex.Message}");
 #pragma warning restore LOG001
 
                 return NodeResultStatus.Failed;
