@@ -16,6 +16,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
         private readonly ILogger<BuilderContainerService> _logger;
         private readonly DockerClient _dockerClient;
         private string _networkName = "efs_test_bridge";
+        private string _dynamicContainerName;
 
         public BuilderContainerService(ILoggerFactory loggerFactory)
         {
@@ -32,7 +33,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
             await CreateCustomNetworkBridgeAsync(_networkName);
             await AttachContainerToNetworkAsync(containerName: StorageConfiguration.StorageName, networkName: _networkName);
 
-            var response = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters
+            var containerParams = new CreateContainerParameters
             {
                 Image = image,
                 Name = name + Guid.NewGuid().ToString("N"),
@@ -63,8 +64,10 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
                     $"{BuilderEnvironmentVariables.RetryDelayMilliseconds}={environment.RetryDelayMilliseconds}",
                     $"{BuilderEnvironmentVariables.ConcurrentDownloadLimitCount}={environment.ConcurrentDownloadLimitCount}",
                 }
-            });
+            };
 
+            var response = await _dockerClient.Containers.CreateContainerAsync(containerParams);
+            _dynamicContainerName = containerParams.Name;
             return response.ID;
         }
 
@@ -75,6 +78,8 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
             {
                 throw new Exception("Failed to start container");
             }
+
+            await AttachContainerToNetworkAsync(containerName: _dynamicContainerName, networkName: _networkName);
 
             var streamer = new BuilderLogStreamer(_dockerClient);
 
