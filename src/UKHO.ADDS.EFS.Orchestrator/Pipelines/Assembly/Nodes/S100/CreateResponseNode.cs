@@ -1,6 +1,8 @@
+using UKHO.ADDS.Aspire.Configuration.Remote;
 using UKHO.ADDS.EFS.Domain.Builds.S100;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
+using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
@@ -16,18 +18,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100;
 internal class CreateResponseNode : AssemblyPipelineNode<S100Build>
 {
     private readonly ILogger<CreateResponseNode> _logger;
-
-    private const string DefaultExchangeSetUrlExpiryDays = "7";
+    private readonly IExternalServiceRegistry _externalServiceRegistry;
     private const string ExchangeSetUrlExpiryDaysConfigKey = "orchestrator:Response:ExchangeSetUrlExpiryDays";
-    private const string FileShareBaseUrlConfigKey = "orchestrator:FileShare:BaseUrl";
-    private const string DefaultFileShareBaseUrl = "https://fss.ukho.gov.uk";
 
     public CreateResponseNode(
         AssemblyNodeEnvironment nodeEnvironment,
-        ILogger<CreateResponseNode> logger)
+        ILogger<CreateResponseNode> logger,
+        IExternalServiceRegistry externalServiceRegistry)
         : base(nodeEnvironment)
     {
         _logger = logger;
+        _externalServiceRegistry = externalServiceRegistry;
     }
 
     public override Task<bool> ShouldExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
@@ -61,10 +62,6 @@ internal class CreateResponseNode : AssemblyPipelineNode<S100Build>
             // Store the response data for later retrieval
             build.ResponseData = response;
 
-            //_logger.LogInformation(
-            //    "Created S100 response. JobId: {JobId}, BatchId: {BatchId}, RequestedProductCount: {RequestedProductCount}, ExchangeSetProductCount: {ExchangeSetProductCount}", 
-            //    correlationId, job.BatchId, requestedProductCount, exchangeSetProductCount);
-
             return NodeResultStatus.Succeeded;
         }
         catch (Exception ex)
@@ -84,19 +81,23 @@ internal class CreateResponseNode : AssemblyPipelineNode<S100Build>
     /// <param name="missingProducts">List of products that were requested but not included</param>
     /// <returns>A populated S100CustomExchangeSetResponse object</returns>
     private S100CustomExchangeSetResponse CreateResponse(
-    BatchId batchId,
-    ProductCount requestedProductCount,
-    int exchangeSetProductCount,
-    int requestedProductsAlreadyUpToDateCount,
-    MissingProductList missingProducts)
+        BatchId batchId,
+        ProductCount requestedProductCount,
+        int exchangeSetProductCount,
+        int requestedProductsAlreadyUpToDateCount,
+        MissingProductList missingProducts)
     {
-        // Get the FileShare base URL from configuration or use default
-        var fileShareBaseUrl = Environment.Configuration[FileShareBaseUrlConfigKey] ?? DefaultFileShareBaseUrl;
+        // Get the FileShare service endpoint from the registry
+        var fileShareEndpoint = _externalServiceRegistry.GetServiceEndpoint(ProcessNames.FileShareService);
+        var fileShareBaseUrl = fileShareEndpoint.Uri.ToString().TrimEnd('/');
 
-        // Get the URL expiry days from configuration or use default
-        if (!int.TryParse(Environment.Configuration[ExchangeSetUrlExpiryDaysConfigKey], out var expiryDays))
+        // Get the URL expiry days from configuration
+        var expiryDaysConfig = Environment.Configuration[ExchangeSetUrlExpiryDaysConfigKey];
+   
+        // Parse the expiryDaysConfig string to an integer before using it in AddDays
+        if (!int.TryParse(expiryDaysConfig, out int expiryDays))
         {
-            expiryDays = int.Parse(DefaultExchangeSetUrlExpiryDays);
+            throw new InvalidOperationException($"Invalid configuration value for {ExchangeSetUrlExpiryDaysConfigKey}: {expiryDaysConfig}");
         }
 
         var expiryDateTime = DateTime.UtcNow.AddDays(expiryDays);
