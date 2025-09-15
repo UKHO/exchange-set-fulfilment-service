@@ -64,6 +64,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Seril
                 }
             }
 
+            // Extract EventId from logEvent.Properties if present
+            var eventId = ExtractEventIdFromProperties(logEvent.Properties);
+
             // Create log entry
             var logEntry = new LogEntry
             {
@@ -71,6 +74,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Seril
                 Level = logEvent.Level.ToString(),
                 MessageTemplate = logEvent.MessageTemplate.Text,
                 LogProperties = properties,
+                EventId = eventId,
                 Exception = logEvent.Exception
             };
 
@@ -128,6 +132,24 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Seril
             using var writer = new StringWriter();
             propertyValue.Render(writer);
             return writer.ToString();
+        }
+
+        private static EventId ExtractEventIdFromProperties(IReadOnlyDictionary<string, LogEventPropertyValue> properties)
+        {
+            if (properties.TryGetValue("EventId", out var eventIdValue) && eventIdValue is StructureValue eventIdStruct)
+            {
+                var id = 0;
+                string? name = null;
+                foreach (var prop in eventIdStruct.Properties)
+                {
+                    if (prop.Name == "Id" && prop.Value is ScalarValue idScalar && idScalar.Value is int intId)
+                        id = intId;
+                    if (prop.Name == "Name" && prop.Value is ScalarValue nameScalar && nameScalar.Value is string strName)
+                        name = strName;
+                }
+                return new EventId(id, name);
+            }
+            return default;
         }
 
         protected virtual void Dispose(bool disposing)
