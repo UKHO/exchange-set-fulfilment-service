@@ -60,7 +60,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         {
             var httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
 
-            var products = new string[] { "104CA00_20241103T001500Z_GB3DEVK0_dcf2", "101GB004DEVQP", "101FR005DEVQG" };
+            var products = new string[] { "104CA00_20241103T001500Z_GB3DEVK0_DCF2", "101GB004DEVQP", "101FR005DEVQG" };
 
             var jobId = await OrchestratorCommands.SubmitJobAsync(httpClient, products: products);
 
@@ -80,7 +80,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         {
             var httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
 
-            var products = new string[] { "104CA00_20241103T001500Z_GB3DEVK0_dcf2", "101GB004DEVQP", "101FR005DEVQG" };
+            var products = new string[] { "104CA00_20241103T001500Z_GB3DEVK0_DCF2", "101GB004DEVQP", "101FR005DEVQG" };
 
             var jobId = await OrchestratorCommands.SubmitJobAsync(httpClient, filter: "startswith(ProductName, '101')", products: products);
 

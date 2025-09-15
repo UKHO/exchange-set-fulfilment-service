@@ -12,10 +12,10 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
         /// <summary>
         /// Submits a job and asserts the expected job and build status.
         /// </summary>
-        public static async Task<string> SubmitJobAsync(HttpClient httpClient, string filter = "", int jobNumber = 1, string[]? products = null, string expectedJobStatus = "submitted", string expectedBuildStatus = "scheduled")
+        public static async Task<string> SubmitJobAsync(HttpClient httpClient, string filter = "", string[]? products = null, string expectedJobStatus = "submitted", string expectedBuildStatus = "scheduled")
         {
-            products ??= [ "" ];
-            var requestId = $"job-000{jobNumber}-" + Guid.NewGuid();
+            products ??= new [] { "" };
+            var requestId = $"job-0001-" + Guid.NewGuid();
             var payload = new { dataStandard = "s100", products = products, filter = $"{filter}" };
             var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
