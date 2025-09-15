@@ -30,6 +30,10 @@ param max_retry_attempts string
 
 param retry_delay_ms string
 
+param s100_builder_cpu string
+
+param s100_builder_memory string
+
 resource efsbuilders100 'Microsoft.App/jobs@2025-01-01' = {
   name: 'efs-builder-s100'
   location: location
@@ -141,8 +145,8 @@ resource efsbuilders100 'Microsoft.App/jobs@2025-01-01' = {
             }
           ]
           resources: {
-            cpu: json('0.5')
-            memory: '1Gi'
+            cpu: json(s100_builder_cpu)
+            memory: '${s100_builder_memory}Gi'
           }
         }
       ]
