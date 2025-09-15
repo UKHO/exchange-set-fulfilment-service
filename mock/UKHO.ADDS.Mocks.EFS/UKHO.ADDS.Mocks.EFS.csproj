@@ -25,4 +25,8 @@
     <ProjectReference Include="..\repo\src\UKHO.ADDS.Mocks\UKHO.ADDS.Mocks.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Override\Mocks\scs\ResponseGenerator\" />
+  </ItemGroup>
+
 </Project>
