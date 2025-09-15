@@ -1,11 +1,17 @@
 using UKHO.ADDS.EFS.Domain.Builds.S100;
+using UKHO.ADDS.EFS.Domain.Files;
 using UKHO.ADDS.EFS.Domain.Jobs;
-using UKHO.ADDS.EFS.Messages;
+using UKHO.ADDS.EFS.Domain.Products;
+using UKHO.ADDS.EFS.Orchestrator.Api.Messages;
+using UKHO.ADDS.EFS.Orchestrator.Api.Models;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
+//using Link = UKHO.ADDS.EFS.Domain.Files.Link;
+//using ExchangeSetLinks = UKHO.ADDS.EFS.Orchestrator.Api.Models.ExchangeSetLinks;
+//using CustomExchangeSetResponse = UKHO.ADDS.EFS.Orchestrator.Api.Messages.CustomExchangeSetResponse;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100;
 
@@ -36,9 +42,20 @@ internal class CreateResponseNode : AssemblyPipelineNode<S100Build>
 
         try
         {
-            var response = CreateResponse(5, 4, 1); // TODO: Replace with actual counts from build context
             
-            context.Subject.Job.ResponseData = response;
+            context.Subject.Job.ExchangeSetUrlExpiryDateTime = DateTime.UtcNow.AddDays(7);
+            context.Subject.Job.RequestedProductCount = ProductCount.From(5); // TODO: Replace with actual count
+            context.Subject.Job.ExchangeSetProductCount = ProductCount.From(4); // TODO: Replace with actual count
+            context.Subject.Job.RequestedProductsAlreadyUpToDateCount = ProductCount.From(1); // TODO: Replace with actual count
+            context.Subject.Job.RequestedProductsNotInExchangeSet = new MissingProductList //Dummy data
+            {
+                new MissingProduct
+                {
+                    ProductName = ProductName.From("101GB40079ABCDEFG"),
+                    Reason = MissingProductReason.InvalidProduct
+                }
+            };
+            context.Subject.Job.BatchId = (BatchId)Guid.NewGuid().ToString("N");
 
             return NodeResultStatus.Succeeded;
         }
@@ -47,38 +64,5 @@ internal class CreateResponseNode : AssemblyPipelineNode<S100Build>
             _logger.LogCreateResponseNodeException((string)correlationId, ex);
             return NodeResultStatus.Failed;
         }
-    }
-
-    // Moved from S100CustomExchangeSetApiRouteBuilderExtension
-    private static S100CustomExchangeSetResponse CreateResponse(
-        int requestedProductCount,
-        int exchangeSetProductCount,
-        int requestedProductsAlreadyUpToDateCount)
-    {
-        var batchId = Guid.NewGuid().ToString("N"); // Simulate batch ID for demonstration purposes
-        var jobId = Guid.NewGuid().ToString("N"); // Use correlation ID as job ID
-
-        return new S100CustomExchangeSetResponse
-        {
-            Links = new ExchangeSetLinks
-            {
-                ExchangeSetBatchStatusUri = new Link { Href = $"http://fss.ukho.gov.uk/batch/{batchId}/status" },
-                ExchangeSetBatchDetailsUri = new Link { Href = $"http://fss.ukho.gov.uk/batch/{batchId}" },
-                ExchangeSetFileUri = batchId != null ? new Link { Href = $"http://fss.ukho.gov.uk/batch/{batchId}/files/exchangeset.zip" } : null
-            },
-            ExchangeSetUrlExpiryDateTime = DateTime.UtcNow.AddDays(7), // TODO: Get from configuration
-            RequestedProductCount = requestedProductCount,
-            ExchangeSetProductCount = exchangeSetProductCount,
-            RequestedProductsAlreadyUpToDateCount = requestedProductsAlreadyUpToDateCount,
-            RequestedProductsNotInExchangeSet =
-            [
-                new S100ProductNotInExchangeSet
-                {
-                    ProductName = "101GB40079ABCDEFG",
-                    Reason = S100ProductNotIncludedReason.InvalidProduct
-                }
-            ],
-            FssBatchId = batchId
-        };
     }
 }

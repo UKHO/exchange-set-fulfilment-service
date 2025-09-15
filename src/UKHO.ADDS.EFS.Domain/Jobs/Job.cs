@@ -2,7 +2,6 @@
 using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.Products;
-using UKHO.ADDS.EFS.Messages;
 
 namespace UKHO.ADDS.EFS.Domain.Jobs
 {
@@ -69,9 +68,29 @@ namespace UKHO.ADDS.EFS.Domain.Jobs
         public BatchId BatchId { get; set; }
 
         /// <summary>
-        /// The response data for successful S100 requests
+        /// The expiry date and time for the exchange set URL
         /// </summary>
-        internal S100CustomExchangeSetResponse? ResponseData { get; set; }
+        public DateTime ExchangeSetUrlExpiryDateTime { get; set; }
+
+        /// <summary>
+        /// Number of products explicitly requested
+        /// </summary>
+        public ProductCount RequestedProductCount { get; set; } = ProductCount.None;
+
+        /// <summary>
+        /// Number of products that have data included in the produced Exchange Set
+        /// </summary>
+        public ProductCount ExchangeSetProductCount { get; set; } = ProductCount.None;
+
+        /// <summary>
+        /// Number of requested products that are already up to date
+        /// </summary>
+        public ProductCount RequestedProductsAlreadyUpToDateCount { get; set; } = ProductCount.None;
+
+        /// <summary>
+        /// Products that were requested but not included in the exchange set
+        /// </summary>
+        public MissingProductList RequestedProductsNotInExchangeSet { get; set; } = new();
 
         /// <summary>
         ///     Gets the correlation ID for the job.

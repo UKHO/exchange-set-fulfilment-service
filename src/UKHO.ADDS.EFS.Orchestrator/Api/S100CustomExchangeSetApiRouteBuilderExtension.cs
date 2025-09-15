@@ -1,6 +1,6 @@
 ﻿using FluentValidation.Results;
 using UKHO.ADDS.Clients.Common.Constants;
-using UKHO.ADDS.EFS.Messages;
+using UKHO.ADDS.EFS.Domain.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Extensions;

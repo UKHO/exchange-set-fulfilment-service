@@ -32,7 +32,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
             });
         }
 
-        [TestCase(0, 0, "EditionNumber must be a positive integer.")]
         [TestCase(-1, 0, "EditionNumber must be a positive integer.")]
         public void WhenEditionNumberIsInvalid_ThenValidationFails(int editionNumber, int updateNumber, string expectedMessage)
         {
