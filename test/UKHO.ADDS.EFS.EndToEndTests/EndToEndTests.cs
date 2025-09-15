@@ -1,7 +1,11 @@
-﻿using System.IO.Compression;
+﻿using System.Collections.Concurrent;
+using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
 using Aspire.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.VisualStudio.TestPlatform.Utilities;
 using UKHO.ADDS.Clients.Common.Constants;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 using Xunit.Abstractions;
@@ -11,12 +15,59 @@ namespace UKHO.ADDS.EFS.EndToEndTests
     public class EndToEndTests : IAsyncLifetime
     {
         private DistributedApplication _app;
+        private readonly ITestOutputHelper _output;
 
         private readonly string _projectDirectory;
-        public EndToEndTests()
+        public EndToEndTests(ITestOutputHelper output)
         {
             _projectDirectory = Directory.GetParent(AppContext.BaseDirectory)!.Parent!.Parent!.Parent!.FullName;
+            _output = output;
         }
+
+
+        // rhz: In-memory logger provider for capturing logs during tests. Start
+        public class InMemoryLoggerProvider : ILoggerProvider
+        {
+            private readonly InMemoryLogger _logger = new();
+
+            public ILogger CreateLogger(string categoryName) => _logger;
+
+            public void Dispose() { }
+
+            public IReadOnlyCollection<LogEntry> GetLogs() => _logger.Logs;
+        }
+
+        public class InMemoryLogger : ILogger
+        {
+            public ConcurrentBag<LogEntry> Logs { get; } = new();
+
+            public IDisposable BeginScope<TState>(TState state) => NullLogger.Instance.BeginScope(state);
+
+            public bool IsEnabled(LogLevel logLevel) => true;
+
+            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+            {
+                Logs.Add(new LogEntry
+                {
+                    LogLevel = logLevel,
+                    EventId = eventId,
+                    Message = formatter(state, exception),
+                    Exception = exception
+                });
+            }
+        }
+
+        public record LogEntry
+        {
+            public LogLevel LogLevel { get; init; }
+            public EventId EventId { get; init; }
+            public string Message { get; init; } = string.Empty;
+            public Exception? Exception { get; init; }
+        }
+
+        // Usage in TestBase
+        public InMemoryLoggerProvider LoggerProvider { get; private set; } = new();
+        // rhz: In-memory logger provider for capturing logs during tests. End
 
 
         public async Task InitializeAsync()
@@ -26,6 +77,16 @@ namespace UKHO.ADDS.EFS.EndToEndTests
             {
                 clientBuilder.AddStandardResilienceHandler();
             });
+
+
+            // rhz: Add in-memory logger provider
+            appHost.Services.AddLogging(builder =>
+            {
+                builder.ClearProviders();
+                builder.AddProvider(LoggerProvider);
+            });
+
+
             _app = await appHost.BuildAsync();
 
             var resourceNotificationService = _app.Services.GetRequiredService<ResourceNotificationService>();
@@ -73,6 +134,25 @@ namespace UKHO.ADDS.EFS.EndToEndTests
 
 
             var jobSubmitResponse = await httpClient.PostAsync("/jobs", content);
+
+            //Rhz: Log response content for debugging
+            var logs = LoggerProvider.GetLogs();
+            //_output.WriteLine($"Logs for Job ID {requestId}:");
+            foreach (var log in logs)  //.OrderByDescending(l => l.EventId.Id)
+            {
+                if (log.Message.Contains("peekonly=true") || log.Message.Contains("s57") || log.Message.Contains("s63") || log.Message.Contains("comp=list") || log.Message.Contains("buildresponse"))
+                {
+                    continue; // Skip peek logs
+                }
+                _output.WriteLine($"  [{log.LogLevel}] {log.Message}");
+                if (log.Exception != null)
+                {
+                    _output.WriteLine($"      Exception: {log.Exception.Message}");
+                }
+            }
+
+            //Rhz: Log End.
+
             Assert.True(jobSubmitResponse.IsSuccessStatusCode, "Expected success status code but got: " + jobSubmitResponse.StatusCode);
             var responseContent = await jobSubmitResponse.Content.ReadAsStringAsync();
             var responseJson = JsonDocument.Parse(responseContent);
