@@ -28,7 +28,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
 
                             default:
 
-                                return CreateBadRequestResponse(request, "No productType set", "Bad Request.");
+                                return ResponseGenerator.CreateBadRequestResponse(request, "No productType set", "Bad Request.");
                         }
                     }
 
@@ -43,16 +43,16 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                         return await ResponseGenerator.ProvideProductNamesResponse(request, state);
 
                     case WellKnownState.BadRequest:
-                        return CreateBadRequestResponse(request, "Product Names", "Bad Request.");
+                        return ResponseGenerator.CreateBadRequestResponse(request, "Product Names", "Bad Request.");
 
                     case WellKnownState.NotFound:
-                        return CreateNotFoundResponse(request);
+                        return ResponseGenerator.CreateNotFoundResponse(request);
 
                     case WellKnownState.UnsupportedMediaType:
-                        return CreateUnsupportedMediaTypeResponse(ErrorResponseConstants.GenericErrorUri, "00-012-0123-01");
+                        return ResponseGenerator.CreateUnsupportedMediaTypeResponse(ErrorResponseConstants.GenericErrorUri, "00-012-0123-01");
 
                     case WellKnownState.InternalServerError:
-                        return CreateInternalServerErrorResponse(request);
+                        return ResponseGenerator.CreateInternalServerErrorResponse(request);
 
                     default:
                         // Just send default responses

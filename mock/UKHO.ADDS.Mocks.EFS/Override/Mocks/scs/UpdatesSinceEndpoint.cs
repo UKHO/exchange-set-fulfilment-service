@@ -26,10 +26,10 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                 {
                     WellKnownState.Default => await HandleDefaultRequest(productIdentifier, sinceDateTime, response),
                     WellKnownState.NotModified => HandleNotModified(response, sinceDateTime),
-                    WellKnownState.BadRequest => CreateBadRequestResponse(request, "Updates Since", "Bad Request."),
-                    WellKnownState.NotFound => CreateNotFoundResponse(request),
-                    WellKnownState.UnsupportedMediaType => CreateUnsupportedMediaTypeResponse(),
-                    WellKnownState.InternalServerError => CreateInternalServerErrorResponse(request),
+                    WellKnownState.BadRequest => ResponseGenerator.CreateBadRequestResponse(request, "Updates Since", "Bad Request."),
+                    WellKnownState.NotFound => ResponseGenerator.CreateNotFoundResponse(request),
+                    WellKnownState.UnsupportedMediaType => ResponseGenerator.CreateUnsupportedMediaTypeResponse(),
+                    WellKnownState.InternalServerError => ResponseGenerator.CreateInternalServerErrorResponse(request),
                     _ => WellKnownStateHandler.HandleWellKnownState(state)
                 };
             })

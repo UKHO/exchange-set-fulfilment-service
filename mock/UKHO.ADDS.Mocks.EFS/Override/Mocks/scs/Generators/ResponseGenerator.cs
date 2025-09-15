@@ -16,6 +16,97 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
         private static readonly int MaxFileSize = 15000;
         private static readonly Random RandomInstance = Random.Shared;
 
+        #region Response Helper Methods
+
+        /// <summary>
+        /// Safely extracts correlation ID from request headers
+        /// </summary>
+        /// <param name="request">The HTTP request</param>
+        /// <returns>The correlation ID or empty string if not found</returns>
+        public static string GetCorrelationId(HttpRequest request)
+        {
+            return request.Headers.ContainsKey(WellKnownHeader.CorrelationId)
+                ? request.Headers[WellKnownHeader.CorrelationId].ToString()
+                : string.Empty;
+        }
+
+        /// <summary>
+        /// Creates a standardized 400 Bad Request response with correlation ID and errors
+        /// </summary>
+        /// <param name="request">The HTTP request</param>
+        /// <param name="source">The source of the error</param>
+        /// <param name="description">The error description</param>
+        /// <returns>A 400 Bad Request IResult</returns>
+        public static IResult CreateBadRequestResponse(HttpRequest request, string source, string description)
+        {
+            return Results.Json(new
+            {
+                correlationId = GetCorrelationId(request),
+                errors = new[]
+                {
+                    new
+                    {
+                        source,
+                        description
+                    }
+                }
+            }, statusCode: 400);
+        }
+
+        /// <summary>
+        /// Creates a standardized 404 Not Found response with correlation ID
+        /// </summary>
+        /// <param name="request">The HTTP request</param>
+        /// <param name="detail">Optional details for the not found response</param>
+        /// <returns>A 404 Not Found IResult</returns>
+        public static IResult CreateNotFoundResponse(HttpRequest request, string detail = "Not Found")
+        {
+            return Results.Json(new
+            {
+                correlationId = GetCorrelationId(request),
+                detail
+            }, statusCode: 404);
+        }
+
+        /// <summary>
+        /// Creates a standardized 415 Unsupported Media Type response
+        /// </summary>
+        /// <param name="typeUri">The RFC URI for the error type</param>
+        /// <param name="traceId">Optional trace ID</param>
+        /// <returns>A 415 Unsupported Media Type IResult</returns>
+        public static IResult CreateUnsupportedMediaTypeResponse(
+            string? typeUri = null,
+            string? traceId = null)
+        {
+            const string UnsupportedMediaTypeUri = "https://tools.ietf.org/html/rfc9110#section-15.5.16";
+            const int MockTraceIdLength = 11;
+
+            return Results.Json(new
+            {
+                type = typeUri ?? UnsupportedMediaTypeUri,
+                title = "Unsupported Media Type",
+                status = 415,
+                traceId = traceId ?? Guid.NewGuid().ToString("D")[..MockTraceIdLength]
+            }, statusCode: 415);
+        }
+
+        /// <summary>
+        /// Creates a standardized 500 Internal Server Error response with correlation ID
+        /// </summary>
+        /// <param name="request">The HTTP request</param>
+        /// <param name="detail">Optional details for the error</param>
+        /// <returns>A 500 Internal Server Error IResult</returns>
+        public static IResult CreateInternalServerErrorResponse(HttpRequest request, string detail = "Internal Server Error")
+        {
+            return Results.Json(new
+            {
+                correlationId = GetCorrelationId(request),
+                detail
+            }, statusCode: 500);
+        }
+
+        #endregion
+
         /// <summary>
         /// Provides a mock response for product names based on the requested products.
         /// </summary>
@@ -66,30 +157,30 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
             }
 
             if (string.IsNullOrWhiteSpace(requestBody))
-                return (ServiceEndpointMock.CreateBadRequestResponse(request, "Request Body", "Request body is required"), requestedProducts);
+                return (CreateBadRequestResponse(request, "Request Body", "Request body is required"), requestedProducts);
 
             try
             {
                 using var doc = JsonDocument.Parse(requestBody);
                 if (doc.RootElement.ValueKind != JsonValueKind.Array)
-                    return (ServiceEndpointMock.CreateBadRequestResponse(request, "Request Body", "Request body must be a JSON array of product names."), requestedProducts);
+                    return (CreateBadRequestResponse(request, "Request Body", "Request body must be a JSON array of product names."), requestedProducts);
 
                 foreach (var element in doc.RootElement.EnumerateArray())
                 {
                     if (element.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(element.GetString()))
-                        return (ServiceEndpointMock.CreateBadRequestResponse(request, "Product Names", "All items in the array must be non-empty strings."), requestedProducts);
+                        return (CreateBadRequestResponse(request, "Product Names", "All items in the array must be non-empty strings."), requestedProducts);
 
                     requestedProducts.Add(element.GetString()!);
                 }
 
                 if (!requestedProducts.Any())
-                    return (ServiceEndpointMock.CreateBadRequestResponse(request, "Product Names", "Empty product name is not allowed."), requestedProducts);
+                    return (CreateBadRequestResponse(request, "Product Names", "Empty product name is not allowed."), requestedProducts);
 
                 return (null, requestedProducts);
             }
             catch (JsonException)
             {
-                return (ServiceEndpointMock.CreateBadRequestResponse(request, "JSON Format", "Invalid JSON format."), requestedProducts);
+                return (CreateBadRequestResponse(request, "JSON Format", "Invalid JSON format."), requestedProducts);
             }
         }
 
