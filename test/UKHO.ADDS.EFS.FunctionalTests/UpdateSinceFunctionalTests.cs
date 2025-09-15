@@ -21,7 +21,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         [Theory]
         [InlineData("2025-09-29", "https://valid.com/callback", "s102", HttpStatusCode.BadRequest, "Provided updatesSince is either invalid or invalid format, the valid format is 'ISO 8601 format' (e.g. '2025-09-29T00:00:00Z').")] // Test Case 244583 - Invalid Format when time part is missing
         [InlineData("2025-08-25L07:8:00.00Z", "https://valid.com/callback", "s102", HttpStatusCode.BadRequest, "Provided updatesSince is either invalid or invalid format, the valid format is 'ISO 8601 format' (e.g. '2025-09-29T00:00:00Z').")] // Test Case 244583 - Invalid Format
-        [InlineData("", "https://valid.com/callback", "s101", HttpStatusCode.BadRequest, "No since date time provided.")] // Test Case 246905 - Empty sinceDateTime
+        [InlineData("", "https://valid.com/callback", "s101", HttpStatusCode.BadRequest, "No UpdateSince date time provided.")] // Test Case 246905 - Empty sinceDateTime
         [InlineData("null", "https://valid.com/callback", "s101", HttpStatusCode.BadRequest, "Provided updatesSince is either invalid or invalid format, the valid format is 'ISO 8601 format' (e.g. '2025-09-29T00:00:00Z').")] // Test Case 246905 - Null sinceDateTime
         public async Task ValidateUpdateSinceEndPointWithInvalidDates(string sinceDateTime, string callbackUri, string productIdentifier, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
         {
