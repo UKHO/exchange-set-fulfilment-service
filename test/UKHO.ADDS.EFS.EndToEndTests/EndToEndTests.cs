@@ -163,6 +163,9 @@ namespace UKHO.ADDS.EFS.EndToEndTests
                 responseJson.RootElement.TryGetProperty("buildState", out var buildState);
                 currentJobState = jobState.GetString() ?? string.Empty;
                 currentBuildState = buildState.GetString() ?? string.Empty;
+
+                _output.WriteLine($"Current Job State: {currentJobState}, Build State: {currentBuildState}"); //rhz
+
                 await Task.Delay(waitDuration);
                 elapsedMinutes = (TimeOnly.FromDateTime(DateTime.Now) - startTime).TotalMinutes;
             } while (currentJobState == "submitted" && elapsedMinutes < maxTimeToWait);
