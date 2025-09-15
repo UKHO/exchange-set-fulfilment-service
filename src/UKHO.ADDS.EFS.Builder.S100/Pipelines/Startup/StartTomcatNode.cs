@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using Serilog;
+using System.Diagnostics;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
@@ -9,6 +10,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
     {
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<S100ExchangeSetPipelineContext> context)
         {
+            Log.Information("Starting Tomcat!. "); //rhz
             var logger = context.Subject.LoggerFactory.CreateLogger<StartTomcatNode>();
             var catalinaHome = Environment.GetEnvironmentVariable("CATALINA_HOME");
 

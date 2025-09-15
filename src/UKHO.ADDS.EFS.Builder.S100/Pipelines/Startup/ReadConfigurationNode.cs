@@ -17,6 +17,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
                 var logger = context.Subject.LoggerFactory.CreateLogger<ReadConfigurationNode>();
                 var configuration = context.Subject.Configuration;
 
+                Log.Information($"Accessing Factory for {context.Subject.Configuration[BuilderEnvironmentVariables.QueueConnectionString]} "); // rhz:
+                Log.Information($"Accessing Factory for {context.Subject.Configuration[BuilderEnvironmentVariables.AddsEnvironment]} "); // rhz:
+                Log.Information($"Accessing Factory for {context.Subject.Configuration[BuilderEnvironmentVariables.RequestQueueName]} "); // rhz:
+
                 Log.Information("About to create Request Queue Client. "); //rhz
 
                 var requestQueue = context.Subject.QueueClientFactory.CreateRequestQueueClient(context.Subject.Configuration);
@@ -58,6 +62,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
             }
             catch (Exception ex)
             {
+                Log.Fatal(ex, $"An Rhz unhandled exception occurred during execution (s100-rhz) : {ex.Message}");
 #pragma warning disable LOG001
                 Log.Fatal(ex, $"An unhandled exception occurred during execution (s100-rhz) : {ex.Message}");
 #pragma warning restore LOG001
