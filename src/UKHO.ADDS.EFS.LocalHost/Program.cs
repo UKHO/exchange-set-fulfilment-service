@@ -138,6 +138,13 @@ namespace UKHO.ADDS.EFS.LocalHost
                     app.Template.Scale.MinReplicas = 1;
                     app.Template.Scale.MaxReplicas = 10;
 
+                    var container = app.Template.Containers.FirstOrDefault()?.Value;
+                    if (container != null)
+                    {
+                        container.Resources.Cpu = 0.5;
+                        container.Resources.Memory = "1Gi";
+                    }
+
                     // CPU Rule
                     app.Template.Scale.Rules.Add(GetCpuRules());
 
