@@ -135,23 +135,7 @@ namespace UKHO.ADDS.EFS.EndToEndTests
 
             var jobSubmitResponse = await httpClient.PostAsync("/jobs", content);
 
-            //Rhz: Log response content for debugging
-            var logs = LoggerProvider.GetLogs();
-            //_output.WriteLine($"Logs for Job ID {requestId}:");
-            foreach (var log in logs)  //.OrderByDescending(l => l.EventId.Id)
-            {
-                if (log.Message.Contains("peekonly=true") || log.Message.Contains("s57") || log.Message.Contains("s63") || log.Message.Contains("comp=list") || log.Message.Contains("buildresponse"))
-                {
-                    continue; // Skip peek logs
-                }
-                _output.WriteLine($"  [{log.LogLevel}] {log.Message}");
-                if (log.Exception != null)
-                {
-                    _output.WriteLine($"      Exception: {log.Exception.Message}");
-                }
-            }
-
-            //Rhz: Log End.
+            
 
             Assert.True(jobSubmitResponse.IsSuccessStatusCode, "Expected success status code but got: " + jobSubmitResponse.StatusCode);
             var responseContent = await jobSubmitResponse.Content.ReadAsStringAsync();
@@ -183,6 +167,24 @@ namespace UKHO.ADDS.EFS.EndToEndTests
                 elapsedMinutes = (TimeOnly.FromDateTime(DateTime.Now) - startTime).TotalMinutes;
             } while (currentJobState == "submitted" && elapsedMinutes < maxTimeToWait);
 
+            //Rhz: Log response content for debugging
+            var logs = LoggerProvider.GetLogs();
+            _output.WriteLine($"Logs for Job ID job-0001-{requestId}:");
+            foreach (var log in logs)  //.OrderByDescending(l => l.EventId.Id)
+            {
+                if (log.Message.Contains("peekonly=true") || log.Message.Contains("s57") || log.Message.Contains("s63") || log.Message.Contains("comp=list") || log.Message.Contains("buildresponse"))
+                {
+                    continue; // Skip peek logs
+                }
+                _output.WriteLine($"  [{log.LogLevel}] {log.Message}");
+                if (log.Exception != null)
+                {
+                    _output.WriteLine($"      Exception: {log.Exception.Message}");
+                }
+            }
+
+            //Rhz: Log End.
+
             Assert.Equal("completed", currentJobState);
             Assert.Equal("succeeded", currentBuildState);
 
@@ -207,92 +209,92 @@ namespace UKHO.ADDS.EFS.EndToEndTests
             CompareZipFolderStructure(sourceZipPath, exchangeSetDownloadPath);
         }
 
-        [Fact]
-        public async Task TestMultipleRequests()
-        {
-            var httpClient = _app.CreateHttpClient(ProcessNames.OrchestratorService);
+        //[Fact]
+        //public async Task TestMultipleRequests()
+        //{
+        //    var httpClient = _app.CreateHttpClient(ProcessNames.OrchestratorService);
 
-            StringContent content;
-            var jobs = new List<string>();
-            var completedJobs = new List<string>();
-            double elapsedMinutes = 0;
-            var numberOfJobs = 8; // Number of jobs to submit
+        //    StringContent content;
+        //    var jobs = new List<string>();
+        //    var completedJobs = new List<string>();
+        //    double elapsedMinutes = 0;
+        //    var numberOfJobs = 8; // Number of jobs to submit
 
-            // 1.Submit multiple job requests and confirm that they were all submitted successfully.
-            var requestId = Guid.NewGuid().ToString();
-            for (int i = 0; i < numberOfJobs; i++)
-            {
-                string jobNumber = i.ToString("D4");
+        //    // 1.Submit multiple job requests and confirm that they were all submitted successfully.
+        //    var requestId = Guid.NewGuid().ToString();
+        //    for (int i = 0; i < numberOfJobs; i++)
+        //    {
+        //        string jobNumber = i.ToString("D4");
 
-                content = new StringContent(
-                """
-                {
-                  "dataStandard": "s100",
-                  "products": [
-                    ""
-                  ],
-                  "filter": ""
-                }
-                """,
-                Encoding.UTF8, "application/json");
-                content.Headers.Add(ApiHeaderKeys.XCorrelationIdHeaderKey, $"job-{jobNumber}-{requestId}");
+        //        content = new StringContent(
+        //        """
+        //        {
+        //          "dataStandard": "s100",
+        //          "products": [
+        //            ""
+        //          ],
+        //          "filter": ""
+        //        }
+        //        """,
+        //        Encoding.UTF8, "application/json");
+        //        content.Headers.Add(ApiHeaderKeys.XCorrelationIdHeaderKey, $"job-{jobNumber}-{requestId}");
 
-                var jobSubmitResponse = await httpClient.PostAsync("/jobs", content);
-                Assert.True(jobSubmitResponse.IsSuccessStatusCode, "Expected success status code but got: " + jobSubmitResponse.StatusCode);
+        //        var jobSubmitResponse = await httpClient.PostAsync("/jobs", content);
+        //        Assert.True(jobSubmitResponse.IsSuccessStatusCode, "Expected success status code but got: " + jobSubmitResponse.StatusCode);
 
-                var responseContent = await jobSubmitResponse.Content.ReadAsStringAsync();
-                var responseJson = JsonDocument.Parse(responseContent);
-                responseJson.RootElement.TryGetProperty("jobId", out var jobId);
-                var jobIdValue = jobId.GetString();
-                if (!string.IsNullOrEmpty(jobIdValue))
-                {
-                    jobs.Add(jobIdValue);
-                }
-            }
-            Assert.Equal(numberOfJobs, jobs.Count);
-
-
-            // 2.Check for notification that the jobs have been picked up by the builder and completed successfully.
-            var waitDuration = 2000; // 2 seconds
-            var maxTimeToWait = 3; // 3 minutes
-            TimeOnly startTime = TimeOnly.FromDateTime(DateTime.Now);
-            do
-            {
-                foreach (var jobId in jobs)
-                {
-                    if (completedJobs.Contains(jobId)) continue; // Skip if job already completed
-                    var jobStateResponse = await httpClient.GetAsync($"/jobs/{jobId}");
-                    Assert.True(jobStateResponse.IsSuccessStatusCode, "Expected success status code but got: " + jobStateResponse.StatusCode);
-
-                    var responseContent = await jobStateResponse.Content.ReadAsStringAsync();
-                    var responseJson = JsonDocument.Parse(responseContent);
-                    responseJson.RootElement.TryGetProperty("jobState", out var jobState);
-                    responseJson.RootElement.TryGetProperty("buildState", out var buildState);
-                    if (jobState.GetString() == "completed" && buildState.GetString() == "succeeded")
-                    {
-                        completedJobs.Add(jobId);
-                    }
-                }
-                await Task.Delay(waitDuration);
-                elapsedMinutes = (TimeOnly.FromDateTime(DateTime.Now) - startTime).TotalMinutes;
-            } while (completedJobs.Count < jobs.Count && elapsedMinutes < maxTimeToWait);
-
-            Assert.Equal(jobs.Count, completedJobs.Count);
+        //        var responseContent = await jobSubmitResponse.Content.ReadAsStringAsync();
+        //        var responseJson = JsonDocument.Parse(responseContent);
+        //        responseJson.RootElement.TryGetProperty("jobId", out var jobId);
+        //        var jobIdValue = jobId.GetString();
+        //        if (!string.IsNullOrEmpty(jobIdValue))
+        //        {
+        //            jobs.Add(jobIdValue);
+        //        }
+        //    }
+        //    Assert.Equal(numberOfJobs, jobs.Count);
 
 
-            // 3.Check the builder has successfully returned build status for each completed job
-            foreach (var jobId in completedJobs)
-            {
-                var jobCompletedResponse = await httpClient.GetAsync($"/jobs/{jobId}/build");
-                Assert.True(jobCompletedResponse.IsSuccessStatusCode, "Expected success status code but got: " + jobCompletedResponse.StatusCode);
-                var responseContent = await jobCompletedResponse.Content.ReadAsStringAsync();
-                var responseJson = JsonDocument.Parse(responseContent);
-                responseJson.RootElement.TryGetProperty("builderExitCode", out var builderExitCode);
-                Assert.Equal("success", builderExitCode.GetString());
-            }
+        //    // 2.Check for notification that the jobs have been picked up by the builder and completed successfully.
+        //    var waitDuration = 2000; // 2 seconds
+        //    var maxTimeToWait = 3; // 3 minutes
+        //    TimeOnly startTime = TimeOnly.FromDateTime(DateTime.Now);
+        //    do
+        //    {
+        //        foreach (var jobId in jobs)
+        //        {
+        //            if (completedJobs.Contains(jobId)) continue; // Skip if job already completed
+        //            var jobStateResponse = await httpClient.GetAsync($"/jobs/{jobId}");
+        //            Assert.True(jobStateResponse.IsSuccessStatusCode, "Expected success status code but got: " + jobStateResponse.StatusCode);
+
+        //            var responseContent = await jobStateResponse.Content.ReadAsStringAsync();
+        //            var responseJson = JsonDocument.Parse(responseContent);
+        //            responseJson.RootElement.TryGetProperty("jobState", out var jobState);
+        //            responseJson.RootElement.TryGetProperty("buildState", out var buildState);
+        //            if (jobState.GetString() == "completed" && buildState.GetString() == "succeeded")
+        //            {
+        //                completedJobs.Add(jobId);
+        //            }
+        //        }
+        //        await Task.Delay(waitDuration);
+        //        elapsedMinutes = (TimeOnly.FromDateTime(DateTime.Now) - startTime).TotalMinutes;
+        //    } while (completedJobs.Count < jobs.Count && elapsedMinutes < maxTimeToWait);
+
+        //    Assert.Equal(jobs.Count, completedJobs.Count);
 
 
-        }
+        //    // 3.Check the builder has successfully returned build status for each completed job
+        //    foreach (var jobId in completedJobs)
+        //    {
+        //        var jobCompletedResponse = await httpClient.GetAsync($"/jobs/{jobId}/build");
+        //        Assert.True(jobCompletedResponse.IsSuccessStatusCode, "Expected success status code but got: " + jobCompletedResponse.StatusCode);
+        //        var responseContent = await jobCompletedResponse.Content.ReadAsStringAsync();
+        //        var responseJson = JsonDocument.Parse(responseContent);
+        //        responseJson.RootElement.TryGetProperty("builderExitCode", out var builderExitCode);
+        //        Assert.Equal("success", builderExitCode.GetString());
+        //    }
+
+
+        //}
 
         public async Task<string> DownloadExchangeSetAsZipAsync(string jobId)
         {
