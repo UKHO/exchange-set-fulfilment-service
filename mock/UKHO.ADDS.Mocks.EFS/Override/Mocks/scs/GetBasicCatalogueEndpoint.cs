@@ -1,5 +1,4 @@
-﻿using UKHO.ADDS.Mocks.Configuration.Mocks.scs.Helpers;
-using UKHO.ADDS.Mocks.EFS.Override.Mocks.scs.Constants;
+﻿using UKHO.ADDS.Mocks.EFS.Override.Mocks.scs.Constants;
 using UKHO.ADDS.Mocks.Headers;
 using UKHO.ADDS.Mocks.Markdown;
 using UKHO.ADDS.Mocks.Mime;
@@ -42,16 +41,16 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                             return Results.StatusCode(304);
 
                         case WellKnownState.BadRequest:
-                            return ResponseHelper.CreateBadRequestResponse(request, "Basic Catalogue", "Provided date format is not valid.");
+                            return CreateBadRequestResponse(request, "Basic Catalogue", "Provided date format is not valid.");
 
                         case WellKnownState.NotFound:
-                            return ResponseHelper.CreateNotFoundResponse(request);
+                            return CreateNotFoundResponse(request);
 
                         case WellKnownState.UnsupportedMediaType:
-                            return ResponseHelper.CreateUnsupportedMediaTypeResponse(ErrorResponseConstants.GenericErrorUri, "00-012-0123-01");
+                            return CreateUnsupportedMediaTypeResponse(ErrorResponseConstants.GenericErrorUri, "00-012-0123-01");
 
                         case WellKnownState.InternalServerError:
-                            return ResponseHelper.CreateInternalServerErrorResponse(request);
+                            return CreateInternalServerErrorResponse(request);
 
                         default:
                             // Just send default responses

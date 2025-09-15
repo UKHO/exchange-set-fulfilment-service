@@ -1,6 +1,5 @@
 using System.Globalization;
-using UKHO.ADDS.Mocks.Configuration.Mocks.scs.Helpers;
-using UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator;
+using UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators;
 using UKHO.ADDS.Mocks.Headers;
 using UKHO.ADDS.Mocks.Markdown;
 using UKHO.ADDS.Mocks.States;
@@ -14,7 +13,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
     public class UpdatesSinceEndpoint : ServiceEndpointMock
     {
         private const string DataFileName = "s100-updates-since.json";
-        private const string dateTimeFormat = "yyyy-MM-ddTHH:mm:ssZ";
+        private const string dateTimeFormat = "ddd, dd MMM yyyy HH':'mm':'ss 'GMT'";
 
         public override void RegisterSingleEndpoint(IEndpointMock endpoint) =>
             endpoint.MapGet("/v2/products/s100/updatesSince", async (string sinceDateTime, string? productIdentifier, HttpRequest request, HttpResponse response) =>
@@ -27,10 +26,10 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                 {
                     WellKnownState.Default => await HandleDefaultRequest(productIdentifier, sinceDateTime, response),
                     WellKnownState.NotModified => HandleNotModified(response, sinceDateTime),
-                    WellKnownState.BadRequest => ResponseHelper.CreateBadRequestResponse(request, "Updates Since", "Bad Request."),
-                    WellKnownState.NotFound => ResponseHelper.CreateNotFoundResponse(request),
-                    WellKnownState.UnsupportedMediaType => ResponseHelper.CreateUnsupportedMediaTypeResponse(),
-                    WellKnownState.InternalServerError => ResponseHelper.CreateInternalServerErrorResponse(request),
+                    WellKnownState.BadRequest => CreateBadRequestResponse(request, "Updates Since", "Bad Request."),
+                    WellKnownState.NotFound => CreateNotFoundResponse(request),
+                    WellKnownState.UnsupportedMediaType => CreateUnsupportedMediaTypeResponse(),
+                    WellKnownState.InternalServerError => CreateInternalServerErrorResponse(request),
                     _ => WellKnownStateHandler.HandleWellKnownState(state)
                 };
             })
@@ -60,7 +59,12 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
         {
             if (DateTime.TryParse(sinceDateTime, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsedDate))
             {
-                var modifiedDate = parsedDate.AddDays(1);
+                var modifiedDate = parsedDate;
+                if (parsedDate < DateTime.UtcNow)
+                {
+                    modifiedDate = parsedDate.AddDays(1);
+                }
+                
                 response.Headers.LastModified = modifiedDate.ToString(dateTimeFormat, CultureInfo.InvariantCulture);
             }
             else
@@ -74,7 +78,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                 return Results.NotFound($"Could not find {DataFileName} file");
             }
 
-            return await ScsResponseGenerator.ProvideUpdatesSinceResponse(productIdentifier, file);
+            return await ResponseGenerator.ProvideUpdatesSinceResponse(productIdentifier, file);
         }
 
         /// <summary>

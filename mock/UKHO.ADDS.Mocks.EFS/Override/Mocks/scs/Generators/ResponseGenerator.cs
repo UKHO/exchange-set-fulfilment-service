@@ -1,13 +1,13 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.Text.Json.Nodes;
-using UKHO.ADDS.Mocks.Configuration.Mocks.scs.Helpers;
 using UKHO.ADDS.Mocks.Files;
 using UKHO.ADDS.Mocks.Headers;
+using UKHO.ADDS.Mocks;
 using IResult = Microsoft.AspNetCore.Http.IResult;
 
-namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
+namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
 {
-    public class ScsResponseGenerator
+    public class ResponseGenerator
     {
         private static readonly int MaxAdditionalUpdates = 4;
         private static readonly int MinEditionNumber = 1;
@@ -66,30 +66,30 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator
             }
 
             if (string.IsNullOrWhiteSpace(requestBody))
-                return (ResponseHelper.CreateBadRequestResponse(request, "Request Body", "Request body is required"), requestedProducts);
+                return (ServiceEndpointMock.CreateBadRequestResponse(request, "Request Body", "Request body is required"), requestedProducts);
 
             try
             {
                 using var doc = JsonDocument.Parse(requestBody);
                 if (doc.RootElement.ValueKind != JsonValueKind.Array)
-                    return (ResponseHelper.CreateBadRequestResponse(request, "Request Body", "Request body must be a JSON array of product names."), requestedProducts);
+                    return (ServiceEndpointMock.CreateBadRequestResponse(request, "Request Body", "Request body must be a JSON array of product names."), requestedProducts);
 
                 foreach (var element in doc.RootElement.EnumerateArray())
                 {
                     if (element.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(element.GetString()))
-                        return (ResponseHelper.CreateBadRequestResponse(request, "Product Names", "All items in the array must be non-empty strings."), requestedProducts);
+                        return (ServiceEndpointMock.CreateBadRequestResponse(request, "Product Names", "All items in the array must be non-empty strings."), requestedProducts);
 
                     requestedProducts.Add(element.GetString()!);
                 }
 
                 if (!requestedProducts.Any())
-                    return (ResponseHelper.CreateBadRequestResponse(request, "Product Names", "Empty product name is not allowed."), requestedProducts);
+                    return (ServiceEndpointMock.CreateBadRequestResponse(request, "Product Names", "Empty product name is not allowed."), requestedProducts);
 
                 return (null, requestedProducts);
             }
             catch (JsonException)
             {
-                return (ResponseHelper.CreateBadRequestResponse(request, "JSON Format", "Invalid JSON format."), requestedProducts);
+                return (ServiceEndpointMock.CreateBadRequestResponse(request, "JSON Format", "Invalid JSON format."), requestedProducts);
             }
         }
 
