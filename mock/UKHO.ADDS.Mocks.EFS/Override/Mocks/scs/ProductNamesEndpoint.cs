@@ -23,14 +23,14 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                             {
                                 case "s100":
 
-                                response.GetTypedHeaders().LastModified = DateTime.UtcNow;
-                                return await ResponseGenerator.ProvideProductNamesResponse(request);
+                                    response.GetTypedHeaders().LastModified = DateTime.UtcNow;
+                                    return await ResponseGenerator.ProvideProductNamesResponse(request);
 
                                 default:
 
-                                return ResponseGenerator.CreateBadRequestResponse(request, "No productType set", "Bad Request.");
+                                    return ResponseGenerator.CreateBadRequestResponse(request, "No productType set", "Bad Request.");
+                            }
                         }
-                    }
 
                     case "get-invalidproducts":
 

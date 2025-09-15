@@ -17,7 +17,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
         private static readonly int MaxFileSize = 15000;
         private static readonly Random RandomInstance = Random.Shared;
 
-        private static readonly string InvalidProductReason = "invalidProduct";
+        private static readonly string InvalidProduct = "invalidProduct";
         private static readonly string InvalidProductWithdrawn = "productWithdrawn";
 
         #region Response Helper Methods
@@ -197,7 +197,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
             {
                 foreach (var productName in requestedProducts)
                 {
-                    notReturnedArray.Add(CreateProductNotReturnedObject(productName, InvalidProductReason));
+                    notReturnedArray.Add(CreateProductNotReturnedObject(productName, InvalidProduct));
                 }
             }
             else if (state == "get-invalidproducts" && requestedProducts.Count > 0)
@@ -206,7 +206,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
                     productsArray.Add(GenerateProductJson(productName));
 
                 var lastProduct = requestedProducts.Last();
-                notReturnedArray.Add(CreateProductNotReturnedObject(lastProduct, InvalidProductReason));
+                notReturnedArray.Add(CreateProductNotReturnedObject(lastProduct, InvalidProduct));
             }
             else
             {
@@ -429,11 +429,11 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
             switch (state)
             {
                 case "get-allinvalidproducts":
-                    AddAllProductsAsNotReturned(requestedProducts, notReturnedArray, InvalidProductReason);
+                    AddAllProductsAsNotReturned(requestedProducts, notReturnedArray, InvalidProduct);
                     break;
 
                 case "get-invalidproducts" when productCount > 0:
-                    ProcessProductsWithLastAsNotReturned(requestedProducts, productsArray, notReturnedArray, InvalidProductReason);
+                    ProcessProductsWithLastAsNotReturned(requestedProducts, productsArray, notReturnedArray, InvalidProduct);
                     break;
 
                 case "get-productwithdrawn" when productCount > 0:
