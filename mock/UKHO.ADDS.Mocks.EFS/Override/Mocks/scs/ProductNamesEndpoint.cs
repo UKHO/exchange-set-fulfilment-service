@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator;
+using UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators;
+using UKHO.ADDS.Mocks.EFS.Override.Mocks.scs.Constants;
 using UKHO.ADDS.Mocks.Headers;
 using UKHO.ADDS.Mocks.Markdown;
 using UKHO.ADDS.Mocks.States;
@@ -23,71 +24,35 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                             case "s100":
 
                                 response.GetTypedHeaders().LastModified = DateTime.UtcNow;
-                                return await ScsResponseGenerator.ProvideProductNamesResponse(request);
+                                return await ResponseGenerator.ProvideProductNamesResponse(request);
 
                             default:
 
-                                return Results.Json(new
-                                {
-                                    correlationId = request.Headers[WellKnownHeader.CorrelationId],
-                                    errors = new[]
-                                    {
-                                        new
-                                        {
-                                            source = "No productType set",
-                                            description = "Bad Request."
-                                        }
-                                    }
-                                }, statusCode: 400);
+                                return ResponseGenerator.CreateBadRequestResponse(request, "No productType set", "Bad Request.");
                         }
                     }
 
                     case "get-invalidproducts":
 
                         response.GetTypedHeaders().LastModified = DateTime.UtcNow;
-                        return await ScsResponseGenerator.ProvideProductNamesResponse(request, state);
+                        return await ResponseGenerator.ProvideProductNamesResponse(request, state);
 
                     case "get-allinvalidproducts":
 
                         response.GetTypedHeaders().LastModified = DateTime.UtcNow;
-                        return await ScsResponseGenerator.ProvideProductNamesResponse(request, state);
+                        return await ResponseGenerator.ProvideProductNamesResponse(request, state);
 
                     case WellKnownState.BadRequest:
-                        return Results.Json(new
-                        {
-                            correlationId = request.Headers[WellKnownHeader.CorrelationId],
-                            errors = new[]
-                            {
-                                    new
-                                    {
-                                        source = "Product Names",
-                                        description = "Bad Request."
-                                    }
-                                }
-                        }, statusCode: 400);
+                        return ResponseGenerator.CreateBadRequestResponse(request, "Product Names", "Bad Request.");
 
                     case WellKnownState.NotFound:
-                        return Results.Json(new
-                        {
-                            correlationId = request.Headers[WellKnownHeader.CorrelationId],
-                            details = "Not Found"
-                        }, statusCode: 404);
+                        return ResponseGenerator.CreateNotFoundResponse(request);
 
                     case WellKnownState.UnsupportedMediaType:
-                        return Results.Json(new
-                        {
-                            type = "https://example.com",
-                            title = "Unsupported Media Type",
-                            status = 415,
-                            traceId = "00-012-0123-01"
-                        }, statusCode: 415);
+                        return ResponseGenerator.CreateUnsupportedMediaTypeResponse(ErrorResponseConstants.GenericErrorUri, "00-012-0123-01");
 
                     case WellKnownState.InternalServerError:
-                        return Results.Json(new
-                        {
-                            correlationId = request.Headers[WellKnownHeader.CorrelationId],
-                            details = "Internal Server Error"
-                        }, statusCode: 500);
+                        return ResponseGenerator.CreateInternalServerErrorResponse(request);
 
                     default:
                         // Just send default responses
