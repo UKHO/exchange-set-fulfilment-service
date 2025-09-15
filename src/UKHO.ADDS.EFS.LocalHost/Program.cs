@@ -1,9 +1,7 @@
 using System.Runtime.InteropServices;
 using Aspire.Hosting.Azure;
-using Azure.Provisioning.AppConfiguration;
-using Azure.Provisioning.AppContainers;
 using Azure.Provisioning;
-using Azure.Provisioning.Storage;
+using Azure.Provisioning.AppContainers;
 using CliWrap;
 using Docker.DotNet;
 using Docker.DotNet.Models;
