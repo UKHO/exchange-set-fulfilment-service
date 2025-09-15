@@ -2,7 +2,7 @@ using FluentValidation.Results;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Validators.S100;
 
-public interface IS100ProductNamesRequestValidator
+internal interface IS100ProductNamesRequestValidator
 {
-    Task<ValidationResult> ValidateAsync((List<string>? productNames, string? callbackUri) request);
+    Task<ValidationResult> ValidateAsync((List<string>? productNamesRequest, string? callbackUri) request);
 }

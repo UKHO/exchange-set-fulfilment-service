@@ -8,19 +8,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Validators.S100;
 /// <summary>
 /// Validator for S100ProductNamesRequest
 /// </summary>
-internal class S100ProductNamesRequestValidator : AbstractValidator<(List<string>? productNames, string? callbackUri)>, IS100ProductNamesRequestValidator
+internal class S100ProductNamesRequestValidator : AbstractValidator<(List<string>? productNamesRequest, string? callbackUri)>, IS100ProductNamesRequestValidator
 {
     public S100ProductNamesRequestValidator()
     {
-        RuleFor(request => request.productNames)
-            .Custom((productNames, context) =>
+        RuleFor(request => request.productNamesRequest)
+            .Custom((productNamesRequest, context) =>
             {
-                if (productNames == null || productNames.Count == 0)
-                {
-                    context.AddFailure(new ValidationFailure("productName", $"{nameof(ProductName)} cannot be null or empty."));
-                    return;
-                }
-                foreach (var name in productNames)
+                foreach (var name in productNamesRequest!)
                 {
                     var validation = ProductName.Validate(name!);
                     if (validation != Validation.Ok)
@@ -40,7 +35,7 @@ internal class S100ProductNamesRequestValidator : AbstractValidator<(List<string
             });
     }
 
-    public async Task<ValidationResult> ValidateAsync((List<string>? productNames, string? callbackUri) request)
+    public async Task<ValidationResult> ValidateAsync((List<string>? productNamesRequest, string? callbackUri) request)
     {
         return await base.ValidateAsync(request);
     }

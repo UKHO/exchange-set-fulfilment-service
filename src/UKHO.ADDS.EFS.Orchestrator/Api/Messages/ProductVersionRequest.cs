@@ -1,12 +1,13 @@
-﻿namespace UKHO.ADDS.EFS.Domain.Messages
+﻿
+namespace UKHO.ADDS.EFS.Orchestrator.Api.Messages
 {
     /// <summary>
-    /// Represents a S100 product version with edition and update numbers
+    /// Request model for product versions endpoint
     /// </summary>
-    public class S100ProductVersion
+    internal class ProductVersionRequest
     {
         /// <summary>
-        /// The unique product identifier
+        /// The unique product Name
         /// </summary>
         public string? ProductName { get; set; }
 
@@ -21,4 +22,3 @@
         public int? UpdateNumber { get; set; }
     }
 }
-

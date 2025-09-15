@@ -3,6 +3,7 @@ using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Messages;
 using UKHO.ADDS.EFS.Domain.Products;
+using UKHO.ADDS.EFS.Orchestrator.Api.Messages;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
 {
@@ -83,7 +84,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         /// <summary>
         /// Creates parameters from S100 Product Versions request
         /// </summary>
-        public static AssemblyPipelineParameters CreateFromS100ProductVersions(IEnumerable<S100ProductVersion> productVersions,
+        public static AssemblyPipelineParameters CreateFromS100ProductVersions(IEnumerable<ProductVersionRequest> productVersions,
             IConfiguration configuration, string correlationId, string? callbackUri = null) =>
             new()
             {
@@ -101,7 +102,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         /// <summary>
         /// Creates parameters from S100 Updates Since request
         /// </summary>
-        public static AssemblyPipelineParameters CreateFromS100UpdatesSince(S100UpdatesSinceRequest request,
+        public static AssemblyPipelineParameters CreateFromS100UpdatesSince(UpdatesSinceRequest request,
             IConfiguration configuration, string correlationId, string? productIdentifier = null,
             string? callbackUri = null) =>
             new()
@@ -142,7 +143,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         /// <summary>
         /// Creates a ProductNameList from S100 product versions
         /// </summary>
-        private static ProductNameList CreateProductNameListFromVersions(IEnumerable<S100ProductVersion> productVersions)
+        private static ProductNameList CreateProductNameListFromVersions(IEnumerable<ProductVersionRequest> productVersions)
         {
             var list = new ProductNameList();
 
@@ -150,7 +151,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
             {
                 foreach (var productVersion in productVersions.Where(pv => !string.IsNullOrEmpty(pv.ProductName)))
                 {
-                    list.Add(ProductName.From(productVersion.ProductName));
+                    list.Add(ProductName.From(productVersion.ProductName!));
                 }
             }
             catch (ValidationException ex)
