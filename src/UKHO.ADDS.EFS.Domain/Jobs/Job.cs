@@ -99,8 +99,14 @@ namespace UKHO.ADDS.EFS.Domain.Jobs
         /// <returns></returns>
         public CorrelationId GetCorrelationId() => CorrelationId.From((string)Id);
 
+        /// <summary>
+        /// The URI to be called back when the job is completed.
+        /// </summary>
         public string? CallbackUri { get; init; }
 
+        /// <summary>
+        /// The identifier for the product associated with the job, if applicable.
+        /// </summary>
         public string? ProductIdentifier { get; init; }
     }
 }
