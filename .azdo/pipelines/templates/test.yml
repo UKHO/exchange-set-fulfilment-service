@@ -52,9 +52,9 @@ jobs:
         ArtifactName: codecoveragereport
 
 # Rhz: Add functional tests job
-- job: FunctionalTests
+- job: EndtoEndTests
   pool: $(LinuxPool)
-  displayName: 'Run functional tests'
+  displayName: 'Run end to end tests'
   workspace:
     clean: all
   ## condition: eq('${{ parameters.RunFunctionalTests }}', true)
@@ -88,22 +88,22 @@ jobs:
         version: $(SdkVersion)
 
     - task: DotNetCoreCLI@2
-      displayName: 'Restore NuGet packages for Functional Tests'
+      displayName: 'Restore NuGet packages for End to End Tests'
       condition: always()
       inputs:
         command: restore
-        projects: '**/*UKHO.ADDS.EFS.FunctionalTests.csproj'
+        projects: '**/*UKHO.ADDS.EFS.EndToEndTests.csproj'
         feedsToUse: config
         noCache: true
         nugetConfigPath: '$(Build.SourcesDirectory)/efs/BuildNuget.config'
-        workingDirectory: '$(Build.SourcesDirectory)/efs/test/UKHO.ADDS.EFS.FunctionalTests'
+        workingDirectory: '$(Build.SourcesDirectory)/efs/test/UKHO.ADDS.EFS.EndToEndTests'
 
     - task: DotNetCoreCLI@2
-      displayName: 'Run Functional Tests'
+      displayName: 'Run End to End Tests'
       condition: always()
       inputs:
         command: test
-        projects: '**/*UKHO.ADDS.EFS.FunctionalTests.csproj'
+        projects: '**/*UKHO.ADDS.EFS.EndToEndTests.csproj'
         arguments: '--configuration Release --no-restore --logger trx'
-        workingDirectory: '$(Build.SourcesDirectory)/efs/test/UKHO.ADDS.EFS.FunctionalTests'
+        workingDirectory: '$(Build.SourcesDirectory)/efs/test/UKHO.ADDS.EFS.EndToEndTests'
 
