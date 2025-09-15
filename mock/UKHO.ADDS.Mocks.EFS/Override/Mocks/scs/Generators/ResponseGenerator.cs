@@ -382,7 +382,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
         }
 
         /// <summary>
-        /// Provides a mock response for product names based on the requested products.
+        /// Provides a mock response for product versions based on the requested products.
         /// </summary>
         public static async Task<IResult> ProvideProductVersionsResponse(HttpRequest requestMessage, string state = "")
         {
@@ -521,14 +521,14 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
             var updateNumbersArray = new JsonArray { 0 };
             var updateNumbersArrayS101 = new JsonArray { productRequest.UpdateNumber + 1 };
             var datesArray = new JsonArray
-    {
-        new JsonObject
-        {
-            ["issueDate"] = baseDate.ToString("o"),
-            ["updateApplicationDate"] = baseDate.ToString("o"),
-            ["updateNumber"] = productRequest.ProductName.StartsWith("101") ? productRequest.UpdateNumber +1 :0
-        }
-    };
+            {
+                new JsonObject
+                {
+                    ["issueDate"] = baseDate.ToString("o"),
+                    ["updateApplicationDate"] = baseDate.ToString("o"),
+                    ["updateNumber"] = productRequest.ProductName.StartsWith("101") ? productRequest.UpdateNumber +1 :0
+                }
+            };
 
             if (productRequest.ProductName.StartsWith("101"))
             {

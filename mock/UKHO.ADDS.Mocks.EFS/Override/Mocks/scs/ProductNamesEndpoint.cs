@@ -63,7 +63,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                 .WithEndpointMetadata(endpoint, d => ConfigureEndpointMetadata(
                     endpoint,
                     d,
-                    "Product Versions Endpoint",
+                    "Product Names Endpoint",
                     "")
                 );
     }

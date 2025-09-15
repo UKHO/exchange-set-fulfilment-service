@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators;
 using UKHO.ADDS.Mocks.Markdown;
 
@@ -16,9 +17,10 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
         protected static IResult? ValidateContentType(HttpRequest request)
         {
             var contentTypeHeader = request.Headers.ContentType.ToString();
-            
-            if (string.IsNullOrEmpty(contentTypeHeader) || 
-                !contentTypeHeader.Contains(ApplicationJson, StringComparison.OrdinalIgnoreCase))
+
+            if (string.IsNullOrEmpty(contentTypeHeader) ||
+                !MediaTypeHeaderValue.TryParse(contentTypeHeader, out var mediaType) ||
+                !string.Equals(mediaType.MediaType, ApplicationJson, StringComparison.OrdinalIgnoreCase))
             {
                 return ResponseGenerator.CreateUnsupportedMediaTypeResponse();
             }
