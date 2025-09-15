@@ -33,7 +33,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
 
         [Theory]
         [InlineData("http://invalid.com/callback", "s101", HttpStatusCode.BadRequest, "Please enter a valid callback URI in HTTPS format.")] // Test Case 244586 -  Invalid CallBack Uri Format
-        [InlineData("", "s102", HttpStatusCode.Accepted, "")] // Test Case 244582 -  Valid input with blank CallBack Uri
+        [InlineData("", "s102", HttpStatusCode.Accepted, "")] // Test Case 244585 -  Valid input with blank CallBack Uri
         public async Task ValidateUpdateSinceEndpointWithInvalidAndBlankCallBackUri(string callbackUri, string productIdentifier, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
         {
             var httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
@@ -57,48 +57,15 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         }
 
         [Theory]
-        [InlineData("https://valid.com/callback", "s101", HttpStatusCode.BadRequest, "Date time provided is more than 28 days in the past.")] // Test Case 245720 - Date 28 days in the past
-        public async Task ValidateUpdateSinceEndpointWith28DaysInPast(string callbackUri, string productIdentifier, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
+        [InlineData(-28, "https://valid.com/callback", "s101", HttpStatusCode.BadRequest, "Date time provided is more than 28 days in the past.")] // Test Case 245720 - Date is of 28th day in the past
+        [InlineData(-14, "https://valid.com/callback", "s102", HttpStatusCode.Accepted, "")] // Test Case 245730 - Past Date less than 28 days
+        [InlineData(-35, "https://valid.com/callback", "s104", HttpStatusCode.BadRequest, "Date time provided is more than 28 days in the past.")] // Test Case 245720 - Date more than 28 days in the past
+        [InlineData(1, "https://valid.com/callback", "s111", HttpStatusCode.BadRequest, "UpdateSince date cannot be a future date.")] // Test Case 245121 - Future Date
+        public async Task ValidateUpdateSinceEndpointWithPastAndFutureDates(int days, string callbackUri, string productIdentifier, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
         {
             var httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
 
-            var sinceDateTime = DateTime.UtcNow.AddDays(-28).ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
-
-            await OrchestratorCommands.VerifyUpdateSinceEndpointResponse(sinceDateTime, callbackUri,
-                productIdentifier, httpClient, expectedStatusCode, expectedErrorMessage);
-        }
-
-        [Theory]
-        [InlineData("https://valid.com/callback", "s102", HttpStatusCode.Accepted, "")] // Test Case 245730 - Date past less than 28 days
-        public async Task ValidateUpdateSinceEndpointWithPastLessThan28Days(string callbackUri, string productIdentifier, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
-        {
-            var httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
-
-            var sinceDateTime = DateTime.UtcNow.AddDays(-14).ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
-
-            await OrchestratorCommands.VerifyUpdateSinceEndpointResponse(sinceDateTime, callbackUri,
-                productIdentifier, httpClient, expectedStatusCode, expectedErrorMessage);
-        }
-
-        [Theory]
-        [InlineData("https://valid.com/callback", "s104", HttpStatusCode.BadRequest, "Date time provided is more than 28 days in the past.")] // Test Case 245720 - Date more than 28 days in the past
-        public async Task ValidateUpdateSinceEndpointWithPastMoreThan28Days(string callbackUri, string productIdentifier, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
-        {
-            var httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
-
-            var sinceDateTime = DateTime.UtcNow.AddDays(-35).ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
-
-            await OrchestratorCommands.VerifyUpdateSinceEndpointResponse(sinceDateTime, callbackUri,
-                productIdentifier, httpClient, expectedStatusCode, expectedErrorMessage);
-        }
-
-        [Theory]
-        [InlineData("https://valid.com/callback", "s111", HttpStatusCode.BadRequest, "sinceDateTime cannot be a future date.")] // Test Case 245121 - Future Date
-        public async Task ValidateUpdateSinceEndpointWithFutureDate(string callbackUri, string productIdentifier, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
-        {
-            var httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
-
-            var sinceDateTime = DateTime.UtcNow.AddDays(1).ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+            var sinceDateTime = DateTime.UtcNow.AddDays(days).ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
 
             await OrchestratorCommands.VerifyUpdateSinceEndpointResponse(sinceDateTime, callbackUri,
                 productIdentifier, httpClient, expectedStatusCode, expectedErrorMessage);
