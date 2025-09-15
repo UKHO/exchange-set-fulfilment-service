@@ -43,7 +43,9 @@ namespace UKHO.ADDS.EFS.Builder.S100
                 if (startupResult.Status != NodeResultStatus.Succeeded)
                 {
                     var logger = GetLogger<StartupPipeline>(provider);
-                    logger.LogStartupPipelineFailed(startupResult);
+
+                    var startupNodeResult = await CreateNodeResultLogViewAsync(startupResult);
+                    logger.LogStartupPipelineFailed(startupNodeResult);
 
                     exitCode = BuilderExitCode.Failed;
                 }
@@ -51,7 +53,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
                 if (exitCode != BuilderExitCode.Success || string.IsNullOrEmpty(pipelineContext.JobId.ToString()))
                 {
                     return (int)exitCode;
-                }                    
+                }
 
                 // Once we have JobId, establish correlation context for ALL subsequent operations
                 using (LogContext.PushProperty(LogProperties.CorrelationId, pipelineContext.JobId))
@@ -62,7 +64,9 @@ namespace UKHO.ADDS.EFS.Builder.S100
                     if (assemblyResult.Status != NodeResultStatus.Succeeded)
                     {
                         var logger = GetLogger<AssemblyPipeline>(provider);
-                        logger.LogAssemblyPipelineFailed(assemblyResult);
+                        var assemblyNodeResult = await CreateNodeResultLogViewAsync(assemblyResult);
+
+                        logger.LogAssemblyPipelineFailed(assemblyNodeResult);
 
                         exitCode = BuilderExitCode.Failed;
                         return (int)exitCode;
@@ -74,7 +78,9 @@ namespace UKHO.ADDS.EFS.Builder.S100
                     if (creationResult.Status != NodeResultStatus.Succeeded)
                     {
                         var logger = GetLogger<CreationPipeline>(provider);
-                        logger.LogCreationPipelineFailed(creationResult);
+                        var creationNodeResult = await CreateNodeResultLogViewAsync(creationResult);
+
+                        logger.LogCreationPipelineFailed(creationNodeResult);
 
                         exitCode = BuilderExitCode.Failed;
                         return (int)exitCode;
@@ -86,7 +92,9 @@ namespace UKHO.ADDS.EFS.Builder.S100
                     if (distributionResult.Status != NodeResultStatus.Succeeded)
                     {
                         var logger = GetLogger<DistributionPipeline>(provider);
-                        logger.LogDistributionPipelineFailed(distributionResult);
+                        var distributionNodeResult = await CreateNodeResultLogViewAsync(distributionResult);
+
+                        logger.LogDistributionPipelineFailed(distributionNodeResult);
 
                         exitCode = BuilderExitCode.Failed;
                         return (int)exitCode;
@@ -140,6 +148,32 @@ namespace UKHO.ADDS.EFS.Builder.S100
             services.AddS100BuilderServices(configuration);
 
             return services.BuildServiceProvider();
+        }
+
+        private static async Task<NodeResultLogView> CreateNodeResultLogViewAsync(NodeResult nodeResult)
+        {
+            var subject = nodeResult.Subject as S100ExchangeSetPipelineContext;
+
+            var nodeResultLogView = new NodeResultLogView
+            {
+                BatchId = subject.BatchId.ToString(),
+                BuildNodeStatuses = [.. subject.Statuses],
+                Status = nodeResult.Status,
+                Exception = nodeResult.Exception,
+                ChildResults = []
+            };
+            foreach (var childNode in nodeResult.ChildResults)
+            {
+                var childResult = new ChildNodeResultLogView
+                {
+                    Id = childNode.Id,
+                    Status = childNode.Status,
+                    Exception = childNode.Exception
+                };
+                nodeResultLogView.ChildResults.Add(childResult);
+            }
+            return nodeResultLogView;
+
         }
     }
 }

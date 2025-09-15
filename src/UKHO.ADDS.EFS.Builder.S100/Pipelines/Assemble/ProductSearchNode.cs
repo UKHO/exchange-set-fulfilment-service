@@ -158,8 +158,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             };
             var batchSearchProductsLogView = new BatchProductSearchLog
             {
-                BatchProducts = products,
-                CorrelationId = correlationId,
                 BusinessUnit = BusinessUnit,
                 ProductCode = ProductCode,
                 Query = searchQuery,

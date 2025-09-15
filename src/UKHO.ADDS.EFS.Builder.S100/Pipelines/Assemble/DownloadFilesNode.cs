@@ -327,7 +327,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             {
                 BatchId = batch.BatchId,
                 FileName = fileName,
-                CorrelationId = correlationId,
                 Error = error
             };
 

@@ -1,0 +1,15 @@
+﻿using UKHO.ADDS.EFS.Domain.Builds;
+using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
+
+namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
+{
+    public class NodeResultLogView
+    {
+        public string BatchId { get; set; }
+        public List<BuildNodeStatus> BuildNodeStatuses { get; set; }
+        public NodeResultStatus Status { get;  set; }
+        public Exception Exception { get;  set; }
+        public IList<ChildNodeResultLogView> ChildResults { get; set; }
+        
+    }    
+}
