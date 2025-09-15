@@ -1,5 +1,5 @@
-﻿using UKHO.ADDS.Mocks.Configuration.Mocks.scs.Helpers;
-using UKHO.ADDS.Mocks.Configuration.Mocks.scs.ResponseGenerator;
+﻿using UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators;
+using UKHO.ADDS.Mocks.Configuration.Mocks.scs.Helpers;
 using UKHO.ADDS.Mocks.Headers;
 using UKHO.ADDS.Mocks.Markdown;
 using UKHO.ADDS.Mocks.States;
@@ -30,10 +30,10 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                                 case "s100":
 
                                     response.GetTypedHeaders().LastModified = DateTime.UtcNow;
-                                    return await ScsResponseGenerator.ProvideProductVersionsResponse(request);
+                                    return await ResponseGenerator.ProvideProductVersionsResponse(request);
 
                                 default:
-                                    return ResponseHelper.CreateBadRequestResponse(request, "No productType set", "Bad Request.");
+                                    return ResponseGenerator.CreateBadRequestResponse(request, "No productType set", "Bad Request.");
                             }
                         }
 
@@ -44,7 +44,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                     case "get-productalreadytuptodate":
 
                         response.GetTypedHeaders().LastModified = DateTime.UtcNow;
-                        return await ScsResponseGenerator.ProvideProductVersionsResponse(request, state);
+                        return await ResponseGenerator.ProvideProductVersionsResponse(request, state);
 
                     case WellKnownState.NotModified:
                         response.GetTypedHeaders().LastModified = DateTime.UtcNow;
