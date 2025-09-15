@@ -14,6 +14,7 @@
   <ItemGroup>
     <Content Remove="Override\Files\scs6357\SCSCatalogueResponse.json" />
     <Content Remove="Override\Files\scs6357\SCSResponse.json" />
+    <Content Remove="Override\Files\scs\s100-updates-since.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -22,6 +23,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\repo\src\UKHO.ADDS.Mocks\UKHO.ADDS.Mocks.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Override\Mocks\scs\ResponseGenerator\" />
   </ItemGroup>
 
 </Project>
