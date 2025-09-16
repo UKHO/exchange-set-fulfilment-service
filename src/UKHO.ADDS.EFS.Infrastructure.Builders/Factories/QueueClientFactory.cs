@@ -20,9 +20,9 @@ namespace UKHO.ADDS.EFS.Infrastructure.Builders.Factories
             {
                 case "local":
                     // We need to construct the client using the "URL" method for running locally so that the container network can connect to Azurite using host.docker.internal
-                    var queueUri = new Uri($"{queueConnectionString}/{requestQueueName}");
-                    return new QueueClient(queueUri, new StorageSharedKeyCredential(AzuriteAccountName, AzuriteKey));
-
+                    // rhz: var queueUri = new Uri($"{queueConnectionString}/{requestQueueName}");
+                    // rhz: return new QueueClient(queueUri, new StorageSharedKeyCredential(AzuriteAccountName, AzuriteKey));
+                    return new QueueClient(queueConnectionString, requestQueueName);
                 default:
                     return new QueueClient(queueConnectionString, requestQueueName);
             }

@@ -62,7 +62,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
             }
             catch (Exception ex)
             {
-                Log.Fatal(ex, $"An Rhz unhandled exception occurred during execution (s100-rhz) : {ex.Message}");
 #pragma warning disable LOG001
                 Log.Fatal(ex, $"An unhandled exception occurred during execution (s100-rhz) : {ex.Message}");
 #pragma warning restore LOG001
