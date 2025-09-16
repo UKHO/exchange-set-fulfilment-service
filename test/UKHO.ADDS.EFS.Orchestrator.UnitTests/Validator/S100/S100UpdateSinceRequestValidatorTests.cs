@@ -36,22 +36,18 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
         public async Task WhenRequestIsNullOrSinceDateTimeIsNull_ThenValidationFails()
         {
             var result = await ValidateAsync(null, ValidCallbackUri, ValidProductIdentifier);
-            Assert.Multiple(() =>
-            {
-                Assert.That(result.IsValid, Is.False);
-                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "No UpdateSince date time provided"));
-            });
+
+            Assert.That(result.IsValid, Is.False);
+            Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "No UpdateSince date time provided"));
         }
 
         [Test]
         public async Task WhenCallbackUriIsInvalid_ThenValidationFails()
         {
             var result = await ValidateAsync(DateTime.UtcNow.ToString("o"), InvalidCallbackUri, ValidProductIdentifier);
-            Assert.Multiple(() =>
-            {
-                Assert.That(result.IsValid, Is.False);
-                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == CallbackUriValidator.InvalidCallbackUriMessage));
-            });
+
+            Assert.That(result.IsValid, Is.False);
+            Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == CallbackUriValidator.InvalidCallbackUriMessage));
         }
 
         [TestCase(null, true)]
@@ -63,17 +59,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
         public async Task WhenCallbackUriIsTested_ThenValidationResultIsAsExpected(string? callbackUri, bool isValid)
         {
             var result = await ValidateAsync(DateTime.UtcNow.ToString("o"), callbackUri, ValidProductIdentifier);
-            Assert.Multiple(() =>
+            if (isValid)
             {
-                if (isValid)
-                {
-                    Assert.That(result.Errors, Has.None.Matches<ValidationFailure>(e => e.ErrorMessage == CallbackUriValidator.InvalidCallbackUriMessage));
-                }
-                else
-                {
-                    Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == CallbackUriValidator.InvalidCallbackUriMessage));
-                }
-            });
+                Assert.That(result.Errors, Has.None.Matches<ValidationFailure>(e => e.ErrorMessage == CallbackUriValidator.InvalidCallbackUriMessage));
+            }
+            else
+            {
+                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == CallbackUriValidator.InvalidCallbackUriMessage));
+            }
         }
 
         [Test]
@@ -81,11 +74,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
         {
             var dt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss"); // No timezone
             var result = await ValidateAsync(dt, ValidCallbackUri, ValidProductIdentifier);
-            Assert.Multiple(() =>
-            {
-                Assert.That(result.IsValid, Is.False);
-                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == InvalidDateFormat));
-            });
+
+            Assert.That(result.IsValid, Is.False);
+            Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == InvalidDateFormat));
         }
 
         [Test]
@@ -93,11 +84,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
         {
             var dt = DateTime.UtcNow.AddDays(-_defaultMaxAge.TotalDays - 1).ToString("o");
             var result = await ValidateAsync(dt, ValidCallbackUri, ValidProductIdentifier);
-            Assert.Multiple(() =>
-            {
-                Assert.That(result.IsValid, Is.False);
-                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == $"Date time provided is more than {_defaultMaxAge.TotalDays} days in the past"));
-            });
+
+            Assert.That(result.IsValid, Is.False);
+            Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == $"Date time provided is more than {_defaultMaxAge.TotalDays} days in the past"));
         }
 
         [Test]
@@ -105,22 +94,18 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
         {
             var dt = DateTime.UtcNow.AddMinutes(1).ToString("o");
             var result = await ValidateAsync(dt, ValidCallbackUri, ValidProductIdentifier);
-            Assert.Multiple(() =>
-            {
-                Assert.That(result.IsValid, Is.False);
-                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "UpdateSince date cannot be a future date"));
-            });
+
+            Assert.That(result.IsValid, Is.False);
+            Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "UpdateSince date cannot be a future date"));
         }
 
         [Test]
         public async Task WhenProductIdentifierIsInvalid_ThenValidationFails()
         {
             var result = await ValidateAsync(DateTime.UtcNow.ToString("o"), ValidCallbackUri, InvalidProductIdentifier);
-            Assert.Multiple(() =>
-            {
-                Assert.That(result.IsValid, Is.False);
-                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == ProductIdentifierValidator.ValidationMessage));
-            });
+
+            Assert.That(result.IsValid, Is.False);
+            Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == ProductIdentifierValidator.ValidationMessage));
         }
 
         [TestCase("S122", true)]
@@ -133,17 +118,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
         public async Task WhenProductIdentifierIsTested_ThenValidationResultIsAsExpected(string? productIdentifier, bool isValid)
         {
             var result = await ValidateAsync(DateTime.UtcNow.ToString("o"), ValidCallbackUri, productIdentifier);
-            Assert.Multiple(() =>
+            if (isValid)
             {
-                if (isValid)
-                {
-                    Assert.That(result.Errors, Has.None.Matches<ValidationFailure>(e => e.ErrorMessage == ProductIdentifierValidator.ValidationMessage));
-                }
-                else
-                {
-                    Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == ProductIdentifierValidator.ValidationMessage));
-                }
-            });
+                Assert.That(result.Errors, Has.None.Matches<ValidationFailure>(e => e.ErrorMessage == ProductIdentifierValidator.ValidationMessage));
+            }
+            else
+            {
+                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == ProductIdentifierValidator.ValidationMessage));
+            }
         }
 
         [Test]
@@ -151,11 +133,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
         {
             var dt = DateTime.UtcNow.ToString("o");
             var result = await ValidateAsync(dt, ValidCallbackUri, ValidProductIdentifier);
-            Assert.Multiple(() =>
-            {
-                Assert.That(result.IsValid, Is.True);
-                Assert.That(result.Errors, Is.Empty);
-            });
+
+            Assert.That(result.IsValid, Is.True);
+            Assert.That(result.Errors, Is.Empty);
         }
 
         [Test]
@@ -163,36 +143,30 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
         {
             var dt = DateTime.UtcNow.AddDays(-_defaultMaxAge.TotalDays - 1).ToString("yyyy-MM-ddTHH:mm:ss"); // Too old, no timezone
             var result = await ValidateAsync(dt, InvalidCallbackUri, InvalidProductIdentifier);
-            Assert.Multiple(() =>
-            {
-                Assert.That(result.IsValid, Is.False);
-                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == InvalidDateFormat));
-                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == $"Date time provided is more than {_defaultMaxAge.TotalDays} days in the past"));
-                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == CallbackUriValidator.InvalidCallbackUriMessage));
-                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == ProductIdentifierValidator.ValidationMessage));
-            });
+
+            Assert.That(result.IsValid, Is.False);
+            Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == InvalidDateFormat));
+            Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == $"Date time provided is more than {_defaultMaxAge.TotalDays} days in the past"));
+            Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == CallbackUriValidator.InvalidCallbackUriMessage));
+            Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == ProductIdentifierValidator.ValidationMessage));
         }
 
         [Test]
         public async Task WhenSinceDateTimeIsWhitespace_ThenValidationFails()
         {
             var result = await ValidateAsync("   ", ValidCallbackUri, ValidProductIdentifier);
-            Assert.Multiple(() =>
-            {
-                Assert.That(result.IsValid, Is.False);
-                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "No UpdateSince date time provided"));
-            });
+
+            Assert.That(result.IsValid, Is.False);
+            Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "No UpdateSince date time provided"));
         }
 
         [Test]
         public async Task WhenSinceDateTimeIsInvalidFormat_ThenValidationFails()
         {
             var result = await ValidateAsync("not-a-date", ValidCallbackUri, ValidProductIdentifier);
-            Assert.Multiple(() =>
-            {
-                Assert.That(result.IsValid, Is.False);
-                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == InvalidDateFormat));
-            });
+
+            Assert.That(result.IsValid, Is.False);
+            Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == InvalidDateFormat));
         }
 
         private static UpdatesSinceRequest CreateRequest(string? sinceDateTime)
