@@ -16,14 +16,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
             _job = job;
             _build = build;
             _storageService = storageService;
-            RequestType = requestType;
+            _requestType = requestType;
         }
 
         public Job Job => _job;
 
         public TBuild Build => _build;
 
-        public RequestType? RequestType { get; }
+        public RequestType? _requestType { get; }
 
         public bool IsErrorFileCreated { get; set; }
 

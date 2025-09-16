@@ -1,9 +1,6 @@
 using UKHO.ADDS.EFS.Domain.Builds.S100;
-using UKHO.ADDS.EFS.Domain.Files;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
-using UKHO.ADDS.EFS.Orchestrator.Api.Messages;
-using UKHO.ADDS.EFS.Orchestrator.Api.Models;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
@@ -22,10 +19,7 @@ internal class CreateResponseNode : AssemblyPipelineNode<S100Build>
 {
     private readonly ILogger<CreateResponseNode> _logger;
 
-    public CreateResponseNode(
-        AssemblyNodeEnvironment nodeEnvironment,
-        ILogger<CreateResponseNode> logger)
-        : base(nodeEnvironment)
+    public CreateResponseNode(AssemblyNodeEnvironment nodeEnvironment,ILogger<CreateResponseNode> logger): base(nodeEnvironment)
     {
         _logger = logger;
     }

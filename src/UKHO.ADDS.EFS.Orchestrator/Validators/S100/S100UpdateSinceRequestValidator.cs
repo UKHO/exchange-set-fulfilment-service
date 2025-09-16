@@ -35,19 +35,23 @@ internal class S100UpdateSinceRequestValidator : AbstractValidator<(UpdatesSince
                     context.AddFailure(new ValidationFailure("sinceDateTime", "No UpdateSince date time provided."));
                     return;
                 }
+
                 if (!DateTime.TryParse(sinceDateTimeStr, null, DateTimeStyles.RoundtripKind, out var sinceDateTime))
                 {
                     context.AddFailure(new ValidationFailure("sinceDateTime", INVALID_UPDATES_SINCE_FORMAT_MESSAGE));
                     return;
                 }
+
                 if (sinceDateTime.Kind == DateTimeKind.Unspecified)
                 {
                     context.AddFailure(new ValidationFailure("sinceDateTime", INVALID_UPDATES_SINCE_FORMAT_MESSAGE));
                 }
+
                 if (sinceDateTime < DateTime.UtcNow.AddDays(-_maximumProductAge.TotalDays))
                 {
                     context.AddFailure(new ValidationFailure("sinceDateTime", $"Date time provided is more than {_maximumProductAge.TotalDays} days in the past."));
                 }
+
                 if (!IsNotFutureDate(sinceDateTime))
                 {
                     context.AddFailure(new ValidationFailure("sinceDateTime", "UpdateSince date cannot be a future date."));
