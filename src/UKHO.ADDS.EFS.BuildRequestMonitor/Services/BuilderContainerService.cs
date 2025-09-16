@@ -44,10 +44,10 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
                 HostConfig = new HostConfig
                 {
                     NetworkMode = _networkName, //rhz: Use the custom bridge network
-                    //ExtraHosts = new[]
-                    //{
-                    //    "host.docker.internal:host-gateway"
-                    //}
+                    ExtraHosts = new[]
+                    {
+                        "host.docker.internal:host-gateway"
+                    }
                 },
                 Env = new List<string>
                 {

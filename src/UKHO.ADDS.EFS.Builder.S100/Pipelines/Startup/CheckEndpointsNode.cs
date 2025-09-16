@@ -27,6 +27,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
                 myresult.Errors.ToList().ForEach(e => Log.Information($"Check Endpoint node failed with error:{e}"));
                 return NodeResultStatus.Failed;
             }
+
+            Log.Information($"About to check FileShare health endpoint:{context.Subject.FileShareHealthEndpoint}");
             // Rhz: end replace.
 
             await CheckEndpointAsync(context.Subject.FileShareHealthEndpoint);
