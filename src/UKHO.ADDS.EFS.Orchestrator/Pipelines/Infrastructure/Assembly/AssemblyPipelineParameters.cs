@@ -59,7 +59,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 Products = CreateProductNameList(message.Products),
                 Filter = message.Filter,
                 JobId = JobId.From((string)correlationId),
-                Configuration = configuration
+                Configuration = configuration,
+                ProductIdentifier = DataStandardProduct.Undefined,
+                CallbackUri = CallbackUri.None
             };
         }
 
@@ -75,6 +77,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 JobId = JobId.From(correlationId),
                 Configuration = configuration,
                 RequestType = Api.Messages.RequestType.ProductNames,
+                ProductIdentifier = DataStandardProduct.Undefined,
                 CallbackUri = !string.IsNullOrEmpty(callbackUri) ? CallbackUri.From(new Uri(callbackUri)) : CallbackUri.None
             };
 
@@ -93,6 +96,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 JobId = JobId.From(correlationId),
                 Configuration = configuration,
                 RequestType = Api.Messages.RequestType.ProductVersions,
+                ProductIdentifier = DataStandardProduct.Undefined,
                 CallbackUri = !string.IsNullOrEmpty(callbackUri) ? CallbackUri.From(new Uri(callbackUri)) : CallbackUri.None
             };
 
