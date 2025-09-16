@@ -79,7 +79,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
                 throw new Exception("Failed to start container");
             }
 
-            //await AttachContainerToNetworkAsync(containerName: _dynamicContainerName, networkName: _networkName);
+            await AttachContainerToNetworkAsync(containerName: _dynamicContainerName, networkName: _networkName);
 
             var streamer = new BuilderLogStreamer(_dockerClient);
 
