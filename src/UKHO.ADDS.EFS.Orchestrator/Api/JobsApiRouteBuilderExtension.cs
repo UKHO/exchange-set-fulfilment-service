@@ -39,7 +39,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 })
                 .Produces<AssemblyPipelineResponse>()
                 .WithRequiredHeader("x-correlation-id", "Correlation ID", $"job-{Guid.NewGuid():N}")
-                .WithDescription("Create a job request for the given data standard. To filter (S100) by product type, use the filter property \"startswith(ProductName, '101')\"");
+                .WithDescription("Create a job request for the given data standard. To filter (S100) by product type, use the filter property \"startswith(ProductNameConst, '101')\"");
 
             jobsEndpoint.MapGet("/{jobId}", async (string jobId, IRepository<Job> jobRepository) =>
             {

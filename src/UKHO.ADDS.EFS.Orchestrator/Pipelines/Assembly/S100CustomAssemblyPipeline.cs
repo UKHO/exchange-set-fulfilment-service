@@ -33,7 +33,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly
                 BuildStatus = context.Job.BuildState,
                 BatchId = context.Job.BatchId,
                 ErrorResponse = context.ErrorResponse?.Errors?.Count > 0 ? context.ErrorResponse : null,
-                ResponseData = CreateResponseFromContext(context)
+                Response = CreateResponseFromContext(context)
             };
         }
 

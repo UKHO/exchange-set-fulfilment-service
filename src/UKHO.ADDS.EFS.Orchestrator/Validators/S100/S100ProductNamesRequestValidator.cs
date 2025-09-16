@@ -1,5 +1,6 @@
 using FluentValidation;
 using FluentValidation.Results;
+using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
 using Vogen;
 
@@ -20,7 +21,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Validators.S100
                         var validation = ProductName.Validate(name!);
                         if (validation != Validation.Ok)
                         {
-                            context.AddFailure(new ValidationFailure("productName", validation.ErrorMessage ?? "ProductName is not valid"));
+                            context.AddFailure(new ValidationFailure(nameof(ProductName), validation.ErrorMessage));
                         }
                     }
                 });
@@ -29,7 +30,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Validators.S100
                 {
                     if (!CallbackUriValidator.IsValidCallbackUri(callbackUri))
                     {
-                        context.AddFailure(new ValidationFailure("callbackUri", CallbackUriValidator.InvalidCallbackUriMessage));
+                        context.AddFailure(new ValidationFailure(nameof(CallbackUri), CallbackUriValidator.InvalidCallbackUriMessage));
                     }
                 });
         }
