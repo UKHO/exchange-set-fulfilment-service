@@ -10,7 +10,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Validators.S100;
 /// </summary>
 internal class S100UpdateSinceRequestValidator : AbstractValidator<(UpdatesSinceRequest? s100UpdatesSinceRequest, string? callbackUri, string? productIdentifier)>, IS100UpdateSinceRequestValidator
 {
-    private const string INVALID_UPDATES_SINCE_FORMAT_MESSAGE = "Provided updatesSince is either invalid or invalid format, the valid format is 'ISO 8601 format' (e.g. '2025-09-29T00:00:00Z')";
+    private const string InvalidUpdateSinceDateFormatMessage = "Provided updatesSince is either invalid or invalid format, the valid format is 'ISO 8601 format' (e.g. '2025-09-29T00:00:00Z')";
     private readonly TimeSpan _maximumProductAge;
 
     public S100UpdateSinceRequestValidator(IConfiguration configuration)
@@ -22,7 +22,7 @@ internal class S100UpdateSinceRequestValidator : AbstractValidator<(UpdatesSince
             {
                 if (!CallbackUriValidator.IsValidCallbackUri(callbackUri))
                 {
-                    context.AddFailure(new ValidationFailure("callbackUri", CallbackUriValidator.INVALID_CALLBACK_URI_MESSAGE));
+                    context.AddFailure(new ValidationFailure("callbackUri", CallbackUriValidator.InvalidCallbackUriMessage));
                 }
             });
         RuleFor(request => request.s100UpdatesSinceRequest)
@@ -37,13 +37,13 @@ internal class S100UpdateSinceRequestValidator : AbstractValidator<(UpdatesSince
 
                 if (!DateTime.TryParse(sinceDateTimeStr, null, DateTimeStyles.RoundtripKind, out var sinceDateTime))
                 {
-                    context.AddFailure(new ValidationFailure("sinceDateTime", INVALID_UPDATES_SINCE_FORMAT_MESSAGE));
+                    context.AddFailure(new ValidationFailure("sinceDateTime", InvalidUpdateSinceDateFormatMessage));
                     return;
                 }
 
                 if (sinceDateTime.Kind == DateTimeKind.Unspecified)
                 {
-                    context.AddFailure(new ValidationFailure("sinceDateTime", INVALID_UPDATES_SINCE_FORMAT_MESSAGE));
+                    context.AddFailure(new ValidationFailure("sinceDateTime", InvalidUpdateSinceDateFormatMessage));
                 }
 
                 if (sinceDateTime < DateTime.UtcNow.AddDays(-_maximumProductAge.TotalDays))
@@ -61,7 +61,7 @@ internal class S100UpdateSinceRequestValidator : AbstractValidator<(UpdatesSince
             {
                 if (!ProductIdentifierValidator.IsValid(productIdentifier))
                 {
-                    context.AddFailure(new ValidationFailure("productIdentifier", ProductIdentifierValidator.VALIDATION_MESSAGE));
+                    context.AddFailure(new ValidationFailure("productIdentifier", ProductIdentifierValidator.ValidationMessage));
                 }
             });
     }

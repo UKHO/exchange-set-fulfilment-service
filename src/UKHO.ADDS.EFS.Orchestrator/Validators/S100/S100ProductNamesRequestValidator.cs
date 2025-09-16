@@ -29,7 +29,7 @@ internal class S100ProductNamesRequestValidator : AbstractValidator<(List<string
             {
                 if (!CallbackUriValidator.IsValidCallbackUri(callbackUri))
                 {
-                    context.AddFailure(new ValidationFailure("callbackUri", CallbackUriValidator.INVALID_CALLBACK_URI_MESSAGE));
+                    context.AddFailure(new ValidationFailure("callbackUri", CallbackUriValidator.InvalidCallbackUriMessage));
                 }
             });
     }

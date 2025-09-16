@@ -7,7 +7,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Validators;
 /// </summary>
 internal static class ProductIdentifierValidator
 {
-    public const string VALIDATION_MESSAGE = "productIdentifier must be exactly 4 characters: start with 'S' or 's' followed by three digits, with no spaces or extra characters";
+    public const string ValidationMessage = "productIdentifier must be exactly 4 characters: start with 'S' or 's' followed by three digits, with no spaces or extra characters";
 
     /// <summary>
     /// Validates the productIdentifier with an optional timeout.

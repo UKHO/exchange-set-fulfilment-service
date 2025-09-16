@@ -11,9 +11,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Validators.S100;
 /// </summary>
 internal class S100ProductVersionsRequestValidator : AbstractValidator<(IEnumerable<ProductVersionRequest>? productVersionsRequest, string? callbackUri)>, IS100ProductVersionsRequestValidator
 {
-    private const string EDITION_NUMBER = nameof(EditionNumber);
-    private const string UPDATE_NUMBER = nameof(UpdateNumber);
-    private const string PRODUCT_NAME = nameof(ProductName);
+    private const string EditionNumber = nameof(Domain.Products.EditionNumber);
+    private const string UpdateNumber = nameof(Domain.Products.UpdateNumber);
+    private const string ProductName = nameof(Domain.Products.ProductName);
 
     public S100ProductVersionsRequestValidator()
     {
@@ -30,32 +30,26 @@ internal class S100ProductVersionsRequestValidator : AbstractValidator<(IEnumera
                 {
                     if (string.IsNullOrWhiteSpace(product.ProductName))
                     {
-                        context.AddFailure(new ValidationFailure(PRODUCT_NAME, nameof(ProductName)+" cannot be null or empty"));
+                        context.AddFailure(new ValidationFailure(ProductName, nameof(Domain.Products.ProductName)+" cannot be null or empty"));
                     }
                     else
                     {
-                        var validation = ProductName.Validate(product.ProductName!);
+                        var validation = Domain.Products.ProductName.Validate(product.ProductName!);
                         if (validation != Validation.Ok)
                         {
-                            context.AddFailure(new ValidationFailure(PRODUCT_NAME, validation.ErrorMessage ?? nameof(ProductName) + " is not valid"));
+                            context.AddFailure(new ValidationFailure(ProductName, validation.ErrorMessage ?? nameof(Domain.Products.ProductName) + " is not valid"));
                         }
                     }
 
                     if (product.EditionNumber is null)
                     {
-                        context.AddFailure(new ValidationFailure(EDITION_NUMBER, nameof(EditionNumber)+ " cannot be null"));
+                        context.AddFailure(new ValidationFailure(EditionNumber, nameof(EditionNumber)+ " cannot be null"));
                     }
                     else
                     {
                         if((int)product.EditionNumber! <= 0)
                         {
-                            context.AddFailure(new ValidationFailure(EDITION_NUMBER, nameof(product.EditionNumber)+ " must be a positive integer" ?? nameof(EditionNumber) + " is not valid"));
-                        }
-
-                        var editionNumberValidation = EditionNumber.Validate((int)product.EditionNumber!);
-                        if (editionNumberValidation != Validation.Ok)
-                        {
-                            context.AddFailure(new ValidationFailure(EDITION_NUMBER, editionNumberValidation.ErrorMessage ?? nameof(EditionNumber) + " is not valid"));
+                            context.AddFailure(new ValidationFailure(EditionNumber, nameof(product.EditionNumber)+ " must be a positive integer" ?? nameof(EditionNumber) + " is not valid"));
                         }
                     }
 
@@ -65,14 +59,14 @@ internal class S100ProductVersionsRequestValidator : AbstractValidator<(IEnumera
                     {
                         if (product.UpdateNumber == null)
                         {
-                            context.AddFailure(new ValidationFailure(UPDATE_NUMBER, nameof(UpdateNumber)+ " cannot be null"));
+                            context.AddFailure(new ValidationFailure(UpdateNumber, nameof(Domain.Products.UpdateNumber)+ " cannot be null"));
                         }
                         else
                         {
-                            var updateNumberValidation = UpdateNumber.Validate((int)product.UpdateNumber!);
+                            var updateNumberValidation = Domain.Products.UpdateNumber.Validate((int)product.UpdateNumber!);
                             if (updateNumberValidation != Validation.Ok)
                             {
-                                context.AddFailure(new ValidationFailure(UPDATE_NUMBER, updateNumberValidation.ErrorMessage ?? nameof(UpdateNumber) + " is not valid"));
+                                context.AddFailure(new ValidationFailure(UpdateNumber, updateNumberValidation.ErrorMessage ?? nameof(Domain.Products.UpdateNumber) + " is not valid"));
                             }
                         }
                     }
@@ -84,7 +78,7 @@ internal class S100ProductVersionsRequestValidator : AbstractValidator<(IEnumera
             {
                 if (!CallbackUriValidator.IsValidCallbackUri(callbackUri))
                 {
-                    context.AddFailure(new ValidationFailure("callbackUri", CallbackUriValidator.INVALID_CALLBACK_URI_MESSAGE));
+                    context.AddFailure(new ValidationFailure("callbackUri", CallbackUriValidator.InvalidCallbackUriMessage));
                 }
             });
     }

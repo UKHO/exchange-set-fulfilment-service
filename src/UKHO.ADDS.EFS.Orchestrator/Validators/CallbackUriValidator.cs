@@ -5,7 +5,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Validators;
 /// </summary>
 public class CallbackUriValidator
 {
-    public const string INVALID_CALLBACK_URI_MESSAGE = "Please enter a valid callback URI in HTTPS format";
+    public const string InvalidCallbackUriMessage = "URI is malformed or does not use HTTPS";
 
     /// <summary>
     /// Validates that the callback URI is a valid HTTPS URI
