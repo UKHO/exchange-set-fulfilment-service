@@ -1,7 +1,7 @@
 ﻿using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.Jobs;
-using UKHO.ADDS.EFS.Domain.Messages;
 using UKHO.ADDS.EFS.Domain.Services;
+using UKHO.ADDS.EFS.Orchestrator.Api.Messages;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
 {
@@ -11,7 +11,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
         private readonly TBuild _build;
         private readonly IStorageService _storageService;
 
-        public PipelineContext(Job job, TBuild build, IStorageService storageService, RequestType? requestType = null)
+        public PipelineContext(Job job, TBuild build, IStorageService storageService, Api.Messages.RequestType? requestType = null)
         {
             _job = job;
             _build = build;
@@ -23,7 +23,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
 
         public TBuild Build => _build;
 
-        public RequestType? _requestType { get; }
+        public Api.Messages.RequestType? _requestType { get; }
 
         public bool IsErrorFileCreated { get; set; }
 

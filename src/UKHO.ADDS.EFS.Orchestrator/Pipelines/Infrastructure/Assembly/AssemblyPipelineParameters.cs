@@ -26,7 +26,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         /// <summary>
         /// The original request type for S100 endpoints
         /// </summary>
-        public RequestType? RequestType { get; init; }
+        public Api.Messages.RequestType? RequestType { get; init; }
 
         /// <summary>
         /// The callback URI for asynchronous notifications
@@ -74,7 +74,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 Filter = "productNames",
                 JobId = Domain.Jobs.JobId.From(correlationId),
                 Configuration = configuration,
-                RequestType = Domain.Messages.RequestType.ProductNames,
+                RequestType = Api.Messages.RequestType.ProductNames,
                 CallbackUri = callbackUri
             };
 
@@ -92,7 +92,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 Filter = "productVersions",
                 JobId = Domain.Jobs.JobId.From(correlationId),
                 Configuration = configuration,
-                RequestType = Domain.Messages.RequestType.ProductVersions,
+                RequestType = Api.Messages.RequestType.ProductVersions,
                 CallbackUri = callbackUri
             };
 
@@ -113,7 +113,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                     (productIdentifier != null ? $",productIdentifier:{productIdentifier}" : ""),
                 JobId = Domain.Jobs.JobId.From(correlationId),
                 Configuration = configuration,
-                RequestType = Domain.Messages.RequestType.UpdatesSince,
+                RequestType = Api.Messages.RequestType.UpdatesSince,
                 ProductIdentifier = productIdentifier,
                 CallbackUri = callbackUri
             };
