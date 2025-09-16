@@ -19,12 +19,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.Validators
                 return true;
             }
 
-            // Exclude S57 if present in DataStandardProductType enum
-            if (Enum.TryParse<DataStandardProductType>(productIdentifier, true, out var productType))
+            var upperProductIdentifier = productIdentifier.ToUpper();
+            if (Enum.TryParse<DataStandardProductType>(upperProductIdentifier, out var productType))
             {
-                return productType != DataStandardProductType.S57;
+                // Only allow identifiers that start with 'S' and are not S57
+                if (upperProductIdentifier.StartsWith("S") && productType != DataStandardProductType.S57)
+                {
+                    return true;
+                }
             }
-
             return false;
         }
     }
