@@ -11,9 +11,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Validators.S100
     /// </summary>
     internal class S100ProductVersionsRequestValidator : AbstractValidator<(IEnumerable<ProductVersionRequest>? productVersionsRequest, string? callbackUri)>, IS100ProductVersionsRequestValidator
     {
-        private const string EditionNumber = nameof(Domain.Products.EditionNumber);
-        private const string UpdateNumber = nameof(Domain.Products.UpdateNumber);
-        private const string ProductName = nameof(Domain.Products.ProductName);
+        private const string EditionNumberConst = nameof(EditionNumber);
+        private const string UpdateNumberConst = nameof(UpdateNumber);
+        private const string ProductNameConst = nameof(ProductName);
 
         public S100ProductVersionsRequestValidator()
         {
@@ -28,46 +28,27 @@ namespace UKHO.ADDS.EFS.Orchestrator.Validators.S100
                     int index = 0;
                     foreach (var product in productVersions)
                     {
-                        if (string.IsNullOrWhiteSpace(product.ProductName))
+                        var productNameValidation = ProductName.Validate(product.ProductName!);
+                        if (productNameValidation != Validation.Ok)
                         {
-                            context.AddFailure(new ValidationFailure(ProductName, nameof(Domain.Products.ProductName) + " cannot be null or empty"));
-                        }
-                        else
-                        {
-                            var validation = Domain.Products.ProductName.Validate(product.ProductName!);
-                            if (validation != Validation.Ok)
-                            {
-                                context.AddFailure(new ValidationFailure(ProductName, validation.ErrorMessage ?? nameof(Domain.Products.ProductName) + " is not valid"));
-                            }
+                            context.AddFailure(new ValidationFailure(ProductNameConst, productNameValidation.ErrorMessage));
                         }
 
-                        if (product.EditionNumber is null)
+                        //if EditionNumber is 0 or null set to -1 so that model validation is triggered. (Edition cannot be 0)
+                        var editionValidation = EditionNumber.Validate((product.EditionNumber == null || product.EditionNumber == 0) ? -1 : product.EditionNumber.Value);
+                        if (editionValidation != Validation.Ok)
                         {
-                            context.AddFailure(new ValidationFailure(EditionNumber, nameof(EditionNumber) + " cannot be null"));
-                        }
-                        else
-                        {
-                            if ((int)product.EditionNumber! <= 0)
-                            {
-                                context.AddFailure(new ValidationFailure(EditionNumber, nameof(product.EditionNumber) + " must be a positive integer" ?? nameof(EditionNumber) + " is not valid"));
-                            }
+                            context.AddFailure(new ValidationFailure(EditionNumberConst, editionValidation.ErrorMessage));
                         }
 
                         TryParseExactlyThreeDigits(product.ProductName!, out var code);
 
                         if (code == (int)DataStandardProductType.S101)
                         {
-                            if (product.UpdateNumber == null)
+                            var updateNumberValidation = UpdateNumber.Validate(product.UpdateNumber ?? -1);
+                            if (updateNumberValidation != Validation.Ok)
                             {
-                                context.AddFailure(new ValidationFailure(UpdateNumber, nameof(Domain.Products.UpdateNumber) + " cannot be null"));
-                            }
-                            else
-                            {
-                                var updateNumberValidation = Domain.Products.UpdateNumber.Validate((int)product.UpdateNumber!);
-                                if (updateNumberValidation != Validation.Ok)
-                                {
-                                    context.AddFailure(new ValidationFailure(UpdateNumber, updateNumberValidation.ErrorMessage ?? nameof(Domain.Products.UpdateNumber) + " is not valid"));
-                                }
+                                context.AddFailure(new ValidationFailure(UpdateNumberConst, updateNumberValidation.ErrorMessage));
                             }
                         }
                         index++;

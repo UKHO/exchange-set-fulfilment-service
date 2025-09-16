@@ -26,7 +26,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         /// <summary>
         /// The original request type for S100 endpoints
         /// </summary>
-        public RequestType? RequestType { get; init; }
+        public RequestType RequestType { get; init; }
 
         /// <summary>
         /// The callback URI for asynchronous notifications
@@ -59,7 +59,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 Products = CreateProductNameList(message.Products),
                 Filter = message.Filter,
                 JobId = JobId.From((string)correlationId),
-                Configuration = configuration
+                Configuration = configuration,
+                ProductIdentifier = DataStandardProduct.Undefined,
+                CallbackUri = CallbackUri.None
             };
         }
 
@@ -74,7 +76,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 Filter = "productNames",
                 JobId = JobId.From(correlationId),
                 Configuration = configuration,
-                RequestType = Api.Messages.RequestType.ProductNames,
+                RequestType = RequestType.ProductNames,
+                ProductIdentifier = DataStandardProduct.Undefined,
                 CallbackUri = !string.IsNullOrEmpty(callbackUri) ? CallbackUri.From(new Uri(callbackUri)) : CallbackUri.None
             };
 
@@ -92,7 +95,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 Filter = "productVersions",
                 JobId = JobId.From(correlationId),
                 Configuration = configuration,
-                RequestType = Api.Messages.RequestType.ProductVersions,
+                RequestType = RequestType.ProductVersions,
+                ProductIdentifier = DataStandardProduct.Undefined,
                 CallbackUri = !string.IsNullOrEmpty(callbackUri) ? CallbackUri.From(new Uri(callbackUri)) : CallbackUri.None
             };
 
@@ -113,7 +117,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                     (productIdentifier != null ? $",productIdentifier:{productIdentifier}" : ""),
                 JobId = JobId.From(correlationId),
                 Configuration = configuration,
-                RequestType = Api.Messages.RequestType.UpdatesSince,
+                RequestType = RequestType.UpdatesSince,
                 ProductIdentifier = !string.IsNullOrEmpty(productIdentifier) ? DataStandardProduct.FromEnum(Enum.Parse<DataStandardProductType>(productIdentifier.ToUpper())) : DataStandardProduct.Undefined,
                 CallbackUri = !string.IsNullOrEmpty(callbackUri) ? CallbackUri.From(new Uri(callbackUri)) : CallbackUri.None
             };

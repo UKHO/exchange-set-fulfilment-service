@@ -28,6 +28,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         /// <summary>
         /// Success response data for the request, if no errors
         /// </summary>
-        internal CustomExchangeSetResponse? ResponseData { get; init; }
+        internal CustomExchangeSetResponse? Response { get; init; }
     }
 }

@@ -58,7 +58,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                          var result = await pipeline.RunAsync(httpContext.RequestAborted);
 
-                         return Results.Accepted(null, result.ResponseData);
+                         return Results.Accepted(null, result.Response);
                      }
                      catch (Exception)
                      {
@@ -104,7 +104,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                     var result = await pipeline.RunAsync(httpContext.RequestAborted);
 
-                    return Results.Accepted(null, result.ResponseData);
+                    return Results.Accepted(null, result.Response);
                 }
                 catch (Exception)
                 {
@@ -143,7 +143,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                     var result = await pipeline.RunAsync(httpContext.RequestAborted);
 
-                    return Results.Accepted(null, result.ResponseData);
+                    return Results.Accepted(null, result.Response);
                 }
                 catch (Exception)
                 {

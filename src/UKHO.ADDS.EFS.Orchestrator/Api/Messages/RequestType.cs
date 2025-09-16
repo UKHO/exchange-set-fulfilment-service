@@ -18,6 +18,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api.Messages
         /// <summary>
         /// Request for updates since a specific date/time
         /// </summary>
-        UpdatesSince
+        UpdatesSince,
+
+        /// <summary>
+        /// Request for any other internal processing not initiated by an external request
+        /// </summary>
+        Internal
     }
 }
