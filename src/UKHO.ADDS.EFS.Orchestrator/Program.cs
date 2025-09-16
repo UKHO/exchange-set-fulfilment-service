@@ -81,7 +81,13 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 app.UseMiddleware<CorrelationIdMiddleware>();
                 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-                app.UseAuthorization();
+                // Add authentication and authorization middleware conditionally
+                var addsEnvironment = AddsEnvironment.GetEnvironment();
+                if (!addsEnvironment.IsLocal() && !addsEnvironment.IsDev())
+                {
+                    app.UseAuthentication();
+                    app.UseAuthorization();
+                }
 
                 var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
 

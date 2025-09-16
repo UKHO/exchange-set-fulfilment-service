@@ -33,6 +33,8 @@ param efsEventHubsNamespaceName string
 param efsRetainResourceGroup string
 param efsServiceIdentityName string
 param efsStorageAccountName string
+param orchestratorCpu string
+param orchestratorMemory string
 
 var tags = {
   'azd-env-name': environmentName
