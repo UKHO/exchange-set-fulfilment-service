@@ -2,6 +2,7 @@
 using UKHO.ADDS.EFS.Domain.Files;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
+using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Orchestrator.Api.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Api.Models;
@@ -36,7 +37,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             })
             .Produces<CustomExchangeSetResponse>(202)
             .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", Guid.NewGuid().ToString("N"))
-            .WithDescription("Provide all the latest releasable baseline data for a specified set of S100 Products.");
+            .WithDescription("Provide all the latest releasable baseline data for a specified set of S100 Products.")
+            .WithRequiredAuthorization(AuthenticationConstants.EfsRole);
 
             // POST /v2/exchangeSet/s100/productVersions
             exchangeSetEndpoint.MapPost("/productVersions", async (
@@ -50,7 +52,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             })
             .Produces<CustomExchangeSetResponse>(202)
             .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", Guid.NewGuid().ToString("N"))
-            .WithDescription("Given a set of S100 Product versions (e.g. Edition x Update y) provide any later releasable files.");
+            .WithDescription("Given a set of S100 Product versions (e.g. Edition x Update y) provide any later releasable files.")
+            .WithRequiredAuthorization(AuthenticationConstants.EfsRole);
 
             // POST /v2/exchangeSet/s100/updatesSince
             exchangeSetEndpoint.MapPost("/updatesSince", async (
@@ -66,7 +69,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             .Produces<CustomExchangeSetResponse>(202)
             .Produces(304)
             .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", Guid.NewGuid().ToString("N"))
-            .WithDescription("Provide all the releasable S100 data after a datetime.");
+            .WithDescription("Provide all the releasable S100 data after a datetime.")
+            .WithRequiredAuthorization(AuthenticationConstants.EfsRole);
         }
 
         // Temporary method to create a response for demonstration purposes.
