@@ -35,6 +35,12 @@
       "efsStorageAccountName": {
         "value": "${AZURE_EFS_STORAGE_ACCOUNT_NAME}"
       },
+      "orchestratorCpu": {
+        "value": "${AZURE_ORCHESTRATOR_CPU}"
+      },
+      "orchestratorMemory": {
+        "value": "${AZURE_ORCHESTRATOR_MEMORY}"
+      },
       "environmentName": {
         "value": "${AZURE_ENV_NAME}"
       },
@@ -43,4 +49,3 @@
       }
     }
   }
-  
