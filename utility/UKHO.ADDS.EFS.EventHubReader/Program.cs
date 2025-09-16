@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using Azure.Messaging.EventHubs.Consumer;
 
-namespace UKHO.ADDS.EFS.EventHubReceiver
+namespace UKHO.ADDS.EFS.EventHubReader
 {
 
     internal class Program
@@ -12,7 +12,7 @@ namespace UKHO.ADDS.EFS.EventHubReceiver
 
         public static async Task Main(string[] args)
         {
-            Console.WriteLine("Event Hub Log Receiver started...");
+            Console.WriteLine("Event Hub Log Reader started...");
 
             EnsureLogDirectoryExists();
             var logFilePath = GetLogFilePath();
@@ -31,7 +31,7 @@ namespace UKHO.ADDS.EFS.EventHubReceiver
             await ProcessPartitionsAsync(consumer, fromTime, logFilePath, cts.Token);
 
             Console.WriteLine($"Logs written to: {logFilePath}");
-            Console.WriteLine("Event Hub Log Receiver stopped.");
+            Console.WriteLine("Event Hub Log Reader stopped.");
         }
 
         private static void EnsureLogDirectoryExists()
