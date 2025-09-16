@@ -114,7 +114,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 JobId = Domain.Jobs.JobId.From(correlationId),
                 Configuration = configuration,
                 RequestType = Api.Messages.RequestType.UpdatesSince,
-                ProductIdentifier = productIdentifier != null ? DataStandardProduct.FromEnum(Enum.Parse<DataStandardProductType>(productIdentifier)) : null,
+                ProductIdentifier = !string.IsNullOrEmpty( productIdentifier) ? DataStandardProduct.FromEnum(Enum.Parse<DataStandardProductType>(productIdentifier.ToUpper())) : null,
                 CallbackUri = !string.IsNullOrEmpty(callbackUri) ? new Uri(callbackUri) : null
             };
 
