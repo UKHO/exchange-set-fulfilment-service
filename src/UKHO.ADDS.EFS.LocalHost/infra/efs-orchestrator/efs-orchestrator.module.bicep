@@ -34,6 +34,10 @@ param addsenvironment_value string
 
 param efs_service_identity_outputs_clientid string
 
+param orchestratorCpu string
+
+param orchestratorMemory string
+
 resource efs_orchestrator 'Microsoft.App/containerApps@2025-02-02-preview' = {
   name: 'efs-orchestrator'
   location: location
@@ -136,14 +140,13 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2025-02-02-preview' = {
             }
           ]
           resources: {
-            cpu: json('0.5')
-            memory: '1Gi'
+            cpu: json(orchestratorCpu)
+            memory: orchestratorMemory
           }
         }
       ]
       scale: {
         minReplicas: 1
-        maxReplicas: 10
         rules: [
           {
             name: 'cpu-rule'

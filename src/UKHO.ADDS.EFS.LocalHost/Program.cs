@@ -51,6 +51,8 @@ namespace UKHO.ADDS.EFS.LocalHost
             var efsAppConfigurationName = builder.AddParameter("efsAppConfigurationName");
             var efsStorageAccountName = builder.AddParameter("efsStorageAccountName");
             var addsEnvironment = builder.AddParameter("addsEnvironment");
+            var orchestratorCpu = builder.AddParameter("orchestratorCpu");
+            var orchestratorMemory = builder.AddParameter("orchestratorMemory");
 
             // Existing user managed identity
             var efsServiceIdentity = builder.AddAzureUserAssignedIdentity(ServiceConfiguration.EfsServiceIdentity).PublishAsExisting(efsServiceIdentityName, efsRetainResourceGroup);
@@ -123,18 +125,12 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WithAzureUserAssignedIdentity(efsServiceIdentity)
                 .WithExternalHttpEndpoints()
                 .WithScalar("API Browser")
-                .PublishAsAzureContainerApp((module, app) => {
+                .PublishAsAzureContainerApp((infra, app) => {
                     app.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
-                    app.Template.Scale.MinReplicas = 1;
-                    app.Template.Scale.MaxReplicas = 10;
-
-                    var container = app.Template.Containers.FirstOrDefault()?.Value;
-                    if (container != null)
-                    {
-                        container.Resources.Cpu = 0.5;
-                        container.Resources.Memory = "1Gi";
-                    }
-
+                    var container = app.Template.Containers.Single().Value!;
+                    container.Resources.Cpu = orchestratorCpu.AsProvisioningParameter(infra, "orchestratorCpu");
+                    container.Resources.Memory = orchestratorMemory.AsProvisioningParameter(infra, "orchestratorMemory");
+                    
                     // CPU Rule
                     app.Template.Scale.Rules.Add(GetCpuRules());
 

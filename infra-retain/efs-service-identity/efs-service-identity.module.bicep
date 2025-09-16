@@ -5,7 +5,7 @@ param location string = resourceGroup().location
 @description('The partial name (from the start) of the service identity resource.')
 param efsServiceIdentityPartialName string
 
-resource efs_service_identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+resource efs_service_identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' = {
   name: take('${efsServiceIdentityPartialName}-${uniqueString(resourceGroup().id)}', 128)
   location: location
   tags: {

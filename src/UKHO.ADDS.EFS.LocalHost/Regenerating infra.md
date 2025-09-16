@@ -5,7 +5,9 @@ The Bicep files used for deployment were initially created by running `azd infra
 If we need to regenerate from scratch again then you can run the `azd regenerate.cmd` script in the AppHost project. Afterwards the following updates need to be done:
 
 1. `efs-cae.module.bicep` Undo all changes. This is an existing resource but currently the ```PublishAsExisting``` method isn't respected.
-2. `efs-orchestrator.module.bicep` Remove the ```efs_cae_outputs_azure_container_registry_managed_identity_id``` reference from idntity/useridentities collection as both identities will now be the same and duplicates aren't allowed.
+2. `efs-orchestrator.module.bicep`
+   1. Change ```cpu: orchestratorCpu``` to ```cpu: json(orchestratorCpu)```.
+   2. Remove the ```efs_cae_outputs_azure_container_registry_managed_identity_id``` reference from idntity/useridentities collection as both identities will now be the same and duplicates aren't allowed.
 3. `efs-orchestrator-roles-efs-appconfig` Remove this folder and bicep file. It is generated in error.
 4. `efs-orchestrator-roles-efs-events-namespace` Remove this folder and bicep file. It is generated in error.
 5. `efs-orchestrator-roles-efs-storage` Remove this folder and bicep file. It is generated in error.
