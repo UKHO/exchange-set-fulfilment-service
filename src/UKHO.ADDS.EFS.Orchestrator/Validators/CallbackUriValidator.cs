@@ -1,39 +1,40 @@
-namespace UKHO.ADDS.EFS.Orchestrator.Validators;
-
-/// <summary>
-/// Validator for callback URI format and security requirements
-/// </summary>
-public class CallbackUriValidator
+namespace UKHO.ADDS.EFS.Orchestrator.Validators
 {
-    public const string InvalidCallbackUriMessage = "URI is malformed or does not use HTTPS";
-
     /// <summary>
-    /// Validates that the callback URI is a valid HTTPS URI
+    /// Validator for callback URI format and security requirements
     /// </summary>
-    /// <param name="callbackUri">The callback URI to validate</param>
-    /// <returns>True if the URI is valid HTTPS, false otherwise</returns>
-    public static bool IsValidCallbackUri(string? callbackUri)
+    public class CallbackUriValidator
     {
-        if (string.IsNullOrEmpty(callbackUri))
-        {
-            return true;
-        }
+        public const string InvalidCallbackUriMessage = "URI is malformed or does not use HTTPS";
 
-        try
+        /// <summary>
+        /// Validates that the callback URI is a valid HTTPS URI
+        /// </summary>
+        /// <param name="callbackUri">The callback URI to validate</param>
+        /// <returns>True if the URI is valid HTTPS, false otherwise</returns>
+        public static bool IsValidCallbackUri(string? callbackUri)
         {
-            var baseUri = new Uri(callbackUri);
-            if (baseUri.Scheme == Uri.UriSchemeHttps)
+            if (string.IsNullOrEmpty(callbackUri))
             {
                 return true;
             }
-            else
+
+            try
+            {
+                var baseUri = new Uri(callbackUri);
+                if (baseUri.Scheme == Uri.UriSchemeHttps)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (FormatException)
             {
                 return false;
             }
-        }
-        catch (FormatException)
-        {
-            return false;
         }
     }
 }
