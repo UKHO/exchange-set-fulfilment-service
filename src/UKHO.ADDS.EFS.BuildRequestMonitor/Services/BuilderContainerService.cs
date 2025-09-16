@@ -192,6 +192,10 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
                 {
                     Log.Information("Container {Container} already connected to network {Network}.", containerName, networkName);
                 }
+                catch (Exception ex)
+                {
+                    Log.Information("Some other Container {Container} already connected to network {Network} {message}.", containerName, networkName, ex.Message);
+                }
             }
             else
             {
