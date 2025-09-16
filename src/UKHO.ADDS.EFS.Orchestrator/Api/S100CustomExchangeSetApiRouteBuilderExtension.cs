@@ -174,9 +174,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                 var validationErrors = validationResult.Errors.Select(error => $"{error.ErrorMessage}").ToList();
 
-                logger.S100InputValidationFailed(
-                    correlationId,
-                    string.Join("; ", validationErrors));
+                logger.S100InputValidationFailed(errorResponse);
 
                 return Results.BadRequest(errorResponse);
             }
@@ -197,7 +195,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                     }
                 }
             };
-            logger.S100InputValidationFailed(correlationId.ToString(), "requestBody: Either body is null or malformed.");
+            logger.S100InputValidationFailed(errorResponse);
             return Results.BadRequest(errorResponse);
         }
     }
