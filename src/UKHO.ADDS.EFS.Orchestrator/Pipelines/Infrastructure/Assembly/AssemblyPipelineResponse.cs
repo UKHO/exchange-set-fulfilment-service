@@ -23,7 +23,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         /// <summary>
         /// Error response model containing validation errors, if any
         /// </summary>
-        public ErrorResponseModel? ErrorResponse { get; init; }
+        internal ErrorResponseModel? ErrorResponse { get; init; }
 
         /// <summary>
         /// Success response data for the request, if no errors

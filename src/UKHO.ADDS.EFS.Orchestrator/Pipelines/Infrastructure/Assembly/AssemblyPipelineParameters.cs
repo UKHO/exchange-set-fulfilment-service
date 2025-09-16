@@ -26,7 +26,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         /// <summary>
         /// The original request type for S100 endpoints
         /// </summary>
-        public RequestType? RequestType { get; init; }
+        public Api.Messages.RequestType? RequestType { get; init; }
 
         /// <summary>
         /// The callback URI for asynchronous notifications
@@ -74,8 +74,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 Filter = "productNames",
                 JobId = Domain.Jobs.JobId.From(correlationId),
                 Configuration = configuration,
-                RequestType = Domain.Messages.RequestType.ProductNames,
-                CallbackUri = callbackUri !=null ? new Uri(callbackUri) : null
+                RequestType = Api.Messages.RequestType.ProductNames,
+                CallbackUri = !string.IsNullOrEmpty(callbackUri) ? new Uri(callbackUri) : null
             };
 
         /// <summary>
@@ -92,8 +92,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 Filter = "productVersions",
                 JobId = Domain.Jobs.JobId.From(correlationId),
                 Configuration = configuration,
-                RequestType = Domain.Messages.RequestType.ProductVersions,
-                CallbackUri = callbackUri != null ? new Uri(callbackUri) : null
+                RequestType = Api.Messages.RequestType.ProductVersions,
+                CallbackUri = !string.IsNullOrEmpty(callbackUri) ? new Uri(callbackUri) : null
             };
 
         /// <summary>
@@ -113,9 +113,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                     (productIdentifier != null ? $",productIdentifier:{productIdentifier}" : ""),
                 JobId = Domain.Jobs.JobId.From(correlationId),
                 Configuration = configuration,
-                RequestType = Domain.Messages.RequestType.UpdatesSince,
+                RequestType = Api.Messages.RequestType.UpdatesSince,
                 ProductIdentifier = productIdentifier != null ? DataStandardProduct.FromEnum(Enum.Parse<DataStandardProductType>(productIdentifier)) : null,
-                CallbackUri = callbackUri != null ? new Uri(callbackUri) : null
+                CallbackUri = !string.IsNullOrEmpty(callbackUri) ? new Uri(callbackUri) : null
             };
 
         private static ProductNameList CreateProductNameList(string[] messageProducts)
