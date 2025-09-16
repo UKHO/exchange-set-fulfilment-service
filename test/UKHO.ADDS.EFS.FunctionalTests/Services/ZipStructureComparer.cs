@@ -35,26 +35,71 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
         }
 
         /// <summary>
-        /// Compares the directory structure of two zip files for an exact match.
+        /// Compares two ZIP files to ensure their directory structures match exactly.
+        /// Optionally verifies that specified product files are present in the source ZIP.
         /// </summary>
-        /// <param name="sourceZipPath">The path to the source zip file.</param>
-        /// <param name="targetZipPath">The path to the target zip file.</param>
-        public static void CompareZipFilesExactMatch(string sourceZipPath, string targetZipPath)
+        /// <param name="sourceZipPath">Path to the source ZIP file.</param>
+        /// <param name="targetZipPath">Path to the target ZIP file.</param>
+        /// <param name="products">Comma-separated list of expected product file names (optional).</param>
+        public static void CompareZipFilesExactMatch(string sourceZipPath, string targetZipPath, string[]? products = null)
         {
-            using var archive1 = ZipFile.OpenRead(sourceZipPath);
-            using var archive2 = ZipFile.OpenRead(targetZipPath);
+            // Open both ZIP archives for reading
+            using var sourceArchive = ZipFile.OpenRead(sourceZipPath);
+            using var targetArchive = ZipFile.OpenRead(targetZipPath);
 
-            static string? GetDirectory(string fullName)
+            // Helper method to extract the directory path from a full entry name
+            static string? GetDirectoryPath(string fullName)
             {
                 var idx = fullName.LastIndexOf('/');
-                return idx > 0 ? fullName.Substring(0, idx) : fullName;
+                return idx > 0 ? fullName[..idx] : fullName;
             }
 
-            var entries1 = archive1.Entries.Select(e => GetDirectory(e.FullName)).Distinct().OrderBy(e => e).ToList();
-            var entries2 = archive2.Entries.Select(e => GetDirectory(e.FullName)).Distinct().OrderBy(e => e).ToList();
+            // Get distinct directory paths from source archive
+            var sourceDirectories = sourceArchive.Entries
+                .Select(e => GetDirectoryPath(e.FullName))
+                .Distinct()
+                .OrderBy(e => e)
+                .ToList();
 
-            //Compare the entries of both zip files
-            Assert.Equal(entries1, entries2);
+            // Get distinct directory paths from target archive
+            var targetDirectories = targetArchive.Entries
+                .Select(e => GetDirectoryPath(e.FullName))
+                .Distinct()
+                .OrderBy(e => e)
+                .ToList();
+
+            // Compare directory structures of both ZIP files
+            Assert.Equal(sourceDirectories, targetDirectories);
+
+            // If product names are specified, validate their presence in the source archive
+            if (products != null)
+            {
+                var expectedProductPaths = new List<string>();
+                foreach (var productName in products)
+                {
+                    var productIdentifier = productName[..3];
+                    var folderName = productName[3..7];
+                    if (productIdentifier == "101")
+                    {
+                        expectedProductPaths.Add($"S100_ROOT/S-{productIdentifier}/SUPPORT_FILES/{productName}");
+                    }
+                    expectedProductPaths.Add($"S100_ROOT/S-{productIdentifier}/DATASET_FILES/{folderName}/{productName}");
+                }
+                //added file expected other than product name
+                expectedProductPaths.Add("S100_ROOT/CATALOG");
+
+                // Extract actual product file names from the target archive
+                var actualProductPaths = targetArchive.Entries
+                    .Where(e => e.FullName.Contains('.')) // Assuming product files have extensions
+                    .Select(e => e.FullName[..e.FullName.IndexOf('.')]) // Get the file name without extension
+                    .Distinct()
+                    .OrderBy(p => p)
+                    .ToList();
+                expectedProductPaths.Sort();
+                // Compare expected and actual product file names
+                Assert.Equal(expectedProductPaths, actualProductPaths!);
+            }
         }
+
     }
 }
