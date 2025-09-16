@@ -102,11 +102,11 @@ namespace UKHO.ADDS.EFS.Domain.Jobs
         /// <summary>
         /// The URI to be called back when the job is completed.
         /// </summary>
-        public Uri? CallbackUri { get; init; }
+        public CallbackUri CallbackUri { get; init; }
 
         /// <summary>
         /// The identifier for the product associated with the job, if applicable.
         /// </summary>
-        public DataStandardProduct? ProductIdentifier { get; init; }
+        public DataStandardProduct ProductIdentifier { get; init; }
     }
 }
