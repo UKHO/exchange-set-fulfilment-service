@@ -44,10 +44,10 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
                 HostConfig = new HostConfig
                 {
                     NetworkMode = _networkName, //rhz: Use the custom bridge network
-                    ExtraHosts = new[]
-                    {
-                        "host.docker.internal:host-gateway"
-                    }
+                    //ExtraHosts = new[]
+                    //{
+                    //    "host.docker.internal:host-gateway"
+                    //}
                 },
                 Env = new List<string>
                 {
@@ -161,7 +161,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
                 }
                 catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
                 {
-                    Log.Information("Network {NetworkName} already created by another process.", networkParams.Name);
+                    Log.Information("Network {NetworkName} already created by another process", networkParams.Name);
                 }
             }
             else

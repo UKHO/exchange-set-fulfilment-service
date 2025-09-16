@@ -48,8 +48,9 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
                 env.AddsEnvironment = AddsEnvironment.Local.Value;
                 env.RequestQueueName = StorageConfiguration.S100BuildRequestQueueName;
                 env.ResponseQueueName = StorageConfiguration.S100BuildResponseQueueName;
-                env.QueueConnectionString = $"http://host.docker.internal:{queuePort}/devstoreaccount1"; 
+                //env.QueueConnectionString = $"http://host.docker.internal:{queuePort}/devstoreaccount1"; 
                 env.BlobConnectionString = $"http://host.docker.internal:{blobPort}/devstoreaccount1";
+                env.QueueConnectionString = $"http://{StorageConfiguration.StorageName:10001}/devstoreaccount1"; //rhz
                 env.FileShareEndpoint = s100FileShareUri!.ToString();
                 env.FileShareHealthEndpoint = s100FileShareHealthUri!.ToString();
                 env.BlobContainerName = StorageConfiguration.S100BuildContainer;
