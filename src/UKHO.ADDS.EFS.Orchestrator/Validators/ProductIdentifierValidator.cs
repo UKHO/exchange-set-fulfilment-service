@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+using UKHO.ADDS.EFS.Domain.Products;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Validators;
 
@@ -12,22 +12,19 @@ internal static class ProductIdentifierValidator
     /// <summary>
     /// Validates the productIdentifier with an optional timeout.
     /// </summary>
-    /// <param name="productIdentifier">The product identifier to validate.</param>
-    /// <param name="timeoutMilliseconds">Timeout in milliseconds for regex match. Default is 5000ms.</param>
-    /// <returns>True if valid, false otherwise.</returns>
-    public static bool IsValid(string? productIdentifier, int timeoutMilliseconds = 5000)
-    {
-        if (productIdentifier == null)
+        public static bool IsValid(string? productIdentifier)
         {
-            return true;
-        }
-        try
-        {
-            return Regex.IsMatch(productIdentifier, "^[Ss]\\d{3}$", RegexOptions.Compiled, TimeSpan.FromMilliseconds(timeoutMilliseconds));
-        }
-        catch (RegexMatchTimeoutException)
-        {
+            if (string.IsNullOrEmpty(productIdentifier))
+            {
+                return true;
+            }
+
+            // Exclude S57 if present in DataStandardProductType enum
+            if (Enum.TryParse<DataStandardProductType>(productIdentifier, true, out var productType))
+            {
+                return productType != DataStandardProductType.S57;
+            }
+
             return false;
         }
-    }
 }

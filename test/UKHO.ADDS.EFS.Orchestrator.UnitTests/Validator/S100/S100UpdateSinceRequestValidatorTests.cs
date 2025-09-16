@@ -13,7 +13,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
         private IConfiguration _configuration;
         private const string VALID_CALLBACK_URI = "https://valid.com/callback";
         private const string INVALID_CALLBACK_URI = "http://invalid.com/callback";
-        private const string VALID_PRODUCT_IDENTIFIER = "S123";
+        private const string VALID_PRODUCT_IDENTIFIER = "S122";
         private const string INVALID_PRODUCT_IDENTIFIER = "X123";
         private const string INVALID_DATE_FORMAT = "Provided updatesSince is either invalid or invalid format, the valid format is 'ISO 8601 format' (e.g. '2025-09-29T00:00:00Z').";
         private readonly TimeSpan _defaultMaxAge = TimeSpan.FromDays(28);
@@ -123,8 +123,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
             });
         }
 
-        [TestCase("S123", true)]
-        [TestCase("s123", true)]
+        [TestCase("S122", true)]
+        [TestCase("s122", true)]
         [TestCase("S12", false)]
         [TestCase("X123", false)]
         [TestCase("S1234", false)]

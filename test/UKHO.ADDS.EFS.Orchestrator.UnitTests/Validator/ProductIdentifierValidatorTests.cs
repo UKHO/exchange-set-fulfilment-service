@@ -6,14 +6,29 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
     internal class ProductIdentifierValidatorTests
     {
         [TestCase(null)]
-        public void WhenProductIdentifierIsNull_ThenIsValidReturnsTrue(string? productIdentifier)
+        [TestCase("")]
+        public void WhenProductIdentifierIsNullOrEmpty_ThenIsValidReturnsTrue(string? productIdentifier)
         {
             var result = ActIsValid(productIdentifier);
-
             Assert.That(result, Is.True);
         }
 
-        [TestCase("")]
+        [TestCase("S122")]
+        [TestCase("s122")]
+        public void WhenProductIdentifierIsValidFormat_AndNotS57_ThenIsValidReturnsTrue(string productIdentifier)
+        {
+            var result = ActIsValid(productIdentifier);
+            Assert.That(result, Is.True);
+        }
+
+        [TestCase("S57")]
+        [TestCase("s57")]
+        public void WhenProductIdentifierIsS57_ThenIsValidReturnsFalse(string productIdentifier)
+        {
+            var result = ActIsValid(productIdentifier);
+            Assert.That(result, Is.False);
+        }
+
         [TestCase(" ")]
         [TestCase("   ")]
         [TestCase("S ")]
@@ -36,31 +51,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator
         [TestCase("S1\\3")]
         [TestCase("S1\n3")]
         [TestCase("S1\t3")]
-        public void WhenProductIdentifierIsInvalid_ThenIsValidReturnsFalse(string productIdentifier)
+        public void WhenProductIdentifierIsInvalidFormat_ThenIsValidReturnsFalse(string productIdentifier)
         {
             var result = ActIsValid(productIdentifier);
-
-            Assert.That(result, Is.False);   
-        }
-
-        [TestCase("S123")]
-        [TestCase("s123")]
-        public void WhenProductIdentifierIsValid_ThenIsValidReturnsTrue(string productIdentifier)
-        {
-            var result = ActIsValid(productIdentifier);
-
-            Assert.That(result, Is.True);    
-        }
-
-        [Test]
-        public void WhenRegexMatchTimeoutExceptionOccurs_ThenIsValidReturnsFalse()
-        {
-            // Use a pathological input to force a timeout
-            string pathologicalInput = new string('(', 10000); // Unclosed parentheses can cause catastrophic backtracking
-            int veryShortTimeoutMs = 1; // 1ms timeout to force RegexMatchTimeoutException
-
-            var result = ProductIdentifierValidator.IsValid(pathologicalInput, veryShortTimeoutMs);
-
             Assert.That(result, Is.False);
         }
 
