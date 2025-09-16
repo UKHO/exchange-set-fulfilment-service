@@ -15,10 +15,19 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<S100ExchangeSetPipelineContext> context)
         {
-            if (!(await context.Subject.ToolClient.ListWorkspaceAsync(context.Subject.WorkspaceAuthenticationKey)).IsSuccess(out _))
+            //if (!(await context.Subject.ToolClient.ListWorkspaceAsync(context.Subject.WorkspaceAuthenticationKey)).IsSuccess(out _))
+            //{
+            //    return NodeResultStatus.Failed;
+            //}
+            // Rhz: replace with.
+            var myresult = await context.Subject.ToolClient.ListWorkspaceAsync(context.Subject.WorkspaceAuthenticationKey);
+            if (!myresult.IsSuccess(out var response))
             {
+                Log.Information($"Check Endpoint node failed with response:{response}");
+                myresult.Errors.ToList().ForEach(e => Log.Information($"Check Endpoint node failed with error:{e}"));
                 return NodeResultStatus.Failed;
             }
+            // Rhz: end replace.
 
             await CheckEndpointAsync(context.Subject.FileShareHealthEndpoint);
 
