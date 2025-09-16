@@ -7,7 +7,7 @@ namespace UKHO.ADDS.EFS.Domain.Products
     [Instance("NotSet", 0)]
     public partial struct UpdateNumber
     {
-        internal static Validation Validate(int input)
+        public static Validation Validate(int input)
         {
             if (input >= 0)
             {

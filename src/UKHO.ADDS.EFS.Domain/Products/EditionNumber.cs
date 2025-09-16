@@ -15,7 +15,7 @@ namespace UKHO.ADDS.EFS.Domain.Products
                 return Validation.Ok;
             }
 
-            return Validation.Invalid($"{nameof(EditionNumber)} must be a positive integer.");
+            return Validation.Invalid($"{nameof(EditionNumber)} must be >= 0");
         }
     }
 }

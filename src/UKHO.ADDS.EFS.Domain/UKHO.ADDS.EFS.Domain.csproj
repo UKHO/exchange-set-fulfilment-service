@@ -15,11 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="UKHO.ADDS.EFS.Orchestrator" />
-    <InternalsVisibleTo Include="UKHO.ADDS.EFS.Orchestrator.UnitTests" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Handlebars.Net" Version="2.1.6" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.8" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.8" />

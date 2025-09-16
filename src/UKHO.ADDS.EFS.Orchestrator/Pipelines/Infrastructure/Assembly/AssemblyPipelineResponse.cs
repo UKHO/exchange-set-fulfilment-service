@@ -2,6 +2,7 @@
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Messages;
 using UKHO.ADDS.EFS.Domain.Products;
+using UKHO.ADDS.EFS.Orchestrator.Api.Messages;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
 {
@@ -27,6 +28,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         /// <summary>
         /// Success response data for the request, if no errors
         /// </summary>
-        public object? ResponseData { get; init; }
+        internal CustomExchangeSetResponse? ResponseData { get; init; }
     }
 }

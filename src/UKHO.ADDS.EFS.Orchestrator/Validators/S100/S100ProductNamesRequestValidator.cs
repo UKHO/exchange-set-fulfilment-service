@@ -20,11 +20,10 @@ internal class S100ProductNamesRequestValidator : AbstractValidator<(List<string
                     var validation = ProductName.Validate(name!);
                     if (validation != Validation.Ok)
                     {
-                        context.AddFailure(new ValidationFailure("productName", validation.ErrorMessage ?? "ProductName is not valid."));
+                        context.AddFailure(new ValidationFailure("productName", validation.ErrorMessage ?? "ProductName is not valid"));
                     }
                 }
             });
-
         RuleFor(request => request.callbackUri)
             .Custom((callbackUri, context) =>
             {

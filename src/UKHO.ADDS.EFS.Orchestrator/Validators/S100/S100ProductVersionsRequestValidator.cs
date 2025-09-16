@@ -15,7 +15,6 @@ internal class S100ProductVersionsRequestValidator : AbstractValidator<(IEnumera
     private const string UPDATE_NUMBER = nameof(UpdateNumber);
     private const string PRODUCT_NAME = nameof(ProductName);
 
-
     public S100ProductVersionsRequestValidator()
     {
         RuleFor(x => x.productVersionsRequest)
@@ -31,51 +30,55 @@ internal class S100ProductVersionsRequestValidator : AbstractValidator<(IEnumera
                 {
                     if (string.IsNullOrWhiteSpace(product.ProductName))
                     {
-                        context.AddFailure(new ValidationFailure(PRODUCT_NAME, nameof(ProductName)+" cannot be null or empty."));
+                        context.AddFailure(new ValidationFailure(PRODUCT_NAME, nameof(ProductName)+" cannot be null or empty"));
                     }
                     else
                     {
                         var validation = ProductName.Validate(product.ProductName!);
                         if (validation != Validation.Ok)
                         {
-                            context.AddFailure(new ValidationFailure(PRODUCT_NAME, validation.ErrorMessage ?? nameof(ProductName) + " is not valid."));
+                            context.AddFailure(new ValidationFailure(PRODUCT_NAME, validation.ErrorMessage ?? nameof(ProductName) + " is not valid"));
                         }
                     }
 
                     if (product.EditionNumber is null)
                     {
-                        context.AddFailure(new ValidationFailure(EDITION_NUMBER, nameof(EditionNumber)+ " cannot be null."));
+                        context.AddFailure(new ValidationFailure(EDITION_NUMBER, nameof(EditionNumber)+ " cannot be null"));
                     }
                     else
                     {
+                        if((int)product.EditionNumber! <= 0)
+                        {
+                            context.AddFailure(new ValidationFailure(EDITION_NUMBER, nameof(product.EditionNumber)+ " must be a positive integer" ?? nameof(EditionNumber) + " is not valid"));
+                        }
+
                         var editionNumberValidation = EditionNumber.Validate((int)product.EditionNumber!);
                         if (editionNumberValidation != Validation.Ok)
                         {
-                            context.AddFailure(new ValidationFailure(EDITION_NUMBER, editionNumberValidation.ErrorMessage ?? nameof(EditionNumber) + " is not valid."));
+                            context.AddFailure(new ValidationFailure(EDITION_NUMBER, editionNumberValidation.ErrorMessage ?? nameof(EditionNumber) + " is not valid"));
                         }
                     }
 
-                    ProductName.TryParseExactlyThreeDigits(product.ProductName!, out var code);
+                    TryParseExactlyThreeDigits(product.ProductName!, out var code);
 
                     if (code == (int)DataStandardProductType.S101)
                     {
                         if (product.UpdateNumber == null)
                         {
-                            context.AddFailure(new ValidationFailure(UPDATE_NUMBER, nameof(UpdateNumber)+ " cannot be null."));
+                            context.AddFailure(new ValidationFailure(UPDATE_NUMBER, nameof(UpdateNumber)+ " cannot be null"));
                         }
                         else
                         {
                             var updateNumberValidation = UpdateNumber.Validate((int)product.UpdateNumber!);
                             if (updateNumberValidation != Validation.Ok)
                             {
-                                context.AddFailure(new ValidationFailure(UPDATE_NUMBER, updateNumberValidation.ErrorMessage ?? nameof(UpdateNumber) + " is not valid."));
+                                context.AddFailure(new ValidationFailure(UPDATE_NUMBER, updateNumberValidation.ErrorMessage ?? nameof(UpdateNumber) + " is not valid"));
                             }
                         }
                     }
                     index++;
                 }
             });
-
         RuleFor(x => x.callbackUri)
             .Custom((callbackUri, context) =>
             {
@@ -86,9 +89,30 @@ internal class S100ProductVersionsRequestValidator : AbstractValidator<(IEnumera
             });
     }
 
-
     public async Task<ValidationResult> ValidateAsync((IEnumerable<ProductVersionRequest>? productVersionsRequest, string? callbackUri) request)
     {
         return await base.ValidateAsync(request);
+    }
+
+    private static bool TryParseExactlyThreeDigits(ReadOnlySpan<char> span, out int value)
+    {
+        value = 0;
+
+        if (span.Length < 3)
+        {
+            return false;
+        }
+
+        var d0 = span[0] - '0';
+        var d1 = span[1] - '0';
+        var d2 = span[2] - '0';
+
+        if ((uint)d0 > 9U || (uint)d1 > 9U || (uint)d2 > 9U)
+        {
+            return false;
+        }
+
+        value = d0 * 100 + d1 * 10 + d2;
+        return true;
     }
 }

@@ -31,12 +31,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         /// <summary>
         /// The callback URI for asynchronous notifications
         /// </summary>
-        public string? CallbackUri { get; init; }
+        public Uri? CallbackUri { get; init; }
 
         /// <summary>
         /// Product identifier filter for S100 updates since requests (s101, s102, s104, s111)
         /// </summary>
-        public string? ProductIdentifier { get; init; }
+        public DataStandardProduct? ProductIdentifier { get; init; }
 
         public Job CreateJob() => new Job()
         {
@@ -75,7 +75,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 JobId = Domain.Jobs.JobId.From(correlationId),
                 Configuration = configuration,
                 RequestType = Domain.Messages.RequestType.ProductNames,
-                CallbackUri = callbackUri
+                CallbackUri = callbackUri !=null ? new Uri(callbackUri) : null
             };
 
         /// <summary>
@@ -93,7 +93,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 JobId = Domain.Jobs.JobId.From(correlationId),
                 Configuration = configuration,
                 RequestType = Domain.Messages.RequestType.ProductVersions,
-                CallbackUri = callbackUri
+                CallbackUri = callbackUri != null ? new Uri(callbackUri) : null
             };
 
         /// <summary>
@@ -114,8 +114,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 JobId = Domain.Jobs.JobId.From(correlationId),
                 Configuration = configuration,
                 RequestType = Domain.Messages.RequestType.UpdatesSince,
-                ProductIdentifier = productIdentifier,
-                CallbackUri = callbackUri
+                ProductIdentifier = productIdentifier != null ? DataStandardProduct.FromEnum(Enum.Parse<DataStandardProductType>(productIdentifier)) : null,
+                CallbackUri = callbackUri != null ? new Uri(callbackUri) : null
             };
 
         private static ProductNameList CreateProductNameList(string[] messageProducts)

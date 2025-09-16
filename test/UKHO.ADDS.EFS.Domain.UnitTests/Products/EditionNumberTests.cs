@@ -34,14 +34,14 @@ namespace UKHO.ADDS.EFS.Domain.UnitTests.Products
         public void From_Negative_ThrowsValidationException_WithHelpfulMessage()
         {
             var ex = Assert.Throws<ValidationException>(() => EditionNumber.From(-1));
-            Assert.Contains("must be a positive integer.", ex.Message, StringComparison.Ordinal);
+            Assert.Contains("must be >= 0", ex.Message, StringComparison.Ordinal);
         }
 
         [Fact]
         public void From_IntMinValue_ThrowsValidationException()
         {
             var ex = Assert.Throws<ValidationException>(() => EditionNumber.From(int.MinValue));
-            Assert.Contains("must be a positive integer.", ex.Message, StringComparison.Ordinal);
+            Assert.Contains("must be >= 0", ex.Message, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -69,7 +69,7 @@ namespace UKHO.ADDS.EFS.Domain.UnitTests.Products
         {
             var a = EditionNumber.NotRequired;
             var b = EditionNumber.NotSet;
-            var z = EditionNumber.From(0);
+            var z = EditionNumber.From(1);
 
             Assert.Equal(a, b);
             Assert.Equal(a.GetHashCode(), b.GetHashCode());
