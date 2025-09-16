@@ -69,7 +69,7 @@ namespace UKHO.ADDS.EFS.Domain.UnitTests.Products
         {
             var a = EditionNumber.NotRequired;
             var b = EditionNumber.NotSet;
-            var z = EditionNumber.From(1);
+            var z = EditionNumber.From(0);
 
             Assert.Equal(a, b);
             Assert.Equal(a.GetHashCode(), b.GetHashCode());

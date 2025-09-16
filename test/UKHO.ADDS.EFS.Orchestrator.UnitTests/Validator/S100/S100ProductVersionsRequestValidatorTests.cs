@@ -71,7 +71,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
             {
                 Assert.That(result.IsValid, Is.False);
                 Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e =>
-                    e.ErrorMessage == "ProductName cannot be null or empty."
+                    e.ErrorMessage == "ProductName cannot be null or empty"
                     || e.ErrorMessage == $"'{productName ?? string.Empty}' is not valid: it neither starts with a 3-digit S-100 code nor has length 8 for S-57"
                 ));
             });
@@ -95,7 +95,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
                 else
                 {
                     Assert.That(result.IsValid, Is.False);
-                    Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "Please enter a valid callback URI in HTTPS format"));
+                    Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "URI is malformed or does not use HTTPS"));
                 }
             });
         }
@@ -116,7 +116,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
                 Assert.That(result.IsValid, Is.False);
                 Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "ProductName cannot be null or empty"));
                 Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "EditionNumber must be a positive integer"));
-                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "Please enter a valid callback URI in HTTPS format"));
+                Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "URI is malformed or does not use HTTPS"));
                 Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "'AnotherProduct' is not valid: it neither starts with a 3-digit S-100 code nor has length 8 for S-57"));
                 Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "'ThirdProduct' is not valid: it neither starts with a 3-digit S-100 code nor has length 8 for S-57"));
             });
