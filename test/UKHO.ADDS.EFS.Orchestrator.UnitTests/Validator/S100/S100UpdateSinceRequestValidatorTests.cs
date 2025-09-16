@@ -72,8 +72,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
         [Test]
         public async Task WhenSinceDateTimeHasNoTimeZone_ThenValidationFails()
         {
-            var dt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss"); // No timezone
-            var result = await ValidateAsync(dt, ValidCallbackUri, ValidProductIdentifier);
+            var noTimeZoneDate = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss"); // No timezone
+            var result = await ValidateAsync(noTimeZoneDate, ValidCallbackUri, ValidProductIdentifier);
 
             Assert.That(result.IsValid, Is.False);
             Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == InvalidDateFormat));
@@ -82,8 +82,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
         [Test]
         public async Task WhenSinceDateTimeIsTooOld_ThenValidationFails()
         {
-            var dt = DateTime.UtcNow.AddDays(-_defaultMaxAge.TotalDays - 1).ToString("o");
-            var result = await ValidateAsync(dt, ValidCallbackUri, ValidProductIdentifier);
+            var pastDate = DateTime.UtcNow.AddDays(-_defaultMaxAge.TotalDays - 1).ToString("o");
+            var result = await ValidateAsync(pastDate, ValidCallbackUri, ValidProductIdentifier);
 
             Assert.That(result.IsValid, Is.False);
             Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == $"Date time provided is more than {_defaultMaxAge.TotalDays} days in the past"));
@@ -92,8 +92,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
         [Test]
         public async Task WhenSinceDateTimeIsInFuture_ThenValidationFails()
         {
-            var dt = DateTime.UtcNow.AddMinutes(1).ToString("o");
-            var result = await ValidateAsync(dt, ValidCallbackUri, ValidProductIdentifier);
+            var futureDate = DateTime.UtcNow.AddMinutes(1).ToString("o");
+            var result = await ValidateAsync(futureDate, ValidCallbackUri, ValidProductIdentifier);
 
             Assert.That(result.IsValid, Is.False);
             Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == "UpdateSince date cannot be a future date"));
@@ -131,8 +131,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
         [Test]
         public async Task WhenAllFieldsAreValid_ThenValidationSucceeds()
         {
-            var dt = DateTime.UtcNow.ToString("o");
-            var result = await ValidateAsync(dt, ValidCallbackUri, ValidProductIdentifier);
+            var validDate = DateTime.UtcNow.ToString("o");
+            var result = await ValidateAsync(validDate, ValidCallbackUri, ValidProductIdentifier);
 
             Assert.That(result.IsValid, Is.True);
             Assert.That(result.Errors, Is.Empty);
@@ -141,8 +141,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Validator.S100
         [Test]
         public async Task WhenMultipleErrors_ThenAllAreReturned()
         {
-            var dt = DateTime.UtcNow.AddDays(-_defaultMaxAge.TotalDays - 1).ToString("yyyy-MM-ddTHH:mm:ss"); // Too old, no timezone
-            var result = await ValidateAsync(dt, InvalidCallbackUri, InvalidProductIdentifier);
+            var pastDate = DateTime.UtcNow.AddDays(-_defaultMaxAge.TotalDays - 1).ToString("yyyy-MM-ddTHH:mm:ss"); // Too old, no timezone
+            var result = await ValidateAsync(pastDate, InvalidCallbackUri, InvalidProductIdentifier);
 
             Assert.That(result.IsValid, Is.False);
             Assert.That(result.Errors, Has.Some.Matches<ValidationFailure>(e => e.ErrorMessage == InvalidDateFormat));
