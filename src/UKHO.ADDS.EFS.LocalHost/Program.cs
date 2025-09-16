@@ -125,7 +125,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WithAzureUserAssignedIdentity(efsServiceIdentity)
                 .WithExternalHttpEndpoints()
                 .WithScalar("API Browser")
-                .PublishAsAzureContainerApp((infra, app) => 
+                .PublishAsAzureContainerApp((infra, app) =>
                 {
                     app.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
                     var container = app.Template.Containers.Single().Value!;
