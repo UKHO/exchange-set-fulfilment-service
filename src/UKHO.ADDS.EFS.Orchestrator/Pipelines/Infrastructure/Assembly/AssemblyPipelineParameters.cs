@@ -60,6 +60,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 Filter = message.Filter,
                 JobId = JobId.From((string)correlationId),
                 Configuration = configuration,
+                RequestType = RequestType.Internal,
                 ProductIdentifier = DataStandardProduct.Undefined,
                 CallbackUri = CallbackUri.None
             };
