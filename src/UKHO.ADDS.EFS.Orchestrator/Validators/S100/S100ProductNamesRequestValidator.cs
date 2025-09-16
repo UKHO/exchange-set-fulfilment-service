@@ -3,39 +3,40 @@ using FluentValidation.Results;
 using UKHO.ADDS.EFS.Domain.Products;
 using Vogen;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Validators.S100;
-
-/// <summary>
-/// Validator for S100ProductNamesRequest
-/// </summary>
-internal class S100ProductNamesRequestValidator : AbstractValidator<(List<string>? productNamesRequest, string? callbackUri)>, IS100ProductNamesRequestValidator
+namespace UKHO.ADDS.EFS.Orchestrator.Validators.S100
 {
-    public S100ProductNamesRequestValidator()
+    /// <summary>
+    /// Validator for S100ProductNamesRequest
+    /// </summary>
+    internal class S100ProductNamesRequestValidator : AbstractValidator<(List<string>? productNamesRequest, string? callbackUri)>, IS100ProductNamesRequestValidator
     {
-        RuleFor(request => request.productNamesRequest)
-            .Custom((productNamesRequest, context) =>
-            {
-                foreach (var name in productNamesRequest!)
+        public S100ProductNamesRequestValidator()
+        {
+            RuleFor(request => request.productNamesRequest)
+                .Custom((productNamesRequest, context) =>
                 {
-                    var validation = ProductName.Validate(name!);
-                    if (validation != Validation.Ok)
+                    foreach (var name in productNamesRequest!)
                     {
-                        context.AddFailure(new ValidationFailure("productName", validation.ErrorMessage ?? "ProductName is not valid"));
+                        var validation = ProductName.Validate(name!);
+                        if (validation != Validation.Ok)
+                        {
+                            context.AddFailure(new ValidationFailure("productName", validation.ErrorMessage ?? "ProductName is not valid"));
+                        }
                     }
-                }
-            });
-        RuleFor(request => request.callbackUri)
-            .Custom((callbackUri, context) =>
-            {
-                if (!CallbackUriValidator.IsValidCallbackUri(callbackUri))
+                });
+            RuleFor(request => request.callbackUri)
+                .Custom((callbackUri, context) =>
                 {
-                    context.AddFailure(new ValidationFailure("callbackUri", CallbackUriValidator.InvalidCallbackUriMessage));
-                }
-            });
-    }
+                    if (!CallbackUriValidator.IsValidCallbackUri(callbackUri))
+                    {
+                        context.AddFailure(new ValidationFailure("callbackUri", CallbackUriValidator.InvalidCallbackUriMessage));
+                    }
+                });
+        }
 
-    public async Task<ValidationResult> ValidateAsync((List<string>? productNamesRequest, string? callbackUri) request)
-    {
-        return await base.ValidateAsync(request);
+        public async Task<ValidationResult> ValidateAsync((List<string>? productNamesRequest, string? callbackUri) request)
+        {
+            return await base.ValidateAsync(request);
+        }
     }
 }
