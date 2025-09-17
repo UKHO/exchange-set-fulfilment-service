@@ -10,7 +10,7 @@ namespace UKHO.ADDS.EFS.Domain.Products
         {
             if (string.IsNullOrEmpty(input))
             {
-                return Validation.Invalid($"{nameof(ProductName)} cannot be null or empty.");
+                return Validation.Invalid($"{nameof(ProductName)} cannot be null or empty");
             }
 
             var span = input.AsSpan();
@@ -23,7 +23,7 @@ namespace UKHO.ADDS.EFS.Domain.Products
                     return Validation.Ok;
                 }
 
-                return Validation.Invalid($"'{input}' starts with digits '{code:000}' but that is not a valid S-100 product.");
+                return Validation.Invalid($"'{input}' starts with digits '{code:000}' but that is not a valid S-100 product");
             }
 
             // Else, check for S-57
@@ -32,7 +32,7 @@ namespace UKHO.ADDS.EFS.Domain.Products
                 return Validation.Ok;
             }
 
-            return Validation.Invalid($"'{input}' is not valid: it neither starts with a 3-digit S-100 code nor has length 8 for S-57.");
+            return Validation.Invalid($"'{input}' is not valid: it neither starts with a 3-digit S-100 code nor has length 8 for S-57");
         }
 
         public DataStandard DataStandard
@@ -71,7 +71,7 @@ namespace UKHO.ADDS.EFS.Domain.Products
                     return DataStandardProduct.FromEnum(DataStandardProductType.S57);
                 }
 
-                throw new InvalidOperationException($"Invalid {nameof(ProductName)}: '{Value}'.");
+                throw new InvalidOperationException($"Invalid {nameof(ProductName)}: '{Value}'");
             }
         }
 

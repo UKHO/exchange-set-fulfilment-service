@@ -2,7 +2,7 @@
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Messages;
 using UKHO.ADDS.EFS.Domain.Products;
-using UKHO.ADDS.EFS.Messages;
+using UKHO.ADDS.EFS.Orchestrator.Api.Messages;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
 {
@@ -23,11 +23,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         /// <summary>
         /// Error response model containing validation errors, if any
         /// </summary>
-        public ErrorResponseModel? ErrorResponse { get; init; }
+        internal ErrorResponseModel? ErrorResponse { get; init; }
 
         /// <summary>
         /// Success response data for the request, if no errors
         /// </summary>
-        public object? ResponseData { get; init; }
+        internal CustomExchangeSetResponse? Response { get; init; }
     }
 }

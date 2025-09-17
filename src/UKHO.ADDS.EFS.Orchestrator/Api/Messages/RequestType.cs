@@ -1,4 +1,4 @@
-﻿namespace UKHO.ADDS.EFS.Messages
+namespace UKHO.ADDS.EFS.Orchestrator.Api.Messages
 {
     /// <summary>
     /// Enumeration of S100 request types for pipeline processing

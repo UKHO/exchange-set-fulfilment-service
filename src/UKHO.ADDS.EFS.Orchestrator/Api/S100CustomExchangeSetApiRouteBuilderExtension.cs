@@ -1,7 +1,5 @@
 ﻿using FluentValidation.Results;
 using UKHO.ADDS.Clients.Common.Constants;
-using UKHO.ADDS.EFS.Domain.Messages;
-using UKHO.ADDS.EFS.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Extensions;
@@ -28,7 +26,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
             // POST /v2/exchangeSet/s100/productNames
             exchangeSetEndpoint.MapPost("/productNames", async (
-                List<string> productNames,
+                List<string> productNamesRequest,
                 IConfiguration configuration,
                 IAssemblyPipelineFactory pipelineFactory,
                 HttpContext httpContext,
@@ -39,19 +37,21 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                      {
                          var correlationId = httpContext.GetCorrelationId();
 
-                         if (productNames == null || productNames.Count == 0)
+                         if (productNamesRequest == null || productNamesRequest.Count == 0)
                          {
                              return BadRequestForMalformedBody(correlationId.ToString(), logger);
                          }
-
-                         var validationResult = await productNameValidator.ValidateAsync((productNames, callbackUri));
-                         var validationResponse = HandleValidationResult(validationResult, logger, (string)correlationId);
-                         if (validationResponse != null)
+                         else
                          {
-                             return validationResponse;
+                             var validationResult = await productNameValidator.ValidateAsync((productNamesRequest, callbackUri));
+                             var validationResponse = HandleValidationResult(validationResult, logger, (string)correlationId);
+                             if (validationResponse != null)
+                             {
+                                 return validationResponse;
+                             }
                          }
 
-                         var parameters = AssemblyPipelineParameters.CreateFromS100ProductNames(productNames!, configuration, (string)correlationId, callbackUri);
+                         var parameters = AssemblyPipelineParameters.CreateFromS100ProductNames(productNamesRequest!, configuration, (string)correlationId, callbackUri);
                          var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
 
                          logger.LogAssemblyPipelineStarted(parameters);
@@ -71,7 +71,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
             // POST /v2/exchangeSet/s100/productVersions
             exchangeSetEndpoint.MapPost("/productVersions", async (
-                List<S100ProductVersion> productVersions,
+                List<ProductVersionRequest> productVersionsRequest,
                 IConfiguration configuration,
                 IAssemblyPipelineFactory pipelineFactory,
                 HttpContext httpContext,
@@ -82,20 +82,22 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 {
                     var correlationId = httpContext.GetCorrelationId();
 
-                    if (productVersions == null || productVersions.Count == 0)
+                    if (productVersionsRequest == null || productVersionsRequest.Count == 0)
                     {
                         return BadRequestForMalformedBody(correlationId.ToString(), logger);
                     }
-
-                    // Validate input
-                    var validationResult = await productVersionsRequestValidator.ValidateAsync((productVersions, callbackUri));
-                    var validationResponse = HandleValidationResult(validationResult, logger, (string)correlationId);
-                    if (validationResponse != null)
+                    else
                     {
-                        return validationResponse;
+                        // Validate input
+                        var validationResult = await productVersionsRequestValidator.ValidateAsync((productVersionsRequest, callbackUri));
+                        var validationResponse = HandleValidationResult(validationResult, logger, (string)correlationId);
+                        if (validationResponse != null)
+                        {
+                            return validationResponse;
+                        }
                     }
 
-                    var parameters = AssemblyPipelineParameters.CreateFromS100ProductVersions(productVersions!, configuration, (string)correlationId, callbackUri);
+                    var parameters = AssemblyPipelineParameters.CreateFromS100ProductVersions(productVersionsRequest!, configuration, (string)correlationId, callbackUri);
                     var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
 
                     logger.LogAssemblyPipelineStarted(parameters);
@@ -115,7 +117,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
             // POST /v2/exchangeSet/s100/updatesSince
             exchangeSetEndpoint.MapPost("/updatesSince", async (
-                S100UpdatesSinceRequest updatesSinceRequest,
+                UpdatesSinceRequest updatesSinceRequest,
                 IConfiguration configuration,
                 IAssemblyPipelineFactory pipelineFactory,
                 HttpContext httpContext,

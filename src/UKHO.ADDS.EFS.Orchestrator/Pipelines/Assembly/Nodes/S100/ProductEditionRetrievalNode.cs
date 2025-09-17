@@ -60,6 +60,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
                     build.ProductEditions = productEditionList.Products;
                     build.MissingProducts = productEditionList.ProductCountSummary.MissingProducts;
+                    build.RequestedProductsAlreadyUpToDateCounts = productEditionList.ProductCountSummary.RequestedProductsAlreadyUpToDateCount;
+
                     await context.Subject.SignalBuildRequired();
 
                     return NodeResultStatus.Succeeded;

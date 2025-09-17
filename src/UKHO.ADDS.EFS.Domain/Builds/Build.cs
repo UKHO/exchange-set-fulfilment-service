@@ -67,6 +67,11 @@ namespace UKHO.ADDS.EFS.Domain.Builds
         }
 
         /// <summary>
+        ///     Gets or sets the count of requested products that are already up to date.
+        /// </summary>
+        public ProductCount RequestedProductsAlreadyUpToDateCounts { get; set; }
+
+        /// <summary>
         ///     Gets the correlation ID for the build.
         /// </summary>
         /// <remarks>This is always the Job ID.</remarks>

@@ -3,6 +3,7 @@ using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Messages;
 using UKHO.ADDS.EFS.Domain.Products;
+using UKHO.ADDS.EFS.Orchestrator.Api.Messages;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
 {
@@ -25,32 +26,29 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         /// <summary>
         /// The original request type for S100 endpoints
         /// </summary>
-        public Messages.RequestType? RequestType { get; init; }
+        public Api.Messages.RequestType? RequestType { get; init; }
 
         /// <summary>
         /// The callback URI for asynchronous notifications
         /// </summary>
-        public string? CallbackUri { get; init; }
+        public Uri? CallbackUri { get; init; }
 
         /// <summary>
         /// Product identifier filter for S100 updates since requests (s101, s102, s104, s111)
         /// </summary>
-        public string? ProductIdentifier { get; init; }
+        public DataStandardProduct? ProductIdentifier { get; init; }
 
-        public Job CreateJob()
+        public Job CreateJob() => new Job()
         {
-            return new Job()
-            {
-                Id = JobId,
-                Timestamp = Timestamp,
-                DataStandard = DataStandard,
-                RequestedProducts = Products,
-                RequestedFilter = Filter,
-                BatchId = BatchId.None,
-                CallbackUri = CallbackUri,
-                ProductIdentifier = ProductIdentifier
-            };
-        }
+            Id = JobId,
+            Timestamp = Timestamp,
+            DataStandard = DataStandard,
+            RequestedProducts = Products,
+            RequestedFilter = Filter,
+            BatchId = BatchId.None,
+            CallbackUri = CallbackUri,
+            ProductIdentifier = ProductIdentifier
+        };
 
         public static AssemblyPipelineParameters CreateFrom(JobRequestApiMessage message, IConfiguration configuration, CorrelationId correlationId)
         {
@@ -76,14 +74,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 Filter = "productNames",
                 JobId = Domain.Jobs.JobId.From(correlationId),
                 Configuration = configuration,
-                RequestType = Messages.RequestType.ProductNames,
-                CallbackUri = callbackUri
+                RequestType = Api.Messages.RequestType.ProductNames,
+                CallbackUri = !string.IsNullOrEmpty(callbackUri) ? new Uri(callbackUri) : null
             };
 
         /// <summary>
         /// Creates parameters from S100 Product Versions request
         /// </summary>
-        public static AssemblyPipelineParameters CreateFromS100ProductVersions(IEnumerable<S100ProductVersion> productVersions,
+        public static AssemblyPipelineParameters CreateFromS100ProductVersions(IEnumerable<ProductVersionRequest> productVersions,
             IConfiguration configuration, string correlationId, string? callbackUri = null) =>
             new()
             {
@@ -94,14 +92,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 Filter = "productVersions",
                 JobId = Domain.Jobs.JobId.From(correlationId),
                 Configuration = configuration,
-                RequestType = Messages.RequestType.ProductVersions,
-                CallbackUri = callbackUri
+                RequestType = Api.Messages.RequestType.ProductVersions,
+                CallbackUri = !string.IsNullOrEmpty(callbackUri) ? new Uri(callbackUri) : null
             };
 
         /// <summary>
         /// Creates parameters from S100 Updates Since request
         /// </summary>
-        public static AssemblyPipelineParameters CreateFromS100UpdatesSince(S100UpdatesSinceRequest request,
+        public static AssemblyPipelineParameters CreateFromS100UpdatesSince(UpdatesSinceRequest request,
             IConfiguration configuration, string correlationId, string? productIdentifier = null,
             string? callbackUri = null) =>
             new()
@@ -115,9 +113,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                     (productIdentifier != null ? $",productIdentifier:{productIdentifier}" : ""),
                 JobId = Domain.Jobs.JobId.From(correlationId),
                 Configuration = configuration,
-                RequestType = Messages.RequestType.UpdatesSince,
-                ProductIdentifier = productIdentifier,
-                CallbackUri = callbackUri
+                RequestType = Api.Messages.RequestType.UpdatesSince,
+                ProductIdentifier = !string.IsNullOrEmpty( productIdentifier) ? DataStandardProduct.FromEnum(Enum.Parse<DataStandardProductType>(productIdentifier.ToUpper())) : null,
+                CallbackUri = !string.IsNullOrEmpty(callbackUri) ? new Uri(callbackUri) : null
             };
 
         private static ProductNameList CreateProductNameList(string[] messageProducts)
@@ -142,7 +140,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         /// <summary>
         /// Creates a ProductNameList from S100 product versions
         /// </summary>
-        private static ProductNameList CreateProductNameListFromVersions(IEnumerable<S100ProductVersion> productVersions)
+        private static ProductNameList CreateProductNameListFromVersions(IEnumerable<ProductVersionRequest> productVersions)
         {
             var list = new ProductNameList();
 
@@ -150,7 +148,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
             {
                 foreach (var productVersion in productVersions.Where(pv => !string.IsNullOrEmpty(pv.ProductName)))
                 {
-                    list.Add(ProductName.From(productVersion.ProductName));
+                    list.Add(ProductName.From(productVersion.ProductName!));
                 }
             }
             catch (ValidationException ex)
