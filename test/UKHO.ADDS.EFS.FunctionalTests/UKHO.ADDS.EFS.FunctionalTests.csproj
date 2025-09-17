@@ -79,4 +79,14 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="xunit.runner.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Meziantou.Xunit.ParallelTestFramework" Version="2.1.0" />
+  </ItemGroup>
+
 </Project>
