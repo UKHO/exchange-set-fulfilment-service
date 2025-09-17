@@ -33,7 +33,7 @@
                 "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]"
             },
             "Response": {
-                "ExchangeSetUrlExpiryDays": "7" // Number of days until the exchange set URL expires
+                "ExchangeSetExpiresIn": "7.00:00:00" // TimeSpan representing when the exchange set expires
             },
             "Builders": {
                 "LogReplayLevel": "Information", // Log level for replaying builder logs
@@ -86,7 +86,7 @@
                 "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]"
             },
             "Response": {
-                "ExchangeSetUrlExpiryDays": "7" // Number of days until the exchange set URL expires
+                "ExchangeSetExpiresIn": "7.00:00:00" // TimeSpan representing when the exchange set expires
             },
             "Builders": {
                 "LogReplayLevel": "Information", // Log level for replaying builder logs
@@ -138,7 +138,7 @@
                 "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]"
             },
             "Response": {
-                "ExchangeSetUrlExpiryDays": "7" // Number of days until the exchange set URL expires
+                "ExchangeSetExpiresIn": "7.00:00:00" // TimeSpan representing when the exchange set expires
             },
             "Builders": {
                 "LogReplayLevel": "Information", // Log level for replaying builder logs
@@ -190,7 +190,7 @@
                 "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]"
             },
             "Response": {
-                "ExchangeSetUrlExpiryDays": "7" // Number of days until the exchange set URL expires
+                "ExchangeSetExpiresIn": "7.00:00:00" // TimeSpan representing when the exchange set expires
             },
             "Builders": {
                 "LogReplayLevel": "Information", // Log level for replaying builder logs
@@ -242,7 +242,7 @@
                 "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]"
             },
             "Response": {
-                "ExchangeSetUrlExpiryDays": "7" // Number of days until the exchange set URL expires
+                "ExchangeSetExpiresIn": "7.00:00:00" // TimeSpan representing when the exchange set expires
             },
             "Builders": {
                 "LogReplayLevel": "Information", // Log level for replaying builder logs
