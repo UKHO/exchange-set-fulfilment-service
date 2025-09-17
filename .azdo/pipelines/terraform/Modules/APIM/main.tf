@@ -82,6 +82,15 @@ resource "azurerm_api_management_product_policy" "efs_product_policy" {
 	  <inbound>
 		 <rate-limit calls="${var.product_rate_limit.calls}" renewal-period="${var.product_rate_limit.renewal-period}" retry-after-header-name="retry-after" remaining-calls-header-name="remaining-calls" />
 		 <quota calls="${var.product_quota.calls}" renewal-period="${var.product_quota.renewal-period}" />
+
+         <!-- Validate b2c token -->
+         <validate-jwt header-name="Authorization" failed-validation-error-message="Authorization token is missing or invalid" require-scheme="Bearer" output-token-variable-name="jwt">
+            <openid-config url="${var.efs_b2c_token_issuer}" />
+            <audiences>
+                <audience>${var.efs_b2c_client_id}</audience>
+            </audiences>
+          </validate-jwt>
+
 		 <base />
 	  </inbound>
 	</policies>

@@ -67,6 +67,14 @@ variable "product_quota" {
     }
 }
 
+variable "b2c_token_issuer" {
+  type  = string
+}
+
+variable "b2c_client_id" {
+  type  = string
+}
+
 locals {
   env_name              = lower(terraform.workspace)
   service_name          = "efs"
