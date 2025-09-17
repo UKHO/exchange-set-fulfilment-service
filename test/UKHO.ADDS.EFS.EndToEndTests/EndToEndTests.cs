@@ -19,10 +19,13 @@ namespace UKHO.ADDS.EFS.EndToEndTests
         // Configuration settings for pipeline running
         private IConfiguration? _configuration;
 
+        private readonly ITestOutputHelper _output;
+
         private readonly string _projectDirectory;
-        public EndToEndTests()
+        public EndToEndTests(ITestOutputHelper output)
         {
             _projectDirectory = Directory.GetParent(AppContext.BaseDirectory)!.Parent!.Parent!.Parent!.FullName;
+            _output = output;
         }
 
 
@@ -45,6 +48,9 @@ namespace UKHO.ADDS.EFS.EndToEndTests
                 {
                     BaseAddress = new Uri(mockUrl)
                 };
+
+                _output.WriteLine("Running in pipeline mode.");
+                _output.WriteLine($"Mock URL: {mockUrl}");
 
             }
             else
@@ -253,6 +259,8 @@ namespace UKHO.ADDS.EFS.EndToEndTests
 
         public async Task<string> DownloadExchangeSetAsZipAsync(string jobId)
         {
+            _output.WriteLine($"Downloading exchange set for jobId: {jobId}");
+            
             var mockResponse = await _httpClientMock.GetAsync($"/_admin/files/FSS/S100-ExchangeSets/V01X01_{jobId}.zip");
             mockResponse.EnsureSuccessStatusCode();
 
