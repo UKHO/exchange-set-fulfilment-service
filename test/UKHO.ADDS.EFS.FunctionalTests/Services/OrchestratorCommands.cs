@@ -1,6 +1,8 @@
 ﻿using System.Text;
 using System.Text.Json;
 using UKHO.ADDS.Clients.Common.Constants;
+using UKHO.ADDS.Clients.Kiota.SalesCatalogueService.Models;
+using UKHO.ADDS.EFS.Domain.Products;
 
 namespace UKHO.ADDS.EFS.FunctionalTests.Services
 {

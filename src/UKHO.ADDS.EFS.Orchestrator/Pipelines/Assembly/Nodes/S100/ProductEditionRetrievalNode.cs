@@ -11,12 +11,13 @@ using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 {
-    internal class GetS100ProductNamesNode : AssemblyPipelineNode<S100Build>
+    internal class ProductEditionRetrievalNode : AssemblyPipelineNode<S100Build>
     {
         private readonly IProductService _productService;
-        private readonly ILogger<GetS100ProductNamesNode> _logger;
+        private readonly ILogger<ProductEditionRetrievalNode> _logger;
+        private const string ExchangeSetUrlExpiryDaysConfigKey = "orchestrator:Response:ExchangeSetUrlExpiryDays";
 
-        public GetS100ProductNamesNode(AssemblyNodeEnvironment nodeEnvironment, IProductService productService, ILogger<GetS100ProductNamesNode> logger)
+        public ProductEditionRetrievalNode(AssemblyNodeEnvironment nodeEnvironment, IProductService productService, ILogger<ProductEditionRetrievalNode> logger)
             : base(nodeEnvironment)
         {
             _productService = productService ?? throw new ArgumentNullException(nameof(productService));
@@ -44,21 +45,36 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                 productNameList.AddRange(build.Products?.Select(p => p.ProductName) ?? []);
             }
 
-            var s100SalesCatalogueData = await _productService.GetProductEditionListAsync(DataStandard.S100, productNameList, job, Environment.CancellationToken);
+            var productEditionList = await _productService.GetProductEditionListAsync(DataStandard.S100, productNameList, job, Environment.CancellationToken);
 
             var nodeResult = NodeResultStatus.NotRun;
 
-            switch (s100SalesCatalogueData.ResponseCode)
+            switch (productEditionList.ResponseCode)
             {
                 case HttpStatusCode.OK:
 
                     // Log any requested products that weren't returned, but don't fail the build
-                    if (s100SalesCatalogueData.ProductCountSummary.MissingProducts.HasProducts)
+                    if (productEditionList.ProductCountSummary.MissingProducts.HasProducts)
                     {
-                        _logger.LogSalesCatalogueProductsNotReturned(s100SalesCatalogueData.ProductCountSummary);
+                        _logger.LogSalesCatalogueProductsNotReturned(productEditionList.ProductCountSummary);
                     }
 
-                    build.ProductEditions = s100SalesCatalogueData.Products;
+                    // Get the URL expiry days from configuration
+                    var expiryDaysConfig = Environment.Configuration[ExchangeSetUrlExpiryDaysConfigKey];
+
+                    // Parse the expiryDaysConfig string to an integer before using it in AddDays
+                    if (!int.TryParse(expiryDaysConfig, out int expiryDays))
+                    {
+                        throw new InvalidOperationException($"Invalid configuration value for {ExchangeSetUrlExpiryDaysConfigKey}: {expiryDaysConfig}");
+                    }
+
+                    build.ProductEditions = productEditionList;
+
+                    job.ExchangeSetUrlExpiryDateTime = DateTime.UtcNow.AddDays(expiryDays);
+                    job.RequestedProductCount = ProductCount.From(productNameList.Count);
+                    job.ExchangeSetProductCount = productEditionList.Count;
+                    job.RequestedProductsAlreadyUpToDateCount = productEditionList.ProductCountSummary.RequestedProductsAlreadyUpToDateCount;
+                    job.RequestedProductsNotInExchangeSet = productEditionList.ProductCountSummary.MissingProducts;
 
                     await context.Subject.SignalBuildRequired();
 

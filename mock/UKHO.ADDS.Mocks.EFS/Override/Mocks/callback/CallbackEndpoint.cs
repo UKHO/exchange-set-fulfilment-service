@@ -1,3 +1,4 @@
+using UKHO.ADDS.Mocks;
 using UKHO.ADDS.Mocks.Markdown;
 using UKHO.ADDS.Mocks.States;
 
@@ -29,26 +30,16 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.callback
                             Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ss.fffZ}] Received callback notification:");
                             Console.WriteLine(requestBody);
 
-                            // Save to FileShare Service file system using GetFileSystem() like UploadBlockEndpoint
-                            await SaveCallbackToFileShareSystem(requestBody, request);
+                            // Save to FileShare Service file system only
+                            var savedFileName = await SaveCallbackToFileShareSystem(requestBody, request);
 
-                            // Save the callback data to a local file (existing functionality)
-                            var fileName = $"callback_response_{DateTime.UtcNow:yyyyMMdd_HHmmss_fff}.txt";
-                            var filePath = System.IO.Path.Combine("callback_responses", fileName);
-
-                            // Ensure the directory exists
-                            Directory.CreateDirectory("callback_responses");
-
-                            // Write the response to file
-                            await File.WriteAllTextAsync(filePath, requestBody);
-
-                            Console.WriteLine($"Callback response saved to: {filePath}");
+                            Console.WriteLine($"Callback response processing completed");
 
                             // Return successful response
                             return Results.Ok(new {
                                 message = "Callback received successfully",
                                 timestamp = DateTime.UtcNow,
-                                savedTo = fileName
+                                savedTo = savedFileName
                             });
                         }
                         catch (Exception ex)
@@ -66,10 +57,10 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.callback
                 .WithEndpointMetadata(endpoint, d =>
                 {
                     d.Append(new MarkdownHeader("Mock Callback Endpoint", 3));
-                    d.Append(new MarkdownParagraph("Receives CloudEvents callback notifications and saves them to FileShare Service file system and local file"));
+                    d.Append(new MarkdownParagraph("Receives CloudEvents callback notifications and saves them to FileShare Service file system"));
                 });
 
-        private async Task SaveCallbackToFileShareSystem(string content, HttpRequest request)
+        private async Task<string> SaveCallbackToFileShareSystem(string content, HttpRequest request)
         {
             try
             {
@@ -110,11 +101,14 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.callback
                         Console.WriteLine("Exchange Set Created event type confirmed");
                     }
                 }
+
+                return callbackFileName;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Failed to save callback AC response to FileShare Service file system: {ex.Message}");
                 // Don't throw - we don't want to break the callback response
+                return "failed-to-save";
             }
         }
     }
