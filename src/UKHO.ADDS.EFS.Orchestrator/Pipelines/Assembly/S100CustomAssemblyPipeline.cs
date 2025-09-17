@@ -10,8 +10,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly
 {
     internal class S100CustomAssemblyPipeline : AssemblyPipeline<S100Build>
     {
-        public S100CustomAssemblyPipeline(AssemblyPipelineParameters parameters, AssemblyPipelineNodeFactory nodeFactory, PipelineContextFactory<S100Build> contextFactory, ILogger<S100CustomAssemblyPipeline> logger)
-            : base(parameters, nodeFactory, contextFactory, logger)
+        public S100CustomAssemblyPipeline(AssemblyPipelineParameters parameters, IAssemblyPipelineNodeFactory nodeFactory, IPipelineContextFactory<S100Build> contextFactory, ILogger<S100CustomAssemblyPipeline> logger)
+    : base(parameters, nodeFactory, contextFactory, logger)
         {
         }
 
