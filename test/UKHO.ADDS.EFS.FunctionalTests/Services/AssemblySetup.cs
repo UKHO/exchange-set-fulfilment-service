@@ -1,7 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 
 [assembly: CollectionBehavior(DisableTestParallelization = false, MaxParallelThreads = 0)]
-[assembly: TestFramework("Meziantou.Xunit.ParallelTestFramework", "Meziantou.Xunit.ParallelTestFramework")]
 
 namespace UKHO.ADDS.EFS.FunctionalTests.Services
 {
