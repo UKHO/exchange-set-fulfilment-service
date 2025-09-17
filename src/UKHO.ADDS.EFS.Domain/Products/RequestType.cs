@@ -1,9 +1,9 @@
-namespace UKHO.ADDS.EFS.Orchestrator.Api.Messages
+﻿namespace UKHO.ADDS.EFS.Domain.Products
 {
     /// <summary>
     /// Enumeration of S100 request types for pipeline processing
     /// </summary>
-    internal enum RequestTypeas
+    public enum RequestType
     {
         /// <summary>
         /// Request for specific product names
