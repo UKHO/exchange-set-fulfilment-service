@@ -28,7 +28,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Validators
                     return true;
                 }
             }
-
             return false;
         }
     }
