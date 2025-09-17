@@ -74,5 +74,82 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
 
             Assert.Equal("success", builderExitCode);
         }
+
+        /// <summary>
+        /// Verifies the product names endpoint response.
+        /// </summary>
+        public static async Task VerifyProductNamesEndpointResponse(object productNames, HttpClient httpClient, string? callbackUri, HttpStatusCode expectedStatusCode, string expectedErrorMessage, int jobNumber = 1, bool includeRequestId = true)
+        {
+            var requestId = includeRequestId ? $"job-000{jobNumber}-" + Guid.NewGuid() : string.Empty;
+
+            var content = new StringContent(JsonSerializer.Serialize(productNames), Encoding.UTF8, "application/json");
+
+            if (includeRequestId)
+            {
+                content.Headers.Add("x-correlation-id", requestId);
+            }
+
+            var response = await httpClient.PostAsync($"/v2/exchangeSet/s100/productNames?callbackUri={callbackUri}", content);
+
+            Assert.Equal(expectedStatusCode, response.StatusCode);
+
+            if (expectedStatusCode != HttpStatusCode.Accepted && expectedErrorMessage != "")
+            {
+                var responseBody = await response.Content.ReadAsStringAsync();
+                Assert.Contains(expectedErrorMessage, responseBody);
+            }
+        }
+
+        /// <summary>
+        /// Verifies the product version endpoint response.
+        /// </summary>
+        public static async Task VerifyProductVersionEndpointResponse(string productVersion, string callbackUri, HttpClient httpClient,
+            HttpStatusCode expectedStatusCode, string expectedErrorMessage, int jobNumber = 1)
+        {
+            var requestId = $"job-000{jobNumber}-" + Guid.NewGuid();
+
+            var content = new StringContent(productVersion, Encoding.UTF8, "application/json");
+
+            content.Headers.Add("x-correlation-id", requestId);
+
+            // Send the POST request
+            var response = await httpClient.PostAsync($"/v2/exchangeSet/s100/productVersions?callbackUri={callbackUri}", content);
+
+            // Validate the response status code
+            Assert.Equal(expectedStatusCode, response.StatusCode);
+
+            if (expectedStatusCode != HttpStatusCode.Accepted && expectedErrorMessage != "")
+            {
+                var responseBody = await response.Content.ReadAsStringAsync();
+                Assert.Contains(expectedErrorMessage, responseBody);
+            }
+        }
+
+        /// <summary>
+        /// Verifies the Update Since endpoint response.
+        /// </summary>
+        public static async Task VerifyUpdateSinceEndpointResponse(string sinceDateTime, string callbackUri, string productIdentifier,
+            HttpClient httpClient, HttpStatusCode expectedStatusCode, string expectedErrorMessage, int jobNumber = 1)
+        {
+            var requestId = $"job-000{jobNumber}-" + Guid.NewGuid();
+
+            var requestPayload = $"{{ \"sinceDateTime\": \"{sinceDateTime}\" }}";
+
+            var content = new StringContent(requestPayload, Encoding.UTF8, "application/json");
+
+            content.Headers.Add("x-correlation-id", requestId);
+
+            // Send the POST request
+            var response = await httpClient.PostAsync($"/v2/exchangeSet/s100/updatesSince?callbackUri={callbackUri}&productIdentifier={productIdentifier}", content);
+            
+            // Validate the response status code
+            Assert.Equal(expectedStatusCode, response.StatusCode);
+
+            if (expectedStatusCode != HttpStatusCode.Accepted && expectedErrorMessage != "")
+            {
+                var responseBody = await response.Content.ReadAsStringAsync();
+                Assert.Contains(expectedErrorMessage, responseBody);
+            }
+        }
     }
 }

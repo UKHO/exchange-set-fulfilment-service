@@ -51,5 +51,8 @@ namespace UKHO.ADDS.EFS.Domain.Products
 
         [Display(Name = "S-164", Description = "IHO Test Data Sets for S-100 ECDIS")]
         S164 = 164,
+
+        [Display(Name = "Undefined", Description = "Undefined")]
+        Undefined = -1,
     }
 }
