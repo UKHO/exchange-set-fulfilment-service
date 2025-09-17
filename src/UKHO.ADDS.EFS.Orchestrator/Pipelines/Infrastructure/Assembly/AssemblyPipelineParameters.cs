@@ -26,19 +26,19 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         /// <summary>
         /// The original request type for S100 endpoints
         /// </summary>
-        public Api.Messages.RequestType? RequestType { get; init; }
+        public RequestType RequestType { get; init; }
 
         /// <summary>
         /// The callback URI for asynchronous notifications
         /// </summary>
-        public Uri? CallbackUri { get; init; }
+        public CallbackUri CallbackUri { get; init; }
 
         /// <summary>
         /// Product identifier filter for S100 updates since requests (s101, s102, s104, s111)
         /// </summary>
-        public DataStandardProduct? ProductIdentifier { get; init; }
+        public DataStandardProduct ProductIdentifier { get; init; }
 
-        public Job CreateJob() => new Job()
+        public Job CreateJob() => new()
         {
             Id = JobId,
             Timestamp = Timestamp,
@@ -59,7 +59,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 Products = CreateProductNameList(message.Products),
                 Filter = message.Filter,
                 JobId = JobId.From((string)correlationId),
-                Configuration = configuration
+                Configuration = configuration,
+                RequestType = RequestType.Internal,
+                ProductIdentifier = DataStandardProduct.Undefined,
+                CallbackUri = CallbackUri.None
             };
         }
 
@@ -72,10 +75,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 DataStandard = DataStandard.S100,
                 Products = CreateProductNameList(productNames.ToArray()),
                 Filter = "productNames",
-                JobId = Domain.Jobs.JobId.From(correlationId),
+                JobId = JobId.From(correlationId),
                 Configuration = configuration,
-                RequestType = Api.Messages.RequestType.ProductNames,
-                CallbackUri = !string.IsNullOrEmpty(callbackUri) ? new Uri(callbackUri) : null
+                RequestType = RequestType.ProductNames,
+                ProductIdentifier = DataStandardProduct.Undefined,
+                CallbackUri = !string.IsNullOrEmpty(callbackUri) ? CallbackUri.From(new Uri(callbackUri)) : CallbackUri.None
             };
 
         /// <summary>
@@ -90,10 +94,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 DataStandard = DataStandard.S100,
                 Products = CreateProductNameListFromVersions(productVersions),
                 Filter = "productVersions",
-                JobId = Domain.Jobs.JobId.From(correlationId),
+                JobId = JobId.From(correlationId),
                 Configuration = configuration,
-                RequestType = Api.Messages.RequestType.ProductVersions,
-                CallbackUri = !string.IsNullOrEmpty(callbackUri) ? new Uri(callbackUri) : null
+                RequestType = RequestType.ProductVersions,
+                ProductIdentifier = DataStandardProduct.Undefined,
+                CallbackUri = !string.IsNullOrEmpty(callbackUri) ? CallbackUri.From(new Uri(callbackUri)) : CallbackUri.None
             };
 
         /// <summary>
@@ -111,11 +116,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 Filter =
                     $"updatesSince:{request.SinceDateTime:O}" +
                     (productIdentifier != null ? $",productIdentifier:{productIdentifier}" : ""),
-                JobId = Domain.Jobs.JobId.From(correlationId),
+                JobId = JobId.From(correlationId),
                 Configuration = configuration,
-                RequestType = Api.Messages.RequestType.UpdatesSince,
-                ProductIdentifier = !string.IsNullOrEmpty( productIdentifier) ? DataStandardProduct.FromEnum(Enum.Parse<DataStandardProductType>(productIdentifier.ToUpper())) : null,
-                CallbackUri = !string.IsNullOrEmpty(callbackUri) ? new Uri(callbackUri) : null
+                RequestType = RequestType.UpdatesSince,
+                ProductIdentifier = !string.IsNullOrEmpty(productIdentifier) ? DataStandardProduct.FromEnum(Enum.Parse<DataStandardProductType>(productIdentifier.ToUpper())) : DataStandardProduct.Undefined,
+                CallbackUri = !string.IsNullOrEmpty(callbackUri) ? CallbackUri.From(new Uri(callbackUri)) : CallbackUri.None
             };
 
         private static ProductNameList CreateProductNameList(string[] messageProducts)

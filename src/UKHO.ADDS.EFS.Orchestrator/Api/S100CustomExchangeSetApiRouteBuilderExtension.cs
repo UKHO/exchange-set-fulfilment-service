@@ -58,13 +58,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                          var result = await pipeline.RunAsync(httpContext.RequestAborted);
 
-                    return Results.Ok(result.Response);
-                }
-                catch (Exception)
-                {
-                    throw;
-                }
-            })
+                         return Results.Accepted(null, result.Response);
+                     }
+                     catch (Exception)
+                     {
+                         throw;
+                     }
+                 })
             .Produces<CustomExchangeSetResponse>(202)
             .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", Guid.NewGuid().ToString("N"))
             .WithDescription("Provide all the latest releasable baseline data for a specified set of S100 Products.");
@@ -174,9 +174,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                 var validationErrors = validationResult.Errors.Select(error => $"{error.ErrorMessage}").ToList();
 
-                logger.S100InputValidationFailed(
-                    correlationId,
-                    string.Join("; ", validationErrors));
+                logger.S100InputValidationFailed(errorResponse);
 
                 return Results.BadRequest(errorResponse);
             }
@@ -197,7 +195,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                     }
                 }
             };
-            logger.S100InputValidationFailed(correlationId.ToString(), "requestBody: Either body is null or malformed.");
+            logger.S100InputValidationFailed(errorResponse);
             return Results.BadRequest(errorResponse);
         }
     }

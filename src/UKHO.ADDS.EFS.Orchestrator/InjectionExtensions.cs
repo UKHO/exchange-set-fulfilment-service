@@ -63,7 +63,6 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddTransient<IS100ProductVersionsRequestValidator, S100ProductVersionsRequestValidator>();
             builder.Services.AddTransient<IS100UpdateSinceRequestValidator, S100UpdateSinceRequestValidator>();
 
-            builder.Services.AddSingleton<PipelineContextFactory<S100Build>>();
             builder.Services.AddSingleton<IPipelineContextFactory<S100Build>, PipelineContextFactory<S100Build>>();
             builder.Services.AddSingleton<PipelineContextFactory<S63Build>>();
             builder.Services.AddSingleton<IPipelineContextFactory<S63Build>, PipelineContextFactory<S63Build>>();
