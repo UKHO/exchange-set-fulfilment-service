@@ -15,6 +15,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
     {
         private readonly IProductService _productService;
         private readonly ILogger<ProductEditionRetrievalNode> _logger;
+        private const string ExchangeSetUrlExpiryDaysConfigKey = "orchestrator:Response:ExchangeSetUrlExpiryDays";
 
         public ProductEditionRetrievalNode(AssemblyNodeEnvironment nodeEnvironment, IProductService productService, ILogger<ProductEditionRetrievalNode> logger)
             : base(nodeEnvironment)
@@ -58,9 +59,22 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                         _logger.LogSalesCatalogueProductsNotReturned(productEditionList.ProductCountSummary);
                     }
 
-                    build.ProductEditions = productEditionList.Products;
-                    build.MissingProducts = productEditionList.ProductCountSummary.MissingProducts;
-                    build.RequestedProductsAlreadyUpToDateCounts = productEditionList.ProductCountSummary.RequestedProductsAlreadyUpToDateCount;
+                    // Get the URL expiry days from configuration
+                    var expiryDaysConfig = Environment.Configuration[ExchangeSetUrlExpiryDaysConfigKey];
+
+                    // Parse the expiryDaysConfig string to an integer before using it in AddDays
+                    if (!int.TryParse(expiryDaysConfig, out int expiryDays))
+                    {
+                        throw new InvalidOperationException($"Invalid configuration value for {ExchangeSetUrlExpiryDaysConfigKey}: {expiryDaysConfig}");
+                    }
+
+                    build.ProductEditions = productEditionList;
+
+                    job.ExchangeSetUrlExpiryDateTime = DateTime.UtcNow.AddDays(expiryDays);
+                    job.RequestedProductCount = ProductCount.From(productNameList.Count);
+                    job.ExchangeSetProductCount = productEditionList.Count;
+                    job.RequestedProductsAlreadyUpToDateCount = productEditionList.ProductCountSummary.RequestedProductsAlreadyUpToDateCount;
+                    job.RequestedProductsNotInExchangeSet = productEditionList.ProductCountSummary.MissingProducts;
 
                     await context.Subject.SignalBuildRequired();
 

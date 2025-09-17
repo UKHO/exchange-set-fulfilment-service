@@ -25,7 +25,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly
 
             AddPipelineNode<CheckFingerprintNode>(cancellationToken);
             AddPipelineNode<CreateFileShareBatchNode>(cancellationToken);
-            AddPipelineNode<CreateResponseNode>(cancellationToken);
             AddPipelineNode<ScheduleBuildNode>(cancellationToken);
             AddPipelineNode<CreateFingerprintNode>(cancellationToken);
 
@@ -51,7 +50,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly
         private static CustomExchangeSetResponse CreateResponseFromContext(
             PipelineContext<S100Build> context)
         {
-
             // Dummy links
             var links = new ExchangeSetLinks
             {
@@ -70,7 +68,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly
                 RequestedProductCount = context.Job.RequestedProductCount,
                 ExchangeSetProductCount = context.Job.ExchangeSetProductCount,
                 RequestedProductsAlreadyUpToDateCount = context.Job.RequestedProductsAlreadyUpToDateCount,
-                RequestedProductsNotInExchangeSet = missingProducts,
+                RequestedProductsNotInExchangeSet = context.Job.RequestedProductsNotInExchangeSet,
                 FssBatchId = context.Job.BatchId
             };
         }
