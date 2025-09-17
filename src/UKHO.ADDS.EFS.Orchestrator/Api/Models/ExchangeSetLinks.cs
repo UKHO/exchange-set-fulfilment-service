@@ -21,5 +21,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api.Models
         /// Link to exchange set file (optional)
         /// </summary>
         public Link? ExchangeSetFileUri { get; set; }
+
+        /// <summary>
+        /// Link to AIO exchange set file (optional)
+        /// </summary>
+        public Link? AioExchangeSetFileUri { get; set; }
+
+        /// <summary>
+        /// Link to error file (optional)
+        /// </summary>
+        public Link? ErrorFileUri { get; set; }
     }
 }

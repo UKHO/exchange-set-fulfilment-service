@@ -59,6 +59,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 
         private const int CreateResponseNodeExceptionId = BaseEventId + 35;
 
+        // Callback notification events
+        private const int CallbackNotificationSentId = BaseEventId + 36;
+        private const int CallbackNotificationFailedId = BaseEventId + 37;
+
         // An unhandled HTTP error has occurred
         public static readonly EventId UnhandledHttpError = new(UnhandledHttpErrorId, nameof(UnhandledHttpError));
 
@@ -124,6 +128,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 
 
         public static readonly EventId CreateResponseNodeException = new(CreateResponseNodeExceptionId, nameof(CreateResponseNodeException));
+
+        // Callback notification events
+        public static readonly EventId CallbackNotificationSent = new(CallbackNotificationSentId, nameof(CallbackNotificationSent));
+        public static readonly EventId CallbackNotificationFailed = new(CallbackNotificationFailedId, nameof(CallbackNotificationFailed));
 
         [LoggerMessage(UnhandledHttpErrorId, LogLevel.Error, "An unhandled exception was caught by the HTTP pipeline: {@message}", EventName = nameof(UnhandledHttpError))]
         public static partial void LogUnhandledHttpError(this ILogger logger, string message, Exception exception);
@@ -217,6 +225,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 
         [LoggerMessage(CreateResponseNodeExceptionId, LogLevel.Error, "Exception in CreateResponseNode for correlation ID: {correlationId}", EventName = nameof(CreateResponseNodeException))]
         public static partial void LogCreateResponseNodeException(this ILogger logger, string correlationId, Exception exception);
+
+        [LoggerMessage(CallbackNotificationSentId, LogLevel.Information, "Callback notification sent successfully for job {jobId} to {callbackUri} with correlation ID {correlationId}", EventName = nameof(CallbackNotificationSent))]
+        public static partial void LogCallbackNotificationSent(this ILogger logger, string jobId, Uri callbackUri, string correlationId);
+
+        [LoggerMessage(CallbackNotificationFailedId, LogLevel.Warning, "Callback notification failed for job {jobId} to {callbackUri} with correlation ID {correlationId}", EventName = nameof(CallbackNotificationFailed))]
+        public static partial void LogCallbackNotificationFailed(this ILogger logger, string jobId, Uri callbackUri, string correlationId);
 
     }
 }

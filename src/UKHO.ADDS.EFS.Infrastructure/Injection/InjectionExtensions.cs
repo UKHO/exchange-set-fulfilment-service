@@ -96,6 +96,9 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
 
             collection.AddSingleton<IFileService, DefaultFileService>();
 
+            // Add HTTP client for callback service
+            collection.AddHttpClient<ICallbackService, DefaultCallbackService>();
+
             return collection;
         }
 

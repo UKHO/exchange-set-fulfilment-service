@@ -35,6 +35,21 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api.Messages
         public ProductCount RequestedProductsAlreadyUpToDateCount { get; set; }
 
         /// <summary>
+        /// Number of requested AIO products
+        /// </summary>
+        public ProductCount RequestedAioProductCount { get; set; } = ProductCount.None;
+
+        /// <summary>
+        /// Number of AIO products that have data included in the produced Exchange Set
+        /// </summary>
+        public ProductCount AioExchangeSetCellCount { get; set; } = ProductCount.None;
+
+        /// <summary>
+        /// Number of requested AIO products that are already up to date
+        /// </summary>
+        public ProductCount RequestedAioProductsAlreadyUpToDateCount { get; set; } = ProductCount.None;
+
+        /// <summary>
         /// Products that were requested but not included in the exchange set
         /// </summary>
         public MissingProductList RequestedProductsNotInExchangeSet { get; set; } = new();
