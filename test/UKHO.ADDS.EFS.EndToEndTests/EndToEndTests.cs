@@ -2,6 +2,7 @@
 using System.Text;
 using System.Text.Json;
 using Aspire.Hosting;
+using Microsoft.Extensions.Configuration;
 using UKHO.ADDS.Clients.Common.Constants;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 using Xunit.Abstractions;
@@ -11,6 +12,12 @@ namespace UKHO.ADDS.EFS.EndToEndTests
     public class EndToEndTests : IAsyncLifetime
     {
         private DistributedApplication _app;
+        private bool _isRunningInPipeline = IsRunningInPipeline();
+        private HttpClient _httpClient;
+        private HttpClient _httpClientMock;
+
+        // Configuration settings for pipeline running
+        private IConfiguration? _configuration;
 
         private readonly string _projectDirectory;
         public EndToEndTests()
@@ -21,32 +28,62 @@ namespace UKHO.ADDS.EFS.EndToEndTests
 
         public async Task InitializeAsync()
         {
-            var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.UKHO_ADDS_EFS_LocalHost>();
-            appHost.Services.ConfigureHttpClientDefaults(clientBuilder =>
+            if (_isRunningInPipeline)
             {
-                clientBuilder.AddStandardResilienceHandler();
-            });
-            _app = await appHost.BuildAsync();
+                var builder = new ConfigurationBuilder()
+                        .AddEnvironmentVariables();
+                _configuration = builder.Build();
 
-            var resourceNotificationService = _app.Services.GetRequiredService<ResourceNotificationService>();
-            await _app.StartAsync();
-            await resourceNotificationService.WaitForResourceAsync(ProcessNames.OrchestratorService, KnownResourceStates.Running).WaitAsync(TimeSpan.FromSeconds(30));
+                var orchestratorUrl = _configuration["ORCHESTRATOR_URL"] ?? throw new ArgumentNullException("Orchestrator Url");
+                var mockUrl = _configuration["ADDSMOCK_URL"] ?? throw new ArgumentNullException("Mock Url");
+
+                _httpClient = new HttpClient
+                {
+                    BaseAddress = new Uri(orchestratorUrl)
+                };
+                _httpClientMock = new HttpClient
+                {
+                    BaseAddress = new Uri(mockUrl)
+                };
+
+            }
+            else
+            {
+                var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.UKHO_ADDS_EFS_LocalHost>();
+                appHost.Services.ConfigureHttpClientDefaults(clientBuilder =>
+                {
+                    clientBuilder.AddStandardResilienceHandler();
+                });
+                _app = await appHost.BuildAsync();
+
+                var resourceNotificationService = _app.Services.GetRequiredService<ResourceNotificationService>();
+                await _app.StartAsync();
+                await resourceNotificationService.WaitForResourceAsync(ProcessNames.OrchestratorService, KnownResourceStates.Running).WaitAsync(TimeSpan.FromSeconds(30));
+                _httpClient = _app.CreateHttpClient(ProcessNames.OrchestratorService);
+                _httpClientMock = _app.CreateHttpClient(ProcessNames.MockService);
+            }
+
 
         }
 
         public async Task DisposeAsync()
         {
-            if (_app != null)
-            {
-                await _app.StopAsync();
-                await _app.DisposeAsync();
-            }
-
             //Clean up temporary files and directories
             var outDir = Path.Combine(_projectDirectory, "out");
 
             if (Directory.Exists(outDir))
                 Array.ForEach(Directory.GetFiles(outDir, "*.zip"), File.Delete);
+
+            if (_isRunningInPipeline)
+            {
+                return; // No need to dispose in pipeline, as it is managed by the CI/CD environment
+            }
+
+            if (_app != null)
+            {
+                await _app.StopAsync();
+                await _app.DisposeAsync();
+            }
 
         }
 
@@ -54,16 +91,17 @@ namespace UKHO.ADDS.EFS.EndToEndTests
         [Fact]
         public async Task S100EndToEnd()
         {
-            var httpClient = _app.CreateHttpClient(ProcessNames.OrchestratorService);
+            //var httpClient = _app.CreateHttpClient(ProcessNames.OrchestratorService);
 
             // 1.Prepare a job submission request and confirm that it was submitted successfully.
             var content = new StringContent(
                 """
                 {
-                    "version": 1,
-                    "dataStandard": "s100",
-                    "products": "",
-                    "filter": ""
+                  "dataStandard": "s100",
+                  "products": [
+                    ""
+                  ],
+                  "filter": ""
                 }
                 """,
                 Encoding.UTF8, "application/json");
@@ -71,7 +109,7 @@ namespace UKHO.ADDS.EFS.EndToEndTests
             content.Headers.Add(ApiHeaderKeys.XCorrelationIdHeaderKey, $"job-0001-{requestId}");
 
 
-            var jobSubmitResponse = await httpClient.PostAsync("/jobs", content);
+            var jobSubmitResponse = await _httpClient.PostAsync("/jobs", content);
             Assert.True(jobSubmitResponse.IsSuccessStatusCode, "Expected success status code but got: " + jobSubmitResponse.StatusCode);
             var responseContent = await jobSubmitResponse.Content.ReadAsStringAsync();
             var responseJson = JsonDocument.Parse(responseContent);
@@ -91,7 +129,7 @@ namespace UKHO.ADDS.EFS.EndToEndTests
             TimeOnly startTime = TimeOnly.FromDateTime(DateTime.Now);
             do
             {
-                var jobStateResponse = await httpClient.GetAsync($"/jobs/{jobId}");
+                var jobStateResponse = await _httpClient.GetAsync($"/jobs/{jobId}");
                 responseContent = await jobStateResponse.Content.ReadAsStringAsync();
                 responseJson = JsonDocument.Parse(responseContent);
                 responseJson.RootElement.TryGetProperty("jobState", out var jobState);
@@ -106,7 +144,7 @@ namespace UKHO.ADDS.EFS.EndToEndTests
             Assert.Equal("succeeded", currentBuildState);
 
             // 3.Check the builder has returned build status and it has been successfully processed by orchestrator.
-            var jobCompletedResponse = await httpClient.GetAsync($"/jobs/{jobId}/build");
+            var jobCompletedResponse = await _httpClient.GetAsync($"/jobs/{jobId}/build");
             Assert.True(jobCompletedResponse.IsSuccessStatusCode, "Expected success status code but got: " + jobCompletedResponse.StatusCode);
 
             // and that the builder exit code is 'success' although success is not necessary
@@ -129,7 +167,7 @@ namespace UKHO.ADDS.EFS.EndToEndTests
         [Fact]
         public async Task TestMultipleRequests()
         {
-            var httpClient = _app.CreateHttpClient(ProcessNames.OrchestratorService);
+            //var httpClient = _app.CreateHttpClient(ProcessNames.OrchestratorService);
 
             StringContent content;
             var jobs = new List<string>();
@@ -146,16 +184,17 @@ namespace UKHO.ADDS.EFS.EndToEndTests
                 content = new StringContent(
                 """
                 {
-                    "version": 1,
-                    "dataStandard": "s100",
-                    "products": "",
-                    "filter": ""
+                  "dataStandard": "s100",
+                  "products": [
+                    ""
+                  ],
+                  "filter": ""
                 }
                 """,
                 Encoding.UTF8, "application/json");
                 content.Headers.Add(ApiHeaderKeys.XCorrelationIdHeaderKey, $"job-{jobNumber}-{requestId}");
 
-                var jobSubmitResponse = await httpClient.PostAsync("/jobs", content);
+                var jobSubmitResponse = await _httpClient.PostAsync("/jobs", content);
                 Assert.True(jobSubmitResponse.IsSuccessStatusCode, "Expected success status code but got: " + jobSubmitResponse.StatusCode);
 
                 var responseContent = await jobSubmitResponse.Content.ReadAsStringAsync();
@@ -179,7 +218,7 @@ namespace UKHO.ADDS.EFS.EndToEndTests
                 foreach (var jobId in jobs)
                 {
                     if (completedJobs.Contains(jobId)) continue; // Skip if job already completed
-                    var jobStateResponse = await httpClient.GetAsync($"/jobs/{jobId}");
+                    var jobStateResponse = await _httpClient.GetAsync($"/jobs/{jobId}");
                     Assert.True(jobStateResponse.IsSuccessStatusCode, "Expected success status code but got: " + jobStateResponse.StatusCode);
 
                     var responseContent = await jobStateResponse.Content.ReadAsStringAsync();
@@ -201,7 +240,7 @@ namespace UKHO.ADDS.EFS.EndToEndTests
             // 3.Check the builder has successfully returned build status for each completed job
             foreach (var jobId in completedJobs)
             {
-                var jobCompletedResponse = await httpClient.GetAsync($"/jobs/{jobId}/build");
+                var jobCompletedResponse = await _httpClient.GetAsync($"/jobs/{jobId}/build");
                 Assert.True(jobCompletedResponse.IsSuccessStatusCode, "Expected success status code but got: " + jobCompletedResponse.StatusCode);
                 var responseContent = await jobCompletedResponse.Content.ReadAsStringAsync();
                 var responseJson = JsonDocument.Parse(responseContent);
@@ -214,8 +253,7 @@ namespace UKHO.ADDS.EFS.EndToEndTests
 
         public async Task<string> DownloadExchangeSetAsZipAsync(string jobId)
         {
-            var httpClientMock = _app.CreateHttpClient(ProcessNames.MockService);
-            var mockResponse = await httpClientMock.GetAsync($"/_admin/files/FSS/S100-ExchangeSets/V01X01_{jobId}.zip");
+            var mockResponse = await _httpClientMock.GetAsync($"/_admin/files/FSS/S100-ExchangeSets/V01X01_{jobId}.zip");
             mockResponse.EnsureSuccessStatusCode();
 
             var zipResponse = await mockResponse.Content.ReadAsStringAsync();
@@ -288,6 +326,21 @@ namespace UKHO.ADDS.EFS.EndToEndTests
                 (foldersOnlyInSource.Count > 0 ? $"Folders only in source: {string.Join(", ", foldersOnlyInSource)}\n" : "") +
                 (foldersOnlyInTarget.Count > 0 ? $"Folders only in target: {string.Join(", ", foldersOnlyInTarget)}\n" : ""));
 
+        }
+
+
+        private static bool IsRunningInPipeline()
+        {
+            // Common environment variables for CI/CD pipelines
+            var ci = Environment.GetEnvironmentVariable("CI");
+            var tfBuild = Environment.GetEnvironmentVariable("TF_BUILD");
+            var githubActions = Environment.GetEnvironmentVariable("GITHUB_ACTIONS");
+            var azurePipeline = Environment.GetEnvironmentVariable("AGENT_NAME");
+
+            return !string.IsNullOrEmpty(ci)
+                || !string.IsNullOrEmpty(tfBuild)
+                || !string.IsNullOrEmpty(githubActions)
+                || !string.IsNullOrEmpty(azurePipeline);
         }
 
 
