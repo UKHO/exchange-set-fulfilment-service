@@ -10,12 +10,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         public AssemblyPipelineFactory(IServiceProvider serviceProvider) => _serviceProvider = serviceProvider;
 
         public IAssemblyPipeline CreateAssemblyPipeline(AssemblyPipelineParameters parameters) =>
-            parameters.DataStandard switch
+            (parameters.DataStandard, parameters.RequestType) switch
             {
-                DataStandard.S100 => ActivatorUtilities.CreateInstance<S100AssemblyPipeline>(_serviceProvider, parameters),
-                DataStandard.S57 => ActivatorUtilities.CreateInstance<S57AssemblyPipeline>(_serviceProvider, parameters),
-                DataStandard.S63 => ActivatorUtilities.CreateInstance<S63AssemblyPipeline>(_serviceProvider, parameters),
-                _ => throw new NotSupportedException($"Data standard {parameters.DataStandard} is not supported.")
+                (DataStandard.S100, RequestType.ProductNames) => ActivatorUtilities.CreateInstance<S100CustomAssemblyPipeline>(_serviceProvider, parameters),
+                (DataStandard.S100, RequestType.ProductVersions) => ActivatorUtilities.CreateInstance<S100CustomAssemblyPipeline>(_serviceProvider, parameters),
+                (DataStandard.S100, RequestType.UpdatesSince) => ActivatorUtilities.CreateInstance<S100CustomAssemblyPipeline>(_serviceProvider, parameters),
+                (DataStandard.S100, _) => ActivatorUtilities.CreateInstance<S100AssemblyPipeline>(_serviceProvider, parameters),
+                (DataStandard.S57, _) => ActivatorUtilities.CreateInstance<S57AssemblyPipeline>(_serviceProvider, parameters),
+                (DataStandard.S63, _) => ActivatorUtilities.CreateInstance<S63AssemblyPipeline>(_serviceProvider, parameters),
+                _ => throw new NotSupportedException($"Data standard {parameters.DataStandard} with request type {parameters.RequestType} is not supported.")
             };
     }
 }

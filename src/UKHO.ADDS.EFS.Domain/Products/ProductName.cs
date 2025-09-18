@@ -6,7 +6,7 @@ namespace UKHO.ADDS.EFS.Domain.Products
     [ValueObject<string>(Conversions.SystemTextJson, typeof(ValidationException))]
     public partial struct ProductName
     {
-        private static Validation Validate(string input)
+        public static Validation Validate(string input)
         {
             if (string.IsNullOrEmpty(input))
             {
@@ -71,7 +71,7 @@ namespace UKHO.ADDS.EFS.Domain.Products
                     return DataStandardProduct.FromEnum(DataStandardProductType.S57);
                 }
 
-                throw new InvalidOperationException($"Invalid {nameof(ProductName)}: '{Value}'.");
+                throw new InvalidOperationException($"Invalid {nameof(ProductName)}: '{Value}'");
             }
         }
 

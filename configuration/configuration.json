@@ -32,6 +32,9 @@
                 "FileNameTemplate": "error_[jobid].txt", // Template for naming error files: options are "jobid", "date"
                 "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]"
             },
+            "Response": {
+                "ExchangeSetExpiresIn": "7.00:00:00" // TimeSpan representing when the exchange set expires
+            },
             "Builders": {
                 "LogReplayLevel": "Information", // Log level for replaying builder logs
                 "S100": {
@@ -60,7 +63,8 @@
             },
             "SchedulerJob": {
                 "ExchangeSetGenerationSchedule": "0 0 0 * * ?" //Quartz Cron expression for scheduling ExchangeSet generation
-            }
+            },
+            "MaximumProductAge": "28.00:00:00"
         }
     },
     "dev": {
@@ -80,6 +84,9 @@
             "Errors": {
                 "FileNameTemplate": "error_[jobid].txt", // Template for naming error files: options are "jobid", "date"
                 "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]"
+            },
+            "Response": {
+                "ExchangeSetExpiresIn": "7.00:00:00" // TimeSpan representing when the exchange set expires
             },
             "Builders": {
                 "LogReplayLevel": "Information", // Log level for replaying builder logs
@@ -108,7 +115,8 @@
             },
             "SchedulerJob": {
                 "ExchangeSetGenerationSchedule": "0 0 0 * * ?" //Quartz Cron expression for scheduling ExchangeSet generation
-            }
+            },
+            "MaximumProductAge": "28.00:00:00"
         }
     },
     "vni": {
@@ -129,6 +137,9 @@
                 "FileNameTemplate": "error.txt", // Template for naming error files: options are "jobid", "date"
                 "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]"
             },
+            "Response": {
+                "ExchangeSetExpiresIn": "7.00:00:00" // TimeSpan representing when the exchange set expires
+            },
             "Builders": {
                 "LogReplayLevel": "Information", // Log level for replaying builder logs
                 "S100": {
@@ -156,7 +167,8 @@
             },
             "SchedulerJob": {
                 "ExchangeSetGenerationSchedule": "0 0 0 * * ?" //Quartz Cron expression for scheduling ExchangeSet generation
-            }
+            },
+            "MaximumProductAge": "28.00:00:00"
         }
     },
     "vne": {
@@ -177,6 +189,9 @@
                 "FileNameTemplate": "error.txt", // Template for naming error files: options are "jobid", "date"
                 "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]"
             },
+            "Response": {
+                "ExchangeSetExpiresIn": "7.00:00:00" // TimeSpan representing when the exchange set expires
+            },
             "Builders": {
                 "LogReplayLevel": "Information", // Log level for replaying builder logs
                 "S100": {
@@ -204,7 +219,8 @@
             },
             "SchedulerJob": {
                 "ExchangeSetGenerationSchedule": "0 0 0 * * ?" //Quartz Cron expression for scheduling ExchangeSet generation
-            }
+            },
+            "MaximumProductAge": "28.00:00:00"
         }
     },
     "iat": {
@@ -225,6 +241,9 @@
                 "FileNameTemplate": "error.txt", // Template for naming error files: options are "jobid", "date"
                 "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]"
             },
+            "Response": {
+                "ExchangeSetExpiresIn": "7.00:00:00" // TimeSpan representing when the exchange set expires
+            },
             "Builders": {
                 "LogReplayLevel": "Information", // Log level for replaying builder logs
                 "S100": {
@@ -252,7 +271,8 @@
             },
             "SchedulerJob": {
                 "ExchangeSetGenerationSchedule": "0 0 0 * * ?" //Quartz Cron expression for scheduling ExchangeSet generation
-            }
+            },
+            "MaximumProductAge": "28.00:00:00"
         }
     }
 }

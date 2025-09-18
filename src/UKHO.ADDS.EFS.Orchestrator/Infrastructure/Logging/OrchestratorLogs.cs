@@ -2,8 +2,8 @@
 using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.Messages;
 using UKHO.ADDS.EFS.Domain.Products;
+using UKHO.ADDS.EFS.Orchestrator.Api.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
-using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 {
@@ -52,6 +52,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         private const int HealthCheckWarningId = BaseEventId + 30;
         private const int HealthCheckErrorId = BaseEventId + 31;
         private const int HealthCheckFailedStatusCodeId = BaseEventId + 32;
+
+        // S100 Input validation events
+        private const int S100InputValidationFailedId = BaseEventId + 33;
+        private const int S100InputValidationErrorId = BaseEventId + 34;
 
         // An unhandled HTTP error has occurred
         public static readonly EventId UnhandledHttpError = new(UnhandledHttpErrorId, nameof(UnhandledHttpError));
@@ -199,5 +203,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
             
         [LoggerMessage(HealthCheckFailedStatusCodeId, LogLevel.Warning, "Health check for {ServiceName} failed with status code {StatusCode}", EventName = nameof(HealthCheckFailedStatusCode))]
         public static partial void LogHealthCheckFailedStatusCode(this ILogger logger, string serviceName, int statusCode);
+
+        [LoggerMessage(S100InputValidationFailedId, LogLevel.Error, "S100 input validation failed with {@errorResponse}", EventName = nameof(S100InputValidationFailed))]
+        public static partial void S100InputValidationFailed(this ILogger logger, [LogProperties] ErrorResponseModel errorResponse);
+
+        [LoggerMessage(S100InputValidationErrorId, LogLevel.Error, "S100 input validation error for correlation ID: {correlationId}", EventName = nameof(S100InputValidationError))]
+        public static partial void S100InputValidationError(this ILogger logger, string correlationId, Exception exception);
     }
 }

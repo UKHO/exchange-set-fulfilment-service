@@ -92,7 +92,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         //}
 
         [Test]
-        public async Task WhenPerformExecuteAsyncCalledWithNoProductsInContext_ThenReturnNoRun()
+        public async Task WhenPerformExecuteAsyncCalledWithNoProductsInContext_ThenReturnSucceeded()
         {
             _executionContext.Subject.Build.Products = [];
             _executionContext.Subject.Build.ProductEditions = [];
@@ -101,7 +101,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
 
             Assert.Multiple(() =>
             {
-                Assert.That(result.Status, Is.EqualTo(NodeResultStatus.NotRun));
+                Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
                 Assert.That(_executionContext.Subject?.BatchDetails, Is.Null);
             });
         }
