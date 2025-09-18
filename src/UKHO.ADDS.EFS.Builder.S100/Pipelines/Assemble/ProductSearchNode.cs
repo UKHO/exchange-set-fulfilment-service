@@ -46,7 +46,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 var products = context.Subject.Build?.ProductEditions;
                 if (products == null || products.Count() == 0)
                 {
-                    return NodeResultStatus.NotRun;
+                    return NodeResultStatus.Succeeded;
                 }
 
                 var batchList = new List<BatchDetails>();
