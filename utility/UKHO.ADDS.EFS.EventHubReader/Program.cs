@@ -4,11 +4,12 @@ using Azure.Messaging.EventHubs.Consumer;
 namespace UKHO.ADDS.EFS.EventHubReader
 {
 
-    internal class Program
+    internal static class Program
     {
-        private static readonly string _connectionString = "";  // TODO: Add event hub connection string
-        private static readonly string _consumerGroup = "";  // TODO: Add consumer group
-        private static readonly string _eventHubLogFolder = @"D:\EventHubLogs";
+        private static readonly string _connectionString = "";  // Add event hub connection string
+        private static readonly string _consumerGroup = "";  // Add consumer group
+        private static readonly string _eventHubLogFolder =
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "EventHubLogs");
 
         public static async Task Main(string[] args)
         {
@@ -20,7 +21,7 @@ namespace UKHO.ADDS.EFS.EventHubReader
             await using var consumer = new EventHubConsumerClient(_consumerGroup, _connectionString);
             var fromTime = DateTimeOffset.UtcNow - TimeSpan.FromMinutes(5);
 
-            var cts = new CancellationTokenSource();
+            using var cts = new CancellationTokenSource();
             Console.CancelKeyPress += (s, e) =>
             {
                 Console.WriteLine("Cancellation requested...");
@@ -49,8 +50,8 @@ namespace UKHO.ADDS.EFS.EventHubReader
             return Path.Combine(_eventHubLogFolder, $"EFS_EventHub_Logs_{timestamp}.txt");
         }
 
-        private static async Task ProcessPartitionsAsync(EventHubConsumerClient consumer,DateTimeOffset fromTime,
-            string logFilePath,CancellationToken cancellationToken)
+        private static async Task ProcessPartitionsAsync(EventHubConsumerClient consumer, DateTimeOffset fromTime,
+            string logFilePath, CancellationToken cancellationToken)
         {
             var partitionIds = await consumer.GetPartitionIdsAsync(cancellationToken);
             Console.WriteLine($"Found {partitionIds.Length} partitions.");
@@ -59,13 +60,16 @@ namespace UKHO.ADDS.EFS.EventHubReader
             {
                 Console.WriteLine($"Processing partition: {partitionId}");
 
-                await foreach (var partitionEvent in consumer.ReadEventsFromPartitionAsync(partitionId,
-                    EventPosition.FromEnqueuedTime(fromTime), cancellationToken))
+                var events = consumer.ReadEventsFromPartitionAsync(partitionId,
+                    EventPosition.FromEnqueuedTime(fromTime), cancellationToken);
+
+                await foreach (var partitionEvent in events)
                 {
-                    if (partitionEvent.Data != null)
+                    var eventData = partitionEvent.Data;
+                    if (eventData != null)
                     {
-                        var eventBody = Encoding.UTF8.GetString(partitionEvent.Data.Body.ToArray());
-                        var logEntry = $"{partitionEvent.Data.EnqueuedTime.LocalDateTime}: {eventBody}\n\n";
+                        var eventBody = Encoding.UTF8.GetString(eventData.Body.ToArray());
+                        var logEntry = $"{eventData.EnqueuedTime.LocalDateTime}: {eventBody}\n\n";
 
                         Console.WriteLine(logEntry);
                         await File.AppendAllTextAsync(logFilePath, logEntry, cancellationToken);

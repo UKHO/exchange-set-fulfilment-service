@@ -62,11 +62,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
                 // Use EventId if available, otherwise fallback to default
                 if (eventId != 0 || !string.IsNullOrEmpty(eventName))
                 {
-                    logger.Log(effectiveLogLevel, new EventId(eventId, eventName), $"{builderName}: {logMessage}");
+                    logger.Log(effectiveLogLevel, new EventId(eventId, eventName), "{BuilderName}: {LogMessage}", builderName, logMessage);
                 }
                 else
                 {
-                    logger.Log(effectiveLogLevel, $"{builderName}: {logMessage}");
+                    logger.Log(effectiveLogLevel, "{BuilderName}: {LogMessage}", builderName, logMessage);
                 }
 #pragma warning restore LOG001
             }
@@ -193,16 +193,27 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
             string? eventName = null;
 
             if (parsedLog.TryGetValue("Properties", out var propertiesValue) &&
-                propertiesValue is JsonElement { ValueKind: JsonValueKind.Object } propertiesElement)
+                propertiesValue is JsonElement { ValueKind: JsonValueKind.Object } propertiesElement &&
+                propertiesElement.TryGetProperty("EventId", out var eventIdObj) &&
+                eventIdObj is JsonElement eventIdElement &&
+                eventIdElement.ValueKind == JsonValueKind.Object)
             {
-                if (propertiesElement.TryGetProperty("EventId", out var eventIdObj) &&
-                    eventIdObj is JsonElement eventIdElement &&
-                    eventIdElement.ValueKind == JsonValueKind.Object)
+                if (eventIdElement.TryGetProperty("Id", out var idElement) && idElement.ValueKind == JsonValueKind.Number)
                 {
-                    if (eventIdElement.TryGetProperty("Id", out var idElement) && idElement.ValueKind == JsonValueKind.Number)
-                        eventId = idElement.GetInt32();
-                    if (eventIdElement.TryGetProperty("Name", out var nameElement) && nameElement.ValueKind == JsonValueKind.String)
-                        eventName = nameElement.GetString();
+                    eventId = idElement.GetInt32();
+                }
+                else
+                {
+                    eventId = 0;
+                }
+
+                if (eventIdElement.TryGetProperty("Name", out var nameElement) && nameElement.ValueKind == JsonValueKind.String)
+                {
+                    eventName = nameElement.GetString();
+                }
+                else
+                {
+                    eventName = null;
                 }
             }
 

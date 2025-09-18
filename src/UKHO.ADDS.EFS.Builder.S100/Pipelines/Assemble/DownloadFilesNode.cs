@@ -229,7 +229,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
                                 if (streamResult.IsFailure(out var error, out var value))
                                 {
-                                    LogFssDownloadFailed(item.batch, item.fileName, error, correlationId);
+                                    LogFssDownloadFailed(item.batch, item.fileName, error);
                                     throw new Exception($"Failed to download {item.fileName}");
                                 }
                             }
@@ -321,7 +321,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             return extension.Equals(H5Extension, StringComparison.OrdinalIgnoreCase);
         }
 
-        private void LogFssDownloadFailed(BatchDetails batch, string fileName, IError error, CorrelationId correlationId)
+        private void LogFssDownloadFailed(BatchDetails batch, string fileName, IError error)
         {
             var downloadFilesLogView = new DownloadFilesLogView
             {
