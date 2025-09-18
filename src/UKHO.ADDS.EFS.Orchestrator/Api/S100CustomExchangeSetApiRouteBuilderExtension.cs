@@ -58,7 +58,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                          var result = await pipeline.RunAsync(httpContext.RequestAborted);
 
-                         return Results.Ok(result.Response);
+                         return Results.Accepted(null, result.Response);
                      }
                      catch (Exception)
                      {
