@@ -13,10 +13,10 @@ public class BuilderStepsAnalyzer
 
         [JsonPropertyName("builderExitCode")]
         public string BuilderExitCode { get; set; } = string.Empty;
-        
+
         // Calculate total elapsed time
         public double TotalElapsedMilliseconds => BuilderSteps.Sum(step => step.ElapsedMilliseconds);
-        
+
         // Calculate total elapsed time in seconds
         public double TotalElapsedSeconds => TotalElapsedMilliseconds / 1000;
     }
@@ -47,7 +47,7 @@ public class BuilderStepsAnalyzer
             {
                 PropertyNameCaseInsensitive = true
             };
-            
+
             return JsonSerializer.Deserialize<BuilderResponse>(json, options);
         }
         catch (JsonException ex)
@@ -64,7 +64,7 @@ public class BuilderStepsAnalyzer
     {
         if (!response.IsSuccessStatusCode)
             return null;
-            
+
         var json = await response.Content.ReadAsStringAsync();
         return ParseBuilderResponse(json);
     }
