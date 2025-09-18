@@ -133,6 +133,47 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                                 return Task.CompletedTask;
                             }
                         };
+                    })
+                    .AddJwtBearer(AuthenticationConstants.AzureB2CScheme, options =>
+                    {
+                        var b2cClientId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppClientId);
+                        var b2cDomain = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppDomain);
+                        var b2cInstance = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppInstance);
+                        var b2cSignUpSignInPolicy = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppSignUpSignInPolicy);
+
+                        if (!string.IsNullOrEmpty(b2cClientId) && !string.IsNullOrEmpty(b2cDomain) &&
+                            !string.IsNullOrEmpty(b2cInstance) && !string.IsNullOrEmpty(b2cSignUpSignInPolicy))
+                        {
+                            options.Audience = b2cClientId;
+                            options.Authority = $"{b2cInstance}{b2cDomain}/{b2cSignUpSignInPolicy}/v2.0/";
+                            options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                            {
+                                ValidateIssuer = true,
+                                ValidateAudience = true,
+                                ValidateLifetime = true,
+                                ValidateIssuerSigningKey = true,
+                                ValidAudiences = [b2cClientId],
+                                ValidIssuers = [$"{b2cInstance}{b2cDomain}/{b2cSignUpSignInPolicy}/v2.0/"]
+                            };
+                            options.Events = new JwtBearerEvents
+                            {
+                                OnChallenge = context =>
+                                {
+                                    if (!context.Response.HasStarted)
+                                    {
+                                        context.Response.StatusCode = 401;
+                                        context.Response.Headers.Append(AuthenticationConstants.OriginHeaderKey, AuthenticationConstants.EfsService);
+                                        context.HandleResponse();
+                                    }
+                                    return Task.CompletedTask;
+                                },
+                                OnAuthenticationFailed = context =>
+                                {
+                                    context.Response.Headers.Append(AuthenticationConstants.OriginHeaderKey, AuthenticationConstants.EfsService);
+                                    return Task.CompletedTask;
+                                }
+                            };
+                        }
                     });
             }
 
@@ -146,6 +187,19 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                     if (!addsEnvironment.IsLocal() && !addsEnvironment.IsDev())
                     {
                         policy.RequireRole(AuthenticationConstants.EfsRole);
+                    }
+                    else
+                    {
+                        // For local and dev environments only, allow anonymous access
+                        policy.RequireAssertion(_ => true);
+                    }
+                })
+                .AddPolicy($"{AuthenticationConstants.AzureB2CScheme}Policy", policy =>
+                {
+                    if (!addsEnvironment.IsLocal() && !addsEnvironment.IsDev())
+                    {
+                        policy.RequireAuthenticatedUser()
+                              .AddAuthenticationSchemes(AuthenticationConstants.AzureB2CScheme);
                     }
                     else
                     {

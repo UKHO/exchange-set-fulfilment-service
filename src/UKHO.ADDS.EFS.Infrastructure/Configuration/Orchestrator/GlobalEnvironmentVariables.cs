@@ -9,5 +9,13 @@
         public const string EfsAppRegClientId = "EFS_APP_REG_CLIENTID";
 
         public const string EfsAppRegTenantId = "EFS_APP_REG_TENANTID";
+
+        public const string EfsB2CAppClientId = "EFS_B2C_APP_CLIENTID";
+
+        public const string EfsB2CAppDomain = "EFS_B2C_APP_DOMAIN";
+
+        public const string EfsB2CAppInstance = "EFS_B2C_APP_INSTANCE";
+
+        public const string EfsB2CAppSignUpSignInPolicy = "EFS_B2C_APP_SIGNUPSIGNINPOLICY";
     }
 }
