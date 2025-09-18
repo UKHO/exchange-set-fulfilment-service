@@ -12,14 +12,14 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
         /// <param name="jobId">The job identifier.</param>
         /// <param name="app">The distributed application instance.</param>
         /// <returns>The file path of the downloaded zip.</returns>
-        public static async Task<string> DownloadExchangeSetAsZipAsync(string jobId, DistributedApplication app)
+        public static async Task<string> DownloadExchangeSetAsZipAsync(string jobId)
         {
-            var httpClientMock = app.CreateHttpClient(ProcessNames.MockService);
+            var httpClientMock = AspireResourceSingleton.App!.CreateHttpClient(ProcessNames.MockService);
             var mockResponse = await httpClientMock.GetAsync($"/_admin/files/FSS/S100-ExchangeSets/V01X01_{jobId}.zip");
             mockResponse.EnsureSuccessStatusCode();
 
             await using var zipStream = await mockResponse.Content.ReadAsStreamAsync();
-            var destinationFilePath = Path.Combine(TestBase.ProjectDirectory!, "out", $"V01X01_{jobId}.zip");
+            var destinationFilePath = Path.Combine(AspireResourceSingleton.ProjectDirectory!, "out", $"V01X01_{jobId}.zip");
 
             // Ensure the directory exists
             var destinationDirectory = Path.GetDirectoryName(destinationFilePath);
