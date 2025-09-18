@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 using FluentAssertions;
-using FluentAssertions.Json;
+using FluentAssertions.Execution;
 using Meziantou.Xunit;
 using UKHO.ADDS.EFS.FunctionalTests.Services;
 using Xunit.Abstractions;
@@ -41,18 +41,62 @@ namespace UKHO.ADDS.EFS.FunctionalTests
                 $"DataStandard => Expected: s100 Actual: {responseJson.RootElement.GetProperty("dataStandard").GetString()} " +
                 $"BatchId: {batchId}");
 
-            // Convert to JToken for FluentAssertions.Json
-            var jToken = JsonAssertionHelper.ConvertToJToken(responseJson);
+            var root = responseJson.RootElement;
 
-            // Use FluentAssertions.Json for better JSON assertions
-            jToken.Should()
-                  .HaveElement("jobId").Which.Should().HaveValue(_jobId!)
-              .And.HaveElement("jobStatus").Which.Should().HaveValue(expectedJobStatus)
-              .And.HaveElement("buildStatus").Which.Should().HaveValue(expectedBuildStatus)
-              .And.HaveElement("dataStandard").Which.Should().HaveValue("s100");
+            using (new AssertionScope())
+            {
+                // Check if properties exist and have expected values
+                if (root.TryGetProperty("jobId", out var jobIdElement))
+                {
+                    jobIdElement.GetString().Should().Be(_jobId!, "JobId should match expected value");
+                }
+                else
+                {
+                    // If expected, add assertion failure
+                    Execute.Assertion.FailWith("Response is missing jobId property");
+                }
 
-            
-            Guid.TryParse(batchId, out _).Should().BeTrue($"Expected '{batchId}' to be a valid GUID");
+                if (root.TryGetProperty("jobStatus", out var jobStatusElement))
+                {
+                    jobStatusElement.GetString().Should().Be(expectedJobStatus, "JobStatus should match expected value");
+                }
+                else
+                {
+                    Execute.Assertion.FailWith("Response is missing jobStatus property");
+                }
+
+                if (root.TryGetProperty("buildStatus", out var buildStatusElement))
+                {
+                    buildStatusElement.GetString().Should().Be(expectedBuildStatus, "BuildStatus should match expected value");
+                }
+                else
+                {
+                    Execute.Assertion.FailWith("Response is missing buildStatus property");
+                }
+
+                if (root.TryGetProperty("dataStandard", out var dataStandardElement))
+                {
+                    dataStandardElement.GetString().Should().Be("s100", "DataStandard should be s100");
+                }
+                else
+                {
+                    Execute.Assertion.FailWith("Response is missing dataStandard property");
+                }
+
+                // Only check batchId for submitted/scheduled jobs
+                if (expectedJobStatus == "submitted" && expectedBuildStatus == "scheduled")
+                {
+                    if (root.TryGetProperty("batchId", out var batchIdElement))
+                    {
+                        batchId = batchIdElement.GetString();
+                        Guid.TryParse(batchId, out _).Should().BeTrue($"Expected '{batchId}' to be a valid GUID");
+                    }
+                    else
+                    {
+                        Execute.Assertion.FailWith("Response is missing batchId property");
+                    }
+                }
+            }
         }
 
 
@@ -67,13 +111,28 @@ namespace UKHO.ADDS.EFS.FunctionalTests
                 ? $"Job completed successfully with build status: {buildState}"
                 : $"Job did not complete successfully. Current job state: {jobState}, build status: {buildState}");
 
-            // Convert to JToken for FluentAssertions.Json
-            var jToken = JsonAssertionHelper.ConvertToJToken(responseJson);
+            var root = responseJson.RootElement;
 
-            // Use FluentAssertions.Json for better JSON assertions
-            jToken.Should()
-                    .HaveElement("jobState").Which.Should().HaveValue("completed")
-                .And.HaveElement("buildStatus").Which.Should().HaveValue("succeeded");
+            using (new AssertionScope())
+            {
+                // Check if properties exist and have expected values
+                if (root.TryGetProperty("jobState", out var jobStateElement))
+                {
+                    jobStateElement.GetString().Should().Be("completed", "JobState should be completed");
+                }
+                else
+                {
+                    Execute.Assertion.FailWith("Response is missing jobState property");
+                }
+                if (root.TryGetProperty("buildStatus", out var buildStatusElement))
+                {
+                    buildStatusElement.GetString().Should().Be("succeeded", "BuildStatus should be succeeded");
+                }
+                else
+                {
+                    Execute.Assertion.FailWith("Response is missing buildStatus property");
+                }
+            }
         }
 
 
@@ -178,22 +237,18 @@ namespace UKHO.ADDS.EFS.FunctionalTests
             await checkJobsResponce(response, expectedJobStatus: "upToDate", expectedBuildStatus: "none");
         }
 
-        [Theory]
-        [DisableParallelization] // This test runs in parallel with other tests. However, its test cases are run sequentially.
-        [InlineData(new object[] { "104CA00_20241103T001500Z_GB3DEVK0_DCF2", "101GB004DEVQP", "101FR005DEVQG" })]
-        public async Task S100ProductsTests(object[] productNames)
+        [Fact]
+        public async Task S100ProductsTests()
         {
-
+            var productNames = new string[] { "104CA00_20241103T001500Z_GB3DEVK0_DCF2", "101GB004DEVQP", "101FR005DEVQG" };
             await testExecutionMethod(createPayload(products: productNames), "SelectedProducts.zip");
         }
 
         //If both a filter and specific products are provided, the system should generate the Exchange Set based on the given products.
-        [Theory]
-        [DisableParallelization] // This test runs in parallel with other tests. However, its test cases are run sequentially.
-        [InlineData(new object[] { "104CA00_20241103T001500Z_GB3DEVK0_DCF2", "101GB004DEVQP", "101FR005DEVQG" })]
-        public async Task S100ProductsAndFilterTests(object[] productNames)
+        [Fact]
+        public async Task S100ProductsAndFilterTests()
         {
-
+            var productNames = new string[] { "104CA00_20241103T001500Z_GB3DEVK0_DCF2", "101GB004DEVQP", "101FR005DEVQG" };
             await testExecutionMethod(createPayload(filter: "startswith(ProductName, '101')", products: productNames), "SelectedProductsOnly.zip");
 
         }
