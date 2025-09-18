@@ -68,10 +68,45 @@ namespace UKHO.ADDS.EFS.Domain.Jobs
         public BatchId BatchId { get; set; }
 
         /// <summary>
+        /// The expiry date and time for the exchange set URL
+        /// </summary>
+        public DateTime ExchangeSetUrlExpiryDateTime { get; set; }
+
+        /// <summary>
+        /// Number of products explicitly requested
+        /// </summary>
+        public ProductCount RequestedProductCount { get; set; } = ProductCount.None;
+
+        /// <summary>
+        /// Number of products that have data included in the produced Exchange Set
+        /// </summary>
+        public ProductCount ExchangeSetProductCount { get; set; } = ProductCount.None;
+
+        /// <summary>
+        /// Number of requested products that are already up to date
+        /// </summary>
+        public ProductCount RequestedProductsAlreadyUpToDateCount { get; set; } = ProductCount.None;
+
+        /// <summary>
+        /// Products that were requested but not included in the exchange set
+        /// </summary>
+        public MissingProductList RequestedProductsNotInExchangeSet { get; set; } = new();
+
+        /// <summary>
         ///     Gets the correlation ID for the job.
         /// </summary>
         /// <remarks>This is always the Job ID.</remarks>
         /// <returns></returns>
         public CorrelationId GetCorrelationId() => CorrelationId.From((string)Id);
+
+        /// <summary>
+        /// The URI to be called back when the job is completed.
+        /// </summary>
+        public CallbackUri CallbackUri { get; init; }
+
+        /// <summary>
+        /// The identifier for the product associated with the job, if applicable.
+        /// </summary>
+        public DataStandardProduct ProductIdentifier { get; init; }
     }
 }

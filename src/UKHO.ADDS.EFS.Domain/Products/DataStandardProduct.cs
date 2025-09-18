@@ -30,6 +30,7 @@ namespace UKHO.ADDS.EFS.Domain.Products
         public static DataStandardProduct S130 => DataStandardProduct.From((int)DataStandardProductType.S130);
         public static DataStandardProduct S131 => DataStandardProduct.From((int)DataStandardProductType.S131);
         public static DataStandardProduct S164 => DataStandardProduct.From((int)DataStandardProductType.S164);
+        public static DataStandardProduct Undefined => DataStandardProduct.From((int)DataStandardProductType.Undefined);
 
         public DataStandardProductType AsEnum => (DataStandardProductType)Value;
 

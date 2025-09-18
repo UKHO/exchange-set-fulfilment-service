@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -31,6 +31,7 @@
     <ProjectReference Include="..\..\mock\repo\src\UKHO.ADDS.Mocks.Client\UKHO.ADDS.Mocks.Client.csproj" />
     <ProjectReference Include="..\..\src\UKHO.ADDS.EFS.Orchestrator\UKHO.ADDS.EFS.Orchestrator.csproj" />
     <ProjectReference Include="..\UKHO.ADDS.EFS.UnitTests\UKHO.ADDS.EFS.UnitTests.csproj" />
+    <ProjectReference Include="..\..\src\UKHO.ADDS.EFS.Domain\UKHO.ADDS.EFS.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>

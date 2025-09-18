@@ -53,5 +53,20 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Middleware
                 Assert.That(_httpContext.Response.ContentType, Is.EqualTo("application/json; charset=utf-8"));
             });
         }
+
+        [Test]
+        public async Task WhenBadHttpRequestExceptionIsThrown_ThenReturnsBadRequest()
+        {
+            A.CallTo(() => _next.Invoke(_httpContext))
+                .Throws(new BadHttpRequestException("Test bad request exception"));
+
+            await _middleware.InvokeAsync(_httpContext);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(_httpContext.Response.StatusCode, Is.EqualTo((int)HttpStatusCode.BadRequest));
+                Assert.That(_httpContext.Response.ContentType, Is.EqualTo("application/json; charset=utf-8"));
+            });
+        }
     }
 }

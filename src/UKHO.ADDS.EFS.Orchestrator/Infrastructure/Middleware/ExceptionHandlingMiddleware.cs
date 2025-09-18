@@ -28,10 +28,35 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Middleware
             {
                 await HandleExceptionAsync(httpContext, exception, exception.Message, exception.MessageArguments);
             }
+            catch (BadHttpRequestException exception)
+            {
+                await HandleBadRequestAsync(httpContext, exception, "requestBody", "Either body is null or malformed.");
+            }
             catch (Exception exception)
             {
                 await HandleExceptionAsync(httpContext, exception, exception.Message);
             }
+        }
+
+        private async Task HandleBadRequestAsync(HttpContext httpContext, Exception exception, string source, string description)
+        {
+            httpContext.Response.ContentType = ApiHeaderKeys.ContentType;
+            httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+
+            _logger.LogUnhandledHttpError(description, exception);
+
+            var correlationId = httpContext.GetCorrelationId();
+            var errorResponse = new
+            {
+                correlationId,
+                errors = new[]
+                {
+                    new { source, description }
+                }
+            };
+
+            httpContext.Response.Headers.Append(ApiHeaderKeys.OriginHeaderKey, "EFS Orchestrator");
+            await httpContext.Response.WriteAsJsonAsync(errorResponse);
         }
 
         private async Task HandleExceptionAsync(HttpContext httpContext, Exception exception, string message, params object[] messageArgs)

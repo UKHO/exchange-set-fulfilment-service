@@ -4,6 +4,7 @@ using UKHO.ADDS.EFS.Domain.Builds.S100;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Domain.Services;
+using UKHO.ADDS.EFS.Orchestrator.Api.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
@@ -55,7 +56,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 ]
             };
 
-            _pipelineContext = new PipelineContext<S100Build>(_job, _build, _storageService);
+            _pipelineContext = new PipelineContext<S100Build>(_job, _build, _storageService, RequestType.Internal);
             A.CallTo(() => _executionContext.Subject).Returns(_pipelineContext);
         }
 
@@ -97,7 +98,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 ]
             };
 
-            var pipelineContext = new PipelineContext<S100Build>(job, build, _storageService);
+            var pipelineContext = new PipelineContext<S100Build>(job, build, _storageService, RequestType.Internal);
             A.CallTo(() => _executionContext.Subject).Returns(pipelineContext);
 
             var result = await _filterProductsNode.ShouldExecuteAsync(_executionContext);
@@ -125,7 +126,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 ]
             };
 
-            var pipelineContext = new PipelineContext<S100Build>(job, build, _storageService);
+            var pipelineContext = new PipelineContext<S100Build>(job, build, _storageService, RequestType.Internal);
             A.CallTo(() => _executionContext.Subject).Returns(pipelineContext);
 
             var result = await _filterProductsNode.ShouldExecuteAsync(_executionContext);
@@ -150,7 +151,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 Products = []
             };
 
-            var pipelineContext = new PipelineContext<S100Build>(job, build, _storageService);
+            var pipelineContext = new PipelineContext<S100Build>(job, build, _storageService, RequestType.Internal);
             A.CallTo(() => _executionContext.Subject).Returns(pipelineContext);
 
             var result = await _filterProductsNode.ShouldExecuteAsync(_executionContext);
@@ -175,7 +176,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 Products = null
             };
 
-            var pipelineContext = new PipelineContext<S100Build>(job, build, _storageService);
+            var pipelineContext = new PipelineContext<S100Build>(job, build, _storageService, RequestType.Internal);
             A.CallTo(() => _executionContext.Subject).Returns(pipelineContext);
 
             var result = await _filterProductsNode.ShouldExecuteAsync(_executionContext);
@@ -206,7 +207,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 ]
             };
 
-            _pipelineContext = new PipelineContext<S100Build>(_job, _build, _storageService);
+            _pipelineContext = new PipelineContext<S100Build>(_job, _build, _storageService, RequestType.Internal);
             A.CallTo(() => _executionContext.Subject).Returns(_pipelineContext);
 
             var originalProductCount = _build.Products!.Count();

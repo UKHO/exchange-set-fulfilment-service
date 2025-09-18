@@ -1,4 +1,6 @@
 ﻿using System.Text.Json;
+using Azure.Identity;
+using FluentValidation;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Any;
@@ -21,6 +23,7 @@ using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
 using UKHO.ADDS.EFS.Orchestrator.Schedule;
 using UKHO.ADDS.EFS.Orchestrator.Services;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
+using UKHO.ADDS.EFS.Orchestrator.Validators.S100;
 
 namespace UKHO.ADDS.EFS.Orchestrator
 {
@@ -35,6 +38,11 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             builder.Services.Configure<JsonOptions>(options => JsonCodec.DefaultOptions.CopyTo(options.SerializerOptions));
 
+            // Add FluentValidation
+            builder.Services.AddValidatorsFromAssemblyContaining<S100ProductNamesRequestValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<S100ProductVersionsRequestValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<S100UpdateSinceRequestValidator>();
+
             builder.AddAzureQueueServiceClient(StorageConfiguration.QueuesName);
             builder.AddAzureTableServiceClient(StorageConfiguration.TablesName);
             builder.AddAzureBlobServiceClient(StorageConfiguration.BlobsName);
@@ -45,10 +53,15 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.ConfigureOpenApi();
 
             builder.Services.AddTransient<IAssemblyPipelineFactory, AssemblyPipelineFactory>();
+            builder.Services.AddTransient<AssemblyPipelineNodeFactory>();
             builder.Services.AddTransient<IAssemblyPipelineNodeFactory, AssemblyPipelineNodeFactory>();
 
             builder.Services.AddTransient<ICompletionPipelineFactory, CompletionPipelineFactory>();
             builder.Services.AddTransient<ICompletionPipelineNodeFactory, CompletionPipelineNodeFactory>();
+
+            builder.Services.AddTransient<IS100ProductNamesRequestValidator, S100ProductNamesRequestValidator>();
+            builder.Services.AddTransient<IS100ProductVersionsRequestValidator, S100ProductVersionsRequestValidator>();
+            builder.Services.AddTransient<IS100UpdateSinceRequestValidator, S100UpdateSinceRequestValidator>();
 
             builder.Services.AddSingleton<IPipelineContextFactory<S100Build>, PipelineContextFactory<S100Build>>();
             builder.Services.AddSingleton<IPipelineContextFactory<S63Build>, PipelineContextFactory<S63Build>>();

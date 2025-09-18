@@ -1,11 +1,11 @@
-﻿using UKHO.ADDS.Clients.Common.Constants;
-using UKHO.ADDS.EFS.Domain.Files;
-using UKHO.ADDS.EFS.Domain.Jobs;
-using UKHO.ADDS.EFS.Domain.Products;
+﻿using FluentValidation.Results;
+using UKHO.ADDS.Clients.Common.Constants;
 using UKHO.ADDS.EFS.Orchestrator.Api.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
-using UKHO.ADDS.EFS.Orchestrator.Api.Models;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Extensions;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
+using UKHO.ADDS.EFS.Orchestrator.Validators.S100;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Api
 {
@@ -26,27 +26,90 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
             // POST /v2/exchangeSet/s100/productNames
             exchangeSetEndpoint.MapPost("/productNames", async (
-                List<string> productNames,
+                List<string> productNamesRequest,
                 IConfiguration configuration,
                 IAssemblyPipelineFactory pipelineFactory,
                 HttpContext httpContext,
+                IS100ProductNamesRequestValidator productNameValidator,
                 string? callbackUri = null) =>
-            {
-                return Results.Accepted(null, CreateResponse(productNames.Count, 4, 1)); // Temporary response for demonstration purposes
-            })
+                 {
+                     try
+                     {
+                         var correlationId = httpContext.GetCorrelationId();
+
+                         if (productNamesRequest == null || productNamesRequest.Count == 0)
+                         {
+                             return BadRequestForMalformedBody(correlationId.ToString(), logger);
+                         }
+                         else
+                         {
+                             var validationResult = await productNameValidator.ValidateAsync((productNamesRequest, callbackUri));
+                             var validationResponse = HandleValidationResult(validationResult, logger, (string)correlationId);
+                             if (validationResponse != null)
+                             {
+                                 return validationResponse;
+                             }
+                         }
+
+                         var parameters = AssemblyPipelineParameters.CreateFromS100ProductNames(productNamesRequest!, configuration, (string)correlationId, callbackUri);
+                         var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
+
+                         logger.LogAssemblyPipelineStarted(parameters);
+
+                         var result = await pipeline.RunAsync(httpContext.RequestAborted);
+
+                         return Results.Accepted(null, result.Response);
+                     }
+                     catch (Exception)
+                     {
+                         throw;
+                     }
+                 })
             .Produces<CustomExchangeSetResponse>(202)
             .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", Guid.NewGuid().ToString("N"))
             .WithDescription("Provide all the latest releasable baseline data for a specified set of S100 Products.");
 
             // POST /v2/exchangeSet/s100/productVersions
             exchangeSetEndpoint.MapPost("/productVersions", async (
-                List<ProductVersionsRequest> productVersions,
+                List<ProductVersionRequest> productVersionsRequest,
                 IConfiguration configuration,
                 IAssemblyPipelineFactory pipelineFactory,
                 HttpContext httpContext,
+                IS100ProductVersionsRequestValidator productVersionsRequestValidator,
                 string? callbackUri = null) =>
             {
-                return Results.Accepted(null, CreateResponse(productVersions.Count, 5, 1)); // Temporary response for demonstration purposes
+                try
+                {
+                    var correlationId = httpContext.GetCorrelationId();
+
+                    if (productVersionsRequest == null || productVersionsRequest.Count == 0)
+                    {
+                        return BadRequestForMalformedBody(correlationId.ToString(), logger);
+                    }
+                    else
+                    {
+                        // Validate input
+                        var validationResult = await productVersionsRequestValidator.ValidateAsync((productVersionsRequest, callbackUri));
+                        var validationResponse = HandleValidationResult(validationResult, logger, (string)correlationId);
+                        if (validationResponse != null)
+                        {
+                            return validationResponse;
+                        }
+                    }
+
+                    var parameters = AssemblyPipelineParameters.CreateFromS100ProductVersions(productVersionsRequest!, configuration, (string)correlationId, callbackUri);
+                    var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
+
+                    logger.LogAssemblyPipelineStarted(parameters);
+
+                    var result = await pipeline.RunAsync(httpContext.RequestAborted);
+
+                    return Results.Accepted(null, result.Response);
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
             })
             .Produces<CustomExchangeSetResponse>(202)
             .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", Guid.NewGuid().ToString("N"))
@@ -54,14 +117,38 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
             // POST /v2/exchangeSet/s100/updatesSince
             exchangeSetEndpoint.MapPost("/updatesSince", async (
-                UpdatesSinceRequest request,
+                UpdatesSinceRequest updatesSinceRequest,
                 IConfiguration configuration,
                 IAssemblyPipelineFactory pipelineFactory,
                 HttpContext httpContext,
+                IS100UpdateSinceRequestValidator updateSinceRequestValidator,
                 string? callbackUri = null,
                 string? productIdentifier = null) =>
             {
-                return Results.Accepted(null, CreateResponse(7, 6, 1));  // Temporary response for demonstration purposes
+                try
+                {
+                    var correlationId = httpContext.GetCorrelationId();
+
+                    var validationResult = await updateSinceRequestValidator.ValidateAsync((updatesSinceRequest!, callbackUri, productIdentifier));
+                    var validationResponse = HandleValidationResult(validationResult, logger, (string)correlationId);
+                    if (validationResponse != null)
+                    {
+                        return validationResponse;
+                    }
+
+                    var parameters = AssemblyPipelineParameters.CreateFromS100UpdatesSince(updatesSinceRequest!, configuration, (string)correlationId, productIdentifier, callbackUri);
+                    var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
+
+                    logger.LogAssemblyPipelineStarted(parameters);
+
+                    var result = await pipeline.RunAsync(httpContext.RequestAborted);
+
+                    return Results.Accepted(null, result.Response);
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
             })
             .Produces<CustomExchangeSetResponse>(202)
             .Produces(304)
@@ -69,36 +156,47 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             .WithDescription("Provide all the releasable S100 data after a datetime.");
         }
 
-        // Temporary method to create a response for demonstration purposes.
-        private static CustomExchangeSetResponse CreateResponse(
-            int requestedProductCount,
-            int exchangeSetProductCount,
-            int requestedProductsAlreadyUpToDateCount)
+        static IResult HandleValidationResult(ValidationResult validationResult, ILogger logger, string correlationId)
         {
-            var batchId = BatchId.From(Guid.NewGuid().ToString("N")); // Simulate batch ID for demonstration purposes
-
-            return new CustomExchangeSetResponse
+            if (!validationResult.IsValid)
             {
-                Links = new ExchangeSetLinks
+                var errorResponse = new ErrorResponseModel
                 {
-                    ExchangeSetBatchStatusUri = new Link { Uri = new Uri($"https://fss.ukho.gov.uk/batch/{batchId}/status") },
-                    ExchangeSetBatchDetailsUri = new Link { Uri = new Uri($"https://fss.ukho.gov.uk/batch/{batchId}") },
-                    ExchangeSetFileUri = new Link { Uri = new Uri($"https://fss.ukho.gov.uk/batch/{batchId}/files/exchangeset.zip") }
-                },
-                ExchangeSetUrlExpiryDateTime = DateTime.UtcNow.AddDays(7), // TODO: Get from configuration
-                RequestedProductCount = ProductCount.From(requestedProductCount),
-                ExchangeSetProductCount = ProductCount.From(exchangeSetProductCount),
-                RequestedProductsAlreadyUpToDateCount = ProductCount.From(requestedProductsAlreadyUpToDateCount),
-                RequestedProductsNotInExchangeSet =
-                [
-                    new MissingProduct()
+                    CorrelationId = correlationId,
+                    Errors = validationResult.Errors
+                        .Select(e => new ErrorDetail
                         {
-                            ProductName = ProductName.From("101GB40079ABCDEFG"),
-                            Reason = MissingProductReason.InvalidProduct
-                        }
-                ],
-                FssBatchId = batchId
+                            Source = e.PropertyName,
+                            Description = e.ErrorMessage
+                        })
+                        .ToList()
+                };
+
+                var validationErrors = validationResult.Errors.Select(error => $"{error.ErrorMessage}").ToList();
+
+                logger.S100InputValidationFailed(errorResponse);
+
+                return Results.BadRequest(errorResponse);
+            }
+            return null;
+        }
+
+        private static IResult BadRequestForMalformedBody(string correlationId, ILogger logger)
+        {
+            var errorResponse = new ErrorResponseModel
+            {
+                CorrelationId = correlationId.ToString(),
+                Errors = new List<ErrorDetail>
+                {
+                    new()
+                    {
+                        Source = "requestBody",
+                        Description = "Either body is null or malformed."
+                    }
+                }
             };
+            logger.S100InputValidationFailed(errorResponse);
+            return Results.BadRequest(errorResponse);
         }
     }
 }

@@ -1,4 +1,7 @@
 ﻿using Azure.Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Kiota.Abstractions.Authentication;
 using Microsoft.Kiota.Authentication.Azure;
@@ -36,7 +39,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
             collection.AddSingleton<IRepository<S100Build>, S100BuildRepository>();
             collection.AddSingleton<IRepository<S63Build>, S63BuildRepository>();
             collection.AddSingleton<IRepository<S57Build>, S57BuildRepository>();
-            
+
             collection.AddSingleton<IRepository<DataStandardTimestamp>, DataStandardTimestampRepository>();
             collection.AddSingleton<IRepository<Job>, JobRepository>();
             collection.AddSingleton<IRepository<BuildMemento>, BuildMementoRepository>();
@@ -48,6 +51,9 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
             collection.AddSingleton<IHashingService, DefaultHashingService>();
             collection.AddSingleton<IStorageService, DefaultStorageService>();
             collection.AddSingleton<ITimestampService, DefaultTimestampService>();
+
+            // Configure authentication
+            collection.AddAuthentication(addsEnvironment);
 
             var efsClientId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsClientId);
 
@@ -89,6 +95,64 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
             });
 
             collection.AddSingleton<IFileService, DefaultFileService>();
+
+            return collection;
+        }
+
+        private static IServiceCollection AddAuthentication(this IServiceCollection collection, AddsEnvironment addsEnvironment)
+        {
+            if (!addsEnvironment.IsLocal() && !addsEnvironment.IsDev())
+            {
+                collection.AddAuthentication(AuthenticationConstants.AzureAdScheme)
+                    .AddJwtBearer(AuthenticationConstants.AzureAdScheme, options =>
+                    {
+                        var clientId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsAppRegClientId);
+                        var tenantId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsAppRegTenantId);
+
+                        options.Audience = clientId;
+                        options.Authority = $"{AuthenticationConstants.MicrosoftLoginUrl}{tenantId}";
+                        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                        {
+                            ValidateIssuer = true,
+                            ValidateAudience = true,
+                            ValidateLifetime = true,
+                            ValidateIssuerSigningKey = true,
+                            ValidAudiences = [clientId],
+                            ValidIssuers = [$"{AuthenticationConstants.MicrosoftLoginUrl}{tenantId}"]
+                        };
+                        options.Events = new JwtBearerEvents
+                        {
+                            OnForbidden = context =>
+                            {
+                                context.Response.Headers.Append(AuthenticationConstants.OriginHeaderKey, AuthenticationConstants.EfsService);
+                                return Task.CompletedTask;
+                            },
+                            OnAuthenticationFailed = context =>
+                            {
+                                context.Response.Headers.Append(AuthenticationConstants.OriginHeaderKey, AuthenticationConstants.EfsService);
+                                return Task.CompletedTask;
+                            }
+                        };
+                    });
+            }
+
+            collection.AddAuthorizationBuilder()
+                .SetDefaultPolicy(new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .AddAuthenticationSchemes(AuthenticationConstants.AzureAdScheme)
+                    .Build())
+                .AddPolicy(AuthenticationConstants.EfsRole, policy =>
+                {
+                    if (!addsEnvironment.IsLocal() && !addsEnvironment.IsDev())
+                    {
+                        policy.RequireRole(AuthenticationConstants.EfsRole);
+                    }
+                    else
+                    {
+                        // For local and dev environments only, allow anonymous access
+                        policy.RequireAssertion(_ => true);
+                    }
+                });
 
             return collection;
         }

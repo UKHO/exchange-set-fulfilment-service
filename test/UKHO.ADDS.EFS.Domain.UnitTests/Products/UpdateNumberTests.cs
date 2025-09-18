@@ -30,14 +30,14 @@ namespace UKHO.ADDS.EFS.Domain.UnitTests.Products
         public void From_Negative_ThrowsValidationException_WithHelpfulMessage()
         {
             var ex = Assert.Throws<ValidationException>(() => UpdateNumber.From(-1));
-            Assert.Contains("UpdateNumber must be >= 0", ex.Message, StringComparison.Ordinal);
+            Assert.Contains("must be zero or a positive integer", ex.Message, StringComparison.Ordinal);
         }
 
         [Fact]
         public void From_IntMinValue_ThrowsValidationException()
         {
             var ex = Assert.Throws<ValidationException>(() => UpdateNumber.From(int.MinValue));
-            Assert.Contains("UpdateNumber must be >= 0", ex.Message, StringComparison.Ordinal);
+            Assert.Contains("must be zero or a positive integer", ex.Message, StringComparison.Ordinal);
         }
 
         [Fact]
