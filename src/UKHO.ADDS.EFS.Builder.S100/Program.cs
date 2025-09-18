@@ -50,7 +50,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
                     exitCode = BuilderExitCode.Failed;
                 }
 
-                if (exitCode != BuilderExitCode.Success || string.IsNullOrEmpty(pipelineContext.JobId.ToString()))
+                if (exitCode != BuilderExitCode.Success)
                 {
                     return (int)exitCode;
                 }
@@ -156,7 +156,7 @@ namespace UKHO.ADDS.EFS.Builder.S100
 
             var nodeResultLogView = new NodeResultLogView
             {
-                BatchId = subject.BatchId.ToString(),
+                BatchId = subject.BatchId,
                 BuildNodeStatuses = [.. subject.Statuses],
                 Status = nodeResult.Status,
                 Exception = nodeResult.Exception,

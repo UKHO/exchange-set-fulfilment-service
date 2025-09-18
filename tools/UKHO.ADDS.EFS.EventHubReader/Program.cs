@@ -7,7 +7,7 @@ namespace UKHO.ADDS.EFS.EventHubReader
     internal static class Program
     {
         private static readonly string _connectionString = "";  // Add event hub connection string
-        private static readonly string _consumerGroup = "";  // Add consumer group
+        private static readonly string _consumerGroup = "";   // Add consumer group
         private static readonly string _eventHubLogFolder =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "EventHubLogs");
 
