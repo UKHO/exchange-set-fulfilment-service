@@ -1,4 +1,6 @@
 {
     "$schema": "https://xunit.net/schema/current/xunit.runner.schema.json",
-    "preEnumerateTheories": true
+    "preEnumerateTheories": true,
+    "parallelizeTestCollections": true,
+    "parallelizeAssembly": true
 }

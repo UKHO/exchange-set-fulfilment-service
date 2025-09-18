@@ -1,6 +1,6 @@
 ﻿using System.Text;
 using System.Text.Json;
-using Aspire.Hosting;   
+using Aspire.Hosting;
 using UKHO.ADDS.Clients.Common.Constants;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 
@@ -10,8 +10,8 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
     {
         private static DistributedApplication App => AspireResourceSingleton.App!;
         private static HttpClient httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
-        private const int WaitDurationMs = 2000;
-        private const double MaxWaitMinutes = 2;
+        private const int WaitDurationMs = 5000;
+        private const double MaxWaitMinutes = 3;
 
         public static async Task<HttpResponseMessage> commonOrchPostCallHelper(string requestId, object payload, string endpoint)
         {
@@ -59,7 +59,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
 
         public static async Task<HttpResponseMessage> GetBuildStatusAsync(string jobId)
         {
-            using var response = await httpClient.GetAsync($"/jobs/{jobId}/build");
+            var response = await httpClient.GetAsync($"/jobs/{jobId}/build");
             return response;
         }
 

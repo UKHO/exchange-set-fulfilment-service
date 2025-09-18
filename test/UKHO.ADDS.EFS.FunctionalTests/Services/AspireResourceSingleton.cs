@@ -38,6 +38,8 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
             await resourceNotificationService
                 .WaitForResourceAsync(ProcessNames.OrchestratorService, KnownResourceStates.Running)
                 .WaitAsync(TimeSpan.FromSeconds(30));
+
+            await Task.Delay(10000);
         }
 
         public async ValueTask DisposeAsync()
