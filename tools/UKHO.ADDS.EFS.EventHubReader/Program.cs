@@ -3,7 +3,7 @@ using Azure.Messaging.EventHubs.Consumer;
 
 namespace UKHO.ADDS.EFS.EventHubReader
 {
-
+    // NOTE: This file is for local testing only and should not be committed to source control.
     internal static class Program
     {
         private static readonly string _connectionString = "";  // Add event hub connection string
