@@ -21,15 +21,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Schedule
         private IAssemblyPipeline _assemblyPipeline;
         private ITrigger _trigger;
 
-        private static readonly JobId TestCorrelationId = JobId.From("job-12345678-1234-1234-1234-123456789abc");
-        private static AssemblyPipelineResponse CreateExpectedResponse() => new()
-        {
-            JobId = TestCorrelationId,
-            JobStatus = JobState.Completed,
-            BuildStatus = BuildState.Succeeded,
-            DataStandard = DataStandard.S100,
-            BatchId = BatchId.From("test-batch-id")
-        };
+        private static AssemblyPipelineResponse CreateExpectedResponse(JobId? jobId = null, JobState jobStatus = JobState.Completed,
+            BuildState buildStatus = BuildState.Succeeded, DataStandard dataStandard = DataStandard.S100, BatchId? batchId = null) => new()
+            {
+                JobId = jobId ?? JobId.From("job-12345678-1234-1234-1234-123456789abc"),
+                JobStatus = JobState.Completed,
+                BuildStatus = BuildState.Succeeded,
+                DataStandard = DataStandard.S100,
+                BatchId = BatchId.From("test-batch-id")
+            };
 
         [SetUp]
         public void SetUp()
@@ -176,9 +176,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Schedule
                 .MustHaveHappenedOnceExactly();
         }
 
-        [Test]
-        public async Task WhenExecuteAsyncIsCalledMultipleTimes_ThenGeneratesUniqueCorrelationIds()
+        [TestCase("local")]
+        [TestCase("dev")]
+        [TestCase("vni")]
+        [TestCase("vne")]
+        [TestCase("iat")]
+        public async Task WhenExecuteAsyncIsCalledMultipleTimes_ThenGeneratesUniqueCorrelationIds(string environment)
         {
+            Environment.SetEnvironmentVariable("adds-environment", environment);
             var expectedResponse = CreateExpectedResponse();
 
             A.CallTo(() => _assemblyPipeline.RunAsync(A<CancellationToken>._))

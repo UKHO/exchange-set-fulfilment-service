@@ -1,5 +1,6 @@
 ﻿using Quartz;
 using Serilog.Context;
+using UKHO.ADDS.Aspire.Configuration;
 using UKHO.ADDS.EFS.Domain.Constants;
 using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.Messages;
@@ -35,7 +36,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Schedule
         /// <returns>Task representing the asynchronous job execution.</returns>
         public async Task Execute(IJobExecutionContext context)
         {
-            var correlationId = CorrelationId.From($"{CorrelationIdPrefix}{Guid.NewGuid():N}");
+            var correlationId = GenerateCorrelationId();
 
             // Properly push correlation ID to Serilog LogContext for the entire request
             using (LogContext.PushProperty(LogProperties.CorrelationId, correlationId))
@@ -44,12 +45,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Schedule
                 {
                     _logger.LogSchedulerJobStarted(correlationId, DateTime.UtcNow);
 
-                var message = new JobRequestApiMessage
-                {
-                    DataStandard = DataStandard.S100,
-                    Products = [],
-                    Filter = ""
-                };
+                    var message = new JobRequestApiMessage
+                    {
+                        DataStandard = DataStandard.S100,
+                        Products = [],
+                        Filter = ""
+                    };
 
                     var parameters = AssemblyPipelineParameters.CreateFrom(message, _config, correlationId);
                     var pipeline = _pipelineFactory.CreateAssemblyPipeline(parameters);
@@ -68,5 +69,20 @@ namespace UKHO.ADDS.EFS.Orchestrator.Schedule
             }
         }
 
+        /// <summary>
+        /// Generate CorrelationId with environment-based prefix for easier identification in logs.
+        /// </summary>
+        /// <returns>CorrelationId</returns>
+        private static CorrelationId GenerateCorrelationId()
+        {
+            var addsEnvironment = AddsEnvironment.GetEnvironment();
+            var usePrefix = addsEnvironment.IsLocal() || addsEnvironment.IsDev();
+
+            var correlationIdValue = usePrefix
+                ? $"{CorrelationIdPrefix}{Guid.NewGuid():N}"
+                : $"{Guid.NewGuid():N}";
+
+            return CorrelationId.From(correlationIdValue);
+        }
     }
 }
