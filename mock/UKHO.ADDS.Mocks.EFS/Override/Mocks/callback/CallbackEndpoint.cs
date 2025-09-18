@@ -1,4 +1,4 @@
-using UKHO.ADDS.Mocks;
+using UKHO.ADDS.Mocks.Headers;
 using UKHO.ADDS.Mocks.Markdown;
 using UKHO.ADDS.Mocks.States;
 
@@ -10,8 +10,9 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.callback
     public class CallbackEndpoint : ServiceEndpointMock
     {
         public override void RegisterSingleEndpoint(IEndpointMock endpoint) =>
-            endpoint.MapPost("/callback", async (HttpRequest request) =>
+            endpoint.MapPost("/callback", async (HttpRequest request, HttpResponse response) =>
             {
+                EchoHeaders(request, response, [WellKnownHeader.CorrelationId]);
                 var state = GetState(request);
 
                 switch (state)
@@ -70,9 +71,11 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.callback
                 // Create the callback responses directory if it doesn't exist
                 fileSystem.CreateDirectory("/Callback-Responses");
 
-                // Generate a unique filename for the callback response
-                var timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss_fff");
-                var callbackFileName = $"callback_{timestamp}.json";
+                // Generate a unique filename for the callback response - handle missing correlation ID like UploadBlockEndpoint
+                var correlationId = request.Headers.TryGetValue(WellKnownHeader.CorrelationId, out var headerValues)
+                    ? headerValues.FirstOrDefault() ?? "unknown"
+                    : "unknown";
+                var callbackFileName = $"callback_{correlationId}_{DateTime.UtcNow:yyyyMMdd_HHmmss}.txt";
                 var filePath = "/Callback-Responses/" + callbackFileName;
 
                 // Open file for writing like UploadBlockEndpoint does
@@ -84,10 +87,6 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.callback
                 file.Flush();
 
                 // Log the file save operation
-                var correlationId = request.Headers.TryGetValue("x-correlation-id", out var headerValues)
-                    ? headerValues.FirstOrDefault() ?? "unknown"
-                    : "unknown";
-
                 Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ss.fffZ}] Saved callback AC response to FileShare Service:");
                 Console.WriteLine($"File: {filePath}, CorrelationId: {correlationId}");
                 Console.WriteLine($"Content length: {content.Length} characters");

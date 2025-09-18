@@ -1,10 +1,12 @@
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using UKHO.ADDS.Clients.Common.Constants;
 using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Services;
 using UKHO.ADDS.EFS.Infrastructure.Models.CloudEvents;
+using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Infrastructure.Services
 {
@@ -38,14 +40,8 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                     Time = DateTime.UtcNow,
                     Data = responseData
                 };
-
-                var json = JsonSerializer.Serialize(cloudEvent, new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    WriteIndented = false
-                });
-
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                
+                var content = new StringContent(JsonCodec.Encode(cloudEvent), Encoding.UTF8, ApiHeaderKeys.ContentTypeJson);
 
                 _logger.LogInformation("Sending callback notification to {CallbackUri} for correlation ID {CorrelationId}", callbackUri.Value, correlationId);
 
