@@ -77,6 +77,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
             var sourceZipPath = Path.Combine(ProjectDirectory!, "TestData", "SelectedProducts.zip");
 
             ZipStructureComparer.CompareZipFilesExactMatch(sourceZipPath, exchangeSetDownloadPath, products);
+            await Task.Delay(500);
         }
 
         //If both a filter and specific products are provided, the system should generate the Exchange Set based on the given products.
@@ -100,6 +101,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
             var sourceZipPath = Path.Combine(ProjectDirectory!, "TestData", "SelectedProductsOnly.zip");
 
             ZipStructureComparer.CompareZipFilesExactMatch(sourceZipPath, exchangeSetDownloadPath, products);
+            await Task.Delay(500);
         }
     }
 }
