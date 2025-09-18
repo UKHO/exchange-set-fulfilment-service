@@ -93,6 +93,11 @@ namespace UKHO.ADDS.EFS.Domain.Jobs
         public MissingProductList RequestedProductsNotInExchangeSet { get; set; } = new();
 
         /// <summary>
+        /// The original request type for S100 endpoints
+        /// </summary>
+        public RequestType RequestType { get; init; }
+
+        /// <summary>
         ///     Gets the correlation ID for the job.
         /// </summary>
         /// <remarks>This is always the Job ID.</remarks>
