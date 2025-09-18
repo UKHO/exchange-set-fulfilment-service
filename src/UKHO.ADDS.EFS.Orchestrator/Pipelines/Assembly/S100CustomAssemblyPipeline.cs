@@ -1,5 +1,8 @@
-﻿using UKHO.ADDS.EFS.Domain.Builds.S100;
+﻿using UKHO.ADDS.Aspire.Configuration.Remote;
+using UKHO.ADDS.EFS.Domain.Builds.S100;
 using UKHO.ADDS.EFS.Domain.Files;
+using UKHO.ADDS.EFS.Domain.Services;
+using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Orchestrator.Api.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api.Models;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100;
@@ -10,9 +13,23 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly
 {
     internal class S100CustomAssemblyPipeline : AssemblyPipeline<S100Build>
     {
-        public S100CustomAssemblyPipeline(AssemblyPipelineParameters parameters, IAssemblyPipelineNodeFactory nodeFactory, IPipelineContextFactory<S100Build> contextFactory, ILogger<S100CustomAssemblyPipeline> logger)
-    : base(parameters, nodeFactory, contextFactory, logger)
+        private readonly IExternalServiceRegistry _externalServiceRegistry;
+        private readonly IConfiguration _configuration;
+        private readonly IFileNameGeneratorService _fileNameGeneratorService;
+
+        public S100CustomAssemblyPipeline(
+            AssemblyPipelineParameters parameters, 
+            IAssemblyPipelineNodeFactory nodeFactory, 
+            IPipelineContextFactory<S100Build> contextFactory, 
+            ILogger<S100CustomAssemblyPipeline> logger,
+            IExternalServiceRegistry externalServiceRegistry,
+            IConfiguration configuration,
+            IFileNameGeneratorService fileNameGeneratorService)
+            : base(parameters, nodeFactory, contextFactory, logger)
         {
+            _externalServiceRegistry = externalServiceRegistry;
+            _configuration = configuration;
+            _fileNameGeneratorService = fileNameGeneratorService;
         }
 
         public override async Task<AssemblyPipelineResponse> RunAsync(CancellationToken cancellationToken)
@@ -21,7 +38,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly
 
             AddPipelineNode<CreateJobNode>(cancellationToken);
             AddPipelineNode<GetDataStandardTimestampNode>(cancellationToken);
-            AddPipelineNode<CreateResponseNode>(cancellationToken);
+            AddPipelineNode<GetS100ProductNamesNode>(cancellationToken);
+
+            AddPipelineNode<CheckFingerprintNode>(cancellationToken);
+            AddPipelineNode<CreateFileShareBatchNode>(cancellationToken);
+            AddPipelineNode<ScheduleBuildNode>(cancellationToken);
+            AddPipelineNode<CreateFingerprintNode>(cancellationToken);
 
             var result = await Pipeline.ExecuteAsync(context);
 
@@ -42,20 +64,23 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly
             return await ContextFactory.CreatePipelineContext(Parameters);
         }
 
-        private static CustomExchangeSetResponse CreateResponseFromContext(
+        private CustomExchangeSetResponse CreateResponseFromContext(
             PipelineContext<S100Build> context)
         {
+            var fssEndpoint = _externalServiceRegistry.GetServiceEndpoint(ProcessNames.FileShareService);
+            var baseUri = fssEndpoint.Uri.ToString().TrimEnd('/');
+            
+            // Get the exchange set name template from configuration
+            var exchangeSetNameTemplate = _configuration["orchestrator:Builders:S100:ExchangeSetNameTemplate"]!;
+            var fileName = _fileNameGeneratorService.GenerateFileName(exchangeSetNameTemplate, context.Job.Id);
 
-            // Dummy links
+            // Create links using the endpoint from the registry
             var links = new ExchangeSetLinks
             {
-                ExchangeSetBatchStatusUri = new Link { Uri = new Uri($"http://fss.ukho.gov.uk/batch/{context.Job.BatchId}/status") },
-                ExchangeSetBatchDetailsUri = new Link { Uri = new Uri($"http://fss.ukho.gov.uk/batch/{context.Job.BatchId}") },
-                ExchangeSetFileUri = new Link { Uri = new Uri($"http://fss.ukho.gov.uk/batch/{context.Job.BatchId}/files/exchangeset.zip") }
+                ExchangeSetBatchStatusUri = new Link { Uri = new Uri($"{baseUri}/batch/{context.Job.BatchId}/status") },
+                ExchangeSetBatchDetailsUri = new Link { Uri = new Uri($"{baseUri}/batch/{context.Job.BatchId}") },
+                ExchangeSetFileUri = new Link { Uri = new Uri($"{baseUri}/batch/{context.Job.BatchId}/files/{fileName}") }
             };
-
-            // Dummy missing products list
-            var missingProducts = context.Job.RequestedProductsNotInExchangeSet;
 
             return new CustomExchangeSetResponse
             {
@@ -64,7 +89,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly
                 RequestedProductCount = context.Job.RequestedProductCount,
                 ExchangeSetProductCount = context.Job.ExchangeSetProductCount,
                 RequestedProductsAlreadyUpToDateCount = context.Job.RequestedProductsAlreadyUpToDateCount,
-                RequestedProductsNotInExchangeSet = missingProducts,
+                RequestedProductsNotInExchangeSet = context.Job.RequestedProductsNotInExchangeSet,
                 FssBatchId = context.Job.BatchId
             };
         }

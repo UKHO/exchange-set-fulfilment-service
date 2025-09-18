@@ -46,6 +46,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
             RequestedProducts = Products,
             RequestedFilter = Filter,
             BatchId = BatchId.None,
+            RequestType = RequestType,
             CallbackUri = CallbackUri,
             ProductIdentifier = ProductIdentifier
         };
