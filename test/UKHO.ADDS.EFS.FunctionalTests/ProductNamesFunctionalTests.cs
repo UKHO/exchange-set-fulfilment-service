@@ -30,9 +30,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         [InlineData(new string[] { "111CA00_20241217T001500Z_GB3DEVQ0_DCF2", "104CA00_20241103T001500Z_GB3DEVK0_DCF2" }, "https://valid.com/callback", "MultipleProducts.zip")]   // Test Case 245610 - Product Names (multiple products) Node Integration
         public async Task ValidateProductNamesNodeInCustomAssemblyPipeline(string[] productNames, string? callbackUri, string zipFileName)
         {
-            //var httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
-            var httpClient = new HttpClient();
-            httpClient.BaseAddress = new Uri("https://localhost:58215");
+            var httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
 
             var jobId = await OrchestratorCommands.ProductNamesInCustomAssemblyPipelineSubmitJobAsync(httpClient, callbackUri, productNames);
 
