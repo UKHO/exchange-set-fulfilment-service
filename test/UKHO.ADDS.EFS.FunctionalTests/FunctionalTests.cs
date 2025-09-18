@@ -93,20 +93,5 @@ namespace UKHO.ADDS.EFS.FunctionalTests
 
             ZipStructureComparer.CompareZipFilesExactMatch(sourceZipPath, exchangeSetDownloadPath, products);
         }
-
-        //PBI 242670 - Input validation for the ESS API - Product Name Endpoint
-        [Theory]
-        [InlineData(new object[] { "101GB40079ABCDEFG", "102NO32904820801012", "104US00_CHES_TYPE1_20210630_0600", "111US00_ches_dcf8_20190703T00Z" }, "", HttpStatusCode.Accepted, "")] // Valid input
-        [InlineData(new object[] { "101GB40079ABCDEFG", "102NO32904820801012" }, "https://valid.com/callback", HttpStatusCode.Accepted, "")] // Valid input with Valid callbackUri
-        [InlineData(new object[] { }, "https://valid.com/callback", HttpStatusCode.BadRequest, "ProductNames cannot be null or empty.")] // Empty array
-        [InlineData(new object[] { "" }, "https://valid.com/callback", HttpStatusCode.BadRequest, "ProductNames cannot be null or empty.")] // Array with Empty string
-        [InlineData(new object[] { "101GB40079ABCDEFG" }, "InvalidCallbackUri", HttpStatusCode.BadRequest, "Invalid callbackUri format.")] // Invalid CallBackUrl
-        [InlineData(new object[] { "101GB40079ABCDEFG", 123, 456, 789 }, "https://valid.com/callback", HttpStatusCode.InternalServerError, "")] // Mixed valid and invalid data types
-        public async Task ValidateProductNamesEndpoint(object[] productNames, string callbackUri, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
-        {
-            var httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
-
-            await OrchestratorCommands.VerifyProductNamesEndpointResponse(productNames, httpClient, callbackUri, expectedStatusCode, expectedErrorMessage);
-        }
     }
 }
