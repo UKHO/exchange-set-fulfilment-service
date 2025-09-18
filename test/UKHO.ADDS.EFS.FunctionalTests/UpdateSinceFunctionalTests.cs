@@ -10,8 +10,6 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         [InlineData("https://valid.com/callback", "s101", HttpStatusCode.Accepted, "")] // Test Case 244582 - Valid Format
         public async Task ValidateUpdateSinceEndpointWithValidDates(string callbackUri, string productIdentifier, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
         {
-            var httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
-
             var sinceDateTime = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
 
             await OrchestratorCommands.VerifyUpdateSinceEndpointResponse(sinceDateTime, callbackUri,
@@ -25,8 +23,6 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         [InlineData("null", "https://valid.com/callback", "s101", HttpStatusCode.BadRequest, "Provided updatesSince is either invalid or invalid format, the valid format is 'ISO 8601 format' (e.g. '2025-09-29T00:00:00Z')")] // Test Case 246905 - Null sinceDateTime
         public async Task ValidateUpdateSinceEndPointWithInvalidDates(string sinceDateTime, string callbackUri, string productIdentifier, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
         {
-            var httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
-
             await OrchestratorCommands.VerifyUpdateSinceEndpointResponse(sinceDateTime, callbackUri,
                 productIdentifier, httpClient, expectedStatusCode, expectedErrorMessage);
         }
@@ -36,8 +32,6 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         [InlineData("", "s102", HttpStatusCode.Accepted, "")] // Test Case 244585 -  Valid input with blank CallBack Uri
         public async Task ValidateUpdateSinceEndpointWithInvalidAndBlankCallBackUri(string callbackUri, string productIdentifier, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
         {
-            var httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
-
             var sinceDateTime = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
 
             await OrchestratorCommands.VerifyUpdateSinceEndpointResponse(sinceDateTime, callbackUri,
@@ -48,8 +42,6 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         [InlineData("https://valid.com/callback", "SABC", HttpStatusCode.BadRequest, "productIdentifier must be exactly 4 characters: start with 'S' or 's' followed by three digits, with no spaces or extra characters")] // Test Case 244907 - Invalid Product Identifier Format
         public async Task ValidateUpdateSinceEndpointWithInvalidProductIdentifier(string callbackUri, string productIdentifier, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
         {
-            var httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
-
             var sinceDateTime = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
 
             await OrchestratorCommands.VerifyUpdateSinceEndpointResponse(sinceDateTime, callbackUri,
@@ -63,8 +55,6 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         [InlineData(1, "https://valid.com/callback", "s111", HttpStatusCode.BadRequest, "UpdateSince date cannot be a future date")] // Test Case 245121 - Future Date
         public async Task ValidateUpdateSinceEndpointWithPastAndFutureDates(int days, string callbackUri, string productIdentifier, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
         {
-            var httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
-
             var sinceDateTime = DateTime.UtcNow.AddDays(days).ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
 
             await OrchestratorCommands.VerifyUpdateSinceEndpointResponse(sinceDateTime, callbackUri,

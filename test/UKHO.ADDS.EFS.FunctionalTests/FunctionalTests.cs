@@ -35,6 +35,9 @@ namespace UKHO.ADDS.EFS.FunctionalTests
             await OrchestratorCommands.WaitForJobCompletionAsync(httpClient, jobId);
 
             await OrchestratorCommands.VerifyBuildStatusAsync(httpClient, jobId);
+            //rhz: add a delay for testing purpose
+            await Task.Delay(1000);
+            _output.WriteLine($"Job {jobId} completed successfully.");
 
             var exchangeSetDownloadPath = await ZipStructureComparer.DownloadExchangeSetAsZipAsync(jobId, httpClientMock);
             var sourceZipPath = Path.Combine(ProjectDirectory!, "TestData", zipFileName);
