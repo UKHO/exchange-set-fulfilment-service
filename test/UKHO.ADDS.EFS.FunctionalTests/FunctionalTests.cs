@@ -31,7 +31,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         public async Task S100FilterTests(string filter, string zipFileName)
         {
             var jobId = await OrchestratorCommands.SubmitJobAsync(httpClient, filter);
-            _output.WriteLine($"Submitted job with ID: {jobId} for filter: {filter}");
+            _output.WriteLine($"S100FilterTest Submitted job with ID: {jobId} for filter: {filter}");
 
             await OrchestratorCommands.WaitForJobCompletionAsync(httpClient, jobId);
 
@@ -39,12 +39,13 @@ namespace UKHO.ADDS.EFS.FunctionalTests
 
             //rhz: add a delay for testing purpose
             await Task.Delay(1000);
-            _output.WriteLine($"Job {jobId} completed successfully.");
+            _output.WriteLine($"S100FilterTest Job {jobId} completed successfully.");
 
             var exchangeSetDownloadPath = await ZipStructureComparer.DownloadExchangeSetAsZipAsync(jobId, httpClientMock);
             var sourceZipPath = Path.Combine(ProjectDirectory!, "TestData", zipFileName);
 
             ZipStructureComparer.CompareZipFilesExactMatch(sourceZipPath, exchangeSetDownloadPath);
+            await Task.Delay(500);
         }
 
         //Negative scenarios
@@ -62,10 +63,15 @@ namespace UKHO.ADDS.EFS.FunctionalTests
             var products = new string[] { "104CA00_20241103T001500Z_GB3DEVK0_DCF2", "101GB004DEVQP", "101FR005DEVQG" };
 
             var jobId = await OrchestratorCommands.SubmitJobAsync(httpClient, products: products);
+            _output.WriteLine($"S100ProductsTests Submitted job with ID: {jobId} ");
 
             await OrchestratorCommands.WaitForJobCompletionAsync(httpClient, jobId);
 
             await OrchestratorCommands.VerifyBuildStatusAsync(httpClient, jobId);
+
+            //rhz: add a delay for testing purpose
+            await Task.Delay(1000);
+            _output.WriteLine($"S100ProductsTests Job {jobId} completed successfully.");
 
             var exchangeSetDownloadPath = await ZipStructureComparer.DownloadExchangeSetAsZipAsync(jobId, httpClientMock);
             var sourceZipPath = Path.Combine(ProjectDirectory!, "TestData", "SelectedProducts.zip");
@@ -80,10 +86,15 @@ namespace UKHO.ADDS.EFS.FunctionalTests
             var products = new string[] { "104CA00_20241103T001500Z_GB3DEVK0_DCF2", "101GB004DEVQP", "101FR005DEVQG" };
 
             var jobId = await OrchestratorCommands.SubmitJobAsync(httpClient, filter: "startswith(ProductName, '101')", products: products);
+            _output.WriteLine($"S100ProductsAndFilterTests Submitted job with ID: {jobId} ");
 
             await OrchestratorCommands.WaitForJobCompletionAsync(httpClient, jobId);
 
             await OrchestratorCommands.VerifyBuildStatusAsync(httpClient, jobId);
+
+            //rhz: add a delay for testing purpose
+            await Task.Delay(1000);
+            _output.WriteLine($"S100ProductsAndFilterTests Job {jobId} completed successfully.");
 
             var exchangeSetDownloadPath = await ZipStructureComparer.DownloadExchangeSetAsZipAsync(jobId, httpClientMock);
             var sourceZipPath = Path.Combine(ProjectDirectory!, "TestData", "SelectedProductsOnly.zip");
