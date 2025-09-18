@@ -150,6 +150,22 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2025-02-02-preview' = {
               name: 'EFS_APP_REG_TENANTID'
               value: efs_app_reg_tenantid
             }
+            {
+              name: 'EFS_B2C_APP_CLIENTID'
+              value: efs_b2c_app_clientid
+            }
+            {
+              name: 'EFS_B2C_APP_DOMAIN'
+              value: efs_b2c_app_domain
+            }
+            {
+              name: 'EFS_B2C_APP_INSTANCE'
+              value: efs_b2c_app_instance
+            }
+            {
+              name: 'AZURE_EFS_B2C_APP_SIGNUP_SIGNIN_POLICY'
+              value: efs_b2c_app_signupsigninpolicy
+            }
           ]
           resources: {
             cpu: json(orchestratorCpu)

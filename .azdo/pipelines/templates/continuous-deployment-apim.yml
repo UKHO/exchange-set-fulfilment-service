@@ -58,5 +58,5 @@ jobs:
             TF_VAR_apim_name: $(APIM_SERVICE_NAME)
             TF_VAR_apim_api_backend_url: $(APIM_API_BACKEND_URL)
             TF_VAR_b2c_token_issuer: "$(APIM_B2C_TOKEN_ISSUER)"
-            TF_VAR_b2c_client_id: "$(APIM_B2C_CLIENT_ID)"
+            TF_VAR_b2c_client_id: "$(AZURE_B2C_CLIENTID)"
 
