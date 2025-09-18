@@ -4,17 +4,16 @@ using Xunit.Abstractions;
 
 namespace UKHO.ADDS.EFS.FunctionalTests
 {
-    [Collection("Startup")]
-    public class ProductNamesFunctionalTests
+    [Collection("Startup Collection")]
+    [EnableParallelization] // Needed to parallelize inside the class, not just between classes
+    public class ProductNamesFunctionalTests : TestBase
     {
-        private readonly ITestOutputHelper _output;
         private string _requestId = "";
         private string _endpoint = "/v2/exchangeSet/s100/productNames";
 
 
-        public ProductNamesFunctionalTests(ITestOutputHelper output)
+        public ProductNamesFunctionalTests(StartupFixture startup, ITestOutputHelper output) : base(startup, output)
         {
-            _output = output;
             _requestId = $"job-productNamesAutoTest-" + Guid.NewGuid();
         }
 
