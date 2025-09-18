@@ -5,6 +5,7 @@ using UKHO.ADDS.EFS.Domain.Services.Storage;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Extensions;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Helper;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 
@@ -39,7 +40,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                     }
             })
             .Produces<AssemblyPipelineResponse>()
-            .WithRequiredHeader("x-correlation-id", "Correlation ID", $"job-{Guid.NewGuid():N}")
+            .WithRequiredHeader("x-correlation-id", "Correlation ID", CorrelationIdGenerator.CreateForScheduler().ToString())
             .WithDescription("Create a job request for the given data standard. To filter (S100) by product type, use the filter property \"startswith(ProductName, '101')\"")
             .WithRequiredAuthorization(AuthenticationConstants.EfsRole);
 
@@ -72,6 +73,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             })
             .WithDescription("Gets the job build memento for the given job id")
             .WithRequiredAuthorization(AuthenticationConstants.EfsRole);
-        }
+        }        
     }
 }

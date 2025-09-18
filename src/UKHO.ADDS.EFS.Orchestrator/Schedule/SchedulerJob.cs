@@ -5,6 +5,7 @@ using UKHO.ADDS.EFS.Domain.Constants;
 using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.Messages;
 using UKHO.ADDS.EFS.Domain.Products;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Helper;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 
@@ -36,7 +37,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Schedule
         /// <returns>Task representing the asynchronous job execution.</returns>
         public async Task Execute(IJobExecutionContext context)
         {
-            var correlationId = GenerateCorrelationId();
+            var correlationId = CorrelationIdGenerator.CreateForScheduler();
 
             // Properly push correlation ID to Serilog LogContext for the entire request
             using (LogContext.PushProperty(LogProperties.CorrelationId, correlationId))
@@ -69,20 +70,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Schedule
             }
         }
 
-        /// <summary>
-        /// Generate CorrelationId with environment-based prefix for easier identification in logs.
-        /// </summary>
-        /// <returns>CorrelationId</returns>
-        private static CorrelationId GenerateCorrelationId()
-        {
-            var addsEnvironment = AddsEnvironment.GetEnvironment();
-            var usePrefix = addsEnvironment.IsLocal() || addsEnvironment.IsDev();
-
-            var correlationIdValue = usePrefix
-                ? $"{CorrelationIdPrefix}{Guid.NewGuid():N}"
-                : $"{Guid.NewGuid():N}";
-
-            return CorrelationId.From(correlationIdValue);
-        }
+        
     }
 }
