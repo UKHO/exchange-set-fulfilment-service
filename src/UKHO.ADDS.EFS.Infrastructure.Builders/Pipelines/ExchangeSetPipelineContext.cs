@@ -61,20 +61,33 @@ namespace UKHO.ADDS.EFS.Infrastructure.Builders.Pipelines
 
         public async Task CompleteBuild(IConfiguration configuration, JsonMemorySink sink, BuilderExitCode exitCode)
         {
-            Build.SetOutputs(Statuses, sink.GetLogLines());
-
-            var queueClient = QueueClientFactory.CreateResponseQueueClient(configuration);
-            var blobClient = BlobClientFactory.CreateBlobClient(configuration, $"{JobId}/{JobId}");
-
-            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(JsonCodec.Encode(Build))))
+            var logger = LoggerFactory.CreateLogger<ExchangeSetPipelineContext<TBuild>>();
+            
+            try
             {
-                await blobClient.UploadAsync(stream, overwrite: true);
+                Build.SetOutputs(Statuses, sink.GetLogLines());
+
+                var queueClient = QueueClientFactory.CreateResponseQueueClient(configuration);
+                var blobClient = BlobClientFactory.CreateBlobClient(configuration, $"{JobId}/{JobId}");
+
+                using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(JsonCodec.Encode(Build))))
+                {
+                    await blobClient.UploadAsync(stream, overwrite: true);
+                }
+
+                var response = new BuildResponse() { JobId = JobId, ExitCode = exitCode };
+
+                await queueClient.SendMessageAsync(JsonCodec.Encode(response));
             }
+            catch (Exception ex)
+            {
+                // Set exit code to failed if the exception occurred and original exit code was success
+                var failedExitCode = exitCode == BuilderExitCode.Success ? BuilderExitCode.Failed : exitCode;
+                logger.LogError(ex, "An unhandled exception occurred during build completion for JobId: {JobId} and exit code:{failedExitCode}", JobId, failedExitCode);
 
-            var response = new BuildResponse() { JobId = JobId, ExitCode = exitCode };
-
-            await queueClient.SendMessageAsync(JsonCodec.Encode(response));
-
+                // Attempt to send failure notification
+                throw;
+            }
         }
     }
 }
