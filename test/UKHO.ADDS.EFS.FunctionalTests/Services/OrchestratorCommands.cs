@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using System.Text.Json;
 using UKHO.ADDS.Clients.Common.Constants;
+using Xunit.Abstractions;
 
 namespace UKHO.ADDS.EFS.FunctionalTests.Services
 {
@@ -103,7 +104,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
         /// <summary>
         /// Verifies the product version endpoint response.
         /// </summary>
-        public static async Task VerifyProductVersionEndpointResponse(string productVersion, string callbackUri, HttpClient httpClient,
+        public static async Task VerifyProductVersionEndpointResponse(ITestOutputHelper output,string productVersion, string callbackUri, HttpClient httpClient,
             HttpStatusCode expectedStatusCode, string expectedErrorMessage, int jobNumber = 1)
         {
             var requestId = $"job-000{jobNumber}-" + Guid.NewGuid();
@@ -121,6 +122,9 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
             if (expectedStatusCode != HttpStatusCode.Accepted && expectedErrorMessage != "")
             {
                 var responseBody = await response.Content.ReadAsStringAsync();
+
+                output.WriteLine($"Response Content: {responseBody}"); //rhz
+
                 Assert.Contains(expectedErrorMessage, responseBody);
             }
         }

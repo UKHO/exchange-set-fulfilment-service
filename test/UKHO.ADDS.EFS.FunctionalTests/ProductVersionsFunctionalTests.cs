@@ -1,11 +1,19 @@
 ﻿using UKHO.ADDS.EFS.FunctionalTests.Services;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
+using Xunit.Abstractions;
 
 namespace UKHO.ADDS.EFS.FunctionalTests
 {
     [Collection("Sequential")]
     public class ProductVersionsFunctionalTests : TestBase
     {
+        private readonly ITestOutputHelper _output;  //rhz
+
+        public ProductVersionsFunctionalTests(ITestOutputHelper output)
+        {
+            _output = output;  //rhz
+        }
+
         //PBI 242767 - Input validation for the ESS API - Product Versions Endpoint
         [Theory]
 
@@ -15,7 +23,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         public async Task ValidateProductVersionsEndpointWithValidInputs(string productVersions, string callbackUri, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
         {
             await Task.Delay(1000);
-            await OrchestratorCommands.VerifyProductVersionEndpointResponse(productVersions, callbackUri,
+            await OrchestratorCommands.VerifyProductVersionEndpointResponse(_output,productVersions, callbackUri,
                         httpClient, expectedStatusCode, expectedErrorMessage, 0);
         }
 
@@ -41,7 +49,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         public async Task ValidateProductVersionsEndpointWithInvalidInputs(string productVersions, string callbackUri, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
         {
             await Task.Delay(1000);
-            await OrchestratorCommands.VerifyProductVersionEndpointResponse(productVersions, callbackUri,
+            await OrchestratorCommands.VerifyProductVersionEndpointResponse(_output,productVersions, callbackUri,
                         httpClient, expectedStatusCode, expectedErrorMessage, 0);
         }
     }
