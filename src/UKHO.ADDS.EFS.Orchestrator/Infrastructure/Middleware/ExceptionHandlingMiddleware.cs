@@ -26,15 +26,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Middleware
             }
             catch (OrchestratorException exception)
             {
-                await HandleExceptionAsync(httpContext, exception, exception.Message, exception.MessageArguments);
+                await HandleExceptionAsync(httpContext, exception, "requestBody", "Either body is null or malformed - 1.");
             }
             catch (BadHttpRequestException exception)
             {
-                await HandleBadRequestAsync(httpContext, exception, "requestBody", "Either body is null or malformed.");
+                await HandleBadRequestAsync(httpContext, exception, "requestBody", "Either body is null or malformed - 2.");
             }
             catch (Exception exception)
             {
-                await HandleExceptionAsync(httpContext, exception, exception.Message);
+                await HandleExceptionAsync(httpContext, exception, "requestBody", "Either body is null or malformed - 3.");
             }
         }
 
