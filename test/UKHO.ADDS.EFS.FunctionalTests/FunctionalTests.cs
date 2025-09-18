@@ -4,6 +4,7 @@ using Xunit.Abstractions;
 
 namespace UKHO.ADDS.EFS.FunctionalTests
 {
+    [Collection("Sequential")]
     public class FunctionalTests : TestBase
     {
         private readonly ITestOutputHelper _output;
@@ -30,7 +31,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         [InlineData("", "WithoutFilter.zip")]
         public async Task S100FilterTests(string filter, string zipFileName)
         {
-            await Task.Delay(500);
+            await Task.Delay(1000);
             var jobId = await OrchestratorCommands.SubmitJobAsync(httpClient, filter);
             _output.WriteLine($"S100FilterTest Submitted job with ID: {jobId} for filter: {filter}");
 
