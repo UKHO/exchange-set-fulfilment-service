@@ -57,8 +57,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         private const int S100InputValidationFailedId = BaseEventId + 33;
         private const int S100InputValidationErrorId = BaseEventId + 34;
 
-        private const int CreateResponseNodeExceptionId = BaseEventId + 35;
-
         // An unhandled HTTP error has occurred
         public static readonly EventId UnhandledHttpError = new(UnhandledHttpErrorId, nameof(UnhandledHttpError));
 
@@ -121,9 +119,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         public static readonly EventId HealthCheckWarning = new(HealthCheckWarningId, nameof(HealthCheckWarning));
         public static readonly EventId HealthCheckError = new(HealthCheckErrorId, nameof(HealthCheckError));
         public static readonly EventId HealthCheckFailedStatusCode = new(HealthCheckFailedStatusCodeId, nameof(HealthCheckFailedStatusCode));
-
-
-        public static readonly EventId CreateResponseNodeException = new(CreateResponseNodeExceptionId, nameof(CreateResponseNodeException));
 
         [LoggerMessage(UnhandledHttpErrorId, LogLevel.Error, "An unhandled exception was caught by the HTTP pipeline: {@message}", EventName = nameof(UnhandledHttpError))]
         public static partial void LogUnhandledHttpError(this ILogger logger, string message, Exception exception);
@@ -214,9 +209,5 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 
         [LoggerMessage(S100InputValidationErrorId, LogLevel.Error, "S100 input validation error for correlation ID: {correlationId}", EventName = nameof(S100InputValidationError))]
         public static partial void S100InputValidationError(this ILogger logger, string correlationId, Exception exception);
-
-        [LoggerMessage(CreateResponseNodeExceptionId, LogLevel.Error, "Exception in CreateResponseNode for correlation ID: {correlationId}", EventName = nameof(CreateResponseNodeException))]
-        public static partial void LogCreateResponseNodeException(this ILogger logger, string correlationId, Exception exception);
-
     }
 }

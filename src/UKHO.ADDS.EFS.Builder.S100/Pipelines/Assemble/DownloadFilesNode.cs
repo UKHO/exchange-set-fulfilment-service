@@ -50,6 +50,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             _downloadFileConcurrencyLimiter = new SemaphoreSlim(_maxConcurrentDownloads);
         }
 
+        public override Task<bool> ShouldExecuteAsync(IExecutionContext<S100ExchangeSetPipelineContext> context)
+        {
+            return Task.FromResult(context.Subject.BatchDetails != null && context.Subject.BatchDetails.Any());
+        }
+
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<S100ExchangeSetPipelineContext> context)
         {
             _logger = context.Subject.LoggerFactory.CreateLogger<DownloadFilesNode>();
@@ -99,8 +104,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             var allFilesToProcess = GetAllFilesToProcess(latestBatches);
             if (allFilesToProcess.Count == 0)
             {
-                _logger.LogDownloadFilesNodeNoFilesToProcessError("No files found for processing");
-                return NodeResultStatus.Failed;
+                // Changed to return Succeeded for empty file lists
+                // This allows the pipeline to continue and generate an empty exchange set
+                _logger.LogDownloadFilesNodeNoFilesToProcessError("No files found for processing, continuing with empty exchange set generation");
+                return NodeResultStatus.Succeeded;
             }
 
             CreateRequiredDirectories(
@@ -229,7 +236,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
                                 if (streamResult.IsFailure(out var error, out var value))
                                 {
-                                    LogFssDownloadFailed(item.batch, item.fileName, error, correlationId);
+                                    LogFssDownloadFailed(item.batch, item.fileName, error);
                                     throw new Exception($"Failed to download {item.fileName}");
                                 }
                             }
@@ -321,13 +328,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             return extension.Equals(H5Extension, StringComparison.OrdinalIgnoreCase);
         }
 
-        private void LogFssDownloadFailed(BatchDetails batch, string fileName, IError error, CorrelationId correlationId)
+        private void LogFssDownloadFailed(BatchDetails batch, string fileName, IError error)
         {
             var downloadFilesLogView = new DownloadFilesLogView
             {
                 BatchId = batch.BatchId,
                 FileName = fileName,
-                CorrelationId = correlationId,
                 Error = error
             };
 

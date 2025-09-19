@@ -15,6 +15,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
     {
         private readonly IProductService _productService;
         private readonly ILogger<GetS100ProductNamesNode> _logger;
+        private const string ExchangeSetExpiresInConfigKey = "orchestrator:Response:ExchangeSetExpiresIn";
 
         public GetS100ProductNamesNode(AssemblyNodeEnvironment nodeEnvironment, IProductService productService, ILogger<GetS100ProductNamesNode> logger)
             : base(nodeEnvironment)
@@ -25,7 +26,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
         public override Task<bool> ShouldExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
         {
-            return Task.FromResult(context.Subject.Job.JobState == JobState.Created);
+            return Task.FromResult(context.Subject.Job.JobState == JobState.Created && (context.Subject.Job.RequestType == RequestType.ProductNames || context.Subject.Job.RequestType == RequestType.Internal));
         }
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
@@ -44,28 +45,33 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                 productNameList.AddRange(build.Products?.Select(p => p.ProductName) ?? []);
             }
 
-            var s100SalesCatalogueData = await _productService.GetProductEditionListAsync(DataStandard.S100, productNameList, job, Environment.CancellationToken);
+            var productEditionList = await _productService.GetProductEditionListAsync(DataStandard.S100, productNameList, job, Environment.CancellationToken);
 
             var nodeResult = NodeResultStatus.NotRun;
 
-            switch (s100SalesCatalogueData.ResponseCode)
+            switch (productEditionList.ResponseCode)
             {
                 case HttpStatusCode.OK:
 
-                    if (s100SalesCatalogueData.ProductCountSummary.ReturnedProductCount == 0)
-                    {
-                        await context.Subject.SignalAssemblyError();
-                        _logger.LogSalesCatalogueProductsNotReturned(s100SalesCatalogueData.ProductCountSummary);
-                        return NodeResultStatus.Failed;
-                    }
-
                     // Log any requested products that weren't returned, but don't fail the build
-                    if (s100SalesCatalogueData.ProductCountSummary.MissingProducts.HasProducts)
+                    if (productEditionList.ProductCountSummary.MissingProducts.HasProducts)
                     {
-                        _logger.LogSalesCatalogueProductsNotReturned(s100SalesCatalogueData.ProductCountSummary);
+                        _logger.LogSalesCatalogueProductsNotReturned(productEditionList.ProductCountSummary);
                     }
 
-                    build.ProductEditions = s100SalesCatalogueData.Products;
+                    build.ProductEditions = productEditionList.Products;
+
+                    if (job.RequestType == RequestType.ProductNames)
+                    {
+                        // Get the exchange set expiry duration from configuration
+                        var expiryTimeSpan = Environment.Configuration.GetValue<TimeSpan>(ExchangeSetExpiresInConfigKey);
+
+                        job.ExchangeSetUrlExpiryDateTime = DateTime.UtcNow.Add(expiryTimeSpan);
+                        job.RequestedProductCount = ProductCount.From(productNameList.Count);
+                        job.ExchangeSetProductCount = productEditionList.Count;
+                        job.RequestedProductsAlreadyUpToDateCount = productEditionList.ProductCountSummary.RequestedProductsAlreadyUpToDateCount;
+                        job.RequestedProductsNotInExchangeSet = productEditionList.ProductCountSummary.MissingProducts;
+                    }
 
                     await context.Subject.SignalBuildRequired();
 

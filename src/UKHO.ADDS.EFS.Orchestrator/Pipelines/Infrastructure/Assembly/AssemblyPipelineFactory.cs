@@ -1,5 +1,4 @@
 ﻿using UKHO.ADDS.EFS.Domain.Products;
-using UKHO.ADDS.EFS.Orchestrator.Api.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly

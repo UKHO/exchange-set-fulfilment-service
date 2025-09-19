@@ -1,8 +1,8 @@
 ﻿using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Domain.Services;
 using UKHO.ADDS.EFS.Domain.Services.Storage;
-using UKHO.ADDS.EFS.Orchestrator.Api.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
 
@@ -44,7 +44,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
                 BuildCommitInfo = new BuildCommitInfo()
             };
 
-            var context = new PipelineContext<TBuild>(job, build, _storageService, parameters.RequestType);
+            var context = new PipelineContext<TBuild>(job, build, _storageService);
 
             return Task.FromResult(context);
         }
@@ -56,7 +56,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
 
             if (jobResult.IsSuccess(out var job) && buildResult.IsSuccess(out var build))
             {
-                return new PipelineContext<TBuild>(job, build, _storageService, RequestType.Internal);
+                return new PipelineContext<TBuild>(job, build, _storageService);
             }
 
             // TODO Tighten up error handling here

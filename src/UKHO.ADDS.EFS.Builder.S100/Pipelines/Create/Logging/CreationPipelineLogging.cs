@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create.Logging
@@ -18,7 +17,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create.Logging
         public static readonly EventId CreationPipelineFailed = new(CreationPipelineFailedId, nameof(CreationPipelineFailed));
 
         [LoggerMessage(CreationPipelineFailedId, LogLevel.Error, "Creation pipeline failed: {@result}", EventName = nameof(CreationPipelineFailed))]
-        public static partial void LogCreationPipelineFailed(this ILogger logger, [LogProperties] NodeResult result);
+        public static partial void LogCreationPipelineFailed(this ILogger logger, [LogProperties] NodeResultLogView result);
 
         // The Add Content ExchangeSet Node Failed
         public static readonly EventId AddContentExchangeSetNodeFailed = new(AddContentExchangeSetNodeFailedId, nameof(AddContentExchangeSetNodeFailed));
