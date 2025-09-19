@@ -48,7 +48,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         [InlineData(" [ { \"productName\": \"101GB40079ABCDEFG\", \"editionNumber\": 7, \"updateNumber\": 10 }, { \"productName\": \"102NO32904820801012\", \"editionNumber\": 0, \"updateNumber\": 0 }, { \"productName\": \"\", \"editionNumber\": 7, \"updateNumber\": -1 }, { \"productName\": \"111US00_ches_dcf8_20190703T00Z\", \"editionNumber\": -1, \"updateNumber\": 0 } ]", "https://valid.com/callback", HttpStatusCode.BadRequest, "ProductName cannot be null or empty")] // Test Case 245047 - Combination of valid and invalid inputs
         public async Task ValidateProductVersionsEndpointWithInvalidInputs(string productVersions, string callbackUri, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
         {
-            await Task.Delay(1000);
+            await Task.Delay(2000);
             await OrchestratorCommands.VerifyProductVersionEndpointResponse(_output,productVersions, callbackUri,
                         httpClient, expectedStatusCode, expectedErrorMessage, 0);
         }

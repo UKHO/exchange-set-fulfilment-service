@@ -17,7 +17,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         [InlineData(new object[] { "101GB40079ABCDEFG", 123, 456, 789 }, "https://valid.com/callback", HttpStatusCode.BadRequest, "Either body is null or malformed")] //Test Case 243659 - Mixed valid and invalid data types
         public async Task ValidateProductNamesEndpoint(object[] productNames, string? callbackUri, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
         {
-            await Task.Delay(1000);
+            await Task.Delay(2000);
             await OrchestratorCommands.VerifyProductNamesEndpointResponse(productNames, httpClient, callbackUri, expectedStatusCode, expectedErrorMessage);
         }
     }
