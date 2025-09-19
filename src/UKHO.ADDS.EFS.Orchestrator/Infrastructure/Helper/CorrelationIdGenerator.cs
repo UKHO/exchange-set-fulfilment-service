@@ -18,7 +18,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Helper
         /// <returns>A new CorrelationId value object.</returns>
         public static CorrelationId CreateForJob()
         {
-            return CreateCorrelationId(JobPrefix, usePrefixForLocal: false);
+            return CreateCorrelationId(JobPrefix);
         }
 
         /// <summary>
@@ -27,7 +27,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Helper
         /// <returns>A new CorrelationId value object.</returns>
         public static CorrelationId CreateForScheduler()
         {
-            return CreateCorrelationId(SchedPrefix, usePrefixForLocal: true);
+            return CreateCorrelationId(SchedPrefix);
         }
 
         /// <summary>
@@ -36,14 +36,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Helper
         /// <param name="prefix">The prefix to use for the correlation ID.</param>
         /// <param name="usePrefixForLocal">If true, always use the prefix; otherwise, only use it for non-local/non-dev.</param>
         /// <returns>A new CorrelationId value object.</returns>
-        private static CorrelationId CreateCorrelationId(string prefix, bool usePrefixForLocal)
+        private static CorrelationId CreateCorrelationId(string prefix)
         {
             var env = AddsEnvironment.GetEnvironment();
             var isLocalOrDev = env.IsLocal() || env.IsDev();
             var guid = Guid.NewGuid();
 
             string value;
-            if ((isLocalOrDev && usePrefixForLocal) || (!isLocalOrDev && !usePrefixForLocal))
+            if ((isLocalOrDev))
             {
                 value = $"{prefix}{guid:N}";
             }

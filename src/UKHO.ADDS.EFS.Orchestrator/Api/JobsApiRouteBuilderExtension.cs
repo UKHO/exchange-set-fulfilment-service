@@ -40,7 +40,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                     }
             })
             .Produces<AssemblyPipelineResponse>()
-            .WithRequiredHeader("x-correlation-id", "Correlation ID", CorrelationIdGenerator.CreateForScheduler().ToString())
+            .WithRequiredHeader("x-correlation-id", "Correlation ID", CorrelationIdGenerator.CreateForJob().ToString())
             .WithDescription("Create a job request for the given data standard. To filter (S100) by product type, use the filter property \"startswith(ProductName, '101')\"")
             .WithRequiredAuthorization(AuthenticationConstants.EfsRole);
 
