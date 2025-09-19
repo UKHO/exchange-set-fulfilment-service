@@ -17,7 +17,8 @@ namespace UKHO.ADDS.Mocks.EFS
                 new StateDefinition("get-allinvalidproducts", "Gets all invalid products - no products returned"),
                 new StateDefinition("get-cancelledproducts", "Gets cancelled products"),
                 new StateDefinition("get-productwithdrawn", "Gets withdrawn products"),
-                new StateDefinition("get-productalreadytuptodate", "Gets up to date products ")
+                new StateDefinition("get-productalreadytuptodate", "Gets up to date products "),
+                new StateDefinition("large-exchange-sets", "Gets large-exchange-sets ")
             ]));
 
             ServiceRegistry.AddDefinitionState("sample", new StateDefinition("get-jpeg", "Gets a JPEG file"));

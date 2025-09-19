@@ -41,6 +41,11 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
 
                         response.GetTypedHeaders().LastModified = DateTime.UtcNow;
                         return await ResponseGenerator.ProvideProductNamesResponse(request, state);
+                        
+                    case "large-exchange-sets":
+
+                        response.GetTypedHeaders().LastModified = DateTime.UtcNow;
+                        return await ResponseGenerator.ProvideProductNamesResponse(request, state);
 
                     case WellKnownState.BadRequest:
                         return ResponseGenerator.CreateBadRequestResponse(request, "Product Names", "Bad Request.");

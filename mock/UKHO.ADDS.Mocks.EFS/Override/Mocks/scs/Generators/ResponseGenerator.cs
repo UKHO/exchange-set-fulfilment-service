@@ -15,6 +15,8 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
         private static readonly int MaxEditionNumber = 15;
         private static readonly int MinFileSize = 2000;
         private static readonly int MaxFileSize = 15000;
+        private static readonly int LargeExchangeSetMinFileSize = 1000000; // 1MB
+        private static readonly int LargeExchangeSetMaxFileSize = 2000000; // 2MB
         private static readonly Random RandomInstance = Random.Shared;
 
         private static readonly string InvalidProduct = "invalidProduct";
@@ -203,7 +205,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
             else if (state == "get-invalidproducts" && requestedProducts.Count > 0)
             {
                 foreach (var productName in requestedProducts.SkipLast(1))
-                    productsArray.Add(GenerateProductJson(productName));
+                    productsArray.Add(GenerateProductJson(productName, state));
 
                 var lastProduct = requestedProducts.Last();
                 notReturnedArray.Add(CreateProductNotReturnedObject(lastProduct, InvalidProduct));
@@ -211,7 +213,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
             else
             {
                 foreach (var productName in requestedProducts)
-                    productsArray.Add(GenerateProductJson(productName));
+                    productsArray.Add(GenerateProductJson(productName, state));
             }
 
             return new JsonObject
@@ -236,10 +238,21 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
             };
         }
 
-        private static JsonObject GenerateProductJson(string productName)
+        private static JsonObject GenerateProductJson(string productName, string state = "")
         {
             var editionNumber = RandomInstance.Next(MinEditionNumber, MaxEditionNumber);
-            var fileSize = RandomInstance.Next(MinFileSize, MaxFileSize);
+            
+            // Determine file size based on state
+            int fileSize;
+            if (state == "large-exchange-sets")
+            {
+                fileSize = RandomInstance.Next(LargeExchangeSetMinFileSize, LargeExchangeSetMaxFileSize);
+            }
+            else
+            {
+                fileSize = RandomInstance.Next(MinFileSize, MaxFileSize);
+            }
+            
             var baseDate = DateTime.UtcNow;
 
             var updateNumbersArray = new JsonArray { 0 };
@@ -447,10 +460,22 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
                 case "get-cancelledproducts" when productCount > 0:
                     ProcessProductsWithLastCancelled(requestedProducts, productsArray);
                     break;
+                    
+                case "large-exchange-sets" when productCount > 0:
+                    ProcessProductsWithLargeFileSize(requestedProducts, productsArray);
+                    break;
 
                 default:
                     ProcessAllProducts(requestedProducts, productsArray);
                     break;
+            }
+        }
+
+        private static void ProcessProductsWithLargeFileSize(List<ProductVersionRequest> requestedProducts, JsonArray productsArray)
+        {
+            foreach (var product in requestedProducts)
+            {
+                productsArray.Add(GenerateProductsVersionsJson(product, largeFileSize: true));
             }
         }
 
@@ -512,10 +537,21 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
             return state == "get-invalidproducts" || state == "get-productwithdrawn";
         }
 
-        private static JsonObject GenerateProductsVersionsJson(ProductVersionRequest productRequest, bool cancelled = false)
+        private static JsonObject GenerateProductsVersionsJson(ProductVersionRequest productRequest, bool cancelled = false, bool largeFileSize = false)
         {
             var editionNumber = productRequest.ProductName.StartsWith("101") ? productRequest.EditionNumber : productRequest.EditionNumber + 1;
-            var fileSize = RandomInstance.Next(MinFileSize, MaxFileSize);
+            
+            // Determine file size based on the largeFileSize parameter
+            int fileSize;
+            if (largeFileSize)
+            {
+                fileSize = RandomInstance.Next(LargeExchangeSetMinFileSize, LargeExchangeSetMaxFileSize);
+            }
+            else
+            {
+                fileSize = RandomInstance.Next(MinFileSize, MaxFileSize);
+            }
+            
             var baseDate = DateTime.UtcNow;
 
             var updateNumbersArray = new JsonArray { 0 };
