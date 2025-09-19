@@ -72,14 +72,14 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 builder.AddRedisDistributedCache(ProcessNames.RedisCache);
 
                 var app = builder.Build();
-
+                app.UseMiddleware<ExceptionHandlingMiddleware>();
                 app.UseSerilogRequestLogging();
 
                 app.MapOpenApi();
                 app.MapScalarApiReference(_ => _.Servers = []); // Stop OpenAPI specifying the wrong port in the generated OpenAPI doc
 
                 app.UseMiddleware<CorrelationIdMiddleware>();
-                app.UseMiddleware<ExceptionHandlingMiddleware>();
+                
 
                 // Add authentication and authorization middleware conditionally
                 var addsEnvironment = AddsEnvironment.GetEnvironment();

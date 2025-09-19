@@ -40,6 +40,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Middleware
 
         private async Task HandleBadRequestAsync(HttpContext httpContext, Exception exception, string source, string description)
         {
+            if (httpContext.Response.HasStarted)
+            {
+                _logger.LogUnhandledHttpError("Response has already started, cannot write error body",exception);
+                return;
+            }
+
             httpContext.Response.ContentType = ApiHeaderKeys.ContentType;
             httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
 
