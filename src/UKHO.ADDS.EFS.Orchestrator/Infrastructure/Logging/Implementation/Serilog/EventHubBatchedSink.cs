@@ -8,10 +8,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Seril
         private readonly EventHubSink _innerSink;
         private bool _disposed;
 
-        public EventHubBatchedSink(IEventHubLog eventHubLog, string environment, string system, string service,
-            string nodeName, Action<IDictionary<string, object>> additionalValuesProvider)
+        public EventHubBatchedSink(IEventHubLog eventHubLog, string environment, string system, string service, Action<IDictionary<string, object>> additionalValuesProvider)
         {
-            _innerSink = new EventHubSink(eventHubLog, environment, system, service, nodeName, additionalValuesProvider);
+            _innerSink = new EventHubSink(eventHubLog, environment, system, service, additionalValuesProvider);
         }
 
         public Task EmitBatchAsync(IEnumerable<LogEvent> batch)
