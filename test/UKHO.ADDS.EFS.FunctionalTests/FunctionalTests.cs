@@ -14,7 +14,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
             _output = output;
         }
 
-        [Theory(Skip = "Disabled temporarily")]
+        [Theory]
         [InlineData("ProductName eq '101GB004DEVQK'", "Single101Product.zip")]
         [InlineData("ProductName eq '102CA005N5040W00130'", "Single102Product.zip")]
         [InlineData("ProductName eq '104CA00_20241103T001500Z_GB3DEVK0_DCF2'", "Single104Product.zip")]
@@ -51,7 +51,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         }
 
         //Negative scenarios
-        [Theory(Skip = "Disabled temporarily")]
+        [Theory]
         [InlineData("startswith(ProductName, '121')")]
         [InlineData("ProductName eq '131GB004DEVQK'")]
         public async Task S100FilterTestsWithInvalidIdentifier(string filter)
@@ -59,7 +59,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
             await OrchestratorCommands.SubmitJobAsync(httpClient, filter, expectedJobStatus: "upToDate", expectedBuildStatus: "none");
         }
 
-        [Fact(Skip = "Disabled temporarily")]
+        [Fact]
         public async Task S100ProductsTests()
         {
             await Task.Delay(500);
@@ -84,7 +84,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         }
 
         //If both a filter and specific products are provided, the system should generate the Exchange Set based on the given products.
-        [Fact(Skip = "Disabled temporarily")]
+        [Fact]
         public async Task S100ProductsAndFilterTests()
         {
             await Task.Delay(500);
