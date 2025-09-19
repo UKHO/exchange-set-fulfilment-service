@@ -31,7 +31,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         [InlineData("", "WithoutFilter.zip")]
         public async Task S100FilterTests(string filter, string zipFileName)
         {
-            await Task.Delay(1000);
+            await Task.Delay(2000);
             var jobId = await OrchestratorCommands.SubmitJobAsync(httpClient, filter);
             _output.WriteLine($"S100FilterTest Submitted job with ID: {jobId} for filter: {filter}");
 
@@ -62,7 +62,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         [Fact]
         public async Task S100ProductsTests()
         {
-            await Task.Delay(500);
+            await Task.Delay(2000);
             var products = new string[] { "104CA00_20241103T001500Z_GB3DEVK0_DCF2", "101GB004DEVQP", "101FR005DEVQG" };
 
             var jobId = await OrchestratorCommands.SubmitJobAsync(httpClient, products: products);
@@ -87,7 +87,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         [Fact]
         public async Task S100ProductsAndFilterTests()
         {
-            await Task.Delay(500);
+            await Task.Delay(2000);
             var products = new string[] { "104CA00_20241103T001500Z_GB3DEVK0_DCF2", "101GB004DEVQP", "101FR005DEVQG" };
 
             var jobId = await OrchestratorCommands.SubmitJobAsync(httpClient, filter: "startswith(ProductName, '101')", products: products);
