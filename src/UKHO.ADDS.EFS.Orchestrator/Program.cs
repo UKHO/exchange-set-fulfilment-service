@@ -11,6 +11,8 @@ using UKHO.ADDS.EFS.Orchestrator.Infrastructure.HealthChecks;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Serilog;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Middleware;
 using UKHO.ADDS.EFS.Orchestrator.Services;
+using Microsoft.AspNetCore.Mvc;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Extensions;
 
 namespace UKHO.ADDS.EFS.Orchestrator
 {
@@ -70,6 +72,23 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 builder.AddServiceDefaults().AddOrchestratorServices();
 
                 builder.AddRedisDistributedCache(ProcessNames.RedisCache);
+
+                // Customize the default API behavior for invalid model states
+                builder.Services.Configure<ApiBehaviorOptions>(options =>
+                {
+                    options.InvalidModelStateResponseFactory = context =>
+                    {
+                        var correlationId = context.HttpContext.GetCorrelationId();
+                        var errorResponse = new
+                        {
+                            correlationId,
+                            errors = context.ModelState
+                                .SelectMany(x => x.Value.Errors.Select(e => new { source = x.Key, description = e.ErrorMessage }))
+                        };
+
+                        return new BadRequestObjectResult(errorResponse);
+                    };
+                });
 
                 var app = builder.Build();
                 app.UseMiddleware<ExceptionHandlingMiddleware>();
