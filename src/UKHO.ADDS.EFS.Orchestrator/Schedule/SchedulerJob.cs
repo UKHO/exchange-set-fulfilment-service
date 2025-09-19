@@ -1,8 +1,6 @@
 ﻿using Quartz;
 using Serilog.Context;
-using UKHO.ADDS.Aspire.Configuration;
 using UKHO.ADDS.EFS.Domain.Constants;
-using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.Messages;
 using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Helper;
@@ -21,7 +19,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Schedule
         private readonly ILogger<SchedulerJob> _logger;
         private readonly IConfiguration _config;
         private readonly IAssemblyPipelineFactory _pipelineFactory;
-        private const string CorrelationIdPrefix = "sched-";
 
         public SchedulerJob(ILogger<SchedulerJob> logger, IConfiguration config, IAssemblyPipelineFactory pipelineFactory)
         {

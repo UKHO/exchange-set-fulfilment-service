@@ -21,19 +21,19 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Schedule
         private IAssemblyPipeline _assemblyPipeline;
         private ITrigger _trigger;
 
-        private static AssemblyPipelineResponse CreateExpectedResponse(JobId? jobId = null, JobState jobStatus = JobState.Completed,
-            BuildState buildStatus = BuildState.Succeeded, DataStandard dataStandard = DataStandard.S100, BatchId? batchId = null) => new()
-            {
-                JobId = jobId ?? JobId.From("job-12345678-1234-1234-1234-123456789abc"),
-                JobStatus = JobState.Completed,
-                BuildStatus = BuildState.Succeeded,
-                DataStandard = DataStandard.S100,
-                BatchId = BatchId.From("test-batch-id")
-            };
+        private static readonly JobId TestCorrelationId = JobId.From("job-12345678-1234-1234-1234-123456789abc");
+        private static AssemblyPipelineResponse CreateExpectedResponse() => new()
+        {
+            JobId = TestCorrelationId,
+            JobStatus = JobState.Completed,
+            BuildStatus = BuildState.Succeeded,
+            DataStandard = DataStandard.S100,
+            BatchId = BatchId.From("test-batch-id")
+        };
 
         [SetUp]
         public void SetUp()
-        {
+        {           
             _logger = A.Fake<ILogger<SchedulerJob>>();
             _config = A.Fake<IConfiguration>();
             _jobExecutionContext = A.Fake<IJobExecutionContext>();
@@ -41,6 +41,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Schedule
             _assemblyPipeline = A.Fake<IAssemblyPipeline>();
             _trigger = A.Fake<ITrigger>();
 
+            Environment.SetEnvironmentVariable("adds-environment", "local");
             A.CallTo(() => _logger.IsEnabled(A<LogLevel>._)).Returns(true);
 
             A.CallTo(() => _jobExecutionContext.Trigger).Returns(_trigger);
@@ -183,26 +184,34 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Schedule
         [TestCase("iat")]
         public async Task WhenExecuteAsyncIsCalledMultipleTimes_ThenGeneratesUniqueCorrelationIds(string environment)
         {
-            Environment.SetEnvironmentVariable("adds-environment", environment);
-            var expectedResponse = CreateExpectedResponse();
+            var previous = Environment.GetEnvironmentVariable("adds-environment");
+            try
+            {
+                Environment.SetEnvironmentVariable("adds-environment", environment);
+                var expectedResponse = CreateExpectedResponse();
 
-            A.CallTo(() => _assemblyPipeline.RunAsync(A<CancellationToken>._))
-                .Returns(Task.FromResult(expectedResponse));
+                A.CallTo(() => _assemblyPipeline.RunAsync(A<CancellationToken>._))
+                    .Returns(Task.FromResult(expectedResponse));
 
-            var capturedCorrelationIds = new List<JobId>();
+                var capturedCorrelationIds = new List<JobId>();
 
-            A.CallTo(() => _assemblyPipelineFactory.CreateAssemblyPipeline(A<AssemblyPipelineParameters>._))
-                .Invokes((AssemblyPipelineParameters parameters) => capturedCorrelationIds.Add(parameters.JobId))
-                .Returns(_assemblyPipeline);
+                A.CallTo(() => _assemblyPipelineFactory.CreateAssemblyPipeline(A<AssemblyPipelineParameters>._))
+                    .Invokes((AssemblyPipelineParameters parameters) => capturedCorrelationIds.Add(parameters.JobId))
+                    .Returns(_assemblyPipeline);
 
-            await _schedulerJob.Execute(_jobExecutionContext);
-            await _schedulerJob.Execute(_jobExecutionContext);
-            await _schedulerJob.Execute(_jobExecutionContext);
+                await _schedulerJob.Execute(_jobExecutionContext);
+                await _schedulerJob.Execute(_jobExecutionContext);
+                await _schedulerJob.Execute(_jobExecutionContext);
 
-            Assert.That(capturedCorrelationIds, Has.Count.EqualTo(3));
-            Assert.That(capturedCorrelationIds[0], Is.Not.EqualTo(capturedCorrelationIds[1]));
-            Assert.That(capturedCorrelationIds[1], Is.Not.EqualTo(capturedCorrelationIds[2]));
-            Assert.That(capturedCorrelationIds[0], Is.Not.EqualTo(capturedCorrelationIds[2]));
+                Assert.That(capturedCorrelationIds, Has.Count.EqualTo(3));
+                Assert.That(capturedCorrelationIds[0], Is.Not.EqualTo(capturedCorrelationIds[1]));
+                Assert.That(capturedCorrelationIds[1], Is.Not.EqualTo(capturedCorrelationIds[2]));
+                Assert.That(capturedCorrelationIds[0], Is.Not.EqualTo(capturedCorrelationIds[2]));
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("adds-environment", previous);
+            }
         }
     }
 }
