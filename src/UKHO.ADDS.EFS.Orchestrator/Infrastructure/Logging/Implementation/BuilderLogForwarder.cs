@@ -50,14 +50,24 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
             var correlationId = ExtractCorrelationId(parsedLog, jobId);
             var mergedLog = new Dictionary<string, object>(parsedLog) { ["server.name"] = builderName };
             var logMessage = ExtractLogMessage(parsedLog);
-
             var effectiveLogLevel = DetermineLogLevel(parsedLog, _replayLevel);
+
+            // Fetch EventId from top-level 
+            var (eventId, eventName) = ExtractEventId(parsedLog);
 
             using (LogContext.PushProperty(LogProperties.CorrelationId, correlationId))
             using (logger.BeginScope(mergedLog))
             {
 #pragma warning disable LOG001
-                logger.Log(effectiveLogLevel, $"{builderName}: {logMessage}");
+                // Use EventId if available, otherwise fallback to default
+                if (eventId != 0 || !string.IsNullOrEmpty(eventName))
+                {
+                    logger.Log(effectiveLogLevel, new EventId(eventId, eventName), "{BuilderName}: {LogMessage}", builderName, logMessage);
+                }
+                else
+                {
+                    logger.Log(effectiveLogLevel, "{BuilderName}: {LogMessage}", builderName, logMessage);
+                }
 #pragma warning restore LOG001
             }
         }
@@ -170,6 +180,44 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation
                 return fallbackMessageElement.GetString() ?? "(no message)";
             }
             return "(no message template)";
-        }
+        }
+
+        /// <summary>
+        /// Extracts the EventId and EventName from the parsed log entry's Properties object, if present.
+        /// </summary>
+        /// <param name="parsedLog">The parsed log entry as a dictionary.</param>
+        /// <returns>Returns a tuple containing the event ID (int) and event name (string).</returns>
+        private static (int eventId, string? eventName) ExtractEventId(Dictionary<string, object> parsedLog)
+        {
+            var eventId = 0;
+            string? eventName = null;
+
+            if (parsedLog.TryGetValue("Properties", out var propertiesValue) &&
+                propertiesValue is JsonElement { ValueKind: JsonValueKind.Object } propertiesElement &&
+                propertiesElement.TryGetProperty("EventId", out var eventIdObj) &&
+                eventIdObj is JsonElement eventIdElement &&
+                eventIdElement.ValueKind == JsonValueKind.Object)
+            {
+                if (eventIdElement.TryGetProperty("Id", out var idElement) && idElement.ValueKind == JsonValueKind.Number)
+                {
+                    eventId = idElement.GetInt32();
+                }
+                else
+                {
+                    eventId = 0;
+                }
+
+                if (eventIdElement.TryGetProperty("Name", out var nameElement) && nameElement.ValueKind == JsonValueKind.String)
+                {
+                    eventName = nameElement.GetString();
+                }
+                else
+                {
+                    eventName = null;
+                }
+            }
+
+            return (eventId, eventName);
+        }
     }
 }

@@ -137,7 +137,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 }
                 else
                 {
-                    LogFssSearchFailed(products, correlationId, filter, limit, start, error);
+                    LogFssSearchFailed(filter, limit, start, error);
 
                     throw new S100BuilderException("An error occurred while executing the ProductSearchNode.");
                 }
@@ -148,7 +148,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             return batchSearchResponse;
         }
 
-        private void LogFssSearchFailed(IEnumerable<BatchProductDetail> products, string correlationId, string filter, int limit, int start, IError error)
+        private void LogFssSearchFailed(string filter, int limit, int start, IError error)
         {
             var searchQuery = new SearchQuery
             {
@@ -158,8 +158,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             };
             var batchSearchProductsLogView = new BatchProductSearchLog
             {
-                BatchProducts = products,
-                CorrelationId = correlationId,
                 BusinessUnit = BusinessUnit,
                 ProductCode = ProductCode,
                 Query = searchQuery,

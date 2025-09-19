@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute.Logging
@@ -19,7 +18,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute.Logging
         public static readonly EventId DistributionPipelineFailed = new(DistributionPipelineFailedId, nameof(DistributionPipelineFailed));
 
         [LoggerMessage(DistributionPipelineFailedId, LogLevel.Error, "Distribution pipeline failed: {@result}", EventName = nameof(DistributionPipelineFailed))]
-        public static partial void LogDistributionPipelineFailed(this ILogger logger, [LogProperties] NodeResult result);
+        public static partial void LogDistributionPipelineFailed(this ILogger logger, [LogProperties] NodeResultLogView result);
 
         // The Add File Node Failed
         public static readonly EventId AddFileNodeFailed = new(AddFileNodeFailedId, nameof(AddFileNodeFailed));

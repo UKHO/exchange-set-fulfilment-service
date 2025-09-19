@@ -57,7 +57,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Seril
 
             // Create the batched sink
             var batchedSink = new EventHubBatchedSink(eventHubLog, options.Environment, options.System, options.Service,
-                options.NodeName, options.AdditionalValuesProvider);
+                options.AdditionalValuesProvider);
 
             var batchingOptions = new PeriodicBatchingSinkOptions
             {
@@ -66,7 +66,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Seril
                 QueueLimit = options.QueueSizeLimit
             };
 
-            return loggerConfiguration.Sink(new PeriodicBatchingSink((IBatchedLogEventSink)batchedSink, batchingOptions),
+            return loggerConfiguration.Sink(new PeriodicBatchingSink(batchedSink, batchingOptions),
                 restrictedToMinimumLevel);
         }
 
@@ -133,11 +133,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Seril
             if (string.IsNullOrEmpty(options.Service))
             {
                 errors.Add(nameof(options.Service));
-            }
-
-            if (string.IsNullOrEmpty(options.NodeName))
-            {
-                errors.Add(nameof(options.NodeName));
             }
 
             if (options.AdditionalValuesProvider == null)
