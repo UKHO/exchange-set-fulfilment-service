@@ -68,8 +68,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Schedule
                     throw;
                 }
             }
-        }
-
-        
+        }        
     }
 }
