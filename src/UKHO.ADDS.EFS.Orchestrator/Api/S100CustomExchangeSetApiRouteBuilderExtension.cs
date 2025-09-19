@@ -69,6 +69,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             .Produces<CustomExchangeSetResponse>(202)
             .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", Guid.NewGuid().ToString("N"))
             .WithDescription("Provide all the latest releasable baseline data for a specified set of S100 Products.")
+            .WithRequiredAuthorization(AuthenticationConstants.EfsRole)
             .WithRequiredAuthorization($"{AuthenticationConstants.AzureB2CScheme}Policy");
 
             // POST /v2/exchangeSet/s100/productVersions
@@ -116,6 +117,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             .Produces<CustomExchangeSetResponse>(202)
             .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", Guid.NewGuid().ToString("N"))
             .WithDescription("Given a set of S100 Product versions (e.g. Edition x Update y) provide any later releasable files.")
+            .WithRequiredAuthorization(AuthenticationConstants.EfsRole)
             .WithRequiredAuthorization($"{AuthenticationConstants.AzureB2CScheme}Policy");
 
             // POST /v2/exchangeSet/s100/updatesSince
@@ -157,6 +159,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             .Produces(304)
             .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", Guid.NewGuid().ToString("N"))
             .WithDescription("Provide all the releasable S100 data after a datetime.")
+            .WithRequiredAuthorization(AuthenticationConstants.EfsRole)
             .WithRequiredAuthorization($"{AuthenticationConstants.AzureB2CScheme}Policy");
         }
 
