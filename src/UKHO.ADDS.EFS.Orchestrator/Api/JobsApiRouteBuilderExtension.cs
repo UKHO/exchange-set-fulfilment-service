@@ -73,6 +73,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             })
             .WithDescription("Gets the job build memento for the given job id")
             .WithRequiredAuthorization(AuthenticationConstants.EfsRole);
-        }        
+        }
     }
 }
