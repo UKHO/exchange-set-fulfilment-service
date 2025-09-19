@@ -9,18 +9,16 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Seril
         private readonly string _environment;
         private readonly string _system;
         private readonly string _service;
-        private readonly string _nodeName;
         private readonly Action<IDictionary<string, object>> _additionalValuesProvider;
         private bool _disposed;
 
-        public EventHubSink(IEventHubLog eventHubLog, string environment, string system, string service, string nodeName,
+        public EventHubSink(IEventHubLog eventHubLog, string environment, string system, string service,
             Action<IDictionary<string, object>> additionalValuesProvider)
         {
             _eventHubLog = eventHubLog ?? throw new ArgumentNullException(nameof(eventHubLog));
             _environment = environment ?? throw new ArgumentNullException(nameof(environment));
             _system = system ?? throw new ArgumentNullException(nameof(system));
             _service = service ?? throw new ArgumentNullException(nameof(service));
-            _nodeName = nodeName ?? throw new ArgumentNullException(nameof(nodeName));
             _additionalValuesProvider = additionalValuesProvider ?? (d => { });
         }
 
@@ -40,7 +38,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Seril
                 { EventHubConstant.Environment, _environment },
                 { EventHubConstant.System, _system },
                 { EventHubConstant.Service, _service },
-                { EventHubConstant.NodeName, _nodeName },
                 { EventHubConstant.ComponentName, logEvent.Properties.ContainsKey("SourceContext")
                                    ? logEvent.Properties["SourceContext"].ToString().Trim('"')
                                    : "Unknown" }
@@ -67,6 +64,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Seril
                 }
             }
 
+            // Extract EventId from logEvent.Properties if present
+            var eventId = ExtractEventIdFromProperties(logEvent.Properties);
+
             // Create log entry
             var logEntry = new LogEntry
             {
@@ -74,6 +74,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Seril
                 Level = logEvent.Level.ToString(),
                 MessageTemplate = logEvent.MessageTemplate.Text,
                 LogProperties = properties,
+                EventId = eventId,
                 Exception = logEvent.Exception
             };
 
@@ -131,6 +132,24 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation.Seril
             using var writer = new StringWriter();
             propertyValue.Render(writer);
             return writer.ToString();
+        }
+
+        private static EventId ExtractEventIdFromProperties(IReadOnlyDictionary<string, LogEventPropertyValue> properties)
+        {
+            if (properties.TryGetValue("EventId", out var eventIdValue) && eventIdValue is StructureValue eventIdStruct)
+            {
+                var id = 0;
+                string? name = null;
+                foreach (var prop in eventIdStruct.Properties)
+                {
+                    if (prop.Name == "Id" && prop.Value is ScalarValue idScalar && idScalar.Value is int intId)
+                        id = intId;
+                    if (prop.Name == "Name" && prop.Value is ScalarValue nameScalar && nameScalar.Value is string strName)
+                        name = strName;
+                }
+                return new EventId(id, name);
+            }
+            return default;
         }
 
         protected virtual void Dispose(bool disposing)

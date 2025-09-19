@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging
 {
@@ -18,7 +17,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup.Logging
         public static readonly EventId StartupPipelineFailed = new(StartupPipelineFailedId, nameof(StartupPipelineFailed));
 
         [LoggerMessage(StartupPipelineFailedId, LogLevel.Error, "Startup pipeline failed: {@result}", EventName = nameof(StartupPipelineFailed))]
-        public static partial void LogStartupPipelineFailed(this ILogger logger, [LogProperties] NodeResult result);
+        public static partial void LogStartupPipelineFailed(this ILogger logger, [LogProperties] NodeResultLogView result);
 
 
         // The build was retrieved
