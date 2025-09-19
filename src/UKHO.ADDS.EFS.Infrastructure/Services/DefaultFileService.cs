@@ -147,7 +147,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
 
             foreach (var batch in validBatches)
             {
-                var expiryResult = await _fileShareReadWriteClient.SetExpiryDateAsync(batch.BatchId, new BatchExpiryModel { ExpiryDate = DateTime.UtcNow }, (string)correlationId, cancellationToken);
+                var expiryResult = await _fileShareReadWriteClient.SetExpiryDateAsync(batch.BatchId, new BatchExpiryModel { ExpiryDate = DateTime.UtcNow.AddDays(2) }, (string)correlationId, cancellationToken);
 
                 if (expiryResult.IsFailure(out var expiryError, out var expiry))
                 {
