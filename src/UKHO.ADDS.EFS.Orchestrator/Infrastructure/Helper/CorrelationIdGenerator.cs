@@ -49,7 +49,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Helper
             }
             else
             {
-                value = $"{prefix}{guid:D}";
+                value = guid.ToString();
             }
 
             return CorrelationId.From(value);
