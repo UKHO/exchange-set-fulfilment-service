@@ -148,5 +148,65 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                 return new ProductEditionList();
             }
         }
+
+        // Pseudocode plan:
+        // 1. Identify the object value you want to call (assume it's a property or method on a parameter or class field).
+        // 2. If it's a property/method on 'job', '_salesCatalogueClient', or another dependency, access it directly in the method.
+        // 3. If you want to log, return, or use the value, assign it to a variable or use it inline.
+        // 4. Example: If you want to log the productIdentifier, add a log statement.
+        // 5. If you want to use a property from 'job', e.g., job.SomeProperty, access it directly.
+
+        public async Task<ProductEditionList> GetS100ProductUpdatesSinceAsync(
+    DateTime sinceDateTime,
+    string productIdentifier,
+    Job job,
+    CancellationToken cancellationToken)
+        {
+            try
+            {
+                var retryPolicy =
+                    HttpRetryPolicyFactory.GetGenericResultRetryPolicy<S100ProductResponse?>(_logger, nameof(GetS100ProductUpdatesSinceAsync));
+
+                var s100ProductUpdatesResult = await retryPolicy.ExecuteAsync(async () =>
+                {
+                    var result = await _salesCatalogueClient.V2.Products.S100.UpdatesSince
+                        .GetAsync(
+                            requestConfiguration =>
+                            {
+                                if (requestConfiguration.QueryParameters is not null)
+                                {
+                                    var queryParams = requestConfiguration.QueryParameters;
+                                    var productIdentifierProp = queryParams.GetType().GetProperty("ProductIdentifier");
+                                    if (productIdentifierProp != null && productIdentifierProp.CanWrite)
+                                    {
+                                        productIdentifierProp.SetValue(queryParams, productIdentifier);
+                                    }
+                                    var sinceProp = queryParams.GetType().GetProperty("Since");
+                                    if (sinceProp != null && sinceProp.CanWrite)
+                                    {
+                                        sinceProp.SetValue(queryParams, sinceDateTime);
+                                    }
+                                }
+                                requestConfiguration.Headers.Add("X-Correlation-Id", (string)job.GetCorrelationId());
+                            },
+                            cancellationToken);
+
+                    return Result.Success(result);
+                });
+
+                if (s100ProductUpdatesResult.IsSuccess(out var response) && response is not null)
+                {
+                    return response.ToDomain();
+                }
+
+                _logger.LogSalesCatalogueApiError(SalesCatalogApiErrorLogView.Create(job));
+                return new ProductEditionList();
+            }
+            catch (ApiException apiException)
+            {
+                _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, (HttpStatusCode)apiException.ResponseStatusCode));
+                return new ProductEditionList();
+            }
+        }
     }
 }
