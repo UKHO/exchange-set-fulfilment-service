@@ -12,6 +12,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
     public class FunctionalTests : TestBase
     {
         private string _jobId = "";
+        private string _endpoint = "/jobs";
 
         public FunctionalTests(StartupFixture startup, ITestOutputHelper output) : base(startup, output)
         {
@@ -31,7 +32,10 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         {
             responseJobSubmit.IsSuccessStatusCode.Should().BeTrue($"Expected success status code but got: {responseJobSubmit.StatusCode}");
 
-            var responseJson = JsonDocument.Parse(await responseJobSubmit.Content.ReadAsStringAsync());
+            var responseContent = await responseJobSubmit.Content.ReadAsStringAsync();
+            _output.WriteLine($"ResponseContent: {responseContent}");
+
+            var responseJson = JsonDocument.Parse(responseContent);
             var batchId = responseJson.RootElement.GetProperty("batchId").GetString();
 
             _output.WriteLine($"JobId => Expected: {_jobId} Actual: {responseJson.RootElement.GetProperty("jobId").GetString()}\n" +
@@ -99,84 +103,18 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         }
 
 
-        private async Task checkJobCompletionStatus(HttpResponseMessage responseJobStatus)
-        {
-            responseJobStatus.IsSuccessStatusCode.Should().BeTrue($"Expected success status code but got: {responseJobStatus.StatusCode}");
-
-            var responseJson = JsonDocument.Parse(await responseJobStatus.Content.ReadAsStringAsync());
-            var jobState = responseJson.RootElement.GetProperty("jobState").GetString();
-            var buildState = responseJson.RootElement.GetProperty("buildState").GetString();
-            var jobStartTime = responseJson.RootElement.GetProperty("timestamp").GetString();
-
-            _output.WriteLine($"JobStartTime: {jobStartTime}");
-            _output.WriteLine(jobState == "completed"
-                ? $"Job completed successfully with build status: {buildState}"
-                : $"Job did not complete successfully. Current job state: {jobState}, build status: {buildState}");
-
-            var root = responseJson.RootElement;
-
-            using (new AssertionScope())
-            {
-                // Check if properties exist and have expected values
-                if (root.TryGetProperty("jobState", out var jobStateElement))
-                {
-                    jobStateElement.GetString().Should().Be("completed", "JobState should be completed");
-                }
-                else
-                {
-                    Execute.Assertion.FailWith("Response is missing jobState property");
-                }
-                if (root.TryGetProperty("buildState", out var buildStatusElement))
-                {
-                    buildStatusElement.GetString().Should().Be("succeeded", "BuildStatus should be succeeded");
-                }
-                else
-                {
-                    Execute.Assertion.FailWith("Response is missing buildState property");
-                }
-            }
-        }
-
-
-        private async Task checkBuildStatus(HttpResponseMessage responseBuildStatus)
-        {
-            responseBuildStatus.IsSuccessStatusCode.Should().BeTrue($"Expected success status code but got: {responseBuildStatus.StatusCode}");
-
-            var responseJson = JsonDocument.Parse(await responseBuildStatus.Content.ReadAsStringAsync());
-            var builderExitCode = responseJson.RootElement.GetProperty("builderExitCode").GetString();
-            _output.WriteLine(builderExitCode == "success"
-                ? "Build completed successfully."
-                : $"Build did not complete successfully. Current build status: {builderExitCode}");
-
-            var builderSteps = responseJson.RootElement.GetProperty("builderSteps");
-            var nodeStatuses = new Dictionary<string, string>();
-
-            foreach (var step in builderSteps.EnumerateArray())
-            {
-                var nodeId = step.GetProperty("nodeId").GetString()!;
-                var status = step.GetProperty("status").GetString()!;
-
-                nodeStatuses.Add(nodeId, status);
-                _output.WriteLine($"Node: {nodeId}, Status: {status}");
-
-                // Verify each step succeeded
-                //status.Should().Be("succeeded", $"Step '{nodeId}' should have succeeded, but has status: {status}");
-            }
-
-            responseJson.RootElement.GetProperty("builderExitCode").GetString().Should().Be("success");
-        }
-
-
         private async Task testExecutionMethod(object payload, string zipFileName)
         {
-            var responseJobSubmit = await OrchestratorCommands.SubmitJobAsync(_jobId, payload);
+            var responseJobSubmit = await OrchestratorCommands.SubmitJobAsync(_jobId, payload, _endpoint);
             await checkJobsResponce(responseJobSubmit);
 
+            ApiResponseAssertions apiResponseAssertions = new ApiResponseAssertions(_output);
+
             var responseJobStatus = await OrchestratorCommands.WaitForJobCompletionAsync(_jobId);
-            await checkJobCompletionStatus(responseJobStatus);
+            await apiResponseAssertions.checkJobCompletionStatus(responseJobStatus);
 
             var responseBuildStatus = await OrchestratorCommands.GetBuildStatusAsync(_jobId);
-            await checkBuildStatus(responseBuildStatus);
+            await apiResponseAssertions.checkBuildStatus(responseBuildStatus);
 
             var exchangeSetDownloadPath = await ZipStructureComparer.DownloadExchangeSetAsZipAsync(_jobId);
             var sourceZipPath = Path.Combine(AspireResourceSingleton.ProjectDirectory!, "TestData", zipFileName);
@@ -247,7 +185,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         public async Task S100FilterTestsWithInvalidIdentifier(string filter)
         {
 
-            var responseFromJob = await OrchestratorCommands.SubmitJobAsync(_jobId, createPayload(filter));
+            var responseFromJob = await OrchestratorCommands.SubmitJobAsync(_jobId, createPayload(filter), _endpoint);
             await checkJobsResponce(responseFromJob, expectedJobStatus: "upToDate", expectedBuildStatus: "none");
         }
 
