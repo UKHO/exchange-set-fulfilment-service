@@ -17,7 +17,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
         private readonly IProductService _productService;
         private readonly ILogger<GetS100ProductNamesNode> _logger;
         private const string ExchangeSetExpiresInConfigKey = "orchestrator:Response:ExchangeSetExpiresIn";
-        private const string MaxExchangeSetSizeMBConfigKey = "orchestrator:Response:MaxExchangeSetSizeMB";
+        private const string MaxExchangeSetSizeInMBConfigKey = "orchestrator:Response:MaxExchangeSetSizeInMB";
 
         public GetS100ProductNamesNode(AssemblyNodeEnvironment nodeEnvironment, IProductService productService, ILogger<GetS100ProductNamesNode> logger)
             : base(nodeEnvironment)
@@ -62,13 +62,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                     }
 
                     // Calculate total file size and check against the limit
-                    var maxExchangeSetSizeMB = Environment.Configuration.GetValue<int>(MaxExchangeSetSizeMBConfigKey);
+                    var maxExchangeSetSizeInMB = Environment.Configuration.GetValue<int>(MaxExchangeSetSizeInMBConfigKey);
                     var totalFileSizeBytes = productEditionList.Products.Sum(p => (long)p.FileSize);
-                    var totalFileSizeMB = totalFileSizeBytes / (1024 * 1024);
+                    double byteSize = 1024f;
+                    var totalFileSizeMB = (totalFileSizeBytes / byteSize) / byteSize;
 
-                    if (totalFileSizeMB > maxExchangeSetSizeMB)
+                    if (totalFileSizeMB > maxExchangeSetSizeInMB)
                     {
-                        _logger.LogExchangeSetSizeExceeded(totalFileSizeMB, maxExchangeSetSizeMB);
+                        _logger.LogExchangeSetSizeExceeded((long)totalFileSizeMB, maxExchangeSetSizeInMB);
                         
                         // Set up the error response for payload too large
                         context.Subject.ErrorResponse = new ErrorResponseModel

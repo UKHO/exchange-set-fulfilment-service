@@ -103,7 +103,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         public static readonly EventId ContainerTimeout = new(ContainerTimeoutId, nameof(ContainerTimeout));
 
         // The Queue service failed to read a message
-        public static readonly EventId QueueServiceMessageReadFailed = new(ContainerTimeoutId, nameof(QueueServiceMessageReadFailed));
+        public static readonly EventId QueueServiceMessageReadFailed = new(QueueServiceMessageReadFailedId, nameof(QueueServiceMessageReadFailed));
 
         // The log forwarder failed to parse a message
         public static readonly EventId LogForwardParseFailed = new(LogForwardParseFailedId, nameof(LogForwardParseFailed));

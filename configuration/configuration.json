@@ -34,7 +34,7 @@
             },
             "Response": {
                 "ExchangeSetExpiresIn": "7.00:00:00", // TimeSpan representing when the exchange set expires
-                "MaxExchangeSetSizeMB": 300 // Maximum total file size in MB for an exchange set
+                "MaxExchangeSetSizeInMB": 300 // Maximum total file size in MB for an exchange set
             },
             "Builders": {
                 "LogReplayLevel": "Information", // Log level for replaying builder logs
@@ -88,7 +88,7 @@
             },
             "Response": {
                 "ExchangeSetExpiresIn": "7.00:00:00", // TimeSpan representing when the exchange set expires
-                "MaxExchangeSetSizeMB": 300 // Maximum total file size in MB for an exchange set
+                "MaxExchangeSetSizeInMB": 300 // Maximum total file size in MB for an exchange set
             },
             "Builders": {
                 "LogReplayLevel": "Information", // Log level for replaying builder logs
@@ -141,7 +141,7 @@
             },
             "Response": {
                 "ExchangeSetExpiresIn": "7.00:00:00", // TimeSpan representing when the exchange set expires
-                "MaxExchangeSetSizeMB": 300 // Maximum total file size in MB for an exchange set
+                "MaxExchangeSetSizeInMB": 300 // Maximum total file size in MB for an exchange set
             },
             "Builders": {
                 "LogReplayLevel": "Information", // Log level for replaying builder logs
@@ -194,7 +194,7 @@
             },
             "Response": {
                 "ExchangeSetExpiresIn": "7.00:00:00", // TimeSpan representing when the exchange set expires
-                "MaxExchangeSetSizeMB": 300 // Maximum total file size in MB for an exchange set
+                "MaxExchangeSetSizeInMB": 300 // Maximum total file size in MB for an exchange set
             },
             "Builders": {
                 "LogReplayLevel": "Information", // Log level for replaying builder logs
@@ -247,7 +247,7 @@
             },
             "Response": {
                 "ExchangeSetExpiresIn": "7.00:00:00", // TimeSpan representing when the exchange set expires
-                "MaxExchangeSetSizeMB": 300 // Maximum total file size in MB for an exchange set
+                "MaxExchangeSetSizeInMB": 300 // Maximum total file size in MB for an exchange set
             },
             "Builders": {
                 "LogReplayLevel": "Information", // Log level for replaying builder logs
