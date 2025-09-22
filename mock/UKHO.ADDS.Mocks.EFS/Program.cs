@@ -18,7 +18,7 @@ namespace UKHO.ADDS.Mocks.EFS
                 new StateDefinition("get-cancelledproducts", "Gets cancelled products"),
                 new StateDefinition("get-productwithdrawn", "Gets withdrawn products"),
                 new StateDefinition("get-productalreadytuptodate", "Gets up to date products "),
-                new StateDefinition("large-exchange-sets", "Gets large-exchange-sets ")
+                new StateDefinition("get-largeexchangesets", "Gets large file size products ")
             ]));
 
             ServiceRegistry.AddDefinitionState("sample", new StateDefinition("get-jpeg", "Gets a JPEG file"));

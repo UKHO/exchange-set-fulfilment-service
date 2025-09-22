@@ -42,7 +42,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                         response.GetTypedHeaders().LastModified = DateTime.UtcNow;
                         return await ResponseGenerator.ProvideProductNamesResponse(request, state);
                         
-                    case "large-exchange-sets":
+                    case "get-largeexchangesets":
 
                         response.GetTypedHeaders().LastModified = DateTime.UtcNow;
                         return await ResponseGenerator.ProvideProductNamesResponse(request, state);

@@ -244,7 +244,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
             
             // Determine file size based on state
             int fileSize;
-            if (state == "large-exchange-sets")
+            if (state == "get-largeexchangesets")
             {
                 fileSize = RandomInstance.Next(LargeExchangeSetMinFileSize, LargeExchangeSetMaxFileSize);
             }
@@ -461,7 +461,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
                     ProcessProductsWithLastCancelled(requestedProducts, productsArray);
                     break;
                     
-                case "large-exchange-sets" when productCount > 0:
+                case "get-largeexchangesets" when productCount > 0:
                     ProcessProductsWithLargeFileSize(requestedProducts, productsArray);
                     break;
 

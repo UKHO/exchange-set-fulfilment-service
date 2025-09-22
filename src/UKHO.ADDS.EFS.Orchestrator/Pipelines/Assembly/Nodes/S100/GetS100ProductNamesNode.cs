@@ -3,6 +3,7 @@ using UKHO.ADDS.EFS.Domain.Builds.S100;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Domain.Services;
+using UKHO.ADDS.EFS.Orchestrator.Api.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
@@ -16,6 +17,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
         private readonly IProductService _productService;
         private readonly ILogger<GetS100ProductNamesNode> _logger;
         private const string ExchangeSetExpiresInConfigKey = "orchestrator:Response:ExchangeSetExpiresIn";
+        private const string MaxExchangeSetSizeMBConfigKey = "orchestrator:Response:MaxExchangeSetSizeMB";
 
         public GetS100ProductNamesNode(AssemblyNodeEnvironment nodeEnvironment, IProductService productService, ILogger<GetS100ProductNamesNode> logger)
             : base(nodeEnvironment)
@@ -59,7 +61,38 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                         _logger.LogSalesCatalogueProductsNotReturned(productEditionList.ProductCountSummary);
                     }
 
-                    build.ProductEditions = productEditionList.Products;
+                    // Calculate total file size and check against the limit
+                    var maxExchangeSetSizeMB = Environment.Configuration.GetValue<int>(MaxExchangeSetSizeMBConfigKey);
+                    var totalFileSizeBytes = productEditionList.Products.Sum(p => (long)p.FileSize);
+                    var totalFileSizeMB = totalFileSizeBytes / (1024 * 1024);
+
+                    if (totalFileSizeMB > maxExchangeSetSizeMB)
+                    {
+                        _logger.LogExchangeSetSizeExceeded(totalFileSizeMB, maxExchangeSetSizeMB);
+                        
+                        // Set up the error response for payload too large
+                        context.Subject.ErrorResponse = new ErrorResponseModel
+                        {
+                            CorrelationId = job.Id.ToString(),
+                            Errors =
+                            [
+                                new ErrorDetail
+                                {
+                                     Source = "exchangeSetSize",
+                                     Description = "The Exchange Set requested is very large and will not be created, please use a standard Exchange Set provided by the UKHO."
+                                }
+                            ]
+                        };
+                        
+                        // Signal an assembly error to stop the pipeline with the 413 Payload Too Large status
+                        await context.Subject.SignalAssemblyError();
+                        
+                        return NodeResultStatus.Failed;
+                    }
+                    else
+                    {
+                        build.ProductEditions = productEditionList.Products;
+                    }
 
                     if (job.RequestType == RequestType.ProductNames)
                     {

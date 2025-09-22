@@ -1,4 +1,5 @@
-﻿using FluentValidation.Results;
+﻿using System.Net;
+using FluentValidation.Results;
 using UKHO.ADDS.Clients.Common.Constants;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Orchestrator.Api.Messages;
@@ -59,6 +60,19 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                          var result = await pipeline.RunAsync(httpContext.RequestAborted);
 
+                         // Check if there's an error response for exchange set size exceeded
+                         if (result.ErrorResponse != null)
+                         {
+                             var error = result.ErrorResponse.Errors.FirstOrDefault();
+                             if (error != null && error.Source == "ExchangeSetSize")
+                             {
+                                 return Results.Json(result.ErrorResponse, statusCode: (int)HttpStatusCode.RequestEntityTooLarge);
+                             }
+                             
+                             // For other errors, return as Bad Request
+                             return Results.BadRequest(result.ErrorResponse);
+                         }
+
                          return Results.Accepted(null, result.Response);
                      }
                      catch (Exception)
@@ -67,9 +81,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                      }
                  })
             .Produces<CustomExchangeSetResponse>(202)
+            .Produces<ErrorResponseModel>(413)
             .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", Guid.NewGuid().ToString("N"))
             .WithDescription("Provide all the latest releasable baseline data for a specified set of S100 Products.")
-            .WithRequiredAuthorization(AuthenticationConstants.EfsRole); ;
+            .WithRequiredAuthorization(AuthenticationConstants.EfsRole);
 
             // POST /v2/exchangeSet/s100/productVersions
             exchangeSetEndpoint.MapPost("/productVersions", async (
@@ -106,6 +121,19 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                     var result = await pipeline.RunAsync(httpContext.RequestAborted);
 
+                    // Check if there's an error response for exchange set size exceeded
+                    if (result.ErrorResponse != null)
+                    {
+                        var error = result.ErrorResponse.Errors.FirstOrDefault();
+                        if (error != null && error.Source == "ExchangeSetSize")
+                        {
+                            return Results.Json(result.ErrorResponse, statusCode: (int)HttpStatusCode.RequestEntityTooLarge);
+                        }
+                        
+                        // For other errors, return as Bad Request
+                        return Results.BadRequest(result.ErrorResponse);
+                    }
+
                     return Results.Accepted(null, result.Response);
                 }
                 catch (Exception)
@@ -114,6 +142,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 }
             })
             .Produces<CustomExchangeSetResponse>(202)
+            .Produces<ErrorResponseModel>(413)
             .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", Guid.NewGuid().ToString("N"))
             .WithDescription("Given a set of S100 Product versions (e.g. Edition x Update y) provide any later releasable files.")
             .WithRequiredAuthorization(AuthenticationConstants.EfsRole);
@@ -146,6 +175,19 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                     var result = await pipeline.RunAsync(httpContext.RequestAborted);
 
+                    // Check if there's an error response for exchange set size exceeded
+                    if (result.ErrorResponse != null)
+                    {
+                        var error = result.ErrorResponse.Errors.FirstOrDefault();
+                        if (error != null && error.Source == "ExchangeSetSize")
+                        {
+                            return Results.Json(result.ErrorResponse, statusCode: (int)HttpStatusCode.RequestEntityTooLarge);
+                        }
+                        
+                        // For other errors, return as Bad Request
+                        return Results.BadRequest(result.ErrorResponse);
+                    }
+
                     return Results.Accepted(null, result.Response);
                 }
                 catch (Exception)
@@ -154,6 +196,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 }
             })
             .Produces<CustomExchangeSetResponse>(202)
+            .Produces<ErrorResponseModel>(413)
             .Produces(304)
             .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", Guid.NewGuid().ToString("N"))
             .WithDescription("Provide all the releasable S100 data after a datetime.")
