@@ -149,13 +149,6 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
             }
         }
 
-        // Pseudocode plan:
-        // 1. Identify the object value you want to call (assume it's a property or method on a parameter or class field).
-        // 2. If it's a property/method on 'job', '_salesCatalogueClient', or another dependency, access it directly in the method.
-        // 3. If you want to log, return, or use the value, assign it to a variable or use it inline.
-        // 4. Example: If you want to log the productIdentifier, add a log statement.
-        // 5. If you want to use a property from 'job', e.g., job.SomeProperty, access it directly.
-
         public async Task<ProductEditionList> GetS100ProductUpdatesSinceAsync(
     string sinceDateTime,
     DataStandardProduct productIdentifier,
