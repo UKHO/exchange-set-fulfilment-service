@@ -66,10 +66,38 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.callback
                                 new
                                 {
                                     source = "Callback Endpoint",
-                                    description = "Invalid callback data."
+                                    description = "Invalid callback data format."
                                 }
                             }
                         }, statusCode: 400);
+
+                    case WellKnownState.Unauthorized:
+                        return Results.Json(new
+                        {
+                            correlationId = request.Headers[WellKnownHeader.CorrelationId],
+                            errors = new[]
+                            {
+                                new
+                                {
+                                    source = "Callback Endpoint",
+                                    description = "Unauthorized access to callback endpoint."
+                                }
+                            }
+                        }, statusCode: 401);
+
+                    case WellKnownState.Forbidden:
+                        return Results.Json(new
+                        {
+                            correlationId = request.Headers[WellKnownHeader.CorrelationId],
+                            errors = new[]
+                            {
+                                new
+                                {
+                                    source = "Callback Endpoint",
+                                    description = "Access to callback endpoint is forbidden."
+                                }
+                            }
+                        }, statusCode: 403);
 
                     case WellKnownState.NotFound:
                         return Results.Json(new
@@ -78,12 +106,87 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.callback
                             details = "Callback endpoint not found"
                         }, statusCode: 404);
 
+                    case WellKnownState.Conflict:
+                        return Results.Json(new
+                        {
+                            correlationId = request.Headers[WellKnownHeader.CorrelationId],
+                            errors = new[]
+                            {
+                                new
+                                {
+                                    source = "Callback Endpoint",
+                                    description = "Callback processing conflict - duplicate callback received."
+                                }
+                            }
+                        }, statusCode: 409);
+
+                    case WellKnownState.UnsupportedMediaType:
+                        return Results.Json(new
+                        {
+                            type = "https://httpstatuses.com/415",
+                            title = "Unsupported Media Type",
+                            status = 415,
+                            detail = "The callback endpoint only accepts application/json content type.",
+                            traceId = "00-012-0123-01"
+                        }, statusCode: 415);
+
+                    case WellKnownState.TooManyRequests:
+                        return Results.Json(new
+                        {
+                            correlationId = request.Headers[WellKnownHeader.CorrelationId],
+                            errors = new[]
+                            {
+                                new
+                                {
+                                    source = "Callback Endpoint",
+                                    description = "Too many callback requests. Rate limit exceeded."
+                                }
+                            },
+                            retryAfter = "60"
+                        }, statusCode: 429);
+
                     case WellKnownState.InternalServerError:
                         return Results.Json(new
                         {
                             correlationId = request.Headers[WellKnownHeader.CorrelationId],
-                            details = "Internal Server Error"
+                            details = "Internal Server Error processing callback"
                         }, statusCode: 500);
+
+                    case WellKnownState.Gone:
+                        return Results.Json(new
+                        {
+                            correlationId = request.Headers[WellKnownHeader.CorrelationId],
+                            errors = new[]
+                            {
+                                new
+                                {
+                                    source = "Callback Endpoint",
+                                    description = "Callback endpoint is no longer available."
+                                }
+                            }
+                        }, statusCode: 410);
+
+                    case WellKnownState.PayloadTooLarge:
+                        return Results.Json(new
+                        {
+                            correlationId = request.Headers[WellKnownHeader.CorrelationId],
+                            errors = new[]
+                            {
+                                new
+                                {
+                                    source = "Callback Endpoint",
+                                    description = "Callback payload exceeds maximum allowed size."
+                                }
+                            }
+                        }, statusCode: 413);
+
+                    case WellKnownState.ImATeapot:
+                        return Results.Json(new
+                        {
+                            correlationId = request.Headers[WellKnownHeader.CorrelationId],
+                            message = "I'm a teapot! Cannot process coffee callback requests.",
+                            tip = "Try sending tea-related callbacks instead."
+                        }, statusCode: 418);
 
                     default:
                         return WellKnownStateHandler.HandleWellKnownState(state);
@@ -95,6 +198,19 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.callback
                     d.Append(new MarkdownHeader("Mock Callback Endpoint", 3));
                     d.Append(new MarkdownParagraph("Receives callback notifications and saves them to text files"));
                     d.Append(new MarkdownParagraph("Returns 200 OK for successful callbacks"));
+                    d.Append(new MarkdownParagraph("**Available States:**"));
+                    d.Append(new MarkdownParagraph("- `default`: Successfully processes callback and saves to file"));
+                    d.Append(new MarkdownParagraph("- `badrequest`: Returns 400 for invalid callback data"));
+                    d.Append(new MarkdownParagraph("- `unauthorized`: Returns 401 for unauthorized access"));
+                    d.Append(new MarkdownParagraph("- `forbidden`: Returns 403 for forbidden access"));
+                    d.Append(new MarkdownParagraph("- `notfound`: Returns 404 for endpoint not found"));
+                    d.Append(new MarkdownParagraph("- `conflict`: Returns 409 for duplicate callbacks"));
+                    d.Append(new MarkdownParagraph("- `unsupportedmediatype`: Returns 415 for wrong content type"));
+                    d.Append(new MarkdownParagraph("- `toomanyrequests`: Returns 429 for rate limiting"));
+                    d.Append(new MarkdownParagraph("- `internalservererror`: Returns 500 for server errors"));
+                    d.Append(new MarkdownParagraph("- `gone`: Returns 410 for unavailable endpoint"));
+                    d.Append(new MarkdownParagraph("- `payloadtoolarge`: Returns 413 for oversized payloads"));
+                    d.Append(new MarkdownParagraph("- `imateapot`: Returns 418 for fun testing"));
                 });
     }
 }

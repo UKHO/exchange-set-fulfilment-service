@@ -25,13 +25,9 @@ namespace UKHO.ADDS.Mocks.EFS
             ServiceRegistry.AddDefinition(new ServiceDefinition("fss6357", "File Share Service (S63/S57)", []));
             ServiceRegistry.AddDefinition(new ServiceDefinition("scs6357", "Sales Catalogue Service (S63/S57)", []));
 
-            // Register the Callback Service for handling callback notifications
-            ServiceRegistry.AddDefinition(new ServiceDefinition("callback", "Callback Service", [
-                new StateDefinition("default", "Accepts callback notifications and saves them to files"),
-                new StateDefinition("badrequest", "Returns 400 Bad Request for invalid callback data"),
-                new StateDefinition("notfound", "Returns 404 Not Found"),
-                new StateDefinition("internalservererror", "Returns 500 Internal Server Error")
-            ]));
+            // Register the Callback Service - ServiceDefinition constructor automatically adds all well-known states
+            // So we only pass an empty array to avoid duplicates
+            ServiceRegistry.AddDefinition(new ServiceDefinition("callback", "Callback Service", []));
 
             await MockServer.RunAsync(args);
         }
