@@ -24,10 +24,10 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
         }
 
 
-        public static async Task<HttpResponseMessage> SubmitJobAsync(string requestId, object payload)
+        public static async Task<HttpResponseMessage> SubmitJobAsync(string requestId, object payload, string endpoint)
         {
 
-            var response = await commonOrchPostCallHelper(requestId, payload, "/jobs");
+            var response = await commonOrchPostCallHelper(requestId, payload, endpoint);
             return response;
         }
 

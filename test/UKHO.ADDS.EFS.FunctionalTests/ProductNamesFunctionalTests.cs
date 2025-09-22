@@ -1,4 +1,8 @@
-﻿using Meziantou.Xunit;
+﻿using System.Text.Json;
+using FluentAssertions;
+using FluentAssertions.Execution;
+using Meziantou.Xunit;
+using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.FunctionalTests.Services;
 using Xunit.Abstractions;
 
@@ -40,6 +44,77 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         }
 
 
+        private async Task checkJobsResponce(HttpResponseMessage responseJobSubmit, int expectedRequestedProductCount, int expectedExchangeSetProductCount)
+        {
+            responseJobSubmit.IsSuccessStatusCode.Should().BeTrue($"Expected success status code but got: {responseJobSubmit.StatusCode}");
+
+            var responseContent = await responseJobSubmit.Content.ReadAsStringAsync();
+            _output.WriteLine($"ResponseContent: {responseContent}");
+
+            var responseJson = JsonDocument.Parse(responseContent);
+            var batchId = responseJson.RootElement.GetProperty("fssBatchId").GetString();
+
+            _output.WriteLine($"JobId => {_requestId}\n" +
+                $"RequestedProductCount => Expected: {expectedRequestedProductCount} Actual: {responseJson.RootElement.GetProperty("requestedProductCount").GetInt64()}\n" +
+                $"ExchangeSetProductCount => Expected: {expectedExchangeSetProductCount} Actual: {responseJson.RootElement.GetProperty("exchangeSetProductCount").GetInt64()}\n" +
+                $"BatchId: {batchId}");
+
+            var root = responseJson.RootElement;
+
+            using (new AssertionScope())
+            {
+                // Check if properties exist and have expected values
+                if (root.TryGetProperty("fssBatchId", out var batchIdElement))
+                {
+                    batchId = batchIdElement.GetString();
+                    Guid.TryParse(batchId, out _).Should().BeTrue($"Expected '{batchId}' to be a valid GUID");
+                }
+                else
+                {
+                    Execute.Assertion.FailWith("Response is missing fssBatchId property");
+                }
+
+                if (root.TryGetProperty("requestedProductCount", out var requestedProductCountElement))
+                {
+                    requestedProductCountElement.GetInt64().Should().Be(expectedRequestedProductCount, "requestedProductCount should be a valid GUID");
+                }
+                else
+                {
+                    Execute.Assertion.FailWith("Response is missing requestedProductCount property");
+                }
+
+                if (root.TryGetProperty("exchangeSetProductCount", out var exchangeSetProductCountElement))
+                {
+                    exchangeSetProductCountElement.GetInt64().Should().Be(expectedExchangeSetProductCount, "exchangeSetProductCount should match expected value");
+                }
+                else
+                {
+                    Execute.Assertion.FailWith("Response is missing exchangeSetProductCount property");
+                }
+            }
+        }
+
+
+        private async Task testExecutionMethod(object payload, string zipFileName, int expectedRequestedProductCount, int expectedExchangeSetProductCount)
+        {
+            var responseJobSubmit = await OrchestratorCommands.SubmitJobAsync(_requestId, payload, _endpoint);
+            await checkJobsResponce(responseJobSubmit, expectedRequestedProductCount, expectedExchangeSetProductCount);
+
+            ApiResponseAssertions apiResponseAssertions = new ApiResponseAssertions(_output);
+
+            var responseJobStatus = await OrchestratorCommands.WaitForJobCompletionAsync(_requestId);
+            await apiResponseAssertions.checkJobCompletionStatus(responseJobStatus);
+
+            var responseBuildStatus = await OrchestratorCommands.GetBuildStatusAsync(_requestId);
+            await apiResponseAssertions.checkBuildStatus(responseBuildStatus);
+
+            var exchangeSetDownloadPath = await ZipStructureComparer.DownloadExchangeSetAsZipAsync(_requestId);
+            var sourceZipPath = Path.Combine(AspireResourceSingleton.ProjectDirectory!, "TestData", zipFileName);
+
+            ZipStructureComparer.CompareZipFilesExactMatch(sourceZipPath, exchangeSetDownloadPath);
+        }
+
+
         //PBI 242670 - Input validation for the ESS API - Product Name Endpoint
         [Theory]
         [DisableParallelization] // This test runs in parallel with other tests. However, its test cases are run sequentially.
@@ -75,25 +150,18 @@ namespace UKHO.ADDS.EFS.FunctionalTests
 
         //PBI 244063 - Use the existing Product Names Node (GetS100ProductNamesNode) from existing pipeline (S100AssemblyPipeline) to new pipeline (S100CustomAssemblyPipeline).
         [Theory]
-        [InlineData(new string[] { "101GB004DEVQK" }, "https://valid.com/callback", "Single101Product.zip")] // Test Case 245610 - Product Name (S-101 product) Node Integration
-        [InlineData(new string[] { "102CA005N5040W00130" }, "https://valid.com/callback", "Single102Product.zip")] // Test Case 245610 - Product Name (S-102 product) Node Integration
-        [InlineData(new string[] { "104CA00_20241103T001500Z_GB3DEVK0_DCF2" }, "https://valid.com/callback", "Single104Product.zip")] // Test Case 245610 - Product Name (S-104 product) Node Integration
-        [InlineData(new string[] { "111FR00_20241217T001500Z_GB3DEVK0_DCF2" }, "https://valid.com/callback", "Single111Product.zip")] // Test Case 245610 - Product Name (S-111 product) Node Integration
-        [InlineData(new string[] { "111CA00_20241217T001500Z_GB3DEVQ0_DCF2", "104CA00_20241103T001500Z_GB3DEVK0_DCF2" }, "https://valid.com/callback", "MultipleProducts.zip")]   // Test Case 245610 - Product Names (multiple products) Node Integration
-        public async Task ValidateProductNamesNodeInCustomAssemblyPipeline(string[] productNames, string? callbackUri, string zipFileName)
+        [InlineData(new string[] { "101GB004DEVQK" }, "https://valid.com/callback", "Single101Product.zip", 1, 1)] // Test Case 245610 - Product Name (S-101 product) Node Integration
+        [InlineData(new string[] { "102CA005N5040W00130" }, "https://valid.com/callback", "Single102Product.zip", 1, 1)] // Test Case 245610 - Product Name (S-102 product) Node Integration
+        [InlineData(new string[] { "104CA00_20241103T001500Z_GB3DEVK0_DCF2" }, "https://valid.com/callback", "Single104Product.zip", 1, 1)] // Test Case 245610 - Product Name (S-104 product) Node Integration
+        [InlineData(new string[] { "111FR00_20241217T001500Z_GB3DEVK0_DCF2" }, "https://valid.com/callback", "Single111Product.zip", 1, 1)] // Test Case 245610 - Product Name (S-111 product) Node Integration
+        [InlineData(new string[] { "111CA00_20241217T001500Z_GB3DEVQ0_DCF2", "104CA00_20241103T001500Z_GB3DEVK0_DCF2" }, "https://valid.com/callback", "MultipleProducts.zip", 2, 2)]   // Test Case 245610 - Product Names (multiple products) Node Integration
+        public async Task ValidateProductNamesNodeInCustomAssemblyPipeline(string[] productNames, string? callbackUri, string zipFileName, int expectedRequestedProductCount, int expectedExchangeSetProductCount)
         {
-            var httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
+            setEndpoint(callbackUri);
 
-            var jobId = await OrchestratorCommands.ProductNamesInCustomAssemblyPipelineSubmitJobAsync(httpClient, callbackUri, productNames);
+            _output.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {System.Text.Json.JsonSerializer.Serialize(productNames)}\nCallbackUri: {callbackUri}\nExpectedZipFileName:{zipFileName}");
 
-            await OrchestratorCommands.WaitForJobCompletionAsync(httpClient, jobId);
-
-            await OrchestratorCommands.VerifyBuildStatusAsync(httpClient, jobId);
-
-            var exchangeSetDownloadPath = await ZipStructureComparer.DownloadExchangeSetAsZipAsync(jobId, App!);
-            var sourceZipPath = Path.Combine(ProjectDirectory!, "TestData", zipFileName);
-
-            ZipStructureComparer.CompareZipFilesExactMatch(sourceZipPath, exchangeSetDownloadPath, productNames);
+            await testExecutionMethod(productNames, zipFileName, expectedRequestedProductCount, expectedExchangeSetProductCount);
         }
     }
 }
