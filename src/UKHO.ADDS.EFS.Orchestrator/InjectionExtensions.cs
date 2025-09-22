@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using Azure.Identity;
 using FluentValidation;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -14,6 +13,7 @@ using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Infrastructure.Injection;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Health;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Generators;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation;
 using UKHO.ADDS.EFS.Orchestrator.Monitors;
@@ -22,8 +22,8 @@ using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
 using UKHO.ADDS.EFS.Orchestrator.Schedule;
 using UKHO.ADDS.EFS.Orchestrator.Services;
-using UKHO.ADDS.Infrastructure.Serialization.Json;
 using UKHO.ADDS.EFS.Orchestrator.Validators.S100;
+using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Orchestrator
 {
@@ -73,7 +73,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             builder.Services.AddSingleton<IBuilderLogForwarder, BuilderLogForwarder>();
             builder.Services.AddSingleton<StorageInitializerService>();
-
+            builder.Services.AddSingleton<ICorrelationIdGenerator, CorrelationIdGenerator>();
             builder.Services.AddDomain();
             builder.Services.AddInfrastructure();
 

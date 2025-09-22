@@ -1,13 +1,13 @@
 ﻿using UKHO.ADDS.Aspire.Configuration;
 using UKHO.ADDS.EFS.Domain.External;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Helper
+namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Generators
 {
     /// <summary>
     /// Provides methods to generate correlation IDs for jobs and scheduled tasks,
     /// using environment-based prefixes for easier identification in logs.
     /// </summary>
-    internal static class CorrelationIdGenerator
+    internal class CorrelationIdGenerator:ICorrelationIdGenerator
     {
         private const string JobPrefix = "job-";
         private const string SchedPrefix = "sched-";
@@ -16,7 +16,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Helper
         /// Creates a correlation ID for a job, applying a prefix in local or development environments for easier log identification.
         /// </summary>
         /// <returns>A new CorrelationId value object.</returns>
-        public static CorrelationId CreateForJob()
+        public CorrelationId CreateForJob()
         {
             return CreateCorrelationId(JobPrefix);
         }
@@ -25,7 +25,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Helper
         /// Generates a correlation ID for a scheduler, always including a prefix for consistent identification across all environments.
         /// </summary>
         /// <returns>A new CorrelationId value object.</returns>
-        public static CorrelationId CreateForScheduler()
+        public CorrelationId CreateForScheduler()
         {
             return CreateCorrelationId(SchedPrefix);
         }
