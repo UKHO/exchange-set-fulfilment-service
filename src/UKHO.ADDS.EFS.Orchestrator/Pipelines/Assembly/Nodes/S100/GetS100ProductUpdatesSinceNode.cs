@@ -1,9 +1,7 @@
-﻿using System.Net;
-using UKHO.ADDS.EFS.Domain.Builds.S100;
+﻿using UKHO.ADDS.EFS.Domain.Builds.S100;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Domain.Services;
-using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.Infrastructure.Pipelines;
@@ -17,10 +15,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
         private readonly ILogger<GetS100ProductUpdatesSinceNode> _logger;
         private const string ExchangeSetExpiresInConfigKey = "orchestrator:Response:ExchangeSetExpiresIn";
 
-        public GetS100ProductUpdatesSinceNode(
-            AssemblyNodeEnvironment nodeEnvironment,
-            IProductService productService,
-            ILogger<GetS100ProductUpdatesSinceNode> logger)
+        public GetS100ProductUpdatesSinceNode(AssemblyNodeEnvironment nodeEnvironment,IProductService productService,ILogger<GetS100ProductUpdatesSinceNode> logger)
             : base(nodeEnvironment)
         {
             _productService = productService ?? throw new ArgumentNullException(nameof(productService));
@@ -52,7 +47,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                     job,
                     Environment.CancellationToken);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 await context.Subject.SignalAssemblyError();
                 return NodeResultStatus.Failed;

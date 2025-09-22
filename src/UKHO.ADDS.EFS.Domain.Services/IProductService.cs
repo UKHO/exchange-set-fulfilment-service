@@ -44,10 +44,6 @@ namespace UKHO.ADDS.EFS.Domain.Services
         /// <returns>
         ///     The response containing updated S-100 product details or an empty response if an error occurs.
         /// </returns>
-        Task<ProductEditionList> GetS100ProductUpdatesSinceAsync(
-            string sinceDateTime,
-            DataStandardProduct productIdentifier,
-            Job job,
-            CancellationToken cancellationToken);
+        Task<ProductEditionList> GetS100ProductUpdatesSinceAsync(string sinceDateTime,DataStandardProduct productIdentifier,Job job,CancellationToken cancellationToken);
     }
 }

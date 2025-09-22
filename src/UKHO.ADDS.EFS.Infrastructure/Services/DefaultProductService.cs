@@ -149,11 +149,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
             }
         }
 
-        public async Task<ProductEditionList> GetS100ProductUpdatesSinceAsync(
-    string sinceDateTime,
-    DataStandardProduct productIdentifier,
-    Job job,
-    CancellationToken cancellationToken)
+        public async Task<ProductEditionList> GetS100ProductUpdatesSinceAsync(string sinceDateTime,DataStandardProduct productIdentifier,Job job,CancellationToken cancellationToken)
         {
             try
             {
@@ -174,11 +170,11 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                                     {
                                         productIdentifierProp.SetValue(queryParams, productIdentifier.AsEnum.ToString());
                                     }
-                                    var sinceProp = queryParams.GetType().GetProperty("SinceDateTime");
-                                    if (sinceProp != null && sinceProp.CanWrite && !string.IsNullOrEmpty(sinceDateTime))
+                                    var sinceDateTimeProp = queryParams.GetType().GetProperty("SinceDateTime");
+                                    if (sinceDateTimeProp != null && sinceDateTimeProp.CanWrite && !string.IsNullOrEmpty(sinceDateTime))
                                     {
                                         var parsedDate = DateTimeOffset.Parse(sinceDateTime);
-                                        sinceProp.SetValue(queryParams, parsedDate);
+                                        sinceDateTimeProp.SetValue(queryParams, parsedDate);
                                     }
                                 }
                                 requestConfiguration.Headers.Add("X-Correlation-Id", (string)job.GetCorrelationId());
