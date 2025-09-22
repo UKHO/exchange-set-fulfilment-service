@@ -60,17 +60,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                          var result = await pipeline.RunAsync(httpContext.RequestAborted);
 
-                         // Check if there's an error response for exchange set size exceeded
+                         // Check for errors in the response
                          if (result.ErrorResponse != null)
                          {
-                             var error = result.ErrorResponse.Errors.FirstOrDefault();
-                             if (error != null && error.Source == "exchangeSetSize")
-                             {
-                                 return Results.Json(result.ErrorResponse, statusCode: (int)HttpStatusCode.RequestEntityTooLarge);
-                             }
-                             
-                             // For other errors, return as Bad Request
-                             return Results.BadRequest(result.ErrorResponse);
+                             var errorResponse = HandleErrorResponse(result.ErrorResponse);
+
+                             return errorResponse;
                          }
 
                          return Results.Accepted(null, result.Response);
@@ -121,17 +116,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                     var result = await pipeline.RunAsync(httpContext.RequestAborted);
 
-                    // Check if there's an error response for exchange set size exceeded
+                    // Check for errors in the response
                     if (result.ErrorResponse != null)
                     {
-                        var error = result.ErrorResponse.Errors.FirstOrDefault();
-                        if (error != null && error.Source == "ExchangeSetSize")
-                        {
-                            return Results.Json(result.ErrorResponse, statusCode: (int)HttpStatusCode.RequestEntityTooLarge);
-                        }
-                        
-                        // For other errors, return as Bad Request
-                        return Results.BadRequest(result.ErrorResponse);
+                        var errorResponse = HandleErrorResponse(result.ErrorResponse);
+
+                        return errorResponse;
                     }
 
                     return Results.Accepted(null, result.Response);
@@ -175,17 +165,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                     var result = await pipeline.RunAsync(httpContext.RequestAborted);
 
-                    // Check if there's an error response for exchange set size exceeded
+                    // Check for errors in the response
                     if (result.ErrorResponse != null)
                     {
-                        var error = result.ErrorResponse.Errors.FirstOrDefault();
-                        if (error != null && error.Source == "ExchangeSetSize")
-                        {
-                            return Results.Json(result.ErrorResponse, statusCode: (int)HttpStatusCode.RequestEntityTooLarge);
-                        }
-                        
-                        // For other errors, return as Bad Request
-                        return Results.BadRequest(result.ErrorResponse);
+                        var errorResponse = HandleErrorResponse(result.ErrorResponse);
+
+                        return errorResponse;
                     }
 
                     return Results.Accepted(null, result.Response);
@@ -201,6 +186,19 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", Guid.NewGuid().ToString("N"))
             .WithDescription("Provide all the releasable S100 data after a datetime.")
             .WithRequiredAuthorization(AuthenticationConstants.EfsRole);
+        }
+
+        private static IResult HandleErrorResponse(ErrorResponseModel errorResponse)
+        {
+            var error = errorResponse.Errors.FirstOrDefault();
+            // Check for exchange set size exceeded error (case-insensitive)
+            if (error != null && (string.Equals(error.Source, "exchangeSetSize", StringComparison.OrdinalIgnoreCase)))
+            {
+                return Results.Json(errorResponse, statusCode: (int)HttpStatusCode.RequestEntityTooLarge);
+            }
+            
+            // For other errors, return as Bad Request
+            return Results.BadRequest(errorResponse);
         }
 
         static IResult HandleValidationResult(ValidationResult validationResult, ILogger logger, string correlationId)
