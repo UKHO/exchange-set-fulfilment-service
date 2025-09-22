@@ -69,7 +69,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Logging
 
         public static void LogCallbackNotificationFailed(this ILogger logger, CallbackNotificationLogView callbackLogView)
         {
-            logger.Log(LogLevel.Warning, CallbackNotificationFailed, "Callback notification failed: {@callbackLogView}", callbackLogView);
+            logger.Log(LogLevel.Error, CallbackNotificationFailed, "Callback notification failed: {@callbackLogView}", callbackLogView);
         }
 
         public static void LogCallbackNotificationError(this ILogger logger, CallbackNotificationLogView callbackLogView, Exception exception)

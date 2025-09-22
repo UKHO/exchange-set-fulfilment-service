@@ -1,7 +1,8 @@
+using System.Text;
+using System.Text.Json;
 using UKHO.ADDS.Mocks.Headers;
 using UKHO.ADDS.Mocks.Markdown;
 using UKHO.ADDS.Mocks.States;
-using System.Text;
 
 namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.callback
 {
@@ -21,7 +22,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.callback
                 {
                     return Results.BadRequest("Body required");
                 }
-                
+
                 switch (state)
                 {
                     case WellKnownState.Default:
@@ -33,9 +34,13 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.callback
                             // Create the callback directory if it doesn't exist
                             fileSystem.CreateDirectory("/callback-responses");
 
+                            var fssBatchId = GetFssBatchId(requestBody);
+                            
                             // Generate a filename with timestamp
-                            var timestamp = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-fff");
-                            var fileName = $"callback-response-{timestamp}.json";
+                            var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+                            var fileName = string.IsNullOrEmpty(fssBatchId)
+                                ? $"callback-response-{timestamp}.json"
+                                : $"callback-response-{fssBatchId}.json";
                             var filePath = $"/callback-responses/{fileName}";
 
                             // Save the callback request to a file
@@ -212,5 +217,28 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.callback
                     d.Append(new MarkdownParagraph("- `payloadtoolarge`: Returns 413 for oversized payloads"));
                     d.Append(new MarkdownParagraph("- `imateapot`: Returns 418 for fun testing"));
                 });
+
+        /// <summary>
+        /// Extracts the fssBatchId from the callback JSON payload.
+        /// </summary>
+        /// <param name="requestBody">The JSON request body as a string</param>
+        /// <returns>The fssBatchId if found, otherwise an empty string</returns>
+        private static string GetFssBatchId(string requestBody)
+        {
+            try
+            {
+                using var document = JsonDocument.Parse(requestBody);
+                if (document.RootElement.TryGetProperty("data", out var dataElement) &&
+                    dataElement.TryGetProperty("fssBatchId", out var batchIdElement))
+                {
+                    return batchIdElement.GetString() ?? string.Empty;
+                }
+                return string.Empty;
+            }
+            catch (Exception)
+            {
+                return string.Empty;
+            }
+        }
     }
 }
