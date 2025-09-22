@@ -7,8 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.AppHost" Version="9.4.1" />
-    <PackageReference Include="Aspire.Hosting.Azure.AppConfiguration" Version="9.4.1" />
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="9.4.2" />
+    <PackageReference Include="Aspire.Hosting.Azure.AppConfiguration" Version="9.4.2" />
+    <PackageReference Include="KubernetesClient" Version="17.0.14" />
   </ItemGroup>
 
   <ItemGroup>
