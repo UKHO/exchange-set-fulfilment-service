@@ -15,8 +15,9 @@ param efs_builder_s100_containerimage string
 
 param efs_storage_name string
 
-@secure()
-param efs_storage_connection_string string
+param efs_storage_queue_endpoint string
+
+param efs_storage_blob_endpoint string
 
 param fss_endpoint string
 
@@ -54,12 +55,7 @@ resource efsbuilders100 'Microsoft.App/jobs@2025-01-01' = {
     environmentId: efs_cae_outputs_azure_container_apps_environment_id
     workloadProfileName: 'consumption'
     configuration: {
-      secrets: [
-        {
-          name: 'connection-string-secret'
-          value: efs_storage_connection_string
-        }
-      ]
+      secrets: []
       triggerType: 'Event'
       replicaTimeout: 1800
       replicaRetryLimit: 0
@@ -112,6 +108,14 @@ resource efsbuilders100 'Microsoft.App/jobs@2025-01-01' = {
               value: fss_client_id
             }
             {
+              name: 'EFS_STORAGE_QUEUEENDPOINT'
+              value: efs_storage_queue_endpoint
+            }
+            {
+              name: 'EFS_STORAGE_BLOBENDPOINT'
+              value: efs_storage_blob_endpoint
+            }
+            {
               name: 'REQUEST_QUEUE_NAME'
               value: 's100buildrequest'
             }
@@ -120,16 +124,8 @@ resource efsbuilders100 'Microsoft.App/jobs@2025-01-01' = {
               value: 's100buildresponse'
             }
             {
-              name: 'QUEUE_CONNECTION_STRING'
-              secretRef: 'connection-string-secret'
-            }
-            {
               name: 'BLOB_CONTAINER_NAME'
               value: 's100build'
-            }
-            {
-              name: 'BLOB_CONNECTION_STRING'
-              secretRef: 'connection-string-secret'
             }
             {
               name: 'ADDS_ENVIRONMENT'
