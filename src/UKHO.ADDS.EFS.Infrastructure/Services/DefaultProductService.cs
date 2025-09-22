@@ -157,8 +157,8 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         // 5. If you want to use a property from 'job', e.g., job.SomeProperty, access it directly.
 
         public async Task<ProductEditionList> GetS100ProductUpdatesSinceAsync(
-    DateTime sinceDateTime,
-    string productIdentifier,
+    string sinceDateTime,
+    DataStandardProduct productIdentifier,
     Job job,
     CancellationToken cancellationToken)
         {
@@ -177,14 +177,15 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                                 {
                                     var queryParams = requestConfiguration.QueryParameters;
                                     var productIdentifierProp = queryParams.GetType().GetProperty("ProductIdentifier");
-                                    if (productIdentifierProp != null && productIdentifierProp.CanWrite)
+                                    if (productIdentifierProp != null && productIdentifierProp.CanWrite && productIdentifier != DataStandardProduct.Undefined)
                                     {
-                                        productIdentifierProp.SetValue(queryParams, productIdentifier);
+                                        productIdentifierProp.SetValue(queryParams, productIdentifier.AsEnum.ToString());
                                     }
-                                    var sinceProp = queryParams.GetType().GetProperty("Since");
-                                    if (sinceProp != null && sinceProp.CanWrite)
+                                    var sinceProp = queryParams.GetType().GetProperty("SinceDateTime");
+                                    if (sinceProp != null && sinceProp.CanWrite && !string.IsNullOrEmpty(sinceDateTime))
                                     {
-                                        sinceProp.SetValue(queryParams, sinceDateTime);
+                                        var parsedDate = DateTimeOffset.Parse(sinceDateTime);
+                                        sinceProp.SetValue(queryParams, parsedDate);
                                     }
                                 }
                                 requestConfiguration.Headers.Add("X-Correlation-Id", (string)job.GetCorrelationId());
@@ -192,6 +193,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                             cancellationToken);
 
                     return Result.Success(result);
+
                 });
 
                 if (s100ProductUpdatesResult.IsSuccess(out var response) && response is not null)

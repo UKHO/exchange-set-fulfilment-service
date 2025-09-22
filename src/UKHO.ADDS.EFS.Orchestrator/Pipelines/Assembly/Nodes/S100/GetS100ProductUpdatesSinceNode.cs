@@ -37,9 +37,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             var job = context.Subject.Job;
             var build = context.Subject.Build;
 
-            var sinceDateTime = job.DataStandardTimestamp ?? job.Timestamp;
+            var sinceDateTime = job.RequestedFilter;
 
-            var productIdentifier = job.ProductIdentifier.DisplayName;
+            var productIdentifier = job.ProductIdentifier;
 
             ProductEditionList productEditionList;
             var productNameList = build.Products?.Select(p => p.ProductName).ToList() ?? new List<ProductName>();
@@ -66,17 +66,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
             build.ProductEditions = productEditionList;
 
-            if (job.RequestType == RequestType.ProductNames)
-            {
-                // Get the exchange set expiry duration from configuration
-                var expiryTimeSpan = Environment.Configuration.GetValue<TimeSpan>(ExchangeSetExpiresInConfigKey);
+            // Get the exchange set expiry duration from configuration
+            var expiryTimeSpan = Environment.Configuration.GetValue<TimeSpan>(ExchangeSetExpiresInConfigKey);
 
-                job.ExchangeSetUrlExpiryDateTime = DateTime.UtcNow.Add(expiryTimeSpan);
-                job.RequestedProductCount = ProductCount.From(productNameList.Count);
-                job.ExchangeSetProductCount = productEditionList.Count;
-                job.RequestedProductsAlreadyUpToDateCount = productEditionList.ProductCountSummary.RequestedProductsAlreadyUpToDateCount;
-                job.RequestedProductsNotInExchangeSet = productEditionList.ProductCountSummary.MissingProducts;
-            }
+            job.ExchangeSetUrlExpiryDateTime = DateTime.UtcNow.Add(expiryTimeSpan);
+            job.RequestedProductCount = ProductCount.From(productNameList.Count); //Need to confirm in ESS
+            job.ExchangeSetProductCount = productEditionList.Count;
+            job.RequestedProductsAlreadyUpToDateCount = productEditionList.ProductCountSummary.RequestedProductsAlreadyUpToDateCount; //Need to confirm in ESS
+            job.RequestedProductsNotInExchangeSet = productEditionList.ProductCountSummary.MissingProducts; //Need to confirm in ESS
+
             await context.Subject.SignalBuildRequired();
             return NodeResultStatus.Succeeded;
         }
