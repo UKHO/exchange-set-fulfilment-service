@@ -13,7 +13,12 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
         /// <summary>
         /// Submits a job and asserts the expected job and build status.
         /// </summary>
-        public static async Task<string> SubmitJobAsync(HttpClient httpClient, string filter = "", string[]? products = null, string expectedJobStatus = "submitted", string expectedBuildStatus = "scheduled")
+        public static async Task<string> SubmitJobAsync(
+            HttpClient httpClient,
+            string filter = "",
+            string[]? products = null,
+            string expectedJobStatus = "submitted",
+            string expectedBuildStatus = "scheduled")
         {
             products ??= new [] { "" };
             var requestId = $"job-0001-" + Guid.NewGuid();
@@ -22,13 +27,19 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
 
             content.Headers.Add(ApiHeaderKeys.XCorrelationIdHeaderKey, requestId);
 
-            var response = await httpClient.PostAsync("/jobs", content);
+            // rhz replaces the commented line below.
+            using var response = await httpClient.PostAsync("/jobs", content);
+            var body = await response.Content.ReadAsStringAsync();
+            //var response = await httpClient.PostAsync("/jobs", content);
 
             Assert.True(response.IsSuccessStatusCode, $"Expected success status code but got: {response.StatusCode}");
 
-            var responseJson = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            // rhz replaces the commented line below.
+            using var responseJson = JsonDocument.Parse(body);
+            //var responseJson = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
             var jobStatus = responseJson.RootElement.GetProperty("jobStatus").GetString();
             var buildStatus = responseJson.RootElement.GetProperty("buildStatus").GetString();
+
 
             Assert.Equal(expectedJobStatus, jobStatus);
             Assert.Equal(expectedBuildStatus, buildStatus);
@@ -69,8 +80,11 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
         {
             using var response = await httpClient.GetAsync($"/jobs/{jobId}/build");
             Assert.True(response.IsSuccessStatusCode, $"Expected success status code but got: {response.StatusCode}");
-
-            var responseJson = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            // rhz added
+            var body = await response.Content.ReadAsStringAsync();
+            // rhz replaces the commented line below.
+            using var responseJson = JsonDocument.Parse(body);
+            //var responseJson = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
             var builderExitCode = responseJson.RootElement.GetProperty("builderExitCode").GetString();
 
             Assert.Equal("success", builderExitCode);

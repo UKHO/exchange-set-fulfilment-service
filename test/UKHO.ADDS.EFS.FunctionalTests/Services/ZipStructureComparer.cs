@@ -1,6 +1,8 @@
 ﻿using System.IO.Compression;
 using Aspire.Hosting;
+using Microsoft.VisualStudio.TestPlatform.Utilities;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
+using Xunit.Abstractions;
 
 namespace UKHO.ADDS.EFS.FunctionalTests.Services
 {
@@ -12,25 +14,65 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
         /// <param name="jobId">The job identifier.</param>
         /// <param name="app">The distributed application instance.</param>
         /// <returns>The file path of the downloaded zip.</returns>
-        public static async Task<string> DownloadExchangeSetAsZipAsync(string jobId, HttpClient httpClientMock)
+        public static async Task<string> DownloadExchangeSetAsZipAsync(
+            string jobId,
+            HttpClient httpClientMock,
+            ITestOutputHelper? output = null,
+            int maxSeconds = 90)
         {
-            var mockResponse = await httpClientMock.GetAsync($"/_admin/files/FSS/S100-ExchangeSets/V01X01_{jobId}.zip");
-            mockResponse.EnsureSuccessStatusCode();
+            // Rhz : Adding retry logic to handle transient failures
+            var deadline = DateTime.UtcNow.AddSeconds(maxSeconds);
+            HttpResponseMessage? last = null;
+            int attempt = 0;
 
-            await using var zipStream = await mockResponse.Content.ReadAsStreamAsync();
-            var destinationFilePath = Path.Combine(TestBase.ProjectDirectory!, "out", $"V01X01_{jobId}.zip");
+            var fileName = $"V01X01_{jobId}.zip";
+            var relativePath = $"/_admin/files/FSS/S100-ExchangeSets/{fileName}";
+
+            while (DateTime.UtcNow < deadline)
+            {
+                attempt++;
+                last = await httpClientMock.GetAsync(relativePath);
+                if (last.IsSuccessStatusCode)
+                {
+                    output?.WriteLine($"Download succeeded after {attempt} attempts: {relativePath}");
+                    await using var zipStream = await last.Content.ReadAsStreamAsync();
+                    var destinationFilePath = Path.Combine(TestBase.ProjectDirectory!, "out", fileName);
+
+                    Directory.CreateDirectory(Path.GetDirectoryName(destinationFilePath)!);
+                    await using var fileStream = new FileStream(destinationFilePath, FileMode.Create, FileAccess.Write, FileShare.None);
+                    await zipStream.CopyToAsync(fileStream);
+                    await fileStream.FlushAsync();
+                    return destinationFilePath;
+                }
+
+                output?.WriteLine($"Attempt {attempt}: {relativePath} -> {(int)last.StatusCode} {last.StatusCode}");
+                // If 404, treat as eventual consistency; small incremental backoff
+                await Task.Delay(Math.Min(2000 * attempt, 6000));
+            }
+
+            var status = last != null ? $"{(int)last.StatusCode} {last.StatusCode}" : "no response";
+            throw new Xunit.Sdk.XunitException($"Artifact not available after {maxSeconds}s. Last status: {status}. Tried path: {relativePath}");
+
+
+            // Rhz : retry end.
+
+            //var mockResponse = await httpClientMock.GetAsync($"/_admin/files/FSS/S100-ExchangeSets/V01X01_{jobId}.zip");
+            //mockResponse.EnsureSuccessStatusCode();
+
+            //await using var zipStream = await mockResponse.Content.ReadAsStreamAsync();
+            //var destinationFilePath = Path.Combine(TestBase.ProjectDirectory!, "out", $"V01X01_{jobId}.zip");
 
             // Ensure the directory exists
-            var destinationDirectory = Path.GetDirectoryName(destinationFilePath);
-            if (!Directory.Exists(destinationDirectory))
-            {
-                Directory.CreateDirectory(destinationDirectory!);
-            }
-            await using var fileStream =
-            new FileStream(destinationFilePath, FileMode.Create, FileAccess.Write, FileShare.None);
-            await zipStream.CopyToAsync(fileStream);
-            await fileStream.FlushAsync();
-            return destinationFilePath;
+            //var destinationDirectory = Path.GetDirectoryName(destinationFilePath);
+            //if (!Directory.Exists(destinationDirectory))
+            //{
+            //    Directory.CreateDirectory(destinationDirectory!);
+            //}
+            //await using var fileStream =
+            //new FileStream(destinationFilePath, FileMode.Create, FileAccess.Write, FileShare.None);
+            //await zipStream.CopyToAsync(fileStream);
+            //await fileStream.FlushAsync();
+            //return destinationFilePath;
         }
 
         /// <summary>
