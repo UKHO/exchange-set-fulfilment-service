@@ -7,7 +7,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Generators
     /// Provides methods to generate correlation IDs for jobs and scheduled tasks,
     /// using environment-based prefixes for easier identification in logs.
     /// </summary>
-    internal class CorrelationIdGenerator:ICorrelationIdGenerator
+    internal class CorrelationIdGenerator : ICorrelationIdGenerator
     {
         private const string JobPrefix = "job-";
         private const string SchedPrefix = "sched-";
@@ -31,17 +31,28 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Generators
         }
 
         /// <summary>
+        /// Creates a new CorrelationId for a custom exchange set.
+        /// </summary>
+        /// <returns> newly created correlation ID.</returns>
+        public CorrelationId CreateForCustomExchageSet()
+        {
+            return CreateCorrelationId();
+        }
+
+        /// <summary>
         /// Generates a correlation ID using the specified prefix, applying environment-specific logic to include the prefix in local or development environments for easier identification.
         /// </summary>
         /// <param name="prefix">The prefix to use for the correlation ID.</param>
         /// <returns>A new CorrelationId value object.</returns>
-        private static CorrelationId CreateCorrelationId(string prefix)
+        private static CorrelationId CreateCorrelationId(string? prefix = null)
         {
             var env = AddsEnvironment.GetEnvironment();
             var isLocalOrDev = env.IsLocal() || env.IsDev();
             var guid = Guid.NewGuid();
 
-            var correlationId = isLocalOrDev ? $"{prefix}{guid:N}" : guid.ToString();
+            var correlationId = isLocalOrDev
+                ? string.IsNullOrEmpty(prefix) ? guid.ToString("N") : $"{prefix}{guid:N}"
+                : guid.ToString();
 
             return CorrelationId.From(correlationId);
         }

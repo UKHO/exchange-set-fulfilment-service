@@ -6,5 +6,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Generators
     {
         CorrelationId CreateForJob();
         CorrelationId CreateForScheduler();
+        CorrelationId CreateForCustomExchageSet();
     }
 }
