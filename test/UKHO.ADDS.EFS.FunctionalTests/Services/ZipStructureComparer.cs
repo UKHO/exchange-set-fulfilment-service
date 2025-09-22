@@ -53,26 +53,6 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
             var status = last != null ? $"{(int)last.StatusCode} {last.StatusCode}" : "no response";
             throw new Xunit.Sdk.XunitException($"Artifact not available after {maxSeconds}s. Last status: {status}. Tried path: {relativePath}");
 
-
-            // Rhz : retry end.
-
-            //var mockResponse = await httpClientMock.GetAsync($"/_admin/files/FSS/S100-ExchangeSets/V01X01_{jobId}.zip");
-            //mockResponse.EnsureSuccessStatusCode();
-
-            //await using var zipStream = await mockResponse.Content.ReadAsStreamAsync();
-            //var destinationFilePath = Path.Combine(TestBase.ProjectDirectory!, "out", $"V01X01_{jobId}.zip");
-
-            // Ensure the directory exists
-            //var destinationDirectory = Path.GetDirectoryName(destinationFilePath);
-            //if (!Directory.Exists(destinationDirectory))
-            //{
-            //    Directory.CreateDirectory(destinationDirectory!);
-            //}
-            //await using var fileStream =
-            //new FileStream(destinationFilePath, FileMode.Create, FileAccess.Write, FileShare.None);
-            //await zipStream.CopyToAsync(fileStream);
-            //await fileStream.FlushAsync();
-            //return destinationFilePath;
         }
 
         /// <summary>
