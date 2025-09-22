@@ -25,10 +25,6 @@ parameters:
 - name: DeployRedis
   type: boolean
   default: false
-# Only check containers are activated if set to true.
-- name: WaitForContainersAfterDeploy
-  type: boolean
-  default: false
 # If true, additional debugging will be enabled.
 - name: AdditionalDebugging
   type: boolean
@@ -224,34 +220,37 @@ jobs:
             AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
             DeployApp: ${{ parameters.DeployBuilderS100 }}
 
-        - ${{ if eq(parameters.WaitForContainersAfterDeploy, true) }}:
+        - template: check-container.yml
+          parameters:
+            AzureSubscription: ${{ variables.AzureSubscription }}
+            AppName: efs-orchestrator
+            MaxWaitTime: 15
+
+        - template: check-container.yml
+          parameters:
+            AzureSubscription: ${{ variables.AzureSubscription }}
+            AppName: efs-redis
+            MaxWaitTime: 15
+
+        - ${{ if eq(parameters.IncludeAddsMock, true) }}:
 
           - template: check-container.yml
             parameters:
               AzureSubscription: ${{ variables.AzureSubscription }}
-              AppName: efs-orchestrator
-              MaxWaitTime: 15
+              AppName: adds-mocks-efs
+              MaxWaitTime: 1
 
-          - ${{ if eq(parameters.IncludeAddsMock, true) }}:
+        - script: |
+            DOMAIN=$(azd env get-value EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN)
+            URL="https://efs-orchestrator.$DOMAIN"
+            echo "Orchestrator Endpoint: $URL"
+            echo "##vso[task.setvariable variable=ORCHESTRATOR_URL]$URL"
+          displayName: 'Set Orchestrator Endpoint Variable'
+          workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
 
-            - template: check-container.yml
-              parameters:
-                AzureSubscription: ${{ variables.AzureSubscription }}
-                AppName: adds-mocks-efs
-                MaxWaitTime: 1
-
-          - script: |
-              DOMAIN=$(azd env get-value EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN)
-              URL="https://efs-orchestrator.$DOMAIN"
-              echo "Orchestrator Endpoint: $URL"
-              echo "##vso[task.setvariable variable=ORCHESTRATOR_URL]$URL"
-            displayName: 'Set Orchestrator Endpoint Variable'
-            workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
-
-          - task: PowerShell@2
-            displayName: "Check health endpoint"
-            inputs:
-              targetType: filePath
-              filePath: "$(Build.SourcesDirectory)/efs/.azdo/pipelines/powershell/CheckServiceStatus.ps1"
-              arguments: "-healthEndPointUrl $(ORCHESTRATOR_URL)/health -waitTimeInMinute 2 -onErrorContinue 0"
-
+        - task: PowerShell@2
+          displayName: "Check health endpoint"
+          inputs:
+            targetType: filePath
+            filePath: "$(Build.SourcesDirectory)/efs/.azdo/pipelines/powershell/CheckServiceStatus.ps1"
+            arguments: "-healthEndPointUrl $(ORCHESTRATOR_URL)/health -waitTimeInMinute 2 -onErrorContinue 0"
