@@ -165,16 +165,16 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                                 if (requestConfiguration.QueryParameters is not null)
                                 {
                                     var queryParams = requestConfiguration.QueryParameters;
-                                    var productIdentifierProp = queryParams.GetType().GetProperty("ProductIdentifier");
-                                    if (productIdentifierProp != null && productIdentifierProp.CanWrite && productIdentifier != DataStandardProduct.Undefined)
+                                    var getProductIdentifierProp = queryParams.GetType().GetProperty("ProductIdentifier");
+                                    if (getProductIdentifierProp != null && getProductIdentifierProp.CanWrite && productIdentifier != DataStandardProduct.Undefined)
                                     {
-                                        productIdentifierProp.SetValue(queryParams, productIdentifier.AsEnum.ToString());
+                                        getProductIdentifierProp.SetValue(queryParams, productIdentifier.AsEnum.ToString());
                                     }
-                                    var sinceDateTimeProp = queryParams.GetType().GetProperty("SinceDateTime");
-                                    if (sinceDateTimeProp != null && sinceDateTimeProp.CanWrite && !string.IsNullOrEmpty(sinceDateTime))
+                                    var getSinceDateTime = queryParams.GetType().GetProperty("SinceDateTime");
+                                    if (getSinceDateTime != null && getSinceDateTime.CanWrite && !string.IsNullOrEmpty(sinceDateTime))
                                     {
                                         var parsedDate = DateTimeOffset.Parse(sinceDateTime);
-                                        sinceDateTimeProp.SetValue(queryParams, parsedDate);
+                                        getSinceDateTime.SetValue(queryParams, parsedDate);
                                     }
                                 }
                                 requestConfiguration.Headers.Add("X-Correlation-Id", (string)job.GetCorrelationId());

@@ -41,11 +41,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
             try
             {
-                productEditionList = await _productService.GetS100ProductUpdatesSinceAsync(
-                    sinceDateTime,
-                    productIdentifier,
-                    job,
-                    Environment.CancellationToken);
+                productEditionList = await _productService.GetS100ProductUpdatesSinceAsync(sinceDateTime,productIdentifier,job,Environment.CancellationToken);
             }
             catch (Exception)
             {
