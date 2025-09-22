@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using Azure.Identity;
 using FluentValidation;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -17,13 +16,14 @@ using UKHO.ADDS.EFS.Orchestrator.Health;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation;
 using UKHO.ADDS.EFS.Orchestrator.Monitors;
+using UKHO.ADDS.EFS.Orchestrator.Pipelines.Factories;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
 using UKHO.ADDS.EFS.Orchestrator.Schedule;
 using UKHO.ADDS.EFS.Orchestrator.Services;
-using UKHO.ADDS.Infrastructure.Serialization.Json;
 using UKHO.ADDS.EFS.Orchestrator.Validators.S100;
+using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Orchestrator
 {
@@ -62,6 +62,8 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddTransient<IS100ProductNamesRequestValidator, S100ProductNamesRequestValidator>();
             builder.Services.AddTransient<IS100ProductVersionsRequestValidator, S100ProductVersionsRequestValidator>();
             builder.Services.AddTransient<IS100UpdateSinceRequestValidator, S100UpdateSinceRequestValidator>();
+
+            builder.Services.AddTransient<IExchangeSetResponseFactory, ExchangeSetResponseFactory>();
 
             builder.Services.AddSingleton<IPipelineContextFactory<S100Build>, PipelineContextFactory<S100Build>>();
             builder.Services.AddSingleton<IPipelineContextFactory<S63Build>, PipelineContextFactory<S63Build>>();
