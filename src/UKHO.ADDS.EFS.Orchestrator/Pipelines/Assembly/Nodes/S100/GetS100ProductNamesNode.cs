@@ -89,10 +89,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                         
                         return NodeResultStatus.Failed;
                     }
-                    else
-                    {
-                        build.ProductEditions = productEditionList.Products;
-                    }
+
+                    build.ProductEditions = productEditionList.Products;
 
                     if (job.RequestType == RequestType.ProductNames)
                     {

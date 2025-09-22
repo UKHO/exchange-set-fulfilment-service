@@ -64,7 +64,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                          if (result.ErrorResponse != null)
                          {
                              var error = result.ErrorResponse.Errors.FirstOrDefault();
-                             if (error != null && error.Source == "ExchangeSetSize")
+                             if (error != null && error.Source == "exchangeSetSize")
                              {
                                  return Results.Json(result.ErrorResponse, statusCode: (int)HttpStatusCode.RequestEntityTooLarge);
                              }
