@@ -16,7 +16,7 @@ parameters:
   - name: DeployOrchestrator
     displayName: "Deploy orchestrator"
     type: boolean
-    default: true
+    default: false
   - name: DeployBuilderS100
     displayName: "Deploy S100 builder"
     type: boolean
@@ -24,11 +24,11 @@ parameters:
   - name: DeployAddsMock
     displayName: "Deploy ADDS mock"
     type: boolean
-    default: true
+    default: false
   - name: DeployRedis
     displayName: "Deploy Redis"
     type: boolean
-    default: true
+    default: false
   - name: AdditionalDebugging
     displayName: "Enable optional pipeline debugging"
     type: boolean
