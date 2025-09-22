@@ -8,15 +8,17 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
 {
     public class OrchestratorCommands
     {
-        private static DistributedApplication App => AspireResourceSingleton.App!;
-        private static HttpClient httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
+        private static HttpClient httpClient => AspireResourceSingleton.httpClient!;
         private const int WaitDurationMs = 5000;
-        private const double MaxWaitMinutes = 3;
+        private const double MaxWaitMinutes = 5;
 
         public static async Task<HttpResponseMessage> commonOrchPostCallHelper(string requestId, object payload, string endpoint)
         {
             var content = new StringContent(payload is string payloadString ? payloadString : JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
             content.Headers.Add(ApiHeaderKeys.XCorrelationIdHeaderKey, requestId);
+
+            //Adding a random delay to avoid too many concurrent requests
+            await Task.Delay(Random.Shared.Next(5000, 10000));
 
             var response = await httpClient.PostAsync(endpoint, content);
 

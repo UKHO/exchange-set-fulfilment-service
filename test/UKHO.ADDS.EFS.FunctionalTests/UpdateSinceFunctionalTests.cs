@@ -1,5 +1,6 @@
 ﻿using Meziantou.Xunit;
 using UKHO.ADDS.EFS.FunctionalTests.Services;
+using xRetry;
 using Xunit.Abstractions;
 
 namespace UKHO.ADDS.EFS.FunctionalTests
@@ -49,7 +50,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
 
 
         //PBI 242767 - Input validation for the ESS API - Update Since Endpoint
-        [Theory]
+        [RetryTheory(maxRetries: 1, delayBetweenRetriesMs: 5000)]
         [DisableParallelization] // This test runs in parallel with other tests. However, its test cases are run sequentially.
         [InlineData("https://valid.com/callback", "s101", HttpStatusCode.Accepted, "")] // Test Case 244582 - Valid Format
         [InlineData("", "s101", HttpStatusCode.Accepted, "")]
@@ -70,7 +71,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         }
 
 
-        [Theory]
+        [RetryTheory(maxRetries: 1, delayBetweenRetriesMs: 5000)]
         [DisableParallelization] // This test runs in parallel with other tests. However, its test cases are run sequentially.
         [InlineData("2025-09-29", "https://valid.com/callback", "s102", HttpStatusCode.BadRequest, "Provided updatesSince is either invalid or invalid format, the valid format is 'ISO 8601 format' (e.g. '2025-09-29T00:00:00Z')")] // Test Case 244583 - Invalid Format when time part is missing
         [InlineData("2025-08-25L07:8:00.00Z", "https://valid.com/callback", "s102", HttpStatusCode.BadRequest, "Provided updatesSince is either invalid or invalid format, the valid format is 'ISO 8601 format' (e.g. '2025-09-29T00:00:00Z')")] // Test Case 244583 - Invalid Format
@@ -88,7 +89,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         }
 
 
-        [Theory]
+        [RetryTheory(maxRetries: 1, delayBetweenRetriesMs: 5000)]
         [DisableParallelization] // This test runs in parallel with other tests. However, its test cases are run sequentially.
         [InlineData("https//invalid.com/callback", "s101", HttpStatusCode.BadRequest, "URI is malformed or does not use HTTPS")] // Test Case 244586 -  Invalid CallBack Uri Format
         [InlineData("", "s102", HttpStatusCode.Accepted, "")] // Test Case 244585 -  Valid input with blank CallBack Uri
@@ -104,7 +105,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         }
 
 
-        [Theory]
+        [RetryTheory(maxRetries: 1, delayBetweenRetriesMs: 5000)]
         [DisableParallelization] // This test runs in parallel with other tests. However, its test cases are run sequentially.
         [InlineData("https://valid.com/callback", "SABC", HttpStatusCode.BadRequest, "productIdentifier must be exactly 4 characters: start with 'S' or 's' followed by three digits, with no spaces or extra characters")] // Test Case 244907 - Invalid Product Identifier Format
         public async Task ValidateUSPayloadWithInvalidProductIdentifier(string? callbackUri, string? productIdentifier, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
@@ -119,7 +120,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         }
 
 
-        [Theory]
+        [RetryTheory(maxRetries: 1, delayBetweenRetriesMs: 5000)]
         [DisableParallelization] // This test runs in parallel with other tests. However, its test cases are run sequentially.
         [InlineData(-28, "https://valid.com/callback", "s101", HttpStatusCode.BadRequest, "Date time provided is more than 28 days in the past")] // Test Case 244584 - Date is of 28th day in the past
         [InlineData(-14, "https://valid.com/callback", "s102", HttpStatusCode.Accepted, "")] // Test Case 245730 - Past Date less than 28 days

@@ -13,7 +13,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
         /// <returns>The file path of the downloaded zip.</returns>
         public static async Task<string> DownloadExchangeSetAsZipAsync(string jobId)
         {
-            var httpClientMock = AspireResourceSingleton.App!.CreateHttpClient(ProcessNames.MockService);
+            var httpClientMock = AspireResourceSingleton.httpClientMock!;
             var mockResponse = await httpClientMock.GetAsync($"/_admin/files/FSS/S100-ExchangeSets/V01X01_{jobId}.zip");
             mockResponse.EnsureSuccessStatusCode();
 
