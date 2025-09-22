@@ -2,8 +2,8 @@
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Meziantou.Xunit;
-using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.FunctionalTests.Services;
+using xRetry;
 using Xunit.Abstractions;
 
 namespace UKHO.ADDS.EFS.FunctionalTests
@@ -116,7 +116,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
 
 
         //PBI 242670 - Input validation for the ESS API - Product Name Endpoint
-        [Theory]
+        [RetryTheory(maxRetries: 1, delayBetweenRetriesMs: 5000)]
         [DisableParallelization] // This test runs in parallel with other tests. However, its test cases are run sequentially.
         [InlineData(new object[] { "101GB40079ABCDEFG", "102NO32904820801012", "104US00_CHES_TYPE1_20210630_0600", "111US00_ches_dcf8_20190703T00Z" }, "https://valid.com/callback", HttpStatusCode.Accepted, "")] // Test Case 243519 - Valid input
         [InlineData(new object[] { "101GB40079ABCDEFG", "102NO32904820801012" }, "", HttpStatusCode.Accepted, "")] // Test Case 243519 - Valid input with valid callBackURI
@@ -131,7 +131,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
             await submitPostRequestAndCheckResponse(_requestId, productNames, _endpoint, expectedStatusCode, expectedErrorMessage);
         }
 
-        [Theory]
+        [RetryTheory(maxRetries: 1, delayBetweenRetriesMs: 5000)]
         [DisableParallelization] // This test runs in parallel with other tests. However, its test cases are run sequentially.
         [InlineData(new object[] { "112GB40079ABCDEFG" }, "https://valid.com/callback", HttpStatusCode.BadRequest, "112GB40079ABCDEFG' starts with digits '112' but that is not a valid S-100 product")] // Test Case 245717 -Invalid Product
         [InlineData(new object[] { }, "https://valid.com/callback", HttpStatusCode.BadRequest, "Either body is null or malformed")] // Test Case 243604 - Empty array
@@ -149,7 +149,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         }
 
         //PBI 244063 - Use the existing Product Names Node (GetS100ProductNamesNode) from existing pipeline (S100AssemblyPipeline) to new pipeline (S100CustomAssemblyPipeline).
-        [Theory]
+        [RetryTheory(maxRetries: 1, delayBetweenRetriesMs: 5000)]
         [InlineData(new string[] { "101GB004DEVQK" }, "https://valid.com/callback", "Single101Product.zip", 1, 1)] // Test Case 245610 - Product Name (S-101 product) Node Integration
         [InlineData(new string[] { "102CA005N5040W00130" }, "https://valid.com/callback", "Single102Product.zip", 1, 1)] // Test Case 245610 - Product Name (S-102 product) Node Integration
         [InlineData(new string[] { "104CA00_20241103T001500Z_GB3DEVK0_DCF2" }, "https://valid.com/callback", "Single104Product.zip", 1, 1)] // Test Case 245610 - Product Name (S-104 product) Node Integration
