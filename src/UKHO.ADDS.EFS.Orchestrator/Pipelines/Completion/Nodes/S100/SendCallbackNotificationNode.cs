@@ -21,8 +21,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
             IExchangeSetResponseFactory exchangeSetResponseFactory)
             : base(nodeEnvironment)
         {
-            _callbackNotificationService = callbackNotificationService;
-            _exchangeSetResponseFactory = exchangeSetResponseFactory;
+            _callbackNotificationService = callbackNotificationService ?? throw new ArgumentNullException(nameof(callbackNotificationService));
+            _exchangeSetResponseFactory = exchangeSetResponseFactory ?? throw new ArgumentNullException(nameof(exchangeSetResponseFactory));
         }
 
         public override Task<bool> ShouldExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
