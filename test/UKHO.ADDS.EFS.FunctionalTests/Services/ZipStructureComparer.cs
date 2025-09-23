@@ -136,7 +136,6 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
 
             // Compare directory structures of both ZIP files
             Assert.Equal(sourceDirectories, targetDirectories);
-
         }
     }
 }
