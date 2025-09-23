@@ -15,8 +15,8 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
         private static readonly int MaxEditionNumber = 15;
         private static readonly int MinFileSize = 2000;
         private static readonly int MaxFileSize = 15000;
-        private static readonly int LargeExchangeSetMinFileSize = 1000000; // 1MB
-        private static readonly int LargeExchangeSetMaxFileSize = 2000000; // 2MB
+        private static readonly int LargeExchangeSetMinFileSize = 6000000;
+        private static readonly int LargeExchangeSetMaxFileSize = 10000000; 
         private static readonly Random RandomInstance = Random.Shared;
 
         private static readonly string InvalidProduct = "invalidProduct";
