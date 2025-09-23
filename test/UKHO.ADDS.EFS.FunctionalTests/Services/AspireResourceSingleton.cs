@@ -1,7 +1,8 @@
-﻿using System.Net.Http;
-using Aspire.Hosting;
-using Microsoft.Azure.Amqp;
+﻿using Aspire.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Http;
+using Polly;
+using Polly.Extensions.Http;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 
 namespace UKHO.ADDS.EFS.FunctionalTests.Services
@@ -34,6 +35,44 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
         public static string ProjectDirectory { get; } = Directory.GetParent(AppContext.BaseDirectory)!.Parent!.Parent!.Parent!.FullName;
 
 
+        private HttpClient ConfigureHttpClientWithResilience(HttpClient client)
+        {
+            // Create a resilience policy that includes:
+            // 1. Retry with exponential backoff for transient failures
+            // 2. Circuit breaker to prevent overwhelming failing services
+            var retryPolicy = HttpPolicyExtensions
+                .HandleTransientHttpError()
+                .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+                .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+
+            var circuitBreakerPolicy = HttpPolicyExtensions
+                .HandleTransientHttpError()
+                .CircuitBreakerAsync(5, TimeSpan.FromMinutes(1));
+
+            // Apply policies to the HttpClient
+            var policyHandler = new PolicyHttpMessageHandler(retryPolicy);
+            policyHandler.InnerHandler = new HttpClientHandler();
+
+            var circuitBreakerHandler = new PolicyHttpMessageHandler(circuitBreakerPolicy);
+            circuitBreakerHandler.InnerHandler = policyHandler;
+
+            // Create a new client with the policy handlers
+            var clientWithResilience = new HttpClient(circuitBreakerHandler)
+            {
+                BaseAddress = client.BaseAddress,
+                Timeout = TimeSpan.FromMinutes(5) // Increase default timeout for long-running operations
+            };
+
+            // Copy any headers or default request headers
+            foreach (var header in client.DefaultRequestHeaders)
+            {
+                clientWithResilience.DefaultRequestHeaders.Add(header.Key, header.Value);
+            }
+
+            return clientWithResilience;
+        }
+
+
         private static bool IsRunningInPipeline()
         {
             // Common environment variables for CI/CD pipelines
@@ -61,15 +100,24 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
                 var orchestratorUrl = _configuration["ORCHESTRATOR_URL"] ?? throw new ArgumentNullException("Orchestrator Url");
                 var mockUrl = _configuration["ADDSMOCK_URL"] ?? throw new ArgumentNullException("Mock Url");
 
-                httpClient = new HttpClient
+                // Create basic HttpClients
+                var basicHttpClient = new HttpClient
                 {
                     BaseAddress = new Uri(orchestratorUrl)
                 };
 
-                httpClientMock = new HttpClient
+                var basicHttpClientMock = new HttpClient
                 {
                     BaseAddress = new Uri(mockUrl)
                 };
+
+                // Apply resilience patterns to the clients
+                httpClient = ConfigureHttpClientWithResilience(basicHttpClient);
+                httpClientMock = ConfigureHttpClientWithResilience(basicHttpClientMock);
+
+                // Dispose the basic clients as they're no longer needed
+                basicHttpClient.Dispose();
+                basicHttpClientMock.Dispose();
             }
             else
             {
