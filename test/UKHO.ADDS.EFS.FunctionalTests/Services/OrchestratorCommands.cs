@@ -178,5 +178,23 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
 
             return requestId!;
         }
+
+        /// <summary>
+        /// Submits a update since endpoint and assert Success response.
+        /// </summary>
+        public static async Task<string> UpdateSinceInCustomAssemblyPipelineSubmitJobAsync(HttpClient httpClient, string productIdentifier, string? callbackUri, string sinceDateTime)
+        {
+            var requestId = $"job-0001-" + Guid.NewGuid();
+            var requestPayload = $"{{ \"sinceDateTime\": \"{sinceDateTime}\" }}";
+            var content = new StringContent(requestPayload, Encoding.UTF8, "application/json");
+            content.Headers.Add("x-correlation-id", requestId);
+
+            // Send the POST request
+            var response = await httpClient.PostAsync($"/v2/exchangeSet/s100/updatesSince?callbackUri={callbackUri}&productIdentifier={productIdentifier}", content);
+
+            Assert.True(response.IsSuccessStatusCode, $"Expected success status code but got: {response.StatusCode}");
+
+            return requestId!;
+        }
     }
 }
