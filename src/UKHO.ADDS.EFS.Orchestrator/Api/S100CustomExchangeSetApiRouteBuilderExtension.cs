@@ -70,7 +70,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             .Produces<CustomExchangeSetResponse>(202)
             .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", Guid.NewGuid().ToString("N"))
             .WithDescription("Provide all the latest releasable baseline data for a specified set of S100 Products.")
-            .WithRequiredAuthorization(AuthenticationConstants.EfsRole); ;
+            .WithRequiredAuthorization(AuthenticationConstants.EfsRole)
+            .AddEndpointFilter<ModelBindingErrorFilter<List<string>>>();
 
             // POST /v2/exchangeSet/s100/productVersions
             exchangeSetEndpoint.MapPost("/productVersions", async (
@@ -117,7 +118,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             .Produces<CustomExchangeSetResponse>(202)
             .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", Guid.NewGuid().ToString("N"))
             .WithDescription("Given a set of S100 Product versions (e.g. Edition x Update y) provide any later releasable files.")
-            .WithRequiredAuthorization(AuthenticationConstants.EfsRole);
+            .WithRequiredAuthorization(AuthenticationConstants.EfsRole)
+            .AddEndpointFilter<ModelBindingErrorFilter<List<ProductVersionRequest>>>();
 
             // POST /v2/exchangeSet/s100/updatesSince
             exchangeSetEndpoint.MapPost("/updatesSince", async (
@@ -204,4 +206,31 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             return Results.BadRequest(errorResponse);
         }
     }
+
+    public class ModelBindingErrorFilter<T> : IEndpointFilter
+    {
+        public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
+        {
+            if (!context.Arguments.Any() || context.Arguments[0] is not T)
+            {
+                var errorResponse = new ErrorResponseModel
+                {
+                    CorrelationId = context.HttpContext.GetCorrelationId().ToString(),
+                    Errors = new List<ErrorDetail>
+                    {
+                        new()
+                        {
+                            Source = "requestBody",
+                            Description = "Either body is null or malformed."
+                        }
+                    }
+                };
+                var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<ModelBindingErrorFilter<T>>>();
+                logger.S100InputValidationFailed(errorResponse);
+                return Results.BadRequest(errorResponse);
+            }
+            return await next(context);
+        }
+    }
+
 }

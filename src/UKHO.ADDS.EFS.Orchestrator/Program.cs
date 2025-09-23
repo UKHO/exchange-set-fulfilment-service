@@ -65,24 +65,6 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     );
                 }
 
-                builder.Services.Configure<ApiBehaviorOptions>( options =>
-                {
-                    options.InvalidModelStateResponseFactory = context =>
-                    {
-                        var problemDetails = new ValidationProblemDetails(context.ModelState)
-                        {
-                            Type = "https://httpstatuses.com/400",
-                            Title = "One or more validation errors occurred.",
-                            Status = StatusCodes.Status400BadRequest,
-                            Detail = "See the errors property for details.",
-                            Instance = context.HttpContext.Request.Path
-                        };
-                        return new BadRequestObjectResult(problemDetails)
-                        {
-                            ContentTypes = { "application/problem+json", "application/problem+xml" }
-                        };
-                    };
-                });
 
                 builder.AddServiceDefaults().AddOrchestratorServices();
 
