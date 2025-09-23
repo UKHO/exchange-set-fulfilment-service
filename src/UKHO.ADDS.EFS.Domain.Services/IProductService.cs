@@ -38,7 +38,7 @@ namespace UKHO.ADDS.EFS.Domain.Services
         ///     Retrieves product versions for a list of product names from the Sales Catalogue Service ProductVersions endpoint.
         /// </summary>
         /// <param name="dataStandard">The data standard.</param>
-        /// <param name="productNames">A collection of product names to retrieve versions for.</param>
+        /// <param name="productVersion">A collection of product version to retrieve.</param>
         /// <param name="job">The job context for the request.</param>
         /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
         /// <returns>
