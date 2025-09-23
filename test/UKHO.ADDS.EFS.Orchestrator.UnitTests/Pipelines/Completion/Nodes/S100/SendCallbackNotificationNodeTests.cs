@@ -71,6 +71,28 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
         }
 
         [Test]
+        public void WhenConstructorCalledWithNullCallbackNotificationService_ThenThrowsArgumentNullException()
+        {
+            Assert.That(() => new SendCallbackNotificationNode(_nodeEnvironment, null!, _exchangeSetResponseFactory),
+                Throws.ArgumentNullException.With.Property("ParamName").EqualTo("callbackNotificationService"));
+        }
+
+        [Test]
+        public void WhenConstructorCalledWithNullExchangeSetResponseFactory_ThenThrowsArgumentNullException()
+        {
+            Assert.That(() => new SendCallbackNotificationNode(_nodeEnvironment, _callbackNotificationService, null!),
+                Throws.ArgumentNullException.With.Property("ParamName").EqualTo("exchangeSetResponseFactory"));
+        }
+
+        [Test]
+        public void WhenConstructorCalledWithValidParameters_ThenInstanceIsCreated()
+        {
+            var node = new SendCallbackNotificationNode(_nodeEnvironment, _callbackNotificationService, _exchangeSetResponseFactory);
+            Assert.That(node, Is.Not.Null);
+            Assert.That(node, Is.InstanceOf<SendCallbackNotificationNode>());
+        }
+
+        [Test]
         public async Task WhenShouldExecuteAsyncCalledWithCallbackUriAndBatchIdAndSuccessfulBuild_ThenReturnsTrue()
         {
             var result = await _sendCallbackNotificationNode.ShouldExecuteAsync(_executionContext);
@@ -434,29 +456,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
                 A<Job>._, A<object>._, A<CancellationToken>._))
                 .MustNotHaveHappened();
         }
-
-        [Test]
-        public void WhenConstructorCalledWithNullCallbackNotificationService_ThenThrowsArgumentNullException()
-        {
-            Assert.That(() => new SendCallbackNotificationNode(_nodeEnvironment, null!, _exchangeSetResponseFactory),
-                Throws.ArgumentNullException.With.Property("ParamName").EqualTo("callbackNotificationService"));
-        }
-
-        [Test]
-        public void WhenConstructorCalledWithNullExchangeSetResponseFactory_ThenThrowsArgumentNullException()
-        {
-            Assert.That(() => new SendCallbackNotificationNode(_nodeEnvironment, _callbackNotificationService, null!),
-                Throws.ArgumentNullException.With.Property("ParamName").EqualTo("exchangeSetResponseFactory"));
-        }
-
-        [Test]
-        public void WhenConstructorCalledWithValidParameters_ThenInstanceIsCreated()
-        {
-            var node = new SendCallbackNotificationNode(_nodeEnvironment, _callbackNotificationService, _exchangeSetResponseFactory);
-            Assert.That(node, Is.Not.Null);
-            Assert.That(node, Is.InstanceOf<SendCallbackNotificationNode>());
-        }
-
+        
         [Test]
         public void WhenPerformExecuteAsyncCalledWithJobNull_ThenThrowsNullReferenceException()
         {
