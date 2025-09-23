@@ -119,6 +119,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
             var responseBuildStatus = await OrchestratorCommands.GetBuildStatusAsync(_jobId);
             await apiResponseAssertions.checkBuildStatus(responseBuildStatus);
 
+            _output.WriteLine($"Trying to download file V01X01_{_jobId}.zip");
             var exchangeSetDownloadPath = await ZipStructureComparer.DownloadExchangeSetAsZipAsync(_jobId);
             var sourceZipPath = Path.Combine(AspireResourceSingleton.ProjectDirectory!, "TestData", zipFileName);
 

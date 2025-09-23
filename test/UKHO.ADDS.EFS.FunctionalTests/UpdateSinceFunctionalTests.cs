@@ -27,6 +27,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
             if (expectedStatusCode != HttpStatusCode.Accepted && expectedErrorMessage != "")
             {
                 var responseBody = await response.Content.ReadAsStringAsync();
+                _output.WriteLine($"ResponseContent: {responseBody}");
                 Assert.Contains(expectedErrorMessage, responseBody);
             }
         }
