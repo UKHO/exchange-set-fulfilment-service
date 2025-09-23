@@ -127,7 +127,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         }
 
         [Test]
-        public async Task WhenExecuteAsyncWithEmptyProductVersions_ThenNodeFailed()
+        public async Task WhenExecuteAsyncWithEmptyProductVersions_ThenNodeSucceeded()
         {
             var job = CreateJob(RequestType.ProductVersions, []);
             _pipelineContext = new PipelineContext<S100Build>(job, _s100Build, _storageService);
@@ -149,7 +149,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 Id = JobId.From("job-1"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedProducts = new ProductNameList(),
+                RequestedProducts = [],
                 RequestedFilter = "",
                 RequestType = requestType,
                 ProductVersions = productVersions ?? []
