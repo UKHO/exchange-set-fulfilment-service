@@ -28,7 +28,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
             // POST /v2/exchangeSet/s100/productNames
             exchangeSetEndpoint.MapPost("/productNames", async (
-                [FromBody] List<string> productNamesRequest,
+                List<string> productNamesRequest,
                 IConfiguration configuration,
                 IAssemblyPipelineFactory pipelineFactory,
                 HttpContext httpContext,
@@ -74,7 +74,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
             // POST /v2/exchangeSet/s100/productVersions
             exchangeSetEndpoint.MapPost("/productVersions", async (
-                [FromBody] List<ProductVersionRequest> productVersionsRequest,
+                List<ProductVersionRequest> productVersionsRequest,
                 IConfiguration configuration,
                 IAssemblyPipelineFactory pipelineFactory,
                 HttpContext httpContext,

@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Azure.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
@@ -49,6 +50,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     var fullyQualifiedNamespace = Environment.GetEnvironmentVariable("ConnectionStrings__efs-events-namespace");
                     var eventHubName = ServiceConfiguration.EventHubName;
 
+
                     builder.Services.AddSerilog((services, lc) =>
                         ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint)
                             .WriteTo.EventHub(options =>
@@ -63,7 +65,24 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     );
                 }
 
-                builder.AddConfiguration(ServiceConfiguration.ServiceName, ProcessNames.ConfigurationService);
+                builder.Services.Configure<ApiBehaviorOptions>( options =>
+                {
+                    options.InvalidModelStateResponseFactory = context =>
+                    {
+                        var problemDetails = new ValidationProblemDetails(context.ModelState)
+                        {
+                            Type = "https://httpstatuses.com/400",
+                            Title = "One or more validation errors occurred.",
+                            Status = StatusCodes.Status400BadRequest,
+                            Detail = "See the errors property for details.",
+                            Instance = context.HttpContext.Request.Path
+                        };
+                        return new BadRequestObjectResult(problemDetails)
+                        {
+                            ContentTypes = { "application/problem+json", "application/problem+xml" }
+                        };
+                    };
+                });
 
                 builder.AddServiceDefaults().AddOrchestratorServices();
 
