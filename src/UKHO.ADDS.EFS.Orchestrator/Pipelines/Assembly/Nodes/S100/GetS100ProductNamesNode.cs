@@ -65,11 +65,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                     var maxExchangeSetSizeInMB = Environment.Configuration.GetValue<int>(MaxExchangeSetSizeInMBConfigKey);
                     var totalFileSizeBytes = productEditionList.Products.Sum(p => (long)p.FileSize);
                     double byteSize = 1024f;
-                    var totalFileSizeMB = (totalFileSizeBytes / byteSize) / byteSize;
+                    var totalFileSizeInMB = (totalFileSizeBytes / byteSize) / byteSize;
 
-                    if (totalFileSizeMB > maxExchangeSetSizeInMB)
+                    if (totalFileSizeInMB > maxExchangeSetSizeInMB)
                     {
-                        _logger.LogExchangeSetSizeExceeded((long)totalFileSizeMB, maxExchangeSetSizeInMB);
+                        _logger.LogExchangeSetSizeExceeded((long)totalFileSizeInMB, maxExchangeSetSizeInMB);
                         
                         // Set up the error response for payload too large
                         context.Subject.ErrorResponse = new ErrorResponseModel

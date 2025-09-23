@@ -216,7 +216,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         [LoggerMessage(S100InputValidationErrorId, LogLevel.Error, "S100 input validation error for correlation ID: {correlationId}", EventName = nameof(S100InputValidationError))]
         public static partial void S100InputValidationError(this ILogger logger, string correlationId, Exception exception);
         
-        [LoggerMessage(ExchangeSetSizeExceededId, LogLevel.Warning, "Total exchange set size {TotalSizeMB}MB exceeds maximum allowed size {MaxSizeMB}MB", EventName = nameof(ExchangeSetSizeExceeded))]
-        public static partial void LogExchangeSetSizeExceeded(this ILogger logger, long totalSizeMB, int maxSizeMB);
+        [LoggerMessage(ExchangeSetSizeExceededId, LogLevel.Warning, "Total exchange set size {TotalSizeInMB}MB exceeds maximum allowed size {MaxSizeInMB}MB", EventName = nameof(ExchangeSetSizeExceeded))]
+        public static partial void LogExchangeSetSizeExceeded(this ILogger logger, long totalSizeInMB, int maxSizeInMB);
     }
 }
