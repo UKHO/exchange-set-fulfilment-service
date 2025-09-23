@@ -52,18 +52,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
                     build.ProductEditions = productEditionList.Products;
 
-                    if (job.RequestType == RequestType.ProductVersions)
-                    {
-                        // Get the exchange set expiry duration from configuration
-                        var expiryTimeSpan = Environment.Configuration.GetValue<TimeSpan>(ExchangeSetExpiresInConfigKey);
+                    // Get the exchange set expiry duration from configuration
+                    var expiryTimeSpan = Environment.Configuration.GetValue<TimeSpan>(ExchangeSetExpiresInConfigKey);
 
-                        job.ExchangeSetUrlExpiryDateTime = DateTime.UtcNow.Add(expiryTimeSpan);
-                        job.RequestedProductCount = ProductCount.From(productVersion.Count());
-                        job.ExchangeSetProductCount = productEditionList.Count;
-                        job.RequestedProductsAlreadyUpToDateCount = productEditionList.ProductCountSummary.RequestedProductsAlreadyUpToDateCount;
-                        job.RequestedProductsNotInExchangeSet = productEditionList.ProductCountSummary.MissingProducts;
-                    }
-                   
+                    job.ExchangeSetUrlExpiryDateTime = DateTime.UtcNow.Add(expiryTimeSpan);
+                    job.RequestedProductCount = ProductCount.From(productVersion.Count());
+                    job.ExchangeSetProductCount = productEditionList.Count;
+                    job.RequestedProductsAlreadyUpToDateCount = productEditionList.ProductCountSummary.RequestedProductsAlreadyUpToDateCount;
+                    job.RequestedProductsNotInExchangeSet = productEditionList.ProductCountSummary.MissingProducts;
+      
                     await context.Subject.SignalBuildRequired();
 
                     return NodeResultStatus.Succeeded;
