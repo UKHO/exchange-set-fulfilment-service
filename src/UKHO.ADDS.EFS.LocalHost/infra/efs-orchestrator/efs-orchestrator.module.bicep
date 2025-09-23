@@ -48,7 +48,7 @@ param efs_b2c_app_domain string
 
 param efs_b2c_app_instance string
 
-param efs_b2c_app_signupsigninpolicy string
+param efs_b2c_app_signin_policy string
 
 resource efs_orchestrator 'Microsoft.App/containerApps@2025-02-02-preview' = {
   name: 'efs-orchestrator'
@@ -171,8 +171,8 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2025-02-02-preview' = {
               value: efs_b2c_app_instance
             }
             {
-              name: 'AZURE_EFS_B2C_APP_SIGNUP_SIGNIN_POLICY'
-              value: efs_b2c_app_signupsigninpolicy
+              name: 'AZURE_EFS_B2C_APP_SIGNIN_POLICY'
+              value: efs_b2c_app_signin_policy
             }
           ]
           resources: {
