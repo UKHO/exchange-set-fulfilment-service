@@ -39,8 +39,8 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.callback
                             // Generate a filename with timestamp
                             var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
                             var fileName = string.IsNullOrEmpty(fssBatchId)
-                                ? $"callback-response-{timestamp}.json"
-                                : $"callback-response-{fssBatchId}.json";
+                                ? $"callback-response-{timestamp}.txt"
+                                : $"callback-response-{fssBatchId}.txt";
                             var filePath = $"/callback-responses/{fileName}";
 
                             // Save the callback request to a file

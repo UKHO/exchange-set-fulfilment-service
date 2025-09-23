@@ -1,6 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
-using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
 {
@@ -20,7 +18,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
         public static readonly EventId AssemblyPipelineFailed = new(AssemblyPipelineFailedId, nameof(AssemblyPipelineFailed));
 
         [LoggerMessage(AssemblyPipelineFailedId, LogLevel.Error, "Assembly pipeline failed: {@result}", EventName = nameof(AssemblyPipelineFailed))]
-        public static partial void LogAssemblyPipelineFailed(this ILogger logger, [LogProperties] NodeResult result);
+        public static partial void LogAssemblyPipelineFailed(this ILogger logger, [LogProperties] NodeResultLogView result);
 
         //The Product Search node failed
         public static readonly EventId ProductSearchNodeFailed = new(ProductSearchNodeFailedId, nameof(ProductSearchNodeFailed));
