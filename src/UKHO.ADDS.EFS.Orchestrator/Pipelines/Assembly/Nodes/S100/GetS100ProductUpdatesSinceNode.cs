@@ -15,7 +15,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
         private readonly ILogger<GetS100ProductUpdatesSinceNode> _logger;
         private const string ExchangeSetExpiresInConfigKey = "orchestrator:Response:ExchangeSetExpiresIn";
 
-        public GetS100ProductUpdatesSinceNode(AssemblyNodeEnvironment nodeEnvironment,IProductService productService,ILogger<GetS100ProductUpdatesSinceNode> logger)
+        public GetS100ProductUpdatesSinceNode(AssemblyNodeEnvironment nodeEnvironment, IProductService productService, ILogger<GetS100ProductUpdatesSinceNode> logger)
             : base(nodeEnvironment)
         {
             _productService = productService ?? throw new ArgumentNullException(nameof(productService));
@@ -41,7 +41,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
             try
             {
-                productEditionList = await _productService.GetS100ProductUpdatesSinceAsync(sinceDateTime,productIdentifier,job,Environment.CancellationToken);
+                productEditionList = await _productService.GetS100ProductUpdatesSinceAsync(sinceDateTime, productIdentifier, job, Environment.CancellationToken);
             }
             catch (Exception)
             {
