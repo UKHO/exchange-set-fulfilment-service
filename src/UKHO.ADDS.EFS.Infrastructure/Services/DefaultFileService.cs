@@ -19,6 +19,8 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         private const string BusinessUnit = "ADDS-S100";
         private const string ProductCode = "S-100";
         private const string ProductCodeQueryClause = $"$batch(Product Code) eq '{ProductCode}'";
+        private const string ExpiryDateQueryClause = $"ExpiryDate eq null ";
+        private const string MediaTypeQueryClause = $"$batch(Media Type) eq 'Zip' ";
         private const int Limit = 100;
         private const int Start = 0;
         private const string SetExpiryDate = "SetExpiryDate";
@@ -100,7 +102,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         /// <returns>A result containing the batch search response on success or error information on failure.</returns>
         public async Task<BatchSearchResponse> SearchCommittedBatchesExcludingCurrentAsync(BatchId currentBatchId, CorrelationId correlationId, CancellationToken cancellationToken)
         {
-            var filter = $"BusinessUnit eq '{BusinessUnit}' and {ProductCodeQueryClause}";
+            var filter = $"BusinessUnit eq '{BusinessUnit}' and {ProductCodeQueryClause} and {ExpiryDateQueryClause} and {MediaTypeQueryClause}";
 
             var searchResultResponse = await _fileShareReadWriteClient.SearchAsync(filter, Limit, Start, (string)correlationId, cancellationToken);
 
@@ -113,9 +115,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
             {
                 if (response is { Entries: not null })
                 {
-                    response.Entries = response.Entries
-                        .Where(e => !string.Equals(e.BatchId, (string)currentBatchId, StringComparison.OrdinalIgnoreCase))
-                        .ToList();
+                    response.Entries = [.. response.Entries.Where(e => !string.Equals(e.BatchId, (string)currentBatchId, StringComparison.OrdinalIgnoreCase))];
                 }
                 return response;
             }
