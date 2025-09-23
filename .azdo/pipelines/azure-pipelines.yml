@@ -29,10 +29,6 @@ parameters:
     displayName: "Deploy Redis"
     type: boolean
     default: true
-  - name: WaitForContainersAfterDeploy
-    displayName: "Wait for containers after deployment (temporary option)"
-    type: boolean
-    default: false
   - name: AdditionalDebugging
     displayName: "Enable optional pipeline debugging"
     type: boolean
@@ -165,7 +161,6 @@ stages:
         DeployAddsMock: ${{ parameters.DeployAddsMock }}
         IncludeAddsMock: true
         DeployRedis: ${{ parameters.DeployRedis }}
-        WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
 
   - stage: vnextiatDeploy
     dependsOn:
@@ -183,7 +178,6 @@ stages:
         DeployAddsMock: ${{ parameters.DeployAddsMock }}
         IncludeAddsMock: false
         DeployRedis: ${{ parameters.DeployRedis }}
-        WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
 
   - stage: vnexte2eDeploy
     dependsOn:
@@ -201,7 +195,6 @@ stages:
         DeployAddsMock: ${{ parameters.DeployAddsMock }}
         IncludeAddsMock: false
         DeployRedis: ${{ parameters.DeployRedis }}
-        WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
 
   - stage: iatDeploy
     dependsOn:
@@ -219,4 +212,3 @@ stages:
         DeployAddsMock: ${{ parameters.DeployAddsMock }}
         IncludeAddsMock: false
         DeployRedis: ${{ parameters.DeployRedis }}
-        WaitForContainersAfterDeploy: ${{ parameters.WaitForContainersAfterDeploy }}
