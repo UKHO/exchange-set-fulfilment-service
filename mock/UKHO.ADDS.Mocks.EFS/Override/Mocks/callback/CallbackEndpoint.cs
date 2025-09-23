@@ -144,10 +144,9 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.callback
                                 new
                                 {
                                     source = "Callback Endpoint",
-                                    description = "Too many callback requests. Rate limit exceeded."
+                                    description = "Too many callback requests."
                                 }
-                            },
-                            retryAfter = "60"
+                            }
                         }, statusCode: 429);
 
                     case WellKnownState.InternalServerError:
