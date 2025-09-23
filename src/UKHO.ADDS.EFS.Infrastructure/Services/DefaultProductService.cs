@@ -171,9 +171,8 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                                         getProductIdentifierProp.SetValue(queryParams, productIdentifier.AsEnum.ToString());
                                     }
                                     var getSinceDateTime = queryParams.GetType().GetProperty("SinceDateTime");
-                                    if (getSinceDateTime != null && getSinceDateTime.CanWrite && !string.IsNullOrEmpty(sinceDateTime))
+                                    if (DateTimeOffset.TryParse(sinceDateTime, out var parsedDate))
                                     {
-                                        var parsedDate = DateTimeOffset.Parse(sinceDateTime);
                                         getSinceDateTime.SetValue(queryParams, parsedDate);
                                     }
                                 }
