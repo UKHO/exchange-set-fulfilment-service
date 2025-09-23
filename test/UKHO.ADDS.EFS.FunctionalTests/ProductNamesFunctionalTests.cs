@@ -2,6 +2,7 @@
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Meziantou.Xunit;
+using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.FunctionalTests.Services;
 using xRetry;
 using Xunit.Abstractions;
@@ -30,6 +31,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
             if (expectedStatusCode != HttpStatusCode.Accepted && expectedErrorMessage != "")
             {
                 var responseBody = await response.Content.ReadAsStringAsync();
+                _output.WriteLine($"ResponseContent: {responseBody}");
                 Assert.Contains(expectedErrorMessage, responseBody);
             }
         }
@@ -102,12 +104,15 @@ namespace UKHO.ADDS.EFS.FunctionalTests
 
             ApiResponseAssertions apiResponseAssertions = new ApiResponseAssertions(_output);
 
+            _output.WriteLine($"Started waiting for job completion ... {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}");
             var responseJobStatus = await OrchestratorCommands.WaitForJobCompletionAsync(_requestId);
             await apiResponseAssertions.checkJobCompletionStatus(responseJobStatus);
+            _output.WriteLine($"Finished waiting for job completion ... {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}");
 
             var responseBuildStatus = await OrchestratorCommands.GetBuildStatusAsync(_requestId);
             await apiResponseAssertions.checkBuildStatus(responseBuildStatus);
 
+            _output.WriteLine($"Trying to download file V01X01_{_requestId}.zip");
             var exchangeSetDownloadPath = await ZipStructureComparer.DownloadExchangeSetAsZipAsync(_requestId);
             var sourceZipPath = Path.Combine(AspireResourceSingleton.ProjectDirectory!, "TestData", zipFileName);
 
