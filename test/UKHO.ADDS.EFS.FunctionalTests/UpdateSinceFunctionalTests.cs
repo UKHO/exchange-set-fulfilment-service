@@ -71,8 +71,8 @@ namespace UKHO.ADDS.EFS.FunctionalTests
 
 
         [Theory]
-        [InlineData("https://valid.com/callback", "S333", HttpStatusCode.BadRequest, "productIdentifier must be exactly 4 characters: start with 'S' or 's' followed by three digits, with no spaces or extra characters")] // Test Case 247830 - Invalid Product Identifier 
-        [InlineData("https://valid.com/callback", "S101, s102", HttpStatusCode.BadRequest, "productIdentifier must be exactly 4 characters: start with 'S' or 's' followed by three digits, with no spaces or extra characters")] // Test Case 247831 - Multiple Product Identifier
+        [InlineData("https://valid.com/callback", "S333", HttpStatusCode.BadRequest, "Invalid product identifier. It must be exactly 4 characters, starting with 'S' or 's' followed by a valid 3-digit product code")] // Test Case 247830 - Invalid Product Identifier 
+        [InlineData("https://valid.com/callback", "S101, s102", HttpStatusCode.BadRequest, "Invalid product identifier. It must be exactly 4 characters, starting with 'S' or 's' followed by a valid 3-digit product code")] // Test Case 247831 - Multiple Product Identifier
         public async Task ValidateConsumeUpdateSinceEndpointWithInvalidProductIdentifier(string callbackUri, string productIdentifier, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
         {
             var httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
@@ -82,6 +82,5 @@ namespace UKHO.ADDS.EFS.FunctionalTests
             await OrchestratorCommands.VerifyUpdateSinceEndpointResponse(sinceDateTime, callbackUri,
                 productIdentifier, httpClient, expectedStatusCode, expectedErrorMessage);
         }
-
     }
 }
