@@ -9,9 +9,13 @@ namespace UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator
         public const string AzureAdScheme = "AzureAd";
 
         public const string AzureB2CScheme = "AzureB2C";
+        
+        public const string AdOrB2C = "AdOrB2C";
 
         public const string OriginHeaderKey = "origin";
 
         public const string EfsService = "ExchangeSetFulfilmentService";
+
+        public const string MicrosoftLoginUrlV1 = $"https://sts.windows.net/";
     }
 }
