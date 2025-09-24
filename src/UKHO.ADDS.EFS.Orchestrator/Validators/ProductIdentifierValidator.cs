@@ -7,7 +7,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Validators
     /// </summary>
     internal static class ProductIdentifierValidator
     {
-        public const string ValidationMessage = "Invalid product identifier. It must be exactly 4 characters, starting with 'S' or 's' followed by a valid 3-digit product code";
+        public const string ValidationMessage = "Invalid product identifier, It must be exactly 4 characters, starting with 'S' or 's' followed by a valid 3-digit product code";
 
         /// <summary>
         /// Validates the productIdentifier with an optional timeout.

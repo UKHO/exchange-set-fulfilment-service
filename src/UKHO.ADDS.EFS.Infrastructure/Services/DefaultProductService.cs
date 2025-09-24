@@ -5,6 +5,7 @@ using Microsoft.Kiota.Abstractions;
 using Microsoft.Kiota.Http.HttpClientLibrary.Middleware.Options;
 using UKHO.ADDS.Clients.Kiota.SalesCatalogueService;
 using UKHO.ADDS.Clients.Kiota.SalesCatalogueService.Models;
+using UKHO.ADDS.EFS.Domain.Constants;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Domain.Services;
@@ -20,9 +21,6 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
     {
         private readonly ILogger<DefaultProductService> _logger;
         private readonly KiotaSalesCatalogueService _salesCatalogueClient;
-        private const string IfModifiedSinceHeader = "If-Modified-Since";
-        private const string LastModifiedHeader = "Last-Modified";
-        private const string CorrelationIdHeader = "X-Correlation-Id";
         private const string DateTimeFormat = "R";
 
         /// <summary>
@@ -59,17 +57,17 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                     {
                         if (!string.IsNullOrEmpty(headerDateString))
                         {
-                            config.Headers.Add(IfModifiedSinceHeader, headerDateString);
+                            config.Headers.Add(ApiHeaderKeys.IfModifiedSinceHeaderKey, headerDateString);
                         }
 
-                        config.Headers.Add(CorrelationIdHeader, (string)job.GetCorrelationId());
+                        config.Headers.Add(ApiHeaderKeys.XCorrelationIdHeaderKey, (string)job.GetCorrelationId());
                         config.Options.Add(headersOption);
                     });
 
                     return Result.Success(result);
                 });
 
-                var lastModifiedHeader = headersOption.ResponseHeaders.TryGetValue(LastModifiedHeader, out var values)
+                var lastModifiedHeader = headersOption.ResponseHeaders.TryGetValue(ApiHeaderKeys.LastModifiedHeaderKey, out var values)
                     ? values.FirstOrDefault()
                     : null;
 
@@ -90,7 +88,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                 {
                     case (int)HttpStatusCode.NotModified:
                         {
-                            var lastModifiedHeader = headersOption.ResponseHeaders.TryGetValue(LastModifiedHeader, out var values)
+                            var lastModifiedHeader = headersOption.ResponseHeaders.TryGetValue(ApiHeaderKeys.LastModifiedHeaderKey, out var values)
                                 ? values.FirstOrDefault()
                                 : null;
 
@@ -132,7 +130,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                     var result = await _salesCatalogueClient.V2.Products.S100.ProductNames.PostAsync(payload,
                         requestConfiguration =>
                         {
-                            requestConfiguration.Headers.Add(CorrelationIdHeader, (string)job.GetCorrelationId());
+                            requestConfiguration.Headers.Add(ApiHeaderKeys.XCorrelationIdHeaderKey, (string)job.GetCorrelationId());
                         },
                         cancellationToken);
 
@@ -169,7 +167,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                             {
                                 requestConfiguration.QueryParameters.ProductIdentifier = productIdentifier.AsEnum.ToString();
                                 requestConfiguration.QueryParameters.SinceDateTime = DateTimeOffset.Parse(sinceDateTime);
-                                requestConfiguration.Headers.Add(CorrelationIdHeader, (string)job.GetCorrelationId());
+                                requestConfiguration.Headers.Add(ApiHeaderKeys.XCorrelationIdHeaderKey, (string)job.GetCorrelationId());
                             },
                             cancellationToken);
 

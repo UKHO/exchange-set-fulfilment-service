@@ -54,7 +54,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         public async Task WhenShouldExecuteAsyncIsCalledAndJobStateIsCreatedAndRequestTypeIsUpdatesSince_ThenReturnsTrue()
         {
             SetupJobAndBuild();
-            _node = new GetS100ProductUpdatesSinceNode(_nodeEnvironment, _productService, _logger);
+            _node = new GetS100ProductUpdatesSinceNode(_nodeEnvironment, _productService);
 
             var result = await _node.ShouldExecuteAsync(_executionContext);
 
@@ -65,7 +65,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         public async Task WhenShouldExecuteAsyncIsCalledAndJobStateIsNotCreated_ThenReturnsFalse()
         {
             SetupJobAndBuild(JobState.Completed);
-            _node = new GetS100ProductUpdatesSinceNode(_nodeEnvironment, _productService, _logger);
+            _node = new GetS100ProductUpdatesSinceNode(_nodeEnvironment, _productService);
 
             var result = await _node.ShouldExecuteAsync(_executionContext);
 
@@ -89,7 +89,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             A.CallTo(() => _productService.GetS100ProductUpdatesSinceAsync(_job!.RequestedFilter, _job.ProductIdentifier, _job, A<CancellationToken>.Ignored))
                 .Returns(productEditionList);
 
-            _node = new GetS100ProductUpdatesSinceNode(_nodeEnvironment, _productService, _logger);
+            _node = new GetS100ProductUpdatesSinceNode(_nodeEnvironment, _productService);
 
             var result = await _node.ExecuteAsync(_executionContext);
 
@@ -103,7 +103,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             A.CallTo(() => _productService.GetS100ProductUpdatesSinceAsync(_job!.RequestedFilter, _job.ProductIdentifier, _job, A<CancellationToken>.Ignored))
                 .Returns(Task.FromResult<ProductEditionList>(null!));
 
-            _node = new GetS100ProductUpdatesSinceNode(_nodeEnvironment, _productService, _logger);
+            _node = new GetS100ProductUpdatesSinceNode(_nodeEnvironment, _productService);
 
             var result = await _node.ExecuteAsync(_executionContext);
 
@@ -117,7 +117,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             A.CallTo(() => _productService.GetS100ProductUpdatesSinceAsync(_job!.RequestedFilter, _job.ProductIdentifier, _job, A<CancellationToken>.Ignored))
                 .Throws(new Exception("Simulated service failure"));
 
-            _node = new GetS100ProductUpdatesSinceNode(_nodeEnvironment, _productService, _logger);
+            _node = new GetS100ProductUpdatesSinceNode(_nodeEnvironment, _productService);
 
             var result = await _node.ExecuteAsync(_executionContext);
 
@@ -128,7 +128,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         public async Task WhenShouldExecuteAsyncIsCalledAndRequestTypeIsNotUpdatesSince_ThenReturnsFalse()
         {
             SetupJobAndBuild(JobState.Created, RequestType.ProductNames);
-            _node = new GetS100ProductUpdatesSinceNode(_nodeEnvironment, _productService, _logger);
+            _node = new GetS100ProductUpdatesSinceNode(_nodeEnvironment, _productService);
 
             var result = await _node.ShouldExecuteAsync(_executionContext);
 
@@ -147,7 +147,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             A.CallTo(() => _productService.GetS100ProductUpdatesSinceAsync(_job!.RequestedFilter, _job.ProductIdentifier, _job, A<CancellationToken>.Ignored))
                 .Returns(productEditionList);
 
-            _node = new GetS100ProductUpdatesSinceNode(_nodeEnvironment, _productService, _logger);
+            _node = new GetS100ProductUpdatesSinceNode(_nodeEnvironment, _productService);
 
             var result = await _node.ExecuteAsync(_executionContext);
 
@@ -165,7 +165,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             _configuration = new ConfigurationBuilder()
                 .AddInMemoryCollection(inMemorySettings)
                 .Build();
-            _nodeEnvironment = new AssemblyNodeEnvironment(_configuration, CancellationToken.None, _logger);
+            _nodeEnvironment = new AssemblyNodeEnvironment(_configuration, CancellationToken.None,_logger);
 
             SetupJobAndBuild();
             var productEditionList = new ProductEditionList
@@ -177,7 +177,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             A.CallTo(() => _productService.GetS100ProductUpdatesSinceAsync(_job!.RequestedFilter, _job.ProductIdentifier, _job, A<CancellationToken>.Ignored))
                 .Returns(productEditionList);
 
-            _node = new GetS100ProductUpdatesSinceNode(_nodeEnvironment, _productService, _logger);
+            _node = new GetS100ProductUpdatesSinceNode(_nodeEnvironment, _productService);
 
             var result = await _node.ExecuteAsync(_executionContext);
 

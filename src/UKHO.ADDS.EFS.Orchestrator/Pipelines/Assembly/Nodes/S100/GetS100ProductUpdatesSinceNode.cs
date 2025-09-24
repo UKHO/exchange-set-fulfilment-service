@@ -12,14 +12,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
     internal class GetS100ProductUpdatesSinceNode : AssemblyPipelineNode<S100Build>
     {
         private readonly IProductService _productService;
-        private readonly ILogger<GetS100ProductUpdatesSinceNode> _logger;
         private const string ExchangeSetExpiresInConfigKey = "orchestrator:Response:ExchangeSetExpiresIn";
 
-        public GetS100ProductUpdatesSinceNode(AssemblyNodeEnvironment nodeEnvironment, IProductService productService, ILogger<GetS100ProductUpdatesSinceNode> logger)
+        public GetS100ProductUpdatesSinceNode(AssemblyNodeEnvironment nodeEnvironment, IProductService productService)
             : base(nodeEnvironment)
         {
             _productService = productService ?? throw new ArgumentNullException(nameof(productService));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public override Task<bool> ShouldExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
@@ -62,10 +60,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             var expiryTimeSpan = Environment.Configuration.GetValue<TimeSpan>(ExchangeSetExpiresInConfigKey);
 
             job.ExchangeSetUrlExpiryDateTime = DateTime.UtcNow.Add(expiryTimeSpan);
-            job.RequestedProductCount = ProductCount.From(productNameList.Count); //Need to confirm in ESS
+            job.RequestedProductCount = ProductCount.From(productNameList.Count);
             job.ExchangeSetProductCount = productEditionList.Count;
-            job.RequestedProductsAlreadyUpToDateCount = productEditionList.ProductCountSummary.RequestedProductsAlreadyUpToDateCount; //Need to confirm in ESS
-            job.RequestedProductsNotInExchangeSet = productEditionList.ProductCountSummary.MissingProducts; //Need to confirm in ESS
+            job.RequestedProductsAlreadyUpToDateCount = productEditionList.ProductCountSummary.RequestedProductsAlreadyUpToDateCount; 
+            job.RequestedProductsNotInExchangeSet = productEditionList.ProductCountSummary.MissingProducts; 
 
             await context.Subject.SignalBuildRequired();
             return NodeResultStatus.Succeeded;
