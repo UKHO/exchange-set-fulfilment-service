@@ -57,10 +57,10 @@ A thread-safe singleton that:
 
 #### OrchestratorCommands
 Provides helper methods for interacting with the EFS orchestrator:
-- `SubmitJobAsync()`: Submits jobs to various API endpoints
+- `PostRequestAsync()`: Submits jobs to various API endpoints
 - `WaitForJobCompletionAsync()`: Monitors job status with timeout handling
 - `GetBuildStatusAsync()`: Retrieves detailed build status information
-- `ProductNamesInCustomAssemblyPipelineSubmitJobAsync()`: Specialized job submission for product names
+- `ProductNamesInCustomAssemblyPipelinePostRequestAsync()`: Specialized job submission for product names
 
 #### ApiResponseAssertions
 Comprehensive response validation utilities:
@@ -169,7 +169,7 @@ Follow the established pattern for testing API endpoints:
 
 ```csharp
 // 1. Submit job
-var response = await OrchestratorCommands.SubmitJobAsync(requestId, payload, endpoint);
+var response = await OrchestratorCommands.PostRequestAsync(requestId, payload, endpoint);
 
 // 2. Wait for completion
 var jobStatusResponse = await OrchestratorCommands.WaitForJobCompletionAsync(jobId);

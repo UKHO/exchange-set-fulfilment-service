@@ -12,7 +12,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
         private const int WaitDurationMs = 5000;
         private const double MaxWaitMinutes = 5;
 
-        public static async Task<HttpResponseMessage> OrchestratorPostCall(string requestId, object payload, string endpoint)
+        public static async Task<HttpResponseMessage> PostRequestAsync(string requestId, object payload, string endpoint)
         {
             var content = new StringContent(payload is string payloadString ? payloadString : JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
             content.Headers.Add(ApiHeaderKeys.XCorrelationIdHeaderKey, requestId);
@@ -22,14 +22,6 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
 
             var response = await httpClient.PostAsync(endpoint, content);
 
-            return response;
-        }
-
-
-        public static async Task<HttpResponseMessage> SubmitJobAsync(string requestId, object payload, string endpoint)
-        {
-
-            var response = await OrchestratorPostCall(requestId, payload, endpoint);
             return response;
         }
 
