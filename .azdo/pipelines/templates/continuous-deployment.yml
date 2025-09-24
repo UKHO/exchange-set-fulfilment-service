@@ -248,7 +248,7 @@ jobs:
             MockURL="https://adds-mocks-efs.$DOMAIN"
             echo "Adds Mock Endpoint: $MockURL"
             echo "##vso[task.setvariable variable=ADDSMOCK_URL]$MockURL"
-            displayName: 'Set Endpoint Variables'
+          displayName: 'Set Endpoint Variables'
           workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
 
         - task: PowerShell@2
