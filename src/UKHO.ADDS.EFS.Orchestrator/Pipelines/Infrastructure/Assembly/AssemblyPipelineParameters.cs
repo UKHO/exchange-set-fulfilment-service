@@ -38,7 +38,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         /// </summary>
         public DataStandardProduct ProductIdentifier { get; init; }
 
-        public IEnumerable<ProductVersion>? ProductVersions { get; init; }
+        public IEnumerable<ProductVersion> ProductVersions { get; init; }
 
         public Job CreateJob() => new()
         {
@@ -51,7 +51,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
             RequestType = RequestType,
             CallbackUri = CallbackUri,
             ProductIdentifier = ProductIdentifier,
-            ProductVersions = ProductVersions!,
+            ProductVersions = ProductVersions,
         };
 
         public static AssemblyPipelineParameters CreateFrom(JobRequestApiMessage message, IConfiguration configuration, CorrelationId correlationId)
