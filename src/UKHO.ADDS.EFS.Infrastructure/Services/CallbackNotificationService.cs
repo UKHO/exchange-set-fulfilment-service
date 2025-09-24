@@ -57,9 +57,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                 {
                     Content = content
                 };
-
-                LogCallbackNotificationStarted(job.Id, job.CallbackUri, job.GetCorrelationId());
-
+                
                 var response = await httpClient.SendAsync(httpRequestMessage, cancellationToken);
 
                 if (response.IsSuccessStatusCode)
@@ -96,24 +94,6 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
             };
 
             _logger.LogCallbackNotificationSkipped(logView);
-        }
-
-        /// <summary>
-        /// Logs when a callback notification is being sent
-        /// </summary>
-        /// <param name="jobId">The job identifier</param>
-        /// <param name="callbackUri">The callback URI</param>
-        /// <param name="correlationId">The correlation identifier</param>
-        private void LogCallbackNotificationStarted(JobId jobId, CallbackUri callbackUri, CorrelationId correlationId)
-        {
-            var logView = new CallbackNotificationLogView
-            {
-                JobId = jobId,
-                CallbackUri = callbackUri,
-                CorrelationId = correlationId
-            };
-
-            _logger.LogCallbackNotificationStarted(logView);
         }
 
         /// <summary>

@@ -24,9 +24,6 @@ namespace UKHO.ADDS.Mocks.EFS
 
             ServiceRegistry.AddDefinition(new ServiceDefinition("fss6357", "File Share Service (S63/S57)", []));
             ServiceRegistry.AddDefinition(new ServiceDefinition("scs6357", "Sales Catalogue Service (S63/S57)", []));
-
-            // Register the Callback Service - ServiceDefinition constructor automatically adds all well-known states
-            // So we only pass an empty array to avoid duplicates
             ServiceRegistry.AddDefinition(new ServiceDefinition("callback", "Callback Service", []));
 
             await MockServer.RunAsync(args);

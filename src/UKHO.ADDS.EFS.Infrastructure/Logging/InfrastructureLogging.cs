@@ -15,10 +15,9 @@ namespace UKHO.ADDS.EFS.Infrastructure.Logging
 
         // Callback notification events
         private const int CallbackNotificationSkippedId = BaseEventId + 22;
-        private const int CallbackNotificationStartedId = BaseEventId + 23;
-        private const int CallbackNotificationSuccessId = BaseEventId + 24;
-        private const int CallbackNotificationFailedId = BaseEventId + 25;
-        private const int CallbackNotificationErrorId = BaseEventId + 26;
+        private const int CallbackNotificationSuccessId = BaseEventId + 23;
+        private const int CallbackNotificationFailedId = BaseEventId + 24;
+        private const int CallbackNotificationErrorId = BaseEventId + 25;
 
         // SCS has returned an error
         public static readonly EventId SalesCatalogueError = new(SalesCatalogueErrorId, nameof(SalesCatalogueError));
@@ -34,7 +33,6 @@ namespace UKHO.ADDS.EFS.Infrastructure.Logging
 
         // Callback notification events - exposed for use by CallbackNotificationService
         public static readonly EventId CallbackNotificationSkipped = new(CallbackNotificationSkippedId, nameof(CallbackNotificationSkipped));
-        public static readonly EventId CallbackNotificationStarted = new(CallbackNotificationStartedId, nameof(CallbackNotificationStarted));
         public static readonly EventId CallbackNotificationSuccess = new(CallbackNotificationSuccessId, nameof(CallbackNotificationSuccess));
         public static readonly EventId CallbackNotificationFailed = new(CallbackNotificationFailedId, nameof(CallbackNotificationFailed));
         public static readonly EventId CallbackNotificationError = new(CallbackNotificationErrorId, nameof(CallbackNotificationError));
@@ -55,11 +53,6 @@ namespace UKHO.ADDS.EFS.Infrastructure.Logging
         public static void LogCallbackNotificationSkipped(this ILogger logger, CallbackNotificationLogView callbackLogView)
         {
             logger.Log(LogLevel.Information, CallbackNotificationSkipped, "Callback notification skipped: {@callbackLogView}", callbackLogView);
-        }
-
-        public static void LogCallbackNotificationStarted(this ILogger logger, CallbackNotificationLogView callbackLogView)
-        {
-            logger.Log(LogLevel.Information, CallbackNotificationStarted, "Callback notification started: {@callbackLogView}", callbackLogView);
         }
 
         public static void LogCallbackNotificationSuccess(this ILogger logger, CallbackNotificationLogView callbackLogView)
