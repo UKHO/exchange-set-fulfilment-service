@@ -26,51 +26,45 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
         public override Task<bool> ShouldExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
         {
-            return Task.FromResult(context.Subject.Job.JobState == JobState.Created && context.Subject.Job.RequestType == RequestType.ProductVersions);
+            return Task.FromResult(context.Subject.Job.JobState == JobState.Created &&
+                context.Subject.Job.RequestType == RequestType.ProductVersions);
         }
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
         {
             var job = context.Subject.Job;
             var build = context.Subject.Build;
-            NodeResultStatus nodeResult;
-
             var productVersion = job.ProductVersions;
 
             // Call the product service to get product versions
             var productEditionList = await _productService.GetProductVersionsListAsync(DataStandard.S100, productVersion, job, Environment.CancellationToken);
 
-            switch (productEditionList.ResponseCode)
+            if (productEditionList.ResponseCode == HttpStatusCode.OK)
             {
-                case HttpStatusCode.OK:
+                // Log any requested products that weren't returned, but don't fail the build
+                if (productEditionList.ProductCountSummary.MissingProducts.HasProducts)
+                {
+                    _logger.LogSalesCatalogueProductsNotReturned(productEditionList.ProductCountSummary);
+                }
 
-                    // Log any requested products that weren't returned, but don't fail the build
-                    if (productEditionList.ProductCountSummary.MissingProducts.HasProducts)
-                    {
-                        _logger.LogSalesCatalogueProductsNotReturned(productEditionList.ProductCountSummary);
-                    }
+                build.ProductEditions = productEditionList.Products;
 
-                    build.ProductEditions = productEditionList.Products;
+                // Get the exchange set expiry duration from configuration
+                var expiryTimeSpan = Environment.Configuration.GetValue<TimeSpan>(ExchangeSetExpiresInConfigKey);
 
-                    // Get the exchange set expiry duration from configuration
-                    var expiryTimeSpan = Environment.Configuration.GetValue<TimeSpan>(ExchangeSetExpiresInConfigKey);
-
-                    job.ExchangeSetUrlExpiryDateTime = DateTime.UtcNow.Add(expiryTimeSpan);
-                    job.RequestedProductCount = ProductCount.From(productVersion.Count());
-                    job.ExchangeSetProductCount = productEditionList.Count;
-                    job.RequestedProductsAlreadyUpToDateCount = productEditionList.ProductCountSummary.RequestedProductsAlreadyUpToDateCount;
-                    job.RequestedProductsNotInExchangeSet = productEditionList.ProductCountSummary.MissingProducts;
-      
-                    await context.Subject.SignalBuildRequired();
-
-                    return NodeResultStatus.Succeeded;
-
-                default:
-                    await context.Subject.SignalAssemblyError();
-                    nodeResult = NodeResultStatus.Failed;
-                    break;
+                job.ExchangeSetUrlExpiryDateTime = DateTime.UtcNow.Add(expiryTimeSpan);
+                job.RequestedProductCount = ProductCount.From(productVersion.Count());
+                job.ExchangeSetProductCount = productEditionList.Count;
+                job.RequestedProductsAlreadyUpToDateCount = productEditionList.ProductCountSummary.RequestedProductsAlreadyUpToDateCount;
+                job.RequestedProductsNotInExchangeSet = productEditionList.ProductCountSummary.MissingProducts;
+  
+                await context.Subject.SignalBuildRequired();
+                return NodeResultStatus.Succeeded;
             }
-            return nodeResult;
+
+            // Handle error case
+            await context.Subject.SignalAssemblyError();
+            return NodeResultStatus.Failed;
         }
     }
 }
