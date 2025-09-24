@@ -50,7 +50,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
 
         //PBI 246464 - Consume ESS API - Update Since Endpoint
         [Theory]
-        [InlineData("https://valid.com/callback", "s101", HttpStatusCode.Accepted, "UpdateSinceProduct.zip")] // Test Case 244582 - Valid Format
+        [InlineData("https://valid.com/callback", "s101", HttpStatusCode.Accepted, "UpdateSinceProduct.zip")] // Test Case 247827 - Valid Format
         public async Task ValidateConsumeUpdateSinceEndpointWithValidDates(string callbackUri, string productIdentifier, HttpStatusCode expectedStatusCode, string zipFileName)
         {
             var httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
@@ -66,13 +66,13 @@ namespace UKHO.ADDS.EFS.FunctionalTests
             var exchangeSetDownloadPath = await ZipStructureComparer.DownloadExchangeSetAsZipAsync(jobId, App!);
             var sourceZipPath = Path.Combine(ProjectDirectory!, "TestData", zipFileName);
 
-            ZipStructureComparer.CompareZipFilesExactMatchForUpdateSince(sourceZipPath, exchangeSetDownloadPath);
+            ZipStructureComparer.CompareZipFilesExactMatch(sourceZipPath, exchangeSetDownloadPath);
         }
 
 
         [Theory]
-        [InlineData("https://valid.com/callback", "S333", HttpStatusCode.BadRequest, "productIdentifier must be exactly 4 characters: start with 'S' or 's' followed by three digits, with no spaces or extra characters")] // Test Case 244907 - Invalid Product Identifier Format
-        [InlineData("https://valid.com/callback", "S101, s102", HttpStatusCode.BadRequest, "productIdentifier must be exactly 4 characters: start with 'S' or 's' followed by three digits, with no spaces or extra characters")] // Test Case 244907 - Invalid Product Identifier Format
+        [InlineData("https://valid.com/callback", "S333", HttpStatusCode.BadRequest, "productIdentifier must be exactly 4 characters: start with 'S' or 's' followed by three digits, with no spaces or extra characters")] // Test Case 247830 - Invalid Product Identifier 
+        [InlineData("https://valid.com/callback", "S101, s102", HttpStatusCode.BadRequest, "productIdentifier must be exactly 4 characters: start with 'S' or 's' followed by three digits, with no spaces or extra characters")] // Test Case 247831 - Multiple Product Identifier
         public async Task ValidateConsumeUpdateSinceEndpointWithInvalidProductIdentifier(string callbackUri, string productIdentifier, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
         {
             var httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
