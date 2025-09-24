@@ -25,7 +25,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
 
         private async Task submitPostRequestAndCheckResponse(string requestId, object requestPayload, string endpoint, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
         {
-            var response = await OrchestratorCommands.OrchestratorPostCall(requestId, requestPayload, endpoint);
+            var response = await OrchestratorCommands.PostRequestAsync(requestId, requestPayload, endpoint);
             Assert.Equal(expectedStatusCode, response.StatusCode);
 
             if (expectedStatusCode != HttpStatusCode.Accepted && expectedErrorMessage != "")
@@ -99,7 +99,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
 
         private async Task testExecutionMethod(object payload, string zipFileName, int expectedRequestedProductCount, int expectedExchangeSetProductCount)
         {
-            var responseJobSubmit = await OrchestratorCommands.SubmitJobAsync(_requestId, payload, _endpoint);
+            var responseJobSubmit = await OrchestratorCommands.PostRequestAsync(_requestId, payload, _endpoint);
             await checkJobsResponce(responseJobSubmit, expectedRequestedProductCount, expectedExchangeSetProductCount);
 
             ApiResponseAssertions apiResponseAssertions = new ApiResponseAssertions(_output);

@@ -106,7 +106,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
 
         private async Task testExecutionMethod(object payload, string zipFileName)
         {
-            var responseJobSubmit = await OrchestratorCommands.SubmitJobAsync(_jobId, payload, _endpoint);
+            var responseJobSubmit = await OrchestratorCommands.PostRequestAsync(_jobId, payload, _endpoint);
             await checkJobsResponce(responseJobSubmit);
 
             ApiResponseAssertions apiResponseAssertions = new ApiResponseAssertions(_output);
@@ -189,7 +189,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         public async Task S100FilterTestsWithInvalidIdentifier(string filter)
         {
 
-            var responseFromJob = await OrchestratorCommands.SubmitJobAsync(_jobId, createPayload(filter), _endpoint);
+            var responseFromJob = await OrchestratorCommands.PostRequestAsync(_jobId, createPayload(filter), _endpoint);
             await checkJobsResponce(responseFromJob, expectedJobStatus: "upToDate", expectedBuildStatus: "none");
         }
 
