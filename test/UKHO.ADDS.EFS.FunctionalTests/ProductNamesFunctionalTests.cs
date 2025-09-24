@@ -25,7 +25,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
 
         private async Task submitPostRequestAndCheckResponse(string requestId, object requestPayload, string endpoint, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
         {
-            var response = await OrchestratorCommands.commonOrchPostCallHelper(requestId, requestPayload, endpoint);
+            var response = await OrchestratorCommands.OrchestratorPostCall(requestId, requestPayload, endpoint);
             Assert.Equal(expectedStatusCode, response.StatusCode);
 
             if (expectedStatusCode != HttpStatusCode.Accepted && expectedErrorMessage != "")
