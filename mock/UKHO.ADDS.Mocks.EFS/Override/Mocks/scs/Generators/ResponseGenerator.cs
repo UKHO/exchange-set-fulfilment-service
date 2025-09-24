@@ -19,8 +19,9 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
         private static readonly int LargeExchangeSetMaxFileSize = 10000000; 
         private static readonly Random RandomInstance = Random.Shared;
 
-        private static readonly string InvalidProduct = "invalidProduct";
-        private static readonly string InvalidProductWithdrawn = "productWithdrawn";
+        private const string InvalidProduct = "invalidProduct";
+        private const string InvalidProductWithdrawn = "productWithdrawn";
+        private const string LargeExchangeSetsState = "get-largeexchangesets";
 
         #region Response Helper Methods
 
@@ -137,11 +138,11 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
         /// Provides a mock response for updates since a specified date using data from s100-updates-since.json file.
         /// Note: As a mock endpoint, this method returns static data regardless of date parameters.
         /// </summary>
-        public static async Task<IResult> ProvideUpdatesSinceResponse(string? productIdentifier, IMockFile file)
+        public static async Task<IResult> ProvideUpdatesSinceResponse(string? productIdentifier, IMockFile file, string state = "")
         {
             try
             {
-                var response = await GenerateUpdatesSinceResponseFromFile(productIdentifier, file);
+                var response = await GenerateUpdatesSinceResponseFromFile(productIdentifier, file, state);
                 return Results.Ok(response);
             }
             catch (Exception ex)
@@ -244,7 +245,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
             
             // Determine file size based on state
             int fileSize;
-            if (state == "get-largeexchangesets")
+            if (state == LargeExchangeSetsState)
             {
                 fileSize = RandomInstance.Next(LargeExchangeSetMinFileSize, LargeExchangeSetMaxFileSize);
             }
@@ -313,13 +314,13 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
             return productObj;
         }
 
-        private static async Task<JsonObject> GenerateUpdatesSinceResponseFromFile(string? productIdentifier, IMockFile file)
+        private static async Task<JsonObject> GenerateUpdatesSinceResponseFromFile(string? productIdentifier, IMockFile file, string state = "")
         {
             var allProducts = await LoadProductsFromFileAsync(file);
 
             var filteredProducts = FilterProductsByIdentifier(allProducts, productIdentifier);
 
-            var productsArray = BuildProductsArray(filteredProducts);
+            var productsArray = BuildProductsArray(filteredProducts, state);
 
             return CreateResponseObject(productsArray);
         }
@@ -367,13 +368,30 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
             _ => null
         };
 
-        private static JsonArray BuildProductsArray(List<JsonNode> filteredProducts)
+        private static JsonArray BuildProductsArray(List<JsonNode> filteredProducts, string state = "")
         {
             var productsArray = new JsonArray();
 
             foreach (var product in filteredProducts)
             {
-                productsArray.Add(product.DeepClone());
+                var productNode = product.DeepClone();
+                
+                // Apply large file size for get-largeexchangesets state
+                if (state == LargeExchangeSetsState && productNode is JsonObject productObj)
+                {
+                    // Skip products with cancellation that have fileSize = 0
+                    if (productObj.ContainsKey("cancellation") && productObj.ContainsKey("fileSize") && 
+                        productObj["fileSize"]?.GetValue<int>() == 0)
+                    {
+                        productsArray.Add(productNode);
+                        continue;
+                    }
+                    
+                    // Set large file size for others
+                    productObj["fileSize"] = RandomInstance.Next(LargeExchangeSetMinFileSize, LargeExchangeSetMaxFileSize);
+                }
+                
+                productsArray.Add(productNode);
             }
 
             return productsArray;
@@ -461,7 +479,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
                     ProcessProductsWithLastCancelled(requestedProducts, productsArray);
                     break;
                     
-                case "get-largeexchangesets" when productCount > 0:
+                case LargeExchangeSetsState when productCount > 0:
                     ProcessProductsWithLargeFileSize(requestedProducts, productsArray);
                     break;
 
