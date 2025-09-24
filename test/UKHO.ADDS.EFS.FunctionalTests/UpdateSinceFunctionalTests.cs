@@ -66,7 +66,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
             var exchangeSetDownloadPath = await ZipStructureComparer.DownloadExchangeSetAsZipAsync(jobId, App!);
             var sourceZipPath = Path.Combine(ProjectDirectory!, "TestData", zipFileName);
 
-            ZipStructureComparer.CompareZipFilesExactMatchForUpdateSince(sourceZipPath, exchangeSetDownloadPath);
+            ZipStructureComparer.CompareZipFilesExactMatch(sourceZipPath, exchangeSetDownloadPath);
         }
 
 
