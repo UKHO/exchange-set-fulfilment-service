@@ -19,6 +19,10 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
     {
         private readonly ILogger<DefaultProductService> _logger;
         private readonly KiotaSalesCatalogueService _salesCatalogueClient;
+        private const string IfModifiedSinceHeader = "If-Modified-Since";
+        private const string LastModifiedHeader = "Last-Modified";
+        private const string CorrelationIdHeader = "X-Correlation-Id";
+        private const string DateTimeFormat = "R";
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="DefaultProductService" /> class.
@@ -45,7 +49,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
 
             try
             {
-                var headerDateString = sinceDateTime?.ToString("R");
+                var headerDateString = sinceDateTime?.ToString(DateTimeFormat);
                 var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<List<S100BasicCatalogue>?>(_logger, nameof(GetProductVersionListAsync));
 
                 var s100BasicCatalogueResult = await retryPolicy.ExecuteAsync(async () =>
@@ -54,17 +58,17 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                     {
                         if (!string.IsNullOrEmpty(headerDateString))
                         {
-                            config.Headers.Add("If-Modified-Since", headerDateString);
+                            config.Headers.Add(IfModifiedSinceHeader, headerDateString);
                         }
 
-                        config.Headers.Add("X-Correlation-Id", (string)job.GetCorrelationId());
+                        config.Headers.Add(CorrelationIdHeader, (string)job.GetCorrelationId());
                         config.Options.Add(headersOption);
                     });
 
                     return Result.Success(result);
                 });
 
-                var lastModifiedHeader = headersOption.ResponseHeaders.TryGetValue("Last-Modified", out var values)
+                var lastModifiedHeader = headersOption.ResponseHeaders.TryGetValue(LastModifiedHeader, out var values)
                     ? values.FirstOrDefault()
                     : null;
 
@@ -85,7 +89,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                 {
                     case (int)HttpStatusCode.NotModified:
                         {
-                            var lastModifiedHeader = headersOption.ResponseHeaders.TryGetValue("Last-Modified", out var values)
+                            var lastModifiedHeader = headersOption.ResponseHeaders.TryGetValue(LastModifiedHeader, out var values)
                                 ? values.FirstOrDefault()
                                 : null;
 
@@ -127,7 +131,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                     var result = await _salesCatalogueClient.V2.Products.S100.ProductNames.PostAsync(payload,
                         requestConfiguration =>
                         {
-                            requestConfiguration.Headers.Add("X-Correlation-Id", (string)job.GetCorrelationId());
+                            requestConfiguration.Headers.Add(CorrelationIdHeader, (string)job.GetCorrelationId());
                         },
                         cancellationToken);
 
@@ -176,7 +180,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                                         getSinceDateTime.SetValue(queryParams, parsedDate);
                                     }
                                 }
-                                requestConfiguration.Headers.Add("X-Correlation-Id", (string)job.GetCorrelationId());
+                                requestConfiguration.Headers.Add(CorrelationIdHeader, (string)job.GetCorrelationId());
                             },
                             cancellationToken);
 

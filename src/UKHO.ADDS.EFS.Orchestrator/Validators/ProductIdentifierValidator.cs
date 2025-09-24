@@ -23,7 +23,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Validators
             if (Enum.TryParse<DataStandardProductType>(upperProductIdentifier, out var productType))
             {
                 // Only allow identifiers that start with 'S' and are not S57
-                if (upperProductIdentifier.StartsWith("S") && upperProductIdentifier.Length == 4 && productType != DataStandardProductType.S57)
+                if (upperProductIdentifier.StartsWith("S", StringComparison.OrdinalIgnoreCase) && upperProductIdentifier.Length == 4 && productType != DataStandardProductType.S57)
                 {
                     return true;
                 }

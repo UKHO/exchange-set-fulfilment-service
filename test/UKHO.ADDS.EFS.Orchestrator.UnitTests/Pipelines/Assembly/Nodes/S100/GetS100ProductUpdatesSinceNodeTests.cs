@@ -28,6 +28,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         private GetS100ProductUpdatesSinceNode? _node;
         private const string ExpiryConfigKey = "orchestrator:Response:ExchangeSetExpiresIn";
         private static readonly TimeSpan ExpiryTimeSpan = TimeSpan.FromHours(1);
+        private const string RequestedFilter = "2025-08-30T07:28:00.000Z";
+        private const string ProductIdentifier = "101ABCDEF";
 
         [SetUp]
         public void SetUp()
@@ -82,7 +84,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                     MissingProducts = new MissingProductList()
                 }
             };
-            productEditionList.Add(new ProductEdition { ProductName = ProductName.From("101ABCDEF") });
+            productEditionList.Add(new ProductEdition { ProductName = ProductName.From(ProductIdentifier) });
 
             A.CallTo(() => _productService.GetS100ProductUpdatesSinceAsync(_job!.RequestedFilter, _job.ProductIdentifier, _job, A<CancellationToken>.Ignored))
                 .Returns(productEditionList);
@@ -170,7 +172,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             {
                 ProductCountSummary = new ProductCountSummary()
             };
-            productEditionList.Add(new ProductEdition { ProductName = ProductName.From("101ABCDEF") });
+            productEditionList.Add(new ProductEdition { ProductName = ProductName.From(ProductIdentifier) });
 
             A.CallTo(() => _productService.GetS100ProductUpdatesSinceAsync(_job!.RequestedFilter, _job.ProductIdentifier, _job, A<CancellationToken>.Ignored))
                 .Returns(productEditionList);
@@ -190,7 +192,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 Id = JobId.From("job-1"),
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
-                RequestedFilter = "2025-08-30T07:28:00.000Z", // Provide a default filter value for tests
+                RequestedFilter = RequestedFilter, // Provide a default filter value for tests
                 ProductIdentifier = DataStandardProduct.From((int)DataStandardProductType.S101),
                 RequestedProducts = new ProductNameList(),
                 RequestType = requestType
@@ -201,7 +203,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
 
             _build = new S100Build
             {
-                Products = new List<Product> { new Product { ProductName = ProductName.From("101ABCDEF") } }
+                Products = new List<Product> { new Product { ProductName = ProductName.From(ProductIdentifier) } }
             };
             _pipelineContext = new PipelineContext<S100Build>(_job, _build, A.Fake<IStorageService>());
             A.CallTo(() => _executionContext.Subject).Returns(_pipelineContext);
