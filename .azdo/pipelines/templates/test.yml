@@ -21,7 +21,8 @@ jobs:
       displayName: ".Net Core - NuGet restore test projects only"
       inputs:
         command: restore
-        projects: "**/*.UnitTests.csproj"
+        projects: "**/*.UnitTests.csproj;**/*.Tests.csproj"
+        excludes: "**/*EndToEndTests.csproj;**/*FunctionalTests.csproj"
         feedsToUse: config
         noCache: true
         nugetConfigPath: '$(Build.SourcesDirectory)\BuildNuget.config'
@@ -32,7 +33,8 @@ jobs:
       displayName: "Dotnet test - Perform unit tests"
       inputs:
         command: test
-        projects: "**/*.UnitTests.csproj"
+        projects: "**/*.UnitTests.csproj;**/*.Tests.csproj"
+        excludes: "**/*EndToEndTests.csproj;**/*FunctionalTests.csproj"
         arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)\test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura --no-restore'
         publishTestResults: true
         testRunTitle: UnitTests
