@@ -178,5 +178,44 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
 
             return requestId!;
         }
+
+        /// <summary>
+        /// Submits a productVersions endpoint and asserts the requestedProductCount and exchangeSetProductCount.
+        /// </summary>
+        public static async Task<string> ProductVersionsInCustomAssemblyPipelineSubmitJobAsync(HttpClient httpClient, string? callbackUri, string productVersions)
+        {
+            var requestId = $"job-0001-" + Guid.NewGuid();
+
+            var content = new StringContent(productVersions, Encoding.UTF8, "application/json");
+
+            content.Headers.Add("x-correlation-id", requestId);
+
+            var response = await httpClient.PostAsync($"/v2/exchangeSet/s100/productVersions?callbackUri={callbackUri}", content);
+
+            Assert.True(response.StatusCode == HttpStatusCode.Accepted, $"Expected success status code but got: {response.StatusCode}");
+
+            // Parse productVersions as a JSON array and count objects
+            int productVersionCount;
+            using (var doc = JsonDocument.Parse(productVersions))
+            {
+                if (doc.RootElement.ValueKind == JsonValueKind.Array)
+                {
+                    productVersionCount = doc.RootElement.GetArrayLength();
+                }
+                else
+                {
+                    throw new InvalidOperationException("productVersions must be a JSON array.");
+                }
+            }
+
+            var responseJson = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            var requestedProductCount = responseJson.RootElement.GetProperty("requestedProductCount").GetInt32();
+            var exchangeSetProductCount = responseJson.RootElement.GetProperty("exchangeSetProductCount").GetInt32();
+
+            Assert.Equal(productVersionCount, requestedProductCount);
+            Assert.Equal(productVersionCount, exchangeSetProductCount);
+
+            return requestId!;
+        }
     }
 }

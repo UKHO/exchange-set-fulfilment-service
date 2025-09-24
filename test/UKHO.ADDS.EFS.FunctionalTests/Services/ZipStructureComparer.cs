@@ -101,5 +101,41 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
             }
         }
 
+        /// <summary>
+        /// Compares two ZIP files to ensure their directory structures match exactly.
+        /// Optionally verifies that specified product files are present in the source ZIP.
+        /// </summary>
+        /// <param name="sourceZipPath">Path to the source ZIP file.</param>
+        /// <param name="targetZipPath">Path to the target ZIP file.</param>
+        public static void CompareZipFilesExactMatchForProductVersions(string sourceZipPath, string targetZipPath)
+        {
+            // Open both ZIP archives for reading
+            using var sourceArchive = ZipFile.OpenRead(sourceZipPath);
+            using var targetArchive = ZipFile.OpenRead(targetZipPath);
+
+            // Helper method to extract the directory path from a full entry name
+            static string? GetDirectoryPath(string fullName)
+            {
+                var idx = fullName.LastIndexOf('/');
+                return idx > 0 ? fullName[..idx] : fullName;
+            }
+
+            // Get distinct directory paths from source archive
+            var sourceDirectories = sourceArchive.Entries
+                .Select(e => GetDirectoryPath(e.FullName))
+                .Distinct()
+                .OrderBy(e => e)
+                .ToList();
+
+            // Get distinct directory paths from target archive
+            var targetDirectories = targetArchive.Entries
+                .Select(e => GetDirectoryPath(e.FullName))
+                .Distinct()
+                .OrderBy(e => e)
+                .ToList();
+
+            // Compare directory structures of both ZIP files
+            Assert.Equal(sourceDirectories, targetDirectories);
+        }
     }
 }

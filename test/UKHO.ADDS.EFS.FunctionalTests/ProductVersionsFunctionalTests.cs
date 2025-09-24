@@ -7,15 +7,23 @@ namespace UKHO.ADDS.EFS.FunctionalTests
     {
         //PBI 242767 - Input validation for the ESS API - Product Versions Endpoint
         [Theory]
-        [InlineData(" [ { \"productName\": \"101GB40079ABCDEFG\", \"editionNumber\": 7, \"updateNumber\": 10 }, { \"productName\": \"102NO32904820801012\", \"editionNumber\": 36, \"updateNumber\": 0 }, { \"productName\": \"104US00_CHES_TYPE1_20210630_0600\", \"editionNumber\": 7, \"updateNumber\": 10 }, { \"productName\": \"111US00_ches_dcf8_20190703T00Z\", \"editionNumber\": 36, \"updateNumber\": 0 } ]", "https://valid.com/callback", HttpStatusCode.Accepted, "")] // Test Case 244565 - Valid input
-        [InlineData(" [ { \"productName\": \"101GB40079ABCDEFG\", \"editionNumber\": 7, \"updateNumber\": 10 }, { \"productName\": \"102NO32904820801012\", \"editionNumber\": 36, \"updateNumber\": 0 }, { \"productName\": \"104US00_CHES_TYPE1_20210630_0600\", \"editionNumber\": 7, \"updateNumber\": 10 }, { \"productName\": \"111US00_ches_dcf8_20190703T00Z\", \"editionNumber\": 36, \"updateNumber\": 0 } ]", "", HttpStatusCode.Accepted, "")] // Test Case 244906 - Valid input with only CallBackUri key and value as empty
-        
-        public async Task ValidateProductVersionsEndpointWithValidInputs(string productVersions, string callbackUri, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
+        [InlineData(" [ { \"productName\": \"101GB40079ABCDEFG\", \"editionNumber\": 5, \"updateNumber\": 10 }, { \"productName\": \"101DE00904820801012\", \"editionNumber\": 36, \"updateNumber\": 5 }, { \"productName\": \"102CA32904820801013\", \"editionNumber\": 13, \"updateNumber\": 0 }, { \"productName\": \"104US00_CHES_TYPE1_20210630_0600\", \"editionNumber\": 9, \"updateNumber\": 0 }, { \"productName\": \"101FR40079QWERTY\", \"editionNumber\": 2, \"updateNumber\": 2 }, { \"productName\": \"111US00_ches_dcf8_20190703T00Z\", \"editionNumber\": 11, \"updateNumber\": 0 }, { \"productName\": \"102INVA904820801012\", \"editionNumber\": 11, \"updateNumber\": 0 }, { \"productName\": \"102AR00904820801012\", \"editionNumber\": 11, \"updateNumber\": 0 } ] ", "https://valid.com/callback", "ProductVersionsProducts.zip")] // Test Case 247843 - Valid input
+        [InlineData(" [ { \"productName\": \"101GB40079ABCDEFG\", \"editionNumber\": 5, \"updateNumber\": 10 }, { \"productName\": \"101DE00904820801012\", \"editionNumber\": 36, \"updateNumber\": 5 }, { \"productName\": \"102CA32904820801013\", \"editionNumber\": 13, \"updateNumber\": 0 }, { \"productName\": \"104US00_CHES_TYPE1_20210630_0600\", \"editionNumber\": 9, \"updateNumber\": 0 }, { \"productName\": \"101FR40079QWERTY\", \"editionNumber\": 2, \"updateNumber\": 2 }, { \"productName\": \"111US00_ches_dcf8_20190703T00Z\", \"editionNumber\": 11, \"updateNumber\": 0 }, { \"productName\": \"102INVA904820801012\", \"editionNumber\": 11, \"updateNumber\": 0 }, { \"productName\": \"102AR00904820801012\", \"editionNumber\": 11, \"updateNumber\": 0 } ] ", "", "ProductVersionsProducts.zip")] // Test Case 247843 - Valid input
+        public async Task ValidateProductVersionsEndpointWithValidInputs(string productVersions, string callbackUri, string zipFileName)
         {
             var httpClient = App!.CreateHttpClient(ProcessNames.OrchestratorService);
 
-            await OrchestratorCommands.VerifyProductVersionEndpointResponse(productVersions, callbackUri,
-                        httpClient, expectedStatusCode, expectedErrorMessage, 0);
+            var jobId = await OrchestratorCommands.ProductVersionsInCustomAssemblyPipelineSubmitJobAsync(httpClient, callbackUri, productVersions);
+
+            await OrchestratorCommands.WaitForJobCompletionAsync(httpClient, jobId);
+
+            await OrchestratorCommands.VerifyBuildStatusAsync(httpClient, jobId);
+
+            var exchangeSetDownloadPath = await ZipStructureComparer.DownloadExchangeSetAsZipAsync(jobId, App!);
+
+            var sourceZipPath = Path.Combine(ProjectDirectory!, "TestData", zipFileName);
+
+            ZipStructureComparer.CompareZipFilesExactMatchForProductVersions(sourceZipPath, exchangeSetDownloadPath);
         }
 
         [Theory]
