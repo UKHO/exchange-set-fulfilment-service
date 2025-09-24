@@ -186,48 +186,36 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                     .RequireAuthenticatedUser()
                     .AddAuthenticationSchemes(AuthenticationConstants.AzureAdScheme, AuthenticationConstants.AzureB2CScheme)
                     .Build())
-                .AddPolicy("AdOrB2C", policy =>
-                {
-                    if (!addsEnvironment.IsLocal() && !addsEnvironment.IsDev())
-                    {
-                        policy.RequireAuthenticatedUser()
-                          .AddAuthenticationSchemes(AuthenticationConstants.AzureAdScheme, AuthenticationConstants.AzureB2CScheme)
-                          .RequireAssertion(ctx =>
-                          {
-                              var issuer = ctx.User.FindFirst("iss")?.Value;
-                              if (string.IsNullOrEmpty(issuer))
-                                  return false;
+               .AddPolicy("AdOrB2C", policy =>
+               {
+                   if (!addsEnvironment.IsLocal() && !addsEnvironment.IsDev())
+                   {
+                       policy.RequireAssertion(context =>
+                       {
+                           // Check if authenticated with Azure AD and has the required role
 
-                              var tenantId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsAppRegTenantId);
-                              var adIssuerBase = $"{AuthenticationConstants.MicrosoftLoginUrl}{tenantId}";
-                              var adIssuerBaseV1 = $"{AuthenticationConstants.MicrosoftLoginUrlV1}{tenantId}";
-                              var isAd = issuer.StartsWith(adIssuerBase, StringComparison.OrdinalIgnoreCase) || issuer.StartsWith(adIssuerBaseV1, StringComparison.OrdinalIgnoreCase);
+                           var issuer = context.User.FindFirst("iss")?.Value;
 
-                              if (isAd)
-                              {
-                                  return ctx.User.IsInRole(AuthenticationConstants.EfsRole) ||
-                                         ctx.User.Claims.Any(c =>
-                                             (c.Type == ClaimTypes.Role || c.Type == "roles") &&
-                                             string.Equals(c.Value, AuthenticationConstants.EfsRole, StringComparison.Ordinal));
-                              }
+                           var adAuthenticated = context.User.Identity != null
+                               && context.User.Identity.IsAuthenticated
+                               && issuer!.Contains(Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsAppRegTenantId)!, StringComparison.OrdinalIgnoreCase)
+                               && context.User.IsInRole(AuthenticationConstants.EfsRole);
 
-                              var b2cInstance = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppInstance);
-                              var b2cTenantId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsAppRegTenantId);
-                              var b2cIssuer = $"{b2cInstance}{b2cTenantId}/v2.0/";
-                              var isB2C = issuer.Equals(b2cIssuer, StringComparison.OrdinalIgnoreCase);
+                           // Check if authenticated with Azure B2C (no role required)
+                           var b2cAuthenticated = context.User.Identity != null
+                               && context.User.Identity.IsAuthenticated
+                               && context.User.HasClaim("iss",
+                               $"{Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppInstance)}{Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppDomain)}/v2.0/");
 
-                              if (isB2C)
-                                  return true;
-
-                              return false;
-                          });
-                    }
-                    else
-                    {
-                        // For local and dev environments only, allow anonymous access
-                        policy.RequireAssertion(_ => true);
-                    }
-                });
+                           return adAuthenticated || b2cAuthenticated;
+                       });
+                   }
+                   else
+                   {
+                       // For local and dev environments only, allow anonymous access
+                       policy.RequireAssertion(_ => true);
+                   }
+               });
 
             return collection;
         }
