@@ -50,6 +50,8 @@ param efs_b2c_app_instance string
 
 param efs_b2c_app_signin_policy string
 
+param efs_b2c_app_tenantid string
+
 resource efs_orchestrator 'Microsoft.App/containerApps@2025-02-02-preview' = {
   name: 'efs-orchestrator'
   location: location
@@ -161,6 +163,10 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2025-02-02-preview' = {
             {
               name: 'EFS_B2C_APP_CLIENTID'
               value: efs_b2c_app_clientid
+            }
+            {
+              name: 'EFS_B2C_APP_TENANTID'
+              value: efs_b2c_app_tenantid
             }
             {
               name: 'EFS_B2C_APP_DOMAIN'
