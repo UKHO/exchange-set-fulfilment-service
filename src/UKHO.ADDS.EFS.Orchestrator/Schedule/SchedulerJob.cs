@@ -1,9 +1,9 @@
 ﻿using Quartz;
 using Serilog.Context;
 using UKHO.ADDS.EFS.Domain.Constants;
-using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.Messages;
 using UKHO.ADDS.EFS.Domain.Products;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Generators;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 
@@ -19,13 +19,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Schedule
         private readonly ILogger<SchedulerJob> _logger;
         private readonly IConfiguration _config;
         private readonly IAssemblyPipelineFactory _pipelineFactory;
-        private const string CorrelationIdPrefix = "sched-";
+        private readonly ICorrelationIdGenerator _correlationIdGenerator;
 
-        public SchedulerJob(ILogger<SchedulerJob> logger, IConfiguration config, IAssemblyPipelineFactory pipelineFactory)
+        public SchedulerJob(ILogger<SchedulerJob> logger, IConfiguration config, IAssemblyPipelineFactory pipelineFactory,ICorrelationIdGenerator correlationIdGenerator)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _pipelineFactory = pipelineFactory ?? throw new ArgumentNullException(nameof(pipelineFactory));
+            _correlationIdGenerator= correlationIdGenerator ?? throw new ArgumentNullException(nameof(correlationIdGenerator));
         }
 
         /// <summary>
@@ -35,7 +36,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Schedule
         /// <returns>Task representing the asynchronous job execution.</returns>
         public async Task Execute(IJobExecutionContext context)
         {
-            var correlationId = CorrelationId.From($"{CorrelationIdPrefix}{Guid.NewGuid():N}");
+            var correlationId = _correlationIdGenerator.CreateForScheduler();
 
             // Properly push correlation ID to Serilog LogContext for the entire request
             using (LogContext.PushProperty(LogProperties.CorrelationId, correlationId))
@@ -44,12 +45,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Schedule
                 {
                     _logger.LogSchedulerJobStarted(correlationId, DateTime.UtcNow);
 
-                var message = new JobRequestApiMessage
-                {
-                    DataStandard = DataStandard.S100,
-                    Products = [],
-                    Filter = ""
-                };
+                    var message = new JobRequestApiMessage
+                    {
+                        DataStandard = DataStandard.S100,
+                        Products = [],
+                        Filter = ""
+                    };
 
                     var parameters = AssemblyPipelineParameters.CreateFrom(message, _config, correlationId);
                     var pipeline = _pipelineFactory.CreateAssemblyPipeline(parameters);
@@ -66,7 +67,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Schedule
                     throw;
                 }
             }
-        }
-
+        }        
     }
 }
