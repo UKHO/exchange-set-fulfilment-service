@@ -1,4 +1,5 @@
 ﻿using System.IO.Compression;
+using System.Net;
 using Aspire.Hosting;
 using Microsoft.VisualStudio.TestPlatform.Utilities;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
@@ -8,91 +9,184 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
 {
     public class ZipStructureComparer
     {
+        /*
+         PSEUDOCODE (Improvements for DownloadExchangeSetAsZipAsync)
+         - Add optional CancellationToken parameter (non-breaking default)
+         - Define retryable status codes (include 404 + transient/server errors + 429)
+         - Track deadline based on maxSeconds
+         - Loop:
+             attempt++
+             try GET with ResponseHeadersRead for quicker streaming
+             if success:
+                 validate (optional) content-type contains "zip" (warn if not)
+                 build destination path, ensure directory exists
+                 stream copy (no explicit Flush needed; disposal suffices)
+                 return path
+             else if non-retryable status -> throw immediately with details
+             else log and compute backoff with exponential growth + jitter (cap)
+         - Catch HttpRequestException: treat as transient -> retry (log)
+         - Respect cancellation and deadline
+         - After loop: throw with last status / exception summary
+         - Keep original signature shape but add CancellationToken as last optional param
+        */
+
+        private static readonly HashSet<HttpStatusCode> RetryableStatusCodes =
+        [
+            HttpStatusCode.NotFound,              // eventual consistency
+            HttpStatusCode.RequestTimeout,
+            HttpStatusCode.TooManyRequests,
+            HttpStatusCode.InternalServerError,
+            HttpStatusCode.BadGateway,
+            HttpStatusCode.ServiceUnavailable,
+            HttpStatusCode.GatewayTimeout
+        ];
+
         /// <summary>
-        /// Downloads a zip file for the given jobId from the mock service and saves it to the out directory.
+        /// Downloads a zip file for the given jobId from the mock service and saves it to the out directory with improved retry + backoff.
         /// </summary>
-        /// <param name="jobId">The job identifier.</param>
-        /// <param name="app">The distributed application instance.</param>
-        /// <returns>The file path of the downloaded zip.</returns>
         public static async Task<string> DownloadExchangeSetAsZipAsync(
             string jobId,
             HttpClient httpClientMock,
             ITestOutputHelper? output = null,
-            int maxSeconds = 90)
+            int maxSeconds = 90,
+            CancellationToken cancellationToken = default)
         {
-            // Rhz : Adding retry logic to handle transient failures
+            ArgumentNullException.ThrowIfNull(httpClientMock);
+            if (string.IsNullOrWhiteSpace(TestBase.ProjectDirectory))
+                throw new InvalidOperationException("TestBase.ProjectDirectory not initialized.");
+
             var deadline = DateTime.UtcNow.AddSeconds(maxSeconds);
-            HttpResponseMessage? last = null;
+            HttpResponseMessage? lastResponse = null;
+            Exception? lastException = null;
             int attempt = 0;
 
             var fileName = $"V01X01_{jobId}.zip";
             var relativePath = $"/_admin/files/FSS/S100-ExchangeSets/{fileName}";
+            var destinationFilePath = Path.Combine(TestBase.ProjectDirectory!, "out", fileName);
+
+            const int initialDelayMs = 500;
+            const int maxDelayMs = 6000;
 
             while (DateTime.UtcNow < deadline)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 attempt++;
-                last = await httpClientMock.GetAsync(relativePath);
-                if (last.IsSuccessStatusCode)
-                {
-                    output?.WriteLine($"Download succeeded after {attempt} attempts: {relativePath}");
-                    await using var zipStream = await last.Content.ReadAsStreamAsync();
-                    var destinationFilePath = Path.Combine(TestBase.ProjectDirectory!, "out", fileName);
 
-                    Directory.CreateDirectory(Path.GetDirectoryName(destinationFilePath)!);
-                    await using var fileStream = new FileStream(destinationFilePath, FileMode.Create, FileAccess.Write, FileShare.None);
-                    await zipStream.CopyToAsync(fileStream);
-                    await fileStream.FlushAsync();
-                    return destinationFilePath;
+                try
+                {
+                    lastResponse = await httpClientMock.GetAsync(
+                        relativePath,
+                        HttpCompletionOption.ResponseHeadersRead,
+                        cancellationToken);
+
+                    if (lastResponse.IsSuccessStatusCode)
+                    {
+                        // (Soft) content-type validation
+                        if (lastResponse.Content.Headers.ContentType is { MediaType: var mt } &&
+                            !string.IsNullOrEmpty(mt) &&
+                            !mt.Contains("zip", StringComparison.OrdinalIgnoreCase))
+                        {
+                            output?.WriteLine($"Warning: Content-Type '{mt}' does not look like a ZIP.");
+                        }
+
+                        await using var zipStream = await lastResponse.Content.ReadAsStreamAsync(cancellationToken);
+
+                        Directory.CreateDirectory(Path.GetDirectoryName(destinationFilePath)!);
+
+                        // Overwrite if exists
+                        await using (var fileStream = new FileStream(
+                            destinationFilePath,
+                            FileMode.Create,
+                            FileAccess.Write,
+                            FileShare.None,
+                            bufferSize: 64 * 1024,
+                            FileOptions.Asynchronous | FileOptions.SequentialScan))
+                        {
+                            await zipStream.CopyToAsync(fileStream, cancellationToken);
+                        }
+
+                        output?.WriteLine($"Download succeeded attempt #{attempt}: {relativePath}");
+                        return destinationFilePath;
+                    }
+
+                    var statusCode = lastResponse.StatusCode;
+
+                    // Non-retryable? (e.g., 400, 401, 403, 410 etc.)
+                    if (!RetryableStatusCodes.Contains(statusCode))
+                    {
+                        var msg = $"Non-retryable status {(int)statusCode} {statusCode} on attempt {attempt} for {relativePath}";
+                        output?.WriteLine(msg);
+                        lastResponse.EnsureSuccessStatusCode(); // will throw
+                    }
+
+                    output?.WriteLine($"Retryable status {(int)statusCode} {statusCode} attempt {attempt} for {relativePath}");
+                }
+                catch (HttpRequestException hre)
+                {
+                    lastException = hre;
+                    output?.WriteLine($"Transient network error attempt {attempt}: {hre.Message}");
                 }
 
-                output?.WriteLine($"Attempt {attempt}: {relativePath} -> {(int)last.StatusCode} {last.StatusCode}");
-                // If 404, treat as eventual consistency; small incremental backoff
-                await Task.Delay(Math.Min(2000 * attempt, 6000));
+                // Backoff with exponential growth + jitter
+                var exponential = initialDelayMs * Math.Pow(2, attempt - 1);
+                var capped = (int)Math.Min(exponential, maxDelayMs);
+                var jitter = Random.Shared.Next(0, 250);
+                var delay = capped + jitter;
+
+                var remaining = deadline - DateTime.UtcNow;
+                if (remaining <= TimeSpan.Zero)
+                    break;
+
+                var actualDelay = TimeSpan.FromMilliseconds(Math.Min(delay, remaining.TotalMilliseconds));
+                try
+                {
+                    await Task.Delay(actualDelay, cancellationToken);
+                }
+                catch (TaskCanceledException)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                }
             }
 
-            var status = last != null ? $"{(int)last.StatusCode} {last.StatusCode}" : "no response";
-            throw new Xunit.Sdk.XunitException($"Artifact not available after {maxSeconds}s. Last status: {status}. Tried path: {relativePath}");
+            var statusInfo = lastResponse != null
+                ? $"{(int)lastResponse.StatusCode} {lastResponse.StatusCode}"
+                : "no response";
 
+            var extra = lastException != null ? $" NetworkError: {lastException.GetType().Name} {lastException.Message}" : string.Empty;
+
+            throw new Xunit.Sdk.XunitException(
+                $"Artifact not available after {maxSeconds}s (attempts={attempt}). Last status: {statusInfo}.{extra} Path: {relativePath}");
         }
 
         /// <summary>
         /// Compares two ZIP files to ensure their directory structures match exactly.
         /// Optionally verifies that specified product files are present in the source ZIP.
         /// </summary>
-        /// <param name="sourceZipPath">Path to the source ZIP file.</param>
-        /// <param name="targetZipPath">Path to the target ZIP file.</param>
-        /// <param name="products">Comma-separated list of expected product file names (optional).</param>
         public static void CompareZipFilesExactMatch(string sourceZipPath, string targetZipPath, string[]? products = null)
         {
-            // Open both ZIP archives for reading
             using var sourceArchive = ZipFile.OpenRead(sourceZipPath);
             using var targetArchive = ZipFile.OpenRead(targetZipPath);
 
-            // Helper method to extract the directory path from a full entry name
             static string? GetDirectoryPath(string fullName)
             {
                 var idx = fullName.LastIndexOf('/');
                 return idx > 0 ? fullName[..idx] : fullName;
             }
 
-            // Get distinct directory paths from source archive
             var sourceDirectories = sourceArchive.Entries
                 .Select(e => GetDirectoryPath(e.FullName))
                 .Distinct()
                 .OrderBy(e => e)
                 .ToList();
 
-            // Get distinct directory paths from target archive
             var targetDirectories = targetArchive.Entries
                 .Select(e => GetDirectoryPath(e.FullName))
                 .Distinct()
                 .OrderBy(e => e)
                 .ToList();
 
-            // Compare directory structures of both ZIP files
             Assert.Equal(sourceDirectories, targetDirectories);
 
-            // If product names are specified, validate their presence in the source archive
             if (products != null)
             {
                 var expectedProductPaths = new List<string>();
@@ -106,21 +200,18 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
                     }
                     expectedProductPaths.Add($"S100_ROOT/S-{productIdentifier}/DATASET_FILES/{folderName}/{productName}");
                 }
-                //added file expected other than product name
                 expectedProductPaths.Add("S100_ROOT/CATALOG");
 
-                // Extract actual product file names from the target archive
                 var actualProductPaths = targetArchive.Entries
-                    .Where(e => e.FullName.Contains('.')) // Assuming product files have extensions
-                    .Select(e => e.FullName[..e.FullName.IndexOf('.')]) // Get the file name without extension
+                    .Where(e => e.FullName.Contains('.'))
+                    .Select(e => e.FullName[..e.FullName.IndexOf('.')])
                     .Distinct()
                     .OrderBy(p => p)
                     .ToList();
+
                 expectedProductPaths.Sort();
-                // Compare expected and actual product file names
                 Assert.Equal(expectedProductPaths, actualProductPaths!);
             }
         }
-
     }
 }
