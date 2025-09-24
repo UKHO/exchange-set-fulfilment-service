@@ -17,7 +17,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
 
             await Task.Delay(10000); // Delay To ensure the file is available on the mock
 
-            const int maxRetries = 5;
+            const int maxRetries = 10;
             var retryCount = 0;
             var delay = TimeSpan.FromSeconds(10);
             HttpResponseMessage? mockResponse = null;
