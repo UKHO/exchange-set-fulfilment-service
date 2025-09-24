@@ -19,7 +19,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
 
             const int maxRetries = 5;
             var retryCount = 0;
-            var delay = TimeSpan.FromSeconds(5);
+            var delay = TimeSpan.FromSeconds(10);
             HttpResponseMessage? mockResponse = null;
 
             while (retryCount < maxRetries)
