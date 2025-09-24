@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿
+using System.Net;
 using Microsoft.Extensions.Logging;
 using Microsoft.Kiota.Abstractions;
 using Microsoft.Kiota.Http.HttpClientLibrary.Middleware.Options;
@@ -166,20 +167,8 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                         .GetAsync(
                             requestConfiguration =>
                             {
-                                if (requestConfiguration.QueryParameters is not null)
-                                {
-                                    var queryParams = requestConfiguration.QueryParameters;
-                                    var getProductIdentifierProp = queryParams.GetType().GetProperty("ProductIdentifier");
-                                    if (getProductIdentifierProp != null && getProductIdentifierProp.CanWrite && productIdentifier != DataStandardProduct.Undefined)
-                                    {
-                                        getProductIdentifierProp.SetValue(queryParams, productIdentifier.AsEnum.ToString());
-                                    }
-                                    var getSinceDateTime = queryParams.GetType().GetProperty("SinceDateTime");
-                                    if (DateTimeOffset.TryParse(sinceDateTime, out var parsedDate))
-                                    {
-                                        getSinceDateTime.SetValue(queryParams, parsedDate);
-                                    }
-                                }
+                                requestConfiguration.QueryParameters.ProductIdentifier = productIdentifier.AsEnum.ToString();
+                                requestConfiguration.QueryParameters.SinceDateTime = DateTimeOffset.Parse(sinceDateTime);
                                 requestConfiguration.Headers.Add(CorrelationIdHeader, (string)job.GetCorrelationId());
                             },
                             cancellationToken);

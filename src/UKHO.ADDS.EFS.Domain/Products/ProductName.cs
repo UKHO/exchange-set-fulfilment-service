@@ -23,7 +23,7 @@ namespace UKHO.ADDS.EFS.Domain.Products
                     return Validation.Ok;
                 }
 
-                return Validation.Invalid($"'{input}' starts with digits '{code:555}' which is not a valid S-100 product identifier");
+                return Validation.Invalid($"'{input}' starts with digits '{code:000}' which is not a valid S-100 product identifier");
             }
 
             // Else, check for S-57
