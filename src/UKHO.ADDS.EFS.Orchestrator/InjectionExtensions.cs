@@ -13,6 +13,7 @@ using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Infrastructure.Injection;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Health;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Generators;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging.Implementation;
 using UKHO.ADDS.EFS.Orchestrator.Monitors;
@@ -75,7 +76,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             builder.Services.AddSingleton<IBuilderLogForwarder, BuilderLogForwarder>();
             builder.Services.AddSingleton<StorageInitializerService>();
-
+            builder.Services.AddSingleton<ICorrelationIdGenerator, CorrelationIdGenerator>();
             builder.Services.AddDomain();
             builder.Services.AddInfrastructure();
 
