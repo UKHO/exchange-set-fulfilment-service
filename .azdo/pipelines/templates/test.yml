@@ -50,29 +50,95 @@ jobs:
         workingDirectory: '$(Build.SourcesDirectory)'
         restoreDirectory: '$(Build.SourcesDirectory)\packagesForTests'
 
-    # List of test projects
-    - ${{ each testProject in
-        [
-          'test/UKHO.ADDS.EFS.Orchestrator.UnitTests/UKHO.ADDS.EFS.Orchestrator.UnitTests.csproj',
-          'test/UKHO.ADDS.EFS.UnitTests/UKHO.ADDS.EFS.UnitTests.csproj',
-          'test/UKHO.ADDS.EFS.Builder.S100.UnitTests/UKHO.ADDS.EFS.Builder.S100.UnitTests.csproj',
-          'test/UKHO.ADDS.EFS.Domain.Services.UnitTests/UKHO.ADDS.EFS.Domain.Services.UnitTests.csproj',
-          'test/UKHO.ADDS.EFS.Domain.UnitTests/UKHO.ADDS.EFS.Domain.UnitTests.csproj',
-          'test/UKHO.ADDS.EFS.Infrastructure.UnitTests/UKHO.ADDS.EFS.Infrastructure.UnitTests.csproj',
-          'test/UKHO.ADDS.EFS.Infrastructure.Builders.UnitTests/UKHO.ADDS.EFS.Infrastructure.Builders.UnitTests.csproj',
-          'configuration/tests/UKHO.ADDS.Aspire.Configuration.Emulator.Tests/UKHO.ADDS.Aspire.Configuration.Emulator.Tests.csproj',
-          'configuration/tests/UKHO.ADDS.Aspire.Configuration.Seeder.Tests/UKHO.ADDS.Aspire.Configuration.Seeder.Tests.csproj'
-        ]
-      }}:
-      - task: DotNetCoreCLI@2
-        displayName: 'Dotnet test - Perform unit tests for ${{ testProject }}'
-        inputs:
-          command: 'test'
-          projects: '${{ testProject }}'
-          arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)\test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)/test/$(BuildConfiguration)/$(basename ${{ testProject }} .csproj).coverage.cobertura.xml --no-restore'
-          publishTestResults: true
-          testRunTitle: UnitTests
-          restoreDirectory: '$(Build.SourcesDirectory)\packagesForTests'
+    - task: DotNetCoreCLI@2
+      displayName: 'Dotnet test - UKHO.ADDS.EFS.Orchestrator.UnitTests'
+      inputs:
+        command: 'test'
+        projects: 'test/UKHO.ADDS.EFS.Orchestrator.UnitTests/UKHO.ADDS.EFS.Orchestrator.UnitTests.csproj'
+        arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)\test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)/test/$(BuildConfiguration)/UKHO.ADDS.EFS.Orchestrator.UnitTests.coverage.cobertura.xml --no-restore'
+        publishTestResults: true
+        testRunTitle: UnitTests
+        restoreDirectory: '$(Build.SourcesDirectory)\packagesForTests'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Dotnet test - UKHO.ADDS.EFS.UnitTests'
+      inputs:
+        command: 'test'
+        projects: 'test/UKHO.ADDS.EFS.UnitTests/UKHO.ADDS.EFS.UnitTests.csproj'
+        arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)\test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)/test/$(BuildConfiguration)/UKHO.ADDS.EFS.UnitTests.coverage.cobertura.xml --no-restore'
+        publishTestResults: true
+        testRunTitle: UnitTests
+        restoreDirectory: '$(Build.SourcesDirectory)\packagesForTests'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Dotnet test - UKHO.ADDS.EFS.Builder.S100.UnitTests'
+      inputs:
+        command: 'test'
+        projects: 'test/UKHO.ADDS.EFS.Builder.S100.UnitTests/UKHO.ADDS.EFS.Builder.S100.UnitTests.csproj'
+        arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)\test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)/test/$(BuildConfiguration)/UKHO.ADDS.EFS.Builder.S100.UnitTests.coverage.cobertura.xml --no-restore'
+        publishTestResults: true
+        testRunTitle: UnitTests
+        restoreDirectory: '$(Build.SourcesDirectory)\packagesForTests'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Dotnet test - UKHO.ADDS.EFS.Domain.Services.UnitTests'
+      inputs:
+        command: 'test'
+        projects: 'test/UKHO.ADDS.EFS.Domain.Services.UnitTests/UKHO.ADDS.EFS.Domain.Services.UnitTests.csproj'
+        arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)\test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)/test/$(BuildConfiguration)/UKHO.ADDS.EFS.Domain.Services.UnitTests.coverage.cobertura.xml --no-restore'
+        publishTestResults: true
+        testRunTitle: UnitTests
+        restoreDirectory: '$(Build.SourcesDirectory)\packagesForTests'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Dotnet test - UKHO.ADDS.EFS.Domain.UnitTests'
+      inputs:
+        command: 'test'
+        projects: 'test/UKHO.ADDS.EFS.Domain.UnitTests/UKHO.ADDS.EFS.Domain.UnitTests.csproj'
+        arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)\test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)/test/$(BuildConfiguration)/UKHO.ADDS.EFS.Domain.UnitTests.coverage.cobertura.xml --no-restore'
+        publishTestResults: true
+        testRunTitle: UnitTests
+        restoreDirectory: '$(Build.SourcesDirectory)\packagesForTests'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Dotnet test - UKHO.ADDS.EFS.Infrastructure.UnitTests'
+      inputs:
+        command: 'test'
+        projects: 'test/UKHO.ADDS.EFS.Infrastructure.UnitTests/UKHO.ADDS.EFS.Infrastructure.UnitTests.csproj'
+        arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)\test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)/test/$(BuildConfiguration)/UKHO.ADDS.EFS.Infrastructure.UnitTests.coverage.cobertura.xml --no-restore'
+        publishTestResults: true
+        testRunTitle: UnitTests
+        restoreDirectory: '$(Build.SourcesDirectory)\packagesForTests'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Dotnet test - UKHO.ADDS.EFS.Infrastructure.Builders.UnitTests'
+      inputs:
+        command: 'test'
+        projects: 'test/UKHO.ADDS.EFS.Infrastructure.Builders.UnitTests/UKHO.ADDS.EFS.Infrastructure.Builders.UnitTests.csproj'
+        arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)\test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)/test/$(BuildConfiguration)/UKHO.ADDS.EFS.Infrastructure.Builders.UnitTests.coverage.cobertura.xml --no-restore'
+        publishTestResults: true
+        testRunTitle: UnitTests
+        restoreDirectory: '$(Build.SourcesDirectory)\packagesForTests'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Dotnet test - UKHO.ADDS.Aspire.Configuration.Emulator.Tests'
+      inputs:
+        command: 'test'
+        projects: 'configuration/tests/UKHO.ADDS.Aspire.Configuration.Emulator.Tests/UKHO.ADDS.Aspire.Configuration.Emulator.Tests.csproj'
+        arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)\test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)/test/$(BuildConfiguration)/UKHO.ADDS.Aspire.Configuration.Emulator.Tests.coverage.cobertura.xml --no-restore'
+        publishTestResults: true
+        testRunTitle: UnitTests
+        restoreDirectory: '$(Build.SourcesDirectory)\packagesForTests'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Dotnet test - UKHO.ADDS.Aspire.Configuration.Seeder.Tests'
+      inputs:
+        command: 'test'
+        projects: 'configuration/tests/UKHO.ADDS.Aspire.Configuration.Seeder.Tests/UKHO.ADDS.Aspire.Configuration.Seeder.Tests.csproj'
+        arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)\test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)/test/$(BuildConfiguration)/UKHO.ADDS.Aspire.Configuration.Seeder.Tests.coverage.cobertura.xml --no-restore'
+        publishTestResults: true
+        testRunTitle: UnitTests
+        restoreDirectory: '$(Build.SourcesDirectory)\packagesForTests'
 
     - script: |
         echo "Listing coverage files:"
