@@ -50,24 +50,29 @@ jobs:
         workingDirectory: '$(Build.SourcesDirectory)'
         restoreDirectory: '$(Build.SourcesDirectory)\packagesForTests'
 
-    - task: DotNetCoreCLI@2
-      displayName: 'Dotnet test - Perform unit tests'
-      inputs:
-        command: 'test'
-        projects: |
-          test/UKHO.ADDS.EFS.Orchestrator.UnitTests/UKHO.ADDS.EFS.Orchestrator.UnitTests.csproj,
-          test/UKHO.ADDS.EFS.UnitTests/UKHO.ADDS.EFS.UnitTests.csproj,
-          test/UKHO.ADDS.EFS.Builder.S100.UnitTests/UKHO.ADDS.EFS.Builder.S100.UnitTests.csproj,
-          test/UKHO.ADDS.EFS.Domain.Services.UnitTests/UKHO.ADDS.EFS.Domain.Services.UnitTests.csproj,
-          test/UKHO.ADDS.EFS.Domain.UnitTests/UKHO.ADDS.EFS.Domain.UnitTests.csproj,
-          test/UKHO.ADDS.EFS.Infrastructure.UnitTests/UKHO.ADDS.EFS.Infrastructure.UnitTests.csproj,
-          test/UKHO.ADDS.EFS.Infrastructure.Builders.UnitTests/UKHO.ADDS.EFS.Infrastructure.Builders.UnitTests.csproj,
-          configuration/tests/UKHO.ADDS.Aspire.Configuration.Emulator.Tests/UKHO.ADDS.Aspire.Configuration.Emulator.Tests.csproj,
-          configuration/tests/UKHO.ADDS.Aspire.Configuration.Seeder.Tests/UKHO.ADDS.Aspire.Configuration.Seeder.Tests.csproj
-        arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)\test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)/test/$(BuildConfiguration)/$(MSBuildProjectName).coverage.cobertura.xml --no-restore'
-        publishTestResults: true
-        testRunTitle: UnitTests
-        restoreDirectory: '$(Build.SourcesDirectory)\packagesForTests'
+    # List of test projects
+    - ${{ each testProject in
+        [
+          'test/UKHO.ADDS.EFS.Orchestrator.UnitTests/UKHO.ADDS.EFS.Orchestrator.UnitTests.csproj',
+          'test/UKHO.ADDS.EFS.UnitTests/UKHO.ADDS.EFS.UnitTests.csproj',
+          'test/UKHO.ADDS.EFS.Builder.S100.UnitTests/UKHO.ADDS.EFS.Builder.S100.UnitTests.csproj',
+          'test/UKHO.ADDS.EFS.Domain.Services.UnitTests/UKHO.ADDS.EFS.Domain.Services.UnitTests.csproj',
+          'test/UKHO.ADDS.EFS.Domain.UnitTests/UKHO.ADDS.EFS.Domain.UnitTests.csproj',
+          'test/UKHO.ADDS.EFS.Infrastructure.UnitTests/UKHO.ADDS.EFS.Infrastructure.UnitTests.csproj',
+          'test/UKHO.ADDS.EFS.Infrastructure.Builders.UnitTests/UKHO.ADDS.EFS.Infrastructure.Builders.UnitTests.csproj',
+          'configuration/tests/UKHO.ADDS.Aspire.Configuration.Emulator.Tests/UKHO.ADDS.Aspire.Configuration.Emulator.Tests.csproj',
+          'configuration/tests/UKHO.ADDS.Aspire.Configuration.Seeder.Tests/UKHO.ADDS.Aspire.Configuration.Seeder.Tests.csproj'
+        ]
+      }}:
+      - task: DotNetCoreCLI@2
+        displayName: 'Dotnet test - Perform unit tests for ${{ testProject }}'
+        inputs:
+          command: 'test'
+          projects: '${{ testProject }}'
+          arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)\test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)/test/$(BuildConfiguration)/$(basename ${{ testProject }} .csproj).coverage.cobertura.xml --no-restore'
+          publishTestResults: true
+          testRunTitle: UnitTests
+          restoreDirectory: '$(Build.SourcesDirectory)\packagesForTests'
 
     - script: |
         echo "Listing coverage files:"
@@ -85,4 +90,4 @@ jobs:
       displayName: "Publish Code coverage"
       inputs:
         PathtoPublish: "$(Build.ArtifactStagingDirectory)/codecoveragereport"
-        ArtifactName: codecoveragereport
+        ArtifactName: codecoveragereport"
