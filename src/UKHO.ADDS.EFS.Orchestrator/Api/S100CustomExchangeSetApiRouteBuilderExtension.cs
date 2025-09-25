@@ -70,9 +70,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             .Produces<CustomExchangeSetResponse>(202)
             .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", Guid.NewGuid().ToString("N"))
             .WithDescription("Provide all the latest releasable baseline data for a specified set of S100 Products.")
-            .WithRequiredAuthorization(AuthenticationConstants.EfsRole);
-            //.AddEndpointFilter<ModelBindingErrorFilter<List<string>>>(false); // Rhz filter
-            
+            .WithRequiredAuthorization(AuthenticationConstants.EfsRole)            
+            .AddEndpointFilter<ModelBindingErrorFilter<List<string>>>();
+
             // POST /v2/exchangeSet/s100/productVersions
             exchangeSetEndpoint.MapPost("/productVersions", async (
                 List<ProductVersionRequest> productVersionsRequest,
@@ -118,7 +118,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             .Produces<CustomExchangeSetResponse>(202)
             .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", Guid.NewGuid().ToString("N"))
             .WithDescription("Given a set of S100 Product versions (e.g. Edition x Update y) provide any later releasable files.")
-            .WithRequiredAuthorization(AuthenticationConstants.EfsRole);
+            .WithRequiredAuthorization(AuthenticationConstants.EfsRole)
+            .AddEndpointFilter<ModelBindingErrorFilter<List<ProductVersionRequest>>>();
 
             // POST /v2/exchangeSet/s100/updatesSince
             exchangeSetEndpoint.MapPost("/updatesSince", async (
