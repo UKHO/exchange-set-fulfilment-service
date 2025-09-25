@@ -36,7 +36,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         {
             if (job.CallbackUri == CallbackUri.None)
             {
-                LogCallbackNotificationSkipped(job.Id, job.CallbackUri, job.GetCorrelationId());
+                LogCallbackNotificationSkipped(job.Id, job.CallbackUri, job.GetCorrelationId(), job.BatchId);
                 return;
             }
 
@@ -63,17 +63,17 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-                    LogCallbackNotificationSuccess(job.Id, job.CallbackUri, job.GetCorrelationId(), (int)response.StatusCode, responseContent);
+                    LogCallbackNotificationSuccess(job.Id, job.CallbackUri, job.GetCorrelationId(), job.BatchId, (int)response.StatusCode, responseContent);
                 }
                 else
                 {
                     var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
-                    LogCallbackNotificationFailure(job.Id, job.CallbackUri, job.GetCorrelationId(), (int)response.StatusCode, errorContent);
+                    LogCallbackNotificationFailure(job.Id, job.CallbackUri, job.GetCorrelationId(), job.BatchId, (int)response.StatusCode, errorContent);
                 }
             }
             catch (Exception ex)
             {
-                LogCallbackNotificationError(job.Id, job.CallbackUri, job.GetCorrelationId(), ex);
+                LogCallbackNotificationError(job.Id, job.CallbackUri, job.GetCorrelationId(), job.BatchId, ex);
                 // Note: We don't rethrow the exception as the callback failure shouldn't fail the entire job completion
             }
         }
@@ -84,13 +84,15 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         /// <param name="jobId">The job identifier</param>
         /// <param name="callbackUri">The callback URI</param>
         /// <param name="correlationId">The correlation identifier</param>
-        private void LogCallbackNotificationSkipped(JobId jobId, CallbackUri callbackUri, CorrelationId correlationId)
+        /// <param name="batchId">The batch identifier</param>
+        private void LogCallbackNotificationSkipped(JobId jobId, CallbackUri callbackUri, CorrelationId correlationId, BatchId batchId)
         {
             var logView = new CallbackNotificationLogView
             {
                 JobId = jobId,
                 CallbackUri = callbackUri,
-                CorrelationId = correlationId
+                CorrelationId = correlationId,
+                BatchId = batchId
             };
 
             _logger.LogCallbackNotificationSkipped(logView);
@@ -102,15 +104,17 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         /// <param name="jobId">The job identifier</param>
         /// <param name="callbackUri">The callback URI</param>
         /// <param name="correlationId">The correlation identifier</param>
+        /// <param name="batchId">The batch identifier</param>
         /// <param name="statusCode">The HTTP response status code</param>
         /// <param name="responseContent">The response content from the callback endpoint</param>
-        private void LogCallbackNotificationSuccess(JobId jobId, CallbackUri callbackUri, CorrelationId correlationId, int statusCode, string responseContent)
+        private void LogCallbackNotificationSuccess(JobId jobId, CallbackUri callbackUri, CorrelationId correlationId, BatchId batchId, int statusCode, string responseContent)
         {
             var logView = new CallbackNotificationLogView
             {
                 JobId = jobId,
                 CallbackUri = callbackUri,
                 CorrelationId = correlationId,
+                BatchId = batchId,
                 StatusCode = statusCode,
                 ResponseContent = responseContent
             };
@@ -124,15 +128,17 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         /// <param name="jobId">The job identifier</param>
         /// <param name="callbackUri">The callback URI</param>
         /// <param name="correlationId">The correlation identifier</param>
+        /// <param name="batchId">The batch identifier</param>
         /// <param name="statusCode">The HTTP response status code</param>
         /// <param name="errorContent">The error response content</param>
-        private void LogCallbackNotificationFailure(JobId jobId, CallbackUri callbackUri, CorrelationId correlationId, int statusCode, string errorContent)
+        private void LogCallbackNotificationFailure(JobId jobId, CallbackUri callbackUri, CorrelationId correlationId, BatchId batchId, int statusCode, string errorContent)
         {
             var logView = new CallbackNotificationLogView
             {
                 JobId = jobId,
                 CallbackUri = callbackUri,
                 CorrelationId = correlationId,
+                BatchId = batchId,
                 StatusCode = statusCode,
                 ErrorContent = errorContent
             };
@@ -146,14 +152,16 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         /// <param name="jobId">The job identifier</param>
         /// <param name="callbackUri">The callback URI</param>
         /// <param name="correlationId">The correlation identifier</param>
+        /// <param name="batchId">The batch identifier</param>
         /// <param name="exception">The exception that occurred</param>
-        private void LogCallbackNotificationError(JobId jobId, CallbackUri callbackUri, CorrelationId correlationId, Exception exception)
+        private void LogCallbackNotificationError(JobId jobId, CallbackUri callbackUri, CorrelationId correlationId, BatchId batchId, Exception exception)
         {
             var logView = new CallbackNotificationLogView
             {
                 JobId = jobId,
                 CallbackUri = callbackUri,
-                CorrelationId = correlationId
+                CorrelationId = correlationId,
+                BatchId = batchId
             };
 
             _logger.LogCallbackNotificationError(logView, exception);

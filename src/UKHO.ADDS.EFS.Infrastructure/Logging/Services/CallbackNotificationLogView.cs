@@ -11,6 +11,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Logging.Services
         public required JobId JobId { get; init; }
         public required CallbackUri CallbackUri { get; init; }
         public required CorrelationId CorrelationId { get; init; }
+        public required BatchId BatchId { get; init; }
         public int? StatusCode { get; set; }
         public string? ResponseContent { get; set; }
         public string? ErrorContent { get; set; }
