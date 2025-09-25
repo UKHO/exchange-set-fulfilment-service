@@ -64,17 +64,22 @@ jobs:
           test/UKHO.ADDS.EFS.Infrastructure.Builders.UnitTests/UKHO.ADDS.EFS.Infrastructure.Builders.UnitTests.csproj,
           configuration/tests/UKHO.ADDS.Aspire.Configuration.Emulator.Tests/UKHO.ADDS.Aspire.Configuration.Emulator.Tests.csproj,
           configuration/tests/UKHO.ADDS.Aspire.Configuration.Seeder.Tests/UKHO.ADDS.Aspire.Configuration.Seeder.Tests.csproj
-        arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)\test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura --no-restore'
+        arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)\test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)/test/$(BuildConfiguration)/$(MSBuildProjectName).coverage.cobertura.xml --no-restore'
         publishTestResults: true
         testRunTitle: UnitTests
         restoreDirectory: '$(Build.SourcesDirectory)\packagesForTests'
+
+    - script: |
+        echo "Listing coverage files:"
+        dir $(Build.SourcesDirectory)\test\*.coverage.cobertura.xml /s
+      displayName: 'List coverage files'
 
     - task: PowerShell@2
       displayName: "Generate code coverage report"
       inputs:
         targetType: filePath
         filePath: '$(Build.SourcesDirectory)\.azdo\pipelines\powershell\CodeCoverageReport.ps1'
-        arguments: '-source "$(Build.SourcesDirectory)" -reportFolder "$(Build.ArtifactStagingDirectory)"'
+        arguments: '-reports "$(Build.SourcesDirectory)/test/**/*.coverage.cobertura.xml" -targetdir "$(Build.ArtifactStagingDirectory)/codecoveragereport" -reporttypes HtmlInline_AzurePipelines;Cobertura'
 
     - task: PublishBuildArtifacts@1
       displayName: "Publish Code coverage"
