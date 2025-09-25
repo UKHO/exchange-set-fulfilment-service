@@ -4,6 +4,7 @@ using Microsoft.Kiota.Abstractions;
 using Microsoft.Kiota.Http.HttpClientLibrary.Middleware.Options;
 using UKHO.ADDS.Clients.Kiota.SalesCatalogueService;
 using UKHO.ADDS.Clients.Kiota.SalesCatalogueService.Models;
+using UKHO.ADDS.EFS.Domain.Constants;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Domain.Services;
@@ -174,7 +175,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                         payload,
                         requestConfiguration =>
                         {
-                            requestConfiguration.Headers.Add("X-Correlation-Id", (string)job.GetCorrelationId());
+                            requestConfiguration.Headers.Add(ApiHeaderKeys.XCorrelationIdHeaderKey, (string)job.GetCorrelationId());
                         },
                         cancellationToken);
 
