@@ -31,11 +31,11 @@ jobs:
       displayName: 'List test projects'
 
     - task: DotNetCoreCLI@2
-      displayName: ".Net Core - NuGet restore test projects only"
+      displayName: '.Net Core - NuGet restore test projects only'
       inputs:
-        command: restore
-        projects: "test/**/*.csproj;configuration/tests/**/*.csproj"
-        excludes: "test/**/*EndToEndTests.csproj;test/**/*FunctionalTests.csproj"
+        command: 'restore'
+        projects: 'test/**/*.csproj,configuration/tests/**/*.csproj'
+        excludes: 'test/**/*EndToEndTests.csproj,test/**/*FunctionalTests.csproj'
         feedsToUse: config
         noCache: true
         nugetConfigPath: '$(Build.SourcesDirectory)\BuildNuget.config'
@@ -43,11 +43,11 @@ jobs:
         restoreDirectory: '$(Build.SourcesDirectory)\packagesForTests'
 
     - task: DotNetCoreCLI@2
-      displayName: "Dotnet test - Perform unit tests"
+      displayName: 'Dotnet test - Perform unit tests'
       inputs:
-        command: test
-        projects: "test/**/*.UnitTests.csproj;test/**/*.Tests.csproj;configuration/tests/**/*.Tests.csproj"
-        excludes: "test/**/*EndToEndTests.csproj;test/**/*FunctionalTests.csproj"
+        command: 'test'
+        projects: 'test/**/*.csproj,configuration/tests/**/*.csproj'
+        excludes: 'test/**/*EndToEndTests.csproj,test/**/*FunctionalTests.csproj'
         arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)\test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura --no-restore'
         publishTestResults: true
         testRunTitle: UnitTests
