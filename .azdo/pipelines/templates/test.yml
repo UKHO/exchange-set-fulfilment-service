@@ -17,11 +17,24 @@ jobs:
         packageType: sdk
         version: $(SdkVersion)
 
+    - task: UseDotNet@2
+      inputs:
+        packageType: 'sdk'
+        version: '9.0.x'
+
+    - script: |
+        echo "Current directory:"
+        pwd
+        echo "Matching test projects:"
+        dir test\*.csproj /s
+        dir configuration\tests\*.csproj /s
+      displayName: 'List test projects'
+
     - task: DotNetCoreCLI@2
       displayName: ".Net Core - NuGet restore test projects only"
       inputs:
         command: restore
-        projects: "test/**/*.UnitTests.csproj;test/**/*.Tests.csproj;configuration/tests/**/*.Tests.csproj"
+        projects: "test/**/*.csproj;configuration/tests/**/*.csproj"
         excludes: "test/**/*EndToEndTests.csproj;test/**/*FunctionalTests.csproj"
         feedsToUse: config
         noCache: true
