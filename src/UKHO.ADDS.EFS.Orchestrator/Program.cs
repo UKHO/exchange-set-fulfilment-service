@@ -76,7 +76,6 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 app.MapOpenApi();
                 app.MapScalarApiReference(_ => _.Servers = []); // Stop OpenAPI specifying the wrong port in the generated OpenAPI doc
 
-                app.UseMiddleware<Empty400InterceptorMiddleware>();
                 app.UseMiddleware<CorrelationIdMiddleware>();
                 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
@@ -89,6 +88,22 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 }
 
                 var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
+                //rhz - Use custom status code pages to handle 400 responses with empty body
+                app.UseStatusCodePages(async context =>
+                {
+                    var response = context.HttpContext.Response;
+                    if (response.StatusCode == 400 && response.ContentLength == 0)
+                    {
+                        response.ContentType = "application/json";
+                        var payload = System.Text.Json.JsonSerializer.Serialize(new
+                        {
+                            Source = "requestBody",
+                            Description = "Either body is null or malformed."
+                        });
+                        await response.WriteAsync(payload);
+                    }
+                });
+                //rhz - End
 
                 app.RegisterJobsApi(loggerFactory);
                 app.RegisterS100CustomExchangeSetApi(loggerFactory);
