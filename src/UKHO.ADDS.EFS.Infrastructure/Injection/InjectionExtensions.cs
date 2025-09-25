@@ -107,7 +107,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                 collection
                 .AddAuthentication(options =>
                 {
-                    options.DefaultScheme = AuthenticationConstants.AzureAdScheme;
+                    options.DefaultAuthenticateScheme = null;
                     options.DefaultChallengeScheme = AuthenticationConstants.AzureAdScheme;
                 })
                 .AddJwtBearer(AuthenticationConstants.AzureAdScheme, options =>
@@ -130,12 +130,12 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                     {
                         OnForbidden = context =>
                         {
-                            context.Response.Headers.Append(AuthenticationConstants.OriginHeaderKey, AuthenticationConstants.EfsService);
+                            SetOriginHeaderIfNotExists(context.Response);
                             return Task.CompletedTask;
                         },
                         OnAuthenticationFailed = context =>
                         {
-                            context.Response.Headers.Append(AuthenticationConstants.OriginHeaderKey, AuthenticationConstants.EfsService);
+                            SetOriginHeaderIfNotExists(context.Response);
                             return Task.CompletedTask;
                         }
                     };
@@ -148,7 +148,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                     var b2cPolicy = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppSignUpSignInPolicy);
 
                     options.Audience = b2cClientId;
-                    var b2cAuthority = $"{b2cInstance}{b2cDomain}/{b2cPolicy}/v2.0/";
+                    var b2cAuthority = $"{b2cInstance}{b2cDomain}/v2.0/";
                     options.Authority = b2cAuthority;
                     options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
                     {
@@ -166,14 +166,14 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                             if (!context.Response.HasStarted)
                             {
                                 context.Response.StatusCode = 401;
-                                context.Response.Headers.Append(AuthenticationConstants.OriginHeaderKey, AuthenticationConstants.EfsService);
+                                SetOriginHeaderIfNotExists(context.Response);
                                 context.HandleResponse();
                             }
                             return Task.CompletedTask;
                         },
                         OnAuthenticationFailed = context =>
                         {
-                            context.Response.Headers.Append(AuthenticationConstants.OriginHeaderKey, AuthenticationConstants.EfsService);
+                            SetOriginHeaderIfNotExists(context.Response);
                             return Task.CompletedTask;
                         }
                     };
@@ -218,6 +218,18 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                });
 
             return collection;
+        }
+
+        /// <summary>
+        /// Sets the origin header if it doesn't already exist to prevent duplicate headers
+        /// </summary>
+        /// <param name="response">The HTTP response</param>
+        private static void SetOriginHeaderIfNotExists(HttpResponse response)
+        {
+            if (!response.Headers.ContainsKey(AuthenticationConstants.OriginHeaderKey))
+            {
+                response.Headers.Append(AuthenticationConstants.OriginHeaderKey, AuthenticationConstants.EfsService);
+            }
         }
     }
 }
