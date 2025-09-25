@@ -83,6 +83,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
                 if (batchHandle.FileDetails?.Count > 0)
                 {
                     var firstFileDetail = batchHandle.FileDetails.First();
+                    firstFileDetail.FileName = fileName;
                     context.Subject.Build.BuildCommitInfo?.AddFileDetail(firstFileDetail.FileName, firstFileDetail.Hash);
                 }
 
