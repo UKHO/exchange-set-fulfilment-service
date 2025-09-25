@@ -34,8 +34,16 @@ jobs:
       displayName: '.Net Core - NuGet restore test projects only'
       inputs:
         command: 'restore'
-        projects: 'test/**/*.csproj,configuration/tests/**/*.csproj'
-        excludes: 'test/**/*EndToEndTests.csproj,test/**/*FunctionalTests.csproj'
+        projects: |
+          test/UKHO.ADDS.EFS.Orchestrator.UnitTests/UKHO.ADDS.EFS.Orchestrator.UnitTests.csproj,
+          test/UKHO.ADDS.EFS.UnitTests/UKHO.ADDS.EFS.UnitTests.csproj,
+          test/UKHO.ADDS.EFS.Builder.S100.UnitTests/UKHO.ADDS.EFS.Builder.S100.UnitTests.csproj,
+          test/UKHO.ADDS.EFS.Domain.Services.UnitTests/UKHO.ADDS.EFS.Domain.Services.UnitTests.csproj,
+          test/UKHO.ADDS.EFS.Domain.UnitTests/UKHO.ADDS.EFS.Domain.UnitTests.csproj,
+          test/UKHO.ADDS.EFS.Infrastructure.UnitTests/UKHO.ADDS.EFS.Infrastructure.UnitTests.csproj,
+          test/UKHO.ADDS.EFS.Infrastructure.Builders.UnitTests/UKHO.ADDS.EFS.Infrastructure.Builders.UnitTests.csproj,
+          configuration/tests/UKHO.ADDS.Aspire.Configuration.Emulator.Tests/UKHO.ADDS.Aspire.Configuration.Emulator.Tests.csproj,
+          configuration/tests/UKHO.ADDS.Aspire.Configuration.Seeder.Tests/UKHO.ADDS.Aspire.Configuration.Seeder.Tests.csproj
         feedsToUse: config
         noCache: true
         nugetConfigPath: '$(Build.SourcesDirectory)\BuildNuget.config'
@@ -46,8 +54,16 @@ jobs:
       displayName: 'Dotnet test - Perform unit tests'
       inputs:
         command: 'test'
-        projects: 'test/**/*.csproj,configuration/tests/**/*.csproj'
-        excludes: 'test/**/*EndToEndTests.csproj,test/**/*FunctionalTests.csproj'
+        projects: |
+          test/UKHO.ADDS.EFS.Orchestrator.UnitTests/UKHO.ADDS.EFS.Orchestrator.UnitTests.csproj,
+          test/UKHO.ADDS.EFS.UnitTests/UKHO.ADDS.EFS.UnitTests.csproj,
+          test/UKHO.ADDS.EFS.Builder.S100.UnitTests/UKHO.ADDS.EFS.Builder.S100.UnitTests.csproj,
+          test/UKHO.ADDS.EFS.Domain.Services.UnitTests/UKHO.ADDS.EFS.Domain.Services.UnitTests.csproj,
+          test/UKHO.ADDS.EFS.Domain.UnitTests/UKHO.ADDS.EFS.Domain.UnitTests.csproj,
+          test/UKHO.ADDS.EFS.Infrastructure.UnitTests/UKHO.ADDS.EFS.Infrastructure.UnitTests.csproj,
+          test/UKHO.ADDS.EFS.Infrastructure.Builders.UnitTests/UKHO.ADDS.EFS.Infrastructure.Builders.UnitTests.csproj,
+          configuration/tests/UKHO.ADDS.Aspire.Configuration.Emulator.Tests/UKHO.ADDS.Aspire.Configuration.Emulator.Tests.csproj,
+          configuration/tests/UKHO.ADDS.Aspire.Configuration.Seeder.Tests/UKHO.ADDS.Aspire.Configuration.Seeder.Tests.csproj
         arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)\test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura --no-restore'
         publishTestResults: true
         testRunTitle: UnitTests
