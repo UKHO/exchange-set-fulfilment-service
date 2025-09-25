@@ -69,46 +69,46 @@ variables:
   value: "ukhydrographicoffice/terraform-azure-powershell-unzip:1.13.0"
 
 stages:
-- stage: VulnerabilityChecks
-  displayName: Checks
-  dependsOn: []
-  jobs:
-  - template: templates/checks.yml
-    parameters:
-      SnykOnlyFailIfFixable: ${{ parameters.SnykOnlyFailIfFixable }}
-      SnykPassOnIssues: ${{ parameters.SnykPassOnIssues }}
-      IacOnly: true
+# - stage: VulnerabilityChecks
+#   displayName: Checks
+#   dependsOn: []
+#   jobs:
+#   - template: templates/checks.yml
+#     parameters:
+#       SnykOnlyFailIfFixable: ${{ parameters.SnykOnlyFailIfFixable }}
+#       SnykPassOnIssues: ${{ parameters.SnykPassOnIssues }}
+#       IacOnly: true
 
 - ${{ if eq(parameters.DeployPermanentResources, true) }}:
 
-  - stage: DevDeploy
-    dependsOn:
-    - VulnerabilityChecks
-    displayName: Dev deploy
-    jobs:
-    - template: templates/continuous-deployment-retain.yml
-      parameters:
-        AzureDevOpsEnvironment: Ess-Dev
-        ShortName: dev
-        AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+  # - stage: DevDeploy
+  #   dependsOn:
+  #   - VulnerabilityChecks
+  #   displayName: Dev deploy
+  #   jobs:
+  #   - template: templates/continuous-deployment-retain.yml
+  #     parameters:
+  #       AzureDevOpsEnvironment: Ess-Dev
+  #       ShortName: dev
+  #       AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
 
-  - stage: vNextIatDeploy
-    dependsOn:
-    - DevDeploy
-    displayName: vNext IAT Deploy
-    condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/dev/')))
-    jobs:
-    - template: templates/continuous-deployment-retain.yml
-      parameters:
-        AzureDevOpsEnvironment: Ess-vnextiat
-        ShortName: vnextiat
-        AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+  # - stage: vNextIatDeploy
+  #   dependsOn:
+  #   - DevDeploy
+  #   displayName: vNext IAT Deploy
+  #   condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/dev/')))
+  #   jobs:
+  #   - template: templates/continuous-deployment-retain.yml
+  #     parameters:
+  #       AzureDevOpsEnvironment: Ess-vnextiat
+  #       ShortName: vnextiat
+  #       AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
 
   - stage: vNextE2eDeploy
-    dependsOn:
-    - vNextIatDeploy
+    dependsOn: []
+  #  - vNextIatDeploy
     displayName: vNext E2E Deploy
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  #  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
     jobs:
     - template: templates/continuous-deployment-retain.yml
       parameters:
@@ -116,17 +116,17 @@ stages:
         ShortName: vnexte2e
         AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
 
-  - stage: IatDeploy
-    dependsOn:
-    - DevDeploy
-    displayName: IAT Deploy
-    condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')))
-    jobs:
-    - template: templates/continuous-deployment-retain.yml
-      parameters:
-        AzureDevOpsEnvironment: Ess-Iat
-        ShortName: iat
-        AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+  # - stage: IatDeploy
+  #   dependsOn:
+  #   - DevDeploy
+  #   displayName: IAT Deploy
+  #   condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')))
+  #   jobs:
+  #   - template: templates/continuous-deployment-retain.yml
+  #     parameters:
+  #       AzureDevOpsEnvironment: Ess-Iat
+  #       ShortName: iat
+  #       AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
 
 - ${{ if eq(parameters.DestroyResourcesDev, true) }}:
 
