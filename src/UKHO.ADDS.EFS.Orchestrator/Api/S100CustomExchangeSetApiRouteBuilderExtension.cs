@@ -116,12 +116,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                     var result = await pipeline.RunAsync(httpContext.RequestAborted);
 
-                    // Check for errors in the response
-                    if (result.ErrorResponse != null)
-                    {
-                        return HandleErrorResponse(result.ErrorResponse);
-                    }
-
                     return Results.Accepted(null, result.Response);
                 }
                 catch (Exception)
@@ -130,7 +124,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 }
             })
             .Produces<CustomExchangeSetResponse>(202)
-            .Produces<ErrorResponseModel>(413)
             .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", correlationIdGenerator.CreateForCustomExchageSet().ToString())
             .WithDescription("Given a set of S100 Product versions (e.g. Edition x Update y) provide any later releasable files.")
             .WithRequiredAuthorization(AuthenticationConstants.EfsRole);
@@ -164,12 +157,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                     var result = await pipeline.RunAsync(httpContext.RequestAborted);
 
-                    // Check for errors in the response
-                    if (result.ErrorResponse != null)
-                    {
-                        return HandleErrorResponse(result.ErrorResponse);
-                    }
-
                     return Results.Accepted(null, result.Response);
                 }
                 catch (Exception)
@@ -178,7 +165,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 }
             })
             .Produces<CustomExchangeSetResponse>(202)
-            .Produces<ErrorResponseModel>(413)
             .Produces(304)
             .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", correlationIdGenerator.CreateForCustomExchageSet().ToString())
             .WithDescription("Provide all the releasable S100 data after a datetime.")
