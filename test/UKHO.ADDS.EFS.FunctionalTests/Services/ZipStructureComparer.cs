@@ -1,5 +1,4 @@
 ﻿using System.IO.Compression;
-using Aspire.Hosting;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 
 namespace UKHO.ADDS.EFS.FunctionalTests.Services
@@ -12,14 +11,51 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
         /// <param name="jobId">The job identifier.</param>
         /// <param name="app">The distributed application instance.</param>
         /// <returns>The file path of the downloaded zip.</returns>
-        public static async Task<string> DownloadExchangeSetAsZipAsync(string jobId, DistributedApplication app)
+        public static async Task<string> DownloadExchangeSetAsZipAsync(string jobId)
         {
-            var httpClientMock = app.CreateHttpClient(ProcessNames.MockService);
-            var mockResponse = await httpClientMock.GetAsync($"/_admin/files/FSS/S100-ExchangeSets/V01X01_{jobId}.zip");
-            mockResponse.EnsureSuccessStatusCode();
+            var httpClientMock = AspireResourceSingleton.httpClientMock!;
+
+            await Task.Delay(10000); // Delay To ensure the file is available on the mock
+
+            const int maxRetries = 10;
+            var retryCount = 0;
+            var delay = TimeSpan.FromSeconds(10);
+            HttpResponseMessage? mockResponse = null;
+
+            while (retryCount < maxRetries)
+            {
+                try
+                {
+                    mockResponse = await httpClientMock.GetAsync($"/_admin/files/FSS/S100-ExchangeSets/V01X01_{jobId}.zip");
+                    mockResponse.EnsureSuccessStatusCode();
+                    break; // Success - exit the retry loop
+                }
+                catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound && retryCount < maxRetries - 1)
+                {
+                    // Only retry for 404 errors as the httpClient already has resilience for other error types
+                    retryCount++;
+                    Console.WriteLine($"File not found (attempt {retryCount}/{maxRetries}). Waiting {delay.TotalSeconds} seconds before retry...");
+                    await Task.Delay(delay);
+
+                    // Exponential backoff with a cap
+                    delay = TimeSpan.FromSeconds(Math.Min(30, delay.TotalSeconds * 2));
+                    continue;
+                }
+                // If we get here with a non-404 error or on final attempt, let the exception propagate
+                catch (Exception) when (retryCount >= maxRetries - 1)
+                {
+                    throw new HttpRequestException($"Failed to download exchange set after {maxRetries} attempts");
+                }
+            }
+
+            // Check if we exited the loop without success
+            if (mockResponse == null)
+            {
+                throw new HttpRequestException($"Failed to download exchange set after {maxRetries} attempts");
+            }
 
             await using var zipStream = await mockResponse.Content.ReadAsStreamAsync();
-            var destinationFilePath = Path.Combine(TestBase.ProjectDirectory!, "out", $"V01X01_{jobId}.zip");
+            var destinationFilePath = Path.Combine(AspireResourceSingleton.ProjectDirectory!, "out", $"V01X01_{jobId}.zip");
 
             // Ensure the directory exists
             var destinationDirectory = Path.GetDirectoryName(destinationFilePath);
