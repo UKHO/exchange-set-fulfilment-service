@@ -1,8 +1,6 @@
 ﻿using System.Text;
 using System.Text.Json;
-using Aspire.Hosting;
 using UKHO.ADDS.Clients.Common.Constants;
-using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 
 namespace UKHO.ADDS.EFS.FunctionalTests.Services
 {
@@ -50,56 +48,10 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
             return response;
         }
 
-
         public static async Task<HttpResponseMessage> GetBuildStatusAsync(string jobId)
         {
             var response = await httpClient.GetAsync($"/jobs/{jobId}/build");
             return response;
-        }
-
-        /// <summary>
-        /// Submits a productNames endpoint and asserts the requestedProductCount and exchangeSetProductCount.
-        /// </summary>
-        public static async Task<string> ProductNamesInCustomAssemblyPipelineSubmitJobAsync(HttpClient httpClient, string? callbackUri, object[]? products = null)
-        {
-            products ??= Array.Empty<string>();
-            var requestId = $"job-0001-" + Guid.NewGuid();
-            var payload = products;
-
-            var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-
-            content.Headers.Add(ApiHeaderKeys.XCorrelationIdHeaderKey, requestId);
-
-            var response = await httpClient.PostAsync($"/v2/exchangeSet/s100/productNames?callbackUri={callbackUri}", content);
-
-            Assert.True(response.IsSuccessStatusCode, $"Expected success status code but got: {response.StatusCode}");
-
-            var responseJson = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-            var requestedProductCount = responseJson.RootElement.GetProperty("requestedProductCount").GetInt32();
-            var exchangeSetProductCount = responseJson.RootElement.GetProperty("exchangeSetProductCount").GetInt32();
-
-            Assert.Equal(products.Length, requestedProductCount);
-            Assert.Equal(products.Length, exchangeSetProductCount);
-
-            return requestId!;
-        }
-
-        /// <summary>
-        /// Submits a update since endpoint and assert Success response.
-        /// </summary>
-        public static async Task<string> UpdateSinceInCustomAssemblyPipelineSubmitJobAsync(HttpClient httpClient, string productIdentifier, string? callbackUri, string sinceDateTime)
-        {
-            var requestId = $"job-0001-" + Guid.NewGuid();
-            var requestPayload = $"{{ \"sinceDateTime\": \"{sinceDateTime}\" }}";
-            var content = new StringContent(requestPayload, Encoding.UTF8, "application/json");
-            content.Headers.Add("x-correlation-id", requestId);
-
-            // Send the POST request
-            var response = await httpClient.PostAsync($"/v2/exchangeSet/s100/updatesSince?callbackUri={callbackUri}&productIdentifier={productIdentifier}", content);
-
-            Assert.True(response.IsSuccessStatusCode, $"Expected success status code but got: {response.StatusCode}");
-
-            return requestId!;
         }
     }
 }
