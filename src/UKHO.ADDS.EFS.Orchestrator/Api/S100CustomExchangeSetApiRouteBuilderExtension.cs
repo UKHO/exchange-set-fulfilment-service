@@ -64,9 +64,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                          // Check for errors in the response
                          if (result.ErrorResponse != null)
                          {
-                             var errorResponse = HandleErrorResponse(result.ErrorResponse);
-
-                             return errorResponse;
+                             return HandleErrorResponse(result.ErrorResponse);
                          }
 
                          return Results.Accepted(null, result.Response);
@@ -121,9 +119,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                     // Check for errors in the response
                     if (result.ErrorResponse != null)
                     {
-                        var errorResponse = HandleErrorResponse(result.ErrorResponse);
-
-                        return errorResponse;
+                        return HandleErrorResponse(result.ErrorResponse);
                     }
 
                     return Results.Accepted(null, result.Response);
@@ -171,9 +167,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                     // Check for errors in the response
                     if (result.ErrorResponse != null)
                     {
-                        var errorResponse = HandleErrorResponse(result.ErrorResponse);
-
-                        return errorResponse;
+                        return HandleErrorResponse(result.ErrorResponse);
                     }
 
                     return Results.Accepted(null, result.Response);
