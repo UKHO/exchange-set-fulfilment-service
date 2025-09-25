@@ -1,6 +1,5 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using UKHO.ADDS.Mocks;
 using UKHO.ADDS.Mocks.EFS.Override.Mocks.scs.Models;
 using UKHO.ADDS.Mocks.Files;
 using UKHO.ADDS.Mocks.Headers;
@@ -15,8 +14,8 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
         private static readonly int MaxEditionNumber = 15;
         private static readonly int MinFileSize = 2000;
         private static readonly int MaxFileSize = 15000;
-        private static readonly int LargeExchangeSetMinFileSize = 6000000;
-        private static readonly int LargeExchangeSetMaxFileSize = 10000000; 
+        private static readonly int LargeExchangeSetMinFileSize = 300 * 1024 * 1024; // 300 MB
+        private static readonly int LargeExchangeSetMaxFileSize = 301 * 1024 * 1024; // 301 MB
         private static readonly Random RandomInstance = Random.Shared;
 
         private const string InvalidProduct = "invalidProduct";
