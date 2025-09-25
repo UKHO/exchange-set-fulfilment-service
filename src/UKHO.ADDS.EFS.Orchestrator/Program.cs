@@ -76,6 +76,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 app.MapOpenApi();
                 app.MapScalarApiReference(_ => _.Servers = []); // Stop OpenAPI specifying the wrong port in the generated OpenAPI doc
 
+                app.UseMiddleware<Empty400InterceptorMiddleware>();
                 app.UseMiddleware<CorrelationIdMiddleware>();
                 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
