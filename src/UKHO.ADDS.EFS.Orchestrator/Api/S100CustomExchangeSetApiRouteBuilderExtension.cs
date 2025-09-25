@@ -5,6 +5,7 @@ using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Orchestrator.Api.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Extensions;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Generators;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.EFS.Orchestrator.Validators.S100;
@@ -21,7 +22,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
         /// </summary>
         /// <param name="routeBuilder">The endpoint route builder</param>
         /// <param name="loggerFactory">The logger factory</param>
-        public static void RegisterS100CustomExchangeSetApi(this IEndpointRouteBuilder routeBuilder, ILoggerFactory loggerFactory)
+        public static void RegisterS100CustomExchangeSetApi(this IEndpointRouteBuilder routeBuilder, ILoggerFactory loggerFactory,ICorrelationIdGenerator correlationIdGenerator)
         {
             var logger = loggerFactory.CreateLogger("S100ExchangeSetApi");
             var exchangeSetEndpoint = routeBuilder.MapGroup("/v2/exchangeSet/s100");
@@ -77,7 +78,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                  })
             .Produces<CustomExchangeSetResponse>(202)
             .Produces<ErrorResponseModel>(413)
-            .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", Guid.NewGuid().ToString("N"))
+            .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", correlationIdGenerator.CreateForCustomExchageSet().ToString())
             .WithDescription("Provide all the latest releasable baseline data for a specified set of S100 Products.")
             .WithRequiredAuthorization(AuthenticationConstants.EfsRole);
 
@@ -88,6 +89,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 IAssemblyPipelineFactory pipelineFactory,
                 HttpContext httpContext,
                 IS100ProductVersionsRequestValidator productVersionsRequestValidator,
+                ICorrelationIdGenerator correlationIdGenerator,
                 string? callbackUri = null) =>
             {
                 try
@@ -133,7 +135,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             })
             .Produces<CustomExchangeSetResponse>(202)
             .Produces<ErrorResponseModel>(413)
-            .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", Guid.NewGuid().ToString("N"))
+            .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", correlationIdGenerator.CreateForCustomExchageSet().ToString())
             .WithDescription("Given a set of S100 Product versions (e.g. Edition x Update y) provide any later releasable files.")
             .WithRequiredAuthorization(AuthenticationConstants.EfsRole);
 
@@ -144,6 +146,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 IAssemblyPipelineFactory pipelineFactory,
                 HttpContext httpContext,
                 IS100UpdateSinceRequestValidator updateSinceRequestValidator,
+                ICorrelationIdGenerator correlationIdGenerator,
                 string? callbackUri = null,
                 string? productIdentifier = null) =>
             {
@@ -183,7 +186,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             .Produces<CustomExchangeSetResponse>(202)
             .Produces<ErrorResponseModel>(413)
             .Produces(304)
-            .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", Guid.NewGuid().ToString("N"))
+            .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", correlationIdGenerator.CreateForCustomExchageSet().ToString())
             .WithDescription("Provide all the releasable S100 data after a datetime.")
             .WithRequiredAuthorization(AuthenticationConstants.EfsRole);
         }
