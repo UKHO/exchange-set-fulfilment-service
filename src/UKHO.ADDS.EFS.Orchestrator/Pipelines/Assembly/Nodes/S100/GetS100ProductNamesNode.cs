@@ -96,9 +96,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                     if (job.RequestType == RequestType.ProductNames)
                     {
                         // Get the exchange set expiry duration from configuration
-                        var expiryTimeSpan = Environment.Configuration.GetValue<TimeSpan>(ExchangeSetExpiresInConfigKey);
+                        //var expiryTimeSpan = Environment.Configuration.GetValue<TimeSpan>(ExchangeSetExpiresInConfigKey);
 
-                        job.ExchangeSetUrlExpiryDateTime = DateTime.UtcNow.Add(expiryTimeSpan);
+                        //job.ExchangeSetUrlExpiryDateTime = DateTime.UtcNow.Add(expiryTimeSpan);
                         job.RequestedProductCount = ProductCount.From(productNameList.Count);
                         job.ExchangeSetProductCount = productEditionList.Count;
                         job.RequestedProductsAlreadyUpToDateCount = productEditionList.ProductCountSummary.RequestedProductsAlreadyUpToDateCount;
