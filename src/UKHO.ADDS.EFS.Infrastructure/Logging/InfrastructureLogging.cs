@@ -52,22 +52,22 @@ namespace UKHO.ADDS.EFS.Infrastructure.Logging
         // Callback notification logging helper methods - these use ILogger.Log directly since LoggerMessage source generation has issues in this environment
         public static void LogCallbackNotificationSkipped(this ILogger logger, CallbackNotificationLogView callbackLogView)
         {
-            logger.Log(LogLevel.Information, CallbackNotificationSkipped, "Callback notification skipped: {@callbackLogView}", callbackLogView);
+            logger.Log(LogLevel.Information, CallbackNotificationSkipped, "Callback notification skipped: {@CallbackLogView}", callbackLogView);
         }
 
         public static void LogCallbackNotificationSuccess(this ILogger logger, CallbackNotificationLogView callbackLogView)
         {
-            logger.Log(LogLevel.Information, CallbackNotificationSuccess, "Callback notification successful: {@callbackLogView}", callbackLogView);
+            logger.Log(LogLevel.Information, CallbackNotificationSuccess, "Callback notification successful: {@CallbackLogView}", callbackLogView);
         }
 
         public static void LogCallbackNotificationFailed(this ILogger logger, CallbackNotificationLogView callbackLogView)
         {
-            logger.Log(LogLevel.Error, CallbackNotificationFailed, "Callback notification failed: {@callbackLogView}", callbackLogView);
+            logger.Log(LogLevel.Error, CallbackNotificationFailed, "Callback notification failed: {@CallbackLogView}", callbackLogView);
         }
 
         public static void LogCallbackNotificationError(this ILogger logger, CallbackNotificationLogView callbackLogView, Exception exception)
         {
-            logger.Log(LogLevel.Error, CallbackNotificationError, exception, "Callback notification error: {@callbackLogView}", callbackLogView);
+            logger.Log(LogLevel.Error, CallbackNotificationError, exception, "Callback notification error: {@CallbackLogView}", callbackLogView);
         }
     }
 }

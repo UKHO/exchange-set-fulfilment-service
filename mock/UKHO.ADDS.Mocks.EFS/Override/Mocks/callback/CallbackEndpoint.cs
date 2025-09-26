@@ -8,6 +8,8 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.callback
 {
     public class CallbackEndpoint : ServiceEndpointMock
     {
+        private const string CallbackEndpointSource = "Callback Endpoint";
+
         public override void RegisterSingleEndpoint(IEndpointMock endpoint) =>
             endpoint.MapPost("/callback", async (HttpRequest request, HttpResponse response) =>
             {
@@ -70,7 +72,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.callback
                             {
                                 new
                                 {
-                                    source = "Callback Endpoint",
+                                    source = CallbackEndpointSource,
                                     description = "Invalid callback data format."
                                 }
                             }
@@ -84,7 +86,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.callback
                             {
                                 new
                                 {
-                                    source = "Callback Endpoint",
+                                    source = CallbackEndpointSource,
                                     description = "Unauthorized access to callback endpoint."
                                 }
                             }
@@ -98,7 +100,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.callback
                             {
                                 new
                                 {
-                                    source = "Callback Endpoint",
+                                    source = CallbackEndpointSource,
                                     description = "Access to callback endpoint is forbidden."
                                 }
                             }
@@ -119,7 +121,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.callback
                             {
                                 new
                                 {
-                                    source = "Callback Endpoint",
+                                    source = CallbackEndpointSource,
                                     description = "Callback processing conflict - duplicate callback received."
                                 }
                             }
@@ -143,7 +145,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.callback
                             {
                                 new
                                 {
-                                    source = "Callback Endpoint",
+                                    source = CallbackEndpointSource,
                                     description = "Too many callback requests."
                                 }
                             }
@@ -164,7 +166,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.callback
                             {
                                 new
                                 {
-                                    source = "Callback Endpoint",
+                                    source = CallbackEndpointSource,
                                     description = "Callback endpoint is no longer available."
                                 }
                             }
@@ -178,7 +180,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.callback
                             {
                                 new
                                 {
-                                    source = "Callback Endpoint",
+                                    source = CallbackEndpointSource,
                                     description = "Callback payload exceeds maximum allowed size."
                                 }
                             }
