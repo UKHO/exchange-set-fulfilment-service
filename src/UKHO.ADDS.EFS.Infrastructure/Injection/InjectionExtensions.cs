@@ -198,7 +198,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                         policy.RequireAssertion(_ => true);
                     }
                 })
-               .AddPolicy("AdOrB2C", policy =>
+               .AddPolicy(AuthenticationConstants.AdOrB2C, policy =>
                {
                    if (!addsEnvironment.IsLocal() && !addsEnvironment.IsDev())
                    {
@@ -207,20 +207,25 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                        {
                            // Check if authenticated with Azure AD and has the required role
 
+                           var isAuthenticated = context.User.Identity != null && context.User.Identity.IsAuthenticated;
+                           if (!isAuthenticated)
+                           {
+                               return false;
+                           }
+
                            var issuer = context.User.FindFirst("iss")?.Value;
 
-                           var adAuthenticated = context.User.Identity != null
-                               && context.User.Identity.IsAuthenticated
-                               && issuer!.Contains(Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsAppRegTenantId)!, StringComparison.OrdinalIgnoreCase)
+                           var adAuthenticated = issuer!.Contains(Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsAppRegTenantId)!, StringComparison.OrdinalIgnoreCase)
                                && context.User.IsInRole(AuthenticationConstants.EfsRole);
 
+                           if (adAuthenticated)
+                           { return true; }
+
                            // Check if authenticated with Azure B2C (no role required)
-                           var b2cAuthenticated = context.User.Identity != null
-                               && context.User.Identity.IsAuthenticated
-                               && context.User.HasClaim("iss",
+                           var b2cAuthenticated = context.User.HasClaim("iss",
                                $"{Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppInstance)}{Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppDomain)}/v2.0/");
 
-                           return adAuthenticated || b2cAuthenticated;
+                           return b2cAuthenticated;
                        });
                    }
                    else

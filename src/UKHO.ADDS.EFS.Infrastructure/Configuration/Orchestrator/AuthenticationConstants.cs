@@ -15,7 +15,5 @@ namespace UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator
         public const string OriginHeaderKey = "origin";
 
         public const string EfsService = "ExchangeSetFulfilmentService";
-
-        public const string MicrosoftLoginUrlV1 = $"https://sts.windows.net/";
     }
 }
