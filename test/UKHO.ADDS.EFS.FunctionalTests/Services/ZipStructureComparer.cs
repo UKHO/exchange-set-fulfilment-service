@@ -136,6 +136,5 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
                 Assert.Equal(expectedProductPaths, actualProductPaths!);
             }
         }
-
     }
 }

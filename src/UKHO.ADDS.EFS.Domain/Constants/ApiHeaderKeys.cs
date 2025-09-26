@@ -10,5 +10,7 @@ namespace UKHO.ADDS.EFS.Domain.Constants
         public const string ContentType = "application/json; charset=utf-8";
         public const string ContentTypeOctetStream = "application/octet-stream";
         public const string ContentTypeTextPlain = "text/plain";
+        public const string LastModifiedHeaderKey = "Last-Modified";
+        public const string IfModifiedSinceHeaderKey = "If-Modified-Since";
     }
 }

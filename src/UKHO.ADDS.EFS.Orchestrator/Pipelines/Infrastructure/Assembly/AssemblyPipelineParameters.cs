@@ -114,9 +114,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
                 Products = CreateProductNameListFromString(string.Empty),
-                Filter =
-                    $"updatesSince:{request.SinceDateTime:O}" +
-                    (productIdentifier != null ? $",productIdentifier:{productIdentifier}" : ""),
+                Filter = request.SinceDateTime!,
                 JobId = JobId.From(correlationId),
                 Configuration = configuration,
                 RequestType = RequestType.UpdatesSince,
