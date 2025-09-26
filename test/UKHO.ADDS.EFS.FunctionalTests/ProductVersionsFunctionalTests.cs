@@ -1,4 +1,4 @@
-﻿using Meziantou.Xunit;
+﻿﻿using Meziantou.Xunit;
 using UKHO.ADDS.EFS.FunctionalTests.Services;
 using xRetry;
 using Xunit.Abstractions;
@@ -110,7 +110,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         [DisableParallelization] // This test runs in parallel with other tests. However, its test cases are run sequentially.
         [InlineData("[ { \"productName\": \"112GB40079ABCDEFG\", \"editionNumber\": 36, \"updateNumber\": 0 } ]", "https://valid.com/callback", HttpStatusCode.BadRequest, "'112GB40079ABCDEFG' starts with digits '112' but that is not a valid S-100 product")] // Test Case 246904 - Invalid first three characters of S-100 product code in productName
         [InlineData("[ { \"productName\": \"101GB40079ABCDEFG\", \"editionNumber\": 7, \"updateNumber\": 10 } ]", "http://invalid.com/callback", HttpStatusCode.BadRequest, "URI is malformed or does not use HTTPS")] // Test Case 244581 - Invalid CallBackUri
-        [InlineData("[ { } ] ", "https://valid.com/callback", HttpStatusCode.BadRequest, "ProductName cannot be null or empty")] // Test Case 247164 - Array with empty object
+		[InlineData("[ { } ] ", "https://valid.com/callback", HttpStatusCode.BadRequest, "ProductName cannot be null or empty")] // Test Case 247164 - Array with empty object
         [InlineData("[ { \"productName\": \"101GB40079ABCDEFG\", \"editionNumber\": 7, \"updateNumber\": 10 }, { \"productName\": \"102NO32904820801012\", \"editionNumber\": 0, \"updateNumber\": 0 }, { \"productName\": \"\", \"editionNumber\": 7, \"updateNumber\": -1 }, { \"productName\": \"111US00_ches_dcf8_20190703T00Z\", \"editionNumber\": -1, \"updateNumber\": 0 } ]", "https://valid.com/callback", HttpStatusCode.BadRequest, "ProductName cannot be null or empty")] // Test Case 245047 - Combination of valid and invalid inputs
         public async Task ValidatePVPayloadWithValidAndInvalidInputs(string productVersions, string? callbackUri, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
         {
@@ -126,20 +126,20 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         [RetryTheory(maxRetries: 1, delayBetweenRetriesMs: 5000)]
         [DisableParallelization] // This test runs in parallel with other tests. However, its test cases are run sequentially.
         [InlineData("[  ] ", "https://valid.com/callback", HttpStatusCode.BadRequest, "Either body is null or malformed")] // Test Case 244570 - Empty array
-        /*
+		/*
          * Suppressing the 8 failing assertion for the below bug
          * https://dev.azure.com/ukhydro/Exchange%20Set%20Service/_workitems/edit/247982 
          * Once resolved , please reintroduce the assertion for responce body "Either body is null or malformed" as currently passing "" to suppress assertion failure
          */
+		[InlineData("[ { \"productName\": \"101GB40079ABCDEFG\", \"editionNumber\": 7, \"updateNumber\": \"\" } ]", "https://valid.com/callback", HttpStatusCode.BadRequest, "")] // Test Case 245715 - Empty UpdateNumber
+        [InlineData("[ { \"productName\": \"102NO32904820801012\", \"editionNumber\": 36, \"updateNumber\": \"abcd\" } ]", "https://valid.com/callback", HttpStatusCode.BadRequest, "")] // Test Case 245715 - Non-integer UpdateNumber
+		[InlineData("[ { \"productName\": \"101GB40079ABCDEFG\", \"editionNumber\": \"\", \"updateNumber\": 10 } ]", "https://valid.com/callback", HttpStatusCode.BadRequest, "")] // Test Case 245029 - Empty EditionNumber
+        [InlineData("[ { \"productName\": \"102NO32904820801012\", \"editionNumber\": \"abcd\", \"updateNumber\": 0 } ]", "https://valid.com/callback", HttpStatusCode.BadRequest, "")] // Test Case 245029 - Non-integer EditionNumber
+		[InlineData("[ { \"productName\": 1234567890, \"editionNumber\": 7, \"updateNumber\": 10 } ]", "https://valid.com/callback", HttpStatusCode.BadRequest, "")] // Test Case 247161 - Non-string ProductName
         [InlineData("[  \"\" ] ", "https://valid.com/callback", HttpStatusCode.BadRequest, "")] // Test Case 245718 - Array with Empty string
         [InlineData("", "https://valid.com/callback", HttpStatusCode.BadRequest, "")] // Test Case 247166 - Blank request body
         [InlineData("{ \"productName\": \"101GB40079ABCDEFG\", \"editionNumber\": 7, \"updateNumber\": 10 }, { \"productName\": \"102NO32904820801012\", \"editionNumber\": 36, \"updateNumber\": 0 } ", "https://valid.com/callback", HttpStatusCode.BadRequest, "")] // Test Case 247169 - Invalid json body
-        [InlineData("[ { \"productName\": 1234567890, \"editionNumber\": 7, \"updateNumber\": 10 } ]", "https://valid.com/callback", HttpStatusCode.BadRequest, "")] // Test Case 247161 - Non-string ProductName
-        [InlineData("[ { \"productName\": \"101GB40079ABCDEFG\", \"editionNumber\": \"\", \"updateNumber\": 10 } ]", "https://valid.com/callback", HttpStatusCode.BadRequest, "")] // Test Case 245029 - Empty EditionNumber
-        [InlineData("[ { \"productName\": \"102NO32904820801012\", \"editionNumber\": \"abcd\", \"updateNumber\": 0 } ]", "https://valid.com/callback", HttpStatusCode.BadRequest, "")] // Test Case 245029 - Non-integer EditionNumber
-        [InlineData("[ { \"productName\": \"101GB40079ABCDEFG\", \"editionNumber\": 7, \"updateNumber\": \"\" } ]", "https://valid.com/callback", HttpStatusCode.BadRequest, "")] // Test Case 245715 - Empty UpdateNumber
-        [InlineData("[ { \"productName\": \"102NO32904820801012\", \"editionNumber\": 36, \"updateNumber\": \"abcd\" } ]", "https://valid.com/callback", HttpStatusCode.BadRequest, "")] // Test Case 245715 - Non-integer UpdateNumber
-        public async Task ValidatePVPayloadEitherBodyIsNullOrMalformed(string productVersions, string? callbackUri, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
+        public async Task ValidatePVPayloadWithInvalidInputs(string productVersions, string? callbackUri, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
         {
 
             setEndpoint(callbackUri);
