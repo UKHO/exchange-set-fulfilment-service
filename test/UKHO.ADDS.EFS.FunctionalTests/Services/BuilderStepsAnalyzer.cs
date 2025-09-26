@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using UKHO.ADDS.EFS.FunctionalTests.Services;
 
 public class BuilderStepsAnalyzer
 {
@@ -52,7 +53,7 @@ public class BuilderStepsAnalyzer
         }
         catch (JsonException ex)
         {
-            Console.WriteLine($"Failed to parse JSON: {ex.Message}");
+            TestOutputContext.WriteLine($"Failed to parse JSON: {ex.Message}");
             return null;
         }
     }

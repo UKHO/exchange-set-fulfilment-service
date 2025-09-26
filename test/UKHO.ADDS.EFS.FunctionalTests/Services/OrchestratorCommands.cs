@@ -1,8 +1,6 @@
 ﻿using System.Text;
 using System.Text.Json;
-using Aspire.Hosting;
 using UKHO.ADDS.Clients.Common.Constants;
-using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 
 namespace UKHO.ADDS.EFS.FunctionalTests.Services
 {
