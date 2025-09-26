@@ -123,12 +123,12 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
             JsonElement sourceData = sourceJson.RootElement;
 
             // Compare key properties in the root
-            targetData.TryGetProperty("type", out var targetTypeElement);
+            targetJson.RootElement.TryGetProperty("type", out var targetTypeElement);
             targetTypeElement.GetString()?.TrimEnd('$')
                 .Should().Be("uk.co.admiralty.s100Data.exchangeSetCreated.v1",
                     $"Values for property type should match");
 
-            targetData.TryGetProperty("source", out var targetSourceElement);
+            targetJson.RootElement.TryGetProperty("source", out var targetSourceElement);
             targetSourceElement.GetString()?.TrimEnd('$')
                 .Should().Be("https://exchangeset.admiralty.co.uk/s100Data",
                     $"Values for property type should match");
