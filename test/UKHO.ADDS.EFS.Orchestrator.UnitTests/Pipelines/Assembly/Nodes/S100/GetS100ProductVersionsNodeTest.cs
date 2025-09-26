@@ -142,7 +142,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         }
 
 
-        private static Job CreateJob(RequestType requestType, IEnumerable<ProductVersion>? productVersions = null, JobState jobState = JobState.Created)
+        private static Job CreateJob(RequestType requestType, List<ProductVersion>? productVersions = null, JobState jobState = JobState.Created)
         {
             var job = new Job
             {
