@@ -45,5 +45,17 @@ namespace UKHO.ADDS.EFS.Domain.Services
         ///     The response containing updated S-100 product details or an empty response if an error occurs.
         /// </returns>
         Task<ProductEditionList> GetS100ProductUpdatesSinceAsync(string sinceDateTime, DataStandardProduct productIdentifier, Job job, CancellationToken cancellationToken);
+
+        /// <summary>
+        ///     Retrieves product versions for a list of product names from the Sales Catalogue Service ProductVersions endpoint.
+        /// </summary>
+        /// <param name="dataStandard">The data standard.</param>
+        /// <param name="productVersions">A collection of product version to retrieve.</param>
+        /// <param name="job">The job context for the request.</param>
+        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+        /// <returns>
+        ///     - ProductEditionList: The product edition list
+        /// </returns>
+        Task<ProductEditionList> GetProductVersionsListAsync(DataStandard dataStandard, ProductVersionList productVersions, Job job, CancellationToken cancellationToken);
     }
 }
