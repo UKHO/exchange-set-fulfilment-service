@@ -34,10 +34,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
         {
             var job = context.Subject.Job;
             var build = context.Subject.Build;
-            var productVersion = job.ProductVersions;
+            var productVersions = job.ProductVersions;
 
             // Call the product service to get product versions
-            var productEditionList = await _productService.GetProductVersionsListAsync(DataStandard.S100, productVersion, job, Environment.CancellationToken);
+            var productEditionList = await _productService.GetProductVersionsListAsync(DataStandard.S100, productVersions, job, Environment.CancellationToken);
 
             if (productEditionList.ResponseCode == HttpStatusCode.OK)
             {
@@ -53,7 +53,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                 var expiryTimeSpan = Environment.Configuration.GetValue<TimeSpan>(ExchangeSetExpiresInConfigKey);
 
                 job.ExchangeSetUrlExpiryDateTime = DateTime.UtcNow.Add(expiryTimeSpan);
-                job.RequestedProductCount = ProductCount.From(productVersion.Count);
+                job.RequestedProductCount = ProductCount.From(productVersions.Count);
                 job.ExchangeSetProductCount = productEditionList.Count;
                 job.RequestedProductsAlreadyUpToDateCount = productEditionList.ProductCountSummary.RequestedProductsAlreadyUpToDateCount;
                 job.RequestedProductsNotInExchangeSet = productEditionList.ProductCountSummary.MissingProducts;
