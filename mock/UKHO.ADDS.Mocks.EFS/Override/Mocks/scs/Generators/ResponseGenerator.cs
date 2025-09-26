@@ -21,6 +21,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
         private const string InvalidProduct = "invalidProduct";
         private const string InvalidProductWithdrawn = "productWithdrawn";
         private const string LargeExchangeSetsState = "get-largeexchangesets";
+        private const string FileSizePropertyName = "fileSize";
 
         #region Response Helper Methods
 
@@ -308,7 +309,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
                 };
             }
 
-            productObj["fileSize"] = fileSize;
+            productObj[FileSizePropertyName] = fileSize;
 
             return productObj;
         }
@@ -379,15 +380,15 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
                 if (state == LargeExchangeSetsState && productNode is JsonObject productObj)
                 {
                     // Skip products with cancellation that have fileSize = 0
-                    if (productObj.ContainsKey("cancellation") && productObj.ContainsKey("fileSize") && 
-                        productObj["fileSize"]?.GetValue<int>() == 0)
+                    if (productObj.ContainsKey("cancellation") && productObj.ContainsKey(FileSizePropertyName) && 
+                        productObj[FileSizePropertyName]?.GetValue<int>() == 0)
                     {
                         productsArray.Add(productNode);
                         continue;
                     }
                     
                     // Set large file size for others
-                    productObj["fileSize"] = RandomInstance.Next(LargeExchangeSetMinFileSize, LargeExchangeSetMaxFileSize);
+                    productObj[FileSizePropertyName] = RandomInstance.Next(LargeExchangeSetMinFileSize, LargeExchangeSetMaxFileSize);
                 }
                 
                 productsArray.Add(productNode);
@@ -623,7 +624,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
                 };
             }
 
-            productObj["fileSize"] = cancelled ? 0 : fileSize;
+            productObj[FileSizePropertyName] = cancelled ? 0 : fileSize;
 
             return productObj;
         }
