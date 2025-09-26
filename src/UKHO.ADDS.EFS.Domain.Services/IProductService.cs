@@ -56,6 +56,6 @@ namespace UKHO.ADDS.EFS.Domain.Services
         /// <returns>
         ///     - ProductEditionList: The product edition list
         /// </returns>
-        Task<ProductEditionList> GetProductVersionsListAsync(DataStandard dataStandard, IEnumerable<ProductVersion> productVersions, Job job, CancellationToken cancellationToken);
+        Task<ProductEditionList> GetProductVersionsListAsync(DataStandard dataStandard, ProductVersionList productVersions, Job job, CancellationToken cancellationToken);
     }
 }

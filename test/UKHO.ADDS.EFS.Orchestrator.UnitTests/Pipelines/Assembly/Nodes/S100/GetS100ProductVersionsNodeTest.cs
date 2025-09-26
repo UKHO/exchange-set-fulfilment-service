@@ -76,20 +76,21 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         [Test]
         public async Task WhenExecuteAsyncReturnsOKWithMissingProducts_ThenSetsBuildAndJobProperties()
         {
-            var productVersions = new List<ProductVersion> { new() { ProductName = ProductName.From(ValidProductName), EditionNumber = EditionNumber.From(1) } };
+            var productVersions = new ProductVersionList { new() { ProductName = ProductName.From(ValidProductName), EditionNumber = EditionNumber.From(1) } };
             var job = CreateJob(RequestType.ProductVersions, productVersions);
 
             _pipelineContext = new PipelineContext<S100Build>(job, _s100Build, _storageService);
             A.CallTo(() => _executionContext.Subject).Returns(_pipelineContext);
             var editionList = CreateProductEditionList(HttpStatusCode.OK, true);
-            A.CallTo(() => _productService.GetProductVersionsListAsync(DataStandard.S100, productVersions, job, default)).Returns(Task.FromResult(editionList));
+          
+            A.CallTo(() => _productService.GetProductVersionsListAsync(A<DataStandard>.Ignored, A<ProductVersionList>.Ignored, A<Job>.Ignored, A<CancellationToken>.Ignored)).Returns(Task.FromResult(editionList));
 
             var result = await _s100ProductVersionsNode.ExecuteAsync(_executionContext);
 
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
             Assert.That(_s100Build.ProductEditions, Is.EqualTo(editionList));
             Assert.That(job.ExchangeSetUrlExpiryDateTime, Is.Not.EqualTo(default(DateTime)));
-            Assert.That(job.RequestedProductCount, Is.EqualTo(ProductCount.From(productVersions.Count)));
+            Assert.That(job.RequestedProductCount, Is.EqualTo(ProductCount.From(productVersions.Count())));
             Assert.That(job.ExchangeSetProductCount, Is.EqualTo(editionList.Count));
             Assert.That(job.RequestedProductsAlreadyUpToDateCount, Is.EqualTo(editionList.ProductCountSummary.RequestedProductsAlreadyUpToDateCount));
             Assert.That(job.RequestedProductsNotInExchangeSet, Is.EqualTo(editionList.ProductCountSummary.MissingProducts));
@@ -98,7 +99,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         [Test]
         public async Task WhenExecuteAsyncReturnsBadRequest_ThenNodeFailed()
         {
-            var productVersions = new List<ProductVersion> { new() { ProductName = ProductName.From(ValidProductName), EditionNumber = EditionNumber.From(1) } };
+            var productVersions = new ProductVersionList { new() { ProductName = ProductName.From(ValidProductName), EditionNumber = EditionNumber.From(1) } };
             var job = CreateJob(RequestType.ProductVersions, productVersions);
             _pipelineContext = new PipelineContext<S100Build>(job, _s100Build, _storageService);
             A.CallTo(() => _executionContext.Subject).Returns(_pipelineContext);
@@ -142,7 +143,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         }
 
 
-        private static Job CreateJob(RequestType requestType, List<ProductVersion>? productVersions = null, JobState jobState = JobState.Created)
+        private static Job CreateJob(RequestType requestType, ProductVersionList productVersions, JobState jobState = JobState.Created)
         {
             var job = new Job
             {
@@ -152,7 +153,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 RequestedProducts = [],
                 RequestedFilter = "",
                 RequestType = requestType,
-                ProductVersions = productVersions ?? []
+                ProductVersions = productVersions
             };
             if (jobState != JobState.Created)
                 job.ValidateAndSet(jobState, BuildState.None);

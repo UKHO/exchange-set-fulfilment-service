@@ -190,7 +190,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
             }
         }
 
-        public async Task<ProductEditionList> GetProductVersionsListAsync(DataStandard dataStandard, IEnumerable<ProductVersion> productVersions, Job job, CancellationToken cancellationToken)
+        public async Task<ProductEditionList> GetProductVersionsListAsync(DataStandard dataStandard, ProductVersionList productVersions, Job job, CancellationToken cancellationToken)
         {
             if (dataStandard != DataStandard.S100)
             {

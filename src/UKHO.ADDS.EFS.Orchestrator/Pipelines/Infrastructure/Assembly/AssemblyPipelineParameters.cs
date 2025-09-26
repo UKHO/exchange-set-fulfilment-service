@@ -38,7 +38,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         /// </summary>
         public DataStandardProduct ProductIdentifier { get; init; }
 
-        public List<ProductVersion> ProductVersions { get; init; }
+        public ProductVersionList ProductVersions { get; init; }
 
         public Job CreateJob() => new()
         {
@@ -192,9 +192,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         /// <summary>
         /// Converts ProductVersionRequest list to ProductVersion list
         /// </summary>
-        private static List<ProductVersion> ConvertProductVersionRequests(IEnumerable<ProductVersionRequest> requests)
+        private static ProductVersionList ConvertProductVersionRequests(IEnumerable<ProductVersionRequest> requests)
         {
-            var result = new List<ProductVersion>();
+            var result = new ProductVersionList();
             foreach (var req in requests)
             {
                 if (!string.IsNullOrEmpty(req.ProductName) && req.EditionNumber.HasValue)

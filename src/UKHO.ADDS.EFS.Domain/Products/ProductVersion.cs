@@ -3,7 +3,7 @@
     /// <summary>
     ///     Represents a product version with edition and update numbers
     /// </summary>
-    public class ProductVersion
+    public partial struct ProductVersion
     {
         /// <summary>
         ///     The unique product identifier
