@@ -128,7 +128,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         [InlineData("[  ] ", "https://valid.com/callback", HttpStatusCode.BadRequest, "Either body is null or malformed")] // Test Case 244570 - Empty array
         /*
          * Suppressing the 8 failing assertion for the below bug
-         * https://dev.azure.com/ukhydro/Exchange%20Set%20Service/_workitems/edit/247982 
+         * BUG-247982
          * Once resolved , please reintroduce the assertion for responce body "Either body is null or malformed" as currently passing "" to suppress assertion failure
          */
         [InlineData("[  \"\" ] ", "https://valid.com/callback", HttpStatusCode.BadRequest, "")] // Test Case 245718 - Array with Empty string
