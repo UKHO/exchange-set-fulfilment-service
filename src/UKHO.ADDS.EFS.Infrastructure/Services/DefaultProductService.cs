@@ -58,7 +58,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                             config.Headers.Add("If-Modified-Since", headerDateString);
                         }
 
-                        config.Headers.Add("X-Correlation-Id", (string)job.GetCorrelationId());
+                        config.Headers.Add(ApiHeaderKeys.XCorrelationIdHeaderKey, (string)job.GetCorrelationId());
                         config.Options.Add(headersOption);
                     });
 
@@ -128,7 +128,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                     var result = await _salesCatalogueClient.V2.Products.S100.ProductNames.PostAsync(payload,
                         requestConfiguration =>
                         {
-                            requestConfiguration.Headers.Add("X-Correlation-Id", (string)job.GetCorrelationId());
+                            requestConfiguration.Headers.Add(ApiHeaderKeys.XCorrelationIdHeaderKey, (string)job.GetCorrelationId());
                         },
                         cancellationToken);
 
