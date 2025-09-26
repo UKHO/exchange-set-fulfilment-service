@@ -108,7 +108,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                 .AddAuthentication(options =>
                 {
                     options.DefaultAuthenticateScheme = null;
-                    options.DefaultChallengeScheme = AuthenticationConstants.AzureAdScheme;
+                    options.DefaultChallengeScheme = null;
                 })
                 .AddJwtBearer(AuthenticationConstants.AzureAdScheme, options =>
                 {
@@ -148,7 +148,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                     var b2cPolicy = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppSignUpSignInPolicy);
 
                     options.Audience = b2cClientId;
-                    var b2cAuthority = $"{b2cInstance}{b2cDomain}/v2.0/";
+                    var b2cAuthority = $"{b2cInstance}{b2cDomain}/{b2cPolicy}/v2.0/";
                     options.Authority = b2cAuthority;
                     options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
                     {
@@ -157,7 +157,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
                         ValidAudiences = [b2cClientId],
-                        ValidIssuers = [b2cAuthority]
+                        ValidIssuers = [b2cAuthority, $"{b2cInstance}{b2cDomain}/v2.0/"]
                     };
                     options.Events = new JwtBearerEvents
                     {
@@ -190,6 +190,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                {
                    if (!addsEnvironment.IsLocal() && !addsEnvironment.IsDev())
                    {
+                       policy.AddAuthenticationSchemes(AuthenticationConstants.AzureAdScheme, AuthenticationConstants.AzureB2CScheme);
                        policy.RequireAssertion(context =>
                        {
                            // Check if authenticated with Azure AD and has the required role
