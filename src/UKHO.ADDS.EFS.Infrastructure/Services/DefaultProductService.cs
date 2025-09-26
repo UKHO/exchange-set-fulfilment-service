@@ -1,9 +1,11 @@
-﻿using System.Net;
+﻿
+using System.Net;
 using Microsoft.Extensions.Logging;
 using Microsoft.Kiota.Abstractions;
 using Microsoft.Kiota.Http.HttpClientLibrary.Middleware.Options;
 using UKHO.ADDS.Clients.Kiota.SalesCatalogueService;
 using UKHO.ADDS.Clients.Kiota.SalesCatalogueService.Models;
+using UKHO.ADDS.EFS.Domain.Constants;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Domain.Services;
@@ -19,6 +21,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
     {
         private readonly ILogger<DefaultProductService> _logger;
         private readonly KiotaSalesCatalogueService _salesCatalogueClient;
+        private const string DateTimeFormat = "R";
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="DefaultProductService" /> class.
@@ -45,7 +48,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
 
             try
             {
-                var headerDateString = sinceDateTime?.ToString("R");
+                var headerDateString = sinceDateTime?.ToString(DateTimeFormat);
                 var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<List<S100BasicCatalogue>?>(_logger, nameof(GetProductVersionListAsync));
 
                 var s100BasicCatalogueResult = await retryPolicy.ExecuteAsync(async () =>
@@ -54,17 +57,17 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                     {
                         if (!string.IsNullOrEmpty(headerDateString))
                         {
-                            config.Headers.Add("If-Modified-Since", headerDateString);
+                            config.Headers.Add(ApiHeaderKeys.IfModifiedSinceHeaderKey, headerDateString);
                         }
 
-                        config.Headers.Add("X-Correlation-Id", (string)job.GetCorrelationId());
+                        config.Headers.Add(ApiHeaderKeys.XCorrelationIdHeaderKey, (string)job.GetCorrelationId());
                         config.Options.Add(headersOption);
                     });
 
                     return Result.Success(result);
                 });
 
-                var lastModifiedHeader = headersOption.ResponseHeaders.TryGetValue("Last-Modified", out var values)
+                var lastModifiedHeader = headersOption.ResponseHeaders.TryGetValue(ApiHeaderKeys.LastModifiedHeaderKey, out var values)
                     ? values.FirstOrDefault()
                     : null;
 
@@ -85,7 +88,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                 {
                     case (int)HttpStatusCode.NotModified:
                         {
-                            var lastModifiedHeader = headersOption.ResponseHeaders.TryGetValue("Last-Modified", out var values)
+                            var lastModifiedHeader = headersOption.ResponseHeaders.TryGetValue(ApiHeaderKeys.LastModifiedHeaderKey, out var values)
                                 ? values.FirstOrDefault()
                                 : null;
 
@@ -127,7 +130,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                     var result = await _salesCatalogueClient.V2.Products.S100.ProductNames.PostAsync(payload,
                         requestConfiguration =>
                         {
-                            requestConfiguration.Headers.Add("X-Correlation-Id", (string)job.GetCorrelationId());
+                            requestConfiguration.Headers.Add(ApiHeaderKeys.XCorrelationIdHeaderKey, (string)job.GetCorrelationId());
                         },
                         cancellationToken);
 
@@ -135,6 +138,44 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                 });
 
                 if (s100ProductNamesResult.IsSuccess(out var response) && response is not null)
+                {
+                    return response.ToDomain();
+                }
+
+                _logger.LogSalesCatalogueApiError(SalesCatalogApiErrorLogView.Create(job));
+                return new ProductEditionList();
+            }
+            catch (ApiException apiException)
+            {
+                _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, (HttpStatusCode)apiException.ResponseStatusCode));
+                return new ProductEditionList();
+            }
+        }
+
+        public async Task<ProductEditionList> GetS100ProductUpdatesSinceAsync(string sinceDateTime, DataStandardProduct productIdentifier, Job job, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var retryPolicy =
+                    HttpRetryPolicyFactory.GetGenericResultRetryPolicy<S100ProductResponse?>(_logger, nameof(GetS100ProductUpdatesSinceAsync));
+
+                var s100ProductUpdatesResult = await retryPolicy.ExecuteAsync(async () =>
+                {
+                    var result = await _salesCatalogueClient.V2.Products.S100.UpdatesSince
+                        .GetAsync(
+                            requestConfiguration =>
+                            {
+                                requestConfiguration.QueryParameters.ProductIdentifier = productIdentifier.AsEnum.ToString();
+                                requestConfiguration.QueryParameters.SinceDateTime = DateTimeOffset.Parse(sinceDateTime);
+                                requestConfiguration.Headers.Add(ApiHeaderKeys.XCorrelationIdHeaderKey, (string)job.GetCorrelationId());
+                            },
+                            cancellationToken);
+
+                    return Result.Success(result);
+
+                });
+
+                if (s100ProductUpdatesResult.IsSuccess(out var response) && response is not null)
                 {
                     return response.ToDomain();
                 }
