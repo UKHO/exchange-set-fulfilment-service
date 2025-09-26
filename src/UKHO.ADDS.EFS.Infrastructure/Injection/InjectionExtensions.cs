@@ -186,6 +186,18 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                     .RequireAuthenticatedUser()
                     .AddAuthenticationSchemes(AuthenticationConstants.AzureAdScheme, AuthenticationConstants.AzureB2CScheme)
                     .Build())
+                .AddPolicy(AuthenticationConstants.AzureAdScheme, policy =>
+                {
+                    if (!addsEnvironment.IsLocal() && !addsEnvironment.IsDev())
+                    {
+                        policy.RequireRole(AuthenticationConstants.EfsRole).AddAuthenticationSchemes(AuthenticationConstants.AzureAdScheme);
+                    }
+                    else
+                    {
+                        //For local and dev environments only, allow anonymous access
+                        policy.RequireAssertion(_ => true);
+                    }
+                })
                .AddPolicy("AdOrB2C", policy =>
                {
                    if (!addsEnvironment.IsLocal() && !addsEnvironment.IsDev())
