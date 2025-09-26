@@ -27,7 +27,8 @@ namespace UKHO.ADDS.EFS.FunctionalTests
             if (expectedStatusCode != HttpStatusCode.Accepted && expectedErrorMessage != "")
             {
                 var responseBody = await response.Content.ReadAsStringAsync();
-                _output.WriteLine($"ResponseContent: {responseBody}");
+                _output.WriteLine($"Expected ResponseContent: {expectedErrorMessage}");
+                _output.WriteLine($"Actual ResponseContent: {responseBody}");
                 Assert.Contains(expectedErrorMessage, responseBody);
             }
         }
@@ -108,7 +109,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
 
         [RetryTheory(maxRetries: 1, delayBetweenRetriesMs: 5000)]
         [DisableParallelization] // This test runs in parallel with other tests. However, its test cases are run sequentially.
-        [InlineData("[ { \"productName\": \"112GB40079ABCDEFG\", \"editionNumber\": 36, \"updateNumber\": 0 } ]", "https://valid.com/callback", HttpStatusCode.BadRequest, "'112GB40079ABCDEFG' starts with digits '112' but that is not a valid S-100 product")] // Test Case 246904 - Invalid first three characters of S-100 product code in productName
+        [InlineData("[ { \"productName\": \"112GB40079ABCDEFG\", \"editionNumber\": 36, \"updateNumber\": 0 } ]", "https://valid.com/callback", HttpStatusCode.BadRequest, "'112GB40079ABCDEFG' starts with digits '112' which is not a valid S-100 product identifier")] // Test Case 246904 - Invalid first three characters of S-100 product code in productName
         [InlineData("[ { \"productName\": \"101GB40079ABCDEFG\", \"editionNumber\": 7, \"updateNumber\": 10 } ]", "http://invalid.com/callback", HttpStatusCode.BadRequest, "URI is malformed or does not use HTTPS")] // Test Case 244581 - Invalid CallBackUri
 		[InlineData("[ { } ] ", "https://valid.com/callback", HttpStatusCode.BadRequest, "ProductName cannot be null or empty")] // Test Case 247164 - Array with empty object
         [InlineData("[ { \"productName\": \"101GB40079ABCDEFG\", \"editionNumber\": 7, \"updateNumber\": 10 }, { \"productName\": \"102NO32904820801012\", \"editionNumber\": 0, \"updateNumber\": 0 }, { \"productName\": \"\", \"editionNumber\": 7, \"updateNumber\": -1 }, { \"productName\": \"111US00_ches_dcf8_20190703T00Z\", \"editionNumber\": -1, \"updateNumber\": 0 } ]", "https://valid.com/callback", HttpStatusCode.BadRequest, "ProductName cannot be null or empty")] // Test Case 245047 - Combination of valid and invalid inputs

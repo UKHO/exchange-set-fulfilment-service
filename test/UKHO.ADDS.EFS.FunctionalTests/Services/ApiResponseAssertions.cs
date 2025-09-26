@@ -6,7 +6,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
 {
     public class ApiResponseAssertions()
     {
-        public async Task<string> CheckCustomExSetReqResponce(string requestId, HttpResponseMessage responseJobSubmit, int expectedRequestedProductCount, int expectedExchangeSetProductCount)
+        public async Task<string> CheckCustomExSetReqResponce(string requestId, HttpResponseMessage responseJobSubmit, int expectedRequestedProductCount = -1, int expectedExchangeSetProductCount = -1)
         {
             Assert.True(responseJobSubmit.IsSuccessStatusCode, $"Expected success status code but got: {responseJobSubmit.StatusCode}");
 
@@ -32,13 +32,19 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
 
             root.TryGetProperty("requestedProductCount", out var requestedProductCountElement)
                 .Should().BeTrue("Response must contain 'requestedProductCount'");
-            requestedProductCountElement.GetInt64()
+            if (expectedRequestedProductCount != -1)
+            {
+                requestedProductCountElement.GetInt64()
                 .Should().Be(expectedRequestedProductCount, "requestedProductCount should match expected value");
+            }
 
             root.TryGetProperty("exchangeSetProductCount", out var exchangeSetProductCountElement)
                 .Should().BeTrue("Response must contain 'exchangeSetProductCount'");
-            exchangeSetProductCountElement.GetInt64()
+            if (expectedExchangeSetProductCount != -1)
+            {
+                exchangeSetProductCountElement.GetInt64()
                 .Should().Be(expectedExchangeSetProductCount, "exchangeSetProductCount should match expected value");
+            }
 
             root.TryGetProperty("exchangeSetUrlExpiryDateTime", out var exchangeSetUrlExpiryDateTimeElement)
                 .Should().BeTrue("Response must contain 'exchangeSetUrlExpiryDateTime'");
