@@ -21,7 +21,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         }
 
 
-        private object createPayload(string filter = "", object[]? products = null)
+        private object CreatePayload(string filter = "", object[]? products = null)
         {
             products ??= new object[] { "" };
             var payload = new { dataStandard = "s100", products = products, filter = $"{filter}" };
@@ -29,9 +29,9 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         }
 
 
-        private async Task checkJobsResponce(HttpResponseMessage responseJobSubmit, string expectedJobStatus = "submitted", string expectedBuildStatus = "scheduled")
+        private async Task CheckJobsResponce(HttpResponseMessage responseJobSubmit, string expectedJobStatus = "submitted", string expectedBuildStatus = "scheduled")
         {
-            responseJobSubmit.IsSuccessStatusCode.Should().BeTrue($"Expected success status code but got: {responseJobSubmit.StatusCode}");
+            Assert.True(responseJobSubmit.IsSuccessStatusCode, $"Expected success status code but got: {responseJobSubmit.StatusCode}");
 
             var responseContent = await responseJobSubmit.Content.ReadAsStringAsync();
             _output.WriteLine($"ResponseContent: {responseContent}");
@@ -47,83 +47,80 @@ namespace UKHO.ADDS.EFS.FunctionalTests
 
             var root = responseJson.RootElement;
 
-            using (new AssertionScope())
+            // Check if properties exist and have expected values
+            if (root.TryGetProperty("jobId", out var jobIdElement))
             {
-                // Check if properties exist and have expected values
-                if (root.TryGetProperty("jobId", out var jobIdElement))
+                jobIdElement.GetString().Should().Be(_jobId!, "JobId should match expected value");
+            }
+            else
+            {
+                // If expected, add assertion failure
+                Execute.Assertion.FailWith("Response is missing jobId property");
+            }
+
+            if (root.TryGetProperty("jobStatus", out var jobStatusElement))
+            {
+                jobStatusElement.GetString().Should().Be(expectedJobStatus, "JobStatus should match expected value");
+            }
+            else
+            {
+                Execute.Assertion.FailWith("Response is missing jobStatus property");
+            }
+
+            if (root.TryGetProperty("buildStatus", out var buildStatusElement))
+            {
+                buildStatusElement.GetString().Should().Be(expectedBuildStatus, "BuildStatus should match expected value");
+            }
+            else
+            {
+                Execute.Assertion.FailWith("Response is missing buildStatus property");
+            }
+
+            if (root.TryGetProperty("dataStandard", out var dataStandardElement))
+            {
+                dataStandardElement.GetString().Should().Be("s100", "DataStandard should be s100");
+            }
+            else
+            {
+                Execute.Assertion.FailWith("Response is missing dataStandard property");
+            }
+
+            // Only check batchId for submitted/scheduled jobs
+            if (expectedJobStatus == "submitted" && expectedBuildStatus == "scheduled")
+            {
+                if (root.TryGetProperty("batchId", out var batchIdElement))
                 {
-                    jobIdElement.GetString().Should().Be(_jobId!, "JobId should match expected value");
+                    batchId = batchIdElement.GetString();
+                    Guid.TryParse(batchId, out _).Should().BeTrue($"Expected '{batchId}' to be a valid GUID");
                 }
                 else
                 {
-                    // If expected, add assertion failure
-                    Execute.Assertion.FailWith("Response is missing jobId property");
-                }
-
-                if (root.TryGetProperty("jobStatus", out var jobStatusElement))
-                {
-                    jobStatusElement.GetString().Should().Be(expectedJobStatus, "JobStatus should match expected value");
-                }
-                else
-                {
-                    Execute.Assertion.FailWith("Response is missing jobStatus property");
-                }
-
-                if (root.TryGetProperty("buildStatus", out var buildStatusElement))
-                {
-                    buildStatusElement.GetString().Should().Be(expectedBuildStatus, "BuildStatus should match expected value");
-                }
-                else
-                {
-                    Execute.Assertion.FailWith("Response is missing buildStatus property");
-                }
-
-                if (root.TryGetProperty("dataStandard", out var dataStandardElement))
-                {
-                    dataStandardElement.GetString().Should().Be("s100", "DataStandard should be s100");
-                }
-                else
-                {
-                    Execute.Assertion.FailWith("Response is missing dataStandard property");
-                }
-
-                // Only check batchId for submitted/scheduled jobs
-                if (expectedJobStatus == "submitted" && expectedBuildStatus == "scheduled")
-                {
-                    if (root.TryGetProperty("batchId", out var batchIdElement))
-                    {
-                        batchId = batchIdElement.GetString();
-                        Guid.TryParse(batchId, out _).Should().BeTrue($"Expected '{batchId}' to be a valid GUID");
-                    }
-                    else
-                    {
-                        Execute.Assertion.FailWith("Response is missing batchId property");
-                    }
+                    Execute.Assertion.FailWith("Response is missing batchId property");
                 }
             }
         }
 
 
-        private async Task testExecutionMethod(object payload, string zipFileName)
+        private async Task TestExecutionSteps(object payload, string zipFileName)
         {
             var responseJobSubmit = await OrchestratorCommands.PostRequestAsync(_jobId, payload, _endpoint);
-            await checkJobsResponce(responseJobSubmit);
+            await CheckJobsResponce(responseJobSubmit);
 
-            ApiResponseAssertions apiResponseAssertions = new ApiResponseAssertions(_output);
+            ApiResponseAssertions apiResponseAssertions = new ApiResponseAssertions();
 
             _output.WriteLine($"Started waiting for job completion ... {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}");
             var responseJobStatus = await OrchestratorCommands.WaitForJobCompletionAsync(_jobId);
-            await apiResponseAssertions.checkJobCompletionStatus(responseJobStatus);
+            await apiResponseAssertions.CheckJobCompletionStatus(responseJobStatus);
             _output.WriteLine($"Finished waiting for job completion ... {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}");
 
             var responseBuildStatus = await OrchestratorCommands.GetBuildStatusAsync(_jobId);
-            await apiResponseAssertions.checkBuildStatus(responseBuildStatus);
+            await apiResponseAssertions.CheckBuildStatus(responseBuildStatus);
 
             _output.WriteLine($"Trying to download file V01X01_{_jobId}.zip");
-            var exchangeSetDownloadPath = await ZipStructureComparer.DownloadExchangeSetAsZipAsync(_jobId);
+            var exchangeSetDownloadPath = await FileDownloadFromMock.DownloadExchangeSetAsZipAsync(_jobId);
             var sourceZipPath = Path.Combine(AspireResourceSingleton.ProjectDirectory!, "TestData", zipFileName);
 
-            ZipStructureComparer.CompareZipFilesExactMatch(sourceZipPath, exchangeSetDownloadPath);
+            FileComparer.CompareZipFilesExactMatch(sourceZipPath, exchangeSetDownloadPath);
         }
 
         [RetryTheory(maxRetries: 1, delayBetweenRetriesMs: 5000)]
@@ -131,7 +128,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         public async Task S100FullExchSetTests(string zipFileName)
         {
 
-            await testExecutionMethod(createPayload(), zipFileName);
+            await TestExecutionSteps(CreatePayload(), zipFileName);
 
         }
 
@@ -144,7 +141,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         public async Task S100FilterTests00(string filter, string zipFileName)
         {
 
-            await testExecutionMethod(createPayload(filter), zipFileName);
+            await TestExecutionSteps(CreatePayload(filter), zipFileName);
 
         }
 
@@ -154,7 +151,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         public async Task S100FilterTests01(string filter, string zipFileName)
         {
 
-            await testExecutionMethod(createPayload(filter), zipFileName);
+            await TestExecutionSteps(CreatePayload(filter), zipFileName);
 
         }
 
@@ -167,7 +164,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         public async Task S100FilterTests02(string filter, string zipFileName)
         {
 
-            await testExecutionMethod(createPayload(filter), zipFileName);
+            await TestExecutionSteps(CreatePayload(filter), zipFileName);
 
         }
 
@@ -178,7 +175,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         public async Task S100FilterTests03(string filter, string zipFileName)
         {
 
-            await testExecutionMethod(createPayload(filter), zipFileName);
+            await TestExecutionSteps(CreatePayload(filter), zipFileName);
 
         }
 
@@ -189,15 +186,15 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         public async Task S100FilterTestsWithInvalidIdentifier(string filter)
         {
 
-            var responseFromJob = await OrchestratorCommands.PostRequestAsync(_jobId, createPayload(filter), _endpoint);
-            await checkJobsResponce(responseFromJob, expectedJobStatus: "upToDate", expectedBuildStatus: "none");
+            var responseFromJob = await OrchestratorCommands.PostRequestAsync(_jobId, CreatePayload(filter), _endpoint);
+            await CheckJobsResponce(responseFromJob, expectedJobStatus: "upToDate", expectedBuildStatus: "none");
         }
 
         [RetryFact(maxRetries: 1, delayBetweenRetriesMs: 5000)]
         public async Task S100ProductsTests()
         {
             var productNames = new string[] { "104CA00_20241103T001500Z_GB3DEVK0_DCF2", "101GB004DEVQP", "101FR005DEVQG" };
-            await testExecutionMethod(createPayload(products: productNames), "SelectedProducts.zip");
+            await TestExecutionSteps(CreatePayload(products: productNames), "SelectedProducts.zip");
         }
 
         //If both a filter and specific products are provided, the system should generate the Exchange Set based on the given products.
@@ -205,7 +202,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         public async Task S100ProductsAndFilterTests()
         {
             var productNames = new string[] { "104CA00_20241103T001500Z_GB3DEVK0_DCF2", "101GB004DEVQP", "101FR005DEVQG" };
-            await testExecutionMethod(createPayload(filter: "startswith(ProductName, '101')", products: productNames), "SelectedProductsOnly.zip");
+            await TestExecutionSteps(CreatePayload(filter: "startswith(ProductName, '101')", products: productNames), "SelectedProductsOnly.zip");
 
         }
     }
