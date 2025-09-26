@@ -1,6 +1,5 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using UKHO.ADDS.Mocks;
 using UKHO.ADDS.Mocks.EFS.Override.Mocks.scs.Models;
 using UKHO.ADDS.Mocks.Files;
 using UKHO.ADDS.Mocks.Headers;
@@ -15,10 +14,14 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
         private static readonly int MaxEditionNumber = 15;
         private static readonly int MinFileSize = 2000;
         private static readonly int MaxFileSize = 15000;
+        private static readonly int LargeExchangeSetMinFileSize = 300 * 1024 * 1024; // 300 MB
+        private static readonly int LargeExchangeSetMaxFileSize = 301 * 1024 * 1024; // 301 MB
         private static readonly Random RandomInstance = Random.Shared;
 
-        private static readonly string InvalidProduct = "invalidProduct";
-        private static readonly string InvalidProductWithdrawn = "productWithdrawn";
+        private const string InvalidProduct = "invalidProduct";
+        private const string InvalidProductWithdrawn = "productWithdrawn";
+        private const string LargeExchangeSetsState = "get-largeexchangesets";
+        private const string FileSizePropertyName = "fileSize";
 
         #region Response Helper Methods
 
@@ -135,11 +138,11 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
         /// Provides a mock response for updates since a specified date using data from s100-updates-since.json file.
         /// Note: As a mock endpoint, this method returns static data regardless of date parameters.
         /// </summary>
-        public static async Task<IResult> ProvideUpdatesSinceResponse(string? productIdentifier, IMockFile file)
+        public static async Task<IResult> ProvideUpdatesSinceResponse(string? productIdentifier, IMockFile file, string state = "")
         {
             try
             {
-                var response = await GenerateUpdatesSinceResponseFromFile(productIdentifier, file);
+                var response = await GenerateUpdatesSinceResponseFromFile(productIdentifier, file, state);
                 return Results.Ok(response);
             }
             catch (Exception ex)
@@ -203,7 +206,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
             else if (state == "get-invalidproducts" && requestedProducts.Count > 0)
             {
                 foreach (var productName in requestedProducts.SkipLast(1))
-                    productsArray.Add(GenerateProductJson(productName));
+                    productsArray.Add(GenerateProductJson(productName, state));
 
                 var lastProduct = requestedProducts.Last();
                 notReturnedArray.Add(CreateProductNotReturnedObject(lastProduct, InvalidProduct));
@@ -211,7 +214,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
             else
             {
                 foreach (var productName in requestedProducts)
-                    productsArray.Add(GenerateProductJson(productName));
+                    productsArray.Add(GenerateProductJson(productName, state));
             }
 
             return new JsonObject
@@ -236,10 +239,21 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
             };
         }
 
-        private static JsonObject GenerateProductJson(string productName)
+        private static JsonObject GenerateProductJson(string productName, string state = "")
         {
             var editionNumber = RandomInstance.Next(MinEditionNumber, MaxEditionNumber);
-            var fileSize = RandomInstance.Next(MinFileSize, MaxFileSize);
+            
+            // Determine file size based on state
+            int fileSize;
+            if (state == LargeExchangeSetsState)
+            {
+                fileSize = RandomInstance.Next(LargeExchangeSetMinFileSize, LargeExchangeSetMaxFileSize);
+            }
+            else
+            {
+                fileSize = RandomInstance.Next(MinFileSize, MaxFileSize);
+            }
+            
             var baseDate = DateTime.UtcNow;
 
             var updateNumbersArray = new JsonArray { 0 };
@@ -295,18 +309,18 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
                 };
             }
 
-            productObj["fileSize"] = fileSize;
+            productObj[FileSizePropertyName] = fileSize;
 
             return productObj;
         }
 
-        private static async Task<JsonObject> GenerateUpdatesSinceResponseFromFile(string? productIdentifier, IMockFile file)
+        private static async Task<JsonObject> GenerateUpdatesSinceResponseFromFile(string? productIdentifier, IMockFile file, string state = "")
         {
             var allProducts = await LoadProductsFromFileAsync(file);
 
             var filteredProducts = FilterProductsByIdentifier(allProducts, productIdentifier);
 
-            var productsArray = BuildProductsArray(filteredProducts);
+            var productsArray = BuildProductsArray(filteredProducts, state);
 
             return CreateResponseObject(productsArray);
         }
@@ -354,13 +368,30 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
             _ => null
         };
 
-        private static JsonArray BuildProductsArray(List<JsonNode> filteredProducts)
+        private static JsonArray BuildProductsArray(List<JsonNode> filteredProducts, string state = "")
         {
             var productsArray = new JsonArray();
 
             foreach (var product in filteredProducts)
             {
-                productsArray.Add(product.DeepClone());
+                var productNode = product.DeepClone();
+                
+                // Apply large file size for get-largeexchangesets state
+                if (state == LargeExchangeSetsState && productNode is JsonObject productObj)
+                {
+                    // Skip products with cancellation that have fileSize = 0
+                    if (productObj.ContainsKey("cancellation") && productObj.ContainsKey(FileSizePropertyName) && 
+                        productObj[FileSizePropertyName]?.GetValue<int>() == 0)
+                    {
+                        productsArray.Add(productNode);
+                        continue;
+                    }
+                    
+                    // Set large file size for others
+                    productObj[FileSizePropertyName] = RandomInstance.Next(LargeExchangeSetMinFileSize, LargeExchangeSetMaxFileSize);
+                }
+                
+                productsArray.Add(productNode);
             }
 
             return productsArray;
@@ -447,10 +478,22 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
                 case "get-cancelledproducts" when productCount > 0:
                     ProcessProductsWithLastCancelled(requestedProducts, productsArray);
                     break;
+                    
+                case LargeExchangeSetsState when productCount > 0:
+                    ProcessProductsWithLargeFileSize(requestedProducts, productsArray);
+                    break;
 
                 default:
                     ProcessAllProducts(requestedProducts, productsArray);
                     break;
+            }
+        }
+
+        private static void ProcessProductsWithLargeFileSize(List<ProductVersionRequest> requestedProducts, JsonArray productsArray)
+        {
+            foreach (var product in requestedProducts)
+            {
+                productsArray.Add(GenerateProductsVersionsJson(product, largeFileSize: true));
             }
         }
 
@@ -512,10 +555,21 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
             return state == "get-invalidproducts" || state == "get-productwithdrawn";
         }
 
-        private static JsonObject GenerateProductsVersionsJson(ProductVersionRequest productRequest, bool cancelled = false)
+        private static JsonObject GenerateProductsVersionsJson(ProductVersionRequest productRequest, bool cancelled = false, bool largeFileSize = false)
         {
             var editionNumber = productRequest.ProductName.StartsWith("101") ? productRequest.EditionNumber : productRequest.EditionNumber + 1;
-            var fileSize = RandomInstance.Next(MinFileSize, MaxFileSize);
+            
+            // Determine file size based on the largeFileSize parameter
+            int fileSize;
+            if (largeFileSize)
+            {
+                fileSize = RandomInstance.Next(LargeExchangeSetMinFileSize, LargeExchangeSetMaxFileSize);
+            }
+            else
+            {
+                fileSize = RandomInstance.Next(MinFileSize, MaxFileSize);
+            }
+            
             var baseDate = DateTime.UtcNow;
 
             var updateNumbersArray = new JsonArray { 0 };
@@ -570,7 +624,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs.Generators
                 };
             }
 
-            productObj["fileSize"] = cancelled ? 0 : fileSize;
+            productObj[FileSizePropertyName] = cancelled ? 0 : fileSize;
 
             return productObj;
         }

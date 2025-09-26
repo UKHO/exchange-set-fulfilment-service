@@ -1,4 +1,5 @@
-﻿using FluentValidation.Results;
+﻿using System.Net;
+using FluentValidation.Results;
 using UKHO.ADDS.Clients.Common.Constants;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Orchestrator.Api.Messages;
@@ -60,6 +61,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                          var result = await pipeline.RunAsync(httpContext.RequestAborted);
 
+                         // Check for errors in the response
+                         if (result.ErrorResponse != null)
+                         {
+                             return HandleErrorResponse(result.ErrorResponse);
+                         }
+
                          return Results.Accepted(null, result.Response);
                      }
                      catch (Exception)
@@ -68,9 +75,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                      }
                  })
             .Produces<CustomExchangeSetResponse>(202)
+            .Produces<ErrorResponseModel>(413)
             .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", correlationIdGenerator.CreateForCustomExchageSet().ToString())
             .WithDescription("Provide all the latest releasable baseline data for a specified set of S100 Products.")
-            .WithRequiredAuthorization(AuthenticationConstants.EfsRole); ;
+            .WithRequiredAuthorization(AuthenticationConstants.EfsRole);
 
             // POST /v2/exchangeSet/s100/productVersions
             exchangeSetEndpoint.MapPost("/productVersions", async (
@@ -161,6 +169,19 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", correlationIdGenerator.CreateForCustomExchageSet().ToString())
             .WithDescription("Provide all the releasable S100 data after a datetime.")
             .WithRequiredAuthorization(AuthenticationConstants.EfsRole);
+        }
+
+        private static IResult HandleErrorResponse(ErrorResponseModel errorResponse)
+        {
+            var error = errorResponse.Errors.FirstOrDefault();
+            // Check for exchange set size exceeded error (case-insensitive)
+            if (error != null && (string.Equals(error.Source, "exchangeSetSize", StringComparison.OrdinalIgnoreCase)))
+            {
+                return Results.Json(errorResponse, statusCode: (int)HttpStatusCode.RequestEntityTooLarge);
+            }
+            
+            // For other errors, return as Bad Request
+            return Results.BadRequest(errorResponse);
         }
 
         static IResult HandleValidationResult(ValidationResult validationResult, ILogger logger, string correlationId)

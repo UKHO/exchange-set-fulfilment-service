@@ -56,6 +56,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         // S100 Input validation events
         private const int S100InputValidationFailedId = BaseEventId + 33;
         private const int S100InputValidationErrorId = BaseEventId + 34;
+        
+        // Exchange set size exceeded event
+        private const int ExchangeSetSizeExceededId = BaseEventId + 35;
 
         // An unhandled HTTP error has occurred
         public static readonly EventId UnhandledHttpError = new(UnhandledHttpErrorId, nameof(UnhandledHttpError));
@@ -100,7 +103,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         public static readonly EventId ContainerTimeout = new(ContainerTimeoutId, nameof(ContainerTimeout));
 
         // The Queue service failed to read a message
-        public static readonly EventId QueueServiceMessageReadFailed = new(ContainerTimeoutId, nameof(QueueServiceMessageReadFailed));
+        public static readonly EventId QueueServiceMessageReadFailed = new(QueueServiceMessageReadFailedId, nameof(QueueServiceMessageReadFailed));
 
         // The log forwarder failed to parse a message
         public static readonly EventId LogForwardParseFailed = new(LogForwardParseFailedId, nameof(LogForwardParseFailed));
@@ -119,6 +122,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         public static readonly EventId HealthCheckWarning = new(HealthCheckWarningId, nameof(HealthCheckWarning));
         public static readonly EventId HealthCheckError = new(HealthCheckErrorId, nameof(HealthCheckError));
         public static readonly EventId HealthCheckFailedStatusCode = new(HealthCheckFailedStatusCodeId, nameof(HealthCheckFailedStatusCode));
+        
+        // Exchange set size exceeded event
+        public static readonly EventId ExchangeSetSizeExceeded = new(ExchangeSetSizeExceededId, nameof(ExchangeSetSizeExceeded));
 
         [LoggerMessage(UnhandledHttpErrorId, LogLevel.Error, "An unhandled exception was caught by the HTTP pipeline: {@message}", EventName = nameof(UnhandledHttpError))]
         public static partial void LogUnhandledHttpError(this ILogger logger, string message, Exception exception);
@@ -209,5 +215,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 
         [LoggerMessage(S100InputValidationErrorId, LogLevel.Error, "S100 input validation error for correlation ID: {correlationId}", EventName = nameof(S100InputValidationError))]
         public static partial void S100InputValidationError(this ILogger logger, string correlationId, Exception exception);
+        
+        [LoggerMessage(ExchangeSetSizeExceededId, LogLevel.Warning, "Total exchange set size {TotalSizeInMB}MB exceeds maximum allowed size {MaxSizeInMB}MB", EventName = nameof(ExchangeSetSizeExceeded))]
+        public static partial void LogExchangeSetSizeExceeded(this ILogger logger, long totalSizeInMB, int maxSizeInMB);
     }
 }
