@@ -25,8 +25,8 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
 
                 return state switch
                 {
-                    WellKnownState.Default => await HandleUpdatesSinceRequest(productIdentifier, sinceDateTime, response),
-                    LargeExchangeSetsState => await HandleUpdatesSinceRequest(productIdentifier, sinceDateTime, response, LargeExchangeSetsState),
+                    WellKnownState.Default => await HandleDefaultRequest(productIdentifier, sinceDateTime, response, false),
+                    LargeExchangeSetsState => await HandleDefaultRequest(productIdentifier, sinceDateTime, response, true),
                     WellKnownState.NotModified => HandleNotModified(response, sinceDateTime),
                     WellKnownState.BadRequest => ResponseGenerator.CreateBadRequestResponse(request, "Updates Since", "Bad Request."),
                     WellKnownState.NotFound => ResponseGenerator.CreateNotFoundResponse(request),
@@ -52,21 +52,30 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
 
                 d.Append(new MarkdownHeader("Testing States", 4));
                 d.Append(new MarkdownParagraph("Supports various mock states for testing different scenarios (BadRequest, NotFound, UnsupportedMediaType, InternalServerError, NotModified)."));
-                
+
                 d.Append(new MarkdownHeader($"Try out the {LargeExchangeSetsState} state!", 3));
                 d.Append(new MarkdownParagraph("The response mimics a situation where all products have large file sizes (6-10MB). This simulates the scenario where the exchange set will be large in size."));
             });
 
         /// <summary>
-        /// Handles updates since requests by loading data from the static JSON file.
+        /// Handles the default request scenario by loading data from the static JSON file.
         /// </summary>
-        /// <param name="productIdentifier">Optional product identifier filter</param>
-        /// <param name="sinceDateTime">DateTime string to parse and use for LastModified header</param>
-        /// <param name="response">HTTP response to set headers on</param>
-        /// <param name="state">Optional state parameter for specialized response handling</param>
-        private async Task<IResult> HandleUpdatesSinceRequest(string? productIdentifier, string sinceDateTime, HttpResponse response, string? state = null)
+        private async Task<IResult> HandleDefaultRequest(string? productIdentifier, string sinceDateTime, HttpResponse response, bool isLargeExchangeSet)
         {
-            SetLastModifiedHeader(response, sinceDateTime, addDayOffset: true);
+            if (DateTime.TryParse(sinceDateTime, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsedDate))
+            {
+                var modifiedDate = parsedDate;
+                if (parsedDate < DateTime.UtcNow)
+                {
+                    modifiedDate = parsedDate.AddDays(1);
+                }
+
+                response.Headers.LastModified = modifiedDate.ToString(DateTimeFormat, CultureInfo.InvariantCulture);
+            }
+            else
+            {
+                response.Headers.LastModified = sinceDateTime;
+            }
 
             var pathResult = GetFile(DataFileName);
             if (!pathResult.IsSuccess(out var file))
@@ -74,9 +83,7 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
                 return Results.NotFound($"Could not find {DataFileName} file");
             }
 
-            return state is null
-                ? await ResponseGenerator.ProvideUpdatesSinceResponse(productIdentifier, file)
-                : await ResponseGenerator.ProvideUpdatesSinceResponse(productIdentifier, file, state);
+            return await ResponseGenerator.ProvideUpdatesSinceResponse(productIdentifier, file, isLargeExchangeSet ? LargeExchangeSetsState : string.Empty);
         }
 
         /// <summary>
@@ -84,37 +91,17 @@ namespace UKHO.ADDS.Mocks.Configuration.Mocks.scs
         /// </summary>
         private static IResult HandleNotModified(HttpResponse response, string sinceDateTime)
         {
-            SetLastModifiedHeader(response, sinceDateTime, addDayOffset: false, dayOffset: -1);
-            return Results.StatusCode(304);
-        }
-
-        /// <summary>
-        /// Sets the LastModified header based on the provided sinceDateTime string.
-        /// </summary>
-        /// <param name="response">HTTP response to set the header on</param>
-        /// <param name="sinceDateTime">DateTime string to parse</param>
-        /// <param name="addDayOffset">Whether to add a day offset when the parsed date is in the past</param>
-        /// <param name="dayOffset">Number of days to offset (default: 1)</param>
-        private static void SetLastModifiedHeader(HttpResponse response, string sinceDateTime, bool addDayOffset = false, int dayOffset = 1)
-        {
             if (DateTime.TryParse(sinceDateTime, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsedDate))
             {
-                var modifiedDate = parsedDate;
-                if (addDayOffset && parsedDate < DateTime.UtcNow)
-                {
-                    modifiedDate = parsedDate.AddDays(dayOffset);
-                }
-                else if (!addDayOffset)
-                {
-                    modifiedDate = parsedDate.AddDays(dayOffset);
-                }
-                
+                var modifiedDate = parsedDate.AddDays(-1);
                 response.Headers.LastModified = modifiedDate.ToString(DateTimeFormat, CultureInfo.InvariantCulture);
             }
             else
             {
                 response.Headers.LastModified = sinceDateTime;
             }
+
+            return Results.StatusCode(304);
         }
     }
 }
