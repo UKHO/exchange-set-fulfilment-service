@@ -1,6 +1,7 @@
 ﻿using System.IO.Compression;
 using System.Text.Json;
 using FluentAssertions;
+using Microsoft.Azure.Amqp.Framing;
 
 namespace UKHO.ADDS.EFS.FunctionalTests.Services
 {
@@ -121,6 +122,17 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
 
             JsonElement sourceData = sourceJson.RootElement;
 
+            // Compare key properties in the root
+            targetData.TryGetProperty("type", out var targetTypeElement);
+            targetTypeElement.GetString()?.TrimEnd('$')
+                .Should().Be("uk.co.admiralty.s100Data.exchangeSetCreated.v1",
+                    $"Values for property type should match");
+
+            targetData.TryGetProperty("source", out var targetSourceElement);
+            targetSourceElement.GetString()?.TrimEnd('$')
+                .Should().Be("https://exchangeset.admiralty.co.uk/s100Data",
+                    $"Values for property type should match");
+
             // Compare key properties one by one to provide better error messages
             CompareJsonProperty(sourceData, targetData, "requestedProductCount");
             CompareJsonProperty(sourceData, targetData, "exchangeSetProductCount");
@@ -146,7 +158,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
                 var sourceValueString = sourceValue.ToString().TrimEnd('$');
                 var targetValueString = targetValue.ToString().TrimEnd('$');
 
-                sourceValueString.Should().Be(targetValueString,
+                targetValueString.Should().Be(sourceValueString,
                     $"Values for property '{propertyName}' should match");
             }
         }

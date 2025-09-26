@@ -5,6 +5,7 @@ using Meziantou.Xunit;
 using UKHO.ADDS.EFS.FunctionalTests.Services;
 using xRetry;
 using Xunit.Abstractions;
+using static System.Net.WebRequestMethods;
 
 namespace UKHO.ADDS.EFS.FunctionalTests
 {
@@ -53,7 +54,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
                     }
                     else
                     {
-                        _endpoint = _endpoint + $"?callbackUri={baseUrl}";
+                        _endpoint = _endpoint + $"?callbackUri=https://adds-mocks-efs.redmoss-3083029b.uksouth.azurecontainerapps.io/callback/callback";
                     }
                 }
                 else
@@ -98,7 +99,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         [RetryTheory(maxRetries: 1, delayBetweenRetriesMs: 5000)]
         [DisableParallelization] // This test runs in parallel with other tests. However, its test cases are run sequentially.
         [InlineData(new string[] { "101GB004DEVQK" }, "https://valid.com/callback", "Single101Product.zip", 1, 1)] // Test Case 245610 - Product Name (S-101 product) Node Integration
-        [InlineData(new string[] { "102CA005N5040W00130" }, "https://valid.com/callback", "Single102Product.zip", 1, 1)] // Test Case 245610 - Product Name (S-102 product) Node Integration
+        [InlineData(new string[] { "102CA005N5040W00130" }, "https://adds-mocks-efs/callback/callback", "Single102Product.zip", 1, 1)] // Test Case 245610 - Product Name (S-102 product) Node Integration
         [InlineData(new string[] { "104CA00_20241103T001500Z_GB3DEVK0_DCF2" }, "", "Single104Product.zip", 1, 1)] // Test Case 243519 - Valid input with valid callBackURI and // Test Case 245610 - Product Name (S-104 product) Node Integration
         [InlineData(new string[] { "111FR00_20241217T001500Z_GB3DEVK0_DCF2" }, null, "Single111Product.zip", 1, 1)] // Test Case 245610 - Product Name (S-111 product) Node Integration
         [InlineData(new string[] { "111CA00_20241217T001500Z_GB3DEVQ0_DCF2", "104CA00_20241103T001500Z_GB3DEVK0_DCF2" }, "https://valid.com/callback", "MultipleProducts.zip", 2, 2)]   // Test Case 243519 - Valid input and // Test Case 245610 - Product Names (multiple products) Node Integration
