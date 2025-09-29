@@ -146,9 +146,10 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                     var b2cDomain = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppDomain);
                     var b2cInstance = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppInstance);
                     var b2cPolicy = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppSignUpSignInPolicy);
+                    var b2cTenantId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppTenantId);
 
                     options.Audience = b2cClientId;
-                    var b2cAuthority = $"{b2cInstance}{b2cDomain}/{b2cPolicy}/v2.0/";
+                    var b2cAuthority = $"{b2cInstance}{b2cTenantId}/{b2cPolicy}/v2.0/";
                     options.Authority = b2cAuthority;
                     options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
                     {
@@ -157,7 +158,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
                         ValidAudiences = [b2cClientId],
-                        ValidIssuers = [b2cAuthority, $"{b2cInstance}{b2cDomain}/v2.0/"]
+                        ValidIssuers = [b2cAuthority, $"{b2cInstance}{b2cTenantId}/v2.0/"]
                     };
                     options.Events = new JwtBearerEvents
                     {
