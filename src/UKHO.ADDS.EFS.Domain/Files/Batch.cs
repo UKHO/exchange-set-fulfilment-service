@@ -6,6 +6,6 @@ namespace UKHO.ADDS.EFS.Domain.Files
     {
         public required BatchId BatchId { get; init; }
 
-        public required DateTime? ExpiryDate { get; init; }
+        //public required DateTime? ExpiryDate { get; init; }
     }
 }

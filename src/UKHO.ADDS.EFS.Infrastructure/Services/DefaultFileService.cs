@@ -70,7 +70,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                 return new Batch()
                 {
                     BatchId = BatchId.From(response.BatchId),
-                    ExpiryDate = batchModel.ExpiryDate
+                    //ExpiryDate = batchModel.ExpiryDate
                 };
             }
 
@@ -231,7 +231,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                     new("Product Code", "S-100"),
                     new("Media Type", "Zip")
                 ],
-                ExpiryDate = expiryDate
+                ExpiryDate = null
             };
         }
 
