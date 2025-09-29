@@ -7,7 +7,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Validators
     /// </summary>
     internal static class ProductIdentifierValidator
     {
-        public const string ValidationMessage = "productIdentifier must be exactly 4 characters: start with 'S' or 's' followed by three digits, with no spaces or extra characters";
+        public const string ValidationMessage = "Invalid product identifier, It must be exactly 4 characters, starting with 'S' or 's' followed by a valid 3-digit product code";
 
         /// <summary>
         /// Validates the productIdentifier with an optional timeout.
@@ -23,7 +23,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Validators
             if (Enum.TryParse<DataStandardProductType>(upperProductIdentifier, out var productType))
             {
                 // Only allow identifiers that start with 'S' and are not S57
-                if (upperProductIdentifier.StartsWith("S") && productType != DataStandardProductType.S57)
+                if (upperProductIdentifier.StartsWith("S", StringComparison.OrdinalIgnoreCase) && upperProductIdentifier.Length == 4 && productType != DataStandardProductType.S57)
                 {
                     return true;
                 }

@@ -38,6 +38,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         /// </summary>
         public DataStandardProduct ProductIdentifier { get; init; }
 
+        public ProductVersionList ProductVersions { get; init; }
+
         public Job CreateJob() => new()
         {
             Id = JobId,
@@ -48,7 +50,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
             BatchId = BatchId.None,
             RequestType = RequestType,
             CallbackUri = CallbackUri,
-            ProductIdentifier = ProductIdentifier
+            ProductIdentifier = ProductIdentifier,
+            ProductVersions = ProductVersions,
         };
 
         public static AssemblyPipelineParameters CreateFrom(JobRequestApiMessage message, IConfiguration configuration, CorrelationId correlationId)
@@ -99,7 +102,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 Configuration = configuration,
                 RequestType = RequestType.ProductVersions,
                 ProductIdentifier = DataStandardProduct.Undefined,
-                CallbackUri = !string.IsNullOrEmpty(callbackUri) ? CallbackUri.From(new Uri(callbackUri)) : CallbackUri.None
+                CallbackUri = !string.IsNullOrEmpty(callbackUri) ? CallbackUri.From(new Uri(callbackUri)) : CallbackUri.None,
+                ProductVersions = ConvertProductVersionRequests(productVersions)
             };
 
         /// <summary>
@@ -114,9 +118,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
                 Products = CreateProductNameListFromString(string.Empty),
-                Filter =
-                    $"updatesSince:{request.SinceDateTime:O}" +
-                    (productIdentifier != null ? $",productIdentifier:{productIdentifier}" : ""),
+                Filter = request.SinceDateTime!,
                 JobId = JobId.From(correlationId),
                 Configuration = configuration,
                 RequestType = RequestType.UpdatesSince,
@@ -185,6 +187,27 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
             }
 
             return list;
+        }
+
+        /// <summary>
+        /// Converts ProductVersionRequest list to ProductVersion list
+        /// </summary>
+        private static ProductVersionList ConvertProductVersionRequests(IEnumerable<ProductVersionRequest> requests)
+        {
+            var result = new ProductVersionList();
+            foreach (var req in requests)
+            {
+                if (!string.IsNullOrEmpty(req.ProductName) && req.EditionNumber.HasValue)
+                {
+                    result.Add(new ProductVersion
+                    {
+                        ProductName = ProductName.From(req.ProductName),
+                        EditionNumber = EditionNumber.From(req.EditionNumber.Value),
+                        UpdateNumber = req.UpdateNumber.HasValue ? UpdateNumber.From(req.UpdateNumber.Value) : UpdateNumber.From(0)
+                    });
+                }
+            }
+            return result;
         }
     }
 }

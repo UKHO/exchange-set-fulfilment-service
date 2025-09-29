@@ -113,5 +113,7 @@ namespace UKHO.ADDS.EFS.Domain.Jobs
         /// The identifier for the product associated with the job, if applicable.
         /// </summary>
         public DataStandardProduct ProductIdentifier { get; init; }
+
+        public ProductVersionList ProductVersions { get; init; }
     }
 }
