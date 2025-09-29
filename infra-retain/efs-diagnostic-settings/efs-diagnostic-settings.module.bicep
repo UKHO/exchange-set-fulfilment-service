@@ -22,11 +22,19 @@ resource diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-pr
     eventHubName: eventHubName
     logs: [
       {
-        categoryGroup: 'audit'
+        category: 'Blob'
         enabled: true
       }
       {
-        categoryGroup: 'allLogs'
+        category: 'File'
+        enabled: true
+      }
+      {
+        category: 'Queue'
+        enabled: true
+      }
+      {
+        category: 'Table'
         enabled: true
       }
     ]
