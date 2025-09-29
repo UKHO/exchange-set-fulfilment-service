@@ -206,7 +206,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
 
             await _getS100ProductNamesNode.ExecuteAsync(_executionContext);
 
-            Assert.That(job.ExchangeSetUrlExpiryDateTime, Is.Not.Null);
+            Assert.That(job.ExchangeSetUrlExpiryDateTime, Is.GreaterThan(DateTime.MinValue));
             Assert.That(job.RequestedProductCount, Is.EqualTo(ProductCount.From(1)));
             Assert.That(job.ExchangeSetProductCount, Is.EqualTo(productEditionList.Count));
         }
