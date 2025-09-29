@@ -6,7 +6,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Assertions
 {
     public class ExchangeSetApiAssertions
     {
-        public async Task<string> CheckCustomExSetReqResponce(string requestId, HttpResponseMessage responseJobSubmit, int expectedRequestedProductCount = -1, int expectedExchangeSetProductCount = -1)
+        public async Task<string> CheckCustomExSetReqResponse(string requestId, HttpResponseMessage responseJobSubmit, int expectedRequestedProductCount = -1, int expectedExchangeSetProductCount = -1)
         {
             Assert.True(responseJobSubmit.IsSuccessStatusCode, $"Expected success status code but got: {responseJobSubmit.StatusCode}");
 

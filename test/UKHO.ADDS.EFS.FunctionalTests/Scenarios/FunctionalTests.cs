@@ -32,7 +32,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
         }
 
 
-        private async Task CheckJobsResponce(HttpResponseMessage responseJobSubmit, string expectedJobStatus = "submitted", string expectedBuildStatus = "scheduled")
+        private async Task CheckJobsResponse(HttpResponseMessage responseJobSubmit, string expectedJobStatus = "submitted", string expectedBuildStatus = "scheduled")
         {
             Assert.True(responseJobSubmit.IsSuccessStatusCode, $"Expected success status code but got: {responseJobSubmit.StatusCode}");
 
@@ -107,7 +107,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
         private async Task TestExecutionSteps(object payload, string zipFileName)
         {
             var responseJobSubmit = await OrchestratorClient.PostRequestAsync(_jobId, payload, _endpoint);
-            await CheckJobsResponce(responseJobSubmit);
+            await CheckJobsResponse(responseJobSubmit);
 
             var apiResponseAssertions = new ExchangeSetApiAssertions();
 
@@ -190,7 +190,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
         {
 
             var responseFromJob = await OrchestratorClient.PostRequestAsync(_jobId, CreatePayload(filter), _endpoint);
-            await CheckJobsResponce(responseFromJob, expectedJobStatus: "upToDate", expectedBuildStatus: "none");
+            await CheckJobsResponse(responseFromJob, expectedJobStatus: "upToDate", expectedBuildStatus: "none");
         }
 
         [Fact]

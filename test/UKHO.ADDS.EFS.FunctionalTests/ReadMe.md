@@ -107,7 +107,7 @@ Notes:
 
 #### Assertions
 - `ExchangeSetApiAssertions`
-  - `CheckCustomExSetReqResponce`: Validates custom exchange set request responses
+  - `CheckCustomExSetReqResponse`: Validates custom exchange set request responses
   - `CheckJobCompletionStatus()`: Validates job completion and build state
   - `CheckBuildStatus()`: Validates builder steps and exit codes
 - `ZipArchiveAssertions`

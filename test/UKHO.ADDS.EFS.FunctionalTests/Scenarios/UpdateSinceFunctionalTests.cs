@@ -80,7 +80,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
             var apiResponseAssertions = new ExchangeSetApiAssertions();
 
             var responseJobSubmit = await OrchestratorClient.PostRequestAsync(_requestId, payload, _endpoint);
-            var responseContent = await apiResponseAssertions.CheckCustomExSetReqResponce(_requestId, responseJobSubmit, expectedRequestedProductCount, expectedExchangeSetProductCount);
+            var responseContent = await apiResponseAssertions.CheckCustomExSetReqResponse(_requestId, responseJobSubmit, expectedRequestedProductCount, expectedExchangeSetProductCount);
             _batchId = responseContent.Contains("fssBatchId") ? JsonDocument.Parse(responseContent).RootElement.GetProperty("fssBatchId").GetString()! : "";
 
             _output.WriteLine($"Started waiting for job completion ... {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}");

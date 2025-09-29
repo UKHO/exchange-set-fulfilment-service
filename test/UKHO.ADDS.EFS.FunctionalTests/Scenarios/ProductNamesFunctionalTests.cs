@@ -72,7 +72,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
             var apiResponseAssertions = new ExchangeSetApiAssertions();
 
             var responseJobSubmit = await OrchestratorClient.PostRequestAsync(_requestId, payload, _endpoint);
-            var responseContent = await apiResponseAssertions.CheckCustomExSetReqResponce(_requestId, responseJobSubmit, expectedRequestedProductCount, expectedExchangeSetProductCount);
+            var responseContent = await apiResponseAssertions.CheckCustomExSetReqResponse(_requestId, responseJobSubmit, expectedRequestedProductCount, expectedExchangeSetProductCount);
             _batchId = responseContent.Contains("fssBatchId") ? JsonDocument.Parse(responseContent).RootElement.GetProperty("fssBatchId").GetString()! : "";
 
             _output.WriteLine($"Started waiting for job completion ... {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}");
@@ -126,7 +126,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
         /*
          * Suppressing the 1 failing assertion for the below bug
          * BUG-247982 
-         * Once resolved , please reintroduce the assertion for responce body "Either body is null or malformed" as currently passing "" to suppress assertion failure
+         * Once resolved , please reintroduce the assertion for response body "Either body is null or malformed" as currently passing "" to suppress assertion failure
          */
         [InlineData(new object[] { "101GB40079ABCDEFG", 123, 456, 789 }, "https://valid.com/callback", HttpStatusCode.BadRequest, "Either body is null or malformed")] //Test Case 243659 - Mixed valid and invalid data types
         public async Task ValidatePNPayloadWithInvalidInputs(object[] productNames, string? callbackUri, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
