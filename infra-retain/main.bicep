@@ -151,16 +151,6 @@ module efs_storage 'efs-storage/efs-storage.module.bicep' = {
   }
 }
 
-module efs_diagnostic_settings 'efs-diagnostic-settings/efs-diagnostic-settings.module.bicep' = {
-  name: 'efs-diagnostic-settings'
-  scope: app_rg
-  params: {
-    storageAccountName: efs_storage.outputs.name
-    eventHubAuthorizationRuleId: efs_events_namespace.outputs.eventHubAuthorizationRuleId
-    eventHubName: efs_events_namespace.outputs.eventHubName
-  }
-}
-
 module pipeline_roles 'pipeline-roles/pipeline-roles.module.bicep' = {
   name: pipelineDeploymentName
   params: {

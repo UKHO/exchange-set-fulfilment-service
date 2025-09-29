@@ -102,6 +102,16 @@ module efs_storage 'efs-storage/efs-storage.module.bicep' = {
     location: location
   }
 }
+
+module efs_diagnostic_settings 'efs-diagnostic-settings/efs-diagnostic-settings.module.bicep' = {
+  name: 'efs-diagnostic-settings'
+  scope: rg
+  params: {
+    storageAccountName: efs_storage.outputs.name
+    eventHubAuthorizationRuleId: efs_events_namespace.outputs.eventHubAuthorizationRuleId
+    eventHubName: efs_events_namespace.outputs.eventHubName
+  }
+}
 output AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN string = efs_cae.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN
 output AZURE_CONTAINER_REGISTRY_ENDPOINT string = efs_cae_acr.outputs.loginServer
 output EFS_APP_INSIGHTS_APPINSIGHTSCONNECTIONSTRING string = efs_app_insights.outputs.appInsightsConnectionString

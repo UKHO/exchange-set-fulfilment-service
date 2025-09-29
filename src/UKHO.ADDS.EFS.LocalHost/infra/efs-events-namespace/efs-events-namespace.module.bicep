@@ -10,3 +10,5 @@ resource efs_events_namespace 'Microsoft.EventHub/namespaces@2024-01-01' existin
 output eventHubsEndpoint string = efs_events_namespace.properties.serviceBusEndpoint
 
 output name string = efsEventHubsNamespaceName
+output eventHubAuthorizationRuleId string = '${efs_events_namespace.id}/AuthorizationRules/RootManageSharedAccessKey'
+output eventHubName string = efs_events_hub.name
