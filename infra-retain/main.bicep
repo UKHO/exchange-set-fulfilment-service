@@ -158,6 +158,16 @@ module pipeline_roles 'pipeline-roles/pipeline-roles.module.bicep' = {
   }
 }
 
+module efs_diagnostic_settings 'efs-diagnostic-settings/efs-diagnostic-settings.module.bicep' = {
+  name: 'efs-diagnostic-settings'
+  scope: app_rg
+  params: {
+    storageAccountName: efs_storage.outputs.name
+    eventHubAuthorizationRuleId: efs_events_namespace.outputs.eventHubAuthorizationRuleId
+    eventHubName: efs_events_namespace.outputs.eventHubName
+  }
+}
+
 output EFS_RETAIN_RESOURCE_GROUP string = rg.name
 output EFS_RESOURCE_GROUP string = app_rg.name
 output EFS_SERVICE_IDENTITY_NAME string = efs_service_identity.outputs.name
