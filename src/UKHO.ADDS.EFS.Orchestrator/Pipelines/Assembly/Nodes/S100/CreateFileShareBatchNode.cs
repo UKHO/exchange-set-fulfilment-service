@@ -33,7 +33,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                 var batch = await _fileService.CreateBatchAsync(job.GetCorrelationId(), job.RequestType,  Environment.CancellationToken);
 
                 job.BatchId = batch.BatchId;
-                //job.ExchangeSetUrlExpiryDateTime = batch.ExpiryDate;
                 build.BatchId = batch.BatchId;
             }
             catch (Exception ex)

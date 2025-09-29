@@ -69,8 +69,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
             {
                 return new Batch()
                 {
-                    BatchId = BatchId.From(response.BatchId),
-                    //ExpiryDate = batchModel.ExpiryDate
+                    BatchId = BatchId.From(response.BatchId)
                 };
             }
 
