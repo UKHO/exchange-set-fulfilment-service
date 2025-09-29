@@ -102,7 +102,6 @@ module efs_storage 'efs-storage/efs-storage.module.bicep' = {
     location: location
   }
 }
-
 output AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN string = efs_cae.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN
 output AZURE_CONTAINER_REGISTRY_ENDPOINT string = efs_cae_acr.outputs.loginServer
 output EFS_APP_INSIGHTS_APPINSIGHTSCONNECTIONSTRING string = efs_app_insights.outputs.appInsightsConnectionString

@@ -22,35 +22,11 @@ resource diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-pr
     eventHubName: eventHubName
     logs: [
       {
-        category: 'StorageRead'
+        categoryGroup: 'audit'
         enabled: true
       }
       {
-        category: 'StorageWrite'
-        enabled: true
-      }
-      {
-        category: 'StorageDelete'
-        enabled: true
-      }
-      {
-        category: 'Transaction'
-        enabled: true
-      }
-      {
-        category: 'BlobStorage'
-        enabled: true
-      }
-      {
-        category: 'QueueStorage'
-        enabled: true
-      }
-      {
-        category: 'TableStorage'
-        enabled: true
-      }
-      {
-        category: 'FileStorage'
+        categoryGroup: 'allLogs'
         enabled: true
       }
     ]
