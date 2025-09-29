@@ -207,8 +207,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                        {
                            // Check if authenticated with Azure AD and has the required role
 
-                           var isAuthenticated = context.User.Identity != null && context.User.Identity.IsAuthenticated;
-                           if (!isAuthenticated)
+                           if (context.User.Identity == null || !context.User.Identity.IsAuthenticated)
                            {
                                return false;
                            }
