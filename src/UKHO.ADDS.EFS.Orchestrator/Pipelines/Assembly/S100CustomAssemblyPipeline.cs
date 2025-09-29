@@ -41,6 +41,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly
             AddPipelineNode<GetS100ProductNamesNode>(cancellationToken);
             AddPipelineNode<GetS100ProductUpdatesSinceNode>(cancellationToken);
             AddPipelineNode<GetS100ProductVersionsNode>(cancellationToken);
+            AddPipelineNode<CheckExchangeSetSizeExceeded>(cancellationToken);
+
 
             AddPipelineNode<CheckFingerprintNode>(cancellationToken);
             AddPipelineNode<CreateFileShareBatchNode>(cancellationToken);
