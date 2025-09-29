@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace UKHO.ADDS.EFS.Domain.Services.Models
+namespace UKHO.ADDS.EFS.Domain.CloudModels
 {
     /// <summary>
     /// CloudEvents 1.0 specification compliant notification model
@@ -14,7 +14,7 @@ namespace UKHO.ADDS.EFS.Domain.Services.Models
         public string Type { get; set; } = "uk.co.admiralty.s100Data.exchangeSetCreated.v1";
 
         [JsonPropertyName("source")]
-        public string Source { get; set; } = "https://exchangeset.admiralty.co.uk/s100Data";
+        public string? Source { get; set; }
 
         [JsonPropertyName("id")]
         public string Id { get; set; } = Guid.NewGuid().ToString();

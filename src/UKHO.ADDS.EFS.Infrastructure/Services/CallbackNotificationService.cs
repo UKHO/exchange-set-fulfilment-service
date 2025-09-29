@@ -1,10 +1,11 @@
 using System.Text;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.Clients.Common.Constants;
+using UKHO.ADDS.EFS.Domain.CloudModels;
 using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Services;
-using UKHO.ADDS.EFS.Domain.Services.Models;
 using UKHO.ADDS.EFS.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Infrastructure.Logging.Services;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
@@ -18,11 +19,13 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<CallbackNotificationService> _logger;
+        private readonly IConfiguration _configuration;
 
-        public CallbackNotificationService(IHttpClientFactory httpClientFactory, ILogger<CallbackNotificationService> logger)
+        public CallbackNotificationService(IHttpClientFactory httpClientFactory, ILogger<CallbackNotificationService> logger, IConfiguration configuration)
         {
             _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         /// <summary>
@@ -42,8 +45,11 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
 
             try
             {
+                var source = _configuration["orchestrator:CloudEventNotification:Source"];
+
                 var cloudEvent = new CloudEventNotification
                 {
+                    Source = source,
                     Id = Guid.NewGuid().ToString(),
                     Time = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ"),
                     Data = exchangeSetData
