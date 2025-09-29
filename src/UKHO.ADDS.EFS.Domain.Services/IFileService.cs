@@ -4,20 +4,18 @@ using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
 using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.Files;
 using UKHO.ADDS.EFS.Domain.Jobs;
-using UKHO.ADDS.EFS.Domain.Products;
 
 namespace UKHO.ADDS.EFS.Domain.Services
 {
     public interface IFileService
     {
         /// <summary>
-        ///     Creates a new batch in the File Share Service with job-specific settings.
+        ///     Creates a new batch.
         /// </summary>
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
-        /// <param name="requestType">The request type from the job.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result containing the batch handle on success or error information on failure.</returns>
-        Task<Batch> CreateBatchAsync(CorrelationId correlationId, RequestType requestType, CancellationToken cancellationToken);
+        Task<Batch> CreateBatchAsync(CorrelationId correlationId, CancellationToken cancellationToken);
 
         /// <summary>
         ///     Commits a batch.

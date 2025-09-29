@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
@@ -7,7 +6,6 @@ using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
 using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.Files;
 using UKHO.ADDS.EFS.Domain.Jobs;
-using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Domain.Services;
 using UKHO.ADDS.EFS.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Infrastructure.Logging.Services;
@@ -29,36 +27,30 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         private const string CommitBatch = "CommitBatch";
         private const string CreateBatch = "CreateBatch";
         private const string AddFileToBatch = "AddFileToBatch";
-        private const string ExchangeSetExpiresInConfigKey = "orchestrator:Response:ExchangeSetExpiresIn";
         private readonly IFileShareReadWriteClient _fileShareReadWriteClient;
-        private readonly IConfiguration _configuration;
         private readonly ILogger<DefaultFileService> _logger;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="DefaultFileService" /> class.
         /// </summary>
         /// <param name="fileShareReadWriteClient">The file share read-write client.</param>
-        /// <param name="configuration">The configuration provider.</param>
         /// <param name="logger">The logger.</param>
-        /// <exception cref="ArgumentNullException">Thrown when fileShareReadWriteClient, configuration or logger is null.</exception>
-        public DefaultFileService(IFileShareReadWriteClient fileShareReadWriteClient, IConfiguration configuration, ILogger<DefaultFileService> logger)
+        /// <exception cref="ArgumentNullException">Thrown when fileShareReadWriteClient or logger is null.</exception>
+        public DefaultFileService(IFileShareReadWriteClient fileShareReadWriteClient, ILogger<DefaultFileService> logger)
         {
             _fileShareReadWriteClient = fileShareReadWriteClient ?? throw new ArgumentNullException(nameof(fileShareReadWriteClient));
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>
-        ///     Creates a new batch in the File Share Service with job-specific settings.
+        ///     Creates a new batch in the File Share Service.
         /// </summary>
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
-        /// <param name="requestType">The request type from the job.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result containing the batch handle on success or error information on failure.</returns>
-        public async Task<Batch> CreateBatchAsync(CorrelationId correlationId, RequestType requestType, CancellationToken cancellationToken)
+        public async Task<Batch> CreateBatchAsync(CorrelationId correlationId, CancellationToken cancellationToken)
         {
-            var batchModel = GetBatchModel(requestType);
-            var createBatchResponseResult = await _fileShareReadWriteClient.CreateBatchAsync(batchModel, (string)correlationId, cancellationToken);
+            var createBatchResponseResult = await _fileShareReadWriteClient.CreateBatchAsync(GetBatchModel(), (string)correlationId, cancellationToken);
 
             if (createBatchResponseResult.IsFailure(out var error, out _))
             {
@@ -194,6 +186,8 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                 var attributeList = new AttributeList();
                 if (response != null)
                 {
+
+
                     foreach (var attribute in response.Attributes)
                     {
                         attributeList.Add(new Attribute { Key = attribute.Key, Value = attribute.Value });
@@ -205,34 +199,12 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
             throw new InvalidOperationException("Failed to add file to batch.");
         }
 
-        private BatchModel GetBatchModel(RequestType requestType)
-        {
-            DateTime? expiryDate = null;
-            
-            if (requestType != RequestType.Internal)
-            {
-                var expiryTimeSpan = _configuration.GetValue<TimeSpan>(ExchangeSetExpiresInConfigKey);
-                expiryDate = DateTime.UtcNow.Add(expiryTimeSpan);
-            }
-
-            return new BatchModel
-            {
-                BusinessUnit = "ADDS-S100",
-                Acl = new Acl
-                {
-                    ReadUsers = ["public"],
-                    ReadGroups = ["public"]
-                },
-                Attributes =
-                [
-                    new("Exchange Set Type", "Base"),
-                    new("Frequency", "DAILY"),
-                    new("Product Code", "S-100"),
-                    new("Media Type", "Zip")
-                ],
-                ExpiryDate = null
-            };
-        }
+        /// <summary>
+        ///     Creates a batch model with predefined settings for S-100 product type.
+        /// </summary>
+        /// <returns>A configured batch model with appropriate access control and attributes.</returns>
+        private static BatchModel GetBatchModel() =>
+            new() { BusinessUnit = "ADDS-S100", Acl = new Acl { ReadUsers = new List<string> { "public" }, ReadGroups = new List<string> { "public" } }, Attributes = new List<KeyValuePair<string, string>> { new("Exchange Set Type", "Base"), new("Frequency", "DAILY"), new("Product Code", "S-100"), new("Media Type", "Zip") }, ExpiryDate = null };
 
         private void LogFileShareServiceError(CorrelationId correlationId, string endPoint, IError error, BatchId batchId)
         {

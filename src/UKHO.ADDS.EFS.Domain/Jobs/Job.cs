@@ -70,7 +70,7 @@ namespace UKHO.ADDS.EFS.Domain.Jobs
         /// <summary>
         /// The expiry date and time for the exchange set URL
         /// </summary>
-        public DateTime? ExchangeSetUrlExpiryDateTime { get; set; }
+        public DateTime ExchangeSetUrlExpiryDateTime { get; set; }
 
         /// <summary>
         /// Number of products explicitly requested
