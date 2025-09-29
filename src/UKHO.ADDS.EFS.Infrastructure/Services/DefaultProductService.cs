@@ -189,5 +189,52 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                 return new ProductEditionList();
             }
         }
+
+        public async Task<ProductEditionList> GetProductVersionsListAsync(DataStandard dataStandard, ProductVersionList productVersions, Job job, CancellationToken cancellationToken)
+        {
+            if (dataStandard != DataStandard.S100)
+            {
+                throw new NotImplementedException($"Data standard {dataStandard} is not supported.");
+            }
+
+            try
+            {
+                var retryPolicy =
+                  HttpRetryPolicyFactory.GetGenericResultRetryPolicy<S100ProductResponse?>(_logger, nameof(GetProductVersionsListAsync));
+
+                var payload = productVersions.Select(p => new S100ProductVersions
+                {
+                    ProductName = (string)p.ProductName,
+                    EditionNumber = (int?)p.EditionNumber,
+                    UpdateNumber = (int?)p.UpdateNumber
+                }).ToList();
+
+                var s100ProductVersionResult = await retryPolicy.ExecuteAsync(async () =>
+                {
+                    var result = await _salesCatalogueClient.V2.Products.S100.ProductVersions.PostAsync(
+                        payload,
+                        requestConfiguration =>
+                        {
+                            requestConfiguration.Headers.Add(ApiHeaderKeys.XCorrelationIdHeaderKey, (string)job.GetCorrelationId());
+                        },
+                        cancellationToken);
+
+                    return Result.Success(result);
+                });
+
+                if (s100ProductVersionResult.IsSuccess(out var response) && response is not null)
+                {
+                    return response.ToDomain();
+                }
+
+                _logger.LogSalesCatalogueApiError(SalesCatalogApiErrorLogView.Create(job));
+                return [];
+            }
+            catch (ApiException apiException)
+            {
+                _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, (HttpStatusCode)apiException.ResponseStatusCode));
+                return [];
+            }
+        }
     }
 }
