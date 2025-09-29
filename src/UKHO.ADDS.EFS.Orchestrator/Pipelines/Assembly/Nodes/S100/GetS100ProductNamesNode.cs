@@ -99,8 +99,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             // Calculate total file size and check against the limit
             var maxExchangeSetSizeInMB = Environment.Configuration.GetValue<int>(MaxExchangeSetSizeInMBConfigKey);
             var totalFileSizeBytes = productEditionList.Products.Sum(p => (long)p.FileSize);
-            double byteSize = 1024f;
-            var totalFileSizeInMB = (totalFileSizeBytes / byteSize) / byteSize;
+            double bytesToKbFactor = 1024f;
+            var totalFileSizeInMB = (totalFileSizeBytes / bytesToKbFactor) / bytesToKbFactor;
 
             if (totalFileSizeInMB > maxExchangeSetSizeInMB)
             {
