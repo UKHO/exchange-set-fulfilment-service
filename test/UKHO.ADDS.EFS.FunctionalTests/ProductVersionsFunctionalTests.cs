@@ -44,7 +44,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
             var apiResponseAssertions = new ApiResponseAssertions();
 
             var responseJobSubmit = await OrchestratorCommands.PostRequestAsync(_requestId, payload, _endpoint);
-            await apiResponseAssertions.CheckCustomExSetReqResponce(_requestId, responseJobSubmit, expectedRequestedProductCount, expectedExchangeSetProductCount);
+            await apiResponseAssertions.CheckCustomExSetReqResponse(_requestId, responseJobSubmit, expectedRequestedProductCount, expectedExchangeSetProductCount);
 
             _output.WriteLine($"Started waiting for job completion ... {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}");
             var responseJobStatus = await OrchestratorCommands.WaitForJobCompletionAsync(_requestId);
@@ -151,7 +151,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         /*
          * Suppressing the 8 failing assertion for the below bug
          * BUG-247982
-         * Once resolved , please reintroduce the assertion for responce body "Either body is null or malformed" as currently passing "" to suppress assertion failure
+         * Once resolved , please reintroduce the assertion for response body "Either body is null or malformed" as currently passing "" to suppress assertion failure
          */
         [InlineData("[  \"\" ] ", "https://valid.com/callback", HttpStatusCode.BadRequest, "")] // Test Case 245718 - Array with Empty string
         [InlineData("", "https://valid.com/callback", HttpStatusCode.BadRequest, "")] // Test Case 247166 - Blank request body

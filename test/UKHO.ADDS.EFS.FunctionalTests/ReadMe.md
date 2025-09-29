@@ -93,7 +93,7 @@ Provides helper methods for interacting with the EFS orchestrator:
 
 #### ApiResponseAssertions
 Response validation utilities:
-- `CheckCustomExSetReqResponce`: Validates custom exchange set request responses
+- `CheckCustomExSetReqResponse`: Validates custom exchange set request responses
 - `CheckJobCompletionStatus()`: Validates job completion and build state
 - `CheckBuildStatus()`: Validates builder steps and exit codes
 
