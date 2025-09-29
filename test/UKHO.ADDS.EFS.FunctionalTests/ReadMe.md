@@ -19,8 +19,8 @@ The test architecture uses a combination of patterns to optimize both resource u
 
 Tests share a single Aspire environment instance to avoid the significant overhead of starting/stopping the environment for each test class:
 
-- `AspireResourceSingleton`: Implements a thread-safe singleton pattern to create and manage a single Aspire environment for all tests. Detects if running in CI/CD pipeline and configures HTTP clients accordingly.
-- `StartupFixture` & `StartupCollection`: Uses xUnit's collection fixtures to share this environment across test classes via `[Collection("Startup Collection")]`.
+- `AspireTestHost` (Infrastructure): Thread-safe singleton that creates and manages a single Aspire environment for all tests. Detects if running in CI/CD pipeline and configures HTTP clients accordingly.
+- `StartupFixture` & `StartupCollection`: xUnit collection fixtures to share this environment across test classes via `[Collection("Startup Collection")]`.
 
 ### 2. Parallel Test Execution
 
@@ -43,49 +43,87 @@ Tests include retry mechanisms for reliability:
 - `xRetry` framework with `[RetryTheory]` for handling transient failures
 - Configurable retry counts and delays for flaky test scenarios
 
+## Namespaces and Folders
+
+Support code is organized by responsibility to improve discoverability and clarity:
+
+- UKHO.ADDS.EFS.FunctionalTests.Scenarios
+  - Feature-focused test classes (e.g., `JobsFunctionalTests`, `ProductNamesFunctionalTests`, `ProductVersionsFunctionalTests`, `UpdateSinceFunctionalTests`)
+- UKHO.ADDS.EFS.FunctionalTests.Framework
+  - `FunctionalTestBase`: shared base for test classes
+- UKHO.ADDS.EFS.FunctionalTests.Infrastructure
+  - `AspireTestHost`, `AssemblySetup`, `StartupFixture`
+- UKHO.ADDS.EFS.FunctionalTests.Http
+  - `OrchestratorClient`: HTTP helpers for orchestrator endpoints
+- UKHO.ADDS.EFS.FunctionalTests.IO
+  - `MockFilesClient`: helpers for downloading files from the mock host
+- UKHO.ADDS.EFS.FunctionalTests.Assertions
+  - `ExchangeSetApiAssertions`: API response validation
+  - `ZipArchiveAssertions`: ZIP structure/content validation
+  - `CallbackResponseAssertions`: callback payload validation
+- UKHO.ADDS.EFS.FunctionalTests.Diagnostics
+  - `TestOutput`: ambient test logging (xUnit output helper)
+  - `BuilderStepsParser` (if present): parsing/analysis of builder steps
+
 ## Key Components
 
-### Core Service Classes
+### Framework and Diagnostics
 
-#### AspireResourceSingleton
-A thread-safe singleton that:
-- Creates and manages the Aspire distributed application only once
-- Detects execution environment (local vs CI/CD pipeline)
-- Configures HTTP clients with appropriate base addresses
-- Starts the application and waits for the orchestrator service
-- Provides cleanup on disposal
-
-#### OrchestratorCommands
-Provides helper methods for interacting with the EFS orchestrator:
-- `PostRequestAsync()`: Submits jobs to various API endpoints
-- `WaitForJobCompletionAsync()`: Monitors job status with timeout handling
-- `GetBuildStatusAsync()`: Retrieves detailed build status information
-- `ProductNamesInCustomAssemblyPipelinePostRequestAsync()`: Specialized job submission for product names
-
-#### ApiResponseAssertions
-Comprehensive response validation utilities:
-- `checkJobCompletionStatus()`: Validates job completion and build state
-- `checkBuildStatus()`: Validates builder steps and exit codes
-- Detailed logging of response content and validation failures
-
-#### ZipStructureComparer
-Exchange set validation tools:
-- `DownloadExchangeSetAsZipAsync()`: Downloads generated exchange sets from mock service
-- `CompareZipFilesExactMatch()`: Compares ZIP file structures and validates product inclusion
-- Directory structure validation for exchange set compliance
-
-#### BuilderStepsAnalyzer
-Typed analysis of build processes:
-- `BuilderResponse` and `BuilderStep` models for strongly-typed JSON parsing
-- Performance metrics calculation (total elapsed time)
-- Build step sequence and status tracking
-
-#### TestBase
+#### FunctionalTestBase
 Abstract base class providing:
 - Shared access to `StartupFixture` and `ITestOutputHelper`
-- Common initialization patterns for test classes
+- Ambient test output context via a disposable scope
+- Implements `IDisposable` to restore logging context on teardown
 
-### Test Classes
+#### TestOutput (Diagnostics)
+Static context class that:
+- Provides ambient access to xUnit's `ITestOutputHelper` across the test project
+- Allows static utility classes to write to test output without direct dependencies
+- Thread-safe with `AsyncLocal<T>` storage for parallel test execution
+- `BeginScope(ITestOutputHelper)`: safely sets and restores Current (prevents leakage across tests)
+- `Clear()`: resets Current to null (used in teardown)
+- `WriteLine(FormattableString)`: uses invariant culture formatting
+- `WriteLine(Exception ex, string? message)`: logs optional context + full exception details
+
+Typical usage:
+- In a test: `using var _ = TestOutput.BeginScope(output);`
+- Log formatted text: `TestOutput.WriteLine($"Count: {count}");`
+- Log errors: `TestOutput.WriteLine(ex, "Operation failed");`
+- In teardown: `TestOutput.Clear()`
+
+Notes:
+- xUnit injects `ITestOutputHelper` into each test class constructor.
+- The base class sets the ambient logger using `TestOutput.BeginScope(output)` and restores it on dispose.
+- Static helpers that log via `TestOutput.WriteLine(...)` (e.g., `ZipArchiveAssertions`, `MockFilesClient`) write to the same xUnit output for the currently executing test.
+- Parallel test safety: `TestOutput` uses `AsyncLocal<ITestOutputHelper?>`, so the Current value flows with the async context of each test, avoiding cross-test leakage when tests run concurrently.
+
+### Support classes by area
+
+#### Http
+- `OrchestratorClient`
+  - `PostRequestAsync()`: Submits jobs to various API endpoints
+  - `WaitForJobCompletionAsync()`: Monitors job status with timeout handling
+  - `GetBuildStatusAsync()`: Retrieves detailed build status information
+
+#### Assertions
+- `ExchangeSetApiAssertions`
+  - `CheckCustomExSetReqResponce`: Validates custom exchange set request responses
+  - `CheckJobCompletionStatus()`: Validates job completion and build state
+  - `CheckBuildStatus()`: Validates builder steps and exit codes
+- `ZipArchiveAssertions`
+  - `CompareZipFilesExactMatch()`: Compares ZIP file structures and validates product inclusion
+- `CallbackResponseAssertions`
+  - `CompareCallbackResponse()`: Validates JSON response data against expected structure
+
+#### IO
+- `MockFilesClient`
+  - `DownloadExchangeSetAsZipAsync()`, `DownloadCallbackTxtAsync()`
+
+#### Infrastructure
+- `AspireTestHost`: Aspire orchestration and environment bootstrapping
+- `AssemblySetup`, `StartupFixture`: xUnit collection fixture wiring
+
+## Test Classes (Scenarios)
 
 #### ProductNamesFunctionalTests
 Tests the `/v2/exchangeSet/s100/productNames` endpoint:
@@ -93,53 +131,88 @@ Tests the `/v2/exchangeSet/s100/productNames` endpoint:
 - Callback URI handling (with and without callbacks)
 - Exchange set generation and structure validation
 
-#### ProductVersionsFunctionalTests  
-Tests the `/v2/exchangeSet/s100/productVersions` endpoint:
-- Product version-specific exchange set requests
-- Edition and update number validation
-- JSON payload validation
-
-#### UpdateSinceFunctionalTests
-Tests the `/v2/exchangeSet/s100/updatesSince` endpoint:
-- Date/time validation (ISO 8601 format)
-- Product identifier filtering
-- Incremental update scenarios
-
-#### FunctionalTests
+#### JobsFunctionalTests
 Core job management tests:
 - General job submission and monitoring
 - Build process validation
 - End-to-end exchange set generation workflows
 
-### XUnit Configuration
+#### ProductVersionsFunctionalTests, UpdateSinceFunctionalTests
+- Endpoint-specific happy-path and validation scenarios similar to ProductNames tests
 
-#### AssemblySetup
-Configures parallel test execution:
-- `[CollectionDefinition("Startup Collection")]` for shared fixtures
-- `[EnableParallelization]` for optimized test execution
-- Collection behavior configuration for class-level parallelization
+## Assertion Management
 
-#### xunit.runner.json
-JSON configuration enabling:
-- Theory test pre-enumeration for parallel execution
-- Test collection and assembly parallelization
-- Advanced xUnit runner options
+We rely on FluentAssertions' built‑in `AssertionScope` behavior.
 
-## Usage
+Core fact: FluentAssertions already supports soft (aggregated) assertions natively. A single outer `AssertionScope` created at the start of the test accumulates all failures produced inside (including from helper/service classes). Only when that outer scope is disposed (test method exits) does it throw once with the combined message. Any nested scopes just merge their failures upward; they never throw independently while a parent scope is active.
 
-### Creating a New Test Class
+Pattern:
+```
+[Fact]
+public async Task Product_journey()
+{
+    using var scope = new AssertionScope();   // root scope
 
-To create a new functional test class:
+    await Step1_GetProducts();
+    await Step2_ValidateMetadata();
+    await Step3_DownloadFiles();
 
-1. **Add collection attribute**: Use `[Collection("Startup Collection")]` to access the shared Aspire environment
-2. **Enable parallelization**: Add `[EnableParallelization]` for optimal test execution
-3. **Inherit from TestBase**: Extend `TestBase` for common functionality
-4. **Constructor pattern**: Accept `StartupFixture` and `ITestOutputHelper` parameters
+    // Leaving the method disposes 'scope' and throws once if any assertion failed.
+}
+```
 
-```csharp
+Helper methods do not need to (and generally should not) create their own `AssertionScope` unless you want to locally group or label messages. Just write normal FluentAssertions:
+```
+response.StatusCode.Should().Be(HttpStatusCode.OK);
+json.RootElement.GetProperty("jobId").GetString().Should().Be(jobId);
+```
+These failures will be aggregated by the root scope.
+
+### When to Use Assert vs Should
+
+- Use `Assert.*` (xUnit) for critical preconditions where continuing the test makes no sense (e.g., HTTP call failed, required file missing). These fail immediately.
+- Use `Should()` fluent assertions for everything you want aggregated and reported together at the end.
+
+### Immediate Failure (Opt-Out)
+If you want a helper to fail immediately (not soft) just do NOT create a root `AssertionScope` before calling it. Without an active outer scope each `Should()` failure throws immediately.
+
+- No need to manually collect or report failures.
+- Ensure each test method creates exactly one root `AssertionScope` if you want soft behavior.
+
+## Using Assertions in Tests (Examples)
+```
+[Fact]
+public async Task EndToEnd()
+{
+    using var scope = new AssertionScope();
+
+    var submit = await OrchestratorClient.PostRequestAsync(requestId, payload, endpoint);
+    submit.StatusCode.Should().Be(HttpStatusCode.Accepted);
+
+    var statusResponse = await OrchestratorClient.WaitForJobCompletionAsync(jobId);
+    var assertions = new ExchangeSetApiAssertions();
+    await assertions.CheckJobCompletionStatus(statusResponse);
+
+    var buildResponse = await OrchestratorClient.GetBuildStatusAsync(jobId);
+    await assertions.CheckBuildStatus(buildResponse);
+
+    // All failures (if any) are reported together here.
+}
+```
+
+## Creating a New Test Class
+
+1. Add collection attribute: `[Collection("Startup Collection")]`
+2. Enable parallelization: `[EnableParallelization]` if appropriate
+3. Inherit from `FunctionalTestBase`
+4. Create a single root `AssertionScope` inside each test method needing soft aggregation
+
+```
+using UKHO.ADDS.EFS.FunctionalTests.Framework;
+
 [Collection("Startup Collection")]
 [EnableParallelization]
-public class MyNewFunctionalTests : TestBase
+public class MyNewFunctionalTests : FunctionalTestBase
 {
     public MyNewFunctionalTests(StartupFixture startup, ITestOutputHelper output) 
         : base(startup, output)
@@ -149,47 +222,38 @@ public class MyNewFunctionalTests : TestBase
 }
 ```
 
-### Test Method Patterns
-
-#### Theory Tests with Retry
-Use `[RetryTheory]` for theory tests that may experience transient failures:
-
-```csharp
+## Theory Tests with Retry
+```
 [RetryTheory(maxRetries: 1, delayBetweenRetriesMs: 5000)]
-[DisableParallelization] // Optional: for sequential theory test case execution
+[DisableParallelization] // Optional if sequential execution needed
 [InlineData("param1", "param2", HttpStatusCode.Accepted, "")]
-public async Task MyTestMethod(string param1, string param2, HttpStatusCode expectedStatus, string expectedError)
+public async Task MyTestMethod(string p1, string p2, HttpStatusCode expectedStatus, string expectedError)
 {
-    // Test implementation
+    using var scope = new AssertionScope();
+
+    var response = await OrchestratorClient.PostRequestAsync(...);
+    response.StatusCode.Should().Be(expectedStatus);
+
+    if (!string.IsNullOrEmpty(expectedError))
+        (await response.Content.ReadAsStringAsync()).Should().Contain(expectedError);
 }
 ```
 
-#### Job Submission and Monitoring
-Follow the established pattern for testing API endpoints:
+## Job Submission and Monitoring Pattern
+1. Submit job: `var response = await OrchestratorClient.PostRequestAsync(requestId, payload, endpoint);`
+2. Wait for completion: `var jobStatusResponse = await OrchestratorClient.WaitForJobCompletionAsync(jobId);`
+3. Validate status: `await new ExchangeSetApiAssertions().CheckJobCompletionStatus(jobStatusResponse);`
+4. (Optional) Build details: `var buildResponse = await OrchestratorClient.GetBuildStatusAsync(jobId);`
+5. Validate build: `await new ExchangeSetApiAssertions().CheckBuildStatus(buildResponse);`
+6. (Optional) Validate exchange set contents: `ZipArchiveAssertions.CompareZipFilesExactMatch(expectedZip, downloadedZip)`
 
-```csharp
-// 1. Submit job
-var response = await OrchestratorCommands.PostRequestAsync(requestId, payload, endpoint);
-
-// 2. Wait for completion
-var jobStatusResponse = await OrchestratorCommands.WaitForJobCompletionAsync(jobId);
-
-// 3. Validate response
-var assertions = new ApiResponseAssertions(_output);
-await assertions.checkJobCompletionStatus(jobStatusResponse);
-
-// 4. Check build details (optional)
-var buildResponse = await OrchestratorCommands.GetBuildStatusAsync(jobId);
-await assertions.checkBuildStatus(buildResponse);
-```
-
-### Environment Variables (CI/CD)
+## Environment Variables (CI/CD)
 
 When running in CI/CD pipelines, set these environment variables:
 - `ORCHESTRATOR_URL`: Base URL for the EFS orchestrator service
 - `ADDSMOCK_URL`: Base URL for the mock services
 
-### Test Data
+## Test Data
 
 Test data files are located in the `TestData/` folder and include:
 - ZIP files for structure comparison testing

@@ -1,19 +1,23 @@
 ﻿using System.Text.Json;
-using FluentAssertions;
 using FluentAssertions.Execution;
 using Meziantou.Xunit;
-using UKHO.ADDS.EFS.FunctionalTests.Services;
-using xRetry;
+using UKHO.ADDS.EFS.FunctionalTests.Assertions;
+using UKHO.ADDS.EFS.FunctionalTests.Framework;
+using UKHO.ADDS.EFS.FunctionalTests.Http;
+using UKHO.ADDS.EFS.FunctionalTests.Infrastructure;
+using UKHO.ADDS.EFS.FunctionalTests.IO;
 using Xunit.Abstractions;
 
-namespace UKHO.ADDS.EFS.FunctionalTests
+namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
 {
     [Collection("Startup Collection")]
     [EnableParallelization] // Needed to parallelize inside the class, not just between classes
-    public class UpdateSinceFunctionalTests : TestBase
+    public class UpdateSinceFunctionalTests : FunctionalTestBase
     {
-        private string _requestId = "";
+        private readonly string _requestId = "";
+        private string _batchId = "";
         private string _endpoint = "/v2/exchangeSet/s100/updatesSince";
+        private bool _assertCallbackTxtFile = false;
 
 
         public UpdateSinceFunctionalTests(StartupFixture startup, ITestOutputHelper output) : base(startup, output)
@@ -23,7 +27,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
 
         private async Task SubmitPostRequestAndCheckResponse(string requestId, object requestPayload, string endpoint, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
         {
-            var response = await OrchestratorCommands.PostRequestAsync(requestId, requestPayload, endpoint);
+            var response = await OrchestratorClient.PostRequestAsync(requestId, requestPayload, endpoint);
             Assert.Equal(expectedStatusCode, response.StatusCode);
 
             if (expectedStatusCode != HttpStatusCode.Accepted && expectedErrorMessage != "")
@@ -34,93 +38,99 @@ namespace UKHO.ADDS.EFS.FunctionalTests
             }
         }
 
+
         private void SetEndpoint(string? callbackUri, string? productIdentifier)
         {
-            if (callbackUri != null && productIdentifier != null)
-            {
-                _endpoint = _endpoint + $"?callbackUri={callbackUri}&productIdentifier={productIdentifier}";
-            }
-            else if (callbackUri != null)
-            {
-                _endpoint = _endpoint + $"?callbackUri={callbackUri}";
-            }
-            else if (productIdentifier != null)
+            if (callbackUri == null && productIdentifier != null)
             {
                 _endpoint = _endpoint + $"?productIdentifier={productIdentifier}";
             }
-        }
-
-        private async Task CheckJobsResponse(HttpResponseMessage responseJobSubmit)
-        {
-            responseJobSubmit.IsSuccessStatusCode.Should().BeTrue($"Expected success status code but got: {responseJobSubmit.StatusCode}");
-
-            var responseContent = await responseJobSubmit.Content.ReadAsStringAsync();
-            _output.WriteLine($"ResponseContent: {responseContent}");
-
-            var responseJson = JsonDocument.Parse(responseContent);
-            var batchId = responseJson.RootElement.GetProperty("fssBatchId").GetString();
-
-            var root = responseJson.RootElement;
-
-            using (new AssertionScope())
+            else if (callbackUri != null)
             {
-                // Check if properties exist and have expected values
-                if (root.TryGetProperty("fssBatchId", out var batchIdElement))
+                // Get the base URL from the HttpClient
+                var baseUrl = (AspireTestHost.httpClientMock!.BaseAddress)!.ToString();
+
+                if (callbackUri.ToLower().Equals("https://valid.com/callback"))
                 {
-                    batchId = batchIdElement.GetString();
-                    Guid.TryParse(batchId, out _).Should().BeTrue($"Expected '{batchId}' to be a valid GUID");
+                    _assertCallbackTxtFile = true;
+                    if (baseUrl.ToLower().StartsWith("http://localhost"))
+                    {
+                        _endpoint = _endpoint + "?callbackUri=https://adds-mocks-efs/callback/callback";
+                    }
+                    else
+                    {
+                        _endpoint = _endpoint + $"?callbackUri=https://adds-mocks-efs.redmoss-3083029b.uksouth.azurecontainerapps.io/callback/callback";
+                    }
                 }
                 else
                 {
-                    Execute.Assertion.FailWith("Response is missing fssBatchId property");
+                    _endpoint = _endpoint + $"?callbackUri={callbackUri}";
+                }
+
+                if (productIdentifier != null)
+                {
+                    _endpoint = _endpoint + $"&productIdentifier={productIdentifier}";
                 }
             }
         }
 
-        private async Task TestExecutionSteps(object payload, string zipFileName)
-        {
-            var responseJobSubmit = await OrchestratorCommands.PostRequestAsync(_requestId, payload, _endpoint);
-            await CheckJobsResponse(responseJobSubmit);
 
-            ApiResponseAssertions apiResponseAssertions = new ApiResponseAssertions(_output);
+        private async Task TestExecutionSteps(object payload, string zipFileName, int expectedRequestedProductCount, int expectedExchangeSetProductCount)
+        {
+            var apiResponseAssertions = new ExchangeSetApiAssertions();
+
+            var responseJobSubmit = await OrchestratorClient.PostRequestAsync(_requestId, payload, _endpoint);
+            var responseContent = await apiResponseAssertions.CheckCustomExSetReqResponce(_requestId, responseJobSubmit, expectedRequestedProductCount, expectedExchangeSetProductCount);
+            _batchId = responseContent.Contains("fssBatchId") ? JsonDocument.Parse(responseContent).RootElement.GetProperty("fssBatchId").GetString()! : "";
 
             _output.WriteLine($"Started waiting for job completion ... {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}");
-            var responseJobStatus = await OrchestratorCommands.WaitForJobCompletionAsync(_requestId);
-            await apiResponseAssertions.checkJobCompletionStatus(responseJobStatus);
+            var responseJobStatus = await OrchestratorClient.WaitForJobCompletionAsync(_requestId);
+            await apiResponseAssertions.CheckJobCompletionStatus(responseJobStatus);
             _output.WriteLine($"Finished waiting for job completion ... {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}");
 
-            var responseBuildStatus = await OrchestratorCommands.GetBuildStatusAsync(_requestId);
-            await apiResponseAssertions.checkBuildStatus(responseBuildStatus);
+            var responseBuildStatus = await OrchestratorClient.GetBuildStatusAsync(_requestId);
+            await apiResponseAssertions.CheckBuildStatus(responseBuildStatus);
 
-            _output.WriteLine($"Trying to download file V01X01_{_requestId}.zip");
-            var exchangeSetDownloadPath = await ZipStructureComparer.DownloadExchangeSetAsZipAsync(_requestId);
-            var sourceZipPath = Path.Combine(AspireResourceSingleton.ProjectDirectory!, "TestData", zipFileName);
+            if (_assertCallbackTxtFile)
+            {
+                _output.WriteLine($"Trying to download file callback-response-{_batchId}.txt ... {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}");
+                var callbackTxtFilePath = await MockFilesClient.DownloadCallbackTxtAsync(_batchId);
+                CallbackResponseAssertions.CompareCallbackResponse(responseContent, callbackTxtFilePath);
+            }
 
-            ZipStructureComparer.CompareZipFilesExactMatch(sourceZipPath, exchangeSetDownloadPath);
+            _output.WriteLine($"Trying to download file V01X01_{_requestId}.zip ... {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}");
+            var exchangeSetDownloadPath = await MockFilesClient.DownloadExchangeSetAsZipAsync(_requestId);
+            var sourceZipPath = Path.Combine(AspireTestHost.ProjectDirectory!, "TestData", zipFileName);
+            ZipArchiveAssertions.CompareZipFilesExactMatch(sourceZipPath, exchangeSetDownloadPath);
         }
 
+        //PBI 246464 - Consume ESS API - Update Since Endpoint
         //PBI 242767 - Input validation for the ESS API - Update Since Endpoint
-        [RetryTheory(maxRetries: 1, delayBetweenRetriesMs: 5000)]
+        [Theory]
         [DisableParallelization] // This test runs in parallel with other tests. However, its test cases are run sequentially.
-        [InlineData("https://valid.com/callback", "s101", HttpStatusCode.Accepted, "")] // Test Case 244582 - Valid Format
-        [InlineData("", "s101", HttpStatusCode.Accepted, "")]
-        [InlineData("https://valid.com/callback", "", HttpStatusCode.Accepted, "")]
-        [InlineData("", "", HttpStatusCode.Accepted, "")]
-        [InlineData("https://valid.com/callback", null, HttpStatusCode.Accepted, "")]
-        [InlineData(null, "s101", HttpStatusCode.Accepted, "")]
-        [InlineData(null, null, HttpStatusCode.Accepted, "")]
-        public async Task ValidateUpdateSincePayloadWithValidDates(string? callbackUri, string? productIdentifier, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
+        [InlineData("https://valid.com/callback", "s101", HttpStatusCode.Accepted, "UpdateSinceProduct.zip", 0, 0, 1)] // Test Case 244582 - Valid Format and Test Case 247827 - Valid Format
+        [InlineData("", "s102", HttpStatusCode.Accepted, "s102UpdateSince.zip", 0, 0, 1)] // Test Case 244585 -  Valid input with blank CallBack Uri
+        [InlineData("https://valid.com/callback", "", HttpStatusCode.Accepted, "WithoutFilter.zip", 0, 0, 4)] // Valid input with blank Product Identifier
+        [InlineData("", "", HttpStatusCode.Accepted, "WithoutFilter.zip", 0, 0, 4)] // Valid input with blank CallBack Uri and Product Identifier
+        [InlineData("https://valid.com/callback", null, HttpStatusCode.Accepted, "WithoutFilter.zip", 0, 0, 4)] // Valid input with null Product Identifier
+        [InlineData(null, "s104", HttpStatusCode.Accepted, "s104UpdateSince.zip", 0, 0, 1)] // Valid input with null CallBack Uri
+        [InlineData(null, null, HttpStatusCode.Accepted, "WithoutFilter.zip", 0, 0, 4)] // Valid input with null CallBack Uri and Product Identifier
+        [InlineData("https://valid.com/callback", "s111", HttpStatusCode.Accepted, "s111UpdateSince.zip", -15, 0, 1)] // Test Case 245730 - Past Date less than 28 days
+        public async Task ValidateUpdateSincePayloadWithValidDates(string? callbackUri, string? productIdentifier, HttpStatusCode expectedStatusCode, string zipFileName, int days, int expectedRequestedProductCount, int expectedExchangeSetProductCount)
         {
-            var requestPayload = $"{{ \"sinceDateTime\": \"{DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")}\" }}";
+            using var scope = new AssertionScope(); // root scope
+
+            var requestPayload = $"{{ \"sinceDateTime\": \"{DateTime.UtcNow.AddDays(days).ToString("yyyy-MM-ddTHH:mm:ss.fffZ")}\" }}";
+            //var requestPayload = $"{{ \"sinceDateTime\": \"{DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")}\" }}";
 
             SetEndpoint(callbackUri, productIdentifier);
 
-            _output.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {requestPayload}\nExpectedStatusCode: {expectedStatusCode}\nExpectedErrorMessage:{expectedErrorMessage}");
+            _output.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {requestPayload}\nExpectedStatusCode: {expectedStatusCode}");
 
-            await SubmitPostRequestAndCheckResponse(_requestId, requestPayload, _endpoint, expectedStatusCode, expectedErrorMessage);
+            await TestExecutionSteps(requestPayload, zipFileName, expectedRequestedProductCount, expectedExchangeSetProductCount);
         }
 
-        [RetryTheory(maxRetries: 1, delayBetweenRetriesMs: 5000)]
+        [Theory]
         [DisableParallelization] // This test runs in parallel with other tests. However, its test cases are run sequentially.
         [InlineData("2025-09-29", "https://valid.com/callback", "s102", HttpStatusCode.BadRequest, "Provided updatesSince is either invalid or invalid format, the valid format is 'ISO 8601 format' (e.g. '2025-09-29T00:00:00Z')")] // Test Case 244583 - Invalid Format when time part is missing
         [InlineData("2025-08-25L07:8:00.00Z", "https://valid.com/callback", "s102", HttpStatusCode.BadRequest, "Provided updatesSince is either invalid or invalid format, the valid format is 'ISO 8601 format' (e.g. '2025-09-29T00:00:00Z')")] // Test Case 244583 - Invalid Format
@@ -128,6 +138,8 @@ namespace UKHO.ADDS.EFS.FunctionalTests
         [InlineData("null", "https://valid.com/callback", "s101", HttpStatusCode.BadRequest, "Provided updatesSince is either invalid or invalid format, the valid format is 'ISO 8601 format' (e.g. '2025-09-29T00:00:00Z')")] // Test Case 246905 - Null sinceDateTime
         public async Task ValidateUpdateSincePayloadWithInvalidDates(string sinceDateTime, string? callbackUri, string? productIdentifier, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
         {
+            using var scope = new AssertionScope(); // root scope
+
             var requestPayload = $"{{ \"sinceDateTime\": \"{sinceDateTime}\" }}";
 
             SetEndpoint(callbackUri, productIdentifier);
@@ -137,12 +149,13 @@ namespace UKHO.ADDS.EFS.FunctionalTests
             await SubmitPostRequestAndCheckResponse(_requestId, requestPayload, _endpoint, expectedStatusCode, expectedErrorMessage);
         }
 
-        [RetryTheory(maxRetries: 1, delayBetweenRetriesMs: 5000)]
+        [Theory]
         [DisableParallelization] // This test runs in parallel with other tests. However, its test cases are run sequentially.
         [InlineData("https//invalid.com/callback", "s101", HttpStatusCode.BadRequest, "URI is malformed or does not use HTTPS")] // Test Case 244586 -  Invalid CallBack Uri Format
-        [InlineData("", "s102", HttpStatusCode.Accepted, "")] // Test Case 244585 -  Valid input with blank CallBack Uri
         public async Task ValidateUpdateSincePayloadWithInvalidAndBlankCallBackUri(string? callbackUri, string? productIdentifier, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
         {
+            using var scope = new AssertionScope(); // root scope
+
             var requestPayload = $"{{ \"sinceDateTime\": \"{DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")}\" }}";
 
             SetEndpoint(callbackUri, productIdentifier);
@@ -152,14 +165,15 @@ namespace UKHO.ADDS.EFS.FunctionalTests
             await SubmitPostRequestAndCheckResponse(_requestId, requestPayload, _endpoint, expectedStatusCode, expectedErrorMessage);
         }
 
-        [RetryTheory(maxRetries: 1, delayBetweenRetriesMs: 5000)]
+        [Theory]
         [DisableParallelization] // This test runs in parallel with other tests. However, its test cases are run sequentially.
         [InlineData(-28, "https://valid.com/callback", "s101", HttpStatusCode.BadRequest, "Date time provided is more than 28 days in the past")] // Test Case 244584 - Date is of 28th day in the past
-        [InlineData(-14, "https://valid.com/callback", "s102", HttpStatusCode.Accepted, "")] // Test Case 245730 - Past Date less than 28 days
         [InlineData(-35, "https://valid.com/callback", "s104", HttpStatusCode.BadRequest, "Date time provided is more than 28 days in the past")] // Test Case 245720 - Date more than 28 days in the past
         [InlineData(1, "https://valid.com/callback", "s111", HttpStatusCode.BadRequest, "UpdateSince date cannot be a future date")] // Test Case 245121 - Future Date
         public async Task ValidateUpdateSincePayloadWithPastAndFutureDates(int days, string? callbackUri, string? productIdentifier, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
         {
+            using var scope = new AssertionScope(); // root scope
+
             var requestPayload = $"{{ \"sinceDateTime\": \"{DateTime.UtcNow.AddDays(days).ToString("yyyy-MM-ddTHH:mm:ss.fffZ")}\" }}";
 
             SetEndpoint(callbackUri, productIdentifier);
@@ -169,26 +183,14 @@ namespace UKHO.ADDS.EFS.FunctionalTests
             await SubmitPostRequestAndCheckResponse(_requestId, requestPayload, _endpoint, expectedStatusCode, expectedErrorMessage);
         }
 
-        //PBI 246464 - Consume ESS API - Update Since Endpoint
         [Theory]
-        [InlineData("https://valid.com/callback", "s101", HttpStatusCode.Accepted, "UpdateSinceProduct.zip")] // Test Case 247827 - Valid Format
-        public async Task ValidateConsumeUpdateSinceEndpointWithValidDates(string callbackUri, string productIdentifier, HttpStatusCode expectedStatusCode, string zipFileName)
-        {
-            var requestPayload = $"{{ \"sinceDateTime\": \"{DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")}\" }}";
-
-            SetEndpoint(callbackUri, productIdentifier);
-
-            _output.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {requestPayload}\nExpectedStatusCode: {expectedStatusCode}");
-
-            await TestExecutionSteps(requestPayload, zipFileName);
-        }
-
-        [RetryTheory(maxRetries: 1, delayBetweenRetriesMs: 5000)]
         [DisableParallelization] // This test runs in parallel with other tests. However, its test cases are run sequentially.
         [InlineData("https://valid.com/callback", "S333", HttpStatusCode.BadRequest, "Invalid product identifier, It must be exactly 4 characters, starting with 'S' or 's' followed by a valid 3-digit product code")] // Test Case 244907 - Invalid Product Identifier Format
         [InlineData("https://valid.com/callback", "S101, s102", HttpStatusCode.BadRequest, "Invalid product identifier, It must be exactly 4 characters, starting with 'S' or 's' followed by a valid 3-digit product code")] // Test Case 244907 - Invalid Product Identifier Format
         public async Task ValidateUpdateSincePayloadWithInvalidProductIdentifier(string? callbackUri, string? productIdentifier, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
         {
+            using var scope = new AssertionScope(); // root scope
+
             var requestPayload = $"{{ \"sinceDateTime\": \"{DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")}\" }}";
 
             SetEndpoint(callbackUri, productIdentifier);
