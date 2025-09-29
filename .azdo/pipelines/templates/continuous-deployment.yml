@@ -245,7 +245,10 @@ jobs:
             URL="https://efs-orchestrator.$DOMAIN"
             echo "Orchestrator Endpoint: $URL"
             echo "##vso[task.setvariable variable=ORCHESTRATOR_URL]$URL"
-          displayName: 'Set Orchestrator Endpoint Variable'
+            MockURL="https://adds-mocks-efs.$DOMAIN"
+            echo "Adds Mock Endpoint: $MockURL"
+            echo "##vso[task.setvariable variable=ADDSMOCK_URL]$MockURL"
+          displayName: 'Set Endpoint Variables'
           workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
 
         - task: PowerShell@2
@@ -254,3 +257,27 @@ jobs:
             targetType: filePath
             filePath: "$(Build.SourcesDirectory)/efs/.azdo/pipelines/powershell/CheckServiceStatus.ps1"
             arguments: "-healthEndPointUrl $(ORCHESTRATOR_URL)/health -waitTimeInMinute 2 -onErrorContinue 0"
+
+        # - task: DotNetCoreCLI@2
+        #   displayName: ".Net Core - NuGet restore test projects only"
+        #   inputs:
+        #     command: restore
+        #     projects: "**/UKHO.ADDS.EFS.FunctionalTests.csproj"
+        #     feedsToUse: config
+        #     noCache: true
+        #     nugetConfigPath: '$(Build.SourcesDirectory)/efs/BuildNuget.config'
+        #     workingDirectory: '$(Build.SourcesDirectory)/efs'
+        #     restoreDirectory: '$(Build.SourcesDirectory)/efs/packagesForTests'
+
+        # - task: DotNetCoreCLI@2
+        #   displayName: Run Functional tests
+        #   inputs:
+        #     command: test
+        #     projects: "**/UKHO.ADDS.EFS.FunctionalTests.csproj"
+        #     arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)/efs/test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura --no-restore'
+        #     publishTestResults: true
+        #     testRunTitle: FunctionalTests
+        #     restoreDirectory: '$(Build.SourcesDirectory)/efs/packagesForTests'
+        #   env:
+        #     ORCHESTRATOR_URL: $(ORCHESTRATOR_URL)
+        #     ADDSMOCK_URL: $(ADDSMOCK_URL)
