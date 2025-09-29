@@ -45,11 +45,9 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
 
             try
             {
-                var source = _configuration["orchestrator:CloudEventNotification:Source"];
-
                 var cloudEvent = new CloudEventNotification
                 {
-                    Source = source,
+                    Source = _configuration["orchestrator:CloudEventNotification:Source"],
                     Id = Guid.NewGuid().ToString(),
                     Time = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ"),
                     Data = exchangeSetData
