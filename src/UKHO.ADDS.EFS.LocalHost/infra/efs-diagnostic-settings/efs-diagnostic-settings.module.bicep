@@ -21,7 +21,6 @@ resource diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-pr
     eventHubAuthorizationRuleId: eventHubAuthorizationRuleId
     eventHubName: eventHubName
     logs: [
-      /* Storage Account level logs */
       {
         category: 'StorageRead'
         enabled: true
@@ -38,21 +37,20 @@ resource diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-pr
         category: 'Transaction'
         enabled: true
       }
-      /* Service-specific logs */
       {
-        category: 'BlobStorage'    // Blob operations
+        category: 'BlobStorage'
         enabled: true
       }
       {
-        category: 'QueueStorage'   // Queue operations
+        category: 'QueueStorage'
         enabled: true
       }
       {
-        category: 'TableStorage'   // Table operations
+        category: 'TableStorage'
         enabled: true
       }
       {
-        category: 'FileStorage'    // File share operations
+        category: 'FileStorage'
         enabled: true
       }
     ]
