@@ -65,9 +65,6 @@ resource diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-pr
       }
     ]
   }
-  tags: {
-    'hidden-title': 'EFS'
-  }
 }
 
 output diagnosticSettingsId string = diagnosticSettings.id
