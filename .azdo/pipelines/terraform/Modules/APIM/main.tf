@@ -80,6 +80,7 @@ resource "azurerm_api_management_product_policy" "efs_product_policy" {
   xml_content = <<XML
 	<policies>
 	  <inbound>
+       <base />
 		 <rate-limit calls="${var.product_rate_limit.calls}" renewal-period="${var.product_rate_limit.renewal-period}" retry-after-header-name="retry-after" remaining-calls-header-name="remaining-calls" />
 		 <quota calls="${var.product_quota.calls}" renewal-period="${var.product_quota.renewal-period}" />
 
@@ -91,7 +92,6 @@ resource "azurerm_api_management_product_policy" "efs_product_policy" {
             </audiences>
           </validate-jwt>
 
-		 <base />
 	  </inbound>
 	</policies>
 	XML
