@@ -12,18 +12,12 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
 {
     [Collection("Startup Collection")]
     [EnableParallelization] // Needed to parallelize inside the class, not just between classes
-    public class UpdateSinceFunctionalTests : FunctionalTestBase
+    public class UpdateSinceFunctionalTests(StartupFixture startup, ITestOutputHelper output) : FunctionalTestBase(startup, output)
     {
-        private readonly string _requestId = "";
+        private readonly string _requestId = $"job-updateSinceAutoTest-" + Guid.NewGuid();
         private string _batchId = "";
         private string _endpoint = "/v2/exchangeSet/s100/updatesSince";
         private bool _assertCallbackTxtFile = false;
-
-
-        public UpdateSinceFunctionalTests(StartupFixture startup, ITestOutputHelper output) : base(startup, output)
-        {
-            _requestId = $"job-updateSinceAutoTest-" + Guid.NewGuid();
-        }
 
         private async Task SubmitPostRequestAndCheckResponse(string requestId, object requestPayload, string endpoint, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
         {
@@ -43,33 +37,33 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
         {
             if (callbackUri == null && productIdentifier != null)
             {
-                _endpoint = _endpoint + $"?productIdentifier={productIdentifier}";
+                _endpoint += $"?productIdentifier={productIdentifier}";
             }
             else if (callbackUri != null)
             {
                 // Get the base URL from the HttpClient
                 var baseUrl = (AspireTestHost.httpClientMock!.BaseAddress)!.ToString();
 
-                if (callbackUri.ToLower().Equals("https://valid.com/callback"))
+                if (string.Equals(callbackUri, "https://valid.com/callback", StringComparison.OrdinalIgnoreCase))
                 {
                     _assertCallbackTxtFile = true;
-                    if (baseUrl.ToLower().StartsWith("http://localhost"))
+                    if (baseUrl.StartsWith("http://localhost", StringComparison.OrdinalIgnoreCase))
                     {
-                        _endpoint = _endpoint + "?callbackUri=https://adds-mocks-efs/callback/callback";
+                        _endpoint += "?callbackUri=https://adds-mocks-efs/callback/callback";
                     }
                     else
                     {
-                        _endpoint = _endpoint + $"?callbackUri=https://adds-mocks-efs.redmoss-3083029b.uksouth.azurecontainerapps.io/callback/callback";
+                        _endpoint += $"?callbackUri=https://adds-mocks-efs.redmoss-3083029b.uksouth.azurecontainerapps.io/callback/callback";
                     }
                 }
                 else
                 {
-                    _endpoint = _endpoint + $"?callbackUri={callbackUri}";
+                    _endpoint += $"?callbackUri={callbackUri}";
                 }
 
                 if (productIdentifier != null)
                 {
-                    _endpoint = _endpoint + $"&productIdentifier={productIdentifier}";
+                    _endpoint += $"&productIdentifier={productIdentifier}";
                 }
             }
         }
@@ -83,22 +77,22 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
             var responseContent = await apiResponseAssertions.CheckCustomExSetReqResponse(_requestId, responseJobSubmit, expectedRequestedProductCount, expectedExchangeSetProductCount);
             _batchId = responseContent.Contains("fssBatchId") ? JsonDocument.Parse(responseContent).RootElement.GetProperty("fssBatchId").GetString()! : "";
 
-            _output.WriteLine($"Started waiting for job completion ... {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}");
+            _output.WriteLine($"Started waiting for job completion ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
             var responseJobStatus = await OrchestratorClient.WaitForJobCompletionAsync(_requestId);
             await apiResponseAssertions.CheckJobCompletionStatus(responseJobStatus);
-            _output.WriteLine($"Finished waiting for job completion ... {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}");
+            _output.WriteLine($"Finished waiting for job completion ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
 
             var responseBuildStatus = await OrchestratorClient.GetBuildStatusAsync(_requestId);
             await apiResponseAssertions.CheckBuildStatus(responseBuildStatus);
 
             if (_assertCallbackTxtFile)
             {
-                _output.WriteLine($"Trying to download file callback-response-{_batchId}.txt ... {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}");
+                _output.WriteLine($"Trying to download file callback-response-{_batchId}.txt ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
                 var callbackTxtFilePath = await MockFilesClient.DownloadCallbackTxtAsync(_batchId);
                 CallbackResponseAssertions.CompareCallbackResponse(responseContent, callbackTxtFilePath);
             }
 
-            _output.WriteLine($"Trying to download file V01X01_{_requestId}.zip ... {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}");
+            _output.WriteLine($"Trying to download file V01X01_{_requestId}.zip ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
             var exchangeSetDownloadPath = await MockFilesClient.DownloadExchangeSetAsZipAsync(_requestId);
             var sourceZipPath = Path.Combine(AspireTestHost.ProjectDirectory!, "TestData", zipFileName);
             ZipArchiveAssertions.CompareZipFilesExactMatch(sourceZipPath, exchangeSetDownloadPath, products);
@@ -108,22 +102,22 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
         //PBI 242767 - Input validation for the ESS API - Update Since Endpoint
         [Theory]
         [DisableParallelization] // This test runs in parallel with other tests. However, its test cases are run sequentially.
-        [InlineData("https://valid.com/callback", "s101", HttpStatusCode.Accepted, "s101UpdateSinceProduct.zip", 0, 0, 1, new object[] { "101GB40079ABCDEFG" })] // Test Case 244582 - Valid Format and Test Case 247827 - Valid Format
-        [InlineData("", "s102", HttpStatusCode.Accepted, "s102UpdateSinceProduct.zip", 0, 0, 1, new object[] { "102NO32904820801012" })] // Test Case 244585 -  Valid input with blank CallBack Uri
-        [InlineData(null, "s104", HttpStatusCode.Accepted, "s104UpdateSinceProduct.zip", 0, 0, 1, new object[] { "104US00_CHES_TYPE1_20210630_0600" })] // Valid input with null CallBack Uri
-        [InlineData("https://valid.com/callback", "s111", HttpStatusCode.Accepted, "s111UpdateSinceProduct.zip", -15, 0, 1, new object[] { "111US00_CHES_DCF8_20190703T00Z" })] // Test Case 245730 - Past Date less than 28 days
-        public async Task ValidateUSWithValidPayloadHavingProductIdentifier(string? callbackUri, string? productIdentifier, HttpStatusCode expectedStatusCode, string zipFileName, int days, int expectedRequestedProductCount, int expectedExchangeSetProductCount, object[] productNames)
+        [InlineData("https://valid.com/callback", "s101", HttpStatusCode.Accepted, "s101UpdateSinceProduct.zip", 0, 0, 1, new [] { "101GB40079ABCDEFG" })] // Test Case 244582 - Valid Format and Test Case 247827 - Valid Format
+        [InlineData("", "s102", HttpStatusCode.Accepted, "s102UpdateSinceProduct.zip", 0, 0, 1, new [] { "102NO32904820801012" })] // Test Case 244585 -  Valid input with blank CallBack Uri
+        [InlineData(null, "s104", HttpStatusCode.Accepted, "s104UpdateSinceProduct.zip", 0, 0, 1, new [] { "104US00_CHES_TYPE1_20210630_0600" })] // Valid input with null CallBack Uri
+        [InlineData("https://valid.com/callback", "s111", HttpStatusCode.Accepted, "s111UpdateSinceProduct.zip", -15, 0, 1, new [] { "111US00_CHES_DCF8_20190703T00Z" })] // Test Case 245730 - Past Date less than 28 days
+        public async Task ValidateUSWithValidPayloadHavingProductIdentifier(string? callbackUri, string? productIdentifier, HttpStatusCode expectedStatusCode, string zipFileName, int days, int expectedRequestedProductCount, int expectedExchangeSetProductCount, string[] productNames)
         {
             using var scope = new AssertionScope(); // root scope
 
-            var requestPayload = $"{{ \"sinceDateTime\": \"{DateTime.UtcNow.AddDays(days).ToString("yyyy-MM-ddTHH:mm:ss.fffZ")}\" }}";
+            var requestPayload = $"{{ \"sinceDateTime\": \"{DateTime.UtcNow.AddDays(days):yyyy-MM-ddTHH:mm:ss.fffZ}\" }}";
             //var requestPayload = $"{{ \"sinceDateTime\": \"{DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")}\" }}";
 
             SetEndpoint(callbackUri, productIdentifier);
 
             _output.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {requestPayload}\nExpectedStatusCode: {expectedStatusCode}");
 
-            await TestExecutionSteps(requestPayload, zipFileName, expectedRequestedProductCount, expectedExchangeSetProductCount);
+            await TestExecutionSteps(requestPayload, zipFileName, expectedRequestedProductCount, expectedExchangeSetProductCount, productNames);
         }
 
         [Theory]
@@ -135,7 +129,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
         {
             using var scope = new AssertionScope(); // root scope
 
-            var requestPayload = $"{{ \"sinceDateTime\": \"{DateTime.UtcNow.AddDays(days).ToString("yyyy-MM-ddTHH:mm:ss.fffZ")}\" }}";
+            var requestPayload = $"{{ \"sinceDateTime\": \"{DateTime.UtcNow.AddDays(days):yyyy-MM-ddTHH:mm:ss.fffZ}\" }}";
             //var requestPayload = $"{{ \"sinceDateTime\": \"{DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")}\" }}";
 
             SetEndpoint(callbackUri, productIdentifier);
@@ -173,7 +167,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
         {
             using var scope = new AssertionScope(); // root scope
 
-            var requestPayload = $"{{ \"sinceDateTime\": \"{DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")}\" }}";
+            var requestPayload = $"{{ \"sinceDateTime\": \"{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ss.fffZ}\" }}";
 
             SetEndpoint(callbackUri, productIdentifier);
 
@@ -191,7 +185,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
         {
             using var scope = new AssertionScope(); // root scope
 
-            var requestPayload = $"{{ \"sinceDateTime\": \"{DateTime.UtcNow.AddDays(days).ToString("yyyy-MM-ddTHH:mm:ss.fffZ")}\" }}";
+            var requestPayload = $"{{ \"sinceDateTime\": \"{DateTime.UtcNow.AddDays(days):yyyy-MM-ddTHH:mm:ss.fffZ}\" }}";
 
             SetEndpoint(callbackUri, productIdentifier);
 
@@ -208,7 +202,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
         {
             using var scope = new AssertionScope(); // root scope
 
-            var requestPayload = $"{{ \"sinceDateTime\": \"{DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")}\" }}";
+            var requestPayload = $"{{ \"sinceDateTime\": \"{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ss.fffZ}\" }}";
 
             SetEndpoint(callbackUri, productIdentifier);
 

@@ -12,18 +12,12 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
 {
     [Collection("Startup Collection")]
     [EnableParallelization] // Needed to parallelize inside the class, not just between classes
-    public class ProductNamesFunctionalTests : FunctionalTestBase
+    public class ProductNamesFunctionalTests(StartupFixture startup, ITestOutputHelper output) : FunctionalTestBase(startup, output)
     {
-        private readonly string _requestId = "";
+        private readonly string _requestId = $"job-productNamesAutoTest-" + Guid.NewGuid();
         private string _batchId = "";
         private string _endpoint = "/v2/exchangeSet/s100/productNames";
         private bool _assertCallbackTxtFile = false;
-
-
-        public ProductNamesFunctionalTests(StartupFixture startup, ITestOutputHelper output) : base(startup, output)
-        {
-            _requestId = $"job-productNamesAutoTest-" + Guid.NewGuid();
-        }
 
 
         private async Task SubmitPostRequestAndCheckResponse(string requestId, object requestPayload, string endpoint, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
@@ -47,21 +41,21 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
                 // Get the base URL from the HttpClient
                 var baseUrl = (AspireTestHost.httpClientMock!.BaseAddress)!.ToString();
 
-                if (callbackUri.ToLower().Equals("https://valid.com/callback"))
+                if (string.Equals(callbackUri, "https://valid.com/callback", StringComparison.OrdinalIgnoreCase))
                 {
                     _assertCallbackTxtFile = true;
-                    if (baseUrl.ToLower().StartsWith("http://localhost"))
+                    if (baseUrl.StartsWith("http://localhost", StringComparison.OrdinalIgnoreCase))
                     {
-                        _endpoint = _endpoint + "?callbackUri=https://adds-mocks-efs/callback/callback";
+                        _endpoint += "?callbackUri=https://adds-mocks-efs/callback/callback";
                     }
                     else
                     {
-                        _endpoint = _endpoint + $"?callbackUri=https://adds-mocks-efs.redmoss-3083029b.uksouth.azurecontainerapps.io/callback/callback";
+                        _endpoint += $"?callbackUri=https://adds-mocks-efs.redmoss-3083029b.uksouth.azurecontainerapps.io/callback/callback";
                     }
                 }
                 else
                 {
-                    _endpoint = _endpoint + $"?callbackUri={callbackUri}";
+                    _endpoint += $"?callbackUri={callbackUri}";
                 }
             }
         }
@@ -75,22 +69,22 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
             var responseContent = await apiResponseAssertions.CheckCustomExSetReqResponse(_requestId, responseJobSubmit, expectedRequestedProductCount, expectedExchangeSetProductCount);
             _batchId = responseContent.Contains("fssBatchId") ? JsonDocument.Parse(responseContent).RootElement.GetProperty("fssBatchId").GetString()! : "";
 
-            _output.WriteLine($"Started waiting for job completion ... {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}");
+            _output.WriteLine($"Started waiting for job completion ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
             var responseJobStatus = await OrchestratorClient.WaitForJobCompletionAsync(_requestId);
             await apiResponseAssertions.CheckJobCompletionStatus(responseJobStatus);
-            _output.WriteLine($"Finished waiting for job completion ... {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}");
+            _output.WriteLine($"Finished waiting for job completion ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
 
             var responseBuildStatus = await OrchestratorClient.GetBuildStatusAsync(_requestId);
             await apiResponseAssertions.CheckBuildStatus(responseBuildStatus);
 
             if (_assertCallbackTxtFile)
             {
-                _output.WriteLine($"Trying to download file callback-response-{_batchId}.txt ... {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}");
+                _output.WriteLine($"Trying to download file callback-response-{_batchId}.txt ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
                 var callbackTxtFilePath = await MockFilesClient.DownloadCallbackTxtAsync(_batchId);
                 CallbackResponseAssertions.CompareCallbackResponse(responseContent, callbackTxtFilePath);
             }
 
-            _output.WriteLine($"Trying to download file V01X01_{_requestId}.zip ... {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}");
+            _output.WriteLine($"Trying to download file V01X01_{_requestId}.zip ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
             var exchangeSetDownloadPath = await MockFilesClient.DownloadExchangeSetAsZipAsync(_requestId);
             var sourceZipPath = Path.Combine(AspireTestHost.ProjectDirectory!, "TestData", zipFileName);
             ZipArchiveAssertions.CompareZipFilesExactMatch(sourceZipPath, exchangeSetDownloadPath, (string[]?)payload);
