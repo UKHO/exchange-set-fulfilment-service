@@ -13,21 +13,15 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
 {
     [Collection("Startup Collection")]
     [EnableParallelization] // Needed to parallelize inside the class, not just between classes
-    public class FunctionalTests : FunctionalTestBase
+    public class FunctionalTests(StartupFixture startup, ITestOutputHelper output) : FunctionalTestBase(startup, output)
     {
-        private string _jobId = "";
-        private string _endpoint = "/jobs";
+        private readonly string _jobId = $"job-autoTest-" + Guid.NewGuid();
+        private readonly string _endpoint = "/jobs";
 
-        public FunctionalTests(StartupFixture startup, ITestOutputHelper output) : base(startup, output)
+        private static dynamic CreatePayload(string filter = "", object[]? products = null)
         {
-            _jobId = $"job-autoTest-" + Guid.NewGuid();
-        }
-
-
-        private object CreatePayload(string filter = "", object[]? products = null)
-        {
-            products ??= new object[] { "" };
-            var payload = new { dataStandard = "s100", products = products, filter = $"{filter}" };
+            products ??= [""];
+            var payload = new { dataStandard = "s100", products, filter = $"{filter}" };
             return payload;
         }
 
@@ -111,10 +105,10 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
 
             var apiResponseAssertions = new ExchangeSetApiAssertions();
 
-            _output.WriteLine($"Started waiting for job completion ... {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}");
+            _output.WriteLine($"Started waiting for job completion ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
             var responseJobStatus = await OrchestratorClient.WaitForJobCompletionAsync(_jobId);
             await apiResponseAssertions.CheckJobCompletionStatus(responseJobStatus);
-            _output.WriteLine($"Finished waiting for job completion ... {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}");
+            _output.WriteLine($"Finished waiting for job completion ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
 
             var responseBuildStatus = await OrchestratorClient.GetBuildStatusAsync(_jobId);
             await apiResponseAssertions.CheckBuildStatus(responseBuildStatus);
