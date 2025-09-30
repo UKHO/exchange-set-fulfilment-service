@@ -1,7 +1,6 @@
 using System.Text.Json;
 using FluentAssertions.Execution;
 using Meziantou.Xunit;
-using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.FunctionalTests.Assertions;
 using UKHO.ADDS.EFS.FunctionalTests.Framework;
 using UKHO.ADDS.EFS.FunctionalTests.Http;

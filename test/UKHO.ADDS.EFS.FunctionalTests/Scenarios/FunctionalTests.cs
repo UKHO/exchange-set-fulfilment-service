@@ -130,9 +130,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
         [InlineData("WithoutFilter.zip")]
         public async Task S100FullExchSetTests(string zipFileName)
         {
-
             await TestExecutionSteps(CreatePayload(), zipFileName);
-
         }
 
 
@@ -143,9 +141,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
         [InlineData("ProductName eq '111FR00_20241217T001500Z_GB3DEVK0_DCF2'", "Single111Product.zip")]
         public async Task S100FilterTests00(string filter, string zipFileName)
         {
-
             await TestExecutionSteps(CreatePayload(filter), zipFileName);
-
         }
 
         [Theory]
@@ -153,9 +149,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
         [InlineData("ProductName eq '101GB004DEVQK' or startswith(ProductName, '104')", "SingleProductAndStartWithS104Products.zip")]
         public async Task S100FilterTests01(string filter, string zipFileName)
         {
-
             await TestExecutionSteps(CreatePayload(filter), zipFileName);
-
         }
 
 
@@ -166,9 +160,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
         [InlineData("startswith(ProductName, '111')", "StartWithS111Products.zip")]
         public async Task S100FilterTests02(string filter, string zipFileName)
         {
-
             await TestExecutionSteps(CreatePayload(filter), zipFileName);
-
         }
 
         [Theory]
@@ -177,9 +169,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
         [InlineData("startswith(ProductName, '111') or startswith(ProductName, '121')", "StartWithS111Products.zip")]
         public async Task S100FilterTests03(string filter, string zipFileName)
         {
-
             await TestExecutionSteps(CreatePayload(filter), zipFileName);
-
         }
 
         //Negative scenarios
@@ -188,7 +178,6 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
         [InlineData("ProductName eq '131GB004DEVQK'")]
         public async Task S100FilterTestsWithInvalidIdentifier(string filter)
         {
-
             var responseFromJob = await OrchestratorClient.PostRequestAsync(_jobId, CreatePayload(filter), _endpoint);
             await CheckJobsResponse(responseFromJob, expectedJobStatus: "upToDate", expectedBuildStatus: "none");
         }
@@ -206,7 +195,6 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
         {
             var productNames = new string[] { "104CA00_20241103T001500Z_GB3DEVK0_DCF2", "101GB004DEVQP", "101FR005DEVQG" };
             await TestExecutionSteps(CreatePayload(filter: "startswith(ProductName, '101')", products: productNames), "SelectedProductsOnly.zip");
-
         }
     }
 }

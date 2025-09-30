@@ -1,4 +1,4 @@
-# UKHO.ADDS.EFS.FunctionalTests
+﻿# UKHO.ADDS.EFS.FunctionalTests
 
 ## Overview
 
@@ -75,6 +75,7 @@ Abstract base class providing:
 - Ambient test output context via a disposable scope
 - Implements `IDisposable` to restore logging context on teardown
 
+
 #### TestOutput (Diagnostics)
 Static context class that:
 - Provides ambient access to xUnit's `ITestOutputHelper` across the test project
@@ -131,11 +132,14 @@ Tests the `/v2/exchangeSet/s100/productNames` endpoint:
 - Callback URI handling (with and without callbacks)
 - Exchange set generation and structure validation
 
+
 #### JobsFunctionalTests
+
 Core job management tests:
 - General job submission and monitoring
 - Build process validation
 - End-to-end exchange set generation workflows
+
 
 #### ProductVersionsFunctionalTests, UpdateSinceFunctionalTests
 - Endpoint-specific happy-path and validation scenarios similar to ProductNames tests
@@ -160,6 +164,7 @@ public async Task Product_journey()
     // Leaving the method disposes 'scope' and throws once if any assertion failed.
 }
 ```
+
 
 Helper methods do not need to (and generally should not) create their own `AssertionScope` unless you want to locally group or label messages. Just write normal FluentAssertions:
 ```
@@ -214,10 +219,16 @@ using UKHO.ADDS.EFS.FunctionalTests.Framework;
 [EnableParallelization]
 public class MyNewFunctionalTests : FunctionalTestBase
 {
-    public MyNewFunctionalTests(StartupFixture startup, ITestOutputHelper output) 
-        : base(startup, output)
+    public MyNewFunctionalTests(StartupFixture startup, ITestOutputHelper output) : base(startup, output) { }
+
+    [Fact]
+    public async Task MyTest()
     {
-        // Test-specific initialization
+        using var scope = new AssertionScope();
+
+        value1.Should().NotBeNull();
+        value2.Should().BeGreaterThan(0);
+        value3.Should().Be(expected);
     }
 }
 ```
@@ -232,6 +243,7 @@ public async Task MyTestMethod(string p1, string p2, HttpStatusCode expectedStat
     using var scope = new AssertionScope();
 
     var response = await OrchestratorClient.PostRequestAsync(...);
+
     response.StatusCode.Should().Be(expectedStatus);
 
     if (!string.IsNullOrEmpty(expectedError))
@@ -240,6 +252,7 @@ public async Task MyTestMethod(string p1, string p2, HttpStatusCode expectedStat
 ```
 
 ## Job Submission and Monitoring Pattern
+
 1. Submit job: `var response = await OrchestratorClient.PostRequestAsync(requestId, payload, endpoint);`
 2. Wait for completion: `var jobStatusResponse = await OrchestratorClient.WaitForJobCompletionAsync(jobId);`
 3. Validate status: `await new ExchangeSetApiAssertions().CheckJobCompletionStatus(jobStatusResponse);`
@@ -261,4 +274,3 @@ Test data files are located in the `TestData/` folder and include:
 - Exchange set validation samples
 
 Use `[CopyToOutputDirectory]` in the project file to ensure test data is available at runtime.
-
