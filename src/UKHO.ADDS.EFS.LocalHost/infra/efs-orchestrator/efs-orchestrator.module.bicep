@@ -177,7 +177,7 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2025-02-02-preview' = {
               value: efs_b2c_app_instance
             }
             {
-              name: 'AZURE_EFS_B2C_APP_SIGNIN_POLICY'
+              name: 'EFS_B2C_APP_SIGNIN_POLICY'
               value: efs_b2c_app_signin_policy
             }
           ]
