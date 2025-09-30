@@ -5,6 +5,7 @@ using Microsoft.Kiota.Abstractions;
 using Microsoft.Kiota.Http.HttpClientLibrary.Middleware.Options;
 using UKHO.ADDS.Clients.Kiota.SalesCatalogueService;
 using UKHO.ADDS.Clients.Kiota.SalesCatalogueService.Models;
+using UKHO.ADDS.Clients.Kiota.SalesCatalogueService.V1.ProductData.Item.Products.ProductIdentifiers;
 using UKHO.ADDS.EFS.Domain.Constants;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
@@ -165,7 +166,11 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                         .GetAsync(
                             requestConfiguration =>
                             {
-                                requestConfiguration.QueryParameters.ProductIdentifier = productIdentifier.AsEnum.ToString();
+                                if (productIdentifier != DataStandardProduct.Undefined)
+                                {
+                                    requestConfiguration.QueryParameters.ProductIdentifier = productIdentifier.AsEnum.ToString();
+                                }
+
                                 requestConfiguration.QueryParameters.SinceDateTime = DateTimeOffset.Parse(sinceDateTime);
                                 requestConfiguration.Headers.Add(ApiHeaderKeys.XCorrelationIdHeaderKey, (string)job.GetCorrelationId());
                             },

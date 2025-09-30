@@ -20,6 +20,8 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
 
         public async Task DisposeAsync()
         {
+            Console.WriteLine("Disposing AssemblySetup");
+
             if (_singleton != null)
             {
                 await _singleton.DisposeAsync();

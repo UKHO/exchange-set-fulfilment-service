@@ -2,6 +2,7 @@
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Meziantou.Xunit;
+using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.FunctionalTests.Services;
 using xRetry;
 using Xunit.Abstractions;
@@ -12,7 +13,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests
     [EnableParallelization] // Needed to parallelize inside the class, not just between classes
     public class UpdateSinceFunctionalTests : TestBase
     {
-        private string _requestId = "";
+        private string _requestId = "", _batchId = "";
         private string _endpoint = "/v2/exchangeSet/s100/updatesSince";
 
 
@@ -50,53 +51,27 @@ namespace UKHO.ADDS.EFS.FunctionalTests
             }
         }
 
-        private async Task CheckJobsResponse(HttpResponseMessage responseJobSubmit)
-        {
-            responseJobSubmit.IsSuccessStatusCode.Should().BeTrue($"Expected success status code but got: {responseJobSubmit.StatusCode}");
-
-            var responseContent = await responseJobSubmit.Content.ReadAsStringAsync();
-            _output.WriteLine($"ResponseContent: {responseContent}");
-
-            var responseJson = JsonDocument.Parse(responseContent);
-            var batchId = responseJson.RootElement.GetProperty("fssBatchId").GetString();
-
-            var root = responseJson.RootElement;
-
-            using (new AssertionScope())
-            {
-                // Check if properties exist and have expected values
-                if (root.TryGetProperty("fssBatchId", out var batchIdElement))
-                {
-                    batchId = batchIdElement.GetString();
-                    Guid.TryParse(batchId, out _).Should().BeTrue($"Expected '{batchId}' to be a valid GUID");
-                }
-                else
-                {
-                    Execute.Assertion.FailWith("Response is missing fssBatchId property");
-                }
-            }
-        }
 
         private async Task TestExecutionSteps(object payload, string zipFileName)
         {
-            var responseJobSubmit = await OrchestratorCommands.PostRequestAsync(_requestId, payload, _endpoint);
-            await CheckJobsResponse(responseJobSubmit);
+            ApiResponseAssertions apiResponseAssertions = new ApiResponseAssertions();
 
-            ApiResponseAssertions apiResponseAssertions = new ApiResponseAssertions(_output);
+            var responseJobSubmit = await OrchestratorCommands.PostRequestAsync(_requestId, payload, _endpoint);
+            var responseContent = await apiResponseAssertions.CheckCustomExSetReqResponse(_requestId, responseJobSubmit);
+            _batchId = responseContent.Contains("fssBatchId") ? JsonDocument.Parse(responseContent).RootElement.GetProperty("fssBatchId").GetString()! : "";
 
             _output.WriteLine($"Started waiting for job completion ... {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}");
             var responseJobStatus = await OrchestratorCommands.WaitForJobCompletionAsync(_requestId);
-            await apiResponseAssertions.checkJobCompletionStatus(responseJobStatus);
+            await apiResponseAssertions.CheckJobCompletionStatus(responseJobStatus);
             _output.WriteLine($"Finished waiting for job completion ... {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}");
 
             var responseBuildStatus = await OrchestratorCommands.GetBuildStatusAsync(_requestId);
-            await apiResponseAssertions.checkBuildStatus(responseBuildStatus);
+            await apiResponseAssertions.CheckBuildStatus(responseBuildStatus);
 
-            _output.WriteLine($"Trying to download file V01X01_{_requestId}.zip");
-            var exchangeSetDownloadPath = await ZipStructureComparer.DownloadExchangeSetAsZipAsync(_requestId);
+            _output.WriteLine($"Trying to download file V01X01_{_requestId}.zip ... {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}");
+            var exchangeSetDownloadPath = await FileDownloadFromMock.DownloadExchangeSetAsZipAsync(_requestId);
             var sourceZipPath = Path.Combine(AspireResourceSingleton.ProjectDirectory!, "TestData", zipFileName);
-
-            ZipStructureComparer.CompareZipFilesExactMatch(sourceZipPath, exchangeSetDownloadPath);
+            FileComparer.CompareZipFilesExactMatch(sourceZipPath, exchangeSetDownloadPath);
         }
 
         //PBI 242767 - Input validation for the ESS API - Update Since Endpoint

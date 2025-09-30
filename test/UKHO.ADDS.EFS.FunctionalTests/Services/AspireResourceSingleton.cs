@@ -1,6 +1,4 @@
-﻿using System.Net.Http;
-using Aspire.Hosting;
-using Microsoft.Azure.Amqp;
+﻿using Aspire.Hosting;
 using Microsoft.Extensions.Configuration;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 
@@ -95,6 +93,8 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
 
         public async ValueTask DisposeAsync()
         {
+            Console.WriteLine("Disposing AspireResourceSingleton");
+
             if (_isRunningInPipeline)
             {
                 // No need to dispose App in pipeline, as it is managed by the CI/CD environment
@@ -111,6 +111,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
             if (Directory.Exists(outDir))
             {
                 Array.ForEach(Directory.GetFiles(outDir, "*.zip"), File.Delete);
+                Array.ForEach(Directory.GetFiles(outDir, "*.txt"), File.Delete);
             }
 
             GC.SuppressFinalize(this);
