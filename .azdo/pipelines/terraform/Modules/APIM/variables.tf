@@ -35,20 +35,12 @@ variable "apim_efs_product_description" {
   type = string
 }
 
-variable "product_quota" {
-  type = map(any)
-  default = {
-    calls = 5000
-    renewal_period = 86400
-  }
-}
-
 variable "product_rate_limit" {
   type = map(any)
-  default = {
-    calls = 5
-    renewal_period = 5
-  }
+}
+
+variable "product_quota" {
+  type = map(any)
 }
 
 variable "apim_api_name" {
