@@ -7,17 +7,21 @@ using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
+using Microsoft.Extensions.Logging;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
 {
     internal class CommitFileShareBatchNode : CompletionPipelineNode<S100Build>
     {
         private readonly IFileService _fileService;
+        private readonly ILogger<CommitFileShareBatchNode> _logger;
 
-        public CommitFileShareBatchNode(CompletionNodeEnvironment nodeEnvironment, IFileService fileService)
+        public CommitFileShareBatchNode(CompletionNodeEnvironment nodeEnvironment, IFileService fileService, ILogger<CommitFileShareBatchNode> logger)
             : base(nodeEnvironment)
         {
             _fileService = fileService;
+            _logger = logger;
         }
 
         public override Task<bool> ShouldExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
@@ -40,11 +44,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
 
             try
             {
-                var commitBatchResult = await _fileService.CommitBatchAsync(batchHandle, job.GetCorrelationId(), Environment.CancellationToken);
+                var commitBatchResult = await _fileService.CommitBatchAsync(batchHandle, job.GetCorrelationId(), Environment.CancellationToken);                
                 return NodeResultStatus.Succeeded;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogCommitFileShareBatchFailed((string)job.BatchId, (string)job.Id, ex);
                 return NodeResultStatus.Failed;
             }
         }

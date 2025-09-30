@@ -6,6 +6,8 @@ using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
 {
@@ -13,12 +15,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
     {
         private readonly IFileService _fileService;
         private readonly ITimestampService _timestampService;
+        private readonly ILogger<ExpireFileShareBatchesNode> _logger;
 
-        public ExpireFileShareBatchesNode(CompletionNodeEnvironment nodeEnvironment, IFileService fileService, ITimestampService timestampService)
+        public ExpireFileShareBatchesNode(CompletionNodeEnvironment nodeEnvironment, IFileService fileService, ITimestampService timestampService, ILogger<ExpireFileShareBatchesNode> logger)
             : base(nodeEnvironment)
         {
             _fileService = fileService;
             _timestampService = timestampService;
+            _logger = logger;
         }
 
         public override Task<bool> ShouldExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
@@ -45,6 +49,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
             }
             catch (Exception ex)
             {
+                _logger.LogExpireFileShareBatchesFailed((string)job.BatchId, (string)job.Id, ex);
                 return NodeResultStatus.Failed;
             }
 

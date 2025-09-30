@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.EFS.Domain.Builds;
+﻿using Microsoft.Extensions.Logging;
+using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.Messages;
 using UKHO.ADDS.EFS.Domain.Products;
@@ -56,6 +57,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         // S100 Input validation events
         private const int S100InputValidationFailedId = BaseEventId + 33;
         private const int S100InputValidationErrorId = BaseEventId + 34;
+
+        // Commit File Share batch failed (completion pipeline)
+        private const int CommitFileShareBatchFailedId = BaseEventId + 35;
+        // Expire previous File Share batches failed (completion pipeline)
+        private const int ExpireFileShareBatchesFailedId = BaseEventId + 36;
 
         // An unhandled HTTP error has occurred
         public static readonly EventId UnhandledHttpError = new(UnhandledHttpErrorId, nameof(UnhandledHttpError));
@@ -119,6 +125,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         public static readonly EventId HealthCheckWarning = new(HealthCheckWarningId, nameof(HealthCheckWarning));
         public static readonly EventId HealthCheckError = new(HealthCheckErrorId, nameof(HealthCheckError));
         public static readonly EventId HealthCheckFailedStatusCode = new(HealthCheckFailedStatusCodeId, nameof(HealthCheckFailedStatusCode));
+
+        // Commit File Share batch failure
+        public static readonly EventId CommitFileShareBatchFailed = new(CommitFileShareBatchFailedId, nameof(CommitFileShareBatchFailed));
+        // Expire File Share batches failure
+        public static readonly EventId ExpireFileShareBatchesFailed = new(ExpireFileShareBatchesFailedId, nameof(ExpireFileShareBatchesFailed));
 
         [LoggerMessage(UnhandledHttpErrorId, LogLevel.Error, "An unhandled exception was caught by the HTTP pipeline: {@message}", EventName = nameof(UnhandledHttpError))]
         public static partial void LogUnhandledHttpError(this ILogger logger, string message, Exception exception);
@@ -209,5 +220,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 
         [LoggerMessage(S100InputValidationErrorId, LogLevel.Error, "S100 input validation error for correlation ID: {correlationId}", EventName = nameof(S100InputValidationError))]
         public static partial void S100InputValidationError(this ILogger logger, string correlationId, Exception exception);
+
+        [LoggerMessage(CommitFileShareBatchFailedId, LogLevel.Error, "Failed to commit File Share batch {BatchId} for Job {JobId}", EventName = nameof(CommitFileShareBatchFailed))]
+        public static partial void LogCommitFileShareBatchFailed(this ILogger logger, string batchId, string jobId, Exception exception);
+
+        [LoggerMessage(ExpireFileShareBatchesFailedId, LogLevel.Error, "Failed to expire previous File Share batches for current batch {BatchId} and Job {JobId}", EventName = nameof(ExpireFileShareBatchesFailed))]
+        public static partial void LogExpireFileShareBatchesFailed(this ILogger logger, string batchId, string jobId, Exception exception);
     }
 }
+// end of file
