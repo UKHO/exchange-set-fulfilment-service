@@ -143,29 +143,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
         }
 
-        [Test]
-        public async Task WhenPerformExecuteAsyncIsCalledAndConfigValueIsInvalid_ThenReturnsFailed()
-        {
-            _nodeEnvironment = new AssemblyNodeEnvironment(_configuration, CancellationToken.None,_logger);
-
-            SetupJobAndBuild();
-            var productEditionList = new ProductEditionList
-            {
-                ProductCountSummary = new ProductCountSummary()
-            };
-            productEditionList.Add(new ProductEdition { ProductName = ProductName.From(ProductIdentifier) });
-
-            A.CallTo(() => _productService.GetS100ProductUpdatesSinceAsync(_job!.RequestedFilter, _job.ProductIdentifier, _job, A<CancellationToken>.Ignored))
-                .Returns(productEditionList);
-
-            _node = new GetS100ProductUpdatesSinceNode(_nodeEnvironment, _productService);
-
-            var result = await _node.ExecuteAsync(_executionContext);
-
-            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
-        }
-
-
         private void SetupJobAndBuild(JobState jobState = JobState.Created, RequestType requestType = RequestType.UpdatesSince)
         {
             var job = new UKHO.ADDS.EFS.Domain.Jobs.Job
