@@ -16,7 +16,7 @@
 
         public const string EfsB2CAppInstance = "EFS_B2C_APP_INSTANCE";
 
-        public const string EfsB2CAppSignUpSignInPolicy = "EFS_B2C_APP_SIGNUPSIGNINPOLICY";
+        public const string EfsB2CAppSignUpSignInPolicy = "EFS_B2C_APP_SIGNIN_POLICY";
 
         public const string EfsB2CAppTenantId = "EFS_B2C_APP_TENANTID";
     }
