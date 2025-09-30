@@ -28,7 +28,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         private CancellationToken _cancellationToken;
 
         private const string DefaultMaxExchangeSetSizeMB = "100";
-        private const string DefaultExchangeSetExpiresIn = "01:00:00";
         private const string TestJobId = "test-job-id";
         private const string TestCallbackUri = "https://test.com/callback";
         private const string TestProductName1 = "101GB004DEVQK";
@@ -206,7 +205,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
 
             await _getS100ProductNamesNode.ExecuteAsync(_executionContext);
 
-            Assert.That(job.ExchangeSetUrlExpiryDateTime, Is.GreaterThan(DateTime.MinValue));
             Assert.That(job.RequestedProductCount, Is.EqualTo(ProductCount.From(1)));
             Assert.That(job.ExchangeSetProductCount, Is.EqualTo(productEditionList.Count));
         }
@@ -217,14 +215,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             var requestedProducts = CreateProductNameList(TestProductName1);
             var job = CreateTestJob(requestedProducts: requestedProducts, requestType: RequestType.Internal);
             var productEditionList = CreateSuccessfulProductEditionList();
-            var originalExpiryDateTime = job.ExchangeSetUrlExpiryDateTime;
+            var productCount = job.RequestedProductCount;
 
             SetupExecutionContext(job);
             SetupProductService(productEditionList);
 
             await _getS100ProductNamesNode.ExecuteAsync(_executionContext);
 
-            Assert.That(job.ExchangeSetUrlExpiryDateTime, Is.EqualTo(originalExpiryDateTime));
+            Assert.That(job.RequestedProductCount, Is.EqualTo(productCount));
         }
 
         [Test]
@@ -280,13 +278,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         }
 
         private static IConfiguration CreateTestConfiguration(
-            string maxSizeMB = DefaultMaxExchangeSetSizeMB,
-            string expiresIn = DefaultExchangeSetExpiresIn)
+            string maxSizeMB = DefaultMaxExchangeSetSizeMB)
         {
             var configurationData = new Dictionary<string, string>
                 {
-                    { "orchestrator:Response:MaxExchangeSetSizeInMB", maxSizeMB },
-                    { "orchestrator:Response:ExchangeSetExpiresIn", expiresIn }
+                    { "orchestrator:Response:MaxExchangeSetSizeInMB", maxSizeMB }
                 };
 
             return new ConfigurationBuilder()

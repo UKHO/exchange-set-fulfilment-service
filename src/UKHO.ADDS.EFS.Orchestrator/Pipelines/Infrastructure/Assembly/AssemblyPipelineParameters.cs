@@ -29,6 +29,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         public RequestType RequestType { get; init; }
 
         /// <summary>
+        /// Deternimes the type of exchange set to be created
+        /// </summary>
+        public ExchangeSetType ExchangeSetType { get; init; }
+
+        /// <summary>
         /// The callback URI for asynchronous notifications
         /// </summary>
         public CallbackUri CallbackUri { get; init; }
@@ -49,6 +54,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
             RequestedFilter = Filter,
             BatchId = BatchId.None,
             RequestType = RequestType,
+            ExchangeSetType = ExchangeSetType,
             CallbackUri = CallbackUri,
             ProductIdentifier = ProductIdentifier,
             ProductVersions = ProductVersions,
@@ -65,6 +71,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 JobId = JobId.From((string)correlationId),
                 Configuration = configuration,
                 RequestType = RequestType.Internal,
+                ExchangeSetType = ExchangeSetType.Complete,
                 ProductIdentifier = DataStandardProduct.Undefined,
                 CallbackUri = CallbackUri.None
             };
@@ -82,6 +89,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 JobId = JobId.From(correlationId),
                 Configuration = configuration,
                 RequestType = RequestType.ProductNames,
+                ExchangeSetType = ExchangeSetType.Custom,
                 ProductIdentifier = DataStandardProduct.Undefined,
                 CallbackUri = !string.IsNullOrEmpty(callbackUri) ? CallbackUri.From(new Uri(callbackUri)) : CallbackUri.None
             };
@@ -101,6 +109,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 JobId = JobId.From(correlationId),
                 Configuration = configuration,
                 RequestType = RequestType.ProductVersions,
+                ExchangeSetType = ExchangeSetType.Custom,
                 ProductIdentifier = DataStandardProduct.Undefined,
                 CallbackUri = !string.IsNullOrEmpty(callbackUri) ? CallbackUri.From(new Uri(callbackUri)) : CallbackUri.None,
                 ProductVersions = ConvertProductVersionRequests(productVersions)
@@ -122,6 +131,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 JobId = JobId.From(correlationId),
                 Configuration = configuration,
                 RequestType = RequestType.UpdatesSince,
+                ExchangeSetType = ExchangeSetType.Custom,
                 ProductIdentifier = !string.IsNullOrEmpty(productIdentifier) ? DataStandardProduct.FromEnum(Enum.Parse<DataStandardProductType>(productIdentifier.ToUpper())) : DataStandardProduct.Undefined,
                 CallbackUri = !string.IsNullOrEmpty(callbackUri) ? CallbackUri.From(new Uri(callbackUri)) : CallbackUri.None
             };

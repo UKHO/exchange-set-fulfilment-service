@@ -98,6 +98,11 @@ namespace UKHO.ADDS.EFS.Domain.Jobs
         public RequestType RequestType { get; init; }
 
         /// <summary>
+        /// Deternimes the type of exchange set to be created
+        /// </summary>
+        public ExchangeSetType ExchangeSetType { get; init; }
+
+        /// <summary>
         ///     Gets the correlation ID for the job.
         /// </summary>
         /// <remarks>This is always the Job ID.</remarks>
