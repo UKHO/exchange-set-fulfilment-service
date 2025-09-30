@@ -146,42 +146,15 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                     var b2cClientId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppClientId);
                     var b2cDomain = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppDomain);
                     var b2cInstance = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppInstance);
-                    var b2cPolicy = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppSignUpSignInPolicy);
+                    var b2cPolicy = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppSignInPolicy);
                     var b2cTenantId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppTenantId);
 
                     // The issuer in the JWT token will be without the policy name
                     var b2cIssuer = $"{b2cInstance}{b2cTenantId}/v2.0/";
+                    var b2cAuthority = $"{b2cInstance}{b2cTenantId}/{b2cPolicy}/v2.0/";
 
                     options.Audience = b2cClientId;
-                    var b2cAuthority = $"{b2cInstance}{b2cTenantId}/{b2cPolicy}/v2.0/";
                     options.Authority = b2cAuthority;
-                    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
-                    {
-                        ValidateIssuer = true,
-                        ValidateAudience = true,
-                        ValidateLifetime = true,
-                        ValidateIssuerSigningKey = true,
-                        ValidAudiences = [b2cClientId],
-                        ValidIssuers = [b2cIssuer, b2cAuthority]
-                    };
-                    options.Events = new JwtBearerEvents
-                    {
-                        OnChallenge = context =>
-                        {
-                            if (!context.Response.HasStarted)
-                            {
-                                context.Response.StatusCode = 401;
-                                SetOriginHeaderIfNotExists(context.Response);
-                                context.HandleResponse();
-                            }
-                            return Task.CompletedTask;
-                        },
-                        OnAuthenticationFailed = context =>
-                        {
-                            SetOriginHeaderIfNotExists(context.Response);
-                            return Task.CompletedTask;
-                        }
-                    };
                 });
             }
 
