@@ -96,6 +96,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
             });
 
             collection.AddSingleton<IFileService, DefaultFileService>();
+            collection.AddSingleton<ICallbackNotificationService, CallbackNotificationService>();
 
             return collection;
         }
