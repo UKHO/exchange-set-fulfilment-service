@@ -1,3 +1,4 @@
+using Microsoft.VisualStudio.TestPlatform.Utilities;
 using Xunit.Abstractions;
 
 namespace UKHO.ADDS.EFS.FunctionalTests.Diagnostics
@@ -8,7 +9,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Diagnostics
     /// </summary>
     public static class TestOutput
     {
-        private static readonly AsyncLocal<ITestOutputHelper?> _current = new AsyncLocal<ITestOutputHelper?>();
+        private static readonly AsyncLocal<ITestOutputHelper?> _current = new();
         
         /// <summary>
         /// Gets or sets the current test output helper for the executing context.
@@ -23,6 +24,14 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Diagnostics
         /// Clears the current test output helper reference.
         /// </summary>
         public static void Clear() => Current = null;
+
+        // To log message regarding the test execution with timestamp and thread id
+        public static void LogMessage(string message)
+        {
+            var logEntry = $"Test {message} started on thread {Environment.CurrentManagedThreadId} at {DateTime.Now:HH:mm:ss.fff}";
+            Current?.WriteLine(logEntry);
+            Console.WriteLine(logEntry); // Also write to console for visibility in test runs
+        }
 
         /// <summary>
         /// Writes a message to the current output helper if available.

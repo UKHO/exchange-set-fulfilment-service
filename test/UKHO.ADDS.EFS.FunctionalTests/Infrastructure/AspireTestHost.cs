@@ -6,7 +6,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Infrastructure
 {
     public class AspireTestHost : IAsyncDisposable
     {
-        private bool _isRunningInPipeline = IsRunningInPipeline();
+        private readonly bool _isRunningInPipeline = IsRunningInPipeline();
 
         // Configuration settings for pipeline running
         private IConfiguration? _configuration;
