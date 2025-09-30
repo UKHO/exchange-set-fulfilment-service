@@ -49,7 +49,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Assertions
             root.TryGetProperty("exchangeSetUrlExpiryDateTime", out var exchangeSetUrlExpiryDateTimeElement)
                 .Should().BeTrue("Response must contain 'exchangeSetUrlExpiryDateTime'");
             exchangeSetUrlExpiryDateTimeElement.GetString()
-                .Should().Contain(DateTime.Today.AddDays(7).ToString("yyyy-MM-dd"),
+                .Should().Contain(DateTime.UtcNow.Date.AddDays(7).ToString("yyyy-MM-dd"),
                     "exchangeSetUrlExpiryDateTime should be 7 days in future");
 
             // Presence only checks
