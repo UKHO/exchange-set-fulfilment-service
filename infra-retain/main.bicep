@@ -158,8 +158,8 @@ module pipeline_roles 'pipeline-roles/pipeline-roles.module.bicep' = {
   }
 }
 
-module efs_diagnostic_settings 'efs-diagnostic-settings/efs-diagnostic-settings.module.bicep' = {
-  name: 'efs-diagnostic-settings'
+module efs_storage_diagnostic_settings 'efs-storage-diagnostic-settings/efs-storage-diagnostic-settings.module.bicep' = {
+  name: 'efs-storage-diagnostic-settings'
   scope: app_rg
   params: {
     storageAccountName: efs_storage.outputs.name
