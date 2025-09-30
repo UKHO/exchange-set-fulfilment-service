@@ -146,9 +146,13 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                     var b2cDomain = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppDomain);
                     var b2cInstance = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppInstance);
                     var b2cPolicy = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppSignUpSignInPolicy);
+                    var b2cTenantId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppTenantId);
+
+                    // The issuer in the JWT token will be without the policy name
+                    var b2cIssuer = $"{b2cInstance}{b2cTenantId}/v2.0/";
 
                     options.Audience = b2cClientId;
-                    var b2cAuthority = $"{b2cInstance}{b2cDomain}/{b2cPolicy}/v2.0/";
+                    var b2cAuthority = $"{b2cInstance}{b2cTenantId}/{b2cPolicy}/v2.0/";
                     options.Authority = b2cAuthority;
                     options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
                     {
@@ -157,7 +161,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
                         ValidAudiences = [b2cClientId],
-                        ValidIssuers = [b2cAuthority, $"{b2cInstance}{b2cDomain}/v2.0/"]
+                        ValidIssuers = [b2cIssuer]
                     };
                     options.Events = new JwtBearerEvents
                     {
@@ -220,11 +224,18 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                            if (adAuthenticated)
                            { return true; }
 
-                           // Check if authenticated with Azure B2C (no role required)
-                           var b2cAuthenticated = context.User.HasClaim("iss",
-                               $"{Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppInstance)}{Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppDomain)}/v2.0/");
+                           // Check Azure B2C authentication (no role required)
+                           var b2cTenantId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppTenantId);
+                           var b2cInstance = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppInstance);
 
-                           return b2cAuthenticated;
+                           if (!string.IsNullOrEmpty(b2cTenantId) && !string.IsNullOrEmpty(b2cInstance))
+                           {
+                               var b2cExpectedIssuer = $"{b2cInstance}{b2cTenantId}/v2.0/";
+                               var b2cAuthenticated = issuer.Equals(b2cExpectedIssuer, StringComparison.OrdinalIgnoreCase);
+                               return b2cAuthenticated;
+                           }
+
+                           return false;
                        });
                    }
                    else
