@@ -75,7 +75,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
         }
 
 
-        private async Task TestExecutionSteps(object payload, string zipFileName, int expectedRequestedProductCount, int expectedExchangeSetProductCount)
+        private async Task TestExecutionSteps(object payload, string zipFileName, int expectedRequestedProductCount, int expectedExchangeSetProductCount, string[]? products = null)
         {
             var apiResponseAssertions = new ExchangeSetApiAssertions();
 
@@ -101,22 +101,18 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
             _output.WriteLine($"Trying to download file V01X01_{_requestId}.zip ... {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}");
             var exchangeSetDownloadPath = await MockFilesClient.DownloadExchangeSetAsZipAsync(_requestId);
             var sourceZipPath = Path.Combine(AspireTestHost.ProjectDirectory!, "TestData", zipFileName);
-            ZipArchiveAssertions.CompareZipFilesExactMatch(sourceZipPath, exchangeSetDownloadPath);
+            ZipArchiveAssertions.CompareZipFilesExactMatch(sourceZipPath, exchangeSetDownloadPath, products);
         }
 
         //PBI 246464 - Consume ESS API - Update Since Endpoint
         //PBI 242767 - Input validation for the ESS API - Update Since Endpoint
         [Theory]
         [DisableParallelization] // This test runs in parallel with other tests. However, its test cases are run sequentially.
-        [InlineData("https://valid.com/callback", "s101", HttpStatusCode.Accepted, "UpdateSinceProduct.zip", 0, 0, 1)] // Test Case 244582 - Valid Format and Test Case 247827 - Valid Format
-        [InlineData("", "s102", HttpStatusCode.Accepted, "s102UpdateSince.zip", 0, 0, 1)] // Test Case 244585 -  Valid input with blank CallBack Uri
-        [InlineData("https://valid.com/callback", "", HttpStatusCode.Accepted, "WithoutFilter.zip", 0, 0, 4)] // Valid input with blank Product Identifier
-        [InlineData("", "", HttpStatusCode.Accepted, "WithoutFilter.zip", 0, 0, 4)] // Valid input with blank CallBack Uri and Product Identifier
-        [InlineData("https://valid.com/callback", null, HttpStatusCode.Accepted, "WithoutFilter.zip", 0, 0, 4)] // Valid input with null Product Identifier
-        [InlineData(null, "s104", HttpStatusCode.Accepted, "s104UpdateSince.zip", 0, 0, 1)] // Valid input with null CallBack Uri
-        [InlineData(null, null, HttpStatusCode.Accepted, "WithoutFilter.zip", 0, 0, 4)] // Valid input with null CallBack Uri and Product Identifier
-        [InlineData("https://valid.com/callback", "s111", HttpStatusCode.Accepted, "s111UpdateSince.zip", -15, 0, 1)] // Test Case 245730 - Past Date less than 28 days
-        public async Task ValidateUpdateSincePayloadWithValidDates(string? callbackUri, string? productIdentifier, HttpStatusCode expectedStatusCode, string zipFileName, int days, int expectedRequestedProductCount, int expectedExchangeSetProductCount)
+        [InlineData("https://valid.com/callback", "s101", HttpStatusCode.Accepted, "s101UpdateSinceProduct.zip", 0, 0, 1, new object[] { "101GB40079ABCDEFG" })] // Test Case 244582 - Valid Format and Test Case 247827 - Valid Format
+        [InlineData("", "s102", HttpStatusCode.Accepted, "s102UpdateSinceProduct.zip", 0, 0, 1, new object[] { "102NO32904820801012" })] // Test Case 244585 -  Valid input with blank CallBack Uri
+        [InlineData(null, "s104", HttpStatusCode.Accepted, "s104UpdateSinceProduct.zip", 0, 0, 1, new object[] { "104US00_CHES_TYPE1_20210630_0600" })] // Valid input with null CallBack Uri
+        [InlineData("https://valid.com/callback", "s111", HttpStatusCode.Accepted, "s111UpdateSinceProduct.zip", -15, 0, 1, new object[] { "111US00_CHES_DCF8_20190703T00Z" })] // Test Case 245730 - Past Date less than 28 days
+        public async Task ValidateUSWithValidPayloadHavingProductIdentifier(string? callbackUri, string? productIdentifier, HttpStatusCode expectedStatusCode, string zipFileName, int days, int expectedRequestedProductCount, int expectedExchangeSetProductCount, object[] productNames)
         {
             using var scope = new AssertionScope(); // root scope
 
@@ -128,6 +124,27 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
             _output.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {requestPayload}\nExpectedStatusCode: {expectedStatusCode}");
 
             await TestExecutionSteps(requestPayload, zipFileName, expectedRequestedProductCount, expectedExchangeSetProductCount);
+        }
+
+        [Theory]
+        [InlineData("https://valid.com/callback", "", HttpStatusCode.Accepted, "UpdateSince.zip", 0, 0, 4)] // Valid input with blank Product Identifier
+        [InlineData("", "", HttpStatusCode.Accepted, "UpdateSince.zip", 0, 0, 4)] // Valid input with blank CallBack Uri and Product Identifier
+        [InlineData("https://valid.com/callback", null, HttpStatusCode.Accepted, "UpdateSince.zip", 0, 0, 4)] // Valid input with null Product Identifier
+        [InlineData(null, null, HttpStatusCode.Accepted, "UpdateSince.zip", 0, 0, 4)] // Valid input with null CallBack Uri and Product Identifier
+        public async Task ValidateUSWithValidPayloadNotHavingProductIdentifier(string? callbackUri, string? productIdentifier, HttpStatusCode expectedStatusCode, string zipFileName, int days, int expectedRequestedProductCount, int expectedExchangeSetProductCount)
+        {
+            using var scope = new AssertionScope(); // root scope
+
+            var requestPayload = $"{{ \"sinceDateTime\": \"{DateTime.UtcNow.AddDays(days).ToString("yyyy-MM-ddTHH:mm:ss.fffZ")}\" }}";
+            //var requestPayload = $"{{ \"sinceDateTime\": \"{DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")}\" }}";
+
+            SetEndpoint(callbackUri, productIdentifier);
+
+            _output.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {requestPayload}\nExpectedStatusCode: {expectedStatusCode}");
+
+            var productNames = new[] { "101GB40079ABCDEFG", "102NO32904820801012", "104US00_CHES_TYPE1_20210630_0600", "111US00_CHES_DCF8_20190703T00Z" };
+
+            await TestExecutionSteps(requestPayload, zipFileName, expectedRequestedProductCount, expectedExchangeSetProductCount, productNames);
         }
 
         [Theory]
