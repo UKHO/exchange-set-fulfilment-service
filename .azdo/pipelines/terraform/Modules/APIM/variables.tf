@@ -36,11 +36,11 @@ variable "apim_efs_product_description" {
 }
 
 variable "product_rate_limit" {
-  type = any
+  type = map(any)
 }
-
+ 
 variable "product_quota" {
-  type = any
+  type = map(any)
 }
 
 variable "apim_api_name" {
