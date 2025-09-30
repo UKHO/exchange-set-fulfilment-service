@@ -36,11 +36,11 @@ variable "apim_efs_product_description" {
 }
 
 variable "product_rate_limit" {
-  type = map(any)
+  type = any
 }
 
 variable "product_quota" {
-  type = map(any)
+  type = any
 }
 
 variable "apim_api_name" {
@@ -49,17 +49,4 @@ variable "apim_api_name" {
 
 variable "apim_api_description" {
   type = string
-}
-
-variable "apim_api_openapi" {
-  type = string
-}
-
-
-variable "efs_b2c_token_issuer" {
-  type  = string
-}
-
-variable "efs_b2c_client_id" {
-  type  = string
 }

@@ -70,6 +70,12 @@ resource "azurerm_api_management_product_api" "efs_product_api_mapping" {
 
 }
 
+# Add locals to decode JSON strings to maps for product_rate_limit and product_quota
+locals {
+  product_rate_limit = try(jsondecode(var.product_rate_limit), var.product_rate_limit)
+  product_quota      = try(jsondecode(var.product_quota), var.product_quota)
+}
+
 #Product quota and throttle policy
 resource "azurerm_api_management_product_policy" "efs_product_policy" {
   resource_group_name = data.azurerm_resource_group.rg.name
@@ -80,8 +86,8 @@ resource "azurerm_api_management_product_policy" "efs_product_policy" {
   xml_content = <<XML
 <policies>
   <inbound>
-    <rate-limit calls="${var.product_rate_limit.calls}" renewal-period="${var.product_rate_limit.renewal-period}" retry-after-header-name="retry-after" remaining-calls-header-name="remaining-calls" />
-    <quota calls="${var.product_quota.calls}" renewal-period="${var.product_quota.renewal-period}" />
+    <rate-limit calls="${local.product_rate_limit.calls}" renewal-period="${local.product_rate_limit["renewal-period"]}" retry-after-header-name="retry-after" remaining-calls-header-name="remaining-calls" />
+    <quota calls="${local.product_quota.calls}" renewal-period="${local.product_quota["renewal-period"]}" />
     <validate-jwt header-name="Authorization" failed-validation-error-message="Authorization token is missing or invalid" require-scheme="Bearer" output-token-variable-name="jwt">
       <openid-config url="${var.efs_b2c_token_issuer}" />
       <audiences>

@@ -7,10 +7,8 @@ variables:
 - name: ApimAzureSubscription
   value: UKHO-APIM-SOLAS-NonLive
 - name: product_rate_limit
-  value:
-    calls: 1000
-    renewal-period: 60
+  value: |
+    { "calls": 1000, "renewal-period": 60 }
 - name: product_quota
-  value:
-    calls: 10000
-    renewal-period: 3600
+  value: |
+    { "calls": 10000, "renewal-period": 3600 }
