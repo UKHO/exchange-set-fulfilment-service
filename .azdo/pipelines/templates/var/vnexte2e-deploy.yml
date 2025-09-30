@@ -6,9 +6,3 @@ variables:
   value: Exchange-Set-Service-vNext-E2E-A.011.08
 - name: ApimAzureSubscription
   value: UKHO-APIM-SOLAS-NonLive
-- name: product_rate_limit
-  value: |
-    { "calls": 1000, "renewal-period": 60 }
-- name: product_quota
-  value: |
-    { "calls": 10000, "renewal-period": 3600 }
