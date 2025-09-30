@@ -161,7 +161,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
                         ValidAudiences = [b2cClientId],
-                        ValidIssuers = [b2cIssuer]
+                        ValidIssuers = [b2cIssuer, b2cAuthority]
                     };
                     options.Events = new JwtBearerEvents
                     {
@@ -217,12 +217,20 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                            }
 
                            var issuer = context.User.FindFirst("iss")?.Value;
+                           var adTenantId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsAppRegTenantId);
 
-                           var adAuthenticated = issuer!.Contains(Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsAppRegTenantId)!, StringComparison.OrdinalIgnoreCase)
-                               && context.User.IsInRole(AuthenticationConstants.EfsRole);
+                           var adAuthenticated = false;
+                           if (!string.IsNullOrEmpty(issuer) && !string.IsNullOrEmpty(adTenantId))
+                           {
+                               adAuthenticated =
+                                   issuer.Contains(adTenantId, StringComparison.OrdinalIgnoreCase) &&
+                                   context.User.IsInRole(AuthenticationConstants.EfsRole);
+                           }
 
                            if (adAuthenticated)
-                           { return true; }
+                           {
+                               return true;
+                           }
 
                            // Check Azure B2C authentication (no role required)
                            var b2cTenantId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppTenantId);
@@ -230,9 +238,11 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
 
                            if (!string.IsNullOrEmpty(b2cTenantId) && !string.IsNullOrEmpty(b2cInstance))
                            {
-                               var b2cExpectedIssuer = $"{b2cInstance}{b2cTenantId}/v2.0/";
-                               var b2cAuthenticated = issuer.Equals(b2cExpectedIssuer, StringComparison.OrdinalIgnoreCase);
-                               return b2cAuthenticated;
+                               var b2cAuthenticated = issuer != null && issuer.Contains(b2cInstance, StringComparison.OrdinalIgnoreCase) && issuer.Contains(b2cTenantId, StringComparison.OrdinalIgnoreCase);
+                               if (b2cAuthenticated)
+                               {
+                                   return b2cAuthenticated;
+                               }
                            }
 
                            return false;
