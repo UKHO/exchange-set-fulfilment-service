@@ -24,6 +24,9 @@
                 }
             },
             "AllowedHosts": "*",
+            "CloudEventNotification": {
+                "Source": "https://exchangeset.admiralty.co.uk/s100Data"
+            },
             "Deduplication": {
                 "Enabled": false, // Enable deduplication of requests
                 "Expiry": "23:00:00" // The timeframe for deduplication from first generation to expiry
@@ -78,6 +81,9 @@
                 }
             },
             "AllowedHosts": "*",
+            "CloudEventNotification": {
+                "Source": "https://exchangeset.admiralty.co.uk/s100Data"
+            },
             "Deduplication": {
                 "Enabled": false, // Enable deduplication of requests
                 "Expiry": "23:00:00" // The timeframe for deduplication from first generation to expiry
@@ -131,6 +137,9 @@
                 }
             },
             "AllowedHosts": "*",
+            "CloudEventNotification": {
+                "Source": "https://exchangeset.vni.admiralty.co.uk/s100Data"
+            },
             "Deduplication": {
                 "Enabled": false, // Enable deduplication of requests
                 "Expiry": "23:00:00" // The timeframe for deduplication from first generation to expiry
@@ -184,6 +193,9 @@
                 }
             },
             "AllowedHosts": "*",
+            "CloudEventNotification": {
+                "Source": "https://exchangeset.vne.admiralty.co.uk/s100Data"
+            },
             "Deduplication": {
                 "Enabled": false, // Enable deduplication of requests
                 "Expiry": "23:00:00" // The timeframe for deduplication from first generation to expiry
@@ -237,6 +249,9 @@
                 }
             },
             "AllowedHosts": "*",
+            "CloudEventNotification": {
+                "Source": "https://exchangeset.iat.admiralty.co.uk/s100Data"
+            },
             "Deduplication": {
                 "Enabled": false, // Enable deduplication of requests
                 "Expiry": "23:00:00" // The timeframe for deduplication from first generation to expiry
