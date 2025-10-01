@@ -1,4 +1,5 @@
-﻿using Azure.Identity;
+﻿using System.Security.Claims;
+using Azure.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -104,58 +105,170 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
         {
             if (!addsEnvironment.IsLocal() && !addsEnvironment.IsDev())
             {
-                collection.AddAuthentication(AuthenticationConstants.AzureAdScheme)
-                    .AddJwtBearer(AuthenticationConstants.AzureAdScheme, options =>
-                    {
-                        var clientId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsAppRegClientId);
-                        var tenantId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsAppRegTenantId);
+                collection
+                .AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = null;
+                    options.DefaultChallengeScheme = null;
+                })
+                .AddJwtBearer(AuthenticationConstants.AzureAdScheme, options =>
+                {
+                    var clientId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsAppRegClientId);
+                    var tenantId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsAppRegTenantId);
 
-                        options.Audience = clientId;
-                        options.Authority = $"{AuthenticationConstants.MicrosoftLoginUrl}{tenantId}";
-                        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                    options.Audience = clientId;
+                    options.Authority = $"{AuthenticationConstants.MicrosoftLoginUrl}{tenantId}";
+                    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidAudiences = [clientId],
+                        ValidIssuers = [$"{AuthenticationConstants.MicrosoftLoginUrl}{tenantId}"]
+                    };
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnForbidden = context =>
                         {
-                            ValidateIssuer = true,
-                            ValidateAudience = true,
-                            ValidateLifetime = true,
-                            ValidateIssuerSigningKey = true,
-                            ValidAudiences = [clientId],
-                            ValidIssuers = [$"{AuthenticationConstants.MicrosoftLoginUrl}{tenantId}"]
-                        };
-                        options.Events = new JwtBearerEvents
+                            SetOriginHeaderIfNotExists(context.Response);
+                            return Task.CompletedTask;
+                        },
+                        OnAuthenticationFailed = context =>
                         {
-                            OnForbidden = context =>
+                            SetOriginHeaderIfNotExists(context.Response);
+                            return Task.CompletedTask;
+                        }
+                    };
+                })
+                .AddJwtBearer(AuthenticationConstants.AzureB2CScheme, options =>
+                {
+                    var b2cClientId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppClientId);
+                    var b2cDomain = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppDomain);
+                    var b2cInstance = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppInstance);
+                    var b2cPolicy = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppSignInPolicy);
+                    var b2cTenantId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppTenantId);
+
+                    // The issuer in the JWT token will be without the policy name
+                    var b2cIssuer = $"{b2cInstance}{b2cTenantId}/v2.0/";
+                    var b2cAuthority = $"{b2cInstance}{b2cTenantId}/{b2cPolicy}/v2.0/";
+
+                    options.Audience = b2cClientId;                    
+                    options.Authority = b2cAuthority;
+                    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidAudiences = [b2cClientId],
+                        ValidIssuers = [b2cIssuer, b2cAuthority]
+                    };
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnChallenge = context =>
+                        {
+                            if (!context.Response.HasStarted)
                             {
-                                context.Response.Headers.Append(AuthenticationConstants.OriginHeaderKey, AuthenticationConstants.EfsService);
-                                return Task.CompletedTask;
-                            },
-                            OnAuthenticationFailed = context =>
-                            {
-                                context.Response.Headers.Append(AuthenticationConstants.OriginHeaderKey, AuthenticationConstants.EfsService);
-                                return Task.CompletedTask;
+                                context.Response.StatusCode = 401;
+                                SetOriginHeaderIfNotExists(context.Response);
+                                context.HandleResponse();
                             }
-                        };
-                    });
+                            return Task.CompletedTask;
+                        },
+                        OnAuthenticationFailed = context =>
+                        {
+                            SetOriginHeaderIfNotExists(context.Response);
+                            return Task.CompletedTask;
+                        }
+                    };
+                });
             }
 
+            // Build composite policy: B2C => authenticated only, AD => must hold role
             collection.AddAuthorizationBuilder()
                 .SetDefaultPolicy(new AuthorizationPolicyBuilder()
                     .RequireAuthenticatedUser()
-                    .AddAuthenticationSchemes(AuthenticationConstants.AzureAdScheme)
+                    .AddAuthenticationSchemes(AuthenticationConstants.AzureAdScheme, AuthenticationConstants.AzureB2CScheme)
                     .Build())
-                .AddPolicy(AuthenticationConstants.EfsRole, policy =>
+                .AddPolicy(AuthenticationConstants.AzureAdScheme, policy =>
                 {
                     if (!addsEnvironment.IsLocal() && !addsEnvironment.IsDev())
                     {
-                        policy.RequireRole(AuthenticationConstants.EfsRole);
+                        policy.RequireRole(AuthenticationConstants.EfsRole).AddAuthenticationSchemes(AuthenticationConstants.AzureAdScheme);
                     }
                     else
                     {
-                        // For local and dev environments only, allow anonymous access
+                        //For local and dev environments only, allow anonymous access
                         policy.RequireAssertion(_ => true);
                     }
-                });
+                })
+               .AddPolicy(AuthenticationConstants.AdOrB2C, policy =>
+               {
+                   if (!addsEnvironment.IsLocal() && !addsEnvironment.IsDev())
+                   {
+                       policy.AddAuthenticationSchemes(AuthenticationConstants.AzureAdScheme, AuthenticationConstants.AzureB2CScheme);
+                       policy.RequireAssertion(context =>
+                       {
+                           // Check if authenticated with Azure AD and has the required role
+
+                           if (context.User.Identity == null || !context.User.Identity.IsAuthenticated)
+                           {
+                               return false;
+                           }
+
+                           var issuer = context.User.FindFirst("iss")?.Value;
+                           var adTenantId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsAppRegTenantId);
+
+                           var adAuthenticated = false;
+                           if (!string.IsNullOrEmpty(issuer) && !string.IsNullOrEmpty(adTenantId))
+                           {
+                               adAuthenticated =
+                                   issuer.Contains(adTenantId, StringComparison.OrdinalIgnoreCase) &&
+                                   context.User.IsInRole(AuthenticationConstants.EfsRole);
+                           }
+
+                           if (adAuthenticated)
+                           {
+                               return true;
+                           }
+
+                           // Check Azure B2C authentication (no role required)
+                           var b2cTenantId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppTenantId);
+                           var b2cInstance = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppInstance);
+
+                           if (!string.IsNullOrEmpty(b2cTenantId) && !string.IsNullOrEmpty(b2cInstance))
+                           {
+                               var b2cAuthenticated = issuer != null && issuer.Contains(b2cInstance, StringComparison.OrdinalIgnoreCase) && issuer.Contains(b2cTenantId, StringComparison.OrdinalIgnoreCase);
+                               if (b2cAuthenticated)
+                               {
+                                   return b2cAuthenticated;
+                               }
+                           }
+
+                           return false;
+                       });
+                   }
+                   else
+                   {
+                       // For local and dev environments only, allow anonymous access
+                       policy.RequireAssertion(_ => true);
+                   }
+               });
 
             return collection;
+        }
+
+        /// <summary>
+        /// Sets the origin header if it doesn't already exist to prevent duplicate headers
+        /// </summary>
+        /// <param name="response">The HTTP response</param>
+        private static void SetOriginHeaderIfNotExists(HttpResponse response)
+        {
+            if (!response.Headers.ContainsKey(AuthenticationConstants.OriginHeaderKey))
+            {
+                response.Headers.Append(AuthenticationConstants.OriginHeaderKey, AuthenticationConstants.EfsService);
+            }
         }
     }
 }
