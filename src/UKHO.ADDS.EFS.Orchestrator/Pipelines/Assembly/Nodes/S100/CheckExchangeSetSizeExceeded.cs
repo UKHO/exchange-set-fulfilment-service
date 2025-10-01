@@ -1,22 +1,28 @@
-﻿using UKHO.ADDS.EFS.Domain.Builds.S100;
+﻿using System.Security.Claims;
+using UKHO.ADDS.EFS.Domain.Builds.S100;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
+using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Orchestrator.Api.Messages;
+using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
+
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 {
     internal class CheckExchangeSetSizeExceeded : AssemblyPipelineNode<S100Build>
     {
-        private readonly ILogger<GetS100ProductNamesNode> _logger;
         private const string MaxExchangeSetSizeInMBConfigKey = "orchestrator:Response:MaxExchangeSetSizeInMB";
+        private readonly ILogger<CheckExchangeSetSizeExceeded> _logger;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public CheckExchangeSetSizeExceeded(AssemblyNodeEnvironment nodeEnvironment, ILogger<GetS100ProductNamesNode> logger) : base(nodeEnvironment)
+        public CheckExchangeSetSizeExceeded(AssemblyNodeEnvironment nodeEnvironment, ILogger<CheckExchangeSetSizeExceeded> logger, IHttpContextAccessor httpContextAccessor) : base(nodeEnvironment)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
         }
 
         public override Task<bool> ShouldExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
@@ -27,20 +33,48 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
         {
             var job = context.Subject.Job;
-            var build = context.Subject.Build;
 
-            var nodeResult = NodeResultStatus.NotRun;
-
-            //if not B2C user then return noderesult ///TODO
-            //return NodeResultStatus.Skipped;
-
-            if (await IsExchangeSetSizeExceeded(context, job))
+            // Only enforce exchange set size limits for B2C users; internal users types are exempt
+            if (IsB2CUser() && await IsExchangeSetSizeExceeded(context, job))
             {
                 return NodeResultStatus.Failed;
             }
+
             return NodeResultStatus.Succeeded;
         }
 
+        /// <summary>
+        /// Determines whether the current user is a B2C user by validating JWT token claims against Azure B2C configuration
+        /// </summary>
+        /// <returns>True if the user is authenticated via B2C; otherwise, false</returns>
+        private bool IsB2CUser()
+        {
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user is null)
+                return false;
+
+            var tokenAudience = user.FindFirstValue("aud");
+            var tokenIssuer = user.FindFirstValue("iss");
+
+            var b2cClientId = System.Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppClientId);
+            var b2cInstance = System.Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppInstance);
+            var b2cTenantId = System.Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppTenantId);
+
+            if (string.IsNullOrEmpty(b2cClientId) || string.IsNullOrEmpty(b2cInstance) || string.IsNullOrEmpty(b2cTenantId))
+                return false;
+
+            var b2CAuthority = $"{b2cInstance}{b2cTenantId}/v2.0/";
+            var audience = b2cClientId;
+
+            return string.Equals(tokenIssuer, b2CAuthority, StringComparison.OrdinalIgnoreCase) && string.Equals(tokenAudience, audience, StringComparison.Ordinal);
+        }
+
+        /// <summary>
+        /// Validates whether the S100 Exchange Set size exceeds the configured maximum limit and handles error response generation
+        /// </summary>
+        /// <param name="context">The execution context containing the S100 build and product editions</param>
+        /// <param name="job">The job instance for correlation ID in error responses</param>
+        /// <returns>True if the exchange set size exceeds the limit; otherwise, false</returns>
         private async Task<bool> IsExchangeSetSizeExceeded(IExecutionContext<PipelineContext<S100Build>> context, Job job)
         {
             // Calculate total file size and check against the limit
@@ -51,7 +85,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
             if (totalFileSizeInMB > maxExchangeSetSizeInMB)
             {
-                //_logger.LogExchangeSetSizeExceeded((long)totalFileSizeInMB, maxExchangeSetSizeInMB); ///TODO logging
+                _logger.LogExchangeSetSizeExceeded((long)totalFileSizeInMB, maxExchangeSetSizeInMB);
 
                 // Set up the error response for payload too large
                 context.Subject.ErrorResponse = new ErrorResponseModel
