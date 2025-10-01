@@ -107,6 +107,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "@tools", "@tools", "{1DA80A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKHO.ADDS.EFS.EventHubReader", "tools\UKHO.ADDS.EFS.EventHubReader\UKHO.ADDS.EFS.EventHubReader.csproj", "{337A5670-1CAB-C821-522E-9AE5ED911E68}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "@artefacts", "@artefacts", "{980A7BF6-9533-4408-BF15-87461FD52056}"
+	ProjectSection(SolutionItems) = preProject
+		artefacts\README.md = artefacts\README.md
+		artefacts\UKHO.FakePenrose.S100SampleExchangeSets.dll = artefacts\UKHO.FakePenrose.S100SampleExchangeSets.dll
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
