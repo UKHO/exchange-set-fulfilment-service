@@ -1,12 +1,16 @@
 ﻿using System.Text.Json;
 using FluentAssertions;
+using FluentAssertions.Execution;
+using Microsoft.VisualStudio.TestPlatform.Utilities;
+using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.FunctionalTests.Diagnostics;
+using UKHO.ADDS.EFS.FunctionalTests.Http;
 
 namespace UKHO.ADDS.EFS.FunctionalTests.Assertions
 {
     public class ExchangeSetApiAssertions
     {
-        public async Task<string> CheckCustomExSetReqResponse(string requestId, HttpResponseMessage responseJobSubmit, int expectedRequestedProductCount = -1, int expectedExchangeSetProductCount = -1)
+        public static async Task FullExSetJobsResponseChecks(string jobId, HttpResponseMessage responseJobSubmit, string expectedJobStatus = "submitted", string expectedBuildStatus = "scheduled")
         {
             Assert.True(responseJobSubmit.IsSuccessStatusCode, $"Expected success status code but got: {responseJobSubmit.StatusCode}");
 
@@ -14,21 +18,94 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Assertions
             TestOutput.WriteLine($"ResponseContent: {responseContent}");
 
             var responseJson = JsonDocument.Parse(responseContent);
-            var batchId = responseJson.RootElement.GetProperty("fssBatchId").GetString()!;
+            var batchId = responseJson.RootElement.GetProperty("batchId").GetString();
 
-            TestOutput.WriteLine($"JobId => {requestId}\n" +
-                $"RequestedProductCount => Expected: {expectedRequestedProductCount} Actual: {responseJson.RootElement.GetProperty("requestedProductCount").GetInt64()}\n" +
-                $"ExchangeSetProductCount => Expected: {expectedExchangeSetProductCount} Actual: {responseJson.RootElement.GetProperty("exchangeSetProductCount").GetInt64()}\n" +
+            TestOutput.WriteLine($"JobId => Expected: {jobId} Actual: {responseJson.RootElement.GetProperty("jobId").GetString()}\n" +
+                $"JobStatus => Expected: {expectedJobStatus} Actual: {responseJson.RootElement.GetProperty("jobStatus").GetString()}\n" +
+                $"BuildStatus => Expected: {expectedBuildStatus} Actual: {responseJson.RootElement.GetProperty("buildStatus").GetString()}\n" +
+                $"DataStandard => Expected: s100 Actual: {responseJson.RootElement.GetProperty("dataStandard").GetString()}\n" +
                 $"BatchId: {batchId}");
 
             var root = responseJson.RootElement;
 
-            root.TryGetProperty("fssBatchId", out var batchIdElement)
-                    .Should().BeTrue("Response must contain 'fssBatchId'");
-            batchId = batchIdElement.GetString();
+            // Check if properties exist and have expected values
+            if (root.TryGetProperty("jobId", out var jobIdElement))
+            {
+                jobIdElement.GetString().Should().Be(jobId!, "JobId should match expected value");
+            }
+            else
+            {
+                // If expected, add assertion failure
+                Execute.Assertion.FailWith("Response is missing jobId property");
+            }
 
-            batchId.Should().NotBeNullOrWhiteSpace("'fssBatchId' should be a non-empty string");
-            Guid.TryParse(batchId, out _).Should().BeTrue($"Expected '{batchId}' to be a valid GUID");
+            if (root.TryGetProperty("jobStatus", out var jobStatusElement))
+            {
+                jobStatusElement.GetString().Should().Be(expectedJobStatus, "JobStatus should match expected value");
+            }
+            else
+            {
+                Execute.Assertion.FailWith("Response is missing jobStatus property");
+            }
+
+            if (root.TryGetProperty("buildStatus", out var buildStatusElement))
+            {
+                buildStatusElement.GetString().Should().Be(expectedBuildStatus, "BuildStatus should match expected value");
+            }
+            else
+            {
+                Execute.Assertion.FailWith("Response is missing buildStatus property");
+            }
+
+            if (root.TryGetProperty("dataStandard", out var dataStandardElement))
+            {
+                dataStandardElement.GetString().Should().Be("s100", "DataStandard should be s100");
+            }
+            else
+            {
+                Execute.Assertion.FailWith("Response is missing dataStandard property");
+            }
+
+            // Only check batchId for submitted/scheduled jobs
+            if (expectedJobStatus == "submitted" && expectedBuildStatus == "scheduled")
+            {
+                if (root.TryGetProperty("batchId", out var batchIdElement))
+                {
+                    batchId = batchIdElement.GetString();
+                    Guid.TryParse(batchId, out _).Should().BeTrue($"Expected '{batchId}' to be a valid GUID");
+                }
+                else
+                {
+                    Execute.Assertion.FailWith("Response is missing batchId property");
+                }
+            }
+        }
+
+        public static async Task CustomExSetSubmitPostRequestAndCheckResponse(string requestId, object requestPayload, string endpoint, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
+        {
+            var response = await OrchestratorClient.PostRequestAsync(requestId, requestPayload, endpoint);
+            Assert.Equal(expectedStatusCode, response.StatusCode);
+
+            if (expectedStatusCode != HttpStatusCode.Accepted && expectedErrorMessage != "")
+            {
+                var responseBody = await response.Content.ReadAsStringAsync();
+                TestOutput.WriteLine($"Expected ResponseContent: {expectedErrorMessage}");
+                TestOutput.WriteLine($"Actual ResponseContent: {responseBody}");
+                Assert.Contains(expectedErrorMessage, responseBody);
+            }
+        }
+
+
+        public static async Task<string> CustomExSetReqResponseChecks(string requestId, HttpResponseMessage responseJobSubmit, int expectedRequestedProductCount = -1, int expectedExchangeSetProductCount = -1)
+        {
+            var batchId = "";
+            Assert.True(responseJobSubmit.IsSuccessStatusCode, $"Expected success status code but got: {responseJobSubmit.StatusCode}");
+
+            var responseContent = await responseJobSubmit.Content.ReadAsStringAsync();
+            TestOutput.WriteLine($"ResponseContent: {responseContent}");
+
+            var responseJson = JsonDocument.Parse(responseContent);
+            var root = responseJson.RootElement;
 
             root.TryGetProperty("requestedProductCount", out var requestedProductCountElement)
                 .Should().BeTrue("Response must contain 'requestedProductCount'");
@@ -61,11 +138,16 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Assertions
             root.TryGetProperty("links", out var linksElement)
                     .Should().BeTrue("Response must contain 'links' object");
 
+            root.TryGetProperty("fssBatchId", out var batchIdElement)
+                    .Should().BeTrue("Response must contain 'fssBatchId'");
+            if (batchIdElement.ValueKind != JsonValueKind.Undefined && batchIdElement.ValueKind != JsonValueKind.Null)
+            {
+                batchId = batchIdElement.GetString();
+            }
+
+            batchId.Should().NotBeNullOrWhiteSpace("'fssBatchId' should be a non-empty string");
             if (linksElement.ValueKind == JsonValueKind.Object)
             {
-                // Extract batchId after prior validation (safe to re-read)
-                batchId = root.GetProperty("fssBatchId").GetString()!;
-
                 // exchangeSetBatchStatusUri
                 linksElement.TryGetProperty("exchangeSetBatchStatusUri", out var statusElement)
                     .Should().BeTrue("links should contain 'exchangeSetBatchStatusUri'");
@@ -94,11 +176,22 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Assertions
                         "exchangeSetFileUri should contain the correct batchId and jobId");
             }
 
+            TestOutput.WriteLine($"JobId => {requestId}\n" +
+                $"RequestedProductCount => Expected: {expectedRequestedProductCount} Actual: {responseJson.RootElement.GetProperty("requestedProductCount").GetInt64()}\n" +
+                $"ExchangeSetProductCount => Expected: {expectedExchangeSetProductCount} Actual: {responseJson.RootElement.GetProperty("exchangeSetProductCount").GetInt64()}\n" +
+                $"BatchId: {batchId}");
+
+            /*
+             * Need to have strict assertion on batchId format
+             * Guid.TryParse(batchId, out _).Should().BeTrue($"Expected '{batchId}' to be a valid GUID");
+            */
+            Assert.True(Guid.TryParse(batchId, out _), $"Expected 'fssBatchId' to be a valid GUID but got: '{batchId}'");
+
             return responseContent!;
         }
 
 
-        public async Task CheckJobCompletionStatus(HttpResponseMessage responseJobStatus)
+        public static async Task CheckJobCompletionStatus(HttpResponseMessage responseJobStatus)
         {
             Assert.True(responseJobStatus.IsSuccessStatusCode, $"Expected success status code but got: {responseJobStatus.StatusCode}");
 
@@ -120,7 +213,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Assertions
         }
 
 
-        public async Task CheckBuildStatus(HttpResponseMessage responseBuildStatus)
+        public static async Task CheckBuildStatus(HttpResponseMessage responseBuildStatus)
         {
             Assert.True(responseBuildStatus.IsSuccessStatusCode, $"Expected success status code but got: {responseBuildStatus.StatusCode}");
 
@@ -150,6 +243,5 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Assertions
 
             responseJson.RootElement.GetProperty("builderExitCode").GetString().Should().Be("success");
         }
-
     }
 }

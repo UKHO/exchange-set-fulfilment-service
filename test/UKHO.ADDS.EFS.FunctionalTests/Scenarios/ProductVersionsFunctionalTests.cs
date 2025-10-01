@@ -1,11 +1,10 @@
-using System.Text.Json;
 using FluentAssertions.Execution;
 using Meziantou.Xunit;
 using UKHO.ADDS.EFS.FunctionalTests.Assertions;
+using UKHO.ADDS.EFS.FunctionalTests.Diagnostics;
 using UKHO.ADDS.EFS.FunctionalTests.Framework;
-using UKHO.ADDS.EFS.FunctionalTests.Http;
 using UKHO.ADDS.EFS.FunctionalTests.Infrastructure;
-using UKHO.ADDS.EFS.FunctionalTests.IO;
+using UKHO.ADDS.EFS.FunctionalTests.Utilities;
 using Xunit.Abstractions;
 
 namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
@@ -15,23 +14,9 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
     public class ProductVersionsFunctionalTests(StartupFixture startup, ITestOutputHelper output) : FunctionalTestBase(startup, output)
     {
         private readonly string _requestId = $"job-productVersionsAutoTest-" + Guid.NewGuid();
-        private string _batchId = "";
         private string _endpoint = "/v2/exchangeSet/s100/productVersions";
         private bool _assertCallbackTxtFile = false;
 
-        private async Task SubmitPostRequestAndCheckResponse(string requestId, object requestPayload, string endpoint, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
-        {
-            var response = await OrchestratorClient.PostRequestAsync(requestId, requestPayload, endpoint);
-            Assert.Equal(expectedStatusCode, response.StatusCode);
-
-            if (expectedStatusCode != HttpStatusCode.Accepted && expectedErrorMessage != "")
-            {
-                var responseBody = await response.Content.ReadAsStringAsync();
-                _output.WriteLine($"Expected ResponseContent: {expectedErrorMessage}");
-                _output.WriteLine($"Actual ResponseContent: {responseBody}");
-                Assert.Contains(expectedErrorMessage, responseBody);
-            }
-        }
 
         private void SetEndpoint(string? callbackUri)
         {
@@ -59,37 +44,6 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
             }
         }
 
-        private async Task TestExecutionSteps(object payload, string zipFileName, int expectedRequestedProductCount, int expectedExchangeSetProductCount)
-        {
-            var apiResponseAssertions = new ExchangeSetApiAssertions();
-
-            var responseJobSubmit = await OrchestratorClient.PostRequestAsync(_requestId, payload, _endpoint);
-            var responseContent = await apiResponseAssertions.CheckCustomExSetReqResponse(_requestId, responseJobSubmit, expectedRequestedProductCount, expectedExchangeSetProductCount);
-            _batchId = responseContent.Contains("fssBatchId") ? JsonDocument.Parse(responseContent).RootElement.GetProperty("fssBatchId").GetString()! : "";
-
-            _output.WriteLine($"Started waiting for job completion ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
-            var responseJobStatus = await OrchestratorClient.WaitForJobCompletionAsync(_requestId);
-            await apiResponseAssertions.CheckJobCompletionStatus(responseJobStatus);
-            _output.WriteLine($"Finished waiting for job completion ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
-
-            var responseBuildStatus = await OrchestratorClient.GetBuildStatusAsync(_requestId);
-            await apiResponseAssertions.CheckBuildStatus(responseBuildStatus);
-
-            if (_assertCallbackTxtFile)
-            {
-                _output.WriteLine($"Trying to download file callback-response-{_batchId}.txt ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
-                var callbackTxtFilePath = await MockFilesClient.DownloadCallbackTxtAsync(_batchId);
-                CallbackResponseAssertions.CompareCallbackResponse(responseContent, callbackTxtFilePath);
-            }
-
-            _output.WriteLine($"Trying to download file V01X01_{_requestId}.zip");
-            var exchangeSetDownloadPath = await MockFilesClient.DownloadExchangeSetAsZipAsync(_requestId);
-            var sourceZipPath = Path.Combine(AspireTestHost.ProjectDirectory!, "TestData", zipFileName);
-
-            var productNames = new[] { "101GB40079ABCDEFG", "101DE00904820801012", "102CA32904820801013", "104US00_CHES_TYPE1_20210630_0600", "101FR40079QWERTY", "111US00_CHES_DCF8_20190703T00Z", "102INVA904820801012", "102AR00904820801012" };
-
-            ZipArchiveAssertions.CompareZipFilesExactMatch(sourceZipPath, exchangeSetDownloadPath, productNames);
-        }
 
         //PBI 242767 - Input validation for the ESS API - Product Versions Endpoint
         //PBI 244060 - Input validation for the consume mock - Product Versions Endpoint
@@ -98,15 +52,16 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
         [InlineData(" [ { \"productName\": \"101GB40079ABCDEFG\", \"editionNumber\": 5, \"updateNumber\": 10 }, { \"productName\": \"101DE00904820801012\", \"editionNumber\": 36, \"updateNumber\": 5 }, { \"productName\": \"102CA32904820801013\", \"editionNumber\": 13, \"updateNumber\": 0 }, { \"productName\": \"104US00_CHES_TYPE1_20210630_0600\", \"editionNumber\": 9, \"updateNumber\": 0 }, { \"productName\": \"101FR40079QWERTY\", \"editionNumber\": 2, \"updateNumber\": 2 }, { \"productName\": \"111US00_CHES_DCF8_20190703T00Z\", \"editionNumber\": 11, \"updateNumber\": 0 }, { \"productName\": \"102INVA904820801012\", \"editionNumber\": 11, \"updateNumber\": 0 }, { \"productName\": \"102AR00904820801012\", \"editionNumber\": 11, \"updateNumber\": 0 } ] ", "https://valid.com/callback", HttpStatusCode.Accepted, "", "ProductVersionsProducts.zip", 8, 8)] // Test Case 247843 - Valid input
         [InlineData(" [ { \"productName\": \"101GB40079ABCDEFG\", \"editionNumber\": 5, \"updateNumber\": 10 }, { \"productName\": \"101DE00904820801012\", \"editionNumber\": 36, \"updateNumber\": 5 }, { \"productName\": \"102CA32904820801013\", \"editionNumber\": 13, \"updateNumber\": 0 }, { \"productName\": \"104US00_CHES_TYPE1_20210630_0600\", \"editionNumber\": 9, \"updateNumber\": 0 }, { \"productName\": \"101FR40079QWERTY\", \"editionNumber\": 2, \"updateNumber\": 2 }, { \"productName\": \"111US00_CHES_DCF8_20190703T00Z\", \"editionNumber\": 11, \"updateNumber\": 0 }, { \"productName\": \"102INVA904820801012\", \"editionNumber\": 11, \"updateNumber\": 0 }, { \"productName\": \"102AR00904820801012\", \"editionNumber\": 11, \"updateNumber\": 0 } ] ", "", HttpStatusCode.Accepted, "", "ProductVersionsProducts.zip", 8, 8)] // Test Case 247843 - Valid input with only CallBackUri key and value as empty
         [InlineData(" [ { \"productName\": \"101GB40079ABCDEFG\", \"editionNumber\": 5, \"updateNumber\": 10 }, { \"productName\": \"101DE00904820801012\", \"editionNumber\": 36, \"updateNumber\": 5 }, { \"productName\": \"102CA32904820801013\", \"editionNumber\": 13, \"updateNumber\": 0 }, { \"productName\": \"104US00_CHES_TYPE1_20210630_0600\", \"editionNumber\": 9, \"updateNumber\": 0 }, { \"productName\": \"101FR40079QWERTY\", \"editionNumber\": 2, \"updateNumber\": 2 }, { \"productName\": \"111US00_CHES_DCF8_20190703T00Z\", \"editionNumber\": 11, \"updateNumber\": 0 }, { \"productName\": \"102INVA904820801012\", \"editionNumber\": 11, \"updateNumber\": 0 }, { \"productName\": \"102AR00904820801012\", \"editionNumber\": 11, \"updateNumber\": 0 } ] ", null, HttpStatusCode.Accepted, "", "ProductVersionsProducts.zip", 8, 8)] // Test Case 247843 - No CallBackUri parameter in the URL as it is optional parameter
-        public async Task ValidateProductVersionsPayloadWithValidInputs(string productVersions, string? callbackUri, HttpStatusCode expectedStatusCode, string expectedErrorMessage, string zipFileName, int expectedRequestedProductCount, int expectedExchangeSetProductCount)
+        public async Task ValidateProductVersionsPayloadWithValidInputs(string requestPayload, string? callbackUri, HttpStatusCode expectedStatusCode, string expectedErrorMessage, string zipFileName, int expectedRequestedProductCount, int expectedExchangeSetProductCount)
         {
             using var scope = new AssertionScope(); // root scope
 
             SetEndpoint(callbackUri);
 
-            _output.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {productVersions}\nExpectedStatusCode: {expectedStatusCode}\nExpectedErrorMessage:{expectedErrorMessage}");
+            TestOutput.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {requestPayload}\nExpectedStatusCode: {expectedStatusCode}\nExpectedErrorMessage:{expectedErrorMessage}");
 
-            await TestExecutionSteps(productVersions, zipFileName, expectedRequestedProductCount, expectedExchangeSetProductCount);
+            var productNames = new[] { "101GB40079ABCDEFG", "101DE00904820801012", "102CA32904820801013", "104US00_CHES_TYPE1_20210630_0600", "101FR40079QWERTY", "111US00_CHES_DCF8_20190703T00Z", "102INVA904820801012", "102AR00904820801012" };
+            await TestExecutionHelper.ExecuteCustomExchangeSetTestSteps(_requestId, requestPayload, _endpoint, zipFileName, expectedRequestedProductCount, expectedExchangeSetProductCount, _assertCallbackTxtFile, productNames);
         }
 
 
@@ -121,9 +76,9 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
 
             SetEndpoint(callbackUri);
 
-            _output.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {productVersions}\nExpectedStatusCode: {expectedStatusCode}\nExpectedErrorMessage:{expectedErrorMessage}");
+            TestOutput.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {productVersions}\nExpectedStatusCode: {expectedStatusCode}\nExpectedErrorMessage:{expectedErrorMessage}");
 
-            await SubmitPostRequestAndCheckResponse(_requestId, productVersions, _endpoint, expectedStatusCode, expectedErrorMessage);
+            await ExchangeSetApiAssertions.CustomExSetSubmitPostRequestAndCheckResponse(_requestId, productVersions, _endpoint, expectedStatusCode, expectedErrorMessage);
         }
 
 
@@ -138,9 +93,9 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
 
             SetEndpoint(callbackUri);
 
-            _output.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {productVersions}\nExpectedStatusCode: {expectedStatusCode}\nExpectedErrorMessage:{expectedErrorMessage}");
+            TestOutput.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {productVersions}\nExpectedStatusCode: {expectedStatusCode}\nExpectedErrorMessage:{expectedErrorMessage}");
 
-            await SubmitPostRequestAndCheckResponse(_requestId, productVersions, _endpoint, expectedStatusCode, expectedErrorMessage);
+            await ExchangeSetApiAssertions.CustomExSetSubmitPostRequestAndCheckResponse(_requestId, productVersions, _endpoint, expectedStatusCode, expectedErrorMessage);
         }
 
 
@@ -154,9 +109,9 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
 
             SetEndpoint(callbackUri);
 
-            _output.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {productVersions}\nExpectedStatusCode: {expectedStatusCode}\nExpectedErrorMessage:{expectedErrorMessage}");
+            TestOutput.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {productVersions}\nExpectedStatusCode: {expectedStatusCode}\nExpectedErrorMessage:{expectedErrorMessage}");
 
-            await SubmitPostRequestAndCheckResponse(_requestId, productVersions, _endpoint, expectedStatusCode, expectedErrorMessage);
+            await ExchangeSetApiAssertions.CustomExSetSubmitPostRequestAndCheckResponse(_requestId, productVersions, _endpoint, expectedStatusCode, expectedErrorMessage);
         }
 
 
@@ -172,9 +127,9 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
 
             SetEndpoint(callbackUri);
 
-            _output.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {productVersions}\nExpectedStatusCode: {expectedStatusCode}\nExpectedErrorMessage:{expectedErrorMessage}");
+            TestOutput.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {productVersions}\nExpectedStatusCode: {expectedStatusCode}\nExpectedErrorMessage:{expectedErrorMessage}");
 
-            await SubmitPostRequestAndCheckResponse(_requestId, productVersions, _endpoint, expectedStatusCode, expectedErrorMessage);
+            await ExchangeSetApiAssertions.CustomExSetSubmitPostRequestAndCheckResponse(_requestId, productVersions, _endpoint, expectedStatusCode, expectedErrorMessage);
         }
 
 
@@ -200,9 +155,9 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
 
             SetEndpoint(callbackUri);
 
-            _output.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {productVersions}\nExpectedStatusCode: {expectedStatusCode}\nExpectedErrorMessage:{expectedErrorMessage}");
+            TestOutput.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {productVersions}\nExpectedStatusCode: {expectedStatusCode}\nExpectedErrorMessage:{expectedErrorMessage}");
 
-            await SubmitPostRequestAndCheckResponse(_requestId, productVersions, _endpoint, expectedStatusCode, expectedErrorMessage);
+            await ExchangeSetApiAssertions.CustomExSetSubmitPostRequestAndCheckResponse(_requestId, productVersions, _endpoint, expectedStatusCode, expectedErrorMessage);
         }
     }
 }

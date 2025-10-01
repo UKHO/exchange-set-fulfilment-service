@@ -60,7 +60,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.IO
                     lastException = lastException ?? ex;
                     TestOutput.WriteLine($"Failed as file not found after (attempt {retryCount + 1}/{maxRetries}) ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
                     throw new HttpRequestException(
-                        $"Failed to download exchange set after {maxRetries} attempts ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}",
+                        $"Failed to download file after {maxRetries} attempts ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}",
                         lastException,
                         (lastException as HttpRequestException)?.StatusCode);
                 }
@@ -71,7 +71,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.IO
             {
                 TestOutput.WriteLine($">>Failed as file not found after (attempt {retryCount + 1}/{maxRetries}) ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
                 throw new HttpRequestException(
-                    $">>Failed to download exchange set after {maxRetries} attempts ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}",
+                    $">>Failed to download file after {maxRetries} attempts ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}",
                     lastException,
                     (lastException as HttpRequestException)?.StatusCode);
             }

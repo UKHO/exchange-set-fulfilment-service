@@ -1,11 +1,10 @@
-﻿using System.Text.Json;
-using FluentAssertions.Execution;
+﻿using FluentAssertions.Execution;
 using Meziantou.Xunit;
 using UKHO.ADDS.EFS.FunctionalTests.Assertions;
+using UKHO.ADDS.EFS.FunctionalTests.Diagnostics;
 using UKHO.ADDS.EFS.FunctionalTests.Framework;
-using UKHO.ADDS.EFS.FunctionalTests.Http;
 using UKHO.ADDS.EFS.FunctionalTests.Infrastructure;
-using UKHO.ADDS.EFS.FunctionalTests.IO;
+using UKHO.ADDS.EFS.FunctionalTests.Utilities;
 using Xunit.Abstractions;
 
 namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
@@ -15,23 +14,8 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
     public class ProductNamesFunctionalTests(StartupFixture startup, ITestOutputHelper output) : FunctionalTestBase(startup, output)
     {
         private readonly string _requestId = $"job-productNamesAutoTest-" + Guid.NewGuid();
-        private string _batchId = "";
         private string _endpoint = "/v2/exchangeSet/s100/productNames";
         private bool _assertCallbackTxtFile = false;
-
-
-        private async Task SubmitPostRequestAndCheckResponse(string requestId, object requestPayload, string endpoint, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
-        {
-            var response = await OrchestratorClient.PostRequestAsync(requestId, requestPayload, endpoint);
-            Assert.Equal(expectedStatusCode, response.StatusCode);
-
-            if (expectedStatusCode != HttpStatusCode.Accepted && expectedErrorMessage != "")
-            {
-                var responseBody = await response.Content.ReadAsStringAsync();
-                _output.WriteLine($"ResponseContent: {responseBody}");
-                Assert.Contains(expectedErrorMessage, responseBody);
-            }
-        }
 
 
         private void SetEndpoint(string? callbackUri)
@@ -61,36 +45,6 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
         }
 
 
-        private async Task TestExecutionSteps(object payload, string zipFileName, int expectedRequestedProductCount, int expectedExchangeSetProductCount)
-        {
-            var apiResponseAssertions = new ExchangeSetApiAssertions();
-
-            var responseJobSubmit = await OrchestratorClient.PostRequestAsync(_requestId, payload, _endpoint);
-            var responseContent = await apiResponseAssertions.CheckCustomExSetReqResponse(_requestId, responseJobSubmit, expectedRequestedProductCount, expectedExchangeSetProductCount);
-            _batchId = responseContent.Contains("fssBatchId") ? JsonDocument.Parse(responseContent).RootElement.GetProperty("fssBatchId").GetString()! : "";
-
-            _output.WriteLine($"Started waiting for job completion ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
-            var responseJobStatus = await OrchestratorClient.WaitForJobCompletionAsync(_requestId);
-            await apiResponseAssertions.CheckJobCompletionStatus(responseJobStatus);
-            _output.WriteLine($"Finished waiting for job completion ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
-
-            var responseBuildStatus = await OrchestratorClient.GetBuildStatusAsync(_requestId);
-            await apiResponseAssertions.CheckBuildStatus(responseBuildStatus);
-
-            if (_assertCallbackTxtFile)
-            {
-                _output.WriteLine($"Trying to download file callback-response-{_batchId}.txt ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
-                var callbackTxtFilePath = await MockFilesClient.DownloadCallbackTxtAsync(_batchId);
-                CallbackResponseAssertions.CompareCallbackResponse(responseContent, callbackTxtFilePath);
-            }
-
-            _output.WriteLine($"Trying to download file V01X01_{_requestId}.zip ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
-            var exchangeSetDownloadPath = await MockFilesClient.DownloadExchangeSetAsZipAsync(_requestId);
-            var sourceZipPath = Path.Combine(AspireTestHost.ProjectDirectory!, "TestData", zipFileName);
-            ZipArchiveAssertions.CompareZipFilesExactMatch(sourceZipPath, exchangeSetDownloadPath, (string[]?)payload);
-        }
-
-
         //PBI 244063 - Use the existing Product Names Node (GetS100ProductNamesNode) from existing pipeline (S100AssemblyPipeline) to new pipeline (S100CustomAssemblyPipeline).
         [Theory]
         [DisableParallelization] // This test runs in parallel with other tests. However, its test cases are run sequentially.
@@ -99,15 +53,15 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
         [InlineData(new string[] { "104CA00_20241103T001500Z_GB3DEVK0_DCF2" }, "", "Single104Product.zip", 1, 1)] // Test Case 243519 - Valid input with valid callBackURI and // Test Case 245610 - Product Name (S-104 product) Node Integration
         [InlineData(new string[] { "111FR00_20241217T001500Z_GB3DEVK0_DCF2" }, null, "Single111Product.zip", 1, 1)] // Test Case 245610 - Product Name (S-111 product) Node Integration
         [InlineData(new string[] { "111CA00_20241217T001500Z_GB3DEVQ0_DCF2", "104CA00_20241103T001500Z_GB3DEVK0_DCF2" }, "https://valid.com/callback", "MultipleProducts.zip", 2, 2)]   // Test Case 243519 - Valid input and // Test Case 245610 - Product Names (multiple products) Node Integration
-        public async Task ValidateProductNamesNodeInCustomAssemblyPipeline(string[] productNames, string? callbackUri, string zipFileName, int expectedRequestedProductCount, int expectedExchangeSetProductCount)
+        public async Task ValidateProductNamesNodeInCustomAssemblyPipeline(string[] requestPayload, string? callbackUri, string zipFileName, int expectedRequestedProductCount, int expectedExchangeSetProductCount)
         {
             using var scope = new AssertionScope(); // root scope
 
             SetEndpoint(callbackUri);
 
-            _output.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {System.Text.Json.JsonSerializer.Serialize(productNames)}\nCallbackUri: {callbackUri}\nExpectedZipFileName:{zipFileName}");
+            TestOutput.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {System.Text.Json.JsonSerializer.Serialize(requestPayload)}\nCallbackUri: {callbackUri}\nExpectedZipFileName:{zipFileName}");
 
-            await TestExecutionSteps(productNames, zipFileName, expectedRequestedProductCount, expectedExchangeSetProductCount);
+            await TestExecutionHelper.ExecuteCustomExchangeSetTestSteps(_requestId, requestPayload, _endpoint, zipFileName, expectedRequestedProductCount, expectedExchangeSetProductCount, _assertCallbackTxtFile, requestPayload);
         }
 
         //PBI 242670 - Input validation for the ESS API - Product Name Endpoint
@@ -129,9 +83,9 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
 
             SetEndpoint(callbackUri);
 
-            _output.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {System.Text.Json.JsonSerializer.Serialize(productNames)}\nExpectedStatusCode: {expectedStatusCode}\nExpectedErrorMessage:{expectedErrorMessage}");
+            TestOutput.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {System.Text.Json.JsonSerializer.Serialize(productNames)}\nExpectedStatusCode: {expectedStatusCode}\nExpectedErrorMessage:{expectedErrorMessage}");
 
-            await SubmitPostRequestAndCheckResponse(_requestId, productNames, _endpoint, expectedStatusCode, expectedErrorMessage);
+            await ExchangeSetApiAssertions.CustomExSetSubmitPostRequestAndCheckResponse(_requestId, productNames, _endpoint, expectedStatusCode, expectedErrorMessage);
         }
 
     }
