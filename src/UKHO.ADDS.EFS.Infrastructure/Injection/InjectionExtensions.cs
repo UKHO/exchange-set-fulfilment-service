@@ -1,9 +1,9 @@
-﻿using System.Security.Claims;
-using Azure.Identity;
+﻿using Azure.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.Kiota.Abstractions.Authentication;
 using Microsoft.Kiota.Authentication.Azure;
 using UKHO.ADDS.Aspire.Configuration;
@@ -105,6 +105,9 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
         {
             if (!addsEnvironment.IsLocal() && !addsEnvironment.IsDev())
             {
+                var (azureAdClientId, azureAdTenantId) = GetAzureAdCredentials();
+                var (b2cClientId, b2cDomain, b2cInstance, b2cPolicy) = GetAzureB2CCredentials();
+
                 collection
                 .AddAuthentication(options =>
                 {
@@ -113,19 +116,19 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                 })
                 .AddJwtBearer(AuthenticationConstants.AzureAdScheme, options =>
                 {
-                    var clientId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsAppRegClientId);
-                    var tenantId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsAppRegTenantId);
+                    var authority = $"{AuthenticationConstants.MicrosoftLoginUrl}{azureAdTenantId}";
+                    var issuer = $"{AuthenticationConstants.MicrosoftLoginUrl}{azureAdTenantId}";
 
-                    options.Audience = clientId;
-                    options.Authority = $"{AuthenticationConstants.MicrosoftLoginUrl}{tenantId}";
-                    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                    options.Audience = azureAdClientId;
+                    options.Authority = authority;
+                    options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = true,
                         ValidateAudience = true,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
-                        ValidAudiences = [clientId],
-                        ValidIssuers = [$"{AuthenticationConstants.MicrosoftLoginUrl}{tenantId}"]
+                        ValidAudiences = [azureAdClientId],
+                        ValidIssuers = [issuer]
                     };
                     options.Events = new JwtBearerEvents
                     {
@@ -143,19 +146,12 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                 })
                 .AddJwtBearer(AuthenticationConstants.AzureB2CScheme, options =>
                 {
-                    var b2cClientId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppClientId);
-                    var b2cDomain = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppDomain);
-                    var b2cInstance = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppInstance);
-                    var b2cPolicy = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppSignInPolicy);
-                    var b2cTenantId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppTenantId);
+                    var b2cIssuer = $"{b2cInstance}{b2cDomain}/v2.0/";
+                    var b2cAuthority = $"{b2cInstance}{b2cDomain}/{b2cPolicy}/v2.0/";
 
-                    // The issuer in the JWT token will be without the policy name
-                    var b2cIssuer = $"{b2cInstance}{b2cTenantId}/v2.0/";
-                    var b2cAuthority = $"{b2cInstance}{b2cTenantId}/{b2cPolicy}/v2.0/";
-
-                    options.Audience = b2cClientId;                    
+                    options.Audience = b2cClientId;
                     options.Authority = b2cAuthority;
-                    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                    options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = true,
                         ValidateAudience = true,
@@ -218,32 +214,27 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                            }
 
                            var issuer = context.User.FindFirst("iss")?.Value;
-                           var adTenantId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsAppRegTenantId);
 
-                           var adAuthenticated = false;
+                           var (adTenantId, b2cTenantId, b2cInstance) = GetAuthorizationPolicyVariables();
+
                            if (!string.IsNullOrEmpty(issuer) && !string.IsNullOrEmpty(adTenantId))
                            {
-                               adAuthenticated =
-                                   issuer.Contains(adTenantId, StringComparison.OrdinalIgnoreCase) &&
-                                   context.User.IsInRole(AuthenticationConstants.EfsRole);
-                           }
+                               var adAuthenticated = issuer.Contains(adTenantId, StringComparison.OrdinalIgnoreCase) &&
+                                                   context.User.IsInRole(AuthenticationConstants.EfsRole);
 
-                           if (adAuthenticated)
-                           {
-                               return true;
+                               if (adAuthenticated)
+                               {
+                                   return true;
+                               }
                            }
 
                            // Check Azure B2C authentication (no role required)
-                           var b2cTenantId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppTenantId);
-                           var b2cInstance = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppInstance);
-
                            if (!string.IsNullOrEmpty(b2cTenantId) && !string.IsNullOrEmpty(b2cInstance))
                            {
-                               var b2cAuthenticated = issuer != null && issuer.Contains(b2cInstance, StringComparison.OrdinalIgnoreCase) && issuer.Contains(b2cTenantId, StringComparison.OrdinalIgnoreCase);
-                               if (b2cAuthenticated)
-                               {
-                                   return b2cAuthenticated;
-                               }
+                               var b2cAuthenticated = issuer != null &&
+                                                    issuer.Contains(b2cInstance, StringComparison.OrdinalIgnoreCase) &&
+                                                    issuer.Contains(b2cTenantId, StringComparison.OrdinalIgnoreCase);
+                               return b2cAuthenticated;
                            }
 
                            return false;
@@ -257,6 +248,41 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                });
 
             return collection;
+        }
+
+        /// <summary>
+        /// Retrieves Azure AD credentials from environment variables
+        /// </summary>
+        private static (string clientId, string tenantId) GetAzureAdCredentials()
+        {
+            var clientId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsAppRegClientId);
+            var tenantId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsAppRegTenantId);
+            return (clientId, tenantId);
+        }
+
+        /// <summary>
+        /// Retrieves Azure B2C credentials from environment variables
+        /// </summary>
+        private static (string clientId, string domain, string instance, string policy) GetAzureB2CCredentials()
+        {
+            var clientId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppClientId);
+            var domain = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppDomain);
+            var instance = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppInstance);
+            var policy = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppSignInPolicy);
+
+            return (clientId, domain, instance, policy);
+        }
+
+        /// <summary>
+        /// Retrieves environment variables needed for authorization policies
+        /// </summary>
+        private static (string adTenantId, string b2cTenantId, string b2cInstance) GetAuthorizationPolicyVariables()
+        {
+            var adTenantId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsAppRegTenantId);
+            var b2cTenantId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppTenantId);
+            var b2cInstance = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppInstance);
+
+            return (adTenantId, b2cTenantId, b2cInstance);
         }
 
         /// <summary>
