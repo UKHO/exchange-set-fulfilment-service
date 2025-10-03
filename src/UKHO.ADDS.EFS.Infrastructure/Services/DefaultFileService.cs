@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
@@ -27,18 +28,22 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         private const string CommitBatch = "CommitBatch";
         private const string CreateBatch = "CreateBatch";
         private const string AddFileToBatch = "AddFileToBatch";
+        private const string ExchangeSetExpiresInConfigKey = "orchestrator:Response:ExchangeSetExpiresIn";
         private readonly IFileShareReadWriteClient _fileShareReadWriteClient;
+        private readonly IConfiguration _configuration;
         private readonly ILogger<DefaultFileService> _logger;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="DefaultFileService" /> class.
         /// </summary>
         /// <param name="fileShareReadWriteClient">The file share read-write client.</param>
+        /// <param name="configuration">The configuration provider.</param>
         /// <param name="logger">The logger.</param>
-        /// <exception cref="ArgumentNullException">Thrown when fileShareReadWriteClient or logger is null.</exception>
-        public DefaultFileService(IFileShareReadWriteClient fileShareReadWriteClient, ILogger<DefaultFileService> logger)
+        /// <exception cref="ArgumentNullException">Thrown when fileShareReadWriteClient, configuration or logger is null.</exception>
+        public DefaultFileService(IFileShareReadWriteClient fileShareReadWriteClient, IConfiguration configuration, ILogger<DefaultFileService> logger)
         {
             _fileShareReadWriteClient = fileShareReadWriteClient ?? throw new ArgumentNullException(nameof(fileShareReadWriteClient));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -48,9 +53,10 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result containing the batch handle on success or error information on failure.</returns>
-        public async Task<Batch> CreateBatchAsync(CorrelationId correlationId, CancellationToken cancellationToken)
+        public async Task<Batch> CreateBatchAsync(CorrelationId correlationId, ExchangeSetType exchangeSetType, CancellationToken cancellationToken)
         {
-            var createBatchResponseResult = await _fileShareReadWriteClient.CreateBatchAsync(GetBatchModel(), (string)correlationId, cancellationToken);
+            var batchModel = exchangeSetType == ExchangeSetType.Complete ? GetBatchModelForCompleteExchangeSet() : GetBatchModelForCustomExchangeSet();
+            var createBatchResponseResult = await _fileShareReadWriteClient.CreateBatchAsync(batchModel, (string)correlationId, cancellationToken);
 
             if (createBatchResponseResult.IsFailure(out var error, out _))
             {
@@ -59,9 +65,10 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
 
             if (createBatchResponseResult.IsSuccess(out var response))
             {
-                return new Batch()
+                return new()
                 {
-                    BatchId = BatchId.From(response.BatchId)
+                    BatchId = BatchId.From(response.BatchId),
+                    ExchangeSetExpiryDateTime = batchModel.ExpiryDate == null ? DateTime.MinValue : (DateTime)batchModel.ExpiryDate
                 };
             }
 
@@ -169,7 +176,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         /// <param name="fileName">The name of the file.</param>
         /// <param name="contentType">The content type of the file.</param>
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <param name="cancellationToken">The cancellation token.</param> 
         /// <returns>A result containing the add file to batch response on success or error information on failure.</returns>
         public async Task<AttributeList> AddFileToBatchAsync(BatchHandle batchHandle, Stream fileStream, string fileName, string contentType, CorrelationId correlationId, CancellationToken cancellationToken)
         {
@@ -200,11 +207,54 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         }
 
         /// <summary>
-        ///     Creates a batch model with predefined settings for S-100 product type.
+        /// Creates a batch model with predefined settings for S-100 product type for complete exchangeset.
         /// </summary>
         /// <returns>A configured batch model with appropriate access control and attributes.</returns>
-        private static BatchModel GetBatchModel() =>
-            new() { BusinessUnit = "ADDS-S100", Acl = new Acl { ReadUsers = new List<string> { "public" }, ReadGroups = new List<string> { "public" } }, Attributes = new List<KeyValuePair<string, string>> { new("Exchange Set Type", "Base"), new("Frequency", "DAILY"), new("Product Code", "S-100"), new("Media Type", "Zip") }, ExpiryDate = null };
+        private static BatchModel GetBatchModelForCompleteExchangeSet() =>
+            new()
+            {
+                BusinessUnit = "ADDS-S100",
+                Acl = new Acl
+                {
+                    ReadUsers = ["public"],
+                    ReadGroups = ["public"]
+                },
+                Attributes =
+                [
+                    new("Exchange Set Type", "Base"),
+                    new("Frequency", "DAILY"),
+                    new("Product Code", "S-100"),
+                    new("Media Type", "Zip")
+                ],
+                ExpiryDate = null
+            };
+
+        /// <summary>
+        /// Creates a batch model with predefined settings for S-100 product type for custom exchangeset.
+        /// </summary>
+        /// <returns>A configured batch model with appropriate access control and attributes.</returns>
+        private BatchModel GetBatchModelForCustomExchangeSet()
+        {
+            var expiryTimeSpan = _configuration.GetValue<TimeSpan>(ExchangeSetExpiresInConfigKey);
+
+            return new BatchModel
+            {
+                BusinessUnit = "ADDS-S100",
+                Acl = new Acl
+                {
+                    ReadUsers = ["public"], ///TODO: To be set correctly for custom Exchange set
+                    ReadGroups = ["public"] ///TODO: To be set correctly for custom Exchange set
+                },
+                Attributes =
+                [
+                    new("Exchange Set Type", "Base"),
+                    new("Frequency", "DAILY"),
+                    new("Product Code", "S-100"),
+                    new("Media Type", "Zip")
+                ],
+                ExpiryDate = DateTime.UtcNow.Add(expiryTimeSpan)
+            };
+        }
 
         private void LogFileShareServiceError(CorrelationId correlationId, string endPoint, IError error, BatchId batchId)
         {

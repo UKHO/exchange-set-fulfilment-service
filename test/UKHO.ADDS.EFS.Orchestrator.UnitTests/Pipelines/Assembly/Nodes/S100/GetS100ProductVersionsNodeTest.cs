@@ -27,9 +27,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         private S100Build _s100Build;
         private IConfiguration _configuration;
         private IStorageService _storageService;
-        private const string ExpiryConfigKey = "orchestrator:Response:ExchangeSetExpiresIn";
         private const string ValidProductName = "101GB40079ABCDEFG";
-        private readonly TimeSpan _expiryTimeSpan = TimeSpan.FromHours(1);
 
         [SetUp]
         public void SetUp()
@@ -44,8 +42,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             _executionContext = A.Fake<IExecutionContext<PipelineContext<S100Build>>>();
 
             var fakeConfiguration = A.Fake<IConfigurationSection>();
-            A.CallTo(() => fakeConfiguration.Value).Returns(_expiryTimeSpan.ToString());
-            A.CallTo(() => _configuration.GetSection(ExpiryConfigKey)).Returns(fakeConfiguration);
         }
 
         [TestCase(JobState.Created, RequestType.ProductVersions, true)]
@@ -89,7 +85,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
 
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
             Assert.That(_s100Build.ProductEditions, Is.EqualTo(editionList));
-            Assert.That(job.ExchangeSetUrlExpiryDateTime, Is.Not.EqualTo(default(DateTime)));
             Assert.That(job.RequestedProductCount, Is.EqualTo(ProductCount.From(productVersions.Count())));
             Assert.That(job.ExchangeSetProductCount, Is.EqualTo(editionList.Count));
             Assert.That(job.RequestedProductsAlreadyUpToDateCount, Is.EqualTo(editionList.ProductCountSummary.RequestedProductsAlreadyUpToDateCount));

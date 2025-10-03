@@ -17,7 +17,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
         private readonly IProductService _productService;
         private readonly ILogger<GetS100ProductNamesNode> _logger;
         private const string MaxExchangeSetSizeInMBConfigKey = "orchestrator:Response:MaxExchangeSetSizeInMB";
-        private const string ExchangeSetExpiresInConfigKey = "orchestrator:Response:ExchangeSetExpiresIn";
+
         public GetS100ProductNamesNode(AssemblyNodeEnvironment nodeEnvironment, IProductService productService, ILogger<GetS100ProductNamesNode> logger)
             : base(nodeEnvironment)
         {
@@ -67,10 +67,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                         {
                             return NodeResultStatus.Failed;
                         }
-                        //Get the exchange set expiry duration from configuration
-                        var expiryTimeSpan = Environment.Configuration.GetValue<TimeSpan>(ExchangeSetExpiresInConfigKey);
 
-                        job.ExchangeSetUrlExpiryDateTime = DateTime.UtcNow.Add(expiryTimeSpan);
                         job.RequestedProductCount = ProductCount.From(productNameList.Count);
                         job.ExchangeSetProductCount = productEditionList.Count;
                         job.RequestedProductsAlreadyUpToDateCount = productEditionList.ProductCountSummary.RequestedProductsAlreadyUpToDateCount;
