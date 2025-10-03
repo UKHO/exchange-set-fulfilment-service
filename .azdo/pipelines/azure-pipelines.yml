@@ -33,6 +33,10 @@ parameters:
     displayName: "Enable optional pipeline debugging"
     type: boolean
     default: false
+  - name: SkipDevDeploy
+    displayName: "Skip Dev Deploy"
+    type: boolean
+    default: false
 
 trigger:
   - main
@@ -150,6 +154,7 @@ stages:
     - VulnerabilityChecks
     - Test
     displayName: Dev deploy
+    condition: and(succeeded(), eq('${{ parameters.SkipDevDeploy }}', true))
     jobs:
     - template: templates/continuous-deployment.yml
       parameters:
@@ -180,10 +185,11 @@ stages:
         DeployRedis: ${{ parameters.DeployRedis }}
 
   - stage: vnexte2eDeploy
-    dependsOn:
-    - vnextiatDeploy
+   # dependsOn:
+   # - vnextiatDeploy
     displayName: vNext E2E Deploy
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+   # condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/bug/'))
     jobs:
     - template: templates/continuous-deployment.yml
       parameters:
