@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using UKHO.ADDS.Aspire.Configuration;
 using UKHO.ADDS.EFS.Domain.Builds.S100;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
@@ -10,16 +11,18 @@ using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
-
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 {
-    internal class CheckExchangeSetSizeExceeded : AssemblyPipelineNode<S100Build>
+    internal class CheckExchangeSetSizeExceededNode : AssemblyPipelineNode<S100Build>
     {
         private const string MaxExchangeSetSizeInMBConfigKey = "orchestrator:Response:MaxExchangeSetSizeInMB";
-        private readonly ILogger<CheckExchangeSetSizeExceeded> _logger;
+        private const string AudienceClaimType = "aud";
+        private const string IssuerClaimType = "iss";
+
+        private readonly ILogger<CheckExchangeSetSizeExceededNode> _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public CheckExchangeSetSizeExceeded(AssemblyNodeEnvironment nodeEnvironment, ILogger<CheckExchangeSetSizeExceeded> logger, IHttpContextAccessor httpContextAccessor) : base(nodeEnvironment)
+        public CheckExchangeSetSizeExceededNode(AssemblyNodeEnvironment nodeEnvironment, ILogger<CheckExchangeSetSizeExceededNode> logger, IHttpContextAccessor httpContextAccessor) : base(nodeEnvironment)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
@@ -32,15 +35,23 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
         {
-            var job = context.Subject.Job;
+            var addsEnvironment = AddsEnvironment.GetEnvironment();
+            bool shouldCheckSize;
 
-            // Only enforce exchange set size limits for B2C users; internal users types are exempt
-            if (IsB2CUser() && await IsExchangeSetSizeExceeded(context, job))
+            if(addsEnvironment.IsDev() || addsEnvironment.IsLocal())
             {
-                return NodeResultStatus.Failed;
+                // In Dev and Local environments, always check the exchange set size limit as we are using mock endpoints
+                shouldCheckSize = true;
+            }
+            else
+            {
+                // In other environments, only check the exchange set size limit for B2C users
+                shouldCheckSize = IsB2CUser();
             }
 
-            return NodeResultStatus.Succeeded;
+            return shouldCheckSize && await IsExchangeSetSizeExceeded(context, context.Subject.Job)
+                ? NodeResultStatus.Failed
+                : NodeResultStatus.Succeeded;
         }
 
         /// <summary>
@@ -53,8 +64,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             if (user is null)
                 return false;
 
-            var tokenAudience = user.FindFirstValue("aud");
-            var tokenIssuer = user.FindFirstValue("iss");
+            var tokenAudience = user.FindFirstValue(AudienceClaimType);
+            var tokenIssuer = user.FindFirstValue(IssuerClaimType);
 
             var b2cClientId = System.Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppClientId);
             var b2cInstance = System.Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppInstance);
@@ -96,7 +107,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                         new ErrorDetail
                         {
                              Source = "exchangeSetSize",
-                             Description = "The Exchange Set requested is very large and will not be created, please use a standard Exchange Set provided by the UKHO."
+                             Description = "The Exchange Set requested is large and will not be created, please use a standard Exchange Set provided by the UKHO."
                         }
                     ]
                 };
