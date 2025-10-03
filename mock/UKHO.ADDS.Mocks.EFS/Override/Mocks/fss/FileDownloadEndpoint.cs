@@ -1,4 +1,6 @@
-﻿using UKHO.ADDS.Mocks.Headers;
+﻿using System.Text.RegularExpressions;
+using UKHO.ADDS.Mocks.EFS.Services;
+using UKHO.ADDS.Mocks.Headers;
 using UKHO.ADDS.Mocks.Markdown;
 using UKHO.ADDS.Mocks.States;
 
@@ -16,6 +18,37 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                 {
                     case WellKnownState.Default:
 
+                        try
+                        {
+                            var s100Service = CreateS100Service();
+                            var (productName, editionNumber, productUpdateNumber) = ParseS100FileName(fileName);
+
+                            if (!string.IsNullOrEmpty(productName))
+                            {
+                                var zipResult = s100Service.GenerateZipFile(productName, editionNumber, productUpdateNumber);
+
+                                if (zipResult.IsSuccess(out var exchangeSetFile))
+                                {
+                                    // Set the proper filename and headers
+                                    response.Headers["Content-Disposition"] = $"attachment; filename=\"{fileName}\"";
+                                    response.Headers["Content-Length"] = exchangeSetFile.Size.ToString();
+
+                                    return Results.File(exchangeSetFile.FileStream, exchangeSetFile.MimeType, fileName);
+                                }
+                                else if (zipResult.IsFailure(out var error))
+                                {
+                                    // Log the error but fall back to static file
+                                    Console.WriteLine($"Failed to generate S100 file for product {productName}: {error.Message}");
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            // Log exception and fall back to static file
+                            Console.WriteLine($"Exception generating S100 file for {fileName}: {ex.Message}");
+                        }
+
+                        // Fallback to original behavior for static files or if S100 generation fails
                         var pathResult = GetFile("readme.txt");
 
                         if (pathResult.IsSuccess(out var file))
@@ -71,8 +104,52 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                 .WithEndpointMetadata(endpoint, d =>
                 {
                     d.Append(new MarkdownHeader("Download a file", 3));
-                    d.Append(new MarkdownParagraph("Downloads readme.txt."));
+                    d.Append(new MarkdownParagraph("Downloads files. Supports dynamic S100 sample exchange sets for ZIP files with format 'ProductName_Edition_Update.zip' (e.g., 101CA100129_1_0.zip), and static files (readme.txt)."));
+                    d.Append(new MarkdownParagraph("**S100 Filename Format:**"));
+                    d.Append(new MarkdownParagraph("- Required: `{ProductName}_{EditionNumber}_{ProductUpdateNumber}.zip`"));
+                    d.Append(new MarkdownParagraph("- Example: `101CA100129_1_0.zip` → Product: `101CA100129`, Edition: `1`, Update: `0`"));
+                    d.Append(new MarkdownParagraph("- ProductName must start with S100 product codes: 101, 102, 104, or 111"));
                 });
-    }
 
+        /// <summary>
+        /// Parses S100 filename to extract productName, editionNumber, and productUpdateNumber
+        /// </summary>
+        /// <param name="fileName">The filename to parse</param>
+        /// <returns>Tuple containing productName, editionNumber, and productUpdateNumber</returns>
+        /// <exception cref="ArgumentException">Thrown when filename doesn't match expected S100 format</exception>
+        private static (string productName, int editionNumber, int productUpdateNumber) ParseS100FileName(string fileName)
+        {
+            // Remove file extension
+            var nameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
+
+            // Try to parse standard format first: ProductName_Edition_Update
+            var standardPattern = @"^([0-9]{3}[A-Z]{2}[A-Za-z0-9_]+)_(\d+)_(\d+)$";
+            var match = Regex.Match(nameWithoutExtension, standardPattern, RegexOptions.IgnoreCase);
+
+            if (match.Success)
+            {
+                var productName = match.Groups[1].Value;
+                var editionNumber = int.Parse(match.Groups[2].Value);
+                var productUpdateNumber = int.Parse(match.Groups[3].Value);
+
+                return (productName, editionNumber, productUpdateNumber);
+            }
+
+            // If filename doesn't match expected format, throw an exception
+            throw new ArgumentException($"Filename '{fileName}' does not match expected S100 format 'ProductName_Edition_Update.zip' (e.g., '101CA100129_1_0.zip')", nameof(fileName));
+        }
+
+        /// <summary>
+        /// Creates an instance of the S100SampleExchangeSetService
+        /// </summary>
+        private static S100SampleExchangeSetService CreateS100Service()
+        {
+            // Create a simple logger for the service
+            var loggerFactory = LoggerFactory.Create(builder =>
+                builder.AddConsole().SetMinimumLevel(LogLevel.Information));
+            var logger = loggerFactory.CreateLogger<S100SampleExchangeSetService>();
+
+            return new S100SampleExchangeSetService(logger);
+        }
+    }
 }
