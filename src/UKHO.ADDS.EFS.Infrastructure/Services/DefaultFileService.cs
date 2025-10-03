@@ -69,6 +69,34 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         }
 
         /// <summary>
+        ///     Creates a new batch in the File Share Service.
+        /// </summary>
+        /// <param name="correlationId">The correlation identifier for tracking the request.</param>
+        /// <param name="userId">The unique identifier of the requestor (user).</param>
+        /// <param name="exchangeSetType">Type based on request type.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A result containing the batch handle on success or error information on failure.</returns>
+        public async Task<Batch> CreateBatchAsync(CorrelationId correlationId, string userId, string exchangeSetType, CancellationToken cancellationToken)
+        {
+            var createBatchResponseResult = await _fileShareReadWriteClient.CreateBatchAsync(GetBatchModel(userId, exchangeSetType), (string)correlationId, cancellationToken);
+
+            if (createBatchResponseResult.IsFailure(out var error, out _))
+            {
+                LogFileShareServiceError(correlationId, CreateBatch, error, BatchId.None);
+            }
+
+            if (createBatchResponseResult.IsSuccess(out var response))
+            {
+                return new Batch()
+                {
+                    BatchId = BatchId.From(response.BatchId)
+                };
+            }
+
+            throw new InvalidOperationException("Failed to create batch.");
+        }
+
+        /// <summary>
         ///     Commits a batch to the File Share Service.
         /// </summary>
         /// <param name="batchId">The batch identifier to commit.</param>
@@ -200,11 +228,15 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         }
 
         /// <summary>
-        ///     Creates a batch model with predefined settings for S-100 product type.
+        ///     Creates a batch model with predefined settings for S-100 product type and requestor ACL.
         /// </summary>
+        /// <param name="userId">The unique identifier of the requestor (user).</param>
         /// <returns>A configured batch model with appropriate access control and attributes.</returns>
         private static BatchModel GetBatchModel() =>
             new() { BusinessUnit = "ADDS-S100", Acl = new Acl { ReadUsers = new List<string> { "public" }, ReadGroups = new List<string> { "public" } }, Attributes = new List<KeyValuePair<string, string>> { new("Exchange Set Type", "Base"), new("Frequency", "DAILY"), new("Product Code", "S-100"), new("Media Type", "Zip") }, ExpiryDate = null };
+
+        private static BatchModel GetBatchModel(string userId, string exchangeSetType) =>
+    new() { BusinessUnit = "ADDS-S100", Acl = new Acl { ReadUsers = new List<string> { userId }, ReadGroups = new List<string> { userId } }, Attributes = new List<KeyValuePair<string, string>> { new("Exchange Set Type", exchangeSetType), new("Frequency", "DAILY"), new("Product Code", "S-100"), new("Media Type", "Zip") }, ExpiryDate = null };
 
         private void LogFileShareServiceError(CorrelationId correlationId, string endPoint, IError error, BatchId batchId)
         {

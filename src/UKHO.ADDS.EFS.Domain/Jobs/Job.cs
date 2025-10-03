@@ -98,6 +98,11 @@ namespace UKHO.ADDS.EFS.Domain.Jobs
         public RequestType RequestType { get; init; }
 
         /// <summary>
+        /// The user identity of the requestor for ACL assignment.
+        /// </summary>
+        public string RequestorUserId { get; set; }
+
+        /// <summary>
         ///     Gets the correlation ID for the job.
         /// </summary>
         /// <remarks>This is always the Job ID.</remarks>

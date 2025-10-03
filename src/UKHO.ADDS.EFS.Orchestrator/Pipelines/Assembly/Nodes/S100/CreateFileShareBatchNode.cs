@@ -1,5 +1,6 @@
 ﻿using UKHO.ADDS.EFS.Domain.Builds.S100;
 using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Domain.Services;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
@@ -28,9 +29,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             var job = context.Subject.Job;
             var build = context.Subject.Build;
 
+            var exchangeSetType = GetExchangeSetTypeAttribute(job);
+
             try
             {
-                var batch = await _fileService.CreateBatchAsync(job.GetCorrelationId(),  Environment.CancellationToken);
+                var batch = await _fileService.CreateBatchAsync(job.GetCorrelationId(), job.RequestorUserId, exchangeSetType, Environment.CancellationToken);
 
                 job.BatchId = batch.BatchId;
                 build.BatchId = batch.BatchId;
@@ -42,6 +45,18 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             }
 
             return NodeResultStatus.Succeeded;
+        }
+
+        private static string GetExchangeSetTypeAttribute(Job job)
+        {
+            if (job.RequestType.ToString() == RequestType.ProductNames.ToString())
+            {
+                return "Base";
+            }
+            else
+            {
+                return "Update";
+            }
         }
     }
 }
