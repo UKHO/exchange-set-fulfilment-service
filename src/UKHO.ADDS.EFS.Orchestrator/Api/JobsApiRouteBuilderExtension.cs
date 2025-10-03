@@ -42,7 +42,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             .Produces<AssemblyPipelineResponse>()
             .WithRequiredHeader("x-correlation-id", "Correlation ID", correlationIdGenerator.CreateForJob().ToString())
             .WithDescription("Create a job request for the given data standard. To filter (S100) by product type, use the filter property \"startswith(ProductName, '101')\"")
-            .WithRequiredAuthorization(AuthenticationConstants.EfsRole);
+            .WithRequiredAuthorization(AuthenticationConstants.AzureAdScheme);
 
             jobsEndpoint.MapGet("/{jobId}", async (string jobId, IRepository<Job> jobRepository) =>
             {
@@ -57,7 +57,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 return Results.NotFound();
             })
             .WithDescription("Gets the job for the given job id")
-            .WithRequiredAuthorization(AuthenticationConstants.EfsRole);
+            .WithRequiredAuthorization(AuthenticationConstants.AzureAdScheme);
 
             jobsEndpoint.MapGet("/{jobId}/build", async (string jobId, IRepository<BuildMemento> mementoRepository) =>
             {
@@ -72,7 +72,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 return Results.NotFound();
             })
             .WithDescription("Gets the job build memento for the given job id")
-            .WithRequiredAuthorization(AuthenticationConstants.EfsRole);
+            .WithRequiredAuthorization(AuthenticationConstants.AzureAdScheme);
         }
     }
 }

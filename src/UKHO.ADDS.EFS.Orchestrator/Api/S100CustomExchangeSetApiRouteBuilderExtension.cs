@@ -78,7 +78,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             .Produces<ErrorResponseModel>(413)
             .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", correlationIdGenerator.CreateForCustomExchageSet().ToString())
             .WithDescription("Provide all the latest releasable baseline data for a specified set of S100 Products.")
-            .WithRequiredAuthorization(AuthenticationConstants.EfsRole);
+            .WithRequiredAuthorization(AuthenticationConstants.AdOrB2C);
 
             // POST /v2/exchangeSet/s100/productVersions
             exchangeSetEndpoint.MapPost("/productVersions", async (
@@ -126,7 +126,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             .Produces<CustomExchangeSetResponse>(202)
             .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", correlationIdGenerator.CreateForCustomExchageSet().ToString())
             .WithDescription("Given a set of S100 Product versions (e.g. Edition x Update y) provide any later releasable files.")
-            .WithRequiredAuthorization(AuthenticationConstants.EfsRole);
+            .WithRequiredAuthorization(AuthenticationConstants.AdOrB2C);
 
             // POST /v2/exchangeSet/s100/updatesSince
             exchangeSetEndpoint.MapPost("/updatesSince", async (
@@ -168,7 +168,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             .Produces(304)
             .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", correlationIdGenerator.CreateForCustomExchageSet().ToString())
             .WithDescription("Provide all the releasable S100 data after a datetime.")
-            .WithRequiredAuthorization(AuthenticationConstants.EfsRole);
+            .WithRequiredAuthorization(AuthenticationConstants.AdOrB2C);
         }
 
         private static IResult HandleErrorResponse(ErrorResponseModel errorResponse)
