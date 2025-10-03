@@ -182,22 +182,23 @@ stages:
 
 - ${{ if eq(parameters.DeployApim, true) }}:
 
-  # - stage: vNextIatDeployApim
-  #   dependsOn: []
-  #   displayName: vNext IAT Apim Deploy
-  #   condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/dev/')))
-  #   jobs:
-  #   - template: templates/continuous-deployment-apim.yml
-  #     parameters:
-  #         AzureDevOpsEnvironment: Ess-vnextiat
-  #         ShortName: vnextiat
-  #         DeployApim: ${{ parameters.DeployApim }}
-  #         ContinueEvenIfResourcesAreGettingDestroyed: ${{ parameters.ContinueEvenIfResourcesAreGettingDestroyed }}
-  #         ContainerImage: ${{ variables.Container }}
+  - stage: vnextiatdeployapim
+    dependson:
+    - DevDeploy
+    displayname: vnext iat apim deploy
+    condition: and(succeeded(), or(eq(variables['build.sourcebranch'], 'refs/heads/main'), startswith(variables['build.sourcebranch'], 'refs/heads/dev/')))
+    jobs:
+    - template: templates/continuous-deployment-apim.yml
+      parameters:
+          azuredevopsenvironment: ess-vnextiat
+          shortname: vnextiat
+          deployapim: ${{ parameters.deployapim }}
+          continueevenifresourcesaregettingdestroyed: ${{ parameters.continueevenifresourcesaregettingdestroyed }}
+          containerimage: ${{ variables.container }}
 
   - stage: vNextE2eDeployApim
-    dependsOn: []
-   # - vNextIatDeployApim
+    dependsOn: 
+    - vNextIatDeployApim
     displayName: vNext E2E Apim Deploy
     #condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
     jobs:
@@ -210,7 +211,8 @@ stages:
           ContainerImage: ${{ variables.Container }}
 
   - stage: iatDeployApim
-    dependsOn: []
+    dependsOn:
+    - DevDeploy
     displayName: IAT Apim deploy
     jobs:
     - template: templates/continuous-deployment-apim.yml
