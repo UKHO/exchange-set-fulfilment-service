@@ -154,7 +154,7 @@ stages:
     - VulnerabilityChecks
     - Test
     displayName: Dev deploy
-    condition: and(succeeded(), eq('${{ parameters.SkipDevDeploy }}', true))
+    condition: and(succeeded(), ne('${{ parameters.SkipDevDeploy }}', true))
     jobs:
     - template: templates/continuous-deployment.yml
       parameters:
