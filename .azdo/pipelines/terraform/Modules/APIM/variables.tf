@@ -54,3 +54,12 @@ variable "apim_api_description" {
 variable "apim_api_openapi" {
   type = string
 }
+
+
+variable "efs_b2c_token_issuer" {
+  type  = string
+}
+
+variable "efs_b2c_client_id" {
+  type  = string
+}
