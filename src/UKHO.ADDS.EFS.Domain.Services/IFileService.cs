@@ -4,6 +4,7 @@ using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
 using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.Files;
 using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.User;
 
 namespace UKHO.ADDS.EFS.Domain.Services
 {
@@ -15,7 +16,7 @@ namespace UKHO.ADDS.EFS.Domain.Services
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result containing the batch handle on success or error information on failure.</returns>
-        Task<Batch> CreateBatchAsync(CorrelationId correlationId, ExchangeSetType exchangeSetType,CancellationToken cancellationToken);
+        Task<Batch> CreateBatchAsync(CorrelationId correlationId, ExchangeSetSize exchangeSetSize, string exchangeSetType, UserIdentifier userIdentifier, CancellationToken cancellationToken);
 
         /// <summary>
         ///     Commits a batch.

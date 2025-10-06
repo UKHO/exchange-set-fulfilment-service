@@ -1,18 +1,18 @@
 ﻿namespace UKHO.ADDS.EFS.Domain.Jobs
 {
     /// <summary>
-    /// Enumeration of exchange set types for pipeline processing
+    /// Enumeration of exchange set sizes for pipeline processing
     /// </summary>
-    public enum ExchangeSetType
+    public enum ExchangeSetSize
     {
         /// <summary>
         /// Request for complete exchange set
         /// </summary>
-        Base,
+        Complete,
 
         /// <summary>
         /// Request for custom exchange set
         /// </summary>
-        Update
+        Custom
     }
 }

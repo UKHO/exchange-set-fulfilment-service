@@ -98,9 +98,9 @@ namespace UKHO.ADDS.EFS.Domain.Jobs
         public RequestType RequestType { get; init; }
 
         /// <summary>
-        /// Deternimes the type of exchange set to be created
+        /// Deternimes the size of exchange set to be created
         /// </summary>
-        public ExchangeSetType ExchangeSetType { get; init; }
+        public ExchangeSetSize ExchangeSetSize { get; init; }
 
         /// <summary>
         ///     Gets the correlation ID for the job.
@@ -120,5 +120,7 @@ namespace UKHO.ADDS.EFS.Domain.Jobs
         public DataStandardProduct ProductIdentifier { get; init; }
 
         public ProductVersionList ProductVersions { get; init; }
+
+        public string ExchangeSetType { get; init; }
     }
 }
