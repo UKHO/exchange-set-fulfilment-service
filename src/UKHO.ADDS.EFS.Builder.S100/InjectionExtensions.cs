@@ -104,6 +104,8 @@ namespace UKHO.ADDS.EFS.Builder.S100
             services.AddDomain();
             services.AddBuilderInfrastructure();
 
+            services.AddAllElasticApm();
+
             return services;
         }
 
