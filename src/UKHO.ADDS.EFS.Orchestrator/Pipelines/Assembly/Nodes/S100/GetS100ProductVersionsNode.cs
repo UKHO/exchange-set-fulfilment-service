@@ -39,7 +39,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             // Call the product service to get product versions
             var productEditionList = await _productService.GetProductVersionsListAsync(DataStandard.S100, productVersions, job, Environment.CancellationToken);
 
-            if (productEditionList.ResponseCode == HttpStatusCode.OK)
+            job.ScsResponseCode = productEditionList.ResponseCode;
+            job.ScsLastModified = productEditionList.LastModified;
+
+            if (productEditionList.ResponseCode == HttpStatusCode.OK || productEditionList.ResponseCode == HttpStatusCode.NotModified)
             {
                 // Log any requested products that weren't returned, but don't fail the build
                 if (productEditionList.ProductCountSummary.MissingProducts.HasProducts)
@@ -53,13 +56,18 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                 var expiryTimeSpan = Environment.Configuration.GetValue<TimeSpan>(ExchangeSetExpiresInConfigKey);
 
                 job.ExchangeSetUrlExpiryDateTime = DateTime.UtcNow.Add(expiryTimeSpan);
+                // Ensure ProductCount value objects are initialized before any persistence/serialization
                 job.RequestedProductCount = ProductCount.From(productVersions.Count());
-                job.ExchangeSetProductCount = productEditionList.Count;
+                job.ExchangeSetProductCount = ProductCount.From(productEditionList.Count());
                 job.RequestedProductsAlreadyUpToDateCount = productEditionList.ProductCountSummary.RequestedProductsAlreadyUpToDateCount;
                 job.RequestedProductsNotInExchangeSet = productEditionList.ProductCountSummary.MissingProducts;
-  
+
                 await context.Subject.SignalBuildRequired();
                 return NodeResultStatus.Succeeded;
+            }
+            else
+            {
+                job.ErrorOrigin = "SCS";
             }
 
             // Handle error case

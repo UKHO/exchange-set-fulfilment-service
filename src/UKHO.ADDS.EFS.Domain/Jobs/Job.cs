@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Net;
+using System.Text.Json.Serialization;
 using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.Products;
@@ -115,5 +116,20 @@ namespace UKHO.ADDS.EFS.Domain.Jobs
         public DataStandardProduct ProductIdentifier { get; init; }
 
         public ProductVersionList ProductVersions { get; init; }
-    }
+
+        /// <summary>
+        /// Gets or sets the HTTP status code representing the response from the SCS service.
+        /// </summary>
+        public HttpStatusCode ScsResponseCode { get; set; }
+
+        /// <summary>
+        /// Gets or sets the date and time when the entity was last modified in the SCS system.
+        /// </summary>
+        public DateTime? ScsLastModified { get; set; }
+
+        /// <summary>
+        /// Gets or sets the error origin of the entity.
+        /// </summary>
+        public string ErrorOrigin { get; set; }
+        }
 }

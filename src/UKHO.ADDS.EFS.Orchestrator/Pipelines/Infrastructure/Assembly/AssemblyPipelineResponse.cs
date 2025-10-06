@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.EFS.Domain.Builds;
+﻿using System.Net;
+using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Messages;
 using UKHO.ADDS.EFS.Domain.Products;
@@ -12,7 +13,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
 
         public required JobId JobId { get; init; }
 
-        public required JobState JobStatus { get; init; }
+        public required JobState JobStatus { get; init; }         
 
         public required BuildState BuildStatus { get; init; }
 
@@ -29,5 +30,20 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         /// Success response data for the request, if no errors
         /// </summary>
         internal CustomExchangeSetResponse? Response { get; init; }
+
+        /// <summary>
+        /// Gets or sets the HTTP status code representing the response from the SCS service.
+        /// </summary>
+        public HttpStatusCode ScsResponseCode { get; set; }
+
+        /// <summary>
+        /// Gets or sets the date and time when the entity was last modified in the SCS system.
+        /// </summary>
+        public DateTime? ScsLastModified { get; set; }
+
+        /// <summary>
+        /// Gets or sets the error origin of the entity.
+        /// </summary>
+        public string ErrorOrigin { get; set; }
     }
 }

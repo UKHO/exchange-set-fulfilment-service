@@ -90,8 +90,9 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                 var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
                 var correlationIdGenerator = app.Services.GetRequiredService<ICorrelationIdGenerator>();
+                var scsResponseHandler = app.Services.GetRequiredService<IScsResponseHandler>();
                 app.RegisterJobsApi(loggerFactory,correlationIdGenerator);
-                app.RegisterS100CustomExchangeSetApi(loggerFactory,correlationIdGenerator);
+                app.RegisterS100CustomExchangeSetApi(loggerFactory,correlationIdGenerator,scsResponseHandler);
 
                 // Map health check endpoints with custom configuration to exclude Redis checks
                 //It looks like the Redis service is degraded for some reason, so comment it out from the health checks for the time being.

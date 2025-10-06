@@ -149,7 +149,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Adapters.Products
             return summary;
         }
 
-        public static ProductEditionList ToDomain(this S100ProductResponse source)
+        public static ProductEditionList ToDomain(this S100ProductResponse source, DateTime? lastModified)
         {
             if (source is null)
             {
@@ -159,7 +159,8 @@ namespace UKHO.ADDS.EFS.Infrastructure.Adapters.Products
             var list = new ProductEditionList
             {
                 ProductCountSummary = source.ProductCounts.ToDomain() ?? new ProductCountSummary(),
-                ResponseCode = HttpStatusCode.OK
+                ResponseCode = HttpStatusCode.OK,
+                LastModified = lastModified ?? default
             };
 
             foreach (var p in source.Products ?? [])

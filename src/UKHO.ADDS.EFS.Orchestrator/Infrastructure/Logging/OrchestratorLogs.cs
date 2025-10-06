@@ -7,7 +7,7 @@ using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
 {
-    internal static partial class OrchestratorLogs
+    internal static partial class OrchestratorLogs                   
     {
         private const int BaseEventId = 10000;
 
@@ -59,6 +59,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         
         // Exchange set size exceeded event
         private const int ExchangeSetSizeExceededId = BaseEventId + 35;
+
+
+        // SCS failed eventId
+        private const int SalesCatalogueServiceFailedId = BaseEventId + 36;
 
         // An unhandled HTTP error has occurred
         public static readonly EventId UnhandledHttpError = new(UnhandledHttpErrorId, nameof(UnhandledHttpError));
@@ -125,6 +129,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         
         // Exchange set size exceeded event
         public static readonly EventId ExchangeSetSizeExceeded = new(ExchangeSetSizeExceededId, nameof(ExchangeSetSizeExceeded));
+
+
+        //SCS service failed
+        public static readonly EventId SalesCatalogueServiceFailed = new(SalesCatalogueServiceFailedId, nameof(SalesCatalogueServiceFailed));
 
         [LoggerMessage(UnhandledHttpErrorId, LogLevel.Error, "An unhandled exception was caught by the HTTP pipeline: {@message}", EventName = nameof(UnhandledHttpError))]
         public static partial void LogUnhandledHttpError(this ILogger logger, string message, Exception exception);
@@ -218,5 +226,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         
         [LoggerMessage(ExchangeSetSizeExceededId, LogLevel.Warning, "Total exchange set size {TotalSizeInMB}MB exceeds maximum allowed size {MaxSizeInMB}MB", EventName = nameof(ExchangeSetSizeExceeded))]
         public static partial void LogExchangeSetSizeExceeded(this ILogger logger, long totalSizeInMB, int maxSizeInMB);
+
+        [LoggerMessage(SalesCatalogueServiceFailedId, LogLevel.Error, "The Sales Catalogue Service request failed with status code: {StatusCode} for correlation ID: {correlationId}and Error Source: {errorOrigin}", EventName = nameof(SalesCatalogueServiceFailed))]
+        public static partial void LogSalesCatalogueServiceFailed(this ILogger logger,int statusCode, string correlationId, string errorOrigin);
     }
 }

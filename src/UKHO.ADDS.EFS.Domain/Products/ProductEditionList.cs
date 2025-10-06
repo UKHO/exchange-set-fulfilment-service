@@ -22,6 +22,9 @@ namespace UKHO.ADDS.EFS.Domain.Products
         [JsonIgnore]
         public HttpStatusCode ResponseCode { get; set; }
 
+        [JsonIgnore]
+        public DateTime? LastModified { get; set; }
+
         public bool Add(ProductEdition product)
         {
             _products.Add(product);

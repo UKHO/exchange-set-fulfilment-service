@@ -11,9 +11,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly
         private readonly IExchangeSetResponseFactory _exchangeSetResponseFactory;
 
         public S100CustomAssemblyPipeline(
-            AssemblyPipelineParameters parameters, 
-            IAssemblyPipelineNodeFactory nodeFactory, 
-            IPipelineContextFactory<S100Build> contextFactory, 
+            AssemblyPipelineParameters parameters,
+            IAssemblyPipelineNodeFactory nodeFactory,
+            IPipelineContextFactory<S100Build> contextFactory,
             ILogger<S100CustomAssemblyPipeline> logger,
             IExchangeSetResponseFactory exchangeSetResponseFactory)
             : base(parameters, nodeFactory, contextFactory, logger)
@@ -46,7 +46,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly
                 BuildStatus = context.Job.BuildState,
                 BatchId = context.Job.BatchId,
                 ErrorResponse = context.ErrorResponse?.Errors?.Count > 0 ? context.ErrorResponse : null,
-                Response = _exchangeSetResponseFactory.CreateResponse(context.Job)
+                Response = _exchangeSetResponseFactory.CreateResponse(context.Job),
+                ScsLastModified = context.Job.ScsLastModified,
+                ScsResponseCode = context.Job.ScsResponseCode,
+                ErrorOrigin=context.Job.ErrorOrigin,
+                
             };
         }
 

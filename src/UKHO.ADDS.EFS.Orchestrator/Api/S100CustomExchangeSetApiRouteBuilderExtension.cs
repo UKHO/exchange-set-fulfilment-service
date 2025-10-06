@@ -22,7 +22,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
         /// </summary>
         /// <param name="routeBuilder">The endpoint route builder</param>
         /// <param name="loggerFactory">The logger factory</param>
-        public static void RegisterS100CustomExchangeSetApi(this IEndpointRouteBuilder routeBuilder, ILoggerFactory loggerFactory,ICorrelationIdGenerator correlationIdGenerator)
+        public static void RegisterS100CustomExchangeSetApi(this IEndpointRouteBuilder routeBuilder, ILoggerFactory loggerFactory,
+            ICorrelationIdGenerator correlationIdGenerator,IScsResponseHandler scsResponseHandler)
         {
             var logger = loggerFactory.CreateLogger("S100ExchangeSetApi");
             var exchangeSetEndpoint = routeBuilder.MapGroup("/v2/exchangeSet/s100");
@@ -67,7 +68,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                              return HandleErrorResponse(result.ErrorResponse);
                          }
 
-                         return Results.Accepted(null, result.Response);
+                         return scsResponseHandler.HandleScsResponse(result, correlationId, logger,httpContext);
                      }
                      catch (Exception)
                      {
@@ -116,7 +117,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                     var result = await pipeline.RunAsync(httpContext.RequestAborted);
 
-                    return Results.Accepted(null, result.Response);
+                    return scsResponseHandler.HandleScsResponse(result, correlationId, logger, httpContext);
                 }
                 catch (Exception)
                 {
@@ -157,7 +158,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                     var result = await pipeline.RunAsync(httpContext.RequestAborted);
 
-                    return Results.Accepted(null, result.Response);
+                    return scsResponseHandler.HandleScsResponse(result, correlationId, logger, httpContext);
                 }
                 catch (Exception)
                 {

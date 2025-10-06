@@ -45,7 +45,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
             };
 
             var context = new PipelineContext<TBuild>(job, build, _storageService);
-
+            context.Job.ErrorOrigin = "EFS Orchestrator";
             return Task.FromResult(context);
         }
 

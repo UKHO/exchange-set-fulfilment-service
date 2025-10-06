@@ -49,6 +49,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             var productEditionList = await _productService.GetProductEditionListAsync(DataStandard.S100, productNameList, job, Environment.CancellationToken);
 
             var nodeResult = NodeResultStatus.NotRun;
+            job.ScsResponseCode = productEditionList.ResponseCode;
+            job.ScsLastModified = productEditionList.LastModified;
 
             switch (productEditionList.ResponseCode)
             {
@@ -59,7 +61,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                     {
                         _logger.LogSalesCatalogueProductsNotReturned(productEditionList.ProductCountSummary);
                     }
-
                     if (job.RequestType == RequestType.ProductNames)
                     {
                         // Check if the exchange set size is within limits
@@ -84,6 +85,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                     return NodeResultStatus.Succeeded;
 
                 default:
+                    job.ErrorOrigin = "SCS";
                     await context.Subject.SignalAssemblyError();
 
                     nodeResult = NodeResultStatus.Failed;

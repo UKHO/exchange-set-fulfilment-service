@@ -1,11 +1,9 @@
-﻿
-using System.Net;
+﻿using System.Net;
 using Microsoft.Extensions.Logging;
 using Microsoft.Kiota.Abstractions;
 using Microsoft.Kiota.Http.HttpClientLibrary.Middleware.Options;
 using UKHO.ADDS.Clients.Kiota.SalesCatalogueService;
 using UKHO.ADDS.Clients.Kiota.SalesCatalogueService.Models;
-using UKHO.ADDS.Clients.Kiota.SalesCatalogueService.V1.ProductData.Item.Products.ProductIdentifiers;
 using UKHO.ADDS.EFS.Domain.Constants;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
@@ -118,11 +116,15 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
             {
                 throw new NotImplementedException($"Data standard {dataStandard} is not supported.");
             }
-
+            var headersOption = new HeadersInspectionHandlerOption
+            {
+                InspectResponseHeaders = true
+            };
             try
             {
                 var retryPolicy =
                     HttpRetryPolicyFactory.GetGenericResultRetryPolicy<S100ProductResponse?>(_logger, nameof(GetProductEditionListAsync));
+
 
                 var s100ProductNamesResult = await retryPolicy.ExecuteAsync(async () =>
                 {
@@ -132,29 +134,28 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                         requestConfiguration =>
                         {
                             requestConfiguration.Headers.Add(ApiHeaderKeys.XCorrelationIdHeaderKey, (string)job.GetCorrelationId());
+                            requestConfiguration.Options.Add(headersOption);
                         },
                         cancellationToken);
 
                     return Result.Success(result);
                 });
 
-                if (s100ProductNamesResult.IsSuccess(out var response) && response is not null)
-                {
-                    return response.ToDomain();
-                }
-
-                _logger.LogSalesCatalogueApiError(SalesCatalogApiErrorLogView.Create(job));
-                return new ProductEditionList();
+                return ProcessProductNamesResult(s100ProductNamesResult, headersOption, job);
             }
             catch (ApiException apiException)
             {
-                _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, (HttpStatusCode)apiException.ResponseStatusCode));
-                return new ProductEditionList();
+                return HandleApiExceptionForProductEditionList(apiException, headersOption, job);
             }
         }
 
         public async Task<ProductEditionList> GetS100ProductUpdatesSinceAsync(string sinceDateTime, DataStandardProduct productIdentifier, Job job, CancellationToken cancellationToken)
         {
+            var headersOption = new HeadersInspectionHandlerOption
+            {
+                InspectResponseHeaders = true
+            };
+
             try
             {
                 var retryPolicy =
@@ -173,6 +174,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
 
                                 requestConfiguration.QueryParameters.SinceDateTime = DateTimeOffset.Parse(sinceDateTime);
                                 requestConfiguration.Headers.Add(ApiHeaderKeys.XCorrelationIdHeaderKey, (string)job.GetCorrelationId());
+                                requestConfiguration.Options.Add(headersOption);
                             },
                             cancellationToken);
 
@@ -180,18 +182,11 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
 
                 });
 
-                if (s100ProductUpdatesResult.IsSuccess(out var response) && response is not null)
-                {
-                    return response.ToDomain();
-                }
-
-                _logger.LogSalesCatalogueApiError(SalesCatalogApiErrorLogView.Create(job));
-                return new ProductEditionList();
+                return ProcessProductNamesResult(s100ProductUpdatesResult, headersOption, job);
             }
             catch (ApiException apiException)
             {
-                _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, (HttpStatusCode)apiException.ResponseStatusCode));
-                return new ProductEditionList();
+                return HandleApiExceptionForProductEditionList(apiException, headersOption, job);
             }
         }
 
@@ -201,6 +196,10 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
             {
                 throw new NotImplementedException($"Data standard {dataStandard} is not supported.");
             }
+            var headersOption = new HeadersInspectionHandlerOption
+            {
+                InspectResponseHeaders = true
+            };
 
             try
             {
@@ -221,25 +220,62 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                         requestConfiguration =>
                         {
                             requestConfiguration.Headers.Add(ApiHeaderKeys.XCorrelationIdHeaderKey, (string)job.GetCorrelationId());
+                            requestConfiguration.Options.Add(headersOption);
                         },
                         cancellationToken);
 
                     return Result.Success(result);
                 });
 
-                if (s100ProductVersionResult.IsSuccess(out var response) && response is not null)
-                {
-                    return response.ToDomain();
-                }
-
-                _logger.LogSalesCatalogueApiError(SalesCatalogApiErrorLogView.Create(job));
-                return [];
+                return ProcessProductNamesResult(s100ProductVersionResult, headersOption, job);
             }
             catch (ApiException apiException)
             {
-                _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, (HttpStatusCode)apiException.ResponseStatusCode));
-                return [];
+                return HandleApiExceptionForProductEditionList(apiException, headersOption, job);
             }
+        }
+
+        private ProductEditionList HandleApiExceptionForProductEditionList(ApiException apiException, HeadersInspectionHandlerOption headersOption, Job job)
+        {
+            var productEditionList = new ProductEditionList
+            {
+                ResponseCode = (HttpStatusCode)apiException.ResponseStatusCode
+            };
+
+            if (apiException.ResponseStatusCode == (int)HttpStatusCode.NotModified)
+            {
+                var lastModifiedHeader = headersOption.ResponseHeaders.TryGetValue(ApiHeaderKeys.LastModifiedHeaderKey, out var values)
+                    ? values.FirstOrDefault()
+                    : null;
+
+                if (!DateTime.TryParse(lastModifiedHeader, out var parsed))
+                {
+                    // Fall back if header missing or unparsable
+                    parsed = default;
+                }
+
+                 productEditionList.LastModified = parsed;            
+            }
+
+            _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, (HttpStatusCode)apiException.ResponseStatusCode));
+            return productEditionList;
+        }
+
+        private ProductEditionList ProcessProductNamesResult(IResult<S100ProductResponse?> s100ProductNamesResult, HeadersInspectionHandlerOption headersOption, Job job)
+        {
+            var lastModifiedHeader = headersOption.ResponseHeaders.TryGetValue(ApiHeaderKeys.LastModifiedHeaderKey, out var values)
+                ? values.FirstOrDefault()
+                : null;
+
+            _ = DateTime.TryParse(lastModifiedHeader, out var lastModifiedActual);
+
+            if (s100ProductNamesResult.IsSuccess(out var productList) && productList is not null)
+            {
+                return productList.ToDomain(lastModifiedActual);
+            }
+
+            _logger.LogSalesCatalogueApiError(SalesCatalogApiErrorLogView.Create(job));
+            return [];
         }
     }
 }
