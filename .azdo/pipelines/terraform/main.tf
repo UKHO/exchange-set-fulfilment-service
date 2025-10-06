@@ -14,4 +14,6 @@ module "APIM" {
   apim_api_openapi                   = local.apim_api_openapi
   product_rate_limit                 = var.product_rate_limit
   product_quota                      = var.product_quota
+  efs_b2c_token_issuer               = var.b2c_token_issuer
+  efs_b2c_client_id                  = var.b2c_client_id
 }
