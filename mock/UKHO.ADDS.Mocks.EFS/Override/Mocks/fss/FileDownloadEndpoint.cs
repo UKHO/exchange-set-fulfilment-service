@@ -3,6 +3,7 @@ using UKHO.ADDS.Mocks.EFS.Services;
 using UKHO.ADDS.Mocks.Headers;
 using UKHO.ADDS.Mocks.Markdown;
 using UKHO.ADDS.Mocks.States;
+using UKHO.FakePenrose.S100SampleExchangeSets.SampleFileSources;
 
 namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
 {
@@ -20,14 +21,17 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
 
                         try
                         {
-                            var s100Service = CreateS100Service();
+                            // Create the service directly with its dependency
+                            var s100FileSource = new S100FileSource();
+                            var s100Service = new S100DownloadFileService(s100FileSource);
+                            
                             var (productName, editionNumber, productUpdateNumber) = ParseS100FileName(fileName);
 
                             if (!string.IsNullOrEmpty(productName))
                             {
                                 var zipResult = s100Service.GenerateZipFile(productName, editionNumber, productUpdateNumber);
 
-                                if (zipResult.IsSuccess(out var exchangeSetFile))
+                                if (zipResult.IsSuccess(out var exchangeSetFile, out var error))
                                 {
                                     // Set the proper filename and headers
                                     response.Headers["Content-Disposition"] = $"attachment; filename=\"{fileName}\"";
@@ -35,28 +39,34 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
 
                                     return Results.File(exchangeSetFile.FileStream, exchangeSetFile.MimeType, fileName);
                                 }
-                                else if (zipResult.IsFailure(out var error))
+                                else
                                 {
-                                    // Log the error but fall back to static file
+                                    // Log the error but return 500 status
                                     Console.WriteLine($"Failed to generate S100 file for product {productName}: {error.Message}");
+                                    return Results.Json(new
+                                    {
+                                        correlationId = request.Headers[WellKnownHeader.CorrelationId],
+                                        details = "Internal Server Error"
+                                    }, statusCode: 500);
                                 }
                             }
                         }
                         catch (Exception ex)
                         {
-                            // Log exception and fall back to static file
+                            // Log exception and return 500 status
                             Console.WriteLine($"Exception generating S100 file for {fileName}: {ex.Message}");
+                            return Results.Json(new
+                            {
+                                correlationId = request.Headers[WellKnownHeader.CorrelationId],
+                                details = "Internal Server Error"
+                            }, statusCode: 500);
                         }
 
-                        // Fallback to original behavior for static files or if S100 generation fails
-                        var pathResult = GetFile("readme.txt");
-
-                        if (pathResult.IsSuccess(out var file))
+                        return Results.Json(new
                         {
-                            return Results.File(file.Open(), file.MimeType);
-                        }
-
-                        return Results.NotFound("Could not find the path in the /files GET method");
+                            correlationId = request.Headers[WellKnownHeader.CorrelationId],
+                            details = "Internal Server Error"
+                        }, statusCode: 500);
 
                     case WellKnownState.BadRequest:
                         return Results.Json(new
@@ -104,7 +114,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                 .WithEndpointMetadata(endpoint, d =>
                 {
                     d.Append(new MarkdownHeader("Download a file", 3));
-                    d.Append(new MarkdownParagraph("Downloads files. Supports dynamic S100 sample exchange sets for ZIP files with format 'ProductName_Edition_Update.zip' (e.g., 101CA100129_1_0.zip), and static files (readme.txt)."));
+                    d.Append(new MarkdownParagraph("Downloads S100 sample exchange sets for ZIP files with format 'ProductName_Edition_Update.zip' (e.g., 101CA100129_1_0.zip)."));
                     d.Append(new MarkdownParagraph("**S100 Filename Format:**"));
                     d.Append(new MarkdownParagraph("- Required: `{ProductName}_{EditionNumber}_{ProductUpdateNumber}.zip`"));
                     d.Append(new MarkdownParagraph("- Example: `101CA100129_1_0.zip` → Product: `101CA100129`, Edition: `1`, Update: `0`"));
@@ -137,19 +147,6 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
 
             // If filename doesn't match expected format, throw an exception
             throw new ArgumentException($"Filename '{fileName}' does not match expected S100 format 'ProductName_Edition_Update.zip' (e.g., '101CA100129_1_0.zip')", nameof(fileName));
-        }
-
-        /// <summary>
-        /// Creates an instance of the S100SampleExchangeSetService
-        /// </summary>
-        private static S100SampleExchangeSetService CreateS100Service()
-        {
-            // Create a simple logger for the service
-            var loggerFactory = LoggerFactory.Create(builder =>
-                builder.AddConsole().SetMinimumLevel(LogLevel.Information));
-            var logger = loggerFactory.CreateLogger<S100SampleExchangeSetService>();
-
-            return new S100SampleExchangeSetService(logger);
         }
     }
 }
