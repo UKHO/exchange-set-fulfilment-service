@@ -50,7 +50,6 @@ variable "env_suffix" {
   }
 }
 
-
 variable "product_rate_limit" {
   type = map(any)
   default = {
@@ -65,6 +64,14 @@ variable "product_quota" {
 	    calls = 5000
 	    renewal-period = 86400
     }
+}
+
+variable "b2c_token_issuer" {
+  type  = string
+}
+
+variable "b2c_client_id" {
+  type  = string
 }
 
 locals {
