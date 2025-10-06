@@ -28,7 +28,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         private const string CommitBatch = "CommitBatch";
         private const string CreateBatch = "CreateBatch";
         private const string AddFileToBatch = "AddFileToBatch";
-        private const string BatchExpiresInDaysConfigKey = "orchestrator:Response:BatchExpiresInDays";
+        private const string BatchExpiresInConfigKey = "orchestrator:Response:BatchExpiresIn";
         private readonly IFileShareReadWriteClient _fileShareReadWriteClient;
         private readonly IConfiguration _configuration;
         private readonly ILogger<DefaultFileService> _logger;
@@ -235,7 +235,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         /// <returns>A configured batch model with appropriate access control and attributes.</returns>
         private BatchModel GetBatchModelForCustomExchangeSet()
         {
-            var expiryTimeSpan = _configuration.GetValue<TimeSpan>(BatchExpiresInDaysConfigKey);
+            var expiryTimeSpan = _configuration.GetValue<TimeSpan>(BatchExpiresInConfigKey);
 
             return new BatchModel
             {
