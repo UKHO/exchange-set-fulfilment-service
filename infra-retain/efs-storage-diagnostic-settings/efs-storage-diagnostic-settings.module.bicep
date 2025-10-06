@@ -29,36 +29,25 @@ resource tableService 'Microsoft.Storage/storageAccounts/tableServices@2024-01-0
   parent: storageAccount
 }
 
-var diagnosticTargets = [
-  {
-    name: 'storage'
-    scope: storageAccount
-    includeLogs: false
-  }
-  {
-    name: 'blob'
-    scope: blobService
-    includeLogs: true
-  }
-  {
-    name: 'queue'
-    scope: queueService
-    includeLogs: true
-  }
-  {
-    name: 'table'
-    scope: tableService
-    includeLogs: true
-  }
+var targetNames = [
+  'storage'
+  'blob'
+  'queue'
+  'table'
 ]
 
-resource diagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = [for target in diagnosticTargets: {
-  name: '${diagnosticSettingsName}-${target.name}'
-  scope: target.scope
+resource diagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = [for name in targetNames: {
+  name: '${diagnosticSettingsName}-${name}'
+  scope: (
+    name == 'storage' ? storageAccount :
+    name == 'blob' ? blobService :
+    name == 'queue' ? queueService :
+    tableService
+  )
   properties: {
     eventHubAuthorizationRuleId: eventHubAuthorizationRuleId
     eventHubName: eventHubName
-    logs: target.includeLogs ? [
+    logs: name == 'storage' ? [] : [
       {
         categoryGroup: 'audit'
         enabled: true
@@ -67,7 +56,7 @@ resource diagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' 
         categoryGroup: 'allLogs'
         enabled: true
       }
-    ] : []
+    ]
     metrics: [
       {
         category: 'Transaction'
