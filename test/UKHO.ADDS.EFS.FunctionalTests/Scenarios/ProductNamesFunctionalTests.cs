@@ -77,7 +77,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
          * Once resolved , please reintroduce the assertion for response body "Either body is null or malformed" as currently passing "" to suppress assertion failure
          * Updates on 01 Oct 2025, this bug will not be fixed, and the specifications will be update as per current behavior that for current scenarios under automation where the api responds back with 400 but the response body will be blank
          */
-        [InlineData(new object[] { "101GB40079ABCDEFG", 123, 456, 789 }, "https://valid.com/callback", HttpStatusCode.BadRequest, "Either body is null or malformed")] //Test Case 243659 - Mixed valid and invalid data types
+        [InlineData(new object[] { "101GB40079ABCDEFG", 123, 456, 789 }, "https://valid.com/callback", HttpStatusCode.BadRequest, "")] //Test Case 243659 - Mixed valid and invalid data types
         public async Task ValidatePNPayloadWithInvalidInputs(object[] productNames, string? callbackUri, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
         {
             using var scope = new AssertionScope(); // root scope
