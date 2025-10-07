@@ -33,6 +33,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         private readonly IFileShareReadWriteClient _fileShareReadWriteClient;
         private readonly IConfiguration _configuration;
         private readonly ILogger<DefaultFileService> _logger;
+        private string _businessUnit;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="DefaultFileService" /> class.
@@ -46,6 +47,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
             _fileShareReadWriteClient = fileShareReadWriteClient ?? throw new ArgumentNullException(nameof(fileShareReadWriteClient));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+             _businessUnit = _configuration.GetValue<string>(BusinessUnitConfigKey)!;
         }
 
         /// <summary>
@@ -216,7 +218,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         private BatchModel GetBatchModelForCompleteExchangeSet() =>
             new()
             {
-                BusinessUnit = BusinessUnitConfigKey,
+                BusinessUnit = _businessUnit,
                 Acl = new Acl
                 {
                     ReadUsers = ["public"],
@@ -242,7 +244,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
 
             return new BatchModel
             {
-                BusinessUnit = BusinessUnitConfigKey,
+                BusinessUnit = _businessUnit,
                 Acl = new Acl
                 {
                     ReadUsers = [userIdentity]
