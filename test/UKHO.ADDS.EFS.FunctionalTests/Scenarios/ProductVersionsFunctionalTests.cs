@@ -1,6 +1,7 @@
 using FluentAssertions.Execution;
 using Meziantou.Xunit;
 using UKHO.ADDS.EFS.FunctionalTests.Assertions;
+using UKHO.ADDS.EFS.FunctionalTests.Configuration;
 using UKHO.ADDS.EFS.FunctionalTests.Diagnostics;
 using UKHO.ADDS.EFS.FunctionalTests.Framework;
 using UKHO.ADDS.EFS.FunctionalTests.Infrastructure;
@@ -14,34 +15,17 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
     public class ProductVersionsFunctionalTests(StartupFixture startup, ITestOutputHelper output) : FunctionalTestBase(startup, output)
     {
         private readonly string _requestId = $"job-productVersionsAutoTest-" + Guid.NewGuid();
-        private string _endpoint = "/v2/exchangeSet/s100/productVersions";
+        private string _endpoint = TestEndpointConfiguration.ProductVersionsEndpoint;
         private bool _assertCallbackTxtFile = false;
 
 
         private void SetEndpoint(string? callbackUri)
         {
-            if (callbackUri != null)
-            {
-                // Get the base URL from the HttpClient
-                var baseUrl = (AspireTestHost.httpClientMock!.BaseAddress)!.ToString();
-
-                if (string.Equals(callbackUri, "https://valid.com/callback", StringComparison.OrdinalIgnoreCase))
-                {
-                    _assertCallbackTxtFile = true;
-                    if (baseUrl.StartsWith("http://localhost", StringComparison.OrdinalIgnoreCase))
-                    {
-                        _endpoint += "?callbackUri=https://adds-mocks-efs/callback/callback";
-                    }
-                    else
-                    {
-                        _endpoint += $"?callbackUri=https://adds-mocks-efs.redmoss-3083029b.uksouth.azurecontainerapps.io/callback/callback";
-                    }
-                }
-                else
-                {
-                    _endpoint += $"?callbackUri={callbackUri}";
-                }
-            }
+            _endpoint = EndpointUtility.BuildEndpoint(
+                TestEndpointConfiguration.ProductVersionsEndpoint,
+                callbackUri,
+                null, // No product identifier needed for this endpoint
+                out _assertCallbackTxtFile);
         }
 
 

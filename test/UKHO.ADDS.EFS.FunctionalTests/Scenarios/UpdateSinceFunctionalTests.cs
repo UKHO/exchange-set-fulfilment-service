@@ -1,6 +1,7 @@
 ﻿using FluentAssertions.Execution;
 using Meziantou.Xunit;
 using UKHO.ADDS.EFS.FunctionalTests.Assertions;
+using UKHO.ADDS.EFS.FunctionalTests.Configuration;
 using UKHO.ADDS.EFS.FunctionalTests.Diagnostics;
 using UKHO.ADDS.EFS.FunctionalTests.Framework;
 using UKHO.ADDS.EFS.FunctionalTests.Infrastructure;
@@ -14,43 +15,17 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
     public class UpdateSinceFunctionalTests(StartupFixture startup, ITestOutputHelper output) : FunctionalTestBase(startup, output)
     {
         private readonly string _requestId = $"job-updateSinceAutoTest-" + Guid.NewGuid();
-        private string _endpoint = "/v2/exchangeSet/s100/updatesSince";
+        private string _endpoint = TestEndpointConfiguration.UpdatesSinceEndpoint;
         private bool _assertCallbackTxtFile = false;
 
 
         private void SetEndpoint(string? callbackUri, string? productIdentifier)
         {
-            if (callbackUri == null && productIdentifier != null)
-            {
-                _endpoint += $"?productIdentifier={productIdentifier}";
-            }
-            else if (callbackUri != null)
-            {
-                // Get the base URL from the HttpClient
-                var baseUrl = (AspireTestHost.httpClientMock!.BaseAddress)!.ToString();
-
-                if (string.Equals(callbackUri, "https://valid.com/callback", StringComparison.OrdinalIgnoreCase))
-                {
-                    _assertCallbackTxtFile = true;
-                    if (baseUrl.StartsWith("http://localhost", StringComparison.OrdinalIgnoreCase))
-                    {
-                        _endpoint += "?callbackUri=https://adds-mocks-efs/callback/callback";
-                    }
-                    else
-                    {
-                        _endpoint += $"?callbackUri=https://adds-mocks-efs.redmoss-3083029b.uksouth.azurecontainerapps.io/callback/callback";
-                    }
-                }
-                else
-                {
-                    _endpoint += $"?callbackUri={callbackUri}";
-                }
-
-                if (productIdentifier != null)
-                {
-                    _endpoint += $"&productIdentifier={productIdentifier}";
-                }
-            }
+            _endpoint = EndpointUtility.BuildEndpoint(
+                TestEndpointConfiguration.UpdatesSinceEndpoint,
+                callbackUri,
+                productIdentifier,
+                out _assertCallbackTxtFile);
         }
 
         //PBI 246464 - Consume ESS API - Update Since Endpoint

@@ -1,6 +1,6 @@
 ﻿using Meziantou.Xunit;
+using UKHO.ADDS.EFS.FunctionalTests.Configuration;
 using UKHO.ADDS.EFS.FunctionalTests.Framework;
-using UKHO.ADDS.EFS.FunctionalTests.Http;
 using UKHO.ADDS.EFS.FunctionalTests.Infrastructure;
 using UKHO.ADDS.EFS.FunctionalTests.Utilities;
 using Xunit.Abstractions;
@@ -12,7 +12,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
     public class FunctionalTests(StartupFixture startup, ITestOutputHelper output) : FunctionalTestBase(startup, output)
     {
         private readonly string _jobId = $"job-autoTest-" + Guid.NewGuid();
-        private readonly string _endpoint = "/jobs";
+        private readonly string _endpoint = TestEndpointConfiguration.JobsEndpoint;
 
         private static dynamic CreatePayload(string filter = "", object[]? products = null)
         {
