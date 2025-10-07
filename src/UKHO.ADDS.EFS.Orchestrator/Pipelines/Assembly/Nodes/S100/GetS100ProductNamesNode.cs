@@ -25,7 +25,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
         public override Task<bool> ShouldExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
         {
-            return Task.FromResult(context.Subject.Job.JobState == JobState.Created && (context.Subject.Job.RequestType == RequestType.ProductNames || context.Subject.Job.RequestType == RequestType.Internal));
+            return Task.FromResult(context.Subject.Job.JobState == JobState.Created && (context.Subject.Job.ExchangeSetType == ExchangeSetType.ProductNames || context.Subject.Job.ExchangeSetType == ExchangeSetType.Complete));
         }
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
@@ -58,7 +58,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                         _logger.LogSalesCatalogueProductsNotReturned(productEditionList.ProductCountSummary);
                     }
 
-                    if (job.RequestType == RequestType.ProductNames)
+                    if (job.ExchangeSetType == ExchangeSetType.ProductNames)
                     {
                         job.RequestedProductCount = ProductCount.From(productNameList.Count);
                         job.ExchangeSetProductCount = productEditionList.Count;

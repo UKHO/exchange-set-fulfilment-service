@@ -6,13 +6,23 @@
     public enum ExchangeSetType
     {
         /// <summary>
-        /// Request for complete exchange set
+        /// Request for creating custom exchange set using ProductName endpoint
         /// </summary>
-        Base,
+        ProductNames,
 
         /// <summary>
-        /// Request for custom exchange set
+        /// Request for creating custom exchange set using ProductVersion endpoint
         /// </summary>
-        Update
+        ProductVersions,
+
+        /// <summary>
+        /// Request for creating custom exchange set using UpdatesSince endpoint
+        /// </summary>
+        UpdatesSince,
+
+        /// <summary>
+        /// Request for creating complete exchange set using scheduled job
+        /// </summary>
+        Complete
     }
 }

@@ -93,14 +93,9 @@ namespace UKHO.ADDS.EFS.Domain.Jobs
         public MissingProductList RequestedProductsNotInExchangeSet { get; set; } = new();
 
         /// <summary>
-        /// The original request type for S100 endpoints
+        /// Deternimes the type of exchange set to be created
         /// </summary>
-        public RequestType RequestType { get; init; }
-
-        /// <summary>
-        /// Deternimes the size of exchange set to be created
-        /// </summary>
-        public ExchangeSetSize ExchangeSetSize { get; init; }
+        public ExchangeSetType ExchangeSetType { get; init; }
 
         /// <summary>
         ///     Gets the correlation ID for the job.
@@ -120,7 +115,5 @@ namespace UKHO.ADDS.EFS.Domain.Jobs
         public DataStandardProduct ProductIdentifier { get; init; }
 
         public ProductVersionList ProductVersions { get; init; }
-
-        public string ExchangeSetType { get; init; }
     }
 }

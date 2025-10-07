@@ -33,7 +33,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S57
 
             try
             {
-                var batch = await _fileService.CreateBatchAsync(job.GetCorrelationId(), job.ExchangeSetSize, job.ExchangeSetType, _userIdentifier, Environment.CancellationToken);
+                var batch = await _fileService.CreateBatchAsync(job.GetCorrelationId(), job.ExchangeSetType, _userIdentifier, Environment.CancellationToken);
 
                 job.BatchId = batch.BatchId;
                 build.BatchId = batch.BatchId;

@@ -44,13 +44,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             var fakeConfiguration = A.Fake<IConfigurationSection>();
         }
 
-        [TestCase(JobState.Created, RequestType.ProductVersions, true)]
-        [TestCase(JobState.Completed, RequestType.ProductVersions, false)]
-        [TestCase(JobState.Created, RequestType.ProductNames, false)]
-        [TestCase(JobState.Completed, RequestType.ProductNames, false)]
-        public async Task WhenShouldExecuteAsyncIsCalled_ThenReturnsExpected(JobState jobState, RequestType requestType, bool expected)
+        [TestCase(JobState.Created, ExchangeSetType.ProductVersions, true)]
+        [TestCase(JobState.Completed, ExchangeSetType.ProductVersions, false)]
+        [TestCase(JobState.Created, ExchangeSetType.ProductNames, false)]
+        [TestCase(JobState.Completed, ExchangeSetType.ProductNames, false)]
+        public async Task WhenShouldExecuteAsyncIsCalled_ThenReturnsExpected(JobState jobState, ExchangeSetType exchangeSetType, bool expected)
         {
-            var job = CreateJob(requestType, null, jobState);
+            var job = CreateJob(exchangeSetType, null, jobState);
             _pipelineContext = new PipelineContext<S100Build>(job, _s100Build, _storageService);
             A.CallTo(() => _executionContext.Subject).Returns(_pipelineContext);
             var result = await _s100ProductVersionsNode.ShouldExecuteAsync(_executionContext);
@@ -73,7 +73,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         public async Task WhenExecuteAsyncReturnsOKWithMissingProducts_ThenSetsBuildAndJobProperties()
         {
             var productVersions = new ProductVersionList { new() { ProductName = ProductName.From(ValidProductName), EditionNumber = EditionNumber.From(1) } };
-            var job = CreateJob(RequestType.ProductVersions, productVersions);
+            var job = CreateJob(ExchangeSetType.ProductVersions, productVersions);
 
             _pipelineContext = new PipelineContext<S100Build>(job, _s100Build, _storageService);
             A.CallTo(() => _executionContext.Subject).Returns(_pipelineContext);
@@ -95,7 +95,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         public async Task WhenExecuteAsyncReturnsBadRequest_ThenNodeFailed()
         {
             var productVersions = new ProductVersionList { new() { ProductName = ProductName.From(ValidProductName), EditionNumber = EditionNumber.From(1) } };
-            var job = CreateJob(RequestType.ProductVersions, productVersions);
+            var job = CreateJob(ExchangeSetType.ProductVersions, productVersions);
             _pipelineContext = new PipelineContext<S100Build>(job, _s100Build, _storageService);
             A.CallTo(() => _executionContext.Subject).Returns(_pipelineContext);
 
@@ -110,7 +110,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         [Test]
         public async Task WhenExecuteAsyncWithNullProductVersions_ThenNodeFailed()
         {
-            var job = CreateJob(RequestType.ProductVersions, null);
+            var job = CreateJob(ExchangeSetType.ProductVersions, null);
             _pipelineContext = new PipelineContext<S100Build>(job, _s100Build, _storageService);
             A.CallTo(() => _executionContext.Subject).Returns(_pipelineContext);
 
@@ -125,7 +125,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         [Test]
         public async Task WhenExecuteAsyncWithEmptyProductVersions_ThenNodeSucceeded()
         {
-            var job = CreateJob(RequestType.ProductVersions, []);
+            var job = CreateJob(ExchangeSetType.ProductVersions, []);
             _pipelineContext = new PipelineContext<S100Build>(job, _s100Build, _storageService);
             A.CallTo(() => _executionContext.Subject).Returns(_pipelineContext);
 
@@ -138,7 +138,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         }
 
 
-        private static Job CreateJob(RequestType requestType, ProductVersionList productVersions, JobState jobState = JobState.Created)
+        private static Job CreateJob(ExchangeSetType exchangeSetType, ProductVersionList productVersions, JobState jobState = JobState.Created)
         {
             var job = new Job
             {
@@ -147,7 +147,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 DataStandard = DataStandard.S100,
                 RequestedProducts = [],
                 RequestedFilter = "",
-                RequestType = requestType,
+                ExchangeSetType = exchangeSetType,
                 ProductVersions = productVersions
             };
             if (jobState != JobState.Created)

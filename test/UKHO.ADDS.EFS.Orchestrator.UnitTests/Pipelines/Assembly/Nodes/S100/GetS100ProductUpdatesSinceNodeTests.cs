@@ -40,7 +40,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         }
 
         [Test]
-        public async Task WhenShouldExecuteAsyncIsCalledAndJobStateIsCreatedAndRequestTypeIsUpdatesSince_ThenReturnsTrue()
+        public async Task WhenShouldExecuteAsyncIsCalledAndJobStateIsCreatedAndExchangeSetTypeIsUpdatesSince_ThenReturnsTrue()
         {
             SetupJobAndBuild();
             _node = new GetS100ProductUpdatesSinceNode(_nodeEnvironment, _productService);
@@ -114,9 +114,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         }
 
         [Test]
-        public async Task WhenShouldExecuteAsyncIsCalledAndRequestTypeIsNotUpdatesSince_ThenReturnsFalse()
+        public async Task WhenShouldExecuteAsyncIsCalledAndExchangeSetTypeIsNotUpdatesSince_ThenReturnsFalse()
         {
-            SetupJobAndBuild(JobState.Created, RequestType.ProductNames);
+            SetupJobAndBuild(JobState.Created, ExchangeSetType.ProductNames);
             _node = new GetS100ProductUpdatesSinceNode(_nodeEnvironment, _productService);
 
             var result = await _node.ShouldExecuteAsync(_executionContext);
@@ -143,7 +143,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
         }
 
-        private void SetupJobAndBuild(JobState jobState = JobState.Created, RequestType requestType = RequestType.UpdatesSince)
+        private void SetupJobAndBuild(JobState jobState = JobState.Created, ExchangeSetType exchangeSetType = ExchangeSetType.UpdatesSince)
         {
             var job = new UKHO.ADDS.EFS.Domain.Jobs.Job
             {
@@ -153,7 +153,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 RequestedFilter = RequestedFilter, // Provide a default filter value for tests
                 ProductIdentifier = DataStandardProduct.From((int)DataStandardProductType.S101),
                 RequestedProducts = new ProductNameList(),
-                RequestType = requestType
+                ExchangeSetType = exchangeSetType
             };
             job.ValidateAndSet(jobState, BuildState.None);
 

@@ -68,15 +68,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             Assert.That(exception.ParamName, Is.EqualTo("logger"));
         }
 
-        [TestCase(RequestType.ProductNames, JobState.Created, ExpectedResult = true)]
-        [TestCase(RequestType.Internal, JobState.Created, ExpectedResult = true)]
-        [TestCase(RequestType.ProductVersions, JobState.Created, ExpectedResult = false)]
-        [TestCase(RequestType.UpdatesSince, JobState.Created, ExpectedResult = false)]
-        [TestCase(RequestType.ProductNames, JobState.UpToDate, ExpectedResult = false)]
-        public async Task<bool> WhenJobStateAndRequestTypeProvided_ThenShouldExecuteAsyncReturnsCorrectResult(
-            RequestType requestType, JobState jobState)
+        [TestCase(ExchangeSetType.ProductNames, JobState.Created, ExpectedResult = true)]
+        [TestCase(ExchangeSetType.Complete, JobState.Created, ExpectedResult = true)]
+        [TestCase(ExchangeSetType.ProductVersions, JobState.Created, ExpectedResult = false)]
+        [TestCase(ExchangeSetType.UpdatesSince, JobState.Created, ExpectedResult = false)]
+        [TestCase(ExchangeSetType.ProductNames, JobState.UpToDate, ExpectedResult = false)]
+        public async Task<bool> WhenJobStateAndExchangeSetTypeProvided_ThenShouldExecuteAsyncReturnsCorrectResult(
+            ExchangeSetType exchangeSetType, JobState jobState)
         {
-            var job = CreateTestJob(requestType: requestType);
+            var job = CreateTestJob(exchangeSetType: exchangeSetType);
             job.ValidateAndSet(jobState, BuildState.NotScheduled);
             var pipelineContext = CreatePipelineContext(job);
             A.CallTo(() => _executionContext.Subject).Returns(pipelineContext);
@@ -160,10 +160,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         }
 
         [Test]
-        public async Task WhenRequestTypeIsProductNames_ThenExecuteAsyncSetsJobProperties()
+        public async Task WhenExchangeSetTypeIsProductNames_ThenExecuteAsyncSetsJobProperties()
         {
             var requestedProducts = CreateProductNameList(TestProductName1);
-            var job = CreateTestJob(requestedProducts: requestedProducts, requestType: RequestType.ProductNames);
+            var job = CreateTestJob(requestedProducts: requestedProducts, exchangeSetType: ExchangeSetType.ProductNames);
             var productEditionList = CreateSuccessfulProductEditionList();
 
             SetupExecutionContext(job);
@@ -176,10 +176,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         }
 
         [Test]
-        public async Task WhenRequestTypeIsNotProductNames_ThenExecuteAsyncDoesNotSetJobProperties()
+        public async Task WhenExchangeSetTypeIsNotProductNames_ThenExecuteAsyncDoesNotSetJobProperties()
         {
             var requestedProducts = CreateProductNameList(TestProductName1);
-            var job = CreateTestJob(requestedProducts: requestedProducts, requestType: RequestType.Internal);
+            var job = CreateTestJob(requestedProducts: requestedProducts, exchangeSetType: ExchangeSetType.Complete);
             var productEditionList = CreateSuccessfulProductEditionList();
             var productCount = job.RequestedProductCount;
 
@@ -245,7 +245,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
 
         private static Job CreateTestJob(
             ProductNameList? requestedProducts = null,
-            RequestType requestType = RequestType.ProductNames)
+            ExchangeSetType exchangeSetType = ExchangeSetType.ProductNames)
         {
             return new Job
             {
@@ -254,7 +254,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 DataStandard = DataStandard.S100,
                 RequestedProducts = requestedProducts ?? new ProductNameList(),
                 RequestedFilter = string.Empty,
-                RequestType = requestType,
+                ExchangeSetType = exchangeSetType,
                 CallbackUri = CallbackUri.From(new Uri(TestCallbackUri)),
                 ProductIdentifier = DataStandardProduct.Undefined
             };
