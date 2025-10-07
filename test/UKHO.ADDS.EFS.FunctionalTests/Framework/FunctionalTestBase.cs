@@ -16,7 +16,6 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Framework
         // Implement IDisposable to automatically clean up when tests complete
         public virtual void Dispose()
         {
-            //TestOutput.Clear();
             _outputScope.Dispose();
             GC.SuppressFinalize(this);
         }
