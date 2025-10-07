@@ -77,16 +77,16 @@ resource "azurerm_api_management_product_policy" "efs_product_policy" {
   product_id          = azurerm_api_management_product.efs_product.product_id
   depends_on          = [azurerm_api_management_product.efs_product, azurerm_api_management_product_api.efs_product_api_mapping]
 
-  xml_content = <<XML
+  xml_content = <<-XML
 <policies>
   <inbound>
      <!-- Allowed IPs -->
      <ip-filter action="allow">
       %{ for ip in var.allowed_ip_ranges_mastek ~}
-        %{ if can(regex("\\/", ip)) }
-          <ip-range cidr="${ip}" />
+        %{ if can(regex("/", ip)) }
+          <ip-range cidr="${trimspace(ip)}"/>
         %{ else }
-          <address>${ip}</address>
+          <address>${trimspace(ip)}</address>
         %{ endif }
       %{ endfor ~}
     </ip-filter>
