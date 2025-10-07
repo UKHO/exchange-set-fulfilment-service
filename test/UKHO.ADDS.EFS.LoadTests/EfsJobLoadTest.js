@@ -3,8 +3,8 @@ import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporte
 import { textSummary } from "https://jslib.k6.io/k6-summary/0.0.1/index.js";
 import { Counter } from 'k6/metrics';
 
-import { getSmallJobFilter, getMediumJobFilter } from './Helper/DataHelper.js';
-import { create, status, build } from './Scripts/LoadTestForJobCreation.js';
+import { getSmallJobFilter, getMediumJobFilter } from './Services/JobFilterProvider.js';
+import { create, status, build } from './Services/JobScenarios.js';
 import { authenticateUsingAzure } from './Oauth/Azure.js';
 const config = JSON.parse(open('./config.json'));
 

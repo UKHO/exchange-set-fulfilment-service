@@ -4,7 +4,7 @@ import {
   createJob,
   getJobStatus,
   getJobBuild
-} from '../Helper/ClientHelper.js';
+} from './JobOperations.js';
 
 /**
 * Creates a job
