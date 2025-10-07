@@ -75,7 +75,7 @@ variable "b2c_client_id" {
 }
 
 variable "allowed_ip_ranges_mastek" {
-  type  = list
+  type  = list(string)
 }
 
 locals {
