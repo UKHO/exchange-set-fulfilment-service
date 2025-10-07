@@ -260,9 +260,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         {
             var claims = new List<Claim>();
             if (!string.IsNullOrEmpty(audience))
+            {
                 claims.Add(new Claim("aud", audience));
+            }
             if (!string.IsNullOrEmpty(issuer))
+            {
                 claims.Add(new Claim("iss", issuer));
+            }
 
             var identity = new ClaimsIdentity(claims);
             _user = new ClaimsPrincipal(identity);
@@ -280,9 +284,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         {
             // Set environment variable for AddsEnvironment
             if (env == "dev")
+            {
                 Environment.SetEnvironmentVariable(WellKnownConfigurationName.AddsEnvironmentName, "dev");
+            }
             else
+            {
                 Environment.SetEnvironmentVariable(WellKnownConfigurationName.AddsEnvironmentName, "preprod");
+            }
         }
     }
 }

@@ -40,7 +40,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             var addsEnvironment = AddsEnvironment.GetEnvironment();
             bool shouldCheckSize;
 
-            if(addsEnvironment.IsDev() || addsEnvironment.IsLocal())
+            if (addsEnvironment.IsDev() || addsEnvironment.IsLocal())
             {
                 // In Dev and Local environments, always check the exchange set size limit as we are using mock endpoints
                 shouldCheckSize = true;
@@ -64,8 +64,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
         {
             var user = _httpContextAccessor.HttpContext?.User;
             if (user is null)
+            {
                 return false;
-
+            }
             var tokenAudience = user.FindFirstValue(AudienceClaimType);
             var tokenIssuer = user.FindFirstValue(IssuerClaimType);
 
