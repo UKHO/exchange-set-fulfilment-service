@@ -34,7 +34,8 @@
             },
             "Errors": {
                 "FileNameTemplate": "error_[jobid].txt", // Template for naming error files: options are "jobid", "date"
-                "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]"
+                "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]",
+                "ExchangeSetSizeExceededMessage": "The Exchange Set requested is large and will not be created, please use a standard Exchange Set provided by the UKHO."
             },
             "Response": {
                 "BatchExpiresIn": "7.00:00:00", // TimeSpan representing when the Batch expires
@@ -92,7 +93,8 @@
             },
             "Errors": {
                 "FileNameTemplate": "error_[jobid].txt", // Template for naming error files: options are "jobid", "date"
-                "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]"
+                "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]",
+                "ExchangeSetSizeExceededMessage": "The Exchange Set requested is large and will not be created, please use a standard Exchange Set provided by the UKHO."
             },
             "Response": {
                 "BatchExpiresIn": "7.00:00:00", // TimeSpan representing when the Batch expires
@@ -149,7 +151,8 @@
             },
             "Errors": {
                 "FileNameTemplate": "error.txt",
-                "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]"
+                "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]",
+                "ExchangeSetSizeExceededMessage": "The Exchange Set requested is large and will not be created, please use a standard Exchange Set provided by the UKHO."
             },
             "Response": {
                 "BatchExpiresIn": "7.00:00:00", // TimeSpan representing when the Batch expires
@@ -206,7 +209,8 @@
             },
             "Errors": {
                 "FileNameTemplate": "error.txt",
-                "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]"
+                "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]",
+                "ExchangeSetSizeExceededMessage": "The Exchange Set requested is large and will not be created, please use a standard Exchange Set provided by the UKHO."
             },
             "Response": {
                 "BatchExpiresIn": "7.00:00:00", // TimeSpan representing when the Batch expires
@@ -263,7 +267,8 @@
             },
             "Errors": {
                 "FileNameTemplate": "error.txt",
-                "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]"
+                "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]",
+                "ExchangeSetSizeExceededMessage": "The Exchange Set requested is large and will not be created, please use a standard Exchange Set provided by the UKHO."
             },
             "Response": {
                 "BatchExpiresIn": "7.00:00:00", // TimeSpan representing when the Batch expires
