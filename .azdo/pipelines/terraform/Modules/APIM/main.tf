@@ -83,7 +83,7 @@ resource "azurerm_api_management_product_policy" "efs_product_policy" {
     <base />
     <!-- Allowed IPs -->
     <ip-filter action="allow">
-      %{ for ip in local.allowed_ip_ranges_mastek ~}
+      %{ for ip in var.allowed_ip_ranges_mastek ~}
         %{ if can(regex("\\/", ip)) }
           <ip-range cidr="${ip}" />
         %{ else }
