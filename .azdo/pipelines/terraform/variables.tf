@@ -74,13 +74,22 @@ variable "b2c_client_id" {
   type  = string
 }
 
+variable "allowed_ip_ranges_mastek" {
+  type  = list(string)
+}
+
+variable "blocked_ip_ranges_ukho" {
+  type  = list(string)
+}
+
 locals {
-  env_name              = lower(terraform.workspace)
-  service_name          = "efs"
-  group_name            = local.env_name == "prod" ? "${var.group_name}" : "${var.group_name} ${var.env_suffix[local.env_name]}"
-  product_name          = local.env_name == "prod" ? "${var.product_name}" : "${var.product_name} ${var.env_suffix[local.env_name]}"
-  api_name              = local.env_name == "prod" ? "${var.api_name}" : "${var.api_name} ${var.env_suffix[local.env_name]}"
-  apim_api_path         = local.env_name == "prod" ? "${local.service_name}" : "${local.service_name}-${local.env_name}"
-  apim_api_openapi      = file("${path.module}/../../../exchangeSetFulfilmentService_OpenApi_definition.yaml")
-  
+  env_name                  = lower(terraform.workspace)
+  service_name              = "efs"
+  group_name                = local.env_name == "prod" ? "${var.group_name}" : "${var.group_name} ${var.env_suffix[local.env_name]}"
+  product_name              = local.env_name == "prod" ? "${var.product_name}" : "${var.product_name} ${var.env_suffix[local.env_name]}"
+  api_name                  = local.env_name == "prod" ? "${var.api_name}" : "${var.api_name} ${var.env_suffix[local.env_name]}"
+  apim_api_path             = local.env_name == "prod" ? "${local.service_name}" : "${local.service_name}-${local.env_name}"
+  apim_api_openapi          = file("${path.module}/../../../exchangeSetFulfilmentService_OpenApi_definition.yaml")
+  allowed_ip_ranges_mastek  = split(",", var.allowed_ip_ranges_mastek)
+  blocked_ip_ranges_ukho    = split(",", var.blocked_ip_ranges_ukho)
 }

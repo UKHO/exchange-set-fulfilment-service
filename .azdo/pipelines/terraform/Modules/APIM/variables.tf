@@ -63,3 +63,11 @@ variable "efs_b2c_token_issuer" {
 variable "efs_b2c_client_id" {
   type  = string
 }
+
+variable "allowed_ip_ranges_mastek" {
+  type  = list(string)
+}
+
+variable "blocked_ip_ranges_ukho" {
+  type  = list(string)
+}

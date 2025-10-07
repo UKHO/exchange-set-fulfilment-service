@@ -80,6 +80,24 @@ resource "azurerm_api_management_product_policy" "efs_product_policy" {
   xml_content = <<XML
 	<policies>
 	  <inbound>
+         <ip-filter action="deny">
+           %{ for ip in var.blocked_ip_ranges_ukho ~}
+            %{ if can(regex("\\/", ip)) }
+              <ip-range cidr="${ip}" />
+            %{ else }
+              <address>${ip}</address>
+            %{ endif }
+            %{ endfor ~}
+       </ip-filter>
+       <ip-filter action="allow">
+         %{ for ip in var.allowed_ip_ranges_mastek ~}
+           %{ if can(regex("\\/", ip)) }
+          <ip-range cidr="${ip}" />
+        %{ else }
+          <address>${ip}</address>
+        %{ endif }
+        %{ endfor ~}
+    </ip-filter>
 		 <rate-limit calls="${var.product_rate_limit.calls}" renewal-period="${var.product_rate_limit.renewal-period}" retry-after-header-name="retry-after" remaining-calls-header-name="remaining-calls" />
 		 <quota calls="${var.product_quota.calls}" renewal-period="${var.product_quota.renewal-period}" />
 
