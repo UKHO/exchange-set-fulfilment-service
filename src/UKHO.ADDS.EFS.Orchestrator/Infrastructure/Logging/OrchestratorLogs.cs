@@ -227,7 +227,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         [LoggerMessage(ExchangeSetSizeExceededId, LogLevel.Warning, "Total exchange set size {TotalSizeInMB}MB exceeds maximum allowed size {MaxSizeInMB}MB", EventName = nameof(ExchangeSetSizeExceeded))]
         public static partial void LogExchangeSetSizeExceeded(this ILogger logger, long totalSizeInMB, int maxSizeInMB);
 
-        [LoggerMessage(SalesCatalogueServiceFailedId, LogLevel.Error, "The Sales Catalogue Service request failed with status code: {StatusCode} for correlation ID: {correlationId}and Error Source: {errorOrigin}", EventName = nameof(SalesCatalogueServiceFailed))]
-        public static partial void LogSalesCatalogueServiceFailed(this ILogger logger,int statusCode, string correlationId, string errorOrigin);
+        [LoggerMessage(SalesCatalogueServiceFailedId, LogLevel.Error, "The Sales Catalogue Service request failed for request type:{@requestType} with status code: {@statusCode}", EventName = nameof(SalesCatalogueServiceFailed))]
+        public static partial void LogSalesCatalogueServiceFailed(this ILogger logger,string requestType,int statusCode);
     }
 }

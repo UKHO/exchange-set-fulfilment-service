@@ -13,7 +13,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
 
         public required JobId JobId { get; init; }
 
-        public required JobState JobStatus { get; init; }         
+        public required JobState JobStatus { get; init; }
 
         public required BuildState BuildStatus { get; init; }
 
@@ -40,10 +40,5 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         /// Gets or sets the date and time when the entity was last modified in the SCS system.
         /// </summary>
         public DateTime? ScsLastModified { get; set; }
-
-        /// <summary>
-        /// Gets or sets the error origin of the entity.
-        /// </summary>
-        public string ErrorOrigin { get; set; }
     }
 }

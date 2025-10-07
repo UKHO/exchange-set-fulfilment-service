@@ -52,10 +52,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
             var evaluation = await EvaluateScsResponseAsync(productEditionList, context, job);
             if (evaluation != NodeResultStatus.Succeeded ||
-                (evaluation == NodeResultStatus.Succeeded && job.ScsResponseCode== System.Net.HttpStatusCode.NotModified))
+                (evaluation == NodeResultStatus.Succeeded && job.ScsResponseCode == System.Net.HttpStatusCode.NotModified))
             {
                 return evaluation;
-            }                
+            }
 
             build.ProductEditions = productEditionList;
 
@@ -74,24 +74,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
         private static async Task<NodeResultStatus> EvaluateScsResponseAsync(ProductEditionList productEditionList, IExecutionContext<PipelineContext<S100Build>> context, Job job)
         {
-            // Not modified -> no build required
             if (productEditionList.ResponseCode == System.Net.HttpStatusCode.NotModified)
             {
-                job.ErrorOrigin = "SCS";
                 await context.Subject.SignalNoBuildRequired();
                 return NodeResultStatus.Succeeded;
             }
 
-            // Any non-OK -> treat as assembly error
-            if (productEditionList.ResponseCode != System.Net.HttpStatusCode.OK)
-            {
-                job.ErrorOrigin = "SCS";
-                await context.Subject.SignalAssemblyError();
-                return NodeResultStatus.Failed;
-            }
-
-            // OK but no products -> error
-            if (!productEditionList.HasProducts)
+            if (productEditionList.ResponseCode != System.Net.HttpStatusCode.OK || !productEditionList.HasProducts)
             {
                 await context.Subject.SignalAssemblyError();
                 return NodeResultStatus.Failed;

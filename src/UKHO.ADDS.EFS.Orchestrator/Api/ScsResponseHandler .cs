@@ -6,22 +6,18 @@ using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Api
 {
+
     public class ScsResponseHandler : IScsResponseHandler
     {
-        public IResult HandleScsResponse(AssemblyPipelineResponse result, CorrelationId correlationId, ILogger logger, HttpContext httpContext)
+        public const string ScsServiceName = "SCS";
+        public IResult HandleScsResponse(AssemblyPipelineResponse result, string requestType, ILogger logger, HttpContext httpContext)
         {
-            if(result.BuildStatus!= Domain.Builds.BuildState.Scheduled )
+            if (result is null)
             {
-                httpContext.Response.Headers.Append(ApiHeaderKeys.ErrorOriginHeaderKey, result.ErrorOrigin);
-                if (result.ScsResponseCode != HttpStatusCode.OK)
-                {
-                    httpContext.Response.Headers.Append(ApiHeaderKeys.ErrorOriginStatusHeaderKey, ((int)result.ScsResponseCode).ToString());
-                }
-                else
-                {
-                    httpContext.Response.Headers.Append(ApiHeaderKeys.ErrorOriginStatusHeaderKey, "500");
-                }                
+                return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
+
+            AppendErrorOriginHeadersIfNeeded(result, httpContext);
 
             switch (result.ScsResponseCode)
             {
@@ -30,45 +26,41 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                     return Results.Accepted(null, result.Response);
 
                 case HttpStatusCode.NotModified:
-                    if(result.BuildStatus == Domain.Builds.BuildState.Scheduled)
-                    {
-                        AppendLastModifiedHeader(httpContext, result.ScsLastModified);
-                        return Results.Accepted(null, result.Response);
-                    }
-                    else
-                    {
-                        AppendLastModifiedHeader(httpContext, result.ScsLastModified);
-                        return Results.StatusCode(304);
-                    }                        
-                    
-                case HttpStatusCode.BadRequest:
-                case HttpStatusCode.Unauthorized:
-                case HttpStatusCode.Forbidden:
-                case HttpStatusCode.UnsupportedMediaType:
-                    logger.LogSalesCatalogueServiceFailed((int)result.ScsResponseCode, correlationId.Value, result.ErrorOrigin);
-                    return Results.StatusCode(500);
+                    AppendLastModifiedHeader(httpContext, result.ScsLastModified);
+
+                    return result.BuildStatus == Domain.Builds.BuildState.Scheduled
+                        ? Results.Accepted(null, result.Response)
+                        : Results.StatusCode(StatusCodes.Status304NotModified);
 
                 default:
-                    logger.LogSalesCatalogueServiceFailed((int)result.ScsResponseCode, correlationId.Value, result.ErrorOrigin);
-                    return Results.StatusCode(500);
+                    logger.LogSalesCatalogueServiceFailed(requestType, (int)result.ScsResponseCode);
+                    return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
+        }
 
+        private static void AppendErrorOriginHeadersIfNeeded(AssemblyPipelineResponse result, HttpContext httpContext)
+        {
+            var scsStatus = (int)result.ScsResponseCode;
 
+            if (scsStatus < 400 || scsStatus > 599)
+                return;
+
+            httpContext.Response.Headers[ApiHeaderKeys.ErrorOriginHeaderKey] = ScsServiceName;
+            httpContext.Response.Headers[ApiHeaderKeys.ErrorOriginStatusHeaderKey] = scsStatus.ToString();
         }
 
         private static void AppendLastModifiedHeader(HttpContext httpContext, DateTime? lastModified)
         {
-            if (lastModified.HasValue)
+            if (!lastModified.HasValue)
             {
-                var formatted = lastModified.Value.ToUniversalTime().ToString("R");
-                if (!string.IsNullOrEmpty(formatted))
-                {
-                    httpContext.Response.Headers[ApiHeaderKeys.LastModifiedHeaderKey] = formatted;
-                }
+                return;
+            }
+
+            var formatted = lastModified.Value.ToUniversalTime().ToString("R");
+            if (!string.IsNullOrEmpty(formatted))
+            {
+                httpContext.Response.Headers[ApiHeaderKeys.LastModifiedHeaderKey] = formatted;
             }
         }
-
-        
     }
-
 }

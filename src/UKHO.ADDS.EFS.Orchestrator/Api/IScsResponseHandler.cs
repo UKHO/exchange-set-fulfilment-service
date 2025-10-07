@@ -5,7 +5,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 {
     public interface IScsResponseHandler
     {
-        IResult HandleScsResponse(AssemblyPipelineResponse result, CorrelationId correlationId, ILogger logger, HttpContext httpContext);
+        IResult HandleScsResponse(AssemblyPipelineResponse result, string requestType, ILogger logger, HttpContext httpContext);
     }
 
 }

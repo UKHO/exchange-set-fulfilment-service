@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using FluentValidation.Results;
 using UKHO.ADDS.Clients.Common.Constants;
+using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Orchestrator.Api.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
@@ -68,7 +69,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                              return HandleErrorResponse(result.ErrorResponse);
                          }
 
-                         return scsResponseHandler.HandleScsResponse(result, correlationId, logger,httpContext);
+                         return scsResponseHandler.HandleScsResponse(result,RequestType.ProductNames.ToString(), logger,httpContext);
                      }
                      catch (Exception)
                      {
@@ -117,7 +118,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                     var result = await pipeline.RunAsync(httpContext.RequestAborted);
 
-                    return scsResponseHandler.HandleScsResponse(result, correlationId, logger, httpContext);
+                    return scsResponseHandler.HandleScsResponse(result, RequestType.ProductVersions.ToString(), logger, httpContext);
                 }
                 catch (Exception)
                 {
@@ -158,7 +159,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                     var result = await pipeline.RunAsync(httpContext.RequestAborted);
 
-                    return scsResponseHandler.HandleScsResponse(result, correlationId, logger, httpContext);
+                    return scsResponseHandler.HandleScsResponse(result, RequestType.UpdatesSince.ToString(), logger, httpContext);
                 }
                 catch (Exception)
                 {

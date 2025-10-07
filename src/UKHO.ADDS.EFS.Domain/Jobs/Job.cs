@@ -126,10 +126,5 @@ namespace UKHO.ADDS.EFS.Domain.Jobs
         /// Gets or sets the date and time when the entity was last modified in the SCS system.
         /// </summary>
         public DateTime? ScsLastModified { get; set; }
-
-        /// <summary>
-        /// Gets or sets the error origin of the entity.
-        /// </summary>
-        public string ErrorOrigin { get; set; }
-        }
+    }
 }

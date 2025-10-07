@@ -37,10 +37,19 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             var productVersions = job.ProductVersions;
 
             // Call the product service to get product versions
-            var productEditionList = await _productService.GetProductVersionsListAsync(DataStandard.S100, productVersions, job, Environment.CancellationToken);
+            ProductEditionList productEditionList;
+            try
+            {
+                productEditionList = await _productService.GetProductVersionsListAsync(DataStandard.S100, productVersions, job, Environment.CancellationToken);
 
-            job.ScsResponseCode = productEditionList.ResponseCode;
-            job.ScsLastModified = productEditionList.LastModified;
+                job.ScsResponseCode = productEditionList.ResponseCode;
+                job.ScsLastModified = productEditionList.LastModified;
+            }
+            catch (Exception)
+            {
+                await context.Subject.SignalAssemblyError();
+                return NodeResultStatus.Failed;
+            }
 
             if (productEditionList.ResponseCode == HttpStatusCode.OK || productEditionList.ResponseCode == HttpStatusCode.NotModified)
             {
@@ -72,10 +81,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
                 await context.Subject.SignalBuildRequired();
                 return NodeResultStatus.Succeeded;
-            }
-            else
-            {
-                job.ErrorOrigin = "SCS";
             }
 
             // Handle error case
