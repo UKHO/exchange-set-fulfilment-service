@@ -76,8 +76,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
                 RequestType = RequestType.Internal,
                 ExchangeSetSize = ExchangeSetSize.Complete,
                 ProductIdentifier = DataStandardProduct.Undefined,
-                CallbackUri = CallbackUri.None,
-                ExchangeSetType = ExchangeSetType.Base
+                CallbackUri = CallbackUri.None
             };
         }
 
