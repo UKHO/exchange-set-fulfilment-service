@@ -81,7 +81,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Assertions
             }
         }
 
-        public static async Task CustomExSetSubmitPostRequestAndCheckResponse(string requestId, object requestPayload, string endpoint, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
+        public static async Task CustomExchangeSetSubmitPostRequestAndCheckResponse(string requestId, object requestPayload, string endpoint, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
         {
             var response = await OrchestratorClient.PostRequestAsync(requestId, requestPayload, endpoint);
             Assert.Equal(expectedStatusCode, response.StatusCode);
@@ -183,7 +183,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Assertions
 
             /*
              * Need to have strict assertion on batchId format
-             * Guid.TryParse(batchId, out _).Should().BeTrue($"Expected '{batchId}' to be a valid GUID");
+             * So we should not use Guid.TryParse(batchId, out _).Should().BeTrue($"Expected '{batchId}' to be a valid GUID");
             */
             Assert.True(Guid.TryParse(batchId, out _), $"Expected 'fssBatchId' to be a valid GUID but got: '{batchId}'");
 
@@ -238,7 +238,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Assertions
                 TestOutput.WriteLine($"Node: {nodeId}, Status: {status}");
 
                 // Verify each step succeeded
-                //status.Should().Be("succeeded", $"Step '{nodeId}' should have succeeded, but has status: {status}");
+                status.Should().Be("succeeded", $"Step '{nodeId}' should have succeeded, but has status: {status}");
             }
 
             responseJson.RootElement.GetProperty("builderExitCode").GetString().Should().Be("success");

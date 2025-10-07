@@ -34,7 +34,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Assertions
                 .OrderBy(e => e)
                 .ToList();
 
-            TestOutput.WriteLine($"Expected Zip File Dir Structure: {string.Join(", ", sourceDirectories)}");
+            TestOutput.WriteLine($"Expected Zip File Directory Structure: {string.Join(", ", sourceDirectories)}");
 
             // Get distinct directory paths from target archive
             var targetDirectories = targetArchive.Entries
@@ -43,7 +43,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Assertions
                 .OrderBy(e => e)
                 .ToList();
 
-            TestOutput.WriteLine($"Actual Zip File Dir Structure: {string.Join(", ", targetDirectories)}");
+            TestOutput.WriteLine($"Actual Zip File Directory Structure: {string.Join(", ", targetDirectories)}");
 
             // Compare directory structures of both ZIP files using soft assertions
             sourceDirectories.Should().BeEquivalentTo(targetDirectories,

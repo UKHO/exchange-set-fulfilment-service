@@ -86,7 +86,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
 
             TestOutput.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {System.Text.Json.JsonSerializer.Serialize(productNames)}\nExpectedStatusCode: {expectedStatusCode}\nExpectedErrorMessage:{expectedErrorMessage}");
 
-            await ExchangeSetApiAssertions.CustomExSetSubmitPostRequestAndCheckResponse(_requestId, productNames, _endpoint, expectedStatusCode, expectedErrorMessage);
+            await ExchangeSetApiAssertions.CustomExchangeSetSubmitPostRequestAndCheckResponse(_requestId, productNames, _endpoint, expectedStatusCode, expectedErrorMessage);
         }
 
     }

@@ -112,7 +112,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
 
             TestOutput.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {requestPayload}\nExpectedStatusCode: {expectedStatusCode}\nExpectedErrorMessage:{expectedErrorMessage}");
 
-            await ExchangeSetApiAssertions.CustomExSetSubmitPostRequestAndCheckResponse(_requestId, requestPayload, _endpoint, expectedStatusCode, expectedErrorMessage);
+            await ExchangeSetApiAssertions.CustomExchangeSetSubmitPostRequestAndCheckResponse(_requestId, requestPayload, _endpoint, expectedStatusCode, expectedErrorMessage);
         }
 
         [Theory]
@@ -128,7 +128,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
 
             TestOutput.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {requestPayload}\nExpectedStatusCode: {expectedStatusCode}\nExpectedErrorMessage:{expectedErrorMessage}");
 
-            await ExchangeSetApiAssertions.CustomExSetSubmitPostRequestAndCheckResponse(_requestId, requestPayload, _endpoint, expectedStatusCode, expectedErrorMessage);
+            await ExchangeSetApiAssertions.CustomExchangeSetSubmitPostRequestAndCheckResponse(_requestId, requestPayload, _endpoint, expectedStatusCode, expectedErrorMessage);
         }
 
         [Theory]
@@ -146,7 +146,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
 
             TestOutput.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {requestPayload}\nExpectedStatusCode: {expectedStatusCode}\nExpectedErrorMessage:{expectedErrorMessage}");
 
-            await ExchangeSetApiAssertions.CustomExSetSubmitPostRequestAndCheckResponse(_requestId, requestPayload, _endpoint, expectedStatusCode, expectedErrorMessage);
+            await ExchangeSetApiAssertions.CustomExchangeSetSubmitPostRequestAndCheckResponse(_requestId, requestPayload, _endpoint, expectedStatusCode, expectedErrorMessage);
         }
 
         [Theory]
@@ -163,7 +163,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
 
             TestOutput.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {requestPayload}\nExpectedStatusCode: {expectedStatusCode}\nExpectedErrorMessage:{expectedErrorMessage}");
 
-            await ExchangeSetApiAssertions.CustomExSetSubmitPostRequestAndCheckResponse(_requestId, requestPayload, _endpoint, expectedStatusCode, expectedErrorMessage);
+            await ExchangeSetApiAssertions.CustomExchangeSetSubmitPostRequestAndCheckResponse(_requestId, requestPayload, _endpoint, expectedStatusCode, expectedErrorMessage);
         }
     }
 }
