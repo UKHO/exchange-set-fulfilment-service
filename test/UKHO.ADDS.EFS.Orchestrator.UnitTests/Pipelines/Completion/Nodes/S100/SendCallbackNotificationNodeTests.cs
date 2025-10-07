@@ -396,7 +396,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
             RequestedFilter = "",
             BatchId = batchId,
             CallbackUri = callbackUri,
-            RequestType = RequestType.ProductNames,
+            ExchangeSetType = ExchangeSetType.ProductNames,
             ProductIdentifier = DataStandardProduct.S101
         };
 

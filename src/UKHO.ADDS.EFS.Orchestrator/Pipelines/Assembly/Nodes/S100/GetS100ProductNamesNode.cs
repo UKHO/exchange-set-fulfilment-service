@@ -15,7 +15,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
     {
         private readonly IProductService _productService;
         private readonly ILogger<GetS100ProductNamesNode> _logger;
-        private const string ExchangeSetExpiresInConfigKey = "orchestrator:Response:ExchangeSetExpiresIn";
+
         public GetS100ProductNamesNode(AssemblyNodeEnvironment nodeEnvironment, IProductService productService, ILogger<GetS100ProductNamesNode> logger)
             : base(nodeEnvironment)
         {
@@ -25,7 +25,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
         public override Task<bool> ShouldExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
         {
-            return Task.FromResult(context.Subject.Job.JobState == JobState.Created && (context.Subject.Job.RequestType == RequestType.ProductNames || context.Subject.Job.RequestType == RequestType.Internal));
+            return Task.FromResult(context.Subject.Job.JobState == JobState.Created && (context.Subject.Job.ExchangeSetType == ExchangeSetType.ProductNames || context.Subject.Job.ExchangeSetType == ExchangeSetType.Complete));
         }
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
@@ -58,12 +58,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                         _logger.LogSalesCatalogueProductsNotReturned(productEditionList.ProductCountSummary);
                     }
 
-                    if (job.RequestType == RequestType.ProductNames)
+                    if (job.ExchangeSetType == ExchangeSetType.ProductNames)
                     {
-                        //Get the exchange set expiry duration from configuration
-                        var expiryTimeSpan = Environment.Configuration.GetValue<TimeSpan>(ExchangeSetExpiresInConfigKey);
-
-                        job.ExchangeSetUrlExpiryDateTime = DateTime.UtcNow.Add(expiryTimeSpan);
                         job.RequestedProductCount = ProductCount.From(productNameList.Count);
                         job.ExchangeSetProductCount = productEditionList.Count;
                         job.RequestedProductsAlreadyUpToDateCount = productEditionList.ProductCountSummary.RequestedProductsAlreadyUpToDateCount;
