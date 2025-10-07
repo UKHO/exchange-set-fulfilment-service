@@ -102,6 +102,13 @@ resource "azurerm_api_management_product_policy" "efs_product_policy" {
           </validate-jwt>
     <base />
   </inbound>
+    <backend>
+    <base />
+  </backend>
+
+  <outbound>
+    <base />
+  </outbound>
 </policies>
 XML
 }
