@@ -34,7 +34,9 @@ param efsRetainResourceGroup string
 param efsServiceIdentityName string
 param efsStorageAccountName string
 param elasticAPMApiKey string
+param elasticAPMEnvironment string
 param elasticAPMServerURL string
+param elasticAPMServiceName string
 param orchestratorCpu string
 param orchestratorMemory string
 

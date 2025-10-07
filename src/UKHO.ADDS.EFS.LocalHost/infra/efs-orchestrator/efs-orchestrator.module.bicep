@@ -28,6 +28,10 @@ param elasticapmapikey_value string
 
 param elasticapmserverurl_value string
 
+param elasticapmservicename_value string
+
+param elasticapmenvironment_value string
+
 param efs_app_insights_outputs_appinsightsconnectionstring string
 
 param efs_events_namespace_outputs_eventhubsendpoint string
@@ -143,6 +147,14 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2025-02-02-preview' = {
             {
               name: 'ElasticAPM__ServerURL'
               value: elasticapmserverurl_value
+            }
+            {
+              name: 'ElasticAPM__ServiceName'
+              value: elasticapmservicename_value
+            }
+            {
+              name: 'ElasticAPM__Environment'
+              value: elasticapmenvironment_value
             }
             {
               name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'

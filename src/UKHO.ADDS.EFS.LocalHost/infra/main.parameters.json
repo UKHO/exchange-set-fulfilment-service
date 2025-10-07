@@ -38,8 +38,14 @@
       "elasticAPMApiKey": {
         "value": "${AZURE_ELASTIC_APMAPI_KEY}"
       },
+      "elasticAPMEnvironment": {
+        "value": "${AZURE_ELASTIC_APMENVIRONMENT}"
+      },
       "elasticAPMServerURL": {
         "value": "${AZURE_ELASTIC_APMSERVER_URL}"
+      },
+      "elasticAPMServiceName": {
+        "value": "${AZURE_ELASTIC_APMSERVICE_NAME}"
       },
       "orchestratorCpu": {
         "value": "${AZURE_ORCHESTRATOR_CPU}"
