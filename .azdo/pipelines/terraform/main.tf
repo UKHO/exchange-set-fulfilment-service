@@ -16,5 +16,5 @@ module "APIM" {
   product_quota                      = var.product_quota
   efs_b2c_token_issuer               = var.b2c_token_issuer
   efs_b2c_client_id                  = var.b2c_client_id
-  allowed_ip_ranges_mastek           = var.allowed_ip_ranges_mastek
+  allowed_ip_ranges_mastek           = local.allowed_ip_ranges_mastek
 }

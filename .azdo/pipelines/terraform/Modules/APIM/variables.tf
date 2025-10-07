@@ -65,5 +65,5 @@ variable "efs_b2c_client_id" {
 
 variable "allowed_ip_ranges_mastek" {
   description = "List of allowed IP addresses or CIDR ranges for APIM EFS Product IP filter policy"
-  type        = string
+  type        = list(string)
 }
