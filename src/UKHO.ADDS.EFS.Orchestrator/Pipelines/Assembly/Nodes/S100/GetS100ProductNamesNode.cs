@@ -3,7 +3,6 @@ using UKHO.ADDS.EFS.Domain.Builds.S100;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Domain.Services;
-using UKHO.ADDS.EFS.Orchestrator.Api.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
@@ -16,7 +15,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
     {
         private readonly IProductService _productService;
         private readonly ILogger<GetS100ProductNamesNode> _logger;
-        private const string MaxExchangeSetSizeInMBConfigKey = "orchestrator:Response:MaxExchangeSetSizeInMB";
         private const string ExchangeSetExpiresInConfigKey = "orchestrator:Response:ExchangeSetExpiresIn";
         public GetS100ProductNamesNode(AssemblyNodeEnvironment nodeEnvironment, IProductService productService, ILogger<GetS100ProductNamesNode> logger)
             : base(nodeEnvironment)
@@ -62,11 +60,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
                     if (job.RequestType == RequestType.ProductNames)
                     {
-                        // Check if the exchange set size is within limits
-                        if (await IsExchangeSetSizeExceeded(context, productEditionList, job))
-                        {
-                            return NodeResultStatus.Failed;
-                        }
                         //Get the exchange set expiry duration from configuration
                         var expiryTimeSpan = Environment.Configuration.GetValue<TimeSpan>(ExchangeSetExpiresInConfigKey);
 
@@ -92,40 +85,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             }
 
             return nodeResult;
-        }
-
-        private async Task<bool> IsExchangeSetSizeExceeded(IExecutionContext<PipelineContext<S100Build>> context, ProductEditionList productEditionList, Job job)
-        {
-            // Calculate total file size and check against the limit
-            var maxExchangeSetSizeInMB = Environment.Configuration.GetValue<int>(MaxExchangeSetSizeInMBConfigKey);
-            var totalFileSizeBytes = productEditionList.Products.Sum(p => (long)p.FileSize);
-            double bytesToKbFactor = 1024f;
-            var totalFileSizeInMB = (totalFileSizeBytes / bytesToKbFactor) / bytesToKbFactor;
-
-            if (totalFileSizeInMB > maxExchangeSetSizeInMB)
-            {
-                _logger.LogExchangeSetSizeExceeded((long)totalFileSizeInMB, maxExchangeSetSizeInMB);
-
-                // Set up the error response for payload too large
-                context.Subject.ErrorResponse = new ErrorResponseModel
-                {
-                    CorrelationId = job.Id.ToString(),
-                    Errors =
-                    [
-                        new ErrorDetail
-                        {
-                             Source = "exchangeSetSize",
-                             Description = "The Exchange Set requested is very large and will not be created, please use a standard Exchange Set provided by the UKHO."
-                        }
-                    ]
-                };
-
-                await context.Subject.SignalAssemblyError();
-
-                return true;
-            }
-
-            return false;
         }
     }
 }
