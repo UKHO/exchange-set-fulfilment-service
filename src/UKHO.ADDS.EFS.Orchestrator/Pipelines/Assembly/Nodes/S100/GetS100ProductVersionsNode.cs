@@ -56,10 +56,18 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                 var expiryTimeSpan = Environment.Configuration.GetValue<TimeSpan>(ExchangeSetExpiresInConfigKey);
 
                 job.ExchangeSetUrlExpiryDateTime = DateTime.UtcNow.Add(expiryTimeSpan);
-                // Ensure ProductCount value objects are initialized before any persistence/serialization
                 job.RequestedProductCount = ProductCount.From(productVersions.Count());
                 job.ExchangeSetProductCount = ProductCount.From(productEditionList.Count());
-                job.RequestedProductsAlreadyUpToDateCount = productEditionList.ProductCountSummary.RequestedProductsAlreadyUpToDateCount;
+                if (productEditionList.ResponseCode == HttpStatusCode.NotModified)
+                {
+                    job.RequestedProductsAlreadyUpToDateCount = ProductCount.From(productVersions.Count());                   
+                }
+                else
+                {
+                    job.RequestedProductsAlreadyUpToDateCount = productEditionList.ProductCountSummary.RequestedProductsAlreadyUpToDateCount.IsInitialized()
+                        ? productEditionList.ProductCountSummary.RequestedProductsAlreadyUpToDateCount
+                        : ProductCount.From(0);
+                }
                 job.RequestedProductsNotInExchangeSet = productEditionList.ProductCountSummary.MissingProducts;
 
                 await context.Subject.SignalBuildRequired();

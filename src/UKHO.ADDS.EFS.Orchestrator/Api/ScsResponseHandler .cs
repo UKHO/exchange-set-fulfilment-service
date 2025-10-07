@@ -13,7 +13,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             if(result.BuildStatus!= Domain.Builds.BuildState.Scheduled )
             {
                 httpContext.Response.Headers.Append(ApiHeaderKeys.ErrorOriginHeaderKey, result.ErrorOrigin);
-                httpContext.Response.Headers.Append(ApiHeaderKeys.ErrorOriginStatusHeaderKey, ((int)result.ScsResponseCode).ToString());
+                if (result.ScsResponseCode != HttpStatusCode.OK)
+                {
+                    httpContext.Response.Headers.Append(ApiHeaderKeys.ErrorOriginStatusHeaderKey, ((int)result.ScsResponseCode).ToString());
+                }
+                else
+                {
+                    httpContext.Response.Headers.Append(ApiHeaderKeys.ErrorOriginStatusHeaderKey, "500");
+                }                
             }
 
             switch (result.ScsResponseCode)
