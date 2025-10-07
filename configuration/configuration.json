@@ -16,6 +16,7 @@
             }
         },
         "orchestrator": {
+            "BusinessUnit": "ADDS-S100",
             "Logging": {
                 "LogLevel": {
                     "Default": "Information",
@@ -73,6 +74,7 @@
     },
     "dev": {
         "orchestrator": {
+            "BusinessUnit": "ADDS-S100",
             "Logging": {
                 "LogLevel": {
                     "Default": "Information",
@@ -129,6 +131,7 @@
     },
     "vni": {
         "orchestrator": {
+            "BusinessUnit": "ADDS-S100",
             "Logging": {
                 "LogLevel": {
                     "Default": "Information",
@@ -185,6 +188,7 @@
     },
     "vne": {
         "orchestrator": {
+            "BusinessUnit": "ADDS-S100",
             "Logging": {
                 "LogLevel": {
                     "Default": "Information",
@@ -241,6 +245,7 @@
     },
     "iat": {
         "orchestrator": {
+            "BusinessUnit": "ADDS-S100",
             "Logging": {
                 "LogLevel": {
                     "Default": "Information",

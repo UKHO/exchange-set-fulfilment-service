@@ -17,7 +17,6 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
 {
     internal class DefaultFileService : IFileService
     {
-        private const string BusinessUnit = "ADDS-S100";
         private const string ProductCode = "S-100";
         private const string ProductCodeQueryClause = $"$batch(Product Code) eq '{ProductCode}'";
         private const string ExpiryDateQueryClause = $"ExpiryDate eq null ";
@@ -29,6 +28,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         private const string CreateBatch = "CreateBatch";
         private const string AddFileToBatch = "AddFileToBatch";
         private const string BatchExpiresInConfigKey = "orchestrator:Response:BatchExpiresIn";
+        private const string BusinessUnitConfigKey = "orchestrator:BusinessUnit";
         private readonly IFileShareReadWriteClient _fileShareReadWriteClient;
         private readonly IConfiguration _configuration;
         private readonly ILogger<DefaultFileService> _logger;
@@ -109,7 +109,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         /// <returns>A result containing the batch search response on success or error information on failure.</returns>
         public async Task<BatchSearchResponse> SearchCommittedBatchesExcludingCurrentAsync(BatchId currentBatchId, CorrelationId correlationId, CancellationToken cancellationToken)
         {
-            var filter = $"BusinessUnit eq '{BusinessUnit}' and {ProductCodeQueryClause} and {ExpiryDateQueryClause} and {MediaTypeQueryClause}";
+            var filter = $"BusinessUnit eq '{BusinessUnitConfigKey}' and {ProductCodeQueryClause} and {ExpiryDateQueryClause} and {MediaTypeQueryClause}";
 
             var searchResultResponse = await _fileShareReadWriteClient.SearchAsync(filter, Limit, Start, (string)correlationId, cancellationToken);
 
@@ -210,10 +210,10 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         /// Creates a batch model with predefined settings for S-100 product type for complete exchangeset.
         /// </summary>
         /// <returns>A configured batch model with appropriate access control and attributes.</returns>
-        private static BatchModel GetBatchModelForCompleteExchangeSet() =>
+        private BatchModel GetBatchModelForCompleteExchangeSet() =>
             new()
             {
-                BusinessUnit = "ADDS-S100",
+                BusinessUnit = BusinessUnitConfigKey,
                 Acl = new Acl
                 {
                     ReadUsers = ["public"],
@@ -239,7 +239,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
 
             return new BatchModel
             {
-                BusinessUnit = "ADDS-S100",
+                BusinessUnit = BusinessUnitConfigKey,
                 Acl = new Acl
                 {
                     ReadUsers = ["public"], ///TODO: To be set correctly for custom Exchange set
@@ -278,7 +278,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
             {
                 BatchId = batchId,
                 CorrelationId = correlationId,
-                BusinessUnit = BusinessUnit,
+                BusinessUnit = BusinessUnitConfigKey,
                 ProductCode = ProductCode,
                 Query = searchQuery,
                 Error = error
