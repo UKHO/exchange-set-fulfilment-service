@@ -44,7 +44,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Utilities
             string[]? productNames = null)
         {
             var responseJobSubmit = await OrchestratorClient.PostRequestAsync(requestId, payload, endpoint);
-            await ExchangeSetApiAssertions.FullExSetJobsResponseChecks(requestId, responseJobSubmit, expectedJobStatus, expectedBuildStatus);
+            await ExchangeSetApiAssertions.FullExchangeSetJobsResponseChecks(requestId, responseJobSubmit, expectedJobStatus, expectedBuildStatus);
 
             if (zipFileName != "")
             {
@@ -63,7 +63,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Utilities
             string[]? productNames = null)
         {
             var responseJobSubmit = await OrchestratorClient.PostRequestAsync(requestId, payload, endpoint);
-            var responseContent = await ExchangeSetApiAssertions.CustomExSetReqResponseChecks(
+            var responseContent = await ExchangeSetApiAssertions.CustomExchangeSetReqResponseChecks(
                 requestId, responseJobSubmit, expectedRequestedProductCount, expectedExchangeSetProductCount);
             
             // Extract batchId

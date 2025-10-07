@@ -10,7 +10,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Assertions
 {
     public class ExchangeSetApiAssertions
     {
-        public static async Task FullExSetJobsResponseChecks(string jobId, HttpResponseMessage responseJobSubmit, string expectedJobStatus = "submitted", string expectedBuildStatus = "scheduled")
+        public static async Task FullExchangeSetJobsResponseChecks(string jobId, HttpResponseMessage responseJobSubmit, string expectedJobStatus = "submitted", string expectedBuildStatus = "scheduled")
         {
             Assert.True(responseJobSubmit.IsSuccessStatusCode, $"Expected success status code but got: {responseJobSubmit.StatusCode}");
 
@@ -96,7 +96,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Assertions
         }
 
 
-        public static async Task<string> CustomExSetReqResponseChecks(string requestId, HttpResponseMessage responseJobSubmit, int expectedRequestedProductCount = -1, int expectedExchangeSetProductCount = -1)
+        public static async Task<string> CustomExchangeSetReqResponseChecks(string requestId, HttpResponseMessage responseJobSubmit, int expectedRequestedProductCount = -1, int expectedExchangeSetProductCount = -1)
         {
             var batchId = "";
             Assert.True(responseJobSubmit.IsSuccessStatusCode, $"Expected success status code but got: {responseJobSubmit.StatusCode}");
