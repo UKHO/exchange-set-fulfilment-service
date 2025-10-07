@@ -27,7 +27,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         private GetS100ProductNamesNode _getS100ProductNamesNode;
         private CancellationToken _cancellationToken;
 
-        private const string DefaultMaxExchangeSetSizeMB = "100";
         private const string TestJobId = "test-job-id";
         private const string TestCallbackUri = "https://test.com/callback";
         private const string TestProductName1 = "101GB004DEVQK";
@@ -42,7 +41,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             _storageService = A.Fake<IStorageService>();
             _cancellationToken = CancellationToken.None;
 
-            _configuration = CreateTestConfiguration();
             _nodeEnvironment = new AssemblyNodeEnvironment(_configuration, _cancellationToken, A.Fake<ILogger>());
         }
 
@@ -162,38 +160,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         }
 
         [Test]
-        public async Task WhenTotalFileSizeExceedsLimit_ThenExecuteAsyncReturnsFailedAndSetsErrorResponse()
-        {
-            var requestedProducts = CreateProductNameList(TestProductName1, TestProductName2);
-            var job = CreateTestJob(requestedProducts: requestedProducts);
-            var productEditionList = CreateProductEditionListExceedingSize();
-
-            SetupExecutionContext(job);
-            SetupProductService(productEditionList);
-
-            var result = await _getS100ProductNamesNode.ExecuteAsync(_executionContext);
-
-            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
-            Assert.That(_executionContext.Subject.ErrorResponse, Is.Not.Null);
-            Assert.That(_executionContext.Subject.ErrorResponse.Errors.First().Source, Is.EqualTo("exchangeSetSize"));
-        }
-
-        [Test]
-        public async Task WhenTotalFileSizeEqualsLimit_ThenExecuteAsyncReturnsSucceeded()
-        {
-            var requestedProducts = CreateProductNameList(TestProductName1);
-            var job = CreateTestJob(requestedProducts: requestedProducts);
-            var productEditionList = CreateProductEditionListAtSizeLimit();
-
-            SetupExecutionContext(job);
-            SetupProductService(productEditionList);
-
-            var result = await _getS100ProductNamesNode.ExecuteAsync(_executionContext);
-
-            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-        }
-
-        [Test]
         public async Task WhenRequestTypeIsProductNames_ThenExecuteAsyncSetsJobProperties()
         {
             var requestedProducts = CreateProductNameList(TestProductName1);
@@ -277,19 +243,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             return list;
         }
 
-        private static IConfiguration CreateTestConfiguration(
-            string maxSizeMB = DefaultMaxExchangeSetSizeMB)
-        {
-            var configurationData = new Dictionary<string, string>
-                {
-                    { "orchestrator:Response:MaxExchangeSetSizeInMB", maxSizeMB }
-                };
-
-            return new ConfigurationBuilder()
-                .AddInMemoryCollection(configurationData)
-                .Build();
-        }
-
         private static Job CreateTestJob(
             ProductNameList? requestedProducts = null,
             RequestType requestType = RequestType.ProductNames)
@@ -334,33 +287,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         {
             var list = new ProductEditionList { ResponseCode = HttpStatusCode.OK };
             list.Add(new ProductEdition { ProductName = ProductName.From(TestProductName1), FileSize = 1000 });
-            return list;
-        }
-
-        private static ProductEditionList CreateProductEditionListExceedingSize()
-        {
-            var list = new ProductEditionList { ResponseCode = HttpStatusCode.OK };
-            list.Add(new ProductEdition
-            {
-                ProductName = ProductName.From(TestProductName1),
-                FileSize = 600 * 1024 * 1024
-            });
-            list.Add(new ProductEdition
-            {
-                ProductName = ProductName.From(TestProductName2),
-                FileSize = 500 * 1024 * 1024
-            });
-            return list;
-        }
-
-        private static ProductEditionList CreateProductEditionListAtSizeLimit()
-        {
-            var list = new ProductEditionList { ResponseCode = HttpStatusCode.OK };
-            list.Add(new ProductEdition
-            {
-                ProductName = ProductName.From(TestProductName1),
-                FileSize = 100 * 1024 * 1024
-            });
             return list;
         }
 

@@ -14,6 +14,7 @@ namespace UKHO.ADDS.EFS.Domain.Services
         ///     Creates a new batch.
         /// </summary>
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
+        /// <param name="exchangeSetType">The type of exchange set to create (Complete or Custom).</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result containing the batch handle on success or error information on failure.</returns>
         Task<Batch> CreateBatchAsync(CorrelationId correlationId, ExchangeSetSize exchangeSetSize, string exchangeSetType, UserIdentifier userIdentifier, CancellationToken cancellationToken);
