@@ -15,9 +15,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 {
     internal class CheckExchangeSetSizeExceededNode : AssemblyPipelineNode<S100Build>
     {
-        private const string MaxExchangeSetSizeInMBConfigKey = "orchestrator:Response:MaxExchangeSetSizeInMB";
         private const string AudienceClaimType = "aud";
         private const string IssuerClaimType = "iss";
+        private const string ExchangeSetSizeSource = "exchangeSetSize";
+        private const string MaxExchangeSetSizeInMBConfigKey = "orchestrator:Response:MaxExchangeSetSizeInMB";
+        private const string ExchangeSetSizeExceededErrorMessageConfigKey = "orchestrator:Errors:ExchangeSetSizeExceededMessage";
 
         private readonly ILogger<CheckExchangeSetSizeExceededNode> _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -71,9 +73,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             var b2cInstance = System.Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppInstance);
             var b2cTenantId = System.Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppTenantId);
 
-            if (string.IsNullOrEmpty(b2cClientId) || string.IsNullOrEmpty(b2cInstance) || string.IsNullOrEmpty(b2cTenantId))
-                return false;
-
             var b2CAuthority = $"{b2cInstance}{b2cTenantId}/v2.0/";
             var audience = b2cClientId;
 
@@ -90,8 +89,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
         {
             // Calculate total file size and check against the limit
             var maxExchangeSetSizeInMB = Environment.Configuration.GetValue<int>(MaxExchangeSetSizeInMBConfigKey);
+            var exchangeSetSizeExceededErrorMessage = Environment.Configuration.GetValue<string>(ExchangeSetSizeExceededErrorMessageConfigKey);
             var totalFileSizeBytes = context.Subject.Build.ProductEditions.Sum(p => (long)p.FileSize);
-            double bytesToKbFactor = 1024f;
+            var bytesToKbFactor = 1024f;
             var totalFileSizeInMB = (totalFileSizeBytes / bytesToKbFactor) / bytesToKbFactor;
 
             if (totalFileSizeInMB > maxExchangeSetSizeInMB)
@@ -106,8 +106,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                     [
                         new ErrorDetail
                         {
-                             Source = "exchangeSetSize",
-                             Description = "The Exchange Set requested is large and will not be created, please use a standard Exchange Set provided by the UKHO."
+                             Source = ExchangeSetSizeSource,
+                             Description = exchangeSetSizeExceededErrorMessage!
                         }
                     ]
                 };

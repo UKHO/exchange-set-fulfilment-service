@@ -39,6 +39,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         private const string TestB2CInstance = "https://test.b2clogin.com/";
         private const string TestB2CTenantId = "test-tenant-id";
         private const string TestB2CAuthority = "https://test.b2clogin.com/test-tenant-id/v2.0/";
+        private const string ExchangeSetSizeExceededErrorMessage = "The Exchange Set requested is large and will not be created, please use a standard Exchange Set provided by the UKHO.";
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
@@ -191,15 +192,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             Assert.That(_executionContext.Subject.ErrorResponse.CorrelationId, Is.EqualTo(job.Id.ToString()));
             Assert.That(_executionContext.Subject.ErrorResponse.Errors, Has.Count.EqualTo(1));
             Assert.That(_executionContext.Subject.ErrorResponse.Errors.First().Source, Is.EqualTo("exchangeSetSize"));
-            Assert.That(_executionContext.Subject.ErrorResponse.Errors.First().Description, Is.EqualTo(
-                "The Exchange Set requested is large and will not be created, please use a standard Exchange Set provided by the UKHO."));
+            Assert.That(_executionContext.Subject.ErrorResponse.Errors.First().Description, Is.EqualTo(ExchangeSetSizeExceededErrorMessage));
         }
 
         private static IConfiguration CreateTestConfiguration(string maxSizeMB = DefaultMaxExchangeSetSizeMB)
         {
             var configurationData = new Dictionary<string, string>
             {
-                { "orchestrator:Response:MaxExchangeSetSizeInMB", maxSizeMB }
+                { "orchestrator:Response:MaxExchangeSetSizeInMB", maxSizeMB },
+                { "orchestrator:Errors:ExchangeSetSizeExceededMessage", ExchangeSetSizeExceededErrorMessage }
             };
 
             return new ConfigurationBuilder()
