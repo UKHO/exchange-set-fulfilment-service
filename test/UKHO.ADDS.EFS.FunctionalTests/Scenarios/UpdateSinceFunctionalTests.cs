@@ -66,7 +66,6 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
             using var scope = new AssertionScope(); // root scope
 
             var requestPayload = $"{{ \"sinceDateTime\": \"{DateTime.UtcNow.AddDays(days):yyyy-MM-ddTHH:mm:ss.fffZ}\" }}";
-            //var requestPayload = $"{{ \"sinceDateTime\": \"{DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")}\" }}";
 
             SetEndpoint(callbackUri, productIdentifier);
 
@@ -85,7 +84,6 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
             using var scope = new AssertionScope(); // root scope
 
             var requestPayload = $"{{ \"sinceDateTime\": \"{DateTime.UtcNow.AddDays(days):yyyy-MM-ddTHH:mm:ss.fffZ}\" }}";
-            //var requestPayload = $"{{ \"sinceDateTime\": \"{DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")}\" }}";
 
             SetEndpoint(callbackUri, productIdentifier);
 
