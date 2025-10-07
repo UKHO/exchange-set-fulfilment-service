@@ -71,12 +71,11 @@ resource "azurerm_api_management_product_api" "efs_product_api_mapping" {
 }
 
 locals {
-  allowed_ip_xml = join("", [
-    for ip in var.allowed_ip_ranges_mastek : (
-      can(regex("/", ip))
-      ? "<ip-range cidr=\"${trimspace(ip)}\"/>"
-      : "<address>${trimspace(ip)}</address>"
-    )
+  ip_check_conditions = join("", [
+    for ip in var.allowed_ip_ranges_mastek : 
+      can(regex("/", ip)) 
+      ? "        <when condition=\"@(!IsIpInRange(context.Request.IpAddress, '${ip}'))\">\n          <return-response>\n            <set-status code='403' reason='Forbidden' />\n          </return-response>\n        </when>\n"
+      : "        <when condition=\"@(context.Request.IpAddress != '${ip}')\">\n          <return-response>\n            <set-status code='403' reason='Forbidden' />\n          </return-response>\n        </when>\n"
   ])
 }
 
@@ -90,10 +89,12 @@ resource "azurerm_api_management_product_policy" "efs_product_policy" {
   xml_content = <<-XML
 <policies>
   <inbound>
-     <!-- Allowed IPs -->
-     <ip-filter action="allow">${local.allowed_ip_xml}</ip-filter>
-	 <rate-limit calls="${var.product_rate_limit.calls}" renewal-period="${var.product_rate_limit.renewal-period}" retry-after-header-name="retry-after" remaining-calls-header-name="remaining-calls" />
-	 <quota calls="${var.product_quota.calls}" renewal-period="${var.product_quota.renewal-period}" />
+     <!-- IP/CIDR filtering -->
+      <choose>
+         ${local.ip_check_conditions}
+      </choose>
+		 <rate-limit calls="${var.product_rate_limit.calls}" renewal-period="${var.product_rate_limit.renewal-period}" retry-after-header-name="retry-after" remaining-calls-header-name="remaining-calls" />
+		 <quota calls="${var.product_quota.calls}" renewal-period="${var.product_quota.renewal-period}" />
 
          <!-- Validate b2c token -->
          <validate-jwt header-name="Authorization" failed-validation-error-message="Authorization token is missing or invalid" require-scheme="Bearer" output-token-variable-name="jwt">
