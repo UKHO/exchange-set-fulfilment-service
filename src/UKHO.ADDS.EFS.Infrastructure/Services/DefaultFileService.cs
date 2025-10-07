@@ -293,7 +293,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         /// <summary>
         /// Returns the attribute value for Exchange Set Type based on the ExchangeSetType enum.
         /// </summary>
-        /// <param name="exchangeSetType">The exchange set type.</param>
+        /// <param name="exchangeSetType">The exchange set type</param>
         /// <returns>String value for the attribute.</returns>
         private static string GetExchangeSetTypeAttributeValue(ExchangeSetType exchangeSetType)
         {
