@@ -52,16 +52,16 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
         [InlineData(" [ { \"productName\": \"101GB40079ABCDEFG\", \"editionNumber\": 5, \"updateNumber\": 10 }, { \"productName\": \"101DE00904820801012\", \"editionNumber\": 36, \"updateNumber\": 5 }, { \"productName\": \"102CA32904820801013\", \"editionNumber\": 13, \"updateNumber\": 0 }, { \"productName\": \"104US00_CHES_TYPE1_20210630_0600\", \"editionNumber\": 9, \"updateNumber\": 0 }, { \"productName\": \"101FR40079QWERTY\", \"editionNumber\": 2, \"updateNumber\": 2 }, { \"productName\": \"111US00_CHES_DCF8_20190703T00Z\", \"editionNumber\": 11, \"updateNumber\": 0 }, { \"productName\": \"102INVA904820801012\", \"editionNumber\": 11, \"updateNumber\": 0 }, { \"productName\": \"102AR00904820801012\", \"editionNumber\": 11, \"updateNumber\": 0 } ] ", "https://valid.com/callback", HttpStatusCode.Accepted, "", "ProductVersionsProducts.zip", 8, 8)] // Test Case 247843 - Valid input
         [InlineData(" [ { \"productName\": \"101GB40079ABCDEFG\", \"editionNumber\": 5, \"updateNumber\": 10 }, { \"productName\": \"101DE00904820801012\", \"editionNumber\": 36, \"updateNumber\": 5 }, { \"productName\": \"102CA32904820801013\", \"editionNumber\": 13, \"updateNumber\": 0 }, { \"productName\": \"104US00_CHES_TYPE1_20210630_0600\", \"editionNumber\": 9, \"updateNumber\": 0 }, { \"productName\": \"101FR40079QWERTY\", \"editionNumber\": 2, \"updateNumber\": 2 }, { \"productName\": \"111US00_CHES_DCF8_20190703T00Z\", \"editionNumber\": 11, \"updateNumber\": 0 }, { \"productName\": \"102INVA904820801012\", \"editionNumber\": 11, \"updateNumber\": 0 }, { \"productName\": \"102AR00904820801012\", \"editionNumber\": 11, \"updateNumber\": 0 } ] ", "", HttpStatusCode.Accepted, "", "ProductVersionsProducts.zip", 8, 8)] // Test Case 247843 - Valid input with only CallBackUri key and value as empty
         [InlineData(" [ { \"productName\": \"101GB40079ABCDEFG\", \"editionNumber\": 5, \"updateNumber\": 10 }, { \"productName\": \"101DE00904820801012\", \"editionNumber\": 36, \"updateNumber\": 5 }, { \"productName\": \"102CA32904820801013\", \"editionNumber\": 13, \"updateNumber\": 0 }, { \"productName\": \"104US00_CHES_TYPE1_20210630_0600\", \"editionNumber\": 9, \"updateNumber\": 0 }, { \"productName\": \"101FR40079QWERTY\", \"editionNumber\": 2, \"updateNumber\": 2 }, { \"productName\": \"111US00_CHES_DCF8_20190703T00Z\", \"editionNumber\": 11, \"updateNumber\": 0 }, { \"productName\": \"102INVA904820801012\", \"editionNumber\": 11, \"updateNumber\": 0 }, { \"productName\": \"102AR00904820801012\", \"editionNumber\": 11, \"updateNumber\": 0 } ] ", null, HttpStatusCode.Accepted, "", "ProductVersionsProducts.zip", 8, 8)] // Test Case 247843 - No CallBackUri parameter in the URL as it is optional parameter
-        public async Task ValidateProductVersionsPayloadWithValidInputs(string requestPayload, string? callbackUri, HttpStatusCode expectedStatusCode, string expectedErrorMessage, string zipFileName, int expectedRequestedProductCount, int expectedExchangeSetProductCount)
+        public async Task ValidateProductVersionsPayloadWithValidInputs(string productVersions, string? callbackUri, HttpStatusCode expectedStatusCode, string expectedErrorMessage, string zipFileName, int expectedRequestedProductCount, int expectedExchangeSetProductCount)
         {
             using var scope = new AssertionScope(); // root scope
 
             SetEndpoint(callbackUri);
 
-            TestOutput.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {requestPayload}\nExpectedStatusCode: {expectedStatusCode}\nExpectedErrorMessage:{expectedErrorMessage}");
+            TestOutput.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {productVersions}\nExpectedStatusCode: {expectedStatusCode}\nExpectedErrorMessage:{expectedErrorMessage}");
 
             var productNames = new[] { "101GB40079ABCDEFG", "101DE00904820801012", "102CA32904820801013", "104US00_CHES_TYPE1_20210630_0600", "101FR40079QWERTY", "111US00_CHES_DCF8_20190703T00Z", "102INVA904820801012", "102AR00904820801012" };
-            await TestExecutionHelper.ExecuteCustomExchangeSetTestSteps(_requestId, requestPayload, _endpoint, zipFileName, expectedRequestedProductCount, expectedExchangeSetProductCount, _assertCallbackTxtFile, productNames);
+            await TestExecutionHelper.ExecuteCustomExchangeSetTestSteps(_requestId, productVersions, _endpoint, zipFileName, expectedRequestedProductCount, expectedExchangeSetProductCount, _assertCallbackTxtFile, productNames);
         }
 
 
@@ -70,7 +70,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
         [InlineData("[ { \"editionNumber\": 7, \"updateNumber\": 10 }, { \"editionNumber\": 36, \"updateNumber\": 0 } ]", "https://valid.com/callback", HttpStatusCode.BadRequest, "ProductName cannot be null or empty")] // Test Case 244569 - Missing ProductName
         [InlineData("[ { \"productName\": \"\", \"editionNumber\": 7, \"updateNumber\": 10 } ]", "https://valid.com/callback", HttpStatusCode.BadRequest, "ProductName cannot be null or empty")] // Test Case 244571 - Empty ProductName
         [InlineData("[ { \"productName\": \"null\", \"editionNumber\": 36, \"updateNumber\": 0 } ]", "https://valid.com/callback", HttpStatusCode.BadRequest, "'null' is not valid: it neither starts with a 3-digit S-100 code nor has length 8 for S-57")] // Test Case 244580 - Null value of ProductName
-        public async Task ValidatePVPayloadWithInvalidInputsProductName(string productVersions, string? callbackUri, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
+        public async Task ValidateProductVersionsPayloadWithInvalidInputsProductName(string productVersions, string? callbackUri, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
         {
             using var scope = new AssertionScope(); // root scope
 
@@ -87,7 +87,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
         [InlineData("[ { \"productName\": \"101GB40079ABCDEFG\", \"updateNumber\": 10 } ]", "https://valid.com/callback", HttpStatusCode.BadRequest, "EditionNumber must be a positive integer")] // Test Case 245738 - Missing EditionNumber
         [InlineData("[ { \"productName\": \"101GB40079ABCDEFG\", \"editionNumber\": 0, \"updateNumber\": 10 } ]", "https://valid.com/callback", HttpStatusCode.BadRequest, "EditionNumber must be a positive integer")] // Test Case 245073 - Invalid EditionNumber
         [InlineData("[ { \"productName\": \"102NO32904820801012\", \"editionNumber\": -1, \"updateNumber\": 0 } ]", "https://valid.com/callback", HttpStatusCode.BadRequest, "EditionNumber must be a positive integer")] // Test Case 245073 - Invalid EditionNumber
-        public async Task ValidatePVPayloadWithInvalidInputsEditionNumber(string productVersions, string? callbackUri, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
+        public async Task ValidateProductVersionsPayloadWithInvalidInputsEditionNumber(string productVersions, string? callbackUri, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
         {
             using var scope = new AssertionScope(); // root scope
 
@@ -103,7 +103,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
         [DisableParallelization] // This test runs in parallel with other tests. However, its test cases are run sequentially.
         [InlineData("[ { \"productName\": \"101GB40079ABCDEFG\", \"editionNumber\": 7 } ]", "https://valid.com/callback", HttpStatusCode.BadRequest, "UpdateNumber must be zero or a positive integer")] // Test Case 245040 - Missing UpdateNumber
         [InlineData("[ { \"productName\": \"101GB40079ABCDEFG\", \"editionNumber\": 7, \"updateNumber\": -1 } ]", "https://valid.com/callback", HttpStatusCode.BadRequest, "UpdateNumber must be zero or a positive integer")] // Test Case 245038 - Invalid UpdateNumber
-        public async Task ValidatePVPayloadWithInvalidInputsUpdateNumber(string productVersions, string? callbackUri, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
+        public async Task ValidateProductVersionsPayloadWithInvalidInputsUpdateNumber(string productVersions, string? callbackUri, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
         {
             using var scope = new AssertionScope(); // root scope
 
@@ -150,7 +150,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
         [InlineData("[ { \"productName\": \"102NO32904820801012\", \"editionNumber\": \"abcd\", \"updateNumber\": 0 } ]", "https://valid.com/callback", HttpStatusCode.BadRequest, "")] // Test Case 245029 - Non-integer EditionNumber
         [InlineData("[ { \"productName\": \"101GB40079ABCDEFG\", \"editionNumber\": 7, \"updateNumber\": \"\" } ]", "https://valid.com/callback", HttpStatusCode.BadRequest, "")] // Test Case 245715 - Empty UpdateNumber
         [InlineData("[ { \"productName\": \"102NO32904820801012\", \"editionNumber\": 36, \"updateNumber\": \"abcd\" } ]", "https://valid.com/callback", HttpStatusCode.BadRequest, "")] // Test Case 245715 - Non-integer UpdateNumber
-        public async Task ValidatePVPayloadEitherBodyIsNullOrMalformed(string productVersions, string? callbackUri, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
+        public async Task ValidateProductVersionsPayloadEitherBodyIsNullOrMalformed(string productVersions, string? callbackUri, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
         {
             using var scope = new AssertionScope(); // root scope
 
