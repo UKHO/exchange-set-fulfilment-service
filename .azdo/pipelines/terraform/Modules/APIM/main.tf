@@ -70,6 +70,16 @@ resource "azurerm_api_management_product_api" "efs_product_api_mapping" {
 
 }
 
+locals {
+  allowed_ip_xml = join("", [
+    for ip in var.allowed_ip_ranges_mastek : (
+      can(regex("/", ip))
+      ? "<ip-range cidr=\"${trimspace(ip)}\"/>"
+      : "<address>${trimspace(ip)}</address>"
+    )
+  ])
+}
+
 #Product quota and throttle policy
 resource "azurerm_api_management_product_policy" "efs_product_policy" {
   resource_group_name = data.azurerm_resource_group.rg.name
@@ -81,17 +91,9 @@ resource "azurerm_api_management_product_policy" "efs_product_policy" {
 <policies>
   <inbound>
      <!-- Allowed IPs -->
-     <ip-filter action="allow">
-      %{ for ip in var.allowed_ip_ranges_mastek ~}
-        %{ if can(regex("/", ip)) }
-          <ip-range cidr="${trimspace(ip)}"/>
-        %{ else }
-          <address>${trimspace(ip)}</address>
-        %{ endif }
-      %{ endfor ~}
-    </ip-filter>
-		 <rate-limit calls="${var.product_rate_limit.calls}" renewal-period="${var.product_rate_limit.renewal-period}" retry-after-header-name="retry-after" remaining-calls-header-name="remaining-calls" />
-		 <quota calls="${var.product_quota.calls}" renewal-period="${var.product_quota.renewal-period}" />
+     <ip-filter action="allow">${local.allowed_ip_xml}</ip-filter>
+	 <rate-limit calls="${var.product_rate_limit.calls}" renewal-period="${var.product_rate_limit.renewal-period}" retry-after-header-name="retry-after" remaining-calls-header-name="remaining-calls" />
+	 <quota calls="${var.product_quota.calls}" renewal-period="${var.product_quota.renewal-period}" />
 
          <!-- Validate b2c token -->
          <validate-jwt header-name="Authorization" failed-validation-error-message="Authorization token is missing or invalid" require-scheme="Bearer" output-token-variable-name="jwt">
