@@ -32,6 +32,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         private readonly IFileShareReadWriteClient _fileShareReadWriteClient;
         private readonly IConfiguration _configuration;
         private readonly ILogger<DefaultFileService> _logger;
+        private readonly string _businessUnit;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="DefaultFileService" /> class.
@@ -45,6 +46,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
             _fileShareReadWriteClient = fileShareReadWriteClient ?? throw new ArgumentNullException(nameof(fileShareReadWriteClient));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _businessUnit = _configuration.GetValue<string>(BusinessUnitConfigKey) ?? string.Empty;
         }
 
         /// <summary>
@@ -109,7 +111,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         /// <returns>A result containing the batch search response on success or error information on failure.</returns>
         public async Task<BatchSearchResponse> SearchCommittedBatchesExcludingCurrentAsync(BatchId currentBatchId, CorrelationId correlationId, CancellationToken cancellationToken)
         {
-            var filter = $"BusinessUnit eq '{BusinessUnitConfigKey}' and {ProductCodeQueryClause} and {ExpiryDateQueryClause} and {MediaTypeQueryClause}";
+            var filter = $"BusinessUnit eq '{_businessUnit}' and {ProductCodeQueryClause} and {ExpiryDateQueryClause} and {MediaTypeQueryClause}";
 
             var searchResultResponse = await _fileShareReadWriteClient.SearchAsync(filter, Limit, Start, (string)correlationId, cancellationToken);
 
@@ -213,7 +215,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         private BatchModel GetBatchModelForCompleteExchangeSet() =>
             new()
             {
-                BusinessUnit = BusinessUnitConfigKey,
+                BusinessUnit = _businessUnit,
                 Acl = new Acl
                 {
                     ReadUsers = ["public"],
@@ -239,7 +241,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
 
             return new BatchModel
             {
-                BusinessUnit = BusinessUnitConfigKey,
+                BusinessUnit = _businessUnit,
                 Acl = new Acl
                 {
                     ReadUsers = ["public"], ///TODO: To be set correctly for custom Exchange set
@@ -278,7 +280,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
             {
                 BatchId = batchId,
                 CorrelationId = correlationId,
-                BusinessUnit = BusinessUnitConfigKey,
+                BusinessUnit = _businessUnit,
                 ProductCode = ProductCode,
                 Query = searchQuery,
                 Error = error

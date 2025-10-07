@@ -93,11 +93,6 @@ namespace UKHO.ADDS.EFS.Domain.Jobs
         public MissingProductList RequestedProductsNotInExchangeSet { get; set; } = new();
 
         /// <summary>
-        /// The original request type for S100 endpoints
-        /// </summary>
-        public RequestType RequestType { get; init; }
-
-        /// <summary>
         /// Deternimes the type of exchange set to be created
         /// </summary>
         public ExchangeSetType ExchangeSetType { get; init; }

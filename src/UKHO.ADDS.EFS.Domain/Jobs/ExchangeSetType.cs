@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace UKHO.ADDS.EFS.Domain.Jobs
+﻿namespace UKHO.ADDS.EFS.Domain.Jobs
 {
     /// <summary>
     /// Enumeration of exchange set types for pipeline processing
@@ -12,13 +6,23 @@ namespace UKHO.ADDS.EFS.Domain.Jobs
     public enum ExchangeSetType
     {
         /// <summary>
-        /// Request for complete exchange set
+        /// Request for creating custom exchange set using ProductName endpoint
         /// </summary>
-        Complete,
+        ProductNames,
 
         /// <summary>
-        /// Request for custom exchange set
-        /// 
-        Custom
+        /// Request for creating custom exchange set using ProductVersion endpoint
+        /// </summary>
+        ProductVersions,
+
+        /// <summary>
+        /// Request for creating custom exchange set using UpdatesSince endpoint
+        /// </summary>
+        UpdatesSince,
+
+        /// <summary>
+        /// Request for creating complete exchange set using scheduled job
+        /// </summary>
+        Complete
     }
 }
