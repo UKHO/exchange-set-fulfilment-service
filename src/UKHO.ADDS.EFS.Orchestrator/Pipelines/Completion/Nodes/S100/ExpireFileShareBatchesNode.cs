@@ -1,7 +1,6 @@
 ﻿using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.Builds.S100;
 using UKHO.ADDS.EFS.Domain.Jobs;
-using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Domain.Services;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Completion;
@@ -24,7 +23,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100
 
         public override Task<bool> ShouldExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
         {
-            return Task.FromResult(context.Subject.Job.BatchId != BatchId.None && Environment.BuilderExitCode == BuilderExitCode.Success && context.Subject.Job.RequestType == RequestType.Internal);
+            return Task.FromResult(context.Subject.Job.BatchId != BatchId.None && Environment.BuilderExitCode == BuilderExitCode.Success && context.Subject.Job.ExchangeSetType == ExchangeSetType.Complete);
         }
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
