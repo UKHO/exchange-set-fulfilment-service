@@ -10,7 +10,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Utilities
 {
     public class TestExecutionHelper
     {
-        private static async Task CommonTestSteps(string requestId, string zipFileName, string[]? productNames = null, bool assertCallbackTxtFile = false, string batchId = "", string responseContent = "")
+        private static async Task AwaitJobCompletionAndAssertOnResults(string requestId, string zipFileName, string[]? productNames = null, bool assertCallbackTxtFile = false, string batchId = "", string responseContent = "")
         {
             TestOutput.WriteLine($"Started waiting for job completion ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
             var responseJobStatus = await OrchestratorClient.WaitForJobCompletionAsync(requestId);
@@ -48,7 +48,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Utilities
 
             if (zipFileName != "")
             {
-                await CommonTestSteps(requestId, zipFileName, productNames);
+                await AwaitJobCompletionAndAssertOnResults(requestId, zipFileName, productNames);
             }
         }
 
@@ -71,7 +71,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Utilities
                 ? JsonDocument.Parse(responseContent).RootElement.GetProperty("fssBatchId").GetString()! 
                 : "";
 
-            await CommonTestSteps(requestId, zipFileName, productNames, assertCallbackTxtFile, batchId, responseContent);
+            await AwaitJobCompletionAndAssertOnResults(requestId, zipFileName, productNames, assertCallbackTxtFile, batchId, responseContent);
         }
     }
 }
