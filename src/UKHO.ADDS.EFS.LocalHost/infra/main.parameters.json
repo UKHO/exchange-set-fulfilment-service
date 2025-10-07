@@ -35,6 +35,9 @@
       "efsStorageAccountName": {
         "value": "${AZURE_EFS_STORAGE_ACCOUNT_NAME}"
       },
+      "elasticAPMApiKey": {
+        "value": "${AZURE_ELASTIC_APMAPI_KEY}"
+      },
       "orchestratorCpu": {
         "value": "${AZURE_ORCHESTRATOR_CPU}"
       },
@@ -49,3 +52,4 @@
       }
     }
   }
+  

@@ -51,6 +51,8 @@ namespace UKHO.ADDS.EFS.LocalHost
             var addsEnvironment = builder.AddParameter("addsEnvironment");
             var orchestratorCpu = builder.AddParameter("orchestratorCpu");
             var orchestratorMemory = builder.AddParameter("orchestratorMemory");
+            var elasticAPMApiKey = builder.AddParameter("elasticAPMApiKey");
+
 
             // Existing user managed identity
             var efsServiceIdentity = builder.AddAzureUserAssignedIdentity(ServiceConfiguration.EfsServiceIdentity).PublishAsExisting(efsServiceIdentityName, efsRetainResourceGroup);
@@ -123,6 +125,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WithAzureUserAssignedIdentity(efsServiceIdentity)
                 .WithExternalHttpEndpoints()
                 .WithScalar("API Browser")
+                .WithEnvironment("ElasticAPM__ApiKey", elasticAPMApiKey)
                 .PublishAsAzureContainerApp((infra, app) =>
                 {
                     app.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);

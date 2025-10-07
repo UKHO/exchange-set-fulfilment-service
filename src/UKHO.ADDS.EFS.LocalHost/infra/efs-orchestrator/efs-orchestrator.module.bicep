@@ -24,6 +24,8 @@ param efs_storage_outputs_blobendpoint string
 @secure()
 param efs_redis_password_value string
 
+param elasticapmapikey_value string
+
 param efs_app_insights_outputs_appinsightsconnectionstring string
 
 param efs_events_namespace_outputs_eventhubsendpoint string
@@ -131,6 +133,10 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2025-02-02-preview' = {
             {
               name: 'ConnectionStrings__efs-redis'
               secretRef: 'connectionstrings--efs-redis'
+            }
+            {
+              name: 'ElasticAPM__ApiKey'
+              value: elasticapmapikey_value
             }
             {
               name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'

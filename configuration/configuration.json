@@ -124,7 +124,11 @@
             "SchedulerJob": {
                 "ExchangeSetGenerationSchedule": "0 0 0 * * ?" //Quartz Cron expression for scheduling ExchangeSet generation
             },
-            "MaximumProductAge": "28.00:00:00"
+            "MaximumProductAge": "28.00:00:00",
+            "ElasticAPM": {
+                "ServiceName": "EFS Orchestrator",
+                "Environment": "dev"
+            }
         }
     },
     "vni": {
@@ -180,7 +184,11 @@
             "SchedulerJob": {
                 "ExchangeSetGenerationSchedule": "0 0 0 * * ?" //Quartz Cron expression for scheduling ExchangeSet generation
             },
-            "MaximumProductAge": "28.00:00:00"
+            "MaximumProductAge": "28.00:00:00",
+            "ElasticAPM": {
+                "ServiceName": "EFS Orchestrator",
+                "Environment": "vni"
+            }
         }
     },
     "vne": {
@@ -236,7 +244,11 @@
             "SchedulerJob": {
                 "ExchangeSetGenerationSchedule": "0 0 0 * * ?" //Quartz Cron expression for scheduling ExchangeSet generation
             },
-            "MaximumProductAge": "28.00:00:00"
+            "MaximumProductAge": "28.00:00:00",
+            "ElasticAPM": {
+                "ServiceName": "EFS Orchestrator",
+                "Environment": "vne"
+            }
         }
     },
     "iat": {
@@ -292,7 +304,11 @@
             "SchedulerJob": {
                 "ExchangeSetGenerationSchedule": "0 0 0 * * ?" //Quartz Cron expression for scheduling ExchangeSet generation
             },
-            "MaximumProductAge": "28.00:00:00"
+            "MaximumProductAge": "28.00:00:00",
+            "ElasticAPM": {
+                "ServiceName": "EFS Orchestrator",
+                "Environment": "iat"
+            }
         }
     }
 }
