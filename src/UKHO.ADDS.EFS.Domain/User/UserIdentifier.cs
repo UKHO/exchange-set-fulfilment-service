@@ -9,23 +9,7 @@ namespace UKHO.ADDS.EFS.Domain.User
         public string UserIdentity { get; set; }
         public UserIdentifier(IHttpContextAccessor httpContextAccessor)
         {
-            var httpContext = httpContextAccessor.HttpContext;
-            if (httpContext != null && httpContext.User != null && httpContext.User.Identity != null && httpContext.User.Identity.IsAuthenticated)
-            {
-                var principal = httpContext.User;
-                if (principal != null)
-                {
-                    UserIdentity = principal.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier")?.Value ?? string.Empty;
-                }
-                else
-                {
-                    UserIdentity = string.Empty;
-                }
-            }
-            else
-            {
-                UserIdentity = string.Empty;
-            }
+            UserIdentity = Convert.ToString(httpContextAccessor.HttpContext.User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier")?.Value!);
         }
     }
 }

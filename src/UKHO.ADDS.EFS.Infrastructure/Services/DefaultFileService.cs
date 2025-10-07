@@ -236,7 +236,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         /// Creates a batch model with predefined settings for S-100 product type for custom exchangeset.
         /// </summary>
         /// <returns>A configured batch model with appropriate access control and attributes.</returns>
-        private BatchModel GetBatchModelForCustomExchangeSet(string userId, string exchangeSetType)
+        private BatchModel GetBatchModelForCustomExchangeSet(string userIdentity, string exchangeSetType)
         {
             var expiryTimeSpan = _configuration.GetValue<TimeSpan>(ExchangeSetExpiresInConfigKey);
 
@@ -245,7 +245,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                 BusinessUnit = "ADDS-S100",
                 Acl = new Acl
                 {
-                    ReadUsers = [userId]
+                    ReadUsers = [userIdentity]
                 },
                 Attributes =
                 [
