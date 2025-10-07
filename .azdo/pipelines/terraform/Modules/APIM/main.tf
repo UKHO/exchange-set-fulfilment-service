@@ -80,9 +80,8 @@ resource "azurerm_api_management_product_policy" "efs_product_policy" {
   xml_content = <<XML
 <policies>
   <inbound>
-    <base />
-    <!-- Allowed IPs -->
-    <ip-filter action="allow">
+     <!-- Allowed IPs -->
+     <ip-filter action="allow">
       %{ for ip in var.allowed_ip_ranges_mastek ~}
         %{ if can(regex("\\/", ip)) }
           <ip-range cidr="${ip}" />
