@@ -78,10 +78,6 @@ variable "allowed_ip_ranges_mastek" {
   type  = list
 }
 
-variable "blocked_ip_ranges_ukho" {
-  type  = list
-}
-
 locals {
   env_name                  = lower(terraform.workspace)
   service_name              = "efs"

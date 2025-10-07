@@ -67,7 +67,3 @@ variable "efs_b2c_client_id" {
 variable "allowed_ip_ranges_mastek" {
   type  = list
 }
-
-variable "blocked_ip_ranges_ukho" {
-  type  = list
-}

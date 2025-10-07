@@ -60,4 +60,4 @@ jobs:
             TF_VAR_b2c_token_issuer: $(APIM_B2C_TOKEN_ISSUER)
             TF_VAR_b2c_client_id: $(AZURE_EFS_B2C_APP_CLIENTID)
             TF_VAR_allowed_ip_ranges_mastek: $(APIM_ALLOWED_IP_RANGES_MASTEK)
-            TF_VAR_blocked_ip_ranges_ukho: $(APIM_BLOCKED_IP_RANGES_UKHO)
+            #TF_VAR_blocked_ip_ranges_ukho: $(APIM_BLOCKED_IP_RANGES_UKHO)

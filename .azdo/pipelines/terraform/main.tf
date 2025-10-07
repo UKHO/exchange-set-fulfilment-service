@@ -17,5 +17,4 @@ module "APIM" {
   efs_b2c_token_issuer               = var.b2c_token_issuer
   efs_b2c_client_id                  = var.b2c_client_id
   allowed_ip_ranges_mastek           = var.allowed_ip_ranges_mastek
-  blocked_ip_ranges_ukho             = var.blocked_ip_ranges_ukho
 }
