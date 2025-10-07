@@ -52,6 +52,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             var orchestratorCpu = builder.AddParameter("orchestratorCpu");
             var orchestratorMemory = builder.AddParameter("orchestratorMemory");
             var elasticAPMApiKey = builder.AddParameter("elasticAPMApiKey");
+            var elasticAPMServerUrl = builder.AddParameter("elasticAPMServerURL");
 
 
             // Existing user managed identity
@@ -126,6 +127,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WithExternalHttpEndpoints()
                 .WithScalar("API Browser")
                 .WithEnvironment("ElasticAPM__ApiKey", elasticAPMApiKey)
+                .WithEnvironment("ElasticAPM__ServerURL", elasticAPMServerUrl)
                 .PublishAsAzureContainerApp((infra, app) =>
                 {
                     app.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
