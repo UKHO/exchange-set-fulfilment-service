@@ -20,11 +20,10 @@ export const JobBuildResponseTime = new Trend('JobBuildResponseTime');
 * @returns {Object} - Response object with job details
 */
 export function createJob(filter, jobSize) {
-  const correlationId = generateCorrelationId(jobSize);
+  const correlationId = generateGUID();
   const payload = JSON.stringify({
-    version: 1,
     dataStandard: "s100",
-    products: "",
+    products: [""],
     filter: filter
   });
 
@@ -33,6 +32,7 @@ export function createJob(filter, jobSize) {
   const params = {
     headers: {
       'X-Correlation-Id': correlationId,
+      'Authorization': `Bearer ${config.EFSToken}`,
       'Content-Type': 'application/json'
     }
   };
@@ -68,11 +68,12 @@ export function createJob(filter, jobSize) {
 * @param {string} Id - The ID of the job
 * @returns {Object} - Response object with job status
 */
-export function getJobStatus(Id = "job-small-1754999159418-27a5dfbfd1024de5") {
+export function getJobStatus(Id = "11b1e20d-188c-1d41-b2f7-87ff4674c175") {
   const url = `${config.Base_URL}${config.JobStatusEndpoint.replace('{jobId}', Id)}`;
 
   const params = {
     headers: {
+      'Authorization': `Bearer ${config.EFSToken}`,
       'Content-Type': 'application/json'
     }
   };
@@ -91,11 +92,12 @@ export function getJobStatus(Id = "job-small-1754999159418-27a5dfbfd1024de5") {
 * @param {string} Id - The ID of the job
 * @returns {Object} - Response object with build details
 */
-export function getJobBuild(Id = "job-small-1754999159418-27a5dfbfd1024de5") {
+export function getJobBuild(Id = "11b1e20d-188c-1d41-b2f7-87ff4674c175") {
   const url = `${config.Base_URL}${config.JobBuildEndpoint.replace('{jobId}', Id)}`;
 
   const params = {
     headers: {
+      'Authorization': `Bearer ${config.EFSToken}`,
       'Content-Type': 'application/json'
     }
   };
@@ -125,4 +127,13 @@ export function generateCorrelationId(prefix) {
   ).join('');
 
   return `job-${prefix.toLowerCase()}-${timestamp}-${random}`;
+}
+
+export function generateGUID() {
+    function s4() {
+        return Math.floor((1 + Math.random()) * 0x10000)
+                   .toString(16)
+                   .substring(1);
+    }
+    return `${s4()}${s4()}-${s4()}-${s4()}-${s4()}-${s4()}${s4()}${s4()}`;
 }

@@ -43,11 +43,12 @@ export function create(filter, jobSize) {
 * Check the status of a job
 * @returns {Object} - Response object with job status
 */
-export function status(Id = "job-small-1754999159418-27a5dfbfd1024de5") {
+export function status(Id) {
   let jobResult = {};
 
-  jobResult = getJobStatus(Id = "job-small-1754999159418-27a5dfbfd1024de5");
+  jobResult = getJobStatus(Id);
 
+  //console.log("Job Status Response: " + JSON.stringify(jobResult));
   // Check job creation result
   if (!check(jobResult, {
     'Job status retrieved successfully': (r) => r.response.status === 200,
@@ -71,10 +72,10 @@ export function status(Id = "job-small-1754999159418-27a5dfbfd1024de5") {
 * Gets the build details of a job
 * @returns {Object} - Response object with build details
 */
-export function build(Id = "job-small-1754999159418-27a5dfbfd1024de5") {
+export function build(Id) {
   let jobResult = {};
 
-  jobResult = getJobBuild(Id = "job-small-1754999159418-27a5dfbfd1024de5");
+  jobResult = getJobBuild(Id);
 
   // Check job build result
   if (!check(jobResult, {
