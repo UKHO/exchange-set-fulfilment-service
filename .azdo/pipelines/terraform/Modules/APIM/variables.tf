@@ -55,11 +55,15 @@ variable "apim_api_openapi" {
   type = string
 }
 
-
 variable "efs_b2c_token_issuer" {
   type  = string
 }
 
 variable "efs_b2c_client_id" {
   type  = string
+}
+
+variable "allowed_ip_ranges_mastek" {
+  description = "List of allowed IP addresses or CIDR ranges for APIM EFS Product IP filter policy"
+  type        = string
 }
