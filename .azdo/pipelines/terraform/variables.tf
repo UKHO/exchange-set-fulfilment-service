@@ -75,7 +75,7 @@ variable "b2c_client_id" {
 }
 
 variable "allowed_ip_ranges_mastek" {
-  type  = string
+  type  = list(string)
 }
 
 locals {
@@ -86,5 +86,4 @@ locals {
   api_name              = local.env_name == "prod" ? "${var.api_name}" : "${var.api_name} ${var.env_suffix[local.env_name]}"
   apim_api_path         = local.env_name == "prod" ? "${local.service_name}" : "${local.service_name}-${local.env_name}"
   apim_api_openapi      = file("${path.module}/../../../exchangeSetFulfilmentService_OpenApi_definition.yaml")
-  allowed_ip_ranges_mastek = [for ip in split(",", replace(var.allowed_ip_ranges_mastek, " ", "")) : trim(ip)]
-}
+ }
