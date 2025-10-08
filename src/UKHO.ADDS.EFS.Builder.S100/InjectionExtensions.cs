@@ -186,13 +186,13 @@ namespace UKHO.ADDS.EFS.Builder.S100
             })
 
             .AddPolicyHandler((provider, request) =>
-             {
-                 var loggerFactory = provider.GetRequiredService<Microsoft.Extensions.Logging.ILoggerFactory>();
-                 var logger = loggerFactory.CreateLogger("Polly.HttpClientRetry");
-                 var configuration = provider.GetRequiredService<IConfiguration>();
-                 HttpRetryPolicyFactory.SetConfiguration(configuration);
-                 return HttpRetryPolicyFactory.GetRetryPolicy(logger);
-             });
+            {
+                var loggerFactory = provider.GetRequiredService<Microsoft.Extensions.Logging.ILoggerFactory>();
+                var logger = loggerFactory.CreateLogger("Polly.HttpClientRetry");
+                var configuration = provider.GetRequiredService<IConfiguration>();
+                HttpRetryPolicyFactory.SetConfiguration(configuration);
+                return HttpRetryPolicyFactory.GetRetryPolicy(logger);
+            });
 
             return services;
         }
