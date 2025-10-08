@@ -1,7 +1,6 @@
-﻿using UKHO.ADDS.EFS.Domain.External;
-using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
+﻿using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Api
+namespace UKHO.ADDS.EFS.Orchestrator.Api.ResponseHandlers
 {
     public interface IScsResponseHandler
     {

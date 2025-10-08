@@ -1,10 +1,9 @@
 ﻿using System.Net;
 using UKHO.ADDS.EFS.Domain.Constants;
-using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 
-namespace UKHO.ADDS.EFS.Orchestrator.Api
+namespace UKHO.ADDS.EFS.Orchestrator.Api.ResponseHandlers
 {
 
     public class ScsResponseHandler : IScsResponseHandler

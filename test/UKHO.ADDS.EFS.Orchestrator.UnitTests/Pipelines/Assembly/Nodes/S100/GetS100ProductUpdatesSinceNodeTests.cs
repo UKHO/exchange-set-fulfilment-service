@@ -85,6 +85,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 }
             };
             productEditionList.Add(new ProductEdition { ProductName = ProductName.From(ProductIdentifier) });
+            productEditionList.ResponseCode = System.Net.HttpStatusCode.OK;
 
             A.CallTo(() => _productService.GetS100ProductUpdatesSinceAsync(_job!.RequestedFilter, _job.ProductIdentifier, _job, A<CancellationToken>.Ignored))
                 .Returns(productEditionList);
