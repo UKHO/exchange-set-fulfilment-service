@@ -161,6 +161,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.UnitTests.Services
                 Throws.TypeOf<InvalidOperationException>());
         }
 
+        [Test]
         public async Task WhenSetExpiryDateAsyncWithNoValidBatches_ThenReturnsTrue()
         {
             var batches = CreateBatchDetailsList("");
