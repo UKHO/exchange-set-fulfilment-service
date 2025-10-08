@@ -67,3 +67,7 @@ variable "allowed_ip_ranges_mastek" {
   description = "List of allowed IP addresses or CIDR ranges for APIM EFS Product IP filter policy"
   type        = list(string)
 }
+
+variable "blocked_ip_ranges_test" {
+  type = list(string)
+}

@@ -71,18 +71,17 @@ resource "azurerm_api_management_product_api" "efs_product_api_mapping" {
 }
 
 locals {
-  # Split IPs into single addresses and CIDRs
-  explicit_addrs = [for ip in var.allowed_ip_ranges_mastek : ip if !can(regex("/", ip))]
-  cidrs          = [for ip in var.allowed_ip_ranges_mastek : ip if can(regex("/", ip))]
+  # Split blocked IPs into single addresses and CIDR ranges
+  explicit_addrs = [for ip in var.blocked_ip_ranges_test : ip if !can(regex("/", ip))]
+  cidrs          = [for ip in var.blocked_ip_ranges_test : ip if can(regex("/", ip))]
 
-  # For each CIDR, compute first and last usable IP
+  # For each CIDR, compute from/to range
   cidr_map = {
     for c in local.cidrs : c => {
-      prefix      = tonumber(split("/", c)[1])
-      addr_count  = floor(pow(2, 32 - tonumber(split("/", c)[1])))
-      last_index  = floor(pow(2, 32 - tonumber(split("/", c)[1]))) - 1
-      from        = cidrhost(c, 0)
-      to          = cidrhost(c, floor(pow(2, 32 - tonumber(split("/", c)[1]))) - 1)
+      prefix     = tonumber(split("/", c)[1])
+      total_ips  = floor(pow(2, 32 - tonumber(split("/", c)[1])))
+      from       = cidrhost(c, 0)
+      to         = cidrhost(c, total_ips - 1)
     }
   }
 }
@@ -97,31 +96,31 @@ resource "azurerm_api_management_product_policy" "efs_product_policy" {
   xml_content = <<-XML
 <policies>
   <inbound>
-    <!-- Allowed IPs and CIDRs -->
-    <ip-filter action="allow">
+    <!-- Block specific IPs and CIDRs -->
+    <ip-filter action="deny">
       %{ for addr in local.explicit_addrs ~}
-        <address>${addr}</address>
+        <address>${trimspace(addr)}</address>
       %{ endfor ~}
       %{ for c, r in local.cidr_map ~}
-        <address-range from="${r.from}" to="${r.to}" />
+        <address-range from="${trimspace(r.from)}" to="${trimspace(r.to)}" />
       %{ endfor ~}
     </ip-filter>
-		 <rate-limit calls="${var.product_rate_limit.calls}" renewal-period="${var.product_rate_limit.renewal-period}" retry-after-header-name="retry-after" remaining-calls-header-name="remaining-calls" />
-		 <quota calls="${var.product_quota.calls}" renewal-period="${var.product_quota.renewal-period}" />
 
-         <!-- Validate b2c token -->
-         <validate-jwt header-name="Authorization" failed-validation-error-message="Authorization token is missing or invalid" require-scheme="Bearer" output-token-variable-name="jwt">
-            <openid-config url="${var.efs_b2c_token_issuer}" />
-            <audiences>
-                <audience>${var.efs_b2c_client_id}</audience>
-            </audiences>
-          </validate-jwt>
+    <rate-limit calls="${var.product_rate_limit.calls}" renewal-period="${var.product_rate_limit.renewal-period}" retry-after-header-name="retry-after" remaining-calls-header-name="remaining-calls" />
+    <quota calls="${var.product_quota.calls}" renewal-period="${var.product_quota.renewal-period}" />
+
+    <!-- Validate b2c token -->
+    <validate-jwt header-name="Authorization" failed-validation-error-message="Authorization token is missing or invalid" require-scheme="Bearer" output-token-variable-name="jwt">
+      <openid-config url="${var.efs_b2c_token_issuer}" />
+      <audiences>
+        <audience>${var.efs_b2c_client_id}</audience>
+      </audiences>
+    </validate-jwt>
     <base />
   </inbound>
-    <backend>
+  <backend>
     <base />
   </backend>
-
   <outbound>
     <base />
   </outbound>
