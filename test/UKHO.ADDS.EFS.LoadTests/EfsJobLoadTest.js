@@ -6,6 +6,7 @@ import { Counter } from 'k6/metrics';
 import { getSmallJobFilter, getMediumJobFilter } from './Services/JobFilterProvider.js';
 import { create, status, build } from './Services/JobScenarios.js';
 import { authenticateUsingAzure } from './Services/AzureTokenProvider.js';
+
 const config = JSON.parse(open('./config.json'));
 
 // Custom counters for tracking job creation requests
@@ -51,45 +52,41 @@ export let options = {
       maxVUs: 2,
       startTime: '5s',
       gracefulStop: '30s'
-    },
+    }
 
-    //  Job status checks
-    // JobStatus: {
-    //   executor: 'constant-arrival-rate',
-    //   exec: 'getStatusOfJob',
-    //   rate: Math.ceil(CYCLE.STATUS_CHECKS / (TEST_DURATION / 120)),
-    //   timeUnit: '120s',
-    //   duration: `${TEST_DURATION}s`,
-    //   preAllocatedVUs: 5,
-    //   maxVUs: 16,
-    //   startTime: '30s', // Start after some jobs have been created
-    //   gracefulStop: '30s'
-    // },
+  //  The following scenarios are commented out to focus on job creation only.
+  //   //  Job status checks
+  //   JobStatus: {
+  //     executor: 'constant-arrival-rate',
+  //     exec: 'getStatusOfJob',
+  //     rate: Math.ceil(CYCLE.STATUS_CHECKS / (TEST_DURATION / 120)),
+  //     timeUnit: '120s',
+  //     duration: `${TEST_DURATION}s`,
+  //     preAllocatedVUs: 5,
+  //     maxVUs: 16,
+  //     startTime: '30s', // Start after some jobs have been created
+  //     gracefulStop: '30s'
+  //   },
 
-    // // Build job status checks
-    // BuildJobStatus: {
-    //   executor: 'constant-arrival-rate',
-    //   exec: 'getBuildStatusOfJob',
-    //   rate: Math.ceil(CYCLE.BUILD_CHECKS / (TEST_DURATION / 120)),
-    //   timeUnit: '120s',
-    //   duration: `${TEST_DURATION}s`,
-    //   preAllocatedVUs: 5,
-    //   maxVUs: 16,
-    //   startTime: '30s', // Start after some jobs have been created
-    //   gracefulStop: '30s'
-    // }
+  //   // Build job status checks
+  //   BuildJobStatus: {
+  //     executor: 'constant-arrival-rate',
+  //     exec: 'getBuildStatusOfJob',
+  //     rate: Math.ceil(CYCLE.BUILD_CHECKS / (TEST_DURATION / 120)),
+  //     timeUnit: '120s',
+  //     duration: `${TEST_DURATION}s`,
+  //     preAllocatedVUs: 5,
+  //     maxVUs: 16,
+  //     startTime: '30s', // Start after some jobs have been created
+  //     gracefulStop: '30s'
+  //   }
   }
 };
-
-// export function setup() {
+ 
+// export function getToken() {
 //   // client credentials authentication flow
-//   let efsAuthResp = authenticateUsingAzure(
-//     `${config.EFS_TENANT_ID}`, `${config.EFS_CLIENT_ID}`, `${config.EFS_CLIENT_SECRET}`, `${config.EFS_SCOPES}`, `${config.EFS_RESOURCE}`
-//   );
-//   let clientAuthResp = {}; // Define the object
-//   clientAuthResp["efsToken"] = efsAuthResp.access_token;
-
-//   return clientAuthResp;
+//   let efsAuthResp = authenticateUsingAzure(config);  
+//   return authToken = efsAuthResp.access_token;
 // }
 
 export function createSmallJob() {
