@@ -71,12 +71,19 @@ resource "azurerm_api_management_product_api" "efs_product_api_mapping" {
 }
 
 locals {
-  ip_check_conditions = join("", [
-    for ip in var.allowed_ip_ranges_mastek : 
-      can(regex("/", ip)) 
-      ? "        <when condition=\"@(!IsIpInRange(context.Request.IpAddress, '${ip}'))\">\n          <return-response>\n            <set-status code='403' reason='Forbidden' />\n          </return-response>\n        </when>\n"
-      : "        <when condition=\"@(context.Request.IpAddress != '${ip}')\">\n          <return-response>\n            <set-status code='403' reason='Forbidden' />\n          </return-response>\n        </when>\n"
-  ])
+  explicit_addrs = [for ip in var.allowed_ip_ranges_mastek : ip if !can(regex("/", ip))]
+  cidrs          = [for ip in var.allowed_ip_ranges_mastek : ip if can(regex("/", ip))]
+
+  cidr_map = {
+    for c in local.cidrs :
+    c => {
+      prefix     = tonumber(split("/", c)[1])
+      addr_count = floor(pow(2, 32 - tonumber(split("/", c)[1])))
+      last_index = local.cidr_map[c].addr_count - 1
+      from       = cidrhost(c, 0)
+      to         = cidrhost(c, local.cidr_map[c].addr_count - 1)
+    }
+  }
 }
 
 #Product quota and throttle policy
@@ -89,10 +96,15 @@ resource "azurerm_api_management_product_policy" "efs_product_policy" {
   xml_content = <<-XML
 <policies>
   <inbound>
-     <!-- IP/CIDR filtering -->
-      <choose>
-         ${local.ip_check_conditions}
-      </choose>
+    <!-- Allowed IPs and CIDRs -->
+    <ip-filter action="allow">
+      %{ for addr in local.explicit_addrs ~}
+        <address>${addr}</address>
+      %{ endfor ~}
+      %{ for c, r in local.cidr_map ~}
+        <address-range from="${r.from}" to="${r.to}" />
+      %{ endfor ~}
+    </ip-filter>
 		 <rate-limit calls="${var.product_rate_limit.calls}" renewal-period="${var.product_rate_limit.renewal-period}" retry-after-header-name="retry-after" remaining-calls-header-name="remaining-calls" />
 		 <quota calls="${var.product_quota.calls}" renewal-period="${var.product_quota.renewal-period}" />
 
