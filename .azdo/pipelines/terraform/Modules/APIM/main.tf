@@ -71,17 +71,18 @@ resource "azurerm_api_management_product_api" "efs_product_api_mapping" {
 }
 
 locals {
+  # Split IPs into single addresses and CIDRs
   explicit_addrs = [for ip in var.allowed_ip_ranges_mastek : ip if !can(regex("/", ip))]
   cidrs          = [for ip in var.allowed_ip_ranges_mastek : ip if can(regex("/", ip))]
 
+  # For each CIDR, compute first and last usable IP
   cidr_map = {
-    for c in local.cidrs :
-    c => {
-      prefix     = tonumber(split("/", c)[1])
-      addr_count = floor(pow(2, 32 - tonumber(split("/", c)[1])))
-      last_index = local.cidr_map[c].addr_count - 1
-      from       = cidrhost(c, 0)
-      to         = cidrhost(c, local.cidr_map[c].addr_count - 1)
+    for c in local.cidrs : c => {
+      prefix      = tonumber(split("/", c)[1])
+      addr_count  = floor(pow(2, 32 - tonumber(split("/", c)[1])))
+      last_index  = floor(pow(2, 32 - tonumber(split("/", c)[1]))) - 1
+      from        = cidrhost(c, 0)
+      to          = cidrhost(c, floor(pow(2, 32 - tonumber(split("/", c)[1]))) - 1)
     }
   }
 }
