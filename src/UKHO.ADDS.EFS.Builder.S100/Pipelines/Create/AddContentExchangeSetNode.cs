@@ -24,21 +24,35 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
             var authKey = context.Subject.WorkspaceAuthenticationKey;
             var toolClient = context.Subject.ToolClient;
 
-            // Paths to check directory exists
-            var datasetFilesPath = BuildWorkspacePath(context.Subject, context.Subject.WorkSpaceSpoolDataSetFilesPath);
-            var supportFilesPath = BuildWorkspacePath(context.Subject, context.Subject.WorkSpaceSpoolSupportFilesPath);
+            var downloadPath = Path.Combine(context.Subject.WorkSpaceRootPath, context.Subject.WorkSpaceSpoolPath);
 
-            // Validate the paths and filter out those that do not exist
-            var validContentPaths = new[] {
-                    (Path: context.Subject.WorkSpaceSpoolDataSetFilesPath, FullPath: datasetFilesPath),
-                    (Path: context.Subject.WorkSpaceSpoolSupportFilesPath, FullPath: supportFilesPath)
+            // Get folder names in downloadPath with length greater than 5
+            var longFolderNames = GetLongFolderNames(downloadPath);
+
+            // Create a list to store the full catalog paths
+            var catalogPaths = new List<string>();
+
+            // Append zipFilePath + longFolderNames + "/S100_ROOT/Catalogue.xml" for each folder name
+            foreach (var folderName in longFolderNames)
+            {
+                var filesPath = BuildWorkspacePath(context.Subject, folderName);
+
+                var validContentPaths = new[] {
+                    (Path: folderName, FullPath: filesPath)
                 }
-                .Where(x => Directory.Exists(x.FullPath))
-                .Select(x => x.Path)
-                .ToArray();
+               .Where(x => Directory.Exists(x.FullPath))
+               .Select(x => x.Path)
+               .ToArray();
+
+                foreach (var path in validContentPaths)
+                {
+                    string catalogPath = path + "/S100_ROOT/CATALOG.XML";
+                    catalogPaths.Add(catalogPath);
+                }
+            }
 
             // Process each path
-            foreach (var path in validContentPaths)
+            foreach (var path in catalogPaths)
             {
                 if (!await AddContentForPathAsync(toolClient, path, jobId, authKey, logger))
                 {
@@ -47,6 +61,24 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
             }
 
             return NodeResultStatus.Succeeded;
+        }
+
+        /// <summary>
+        /// Gets a list of folder names in the specified path with length greater than 5 characters.
+        /// </summary>
+        /// <param name="directoryPath">The directory path to search for folders.</param>
+        /// <returns>A list of folder names with length greater than 5 characters.</returns>
+        private static List<string> GetLongFolderNames(string directoryPath)
+        {
+            if (!Directory.Exists(directoryPath))
+            {
+                return new List<string>();
+            }
+
+            return Directory.GetDirectories(directoryPath)
+                .Select(Path.GetFileName)
+                .Where(name => name != null && name.Length > 5)
+                .ToList();
         }
 
         /// <summary>

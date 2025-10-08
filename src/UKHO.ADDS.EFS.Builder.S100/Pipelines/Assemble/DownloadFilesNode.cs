@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.IO.Compression;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging;
@@ -239,9 +240,50 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                                     LogFssDownloadFailed(item.batch, item.fileName, error);
                                     throw new Exception($"Failed to download {item.fileName}");
                                 }
+
+                                // Ensure all data is written to disk
+                                await outputFileStream.FlushAsync();
                             }
-                            // Ensure all data is written to disk
-                            await outputFileStream.FlushAsync();
+
+                            // Close the file stream before extracting
+                            await outputFileStream.DisposeAsync();
+                            outputFileStream = null;
+
+                            // Check if the file is a ZIP file and needs extraction
+                            if (Path.GetExtension(downloadPath).Equals(".zip", StringComparison.OrdinalIgnoreCase))
+                            {
+                                try
+                                {
+                                    // Get the parent folder
+                                    var parentFolder = directoryPath;
+
+                                    // Get the ZIP file name without extension to create a new folder
+                                    var folderName = Path.GetFileNameWithoutExtension(downloadPath);
+
+                                    // Create extraction folder path in the same directory as the zip
+                                    var extractFolder = Path.Combine(parentFolder, folderName);
+
+                                    // Create the extraction folder if it doesn't exist
+                                    if (!Directory.Exists(extractFolder))
+                                    {
+                                        Directory.CreateDirectory(extractFolder);
+                                    }
+
+                                    // Extract the ZIP into the new folder
+                                    ZipFile.ExtractToDirectory(downloadPath, extractFolder);
+
+                                    // Delete the original ZIP file after extraction
+                                    if (File.Exists(downloadPath))
+                                    {
+                                        File.Delete(downloadPath);
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    _logger.LogError(ex, "Failed to extract ZIP file {FileName}", item.fileName);
+                                    // Continue with other files even if extraction fails
+                                }
+                            }
                         }
                         finally
                         {
@@ -296,7 +338,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             }
 
             // All other files go to support files folder
-            return Path.Combine(workSpaceRootPath, workSpaceSpoolSupportFilesPath);
+            return Path.Combine(workSpaceRootPath);
         }
 
         /// <summary>

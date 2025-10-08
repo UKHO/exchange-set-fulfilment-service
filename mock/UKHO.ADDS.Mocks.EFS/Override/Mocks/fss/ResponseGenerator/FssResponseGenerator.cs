@@ -81,7 +81,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss.ResponseGenerator
                             ["batchPublishedDate"] = DateTime.UtcNow.AddMonths(-2).ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
                             ["expiryDate"] = DateTime.UtcNow.AddMonths(2).ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
                             ["isAllFilesZipAvailable"] = true,
-                            ["files"] = CreateFilesArray(product.ProductName, batchId, updateNumber.ToString(), false)
+                            ["files"] = CreateFilesArray(product.ProductName, batchId, updateNumber.ToString(), false, product.EditionNumber)
                         });
                     });
                 }
@@ -96,18 +96,18 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss.ResponseGenerator
         private static JsonObject CreateAttribute(string attr, object value) =>
             new() { ["key"] = attr, ["value"] = JsonValue.Create(value) };
 
-        private static JsonArray CreateFiles(string productName, string batchId, IEnumerable<string> extensions)
+        private static JsonArray CreateFiles(string productName, string batchId, IEnumerable<string> extensions, int editionNumber = 0, int updateNumber = 0)
         {
             var array = new JsonArray();
             foreach (var ext in extensions)
             {
-                int fileSize = _random.Next(800, 2000); // Random file size between 800 and 2000
-                array.Add(CreateFileObject(productName, ext, fileSize, batchId));
+                var fileSize = _random.Next(800, 2000); // Random file size between 800 and 2000
+                array.Add(CreateFileObject(productName, ext, fileSize, batchId, editionNumber, updateNumber));
             }
             return array;
         }
 
-        private static JsonArray CreateFilesArray(string productName, string batchId, string updateNo, bool isEmptyProducts = false)
+        private static JsonArray CreateFilesArray(string productName, string batchId, string updateNo, bool isEmptyProducts = false, int editionNumber = 0)
         {
             if (isEmptyProducts)
             {
@@ -118,28 +118,34 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss.ResponseGenerator
                 return array;
             }
             
+            var updateNumber = int.TryParse(updateNo, out var parsedUpdateNumber) ? parsedUpdateNumber : 0;
+            
             // Existing logic for non-empty products
             IEnumerable<string> extensions = productName switch
             {
-                var name when name.StartsWith(((int)ProductIdentifiers.s101).ToString()) => new[] { $".{updateNo.PadLeft(3, '0')}", ".TXT", ".TIF", ".TIFF", ".HTM", ".XML", ".IMG" },
-                var name when name.StartsWith(((int)ProductIdentifiers.s102).ToString()) => new[] { ".h5" },
-                var name when name.StartsWith(((int)ProductIdentifiers.s104).ToString()) => new[] { ".h5", ".XML" },
-                var name when name.StartsWith(((int)ProductIdentifiers.s111).ToString()) => new[] { ".h5", ".XML" }
+                var name when name.StartsWith(((int)ProductIdentifiers.s101).ToString()) => new[] { ".zip" },
+                var name when name.StartsWith(((int)ProductIdentifiers.s102).ToString()) => new[] { ".zip" },
+                var name when name.StartsWith(((int)ProductIdentifiers.s104).ToString()) => new[] { ".zip" },
+                var name when name.StartsWith(((int)ProductIdentifiers.s111).ToString()) => new[] { ".zip" }
             };
 
-            return CreateFiles(productName, batchId, extensions);
+            return CreateFiles(productName, batchId, extensions, editionNumber, updateNumber);
         }
 
-        private static JsonObject CreateFileObject(string productName, string extension, int fileSize, string batchId) =>
-            new()
+        private static JsonObject CreateFileObject(string productName, string extension, int fileSize, string batchId, int editionNumber = 0, int updateNumber = 0)
+        {
+            var filename = $"{productName}_{editionNumber}_{updateNumber}{extension}";
+            
+            return new()
             {
-                ["filename"] = $"{productName}{extension}",
+                ["filename"] = filename,
                 ["fileSize"] = fileSize,
                 ["mimeType"] = "text/plain",
                 ["hash"] = string.Empty,
                 ["attributes"] = new JsonArray(),
-                ["links"] = new JsonObject { ["get"] = new JsonObject { ["href"] = $"/batch/{batchId}/files/{productName}{extension}" } }
+                ["links"] = new JsonObject { ["get"] = new JsonObject { ["href"] = $"/batch/{batchId}/files/{filename}" } }
             };
+        }
 
         private static JsonObject CreateLinkObject(string productCode, Product product)
         {
