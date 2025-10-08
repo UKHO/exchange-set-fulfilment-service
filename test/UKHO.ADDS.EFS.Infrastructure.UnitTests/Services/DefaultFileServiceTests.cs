@@ -23,7 +23,7 @@ using UKHO.ADDS.EFS.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Infrastructure.Logging.Services;
 using UKHO.ADDS.EFS.Infrastructure.Services;
 using UKHO.ADDS.Infrastructure.Results;
-using BatchIdValue = UKHO.ADDS.EFS.Domain.Jobs.BatchId;
+using BatchIdentifier = UKHO.ADDS.EFS.Domain.Jobs.BatchId;
 
 namespace UKHO.ADDS.EFS.Infrastructure.UnitTests.Services
 {
@@ -41,7 +41,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.UnitTests.Services
         private Stream _fileStream;
         private string _fileName;
         private string _contentType;
-        private BatchIdValue batchIdValue;
+        private BatchIdentifier batchIdentifier;
         private const string BatchId = "batchId";
         private const string BusinessUnit = "ADDS-S100";
         private const string ConfigKey = "orchestrator:BusinessUnit";
@@ -137,7 +137,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.UnitTests.Services
         [Test]
         public async Task WhenSearchCommittedBatchesExcludingCurrentAsyncReturnsEntries_ThenExcludesCurrentBatch()
         {
-            batchIdValue = BatchIdValue.From(BatchId);
+            var batchIdentifier = BatchIdentifier.From(BatchId);
             var entries = new List<BatchDetails>
             {
                 new(batchId: BatchId),
@@ -151,7 +151,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.UnitTests.Services
             A.CallTo(() => _fileShareReadWriteClient.SearchAsync(A<string>._, A<int>._, A<int>._, A<string>._, A<CancellationToken>._)).Returns(result);
 
             var searchResult = await _defaultFileService.SearchCommittedBatchesExcludingCurrentAsync(
-                batchIdValue, _correlationId, _cancellationToken);
+                batchIdentifier, _correlationId, _cancellationToken);
 
             Assert.That(searchResult.Entries.Count, Is.EqualTo(1));
             Assert.That(searchResult.Entries[0].BatchId, Is.EqualTo("otherBatchId"));
@@ -168,7 +168,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.UnitTests.Services
             A.CallTo(() => _fileShareReadWriteClient.SearchAsync(A<string>._, A<int>._, A<int>._, A<string>._, A<CancellationToken>._)).Returns(result);
 
             Assert.That(async () => await _defaultFileService.SearchCommittedBatchesExcludingCurrentAsync(
-               batchIdValue, _correlationId, _cancellationToken),
+               batchIdentifier, _correlationId, _cancellationToken),
                 Throws.TypeOf<InvalidOperationException>());
         }
 
