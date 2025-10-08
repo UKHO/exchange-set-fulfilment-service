@@ -91,15 +91,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             Assert.That(nullHttpContextAccessorException.ParamName, Is.EqualTo("httpContextAccessor"));
         }
 
-        [TestCase(JobState.Created, RequestType.ProductNames, ExpectedResult = true)]
-        [TestCase(JobState.Created, RequestType.ProductVersions, ExpectedResult = true)]
-        [TestCase(JobState.Created, RequestType.UpdatesSince, ExpectedResult = true)]
-        [TestCase(JobState.Created, RequestType.Internal, ExpectedResult = false)]
-        [TestCase(JobState.UpToDate, RequestType.ProductNames, ExpectedResult = false)]
-        public async Task<bool> WhenJobStateAndRequestTypeProvided_ThenShouldExecuteAsyncReturnsCorrectResult(
-            JobState jobState, RequestType requestType)
+        [TestCase(JobState.Created, ExchangeSetType.ProductNames, ExpectedResult = true)]
+        [TestCase(JobState.Created, ExchangeSetType.ProductVersions, ExpectedResult = true)]
+        [TestCase(JobState.Created, ExchangeSetType.UpdatesSince, ExpectedResult = true)]
+        [TestCase(JobState.Created, ExchangeSetType.Complete, ExpectedResult = false)]
+        [TestCase(JobState.UpToDate, ExchangeSetType.ProductNames, ExpectedResult = false)]
+        public async Task<bool> WhenJobStateAndExchangeSetTypeProvided_ThenShouldExecuteAsyncReturnsCorrectResult(
+            JobState jobState, ExchangeSetType exchangeSetType)
         {
-            var job = CreateTestJob(requestType: requestType);
+            var job = CreateTestJob(exchangeSetType: exchangeSetType);
             job.ValidateAndSet(jobState, BuildState.None);
             var pipelineContext = CreatePipelineContext(job);
             A.CallTo(() => _executionContext.Subject).Returns(pipelineContext);
@@ -208,7 +208,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 .Build();
         }
 
-        private static Job CreateTestJob(RequestType requestType = RequestType.ProductNames)
+        private static Job CreateTestJob(ExchangeSetType exchangeSetType = ExchangeSetType.ProductNames)
         {
             return new Job
             {
@@ -217,7 +217,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 DataStandard = DataStandard.S100,
                 RequestedProducts = new ProductNameList(),
                 RequestedFilter = string.Empty,
-                RequestType = requestType,
+                ExchangeSetType = exchangeSetType,
                 CallbackUri = CallbackUri.From(new Uri(TestCallbackUri)),
                 ProductIdentifier = DataStandardProduct.Undefined
             };

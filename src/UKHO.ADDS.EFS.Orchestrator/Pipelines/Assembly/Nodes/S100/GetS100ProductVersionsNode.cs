@@ -15,7 +15,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
     {
         private readonly IProductService _productService;
         private readonly ILogger<GetS100ProductVersionsNode> _logger;
-        private const string ExchangeSetExpiresInConfigKey = "orchestrator:Response:ExchangeSetExpiresIn";
 
         public GetS100ProductVersionsNode(AssemblyNodeEnvironment nodeEnvironment, IProductService productService, ILogger<GetS100ProductVersionsNode> logger)
             : base(nodeEnvironment)
@@ -27,7 +26,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
         public override Task<bool> ShouldExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
         {
             return Task.FromResult(context.Subject.Job.JobState == JobState.Created &&
-                context.Subject.Job.RequestType == RequestType.ProductVersions);
+                context.Subject.Job.ExchangeSetType == ExchangeSetType.ProductVersions);
         }
 
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
@@ -49,10 +48,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
                 build.ProductEditions = productEditionList.Products;
 
-                // Get the exchange set expiry duration from configuration
-                var expiryTimeSpan = Environment.Configuration.GetValue<TimeSpan>(ExchangeSetExpiresInConfigKey);
-
-                job.ExchangeSetUrlExpiryDateTime = DateTime.UtcNow.Add(expiryTimeSpan);
                 job.RequestedProductCount = ProductCount.From(productVersions.Count());
                 job.ExchangeSetProductCount = productEditionList.Count;
                 job.RequestedProductsAlreadyUpToDateCount = productEditionList.ProductCountSummary.RequestedProductsAlreadyUpToDateCount;
