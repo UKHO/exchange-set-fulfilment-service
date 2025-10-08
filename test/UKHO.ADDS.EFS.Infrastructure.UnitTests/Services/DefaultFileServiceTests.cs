@@ -30,7 +30,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.UnitTests.Services
         private Stream _fileStream;
         private string _fileName;
         private string _contentType;
-        private BatchIdentifier batchIdentifier;
+        private readonly BatchIdentifier _batchIdentifier;
         private const string BatchId = "batchId";
         private const string BusinessUnit = "ADDS-S100";
         private const string ConfigKey = "orchestrator:BusinessUnit";
@@ -157,7 +157,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.UnitTests.Services
             A.CallTo(() => _fileShareReadWriteClient.SearchAsync(A<string>._, A<int>._, A<int>._, A<string>._, A<CancellationToken>._)).Returns(result);
 
             Assert.That(async () => await _defaultFileService.SearchCommittedBatchesExcludingCurrentAsync(
-               batchIdentifier, _correlationId, _cancellationToken),
+               _batchIdentifier, _correlationId, _cancellationToken),
                 Throws.TypeOf<InvalidOperationException>());
         }
 
@@ -255,6 +255,9 @@ namespace UKHO.ADDS.EFS.Infrastructure.UnitTests.Services
             Assert.That(attributeList.Count, Is.EqualTo(0));
         }
 
-        private static List<BatchDetails> CreateBatchDetailsList(string batchId) => new List<BatchDetails> { new BatchDetails(batchId: batchId) };
+        private static List<BatchDetails> CreateBatchDetailsList(string batchId)
+        {
+            return [new BatchDetails(batchId: batchId)];
+        }
     }
 }
