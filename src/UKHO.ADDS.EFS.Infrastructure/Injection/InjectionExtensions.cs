@@ -1,8 +1,10 @@
-﻿using Azure.Identity;
+﻿using System.Security.Claims;
+using Azure.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Identity.Web;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Kiota.Abstractions.Authentication;
 using Microsoft.Kiota.Authentication.Azure;
@@ -28,7 +30,6 @@ using UKHO.ADDS.EFS.Infrastructure.Storage.Repositories;
 using UKHO.ADDS.EFS.Infrastructure.Storage.Repositories.S100;
 using UKHO.ADDS.EFS.Infrastructure.Storage.Repositories.S57;
 using UKHO.ADDS.EFS.Infrastructure.Storage.Repositories.S63;
-using Microsoft.Identity.Web;
 
 namespace UKHO.ADDS.EFS.Infrastructure.Injection
 {
@@ -123,11 +124,18 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                         {
                         azureAdClientId
                         };
-                        options.TokenValidationParameters.ValidIssuers =
-                            [$"{AuthenticationConstants.MicrosoftLoginUrl}{azureAdTenantId}"]; //try with sts url
-
                         options.Events = new JwtBearerEvents
                         {
+                            OnTokenValidated = context =>
+                            {
+                                var claimsPrincipal = context.Principal;
+                                if (HasRole(claimsPrincipal!))
+                                {
+                                    context.Response.StatusCode = 403;
+                                    context.Success();
+                                }
+                                return Task.CompletedTask;
+                            },
                             OnForbidden = context =>
                             {
                                 SetOriginHeaderIfNotExists(context.Response);
@@ -294,6 +302,18 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
             {
                 response.Headers.Append(AuthenticationConstants.OriginHeaderKey, AuthenticationConstants.EfsService);
             }
+        }
+
+        /// <summary>
+        /// Checks if the ClaimsPrincipal has any role (ClaimTypes.Role).
+        /// </summary>
+        /// <param name="principal">The ClaimsPrincipal to check.</param>
+        /// <returns>True if any role claim exists, false otherwise.</returns>
+        public static bool HasRole(ClaimsPrincipal principal)
+        {
+            if (principal == null)
+                return false;
+            return principal.Claims.Any(c => c.Type == ClaimTypes.Role);
         }
     }
 }
