@@ -302,7 +302,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                 ExchangeSetType.ProductNames => "Base",
                 ExchangeSetType.ProductVersions => "Update",
                 ExchangeSetType.UpdatesSince => "Update",
-                _ => string.Empty
+                _ => "Base"
             };
         }
     }
