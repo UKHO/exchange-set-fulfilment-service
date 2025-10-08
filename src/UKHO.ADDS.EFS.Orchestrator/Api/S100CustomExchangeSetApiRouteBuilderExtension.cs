@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using FluentValidation.Results;
 using UKHO.ADDS.Clients.Common.Constants;
-using UKHO.ADDS.EFS.Domain.Products;
+using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Orchestrator.Api.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
@@ -25,7 +25,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
         /// <param name="routeBuilder">The endpoint route builder</param>
         /// <param name="loggerFactory">The logger factory</param>
         public static void RegisterS100CustomExchangeSetApi(this IEndpointRouteBuilder routeBuilder, ILoggerFactory loggerFactory,
-            ICorrelationIdGenerator correlationIdGenerator,IScsResponseHandler scsResponseHandler)
+            ICorrelationIdGenerator correlationIdGenerator, IScsResponseHandler scsResponseHandler)
         {
             var logger = loggerFactory.CreateLogger("S100ExchangeSetApi");
             var exchangeSetEndpoint = routeBuilder.MapGroup("/v2/exchangeSet/s100");
@@ -70,7 +70,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                              return HandleErrorResponse(result.ErrorResponse);
                          }
 
-                         return scsResponseHandler.HandleScsResponse(result,RequestType.ProductNames.ToString(), logger,httpContext);
+                         return scsResponseHandler.HandleScsResponse(result, ExchangeSetType.ProductNames.ToString(), logger, httpContext);
                      }
                      catch (Exception)
                      {
@@ -119,7 +119,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                     var result = await pipeline.RunAsync(httpContext.RequestAborted);
 
-                    return scsResponseHandler.HandleScsResponse(result, RequestType.ProductVersions.ToString(), logger, httpContext);
+                    if (result.ErrorResponse != null)
+                    {
+                        return HandleErrorResponse(result.ErrorResponse);
+                    }
+
+                    return scsResponseHandler.HandleScsResponse(result, ExchangeSetType.ProductVersions.ToString(), logger, httpContext);
                 }
                 catch (Exception)
                 {
@@ -127,6 +132,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 }
             })
             .Produces<CustomExchangeSetResponse>(202)
+            .Produces<ErrorResponseModel>(413)
             .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", correlationIdGenerator.CreateForCustomExchageSet().ToString())
             .WithDescription("Given a set of S100 Product versions (e.g. Edition x Update y) provide any later releasable files.")
             .WithRequiredAuthorization(AuthenticationConstants.AdOrB2C);
@@ -160,7 +166,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
 
                     var result = await pipeline.RunAsync(httpContext.RequestAborted);
 
-                    return scsResponseHandler.HandleScsResponse(result, RequestType.UpdatesSince.ToString(), logger, httpContext);
+                    if (result.ErrorResponse != null)
+                    {
+                        return HandleErrorResponse(result.ErrorResponse);
+                    }
+
+                    return scsResponseHandler.HandleScsResponse(result, ExchangeSetType.UpdatesSince.ToString(), logger, httpContext);
                 }
                 catch (Exception)
                 {
@@ -169,6 +180,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             })
             .Produces<CustomExchangeSetResponse>(202)
             .Produces(304)
+            .Produces<ErrorResponseModel>(413)
             .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", correlationIdGenerator.CreateForCustomExchageSet().ToString())
             .WithDescription("Provide all the releasable S100 data after a datetime.")
             .WithRequiredAuthorization(AuthenticationConstants.AdOrB2C);
@@ -182,7 +194,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             {
                 return Results.Json(errorResponse, statusCode: (int)HttpStatusCode.RequestEntityTooLarge);
             }
-            
+
             // For other errors, return as Bad Request
             return Results.BadRequest(errorResponse);
         }

@@ -34,7 +34,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
 
             var queueConnectionString = _configuration[$"ConnectionStrings:{StorageConfiguration.QueuesName}"]!;
             var blobConnectionString = _configuration[$"ConnectionStrings:{StorageConfiguration.BlobsName}"]!;
-            
+
             var queuePort = ExtractPort(queueConnectionString, "QueueEndpoint");
             var blobPort = ExtractPort(blobConnectionString, "BlobEndpoint");
 
@@ -49,8 +49,8 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
                 env.AddsEnvironment = AddsEnvironment.Local.Value;
                 env.RequestQueueName = StorageConfiguration.S63BuildRequestQueueName;
                 env.ResponseQueueName = StorageConfiguration.S63BuildResponseQueueName;
-                env.QueueConnectionString = $"http://host.docker.internal:{queuePort}/devstoreaccount1"; 
-                env.BlobConnectionString = $"http://host.docker.internal:{blobPort}/devstoreaccount1";
+                env.QueueEndpoint = $"http://host.docker.internal:{queuePort}/devstoreaccount1";
+                env.BlobEndpoint = $"http://host.docker.internal:{blobPort}/devstoreaccount1";
                 env.FileShareEndpoint = s63FileShareUri!.ToString();
                 env.FileShareHealthEndpoint = s63FileShareHealthUri!.ToString();
                 env.BlobContainerName = StorageConfiguration.S63BuildContainer;

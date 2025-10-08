@@ -16,6 +16,7 @@
             }
         },
         "orchestrator": {
+            "BusinessUnit": "ADDS-S100",
             "Logging": {
                 "LogLevel": {
                     "Default": "Information",
@@ -33,10 +34,11 @@
             },
             "Errors": {
                 "FileNameTemplate": "error_[jobid].txt", // Template for naming error files: options are "jobid", "date"
-                "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]"
+                "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]",
+                "ExchangeSetSizeExceededMessage": "The Exchange Set requested is large and will not be created, please use a standard Exchange Set provided by the UKHO."
             },
             "Response": {
-                "ExchangeSetExpiresIn": "7.00:00:00", // TimeSpan representing when the exchange set expires
+                "BatchExpiresIn": "7.00:00:00", // TimeSpan representing when the Batch expires
                 "MaxExchangeSetSizeInMB": 300 // Maximum total file size in MB for an exchange set
             },
             "Builders": {
@@ -73,6 +75,7 @@
     },
     "dev": {
         "orchestrator": {
+            "BusinessUnit": "ADDS-S100",
             "Logging": {
                 "LogLevel": {
                     "Default": "Information",
@@ -90,10 +93,11 @@
             },
             "Errors": {
                 "FileNameTemplate": "error_[jobid].txt", // Template for naming error files: options are "jobid", "date"
-                "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]"
+                "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]",
+                "ExchangeSetSizeExceededMessage": "The Exchange Set requested is large and will not be created, please use a standard Exchange Set provided by the UKHO."
             },
             "Response": {
-                "ExchangeSetExpiresIn": "7.00:00:00", // TimeSpan representing when the exchange set expires
+                "BatchExpiresIn": "7.00:00:00", // TimeSpan representing when the Batch expires
                 "MaxExchangeSetSizeInMB": 300 // Maximum total file size in MB for an exchange set
             },
             "Builders": {
@@ -129,6 +133,7 @@
     },
     "vni": {
         "orchestrator": {
+            "BusinessUnit": "ADDS-S100",
             "Logging": {
                 "LogLevel": {
                     "Default": "Information",
@@ -146,10 +151,11 @@
             },
             "Errors": {
                 "FileNameTemplate": "error.txt",
-                "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]"
+                "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]",
+                "ExchangeSetSizeExceededMessage": "The Exchange Set requested is large and will not be created, please use a standard Exchange Set provided by the UKHO."
             },
             "Response": {
-                "ExchangeSetExpiresIn": "7.00:00:00", // TimeSpan representing when the exchange set expires
+                "BatchExpiresIn": "7.00:00:00", // TimeSpan representing when the Batch expires
                 "MaxExchangeSetSizeInMB": 300 // Maximum total file size in MB for an exchange set
             },
             "Builders": {
@@ -185,6 +191,7 @@
     },
     "vne": {
         "orchestrator": {
+            "BusinessUnit": "ADDS-S100",
             "Logging": {
                 "LogLevel": {
                     "Default": "Information",
@@ -202,10 +209,11 @@
             },
             "Errors": {
                 "FileNameTemplate": "error.txt",
-                "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]"
+                "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]",
+                "ExchangeSetSizeExceededMessage": "The Exchange Set requested is large and will not be created, please use a standard Exchange Set provided by the UKHO."
             },
             "Response": {
-                "ExchangeSetExpiresIn": "7.00:00:00", // TimeSpan representing when the exchange set expires
+                "BatchExpiresIn": "7.00:00:00", // TimeSpan representing when the Batch expires
                 "MaxExchangeSetSizeInMB": 300 // Maximum total file size in MB for an exchange set
             },
             "Builders": {
@@ -241,6 +249,7 @@
     },
     "iat": {
         "orchestrator": {
+            "BusinessUnit": "ADDS-S100",
             "Logging": {
                 "LogLevel": {
                     "Default": "Information",
@@ -258,10 +267,11 @@
             },
             "Errors": {
                 "FileNameTemplate": "error.txt",
-                "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]"
+                "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]",
+                "ExchangeSetSizeExceededMessage": "The Exchange Set requested is large and will not be created, please use a standard Exchange Set provided by the UKHO."
             },
             "Response": {
-                "ExchangeSetExpiresIn": "7.00:00:00", // TimeSpan representing when the exchange set expires
+                "BatchExpiresIn": "7.00:00:00", // TimeSpan representing when the Batch expires
                 "MaxExchangeSetSizeInMB": 300 // Maximum total file size in MB for an exchange set
             },
             "Builders": {

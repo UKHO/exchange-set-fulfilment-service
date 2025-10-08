@@ -12,11 +12,11 @@
 
         public const string ResponseQueueName = "RESPONSE_QUEUE_NAME";
 
-        public const string QueueConnectionString = "QUEUE_CONNECTION_STRING";
+        public const string QueueEndpoint = "EFS_STORAGE_QUEUEENDPOINT";
 
         public const string BlobContainerName = "BLOB_CONTAINER_NAME";
 
-        public const string BlobConnectionString = "BLOB_CONNECTION_STRING";
+        public const string BlobEndpoint = "EFS_STORAGE_BLOBENDPOINT";
 
         public const string AddsEnvironment = "ADDS_ENVIRONMENT";
 
@@ -25,5 +25,7 @@
         public const string RetryDelayMilliseconds = "RETRY_DELAY_MS";
 
         public const string ConcurrentDownloadLimitCount = "CONCURRENT_DOWNLOAD_LIMIT_COUNT";
+
+        public const string AzureClientId = "AZURE_CLIENT_ID";
     }
 }

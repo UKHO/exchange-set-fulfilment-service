@@ -71,6 +71,9 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
                 builder.AddRedisDistributedCache(ProcessNames.RedisCache);
 
+                builder.Services.AddAllElasticApm();
+
+
                 var app = builder.Build();
 
                 app.UseSerilogRequestLogging();

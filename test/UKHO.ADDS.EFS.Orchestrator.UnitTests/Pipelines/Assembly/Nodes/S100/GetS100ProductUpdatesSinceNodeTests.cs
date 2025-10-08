@@ -26,8 +26,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         private S100Build? _build;
         private PipelineContext<S100Build>? _pipelineContext;
         private GetS100ProductUpdatesSinceNode? _node;
-        private const string ExpiryConfigKey = "orchestrator:Response:ExchangeSetExpiresIn";
-        private static readonly TimeSpan ExpiryTimeSpan = TimeSpan.FromHours(1);
         private const string RequestedFilter = "2025-08-30T07:28:00.000Z";
         private const string ProductIdentifier = "101ABCDEF";
 
@@ -38,20 +36,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             _productService = A.Fake<IProductService>();
             _logger = A.Fake<ILogger<GetS100ProductUpdatesSinceNode>>();
 
-            // Use a real configuration for GetValue<TimeSpan>
-            var inMemorySettings = new Dictionary<string, string>
-            {
-                { ExpiryConfigKey, "01:00:00" }
-            };
-            _configuration = new ConfigurationBuilder()
-                .AddInMemoryCollection(inMemorySettings)
-                .Build();
-
             _nodeEnvironment = new AssemblyNodeEnvironment(_configuration, CancellationToken.None, _logger);
         }
 
         [Test]
-        public async Task WhenShouldExecuteAsyncIsCalledAndJobStateIsCreatedAndRequestTypeIsUpdatesSince_ThenReturnsTrue()
+        public async Task WhenShouldExecuteAsyncIsCalledAndJobStateIsCreatedAndExchangeSetTypeIsUpdatesSince_ThenReturnsTrue()
         {
             SetupJobAndBuild();
             _node = new GetS100ProductUpdatesSinceNode(_nodeEnvironment, _productService);
@@ -126,9 +115,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         }
 
         [Test]
-        public async Task WhenShouldExecuteAsyncIsCalledAndRequestTypeIsNotUpdatesSince_ThenReturnsFalse()
+        public async Task WhenShouldExecuteAsyncIsCalledAndExchangeSetTypeIsNotUpdatesSince_ThenReturnsFalse()
         {
-            SetupJobAndBuild(JobState.Created, RequestType.ProductNames);
+            SetupJobAndBuild(JobState.Created, ExchangeSetType.ProductNames);
             _node = new GetS100ProductUpdatesSinceNode(_nodeEnvironment, _productService);
 
             var result = await _node.ShouldExecuteAsync(_executionContext);
@@ -155,38 +144,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
         }
 
-        [Test]
-        public async Task WhenPerformExecuteAsyncIsCalledAndConfigValueIsInvalid_ThenReturnsFailed()
-        {
-            // Set up configuration with invalid TimeSpan
-             var inMemorySettings = new Dictionary<string, string>
-             {
-                { ExpiryConfigKey, "invalid-timespan" }
-             };
-            _configuration = new ConfigurationBuilder()
-                .AddInMemoryCollection(inMemorySettings)
-                .Build();
-            _nodeEnvironment = new AssemblyNodeEnvironment(_configuration, CancellationToken.None,_logger);
-
-            SetupJobAndBuild();
-            var productEditionList = new ProductEditionList
-            {
-                ProductCountSummary = new ProductCountSummary()
-            };
-            productEditionList.Add(new ProductEdition { ProductName = ProductName.From(ProductIdentifier) });
-
-            A.CallTo(() => _productService.GetS100ProductUpdatesSinceAsync(_job!.RequestedFilter, _job.ProductIdentifier, _job, A<CancellationToken>.Ignored))
-                .Returns(productEditionList);
-
-            _node = new GetS100ProductUpdatesSinceNode(_nodeEnvironment, _productService);
-
-            var result = await _node.ExecuteAsync(_executionContext);
-
-            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
-        }
-
-
-        private void SetupJobAndBuild(JobState jobState = JobState.Created, RequestType requestType = RequestType.UpdatesSince)
+        private void SetupJobAndBuild(JobState jobState = JobState.Created, ExchangeSetType exchangeSetType = ExchangeSetType.UpdatesSince)
         {
             var job = new UKHO.ADDS.EFS.Domain.Jobs.Job
             {
@@ -196,7 +154,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 RequestedFilter = RequestedFilter, // Provide a default filter value for tests
                 ProductIdentifier = DataStandardProduct.From((int)DataStandardProductType.S101),
                 RequestedProducts = new ProductNameList(),
-                RequestType = requestType
+                ExchangeSetType = exchangeSetType
             };
             job.ValidateAndSet(jobState, BuildState.None);
 

@@ -32,8 +32,4 @@
     <ProjectReference Include="..\UKHO.ADDS.Clients.SalesCatalogueService\UKHO.ADDS.Clients.SalesCatalogueService.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Services\" />
-  </ItemGroup>
-
 </Project>
