@@ -72,10 +72,10 @@ resource "azurerm_api_management_product_api" "efs_product_api_mapping" {
 
 locals {
   # Split blocked IPs into single addresses and CIDRs
-  explicit_addrs = [for ip in var.blocked_ip_ranges_test : trim(ip) if !can(regex("/", ip))]
-  cidrs          = [for ip in var.blocked_ip_ranges_test : trim(ip) if can(regex("/", ip))]
+  explicit_addrs = [for ip in var.blocked_ip_ranges_test : trimspace(ip) if !can(regex("/", ip))]
+  cidrs          = [for ip in var.blocked_ip_ranges_test : trimspace(ip) if can(regex("/", ip))]
 
-  # Map each CIDR to its first and last usable IP
+  # For each CIDR, compute first and last usable IP
   cidr_map = {
     for c in local.cidrs : c => {
       prefix    = tonumber(split("/", c)[1])
