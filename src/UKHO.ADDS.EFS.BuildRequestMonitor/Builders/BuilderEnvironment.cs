@@ -6,11 +6,11 @@
 
         public string ResponseQueueName { get; set; }
 
-        public string QueueConnectionString { get; set; }
+        public string QueueEndpoint { get; set; }
 
         public string BlobContainerName { get; set; }
 
-        public string BlobConnectionString { get; set; }
+        public string BlobEndpoint { get; set; }
 
         public string AddsEnvironment { get; set; }
 
