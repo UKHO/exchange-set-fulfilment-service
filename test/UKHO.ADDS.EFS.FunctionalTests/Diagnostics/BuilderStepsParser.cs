@@ -1,6 +1,5 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using UKHO.ADDS.EFS.FunctionalTests.Infrastructure;
 
 namespace UKHO.ADDS.EFS.FunctionalTests.Diagnostics
 {

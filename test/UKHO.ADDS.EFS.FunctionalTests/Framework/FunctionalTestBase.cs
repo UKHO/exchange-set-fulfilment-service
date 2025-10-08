@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualStudio.TestPlatform.Utilities;
-using UKHO.ADDS.EFS.FunctionalTests.Diagnostics;
+﻿using UKHO.ADDS.EFS.FunctionalTests.Diagnostics;
 using UKHO.ADDS.EFS.FunctionalTests.Infrastructure;
 using Xunit.Abstractions;
 

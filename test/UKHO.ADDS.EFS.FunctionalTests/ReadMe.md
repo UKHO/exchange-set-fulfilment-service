@@ -146,9 +146,9 @@ Core job management tests:
 
 ## Assertion Management
 
-We rely on FluentAssertions' built‑in `AssertionScope` behavior.
+We rely on AwesomeAssertions' built‑in `AssertionScope` behavior.
 
-Core fact: FluentAssertions already supports soft (aggregated) assertions natively. A single outer `AssertionScope` created at the start of the test accumulates all failures produced inside (including from helper/service classes). Only when that outer scope is disposed (test method exits) does it throw once with the combined message. Any nested scopes just merge their failures upward; they never throw independently while a parent scope is active.
+Core fact: AwesomeAssertions already supports soft (aggregated) assertions natively. A single outer `AssertionScope` created at the start of the test accumulates all failures produced inside (including from helper/service classes). Only when that outer scope is disposed (test method exits) does it throw once with the combined message. Any nested scopes just merge their failures upward; they never throw independently while a parent scope is active.
 
 Pattern:
 ```
@@ -166,7 +166,7 @@ public async Task Product_journey()
 ```
 
 
-Helper methods do not need to (and generally should not) create their own `AssertionScope` unless you want to locally group or label messages. Just write normal FluentAssertions:
+Helper methods do not need to (and generally should not) create their own `AssertionScope` unless you want to locally group or label messages. Just write normal AwesomeAssertions:
 ```
 response.StatusCode.Should().Be(HttpStatusCode.OK);
 json.RootElement.GetProperty("jobId").GetString().Should().Be(jobId);

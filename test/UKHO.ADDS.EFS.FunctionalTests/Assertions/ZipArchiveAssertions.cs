@@ -1,5 +1,5 @@
 using System.IO.Compression;
-using FluentAssertions;
+using AwesomeAssertions;
 using UKHO.ADDS.EFS.FunctionalTests.Diagnostics;
 
 namespace UKHO.ADDS.EFS.FunctionalTests.Assertions

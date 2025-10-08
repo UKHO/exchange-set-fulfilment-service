@@ -1,8 +1,5 @@
 ﻿using System.Text.Json;
-using FluentAssertions;
-using FluentAssertions.Execution;
-using Microsoft.VisualStudio.TestPlatform.Utilities;
-using UKHO.ADDS.EFS.Domain.Jobs;
+using AwesomeAssertions;
 using UKHO.ADDS.EFS.FunctionalTests.Diagnostics;
 using UKHO.ADDS.EFS.FunctionalTests.Http;
 
@@ -29,55 +26,35 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Assertions
             var root = responseJson.RootElement;
 
             // Check if properties exist and have expected values
-            if (root.TryGetProperty("jobId", out var jobIdElement))
-            {
-                jobIdElement.GetString().Should().Be(jobId!, "JobId should match expected value");
-            }
-            else
-            {
-                // If expected, add assertion failure
-                Execute.Assertion.FailWith("Response is missing jobId property");
-            }
+            root.TryGetProperty("jobId", out var jobIdElement)
+                .Should().BeTrue("Response must contain 'jobId'");
+            jobIdElement.GetString().Should().Be(jobId!, "JobId should match expected value");
 
-            if (root.TryGetProperty("jobStatus", out var jobStatusElement))
-            {
-                jobStatusElement.GetString().Should().Be(expectedJobStatus, "JobStatus should match expected value");
-            }
-            else
-            {
-                Execute.Assertion.FailWith("Response is missing jobStatus property");
-            }
+            root.TryGetProperty("jobStatus", out var jobStatusElement)
+                .Should().BeTrue("Response must contain 'jobStatus'");
+            jobStatusElement.GetString().Should().Be(expectedJobStatus, "JobStatus should match expected value");
 
-            if (root.TryGetProperty("buildStatus", out var buildStatusElement))
-            {
-                buildStatusElement.GetString().Should().Be(expectedBuildStatus, "BuildStatus should match expected value");
-            }
-            else
-            {
-                Execute.Assertion.FailWith("Response is missing buildStatus property");
-            }
+            root.TryGetProperty("buildStatus", out var buildStatusElement)
+                .Should().BeTrue("Response must contain 'buildStatus'");
+            buildStatusElement.GetString().Should().Be(expectedBuildStatus, "BuildStatus should match expected value");
 
-            if (root.TryGetProperty("dataStandard", out var dataStandardElement))
-            {
-                dataStandardElement.GetString().Should().Be("s100", "DataStandard should be s100");
-            }
-            else
-            {
-                Execute.Assertion.FailWith("Response is missing dataStandard property");
-            }
+            root.TryGetProperty("dataStandard", out var dataStandardElement)
+                .Should().BeTrue("Response must contain 'dataStandard'");
+            dataStandardElement.GetString().Should().Be("s100", "DataStandard should be s100");
 
             // Only check batchId for submitted/scheduled jobs
             if (expectedJobStatus == "submitted" && expectedBuildStatus == "scheduled")
             {
-                if (root.TryGetProperty("batchId", out var batchIdElement))
-                {
-                    batchId = batchIdElement.GetString();
-                    Guid.TryParse(batchId, out _).Should().BeTrue($"Expected '{batchId}' to be a valid GUID");
-                }
-                else
-                {
-                    Execute.Assertion.FailWith("Response is missing batchId property");
-                }
+                root.TryGetProperty("batchId", out var batchIdElement)
+                    .Should().BeTrue("Response must contain 'batchId'");
+                batchId = batchIdElement.GetString();
+
+                /*
+                 * Need to have strict assertion on batchId format
+                 * So we should not use Guid.TryParse(batchId, out _).Should().BeTrue($"Expected '{batchId}' to be a valid GUID");
+                 */
+                Assert.True(Guid.TryParse(batchId, out _), $"Expected 'fssBatchId' to be a valid GUID but got: '{batchId}'");
+                
             }
         }
 
