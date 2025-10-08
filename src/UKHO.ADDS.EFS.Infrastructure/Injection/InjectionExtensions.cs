@@ -129,7 +129,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                             OnTokenValidated = context =>
                             {
                                 var claimsPrincipal = context.Principal;
-                                if (HasRole(claimsPrincipal!))
+                                if (!HasRole(claimsPrincipal!))
                                 {
                                     context.Response.StatusCode = 403;
                                     context.Success();
