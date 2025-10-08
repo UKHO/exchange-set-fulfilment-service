@@ -72,18 +72,24 @@ resource "azurerm_api_management_product_api" "efs_product_api_mapping" {
 
 locals {
   # Split blocked IPs into single addresses and CIDRs
-  explicit_addrs = [for ip in var.blocked_ip_ranges_test : ip if !can(regex("/", ip))]
-  cidrs          = [for ip in var.blocked_ip_ranges_test : ip if can(regex("/", ip))]
+  explicit_addrs = [for ip in var.blocked_ip_ranges_test : trim(ip) if !can(regex("/", ip))]
+  cidrs          = [for ip in var.blocked_ip_ranges_test : trim(ip) if can(regex("/", ip))]
 
-  # For each CIDR, compute first and last usable IP
+  # Map each CIDR to its first and last usable IP
   cidr_map = {
     for c in local.cidrs : c => {
-      prefix     = tonumber(split("/", c)[1])
-      total_ips  = floor(pow(2, 32 - tonumber(split("/", c)[1])))
-      from       = cidrhost(c, 0)
-      to         = cidrhost(c, floor(pow(2, 32 - tonumber(split("/", c)[1]))) - 1)
+      prefix    = tonumber(split("/", c)[1])
+      total_ips = floor(pow(2, 32 - tonumber(split("/", c)[1])))
+      from      = cidrhost(c, 0)
+      to        = cidrhost(c, floor(pow(2, 32 - tonumber(split("/", c)[1]))) - 1)
     }
   }
+
+  # Build XML-safe IP filter section
+  ip_filter_xml = join("\n", concat(
+    [for addr in local.explicit_addrs : "      <address>${addr}</address>"],
+    [for _, r in local.cidr_map : "      <address-range from=\"${r.from}\" to=\"${r.to}\" />"]
+  ))
 }
 
 #Product quota and throttle policy
@@ -96,14 +102,9 @@ resource "azurerm_api_management_product_policy" "efs_product_policy" {
   xml_content = <<-XML
 <policies>
   <inbound>
-    <!-- Block specific IPs and CIDRs -->
+    <!-- Deny specific IPs and CIDRs -->
     <ip-filter action="deny">
-      %{ for addr in local.explicit_addrs ~}
-        <address>${trimspace(addr)}</address>
-      %{ endfor ~}
-      %{ for c, r in local.cidr_map ~}
-        <address-range from="${trimspace(r.from)}" to="${trimspace(r.to)}" />
-      %{ endfor ~}
+${local.ip_filter_xml}
     </ip-filter>
 
     <rate-limit calls="${var.product_rate_limit.calls}" renewal-period="${var.product_rate_limit.renewal-period}" retry-after-header-name="retry-after" remaining-calls-header-name="remaining-calls" />
