@@ -252,7 +252,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.UnitTests.Services
 
             var attributeList = await _defaultFileService.AddFileToBatchAsync(_batchHandle, _fileStream, _fileName, _contentType, _correlationId, _cancellationToken);
 
-            Assert.That(attributeList.Count, Is.EqualTo(0));
+            Assert.That(actual: attributeList, Is.Empty);
         }
 
         private static List<BatchDetails> CreateBatchDetailsList(string batchId)
