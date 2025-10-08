@@ -1,26 +1,15 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using FakeItEasy;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
-using OpenTelemetry;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
 using UKHO.ADDS.EFS.Domain.External;
-using UKHO.ADDS.EFS.Domain.Files;
 using UKHO.ADDS.EFS.Domain.Jobs;
-using UKHO.ADDS.EFS.Domain.Services;
 using UKHO.ADDS.EFS.Domain.User;
-using UKHO.ADDS.EFS.Infrastructure.Logging;
-using UKHO.ADDS.EFS.Infrastructure.Logging.Services;
 using UKHO.ADDS.EFS.Infrastructure.Services;
 using UKHO.ADDS.Infrastructure.Results;
 using BatchIdentifier = UKHO.ADDS.EFS.Domain.Jobs.BatchId;
@@ -125,7 +114,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.UnitTests.Services
         {
             var result = A.Fake<IResult<CommitBatchResponse>>();
             CommitBatchResponse? commitResponse = null;
-            IError? error = A.Fake<IError>();
+            var error = A.Fake<IError>();
             A.CallTo(() => result.IsSuccess(out commitResponse)).Returns(false);
             A.CallTo(() => result.IsFailure(out error, out commitResponse)).Returns(true);
             A.CallTo(() => _fileShareReadWriteClient.CommitBatchAsync(_batchHandle, A<string>._, A<CancellationToken>._)).Returns(result);
@@ -162,7 +151,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.UnitTests.Services
         {
             var response = new BatchSearchResponse();
             var result = A.Fake<IResult<BatchSearchResponse>>();
-            IError? error = A.Fake<IError>();
+            var error = A.Fake<IError>();
             A.CallTo(() => result.IsSuccess(out response)).Returns(false);
             A.CallTo(() => result.IsFailure(out error, out response)).Returns(true);
             A.CallTo(() => _fileShareReadWriteClient.SearchAsync(A<string>._, A<int>._, A<int>._, A<string>._, A<CancellationToken>._)).Returns(result);
@@ -266,9 +255,6 @@ namespace UKHO.ADDS.EFS.Infrastructure.UnitTests.Services
             Assert.That(attributeList.Count, Is.EqualTo(0));
         }
 
-        private List<BatchDetails> CreateBatchDetailsList(string batchId)
-        {
-            return new List<BatchDetails> { new BatchDetails(batchId: batchId) };
-        }
+        private static List<BatchDetails> CreateBatchDetailsList(string batchId) => new List<BatchDetails> { new BatchDetails(batchId: batchId) };
     }
 }
