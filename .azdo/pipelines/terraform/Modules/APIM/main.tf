@@ -69,6 +69,25 @@ resource "azurerm_api_management_product_api" "efs_product_api_mapping" {
   product_id          = azurerm_api_management_product.efs_product.product_id
 
 }
+# Process allowed IP ranges into explicit addresses and CIDRs
+locals {
+  explicit_addrs = [for ip in var.allowed_ip_ranges_mastek : ip if !can(regex("/", ip))]
+  cidrs          = [for ip in var.allowed_ip_ranges_mastek : ip if can(regex("/", ip))]
+
+  # helper: map each cidr to from/to using cidrhost
+  cidr_map = {
+    for c in local.cidrs :
+    c => {
+      prefix     = tonumber(split("/", c)[1])
+      # number of addresses = 2^(32 - prefix)
+      addr_count = floor(pow(2, 32 - tonumber(split("/", c)[1])))
+      last_index = addr_count - 1
+      from       = cidrhost(c, 0)
+      to         = cidrhost(c, last_index)
+    }
+  }
+}
+
 
 #Product quota and throttle policy
 resource "azurerm_api_management_product_policy" "efs_product_policy" {
@@ -81,13 +100,12 @@ resource "azurerm_api_management_product_policy" "efs_product_policy" {
 	<policies>
 	  <inbound>
          <ip-filter action="allow">
-         %{ for ip in var.allowed_ip_ranges_mastek ~}
-           %{ if can(regex("/", ip)) }
-          <ip-range cidr="${ip}" />
-        %{ else }
-          <address>${ip}</address>
-        %{ endif }
+        %{ for addr in local.explicit_addrs ~}
+        <address>${addr}</address>
         %{ endfor ~}
+       %{ for c, r in local.cidr_map ~}
+        <address-range from="${r.from}" to="${r.to}" />
+       %{ endfor ~}
         </ip-filter>
 		 <rate-limit calls="${var.product_rate_limit.calls}" renewal-period="${var.product_rate_limit.renewal-period}" retry-after-header-name="retry-after" remaining-calls-header-name="remaining-calls" />
 		 <quota calls="${var.product_quota.calls}" renewal-period="${var.product_quota.renewal-period}" />
