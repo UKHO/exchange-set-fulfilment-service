@@ -15,15 +15,15 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Utilities
         /// <param name="baseEndpoint">The base endpoint without query parameters</param>
         /// <param name="callbackUri">Optional callback URI</param>
         /// <param name="productIdentifier">Optional product identifier</param>
-        /// <param name="assertCallbackTxtFile">Output flag indicating if callback txt file should be asserted</param>
+        /// <param name="assertCallbackTextFile">Output flag indicating if callback txt file should be asserted</param>
         /// <returns>The complete endpoint URL with query parameters</returns>
         public static string BuildEndpoint(
             string baseEndpoint, 
             string? callbackUri, 
             string? productIdentifier,
-            out bool assertCallbackTxtFile)
+            out bool assertCallbackTextFile)
         {
-            assertCallbackTxtFile = false;
+            assertCallbackTextFile = false;
             var queryParams = new Dictionary<string, string>();
 
             // Handle callback URI logic
@@ -34,7 +34,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Utilities
                 // Special handling for the valid test callback URL
                 if (string.Equals(callbackUri, TestEndpointConfiguration.ValidCallbackUrl, StringComparison.OrdinalIgnoreCase))
                 {
-                    assertCallbackTxtFile = true;
+                    assertCallbackTextFile = true;
                     
                     // Get the base URL from the HttpClient - with null safety
                     var httpClient = AspireTestHost.httpClientMock;

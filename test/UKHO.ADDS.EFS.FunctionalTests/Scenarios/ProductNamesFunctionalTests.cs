@@ -16,7 +16,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
     {
         private readonly string _requestId = $"job-productNamesAutoTest-" + Guid.NewGuid();
         private string _endpoint = TestEndpointConfiguration.ProductNamesEndpoint;
-        private bool _assertCallbackTxtFile = false;
+        private bool _assertCallbackTextFile = false;
 
 
         private void SetEndpoint(string? callbackUri)
@@ -25,7 +25,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
                 TestEndpointConfiguration.ProductNamesEndpoint,
                 callbackUri,
                 null, // No product identifier needed for this endpoint
-                out _assertCallbackTxtFile);
+                out _assertCallbackTextFile);
         }
 
 
@@ -45,7 +45,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
 
             TestOutput.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {System.Text.Json.JsonSerializer.Serialize(requestPayload)}\nCallbackUri: {callbackUri}\nExpectedZipFileName:{zipFileName}");
 
-            await TestExecutionHelper.ExecuteCustomExchangeSetTestSteps(_requestId, requestPayload, _endpoint, zipFileName, expectedRequestedProductCount, expectedExchangeSetProductCount, _assertCallbackTxtFile, requestPayload);
+            await TestExecutionHelper.ExecuteCustomExchangeSetTestSteps(_requestId, requestPayload, _endpoint, zipFileName, expectedRequestedProductCount, expectedExchangeSetProductCount, _assertCallbackTextFile, requestPayload);
         }
 
         //PBI 242670 - Input validation for the ESS API - Product Name Endpoint

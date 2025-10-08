@@ -16,7 +16,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
     {
         private readonly string _requestId = $"job-productVersionsAutoTest-" + Guid.NewGuid();
         private string _endpoint = TestEndpointConfiguration.ProductVersionsEndpoint;
-        private bool _assertCallbackTxtFile = false;
+        private bool _assertCallbackTextFile = false;
 
 
         private void SetEndpoint(string? callbackUri)
@@ -25,7 +25,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
                 TestEndpointConfiguration.ProductVersionsEndpoint,
                 callbackUri,
                 null, // No product identifier needed for this endpoint
-                out _assertCallbackTxtFile);
+                out _assertCallbackTextFile);
         }
 
 
@@ -45,7 +45,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
             TestOutput.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {productVersions}\nExpectedStatusCode: {expectedStatusCode}\nExpectedErrorMessage:{expectedErrorMessage}");
 
             var productNames = new[] { "101GB40079ABCDEFG", "101DE00904820801012", "102CA32904820801013", "104US00_CHES_TYPE1_20210630_0600", "101FR40079QWERTY", "111US00_CHES_DCF8_20190703T00Z", "102INVA904820801012", "102AR00904820801012" };
-            await TestExecutionHelper.ExecuteCustomExchangeSetTestSteps(_requestId, productVersions, _endpoint, zipFileName, expectedRequestedProductCount, expectedExchangeSetProductCount, _assertCallbackTxtFile, productNames);
+            await TestExecutionHelper.ExecuteCustomExchangeSetTestSteps(_requestId, productVersions, _endpoint, zipFileName, expectedRequestedProductCount, expectedExchangeSetProductCount, _assertCallbackTextFile, productNames);
         }
 
 

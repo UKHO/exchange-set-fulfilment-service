@@ -10,7 +10,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Utilities
 {
     public class TestExecutionHelper
     {
-        private static async Task AwaitJobCompletionAndAssertOnResults(string requestId, string zipFileName, string[]? productNames = null, bool assertCallbackTxtFile = false, string batchId = "", string responseContent = "")
+        private static async Task AwaitJobCompletionAndAssertOnResults(string requestId, string zipFileName, string[]? productNames = null, bool assertCallbackTextFile = false, string batchId = "", string responseContent = "")
         {
             TestOutput.WriteLine($"Started waiting for job completion ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
             var responseJobStatus = await OrchestratorClient.WaitForJobCompletionAsync(requestId);
@@ -20,7 +20,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Utilities
             var responseBuildStatus = await OrchestratorClient.GetBuildStatusAsync(requestId);
             await ExchangeSetApiAssertions.CheckBuildStatus(responseBuildStatus);
 
-            if (assertCallbackTxtFile)
+            if (assertCallbackTextFile)
             {
                 TestOutput.WriteLine($"Trying to download file callback-response-{batchId}.txt ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
                 var callbackTxtFilePath = await MockFilesClient.DownloadCallbackTxtAsync(batchId);
@@ -59,7 +59,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Utilities
             string zipFileName,
             int expectedRequestedProductCount,
             int expectedExchangeSetProductCount,
-            bool assertCallbackTxtFile = false,
+            bool assertCallbackTextFile = false,
             string[]? productNames = null)
         {
             var responseJobSubmit = await OrchestratorClient.PostRequestAsync(requestId, payload, endpoint);
@@ -71,7 +71,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Utilities
                 ? JsonDocument.Parse(responseContent).RootElement.GetProperty("fssBatchId").GetString()! 
                 : "";
 
-            await AwaitJobCompletionAndAssertOnResults(requestId, zipFileName, productNames, assertCallbackTxtFile, batchId, responseContent);
+            await AwaitJobCompletionAndAssertOnResults(requestId, zipFileName, productNames, assertCallbackTextFile, batchId, responseContent);
         }
     }
 }

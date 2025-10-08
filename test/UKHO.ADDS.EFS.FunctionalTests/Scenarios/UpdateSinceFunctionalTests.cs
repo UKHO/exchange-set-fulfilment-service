@@ -16,7 +16,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
     {
         private readonly string _requestId = $"job-updateSinceAutoTest-" + Guid.NewGuid();
         private string _endpoint = TestEndpointConfiguration.UpdatesSinceEndpoint;
-        private bool _assertCallbackTxtFile = false;
+        private bool _assertCallbackTextFile = false;
 
 
         private void SetEndpoint(string? callbackUri, string? productIdentifier)
@@ -25,7 +25,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
                 TestEndpointConfiguration.UpdatesSinceEndpoint,
                 callbackUri,
                 productIdentifier,
-                out _assertCallbackTxtFile);
+                out _assertCallbackTextFile);
         }
 
         //PBI 246464 - Consume ESS API - Update Since Endpoint
@@ -46,7 +46,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
 
             TestOutput.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {requestPayload}\nExpectedStatusCode: {expectedStatusCode}");
 
-            await TestExecutionHelper.ExecuteCustomExchangeSetTestSteps(_requestId, requestPayload, _endpoint, zipFileName, expectedRequestedProductCount, expectedExchangeSetProductCount, _assertCallbackTxtFile, productNames);
+            await TestExecutionHelper.ExecuteCustomExchangeSetTestSteps(_requestId, requestPayload, _endpoint, zipFileName, expectedRequestedProductCount, expectedExchangeSetProductCount, _assertCallbackTextFile, productNames);
         }
 
         [Theory]
@@ -66,7 +66,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
 
             var productNames = new[] { "101GB40079ABCDEFG", "102NO32904820801012", "104US00_CHES_TYPE1_20210630_0600", "111US00_CHES_DCF8_20190703T00Z" };
 
-            await TestExecutionHelper.ExecuteCustomExchangeSetTestSteps(_requestId, requestPayload, _endpoint, zipFileName, expectedRequestedProductCount, expectedExchangeSetProductCount, _assertCallbackTxtFile, productNames);
+            await TestExecutionHelper.ExecuteCustomExchangeSetTestSteps(_requestId, requestPayload, _endpoint, zipFileName, expectedRequestedProductCount, expectedExchangeSetProductCount, _assertCallbackTextFile, productNames);
         }
 
         [Theory]
