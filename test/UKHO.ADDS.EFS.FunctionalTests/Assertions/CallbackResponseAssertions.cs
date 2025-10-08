@@ -12,8 +12,8 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Assertions
         /// Uses soft assertions to report all validation issues at once.
         /// </summary>
         /// <param name="sourceResponseFromPostApiCall">The JSON response string from the API call</param>
-        /// <param name="targetTxtFile">Path to the reference file containing expected structure</param>
-        public static void CompareCallbackResponse(string sourceResponseFromPostApiCall, string targetTxtFile)
+        /// <param name="targetTextFile">Path to the reference file containing expected structure</param>
+        public static void CompareCallbackResponse(string sourceResponseFromPostApiCall, string targetTextFile)
         {
             TestOutput.WriteLine($"Source response:\n{sourceResponseFromPostApiCall}");
 
@@ -21,7 +21,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Assertions
             var sourceJson = JsonDocument.Parse(sourceResponseFromPostApiCall);
 
             // Read and parse the target file
-            var targetFileContent = File.ReadAllText(targetTxtFile);
+            var targetFileContent = File.ReadAllText(targetTextFile);
             TestOutput.WriteLine($"Target file content:\n{targetFileContent}");
 
             var targetJson = JsonDocument.Parse(targetFileContent);

@@ -23,8 +23,8 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Utilities
             if (assertCallbackTextFile)
             {
                 TestOutput.WriteLine($"Trying to download file callback-response-{batchId}.txt ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
-                var callbackTxtFilePath = await MockFilesClient.DownloadCallbackTxtAsync(batchId);
-                CallbackResponseAssertions.CompareCallbackResponse(responseContent, callbackTxtFilePath);
+                var callbackTextFilePath = await MockFilesClient.DownloadCallbackTextAsync(batchId);
+                CallbackResponseAssertions.CompareCallbackResponse(responseContent, callbackTextFilePath);
             }
 
             TestOutput.WriteLine($"Trying to download file V01X01_{requestId}.zip ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");

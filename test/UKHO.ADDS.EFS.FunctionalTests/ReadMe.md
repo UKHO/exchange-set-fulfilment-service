@@ -118,7 +118,7 @@ Notes:
 
 #### IO
 - `MockFilesClient`
-  - `DownloadExchangeSetAsZipAsync()`, `DownloadCallbackTxtAsync()`
+  - `DownloadExchangeSetAsZipAsync()`, `DownloadCallbackTextAsync()`
 
 #### Infrastructure
 - `AspireTestHost`: Aspire orchestration and environment bootstrapping

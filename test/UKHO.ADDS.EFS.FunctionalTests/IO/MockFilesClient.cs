@@ -99,7 +99,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.IO
             return DownloadFileAsync("/_admin/files/FSS/S100-ExchangeSets/", $"V01X01_{jobId}.zip", cancellationToken);
         }
 
-        public static Task<string> DownloadCallbackTxtAsync(string batchId, CancellationToken cancellationToken = default)
+        public static Task<string> DownloadCallbackTextAsync(string batchId, CancellationToken cancellationToken = default)
         {
             return DownloadFileAsync("/_admin/files/callback/callback-responses/", $"callback-response-{batchId}.txt", cancellationToken);
         }
