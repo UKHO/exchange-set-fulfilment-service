@@ -71,17 +71,17 @@ resource "azurerm_api_management_product_api" "efs_product_api_mapping" {
 }
 
 locals {
-  # Split blocked IPs into single addresses and CIDR ranges
+  # Split blocked IPs into single addresses and CIDRs
   explicit_addrs = [for ip in var.blocked_ip_ranges_test : ip if !can(regex("/", ip))]
   cidrs          = [for ip in var.blocked_ip_ranges_test : ip if can(regex("/", ip))]
 
-  # For each CIDR, compute from/to range
+  # For each CIDR, compute first and last usable IP
   cidr_map = {
     for c in local.cidrs : c => {
       prefix     = tonumber(split("/", c)[1])
       total_ips  = floor(pow(2, 32 - tonumber(split("/", c)[1])))
       from       = cidrhost(c, 0)
-      to         = cidrhost(c, total_ips - 1)
+      to         = cidrhost(c, floor(pow(2, 32 - tonumber(split("/", c)[1]))) - 1)
     }
   }
 }
