@@ -41,7 +41,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Api.ResponseHandlers
         public void TearDown() => _loggerFactory?.Dispose();
 
         [Test]
-        public async Task HandleScsResponse_NullResult_Returns500()
+        public async Task WhenHandleScsResponseReturnsNullResult_ThenReturns500()
         {
             var result = _handler.HandleScsResponse(null!, "ProductNames", _logger, _httpContext);
 
