@@ -30,6 +30,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
         {
             var job = context.Subject.Job;
             var build = context.Subject.Build;
+            var scsResponse = context.Subject.ResponseInfo;
 
             var sinceDateTime = job.RequestedFilter;
 
@@ -41,8 +42,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             try
             {
                 productEditionList = await _productService.GetS100ProductUpdatesSinceAsync(sinceDateTime, productIdentifier, job, Environment.CancellationToken);
-                job.ScsResponseCode = productEditionList.ResponseCode;
-                job.ScsLastModified = productEditionList.LastModified;
+                scsResponse.ResponseCode = productEditionList.ResponseCode;
+                scsResponse.LastModified = productEditionList.LastModified;
             }
             catch (Exception)
             {
@@ -52,7 +53,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
             var evaluation = await EvaluateScsResponseAsync(productEditionList, context, job);
             if (evaluation != NodeResultStatus.Succeeded ||
-                (evaluation == NodeResultStatus.Succeeded && job.ScsResponseCode == System.Net.HttpStatusCode.NotModified))
+                (evaluation == NodeResultStatus.Succeeded && scsResponse.ResponseCode == System.Net.HttpStatusCode.NotModified))
             {
                 return evaluation;
             }

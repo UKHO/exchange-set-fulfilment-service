@@ -35,6 +35,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             var job = context.Subject.Job;
             var build = context.Subject.Build;
             var productVersions = job.ProductVersions;
+            var scsResponse = context.Subject.ResponseInfo;
 
             // Call the product service to get product versions
             ProductEditionList productEditionList;
@@ -42,8 +43,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             {
                 productEditionList = await _productService.GetProductVersionsListAsync(DataStandard.S100, productVersions, job, Environment.CancellationToken);
 
-                job.ScsResponseCode = productEditionList.ResponseCode;
-                job.ScsLastModified = productEditionList.LastModified;
+                scsResponse.ResponseCode = productEditionList.ResponseCode;
+                scsResponse.LastModified = productEditionList.LastModified;
             }
             catch (Exception)
             {
@@ -69,7 +70,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                 job.ExchangeSetProductCount = ProductCount.From(productEditionList.Count());
                 if (productEditionList.ResponseCode == HttpStatusCode.NotModified)
                 {
-                    job.RequestedProductsAlreadyUpToDateCount = ProductCount.From(productVersions.Count());                   
+                    job.RequestedProductsAlreadyUpToDateCount = ProductCount.From(productVersions.Count());
                 }
                 else
                 {

@@ -1,5 +1,6 @@
 ﻿using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Domain.Services;
 using UKHO.ADDS.EFS.Orchestrator.Api.Messages;
 
@@ -25,5 +26,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
         public bool IsErrorFileCreated { get; set; }
 
         public ErrorResponseModel ErrorResponse { get; set; } = new ErrorResponseModel();
+        public ResponseInfo ResponseInfo { get; set; } = new ResponseInfo();
     }
 }
