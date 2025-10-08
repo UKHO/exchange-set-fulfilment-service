@@ -53,7 +53,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.UnitTests.Services
             _fileShareReadWriteClient = A.Fake<IFileShareReadWriteClient>();
             _configuration = A.Fake<IConfiguration>();
             _logger = A.Fake<ILogger<DefaultFileService>>();
-            _correlationId = CorrelationId.From("correlationId");//
+            _correlationId = CorrelationId.From("correlationId");
             _cancellationToken = CancellationToken.None;
             _userIdentifier = new UserIdentifier(A.Fake<IHttpContextAccessor>()) { UserIdentity = "userId" };
             _batchHandle = new BatchHandle(BatchId);
@@ -70,7 +70,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.UnitTests.Services
             A.CallTo(() => expirySection.Value).Returns(TimeSpan.FromDays(1).ToString());
             A.CallTo(() => _configuration.GetSection(ExpiryConfigKey)).Returns(expirySection);
 
-            _defaultFileService = new DefaultFileService(_fileShareReadWriteClient, _configuration, _logger);//DEF
+            _defaultFileService = new DefaultFileService(_fileShareReadWriteClient, _configuration, _logger);
         }
 
         [TestCase(ExchangeSetType.ProductNames)]
