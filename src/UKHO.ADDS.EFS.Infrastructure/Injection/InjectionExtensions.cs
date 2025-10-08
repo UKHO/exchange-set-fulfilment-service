@@ -309,7 +309,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
         /// </summary>
         /// <param name="principal">The ClaimsPrincipal to check.</param>
         /// <returns>True if any role claim exists, false otherwise.</returns>
-        public static bool HasRole(ClaimsPrincipal principal)
+        private static bool HasRole(ClaimsPrincipal principal)
         {
             if (principal == null)
                 return false;
