@@ -1,9 +1,9 @@
 {
-  "Base_URL": "https://efs-orchestrator.livelyfield-991deae6.uksouth.azurecontainerapps.io",
+  "Base_URL": "",
   "EFS_TENANT_ID": "",
   "EFS_CLIENT_ID": "",
   "EFS_SCOPES": "",
-  "EFS_RESOURCE": "",
+  "EFS_CLIENT_SECRET": "",
   "JobsEndpoint": "/jobs",
   "JobStatusEndpoint": "/jobs/{jobId}",
   "JobBuildEndpoint": "/jobs/{jobId}/build",

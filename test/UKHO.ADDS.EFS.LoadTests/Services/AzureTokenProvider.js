@@ -27,7 +27,7 @@ export function authenticateUsingAzure(config, forceRefresh = false) {
     client_id: config.EFS_CLIENT_ID,
     client_secret: config.EFS_CLIENT_SECRET,
     grant_type: 'client_credentials',
-    resource: config.EFS_RESOURCE
+    scope: config.EFS_SCOPES,
   };
 
   const response = http.post(url, payload, params);
