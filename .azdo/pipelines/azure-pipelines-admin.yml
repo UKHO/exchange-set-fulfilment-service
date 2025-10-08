@@ -98,6 +98,7 @@ stages:
     displayName: vNext IAT Deploy
     condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/dev/')))
     jobs:
+    - script: python3 --version
     - template: templates/continuous-deployment-retain.yml
       parameters:
         AzureDevOpsEnvironment: Ess-vnextiat
