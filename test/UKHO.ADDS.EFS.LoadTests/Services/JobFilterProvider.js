@@ -1,4 +1,4 @@
-
+import { randomIntBetween } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
 // Load config and products
 const config = JSON.parse(open('../Config.json'));
 
@@ -8,7 +8,7 @@ const config = JSON.parse(open('../Config.json'));
 */
 export function getSmallJobFilter() {
   const filters = config.FilterData.Small;
-  return filters[Math.floor(Math.random() * filters.length)];
+  return filters[Math.floor(randomIntBetween(0, filters.length - 1))];
 }
 
 /**
@@ -17,5 +17,5 @@ export function getSmallJobFilter() {
 */
 export function getMediumJobFilter() {
   const filters = config.FilterData.Medium;
-  return filters[Math.floor(Math.random() * filters.length)];
+  return filters[Math.floor(randomIntBetween(0, filters.length - 1))];
 }

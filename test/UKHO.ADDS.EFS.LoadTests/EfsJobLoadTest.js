@@ -5,7 +5,7 @@ import { Counter } from 'k6/metrics';
 
 import { getSmallJobFilter, getMediumJobFilter } from './Services/JobFilterProvider.js';
 import { create, status, build } from './Services/JobScenarios.js';
-import { authenticateUsingAzure } from './Oauth/Azure.js';
+import { authenticateUsingAzure } from './Services/AzureTokenProvider.js';
 const config = JSON.parse(open('./config.json'));
 
 // Custom counters for tracking job creation requests
@@ -54,30 +54,30 @@ export let options = {
     },
 
     //  Job status checks
-    JobStatus: {
-      executor: 'constant-arrival-rate',
-      exec: 'getStatusOfJob',
-      rate: Math.ceil(CYCLE.STATUS_CHECKS / (TEST_DURATION / 120)),
-      timeUnit: '120s',
-      duration: `${TEST_DURATION}s`,
-      preAllocatedVUs: 5,
-      maxVUs: 16,
-      startTime: '30s', // Start after some jobs have been created
-      gracefulStop: '30s'
-    },
+    // JobStatus: {
+    //   executor: 'constant-arrival-rate',
+    //   exec: 'getStatusOfJob',
+    //   rate: Math.ceil(CYCLE.STATUS_CHECKS / (TEST_DURATION / 120)),
+    //   timeUnit: '120s',
+    //   duration: `${TEST_DURATION}s`,
+    //   preAllocatedVUs: 5,
+    //   maxVUs: 16,
+    //   startTime: '30s', // Start after some jobs have been created
+    //   gracefulStop: '30s'
+    // },
 
-    // Build job status checks
-    BuildJobStatus: {
-      executor: 'constant-arrival-rate',
-      exec: 'getBuildStatusOfJob',
-      rate: Math.ceil(CYCLE.BUILD_CHECKS / (TEST_DURATION / 120)),
-      timeUnit: '120s',
-      duration: `${TEST_DURATION}s`,
-      preAllocatedVUs: 5,
-      maxVUs: 16,
-      startTime: '30s', // Start after some jobs have been created
-      gracefulStop: '30s'
-    }
+    // // Build job status checks
+    // BuildJobStatus: {
+    //   executor: 'constant-arrival-rate',
+    //   exec: 'getBuildStatusOfJob',
+    //   rate: Math.ceil(CYCLE.BUILD_CHECKS / (TEST_DURATION / 120)),
+    //   timeUnit: '120s',
+    //   duration: `${TEST_DURATION}s`,
+    //   preAllocatedVUs: 5,
+    //   maxVUs: 16,
+    //   startTime: '30s', // Start after some jobs have been created
+    //   gracefulStop: '30s'
+    // }
   }
 };
 

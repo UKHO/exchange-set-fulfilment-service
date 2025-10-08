@@ -1,6 +1,7 @@
 import http from 'k6/http';
 import { check } from 'k6';
 import { Trend } from 'k6/metrics';
+import { randomIntBetween } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
 
 const config = JSON.parse(open('../Config.json'));
 
@@ -20,7 +21,7 @@ export const JobBuildResponseTime = new Trend('JobBuildResponseTime');
 * @returns {Object} - Response object with job details
 */
 export function createJob(filter, jobSize) {
-  const correlationId = generateGUID();
+  const correlationId = generateCorrelationId();
   const payload = JSON.stringify({
     dataStandard: "s100",
     products: [""],
@@ -111,29 +112,9 @@ export function getJobBuild(Id = "11b1e20d-188c-1d41-b2f7-87ff4674c175") {
   };
 }
 
-/**
-* Generates a unique correlation ID
-* @param {string} prefix - Prefix for the correlation ID
-* @returns {string} - Generated correlation ID
-*/
-export function generateCorrelationId(prefix) {
-  // Format: job-[size]-[timestamp with ms]-[random hex]
-  const timestamp = new Date().getTime();
-
-  // Generate 8 bytes (16 hex chars) of randomness
-  const random = Array.from(
-    { length: 16 }, 
-    () => Math.floor(Math.random() * 16).toString(16)
-  ).join('');
-
-  return `job-${prefix.toLowerCase()}-${timestamp}-${random}`;
-}
-
-export function generateGUID() {
-    function s4() {
-        return Math.floor((1 + Math.random()) * 0x10000)
-                   .toString(16)
-                   .substring(1);
-    }
-    return `${s4()}${s4()}-${s4()}-${s4()}-${s4()}-${s4()}${s4()}${s4()}`;
+export function generateCorrelationId() {
+  function s4() {
+    return randomIntBetween(0, 0xFFFF).toString(16).padStart(4, '0');
+  }
+  return `${s4()}${s4()}-${s4()}-${s4()}-${s4()}-${s4()}${s4()}${s4()}`;
 }
