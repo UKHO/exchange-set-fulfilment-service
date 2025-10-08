@@ -80,7 +80,7 @@ locals {
     c => {
      # prefix     = tonumber(split("/", c)[1])
       # number of addresses = 2^(32 - prefix)
-      addr_count = floor(pow(2, 32 - tonumber(split("/", c)[1])))
+     # addr_count = floor(pow(2, 32 - tonumber(split("/", c)[1])))
       from       = cidrhost(c, 0)
       to         = cidrhost(c, floor(pow(2, 32 - tonumber(split("/", c)[1]))) - 1)
     }
