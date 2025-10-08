@@ -71,17 +71,21 @@ resource "azurerm_api_management_product_api" "efs_product_api_mapping" {
 }
 
 locals {
-  # Split IPs into single addresses and CIDRs
-  explicit_addrs = [for ip in var.blocked_ip_ranges_test : ip if !can(regex("/", ip))]
-  cidrs          = [for ip in var.blocked_ip_ranges_test : ip if can(regex("/", ip))]
+  explicit_addrs = [
+    for ip in var.blocked_ip_ranges_test : trimspace(ip)
+    if !can(regex("/", ip))
+  ]
 
-  # For each CIDR, compute first and last usable IP
+  cidrs = [
+    for ip in var.blocked_ip_ranges_test : trimspace(ip)
+    if can(regex("/", ip))
+  ]
+
+  # Compute start and end IP for each CIDR
   cidr_map = {
     for c in local.cidrs : c => {
-      prefix     = tonumber(split("/", c)[1])
-      addr_count = floor(pow(2, 32 - tonumber(split("/", c)[1])))
-      from       = cidrhost(c, 0)
-      to         = cidrhost(c, addr_count - 1)
+      from = cidrhost(c, 0)
+      to   = cidrhost(c, floor(pow(2, 32 - tonumber(split("/", c)[1]))) - 1)
     }
   }
 }
@@ -96,7 +100,7 @@ resource "azurerm_api_management_product_policy" "efs_product_policy" {
   xml_content = <<-XML
 <policies>
   <inbound>
-    <!-- Blocked IPs and CIDRs -->
+    <!-- Denied IPs and CIDRs -->
     <ip-filter action="deny">
       %{ for addr in local.explicit_addrs ~}
         <address>${addr}</address>
