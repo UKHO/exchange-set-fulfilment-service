@@ -223,6 +223,23 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
         }
 
+        [Test]
+        public async Task WhenProductNameThrowsException_ThenExecuteAsyncReturnsFailed()
+        {
+            var requestedProducts = CreateProductNameList(TestProductName1);
+            var job = CreateTestJob(requestedProducts: requestedProducts);
+            A.CallTo(() => _productService.GetProductEditionListAsync(DataStandard.S100,
+                requestedProducts,
+                job,
+                A<CancellationToken>.Ignored))
+                .Throws(new Exception("Simulated service failure"));
+            SetupExecutionContext(job);
+
+            var result = await _getS100ProductNamesNode.ExecuteAsync(_executionContext);
+
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
+        }
+
         private static ProductEditionList CreateProductEditionListWithMissingProducts()
         {
             var missingProducts = new MissingProductList();

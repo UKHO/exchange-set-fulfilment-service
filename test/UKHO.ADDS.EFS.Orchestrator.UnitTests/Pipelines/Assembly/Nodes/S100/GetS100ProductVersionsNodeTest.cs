@@ -78,7 +78,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             _pipelineContext = new PipelineContext<S100Build>(job, _s100Build, _storageService);
             A.CallTo(() => _executionContext.Subject).Returns(_pipelineContext);
             var editionList = CreateProductEditionList(HttpStatusCode.OK, true);
-          
+
             A.CallTo(() => _productService.GetProductVersionsListAsync(A<DataStandard>.Ignored, A<ProductVersionList>.Ignored, A<Job>.Ignored, A<CancellationToken>.Ignored)).Returns(Task.FromResult(editionList));
 
             var result = await _s100ProductVersionsNode.ExecuteAsync(_executionContext);
@@ -137,6 +137,50 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
         }
 
+        [Test]
+        public async Task WhenExecuteAsyncThrowsException_ThenNodeFailed()
+        {
+            var job = CreateJob(ExchangeSetType.ProductVersions, []);
+            _pipelineContext = new PipelineContext<S100Build>(job, _s100Build, _storageService);
+
+            A.CallTo(() => _executionContext.Subject).Returns(_pipelineContext);
+            A.CallTo(() => _productService.GetProductVersionsListAsync(DataStandard.S100, job.ProductVersions, job, default))
+                .Throws(new Exception("Simulated service failure"));
+
+            var result = await _s100ProductVersionsNode.ExecuteAsync(_executionContext);
+
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
+        }
+
+        [Test]
+        public async Task WhenExecuteAsyncWithServiceReturnNotOk_ThenNodeFailed()
+        {
+            var job = CreateJob(ExchangeSetType.ProductVersions, []);
+            _pipelineContext = new PipelineContext<S100Build>(job, _s100Build, _storageService);
+            A.CallTo(() => _executionContext.Subject).Returns(_pipelineContext);
+
+            var editionList = CreateProductEditionList(HttpStatusCode.Forbidden);
+            A.CallTo(() => _productService.GetProductVersionsListAsync(DataStandard.S100, job.ProductVersions, job, default)).Returns(Task.FromResult(editionList));
+
+            var result = await _s100ProductVersionsNode.ExecuteAsync(_executionContext);
+
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
+        }
+
+        [Test]
+        public async Task WhenExecuteAsyncWithServiceReturnNotModified_ThenNodeSucceded()
+        {
+            var job = CreateJob(ExchangeSetType.ProductVersions, []);
+            _pipelineContext = new PipelineContext<S100Build>(job, _s100Build, _storageService);
+            A.CallTo(() => _executionContext.Subject).Returns(_pipelineContext);
+
+            var editionList = CreateProductEditionList(HttpStatusCode.NotModified);
+            A.CallTo(() => _productService.GetProductVersionsListAsync(DataStandard.S100, job.ProductVersions, job, default)).Returns(Task.FromResult(editionList));
+
+            var result = await _s100ProductVersionsNode.ExecuteAsync(_executionContext);
+
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
+        }
 
         private static Job CreateJob(ExchangeSetType exchangeSetType, ProductVersionList productVersions, JobState jobState = JobState.Created)
         {
