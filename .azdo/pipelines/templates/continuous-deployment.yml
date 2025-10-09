@@ -257,10 +257,10 @@ jobs:
             targetType: filePath
             filePath: "$(Build.SourcesDirectory)/efs/.azdo/pipelines/powershell/CheckServiceStatus.ps1"
             arguments: "-healthEndPointUrl $(ORCHESTRATOR_URL)/health -waitTimeInMinute 2 -onErrorContinue 0"
-
-        - ${{ if eq(toLower(parameters.AzureDevOpsEnvironment), 'Ess-Dev') }}:
+        
         - task: DotNetCoreCLI@2
           displayName: ".Net Core - NuGet restore test projects only"
+          condition: eq('${{ parameters.ShortName }}', 'Ess-Dev')
           inputs:
             command: restore
             projects: "**/UKHO.ADDS.EFS.FunctionalTests.csproj"
@@ -269,10 +269,10 @@ jobs:
             nugetConfigPath: '$(Build.SourcesDirectory)/efs/BuildNuget.config'
             workingDirectory: '$(Build.SourcesDirectory)/efs'
             restoreDirectory: '$(Build.SourcesDirectory)/efs/packagesForTests'
-
-        - ${{ if eq(toLower(parameters.AzureDevOpsEnvironment), 'Ess-Dev') }}:
+        
         - task: DotNetCoreCLI@2
           displayName: Run Functional tests
+          condition: eq('${{ parameters.ShortName }}', 'Ess-Dev')
           inputs:
             command: test
             projects: "**/UKHO.ADDS.EFS.FunctionalTests.csproj"
