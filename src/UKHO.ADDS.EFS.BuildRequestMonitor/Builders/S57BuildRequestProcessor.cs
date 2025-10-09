@@ -33,11 +33,11 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
 
             var queueConnectionString = _configuration[$"ConnectionStrings:{StorageConfiguration.QueuesName}"]!;
             var blobConnectionString = _configuration[$"ConnectionStrings:{StorageConfiguration.BlobsName}"]!;
-            
+
             var queuePort = ExtractPort(queueConnectionString, "QueueEndpoint");
             var blobPort = ExtractPort(blobConnectionString, "BlobEndpoint");
 
-            var s57FileShareEndpoint = _externalServiceRegistry.GetServiceEndpoint(ProcessNames.FileShareService, "legacy",  EndpointHostSubstitution.Docker);
+            var s57FileShareEndpoint = _externalServiceRegistry.GetServiceEndpoint(ProcessNames.FileShareService, "legacy", EndpointHostSubstitution.Docker);
             var s57FileShareUri = s57FileShareEndpoint.Uri;
 
             var s57FileShareHealthUri = new Uri(s57FileShareUri!, "health");
@@ -48,8 +48,8 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
                 env.AddsEnvironment = AddsEnvironment.Local.Value;
                 env.RequestQueueName = StorageConfiguration.S57BuildRequestQueueName;
                 env.ResponseQueueName = StorageConfiguration.S57BuildResponseQueueName;
-                env.QueueConnectionString = $"http://host.docker.internal:{queuePort}/devstoreaccount1"; 
-                env.BlobConnectionString = $"http://host.docker.internal:{blobPort}/devstoreaccount1";
+                env.QueueEndpoint = $"http://host.docker.internal:{queuePort}/devstoreaccount1";
+                env.BlobEndpoint = $"http://host.docker.internal:{blobPort}/devstoreaccount1";
                 env.FileShareEndpoint = s57FileShareUri!.ToString();
                 env.FileShareHealthEndpoint = s57FileShareHealthUri!.ToString();
                 env.BlobContainerName = StorageConfiguration.S57BuildContainer;

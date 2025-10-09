@@ -2,26 +2,26 @@
 using Microsoft.Extensions.Configuration;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 
-namespace UKHO.ADDS.EFS.FunctionalTests.Services
+namespace UKHO.ADDS.EFS.FunctionalTests.Infrastructure
 {
-    public class AspireResourceSingleton : IAsyncDisposable
+    public class AspireTestHost : IAsyncDisposable
     {
-        private bool _isRunningInPipeline = IsRunningInPipeline();
+        private readonly bool _isRunningInPipeline = IsRunningInPipeline();
 
         // Configuration settings for pipeline running
         private IConfiguration? _configuration;
 
-        private static readonly Lazy<Task<AspireResourceSingleton>> _instance = new(() => CreateAsync());
+        private static readonly Lazy<Task<AspireTestHost>> _instance = new(() => CreateAsync());
 
-        public static Task<AspireResourceSingleton> Instance => _instance.Value;
+        public static Task<AspireTestHost> Instance => _instance.Value;
 
         #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
-        private AspireResourceSingleton() { }
+        private AspireTestHost() { }
         #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
-        private static async Task<AspireResourceSingleton> CreateAsync()
+        private static async Task<AspireTestHost> CreateAsync()
         {
-            var singleton = new AspireResourceSingleton();
+            var singleton = new AspireTestHost();
             await singleton.InitializeAsync();
             return singleton;
         }
@@ -93,7 +93,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
 
         public async ValueTask DisposeAsync()
         {
-            Console.WriteLine("Disposing AspireResourceSingleton");
+            Console.WriteLine("Disposing AspireTestHost");
 
             if (_isRunningInPipeline)
             {
