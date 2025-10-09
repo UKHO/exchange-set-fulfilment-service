@@ -23,16 +23,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
             var jobId = context.Subject.JobId;
             var authKey = context.Subject.WorkspaceAuthenticationKey;
             var toolClient = context.Subject.ToolClient;
-
-            var downloadPath = Path.Combine(context.Subject.WorkSpaceRootPath, context.Subject.WorkSpaceSpoolPath);
-
-            // Get folder names in downloadPath with length greater than 5
-            var longFolderNames = GetLongFolderNames(downloadPath);
-
-            // Create a list to store the full catalog paths
             var catalogPaths = new List<string>();
 
-            // Append zipFilePath + longFolderNames + "/S100_ROOT/Catalogue.xml" for each folder name
+            var downloadPath = Path.Combine(context.Subject.WorkSpaceRootPath, context.Subject.WorkSpaceSpoolPath);
+            var longFolderNames = GetLongFolderNames(downloadPath);
+
             foreach (var folderName in longFolderNames)
             {
                 var filesPath = BuildWorkspacePath(context.Subject, folderName);
@@ -46,7 +41,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
 
                 foreach (var path in validContentPaths)
                 {
-                    string catalogPath = path + "/S100_ROOT/CATALOG.XML";
+                    var catalogPath = path + "/S100_ROOT/CATALOG.XML";
                     catalogPaths.Add(catalogPath);
                 }
             }
@@ -72,7 +67,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
         {
             if (!Directory.Exists(directoryPath))
             {
-                return new List<string>();
+                return [];
             }
 
             return Directory.GetDirectories(directoryPath)
