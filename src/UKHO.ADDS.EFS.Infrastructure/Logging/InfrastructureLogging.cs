@@ -69,5 +69,10 @@ namespace UKHO.ADDS.EFS.Infrastructure.Logging
         {
             logger.Log(LogLevel.Error, CallbackNotificationError, exception, "Callback notification error: {@CallbackLogView}", callbackLogView);
         }
+
+        public static void TestLog(this ILogger logger, string messesge)
+        {
+            logger.Log(LogLevel.Error, CallbackNotificationError, "Test Error-: " + messesge);
+        }
     }
 }

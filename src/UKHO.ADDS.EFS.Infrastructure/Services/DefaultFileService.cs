@@ -58,26 +58,37 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         /// <returns>A result containing the batch handle on success or error information on failure.</returns>
         public async Task<Batch> CreateBatchAsync(CorrelationId correlationId, ExchangeSetType exchangeSetType, UserIdentifier userIdentifier, CancellationToken cancellationToken)
         {
-            var batchModel = exchangeSetType == ExchangeSetType.Complete 
-                ? GetBatchModelForCompleteExchangeSet() 
-                : GetBatchModelForCustomExchangeSet(userIdentifier.UserIdentity, exchangeSetType);
-            var createBatchResponseResult = await _fileShareReadWriteClient.CreateBatchAsync(batchModel, (string)correlationId, cancellationToken);
-
-            if (createBatchResponseResult.IsFailure(out var error, out _))
+            try
             {
-                LogFileShareServiceError(correlationId, CreateBatch, error, BatchId.None);
-            }
+                _logger.TestLog("CreateBatchAsync called");
+                _logger.TestLog("User identifier- " + userIdentifier.ToString());
 
-            if (createBatchResponseResult.IsSuccess(out var response))
-            {
-                return new()
+                var batchModel = exchangeSetType == ExchangeSetType.Complete
+                    ? GetBatchModelForCompleteExchangeSet()
+                    : GetBatchModelForCustomExchangeSet(userIdentifier.UserIdentity, exchangeSetType);
+                var createBatchResponseResult = await _fileShareReadWriteClient.CreateBatchAsync(batchModel, (string)correlationId, cancellationToken);
+
+                if (createBatchResponseResult.IsFailure(out var error, out _))
                 {
-                    BatchId = BatchId.From(response.BatchId),
-                    BatchExpiryDateTime = batchModel.ExpiryDate == null ? DateTime.MinValue : (DateTime)batchModel.ExpiryDate
-                };
-            }
+                    LogFileShareServiceError(correlationId, CreateBatch, error, BatchId.None);
+                }
 
-            throw new InvalidOperationException("Failed to create batch.");
+                if (createBatchResponseResult.IsSuccess(out var response))
+                {
+                    return new()
+                    {
+                        BatchId = BatchId.From(response.BatchId),
+                        BatchExpiryDateTime = batchModel.ExpiryDate == null ? DateTime.MinValue : (DateTime)batchModel.ExpiryDate
+                    };
+                }
+
+                throw new InvalidOperationException("Failed to create batch.");
+            }
+            catch (Exception ex)
+            {
+                 _logger.TestLog("CreateBatchAsync called Exception-" + ex.ToString());
+                throw new InvalidOperationException("Failed to create batch.");
+            }
         }
 
         /// <summary>
@@ -240,6 +251,8 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         /// <returns>A configured batch model with appropriate access control and attributes.</returns>
         private BatchModel GetBatchModelForCustomExchangeSet(string userIdentity, ExchangeSetType exchangeSetType)
         {
+            _logger.TestLog("GetBatchModelForCustomExchangeSet started");
+
             var expiryTimeSpan = _configuration.GetValue<TimeSpan>(BatchExpiresInConfigKey);
 
             return new BatchModel
