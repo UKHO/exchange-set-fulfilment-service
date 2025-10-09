@@ -18,12 +18,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.9" />
-    <PackageReference Include="UKHO.FakePenrose.S100SampleExchangeSets" Version="3.1.51008.4" /> 
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.9" /> 
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\repo\src\UKHO.ADDS.Mocks\UKHO.ADDS.Mocks.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="UKHO.FakePenrose.S100SampleExchangeSets">
+      <HintPath>..\..\artefacts\UKHO.FakePenrose.S100SampleExchangeSets.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
