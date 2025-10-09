@@ -60,7 +60,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         {
             try
             {
-                _logger.TestLog("CreateBatchAsync called");
+                _logger.TestLog("CreateBatchAsync called.");
                 _logger.TestLog("User identifier- " + userIdentifier.ToString());
 
                 var batchModel = exchangeSetType == ExchangeSetType.Complete

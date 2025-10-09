@@ -72,7 +72,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Logging
 
         public static void TestLog(this ILogger logger, string messesge)
         {
-            logger.Log(LogLevel.Error, CallbackNotificationError, "Test Error-: " + messesge);
+            logger.Log(LogLevel.Error, CallbackNotificationError, "Test Error- : " + messesge);
         }
     }
 }
