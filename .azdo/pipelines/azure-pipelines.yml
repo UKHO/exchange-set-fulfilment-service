@@ -160,7 +160,7 @@ stages:
   #       DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
   #       DeployAddsMock: ${{ parameters.DeployAddsMock }}
   #       IncludeAddsMock: true
-  #       DeployRedis: ${{ parameters.DeployRedis }}
+  #       DeployRedis: ${{ parameters.DeployRedis }}q
 
   - stage: vnextiatDeploy
     dependsOn:
