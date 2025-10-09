@@ -254,6 +254,8 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         {
             _logger.TestLog("GetBatchModelForCustomExchangeSet started");
 
+            _logger.TestLog("User identifier- " + userIdentity);
+
             var expiryTimeSpan = _configuration.GetValue<TimeSpan>(BatchExpiresInConfigKey);
 
             return new BatchModel
@@ -261,8 +263,8 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                 BusinessUnit = _businessUnit,
                 Acl = new Acl
                 {
-                    ReadUsers = [userIdentity],
-                     ReadGroups = ["public"]
+                    ReadUsers = ["public"],
+                    ReadGroups = ["public"]
                 },
                 Attributes =
                 [
