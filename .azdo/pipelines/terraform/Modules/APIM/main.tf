@@ -78,15 +78,11 @@ locals {
   cidr_map = {
     for c in local.cidrs :
     c => {
-     # prefix     = tonumber(split("/", c)[1])
-      # number of addresses = 2^(32 - prefix)
-     # addr_count = floor(pow(2, 32 - tonumber(split("/", c)[1])))
       from       = cidrhost(c, 0)
       to         = cidrhost(c, floor(pow(2, 32 - tonumber(split("/", c)[1]))) - 1)
     }
   }
 }
-
 
 #Product quota and throttle policy
 resource "azurerm_api_management_product_policy" "efs_product_policy" {
