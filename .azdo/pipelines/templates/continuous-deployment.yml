@@ -260,6 +260,7 @@ jobs:
 
         - task: DotNetCoreCLI@2
           displayName: ".Net Core - NuGet restore test projects only"
+          condition: eq('${{ parameters.ShortName }}', 'Ess-Dev')
           inputs:
             command: restore
             projects: "**/UKHO.ADDS.EFS.FunctionalTests.csproj"
@@ -271,6 +272,7 @@ jobs:
 
         - task: DotNetCoreCLI@2
           displayName: Run Functional tests
+          condition: eq('${{ parameters.ShortName }}', 'Ess-Dev')
           inputs:
             command: test
             projects: "**/UKHO.ADDS.EFS.FunctionalTests.csproj"
