@@ -265,8 +265,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                 BusinessUnit = _businessUnit,
                 Acl = new Acl
                 {
-                    ReadUsers = [userIdentity],
-                    ReadGroups = ["public"]
+                    ReadUsers = [userIdentity]
                 },
                 Attributes =
                 [
