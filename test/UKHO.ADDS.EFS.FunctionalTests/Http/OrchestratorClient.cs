@@ -1,12 +1,13 @@
 ﻿using System.Text;
 using System.Text.Json;
 using UKHO.ADDS.Clients.Common.Constants;
+using UKHO.ADDS.EFS.FunctionalTests.Infrastructure;
 
-namespace UKHO.ADDS.EFS.FunctionalTests.Services
+namespace UKHO.ADDS.EFS.FunctionalTests.Http
 {
-    public class OrchestratorCommands
+    public class OrchestratorClient
     {
-        private static HttpClient httpClient => AspireResourceSingleton.httpClient!;
+        private static HttpClient httpClient => AspireTestHost.httpClient!;
         private const int WaitDurationMs = 5000;
         private const double MaxWaitMinutes = 5;
 
