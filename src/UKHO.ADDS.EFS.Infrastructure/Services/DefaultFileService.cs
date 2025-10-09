@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System.Globalization;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
@@ -273,7 +274,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                     new("Product Code", "S-100"),
                     new("Media Type", "Zip")
                 ],
-                ExpiryDate = DateTime.UtcNow.Add(expiryTimeSpan)
+                ExpiryDate = null
             };
         }
         private void LogFileShareServiceError(CorrelationId correlationId, string endPoint, IError error, BatchId batchId)
