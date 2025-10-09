@@ -1,108 +1,28 @@
-﻿using System.IO.Compression;
 using System.Text.Json;
-using FluentAssertions;
-using Microsoft.Azure.Amqp.Framing;
+using AwesomeAssertions;
+using UKHO.ADDS.EFS.FunctionalTests.Diagnostics;
 
-namespace UKHO.ADDS.EFS.FunctionalTests.Services
+namespace UKHO.ADDS.EFS.FunctionalTests.Assertions
 {
-    public class FileComparer
+    public class  CallbackResponseAssertions
     {
-        /// <summary>
-        /// Compares two ZIP files to ensure their directory structures match exactly.
-        /// Optionally verifies that specified product files are present in the source ZIP.
-        /// Uses soft assertions to report all validation issues at once.
-        /// </summary>
-        /// <param name="sourceZipPath">Path to the source ZIP file.</param>
-        /// <param name="targetZipPath">Path to the target ZIP file.</param>
-        /// <param name="products">Comma-separated list of expected product file names (optional).</param>
-        public static void CompareZipFilesExactMatch(string sourceZipPath, string targetZipPath, string[]? products = null)
-        {
-            // Open both ZIP archives for reading
-            using var sourceArchive = ZipFile.OpenRead(sourceZipPath);
-            using var targetArchive = ZipFile.OpenRead(targetZipPath);
-
-            // Helper method to extract the directory path from a full entry name
-            static string? GetDirectoryPath(string fullName)
-            {
-                var idx = fullName.LastIndexOf('/');
-                return idx > 0 ? fullName[..idx] : fullName;
-            }
-
-            // Get distinct directory paths from source archive
-            var sourceDirectories = sourceArchive.Entries
-                .Select(e => GetDirectoryPath(e.FullName))
-                .Distinct()
-                .OrderBy(e => e)
-                .ToList();
-
-            TestOutputContext.WriteLine($"Expected Zip File Dir Structure: {string.Join(", ", sourceDirectories)}");
-
-            // Get distinct directory paths from target archive
-            var targetDirectories = targetArchive.Entries
-                .Select(e => GetDirectoryPath(e.FullName))
-                .Distinct()
-                .OrderBy(e => e)
-                .ToList();
-
-            TestOutputContext.WriteLine($"Actual Zip File Dir Structure: {string.Join(", ", targetDirectories)}");
-
-            // Compare directory structures of both ZIP files using soft assertions
-            sourceDirectories.Should().BeEquivalentTo(targetDirectories,
-                "directory structures in both ZIP files should match");
-
-            // If product names are specified, validate their presence in the source archive
-            if (products != null)
-            {
-                var expectedProductPaths = new List<string>();
-                foreach (var productName in products)
-                {
-                    var productIdentifier = productName[..3];
-                    var folderName = productName[3..7];
-                    if (productIdentifier == "101")
-                    {
-                        expectedProductPaths.Add($"S100_ROOT/S-{productIdentifier}/SUPPORT_FILES/{productName}");
-                    }
-                    expectedProductPaths.Add($"S100_ROOT/S-{productIdentifier}/DATASET_FILES/{folderName}/{productName}");
-                }
-                //added file expected other than product name
-                expectedProductPaths.Add("S100_ROOT/CATALOG");
-                expectedProductPaths.Sort();
-
-                TestOutputContext.WriteLine($"Expected File Path Structure: {string.Join(", ", expectedProductPaths)}");
-
-                // Extract actual product file names from the target archive
-                var actualProductPaths = targetArchive.Entries
-                    .Where(e => e.FullName.Contains('.')) // Assuming product files have extensions
-                    .Select(e => e.FullName[..e.FullName.IndexOf('.')]) // Get the file name without extension
-                    .Distinct()
-                    .OrderBy(p => p)
-                    .ToList();
-
-                TestOutputContext.WriteLine($"Actual File Path Structure: {string.Join(", ", actualProductPaths)}");
-
-                // Compare expected and actual product file names using soft assertions
-                actualProductPaths.Should().BeEquivalentTo(expectedProductPaths,
-                    "all expected product files should be present in the ZIP");
-            }
-        }
-
         /// <summary>
         /// Compares a JSON response from an API call with the content of a reference file,
         /// focusing on the "data" section and its key properties.
         /// Uses soft assertions to report all validation issues at once.
         /// </summary>
         /// <param name="sourceResponseFromPostApiCall">The JSON response string from the API call</param>
-        /// <param name="targetTxtFile">Path to the reference file containing expected structure</param>
-        public static void CompareCallbackResponse(string sourceResponseFromPostApiCall, string targetTxtFile)
+        /// <param name="targetTextFile">Path to the reference file containing expected structure</param>
+        public static void CompareCallbackResponse(string sourceResponseFromPostApiCall, string targetTextFile)
         {
-            TestOutputContext.WriteLine($"Source response:\n{sourceResponseFromPostApiCall}");
+            TestOutput.WriteLine($"Source response:\n{sourceResponseFromPostApiCall}");
 
             // Parse the source response
             var sourceJson = JsonDocument.Parse(sourceResponseFromPostApiCall);
 
             // Read and parse the target file
-            var targetFileContent = File.ReadAllText(targetTxtFile);
-            TestOutputContext.WriteLine($"Target file content:\n{targetFileContent}");
+            var targetFileContent = File.ReadAllText(targetTextFile);
+            TestOutput.WriteLine($"Target file content:\n{targetFileContent}");
 
             var targetJson = JsonDocument.Parse(targetFileContent);
 
@@ -117,8 +37,8 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
             var formattedSource = JsonSerializer.Serialize(sourceJson, options);
             var formattedTarget = JsonSerializer.Serialize(targetData, options);
 
-            TestOutputContext.WriteLine($"Formatted source:\n{formattedSource}");
-            TestOutputContext.WriteLine($"Formatted target data section:\n{formattedTarget}");
+            TestOutput.WriteLine($"Formatted source:\n{formattedSource}");
+            TestOutput.WriteLine($"Formatted target data section:\n{formattedTarget}");
 
             JsonElement sourceData = sourceJson.RootElement;
 
@@ -177,7 +97,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
             targetArray.GetArrayLength().Should().Be(sourceArray.GetArrayLength(),
                 $"Target array '{propertyName}' should have same length as source ({sourceArray.GetArrayLength()})");
 
-            TestOutputContext.WriteLine($"Array '{propertyName}' has {sourceArray.GetArrayLength()} items");
+            TestOutput.WriteLine($"Array '{propertyName}' has {sourceArray.GetArrayLength()} items");
 
             // If not empty, compare contents item by item
             if (sourceArray.GetArrayLength() > 0)
@@ -187,9 +107,9 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
                     var sourceItem = sourceArray[i];
                     var targetItem = targetArray[i];
 
-                    TestOutputContext.WriteLine($"Comparing item {i}:");
-                    TestOutputContext.WriteLine($"  Source: {sourceItem}");
-                    TestOutputContext.WriteLine($"  Target: {targetItem}");
+                    TestOutput.WriteLine($"Comparing item {i}:");
+                    TestOutput.WriteLine($"  Source: {sourceItem}");
+                    TestOutput.WriteLine($"  Target: {targetItem}");
 
                     // Get all source item property names to verify target has all expected properties
                     var sourceProps = sourceItem.EnumerateObject().Select(p => p.Name).ToList();
@@ -215,7 +135,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
             }
             else
             {
-                TestOutputContext.WriteLine($"Array '{propertyName}' is empty in both source and target");
+                TestOutput.WriteLine($"Array '{propertyName}' is empty in both source and target");
             }
         }
 
@@ -233,7 +153,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
             }
 
             // Log source link types for debugging
-            TestOutputContext.WriteLine($"Source contains {sourceLinkTypes.Count} link types: {string.Join(", ", sourceLinkTypes)}");
+            TestOutput.WriteLine($"Source contains {sourceLinkTypes.Count} link types: {string.Join(", ", sourceLinkTypes)}");
 
             // Then verify target has links section
             target.TryGetProperty("links", out var targetLinks).Should().BeTrue(
