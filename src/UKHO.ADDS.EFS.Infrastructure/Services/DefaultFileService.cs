@@ -63,9 +63,14 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                 _logger.TestLog("CreateBatchAsync called.");
                 _logger.TestLog("User identifier- " + userIdentifier.ToString());
 
+                //var batchModel = exchangeSetType == ExchangeSetType.Complete
+                //    ? GetBatchModelForCompleteExchangeSet()
+                //    : GetBatchModelForCustomExchangeSet(userIdentifier.UserIdentity, exchangeSetType);
+
+
                 var batchModel = exchangeSetType == ExchangeSetType.Complete
                     ? GetBatchModelForCompleteExchangeSet()
-                    : GetBatchModelForCustomExchangeSet(userIdentifier.UserIdentity, exchangeSetType);
+                    : GetBatchModelForCompleteExchangeSet();
 
                 var createBatchResponseResult = await _fileShareReadWriteClient.CreateBatchAsync(batchModel, (string)correlationId, cancellationToken);
 
