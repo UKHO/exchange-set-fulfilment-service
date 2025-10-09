@@ -257,7 +257,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
 
             _logger.TestLog("User identifier- " + userIdentity);
 
-            var expiryTimeSpan = _configuration.GetValue<TimeSpan>(BatchExpiresInConfigKey);
+            //var expiryTimeSpan = _configuration.GetValue<TimeSpan>(BatchExpiresInConfigKey);
 
             return new BatchModel
             {
