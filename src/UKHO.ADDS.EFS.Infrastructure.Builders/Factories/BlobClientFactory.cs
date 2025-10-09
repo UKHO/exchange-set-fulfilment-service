@@ -1,4 +1,5 @@
-﻿using Azure.Storage;
+﻿using Azure.Identity;
+using Azure.Storage;
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Configuration;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
@@ -13,18 +14,18 @@ namespace UKHO.ADDS.EFS.Infrastructure.Builders.Factories
         public BlobClient CreateBlobClient(IConfiguration configuration, string blobName)
         {
             var environment = configuration[BuilderEnvironmentVariables.AddsEnvironment]!;
-            var blobConnectionString = configuration[BuilderEnvironmentVariables.BlobConnectionString]!;
+            var blobEndpoint = configuration[BuilderEnvironmentVariables.BlobEndpoint]!;
             var blobContainerName = configuration[BuilderEnvironmentVariables.BlobContainerName]!;
+            var blobUri = blobEndpoint.EndsWith('/') ? new Uri($"{blobEndpoint}{blobContainerName}/{blobName}") : new Uri($"{blobEndpoint}/{blobContainerName}/{blobName}");
 
             switch (environment)
             {
                 case "local":
-                    // We need to construct the client using the "URL" method for running locally so that the container network can connect to Azurite using host.docker.internal
-                    var blobUri = new Uri($"{blobConnectionString}/{blobContainerName}/{blobName}");
-
                     return new BlobClient(blobUri, new StorageSharedKeyCredential(AzuriteAccountName, AzuriteKey));
                 default:
-                    return new BlobClient(blobConnectionString, blobContainerName, blobName);
+                    var clientId = configuration[BuilderEnvironmentVariables.AzureClientId]!;
+                    var credential = new ManagedIdentityCredential(clientId);
+                    return new BlobClient(blobUri, credential);
             }
         }
     }

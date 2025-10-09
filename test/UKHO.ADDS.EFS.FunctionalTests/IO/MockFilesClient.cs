@@ -1,15 +1,13 @@
-﻿using System;
-using System.IO;
-using System.Net.Http;
-using System.Threading;
+﻿using UKHO.ADDS.EFS.FunctionalTests.Diagnostics;
+using UKHO.ADDS.EFS.FunctionalTests.Infrastructure;
 
-namespace UKHO.ADDS.EFS.FunctionalTests.Services
+namespace UKHO.ADDS.EFS.FunctionalTests.IO
 {
-    internal static class FileDownloadFromMock
+    internal static class MockFilesClient
     {
         public static async Task<string> DownloadFileAsync(string urlEndPoint, string fileName, CancellationToken cancellationToken = default)
         {
-            var httpClientMock = AspireResourceSingleton.httpClientMock!;
+            var httpClientMock = AspireTestHost.httpClientMock!;
 
             // Initial delay to allow the mock to materialize the file
             await Task.Delay(10000, cancellationToken);
@@ -47,7 +45,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
                 {
                     // Only retry for 404 errors as the httpClient already has resilience for other error types
                     // StatusCode can be null for some failures; in that case, this filter won't match and will not retry here)
-                    TestOutputContext.WriteLine($"File not found (attempt {retryCount + 1}/{maxRetries}). Waiting {delay.TotalSeconds} seconds before retry ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
+                    TestOutput.WriteLine($"File not found (attempt {retryCount + 1}/{maxRetries}). Waiting {delay.TotalSeconds} seconds before retry ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
                     await Task.Delay(delay, cancellationToken);
 
                     // Exponential backoff with a cap
@@ -60,9 +58,9 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
                 catch (Exception ex) when (retryCount >= maxRetries - 1)
                 {
                     lastException = lastException ?? ex;
-                    TestOutputContext.WriteLine($"Failed as file not found after (attempt {retryCount + 1}/{maxRetries}) ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
+                    TestOutput.WriteLine($"Failed as file not found after (attempt {retryCount + 1}/{maxRetries}) ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
                     throw new HttpRequestException(
-                        $"Failed to download exchange set after {maxRetries} attempts ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}",
+                        $"Failed to download file after {maxRetries} attempts ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}",
                         lastException,
                         (lastException as HttpRequestException)?.StatusCode);
                 }
@@ -71,9 +69,9 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
             // Check if we exited the loop without success
             if (mockResponse == null)
             {
-                TestOutputContext.WriteLine($">>Failed as file not found after (attempt {retryCount + 1}/{maxRetries}) ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
+                TestOutput.WriteLine($">>Failed as file not found after (attempt {retryCount + 1}/{maxRetries}) ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
                 throw new HttpRequestException(
-                    $">>Failed to download exchange set after {maxRetries} attempts ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}",
+                    $">>Failed to download file after {maxRetries} attempts ... {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}",
                     lastException,
                     (lastException as HttpRequestException)?.StatusCode);
             }
@@ -81,7 +79,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
             using (mockResponse)
             {
                 await using var fileStream = await mockResponse.Content.ReadAsStreamAsync(cancellationToken);
-                var destinationFilePath = Path.Combine(AspireResourceSingleton.ProjectDirectory!, "out", fileName);
+                var destinationFilePath = Path.Combine(AspireTestHost.ProjectDirectory!, "out", fileName);
 
                 // Ensure the directory exists
                 var destinationDirectory = Path.GetDirectoryName(destinationFilePath);
@@ -101,7 +99,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
             return DownloadFileAsync("/_admin/files/FSS/S100-ExchangeSets/", $"V01X01_{jobId}.zip", cancellationToken);
         }
 
-        public static Task<string> DownloadCallbackTxtAsync(string batchId, CancellationToken cancellationToken = default)
+        public static Task<string> DownloadCallbackTextAsync(string batchId, CancellationToken cancellationToken = default)
         {
             return DownloadFileAsync("/_admin/files/callback/callback-responses/", $"callback-response-{batchId}.txt", cancellationToken);
         }

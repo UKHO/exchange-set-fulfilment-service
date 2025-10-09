@@ -1,8 +1,10 @@
-﻿using Azure.Identity;
+﻿using System.Security.Claims;
+using Azure.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Identity.Web;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Kiota.Abstractions.Authentication;
 using Microsoft.Kiota.Authentication.Azure;
@@ -108,77 +110,83 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                 var (azureAdClientId, azureAdTenantId) = GetAzureAdCredentials();
                 var (b2cClientId, b2cDomain, b2cInstance, b2cPolicy) = GetAzureB2CCredentials();
 
-                collection
+                var authBuilder = collection
                 .AddAuthentication(options =>
                 {
                     options.DefaultAuthenticateScheme = null;
                     options.DefaultChallengeScheme = null;
-                })
-                .AddJwtBearer(AuthenticationConstants.AzureAdScheme, options =>
-                {
-                    var authority = $"{AuthenticationConstants.MicrosoftLoginUrl}{azureAdTenantId}";
-                    var issuer = $"{AuthenticationConstants.MicrosoftLoginUrl}{azureAdTenantId}";
-
-                    options.Audience = azureAdClientId;
-                    options.Authority = authority;
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = true,
-                        ValidateAudience = true,
-                        ValidateLifetime = true,
-                        ValidateIssuerSigningKey = true,
-                        ValidAudiences = [azureAdClientId],
-                        ValidIssuers = [issuer]
-                    };
-                    options.Events = new JwtBearerEvents
-                    {
-                        OnForbidden = context =>
-                        {
-                            SetOriginHeaderIfNotExists(context.Response);
-                            return Task.CompletedTask;
-                        },
-                        OnAuthenticationFailed = context =>
-                        {
-                            SetOriginHeaderIfNotExists(context.Response);
-                            return Task.CompletedTask;
-                        }
-                    };
-                })
-                .AddJwtBearer(AuthenticationConstants.AzureB2CScheme, options =>
-                {
-                    var b2cIssuer = $"{b2cInstance}{b2cDomain}/v2.0/";
-                    var b2cAuthority = $"{b2cInstance}{b2cDomain}/{b2cPolicy}/v2.0/";
-
-                    options.Audience = b2cClientId;
-                    options.Authority = b2cAuthority;
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = true,
-                        ValidateAudience = true,
-                        ValidateLifetime = true,
-                        ValidateIssuerSigningKey = true,
-                        ValidAudiences = [b2cClientId],
-                        ValidIssuers = [b2cIssuer, b2cAuthority]
-                    };
-                    options.Events = new JwtBearerEvents
-                    {
-                        OnChallenge = context =>
-                        {
-                            if (!context.Response.HasStarted)
-                            {
-                                context.Response.StatusCode = 401;
-                                SetOriginHeaderIfNotExists(context.Response);
-                                context.HandleResponse();
-                            }
-                            return Task.CompletedTask;
-                        },
-                        OnAuthenticationFailed = context =>
-                        {
-                            SetOriginHeaderIfNotExists(context.Response);
-                            return Task.CompletedTask;
-                        }
-                    };
                 });
+
+                authBuilder.AddMicrosoftIdentityWebApi(
+                    configureJwtBearerOptions: options =>
+                    {
+                        options.TokenValidationParameters.ValidAudiences = new[]
+                        {
+                        azureAdClientId
+                        };
+                        options.Events = new JwtBearerEvents
+                        {
+                            OnTokenValidated = context =>
+                            {
+                                var claimsPrincipal = context.Principal;
+                                if (!HasRole(claimsPrincipal!))
+                                {
+                                    context.Response.StatusCode = 403;
+                                    context.Success();
+                                }
+                                return Task.CompletedTask;
+                            },
+                            OnForbidden = context =>
+                            {
+                                SetOriginHeaderIfNotExists(context.Response);
+                                return Task.CompletedTask;
+                            },
+                            OnAuthenticationFailed = context =>
+                            {
+                                SetOriginHeaderIfNotExists(context.Response);
+                                return Task.CompletedTask;
+                            }
+                        };
+                    },
+                    configureMicrosoftIdentityOptions: options =>
+                    {
+                        options.Instance = AuthenticationConstants.MicrosoftLoginUrl;
+                        options.TenantId = azureAdTenantId;
+                        options.ClientId = azureAdClientId;
+                    },
+                    jwtBearerScheme: AuthenticationConstants.AzureAdScheme);
+
+                authBuilder.AddMicrosoftIdentityWebApi(
+                    configureJwtBearerOptions: options =>
+                    {
+                        options.Events = new JwtBearerEvents
+                        {
+                            OnChallenge = context =>
+                            {
+                                if (!context.Response.HasStarted)
+                                {
+                                    context.Response.StatusCode = 401;
+                                    SetOriginHeaderIfNotExists(context.Response);
+                                    context.HandleResponse();
+                                }
+                                return Task.CompletedTask;
+                            },
+                            OnAuthenticationFailed = context =>
+                            {
+                                SetOriginHeaderIfNotExists(context.Response);
+                                return Task.CompletedTask;
+                            }
+                        };
+                    },
+                    configureMicrosoftIdentityOptions: options =>
+                    {
+                        options.Instance = b2cInstance;
+                        options.TenantId = b2cDomain;
+                        options.ClientId = b2cClientId;
+                        options.Domain = b2cDomain;
+                        options.SignUpSignInPolicyId = b2cPolicy;
+                    },
+                    jwtBearerScheme: AuthenticationConstants.AzureB2CScheme);
             }
 
             // Build composite policy: B2C => authenticated only, AD => must hold role
@@ -203,6 +211,8 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                {
                    if (!addsEnvironment.IsLocal() && !addsEnvironment.IsDev())
                    {
+                       var (adTenantId, b2cTenantId, b2cInstance) = GetAuthorizationPolicyVariables();
+
                        policy.AddAuthenticationSchemes(AuthenticationConstants.AzureAdScheme, AuthenticationConstants.AzureB2CScheme);
                        policy.RequireAssertion(context =>
                        {
@@ -214,12 +224,10 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
 
                            var issuer = context.User.FindFirst("iss")?.Value;
 
-                           var (adTenantId, b2cTenantId, b2cInstance) = GetAuthorizationPolicyVariables();
-
                            if (!string.IsNullOrEmpty(issuer) && !string.IsNullOrEmpty(adTenantId))
                            {
                                var adAuthenticated = issuer.Contains(adTenantId, StringComparison.OrdinalIgnoreCase) &&
-                                                   context.User.IsInRole(AuthenticationConstants.EfsRole);
+                                           context.User.IsInRole(AuthenticationConstants.EfsRole);
 
                                if (adAuthenticated)
                                {
@@ -231,8 +239,8 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
                            if (!string.IsNullOrEmpty(b2cTenantId) && !string.IsNullOrEmpty(b2cInstance))
                            {
                                var b2cAuthenticated = issuer != null &&
-                                                    issuer.Contains(b2cInstance, StringComparison.OrdinalIgnoreCase) &&
-                                                    issuer.Contains(b2cTenantId, StringComparison.OrdinalIgnoreCase);
+                                            issuer.Contains(b2cInstance, StringComparison.OrdinalIgnoreCase) &&
+                                            issuer.Contains(b2cTenantId, StringComparison.OrdinalIgnoreCase);
                                return b2cAuthenticated;
                            }
 
@@ -294,6 +302,18 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
             {
                 response.Headers.Append(AuthenticationConstants.OriginHeaderKey, AuthenticationConstants.EfsService);
             }
+        }
+
+        /// <summary>
+        /// Checks if the ClaimsPrincipal has any role (ClaimTypes.Role).
+        /// </summary>
+        /// <param name="principal">The ClaimsPrincipal to check.</param>
+        /// <returns>True if any role claim exists, false otherwise.</returns>
+        private static bool HasRole(ClaimsPrincipal principal)
+        {
+            if (principal == null)
+                return false;
+            return principal.Claims.Any(c => c.Type == ClaimTypes.Role);
         }
     }
 }

@@ -78,8 +78,8 @@ namespace UKHO.ADDS.EFS.Builder.S100
 
                 var ports = GetPorts(debugDevPath, debugPath);
 
-                Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.QueueConnectionString, $"http://host.docker.internal:{ports.QueuePort}/{QueueClientFactory.AzuriteAccountName}");
-                Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.BlobConnectionString, $"http://host.docker.internal:{ports.BlobPort}/{QueueClientFactory.AzuriteAccountName}");
+                Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.QueueEndpoint, $"http://host.docker.internal:{ports.QueuePort}/{QueueClientFactory.AzuriteAccountName}");
+                Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.BlobEndpoint, $"http://host.docker.internal:{ports.BlobPort}/{QueueClientFactory.AzuriteAccountName}");
 
                 configurationBuilder.SetBasePath(Directory.GetCurrentDirectory())
                     .AddJsonFile(debugPath)
@@ -186,13 +186,13 @@ namespace UKHO.ADDS.EFS.Builder.S100
             })
 
             .AddPolicyHandler((provider, request) =>
-             {
-                 var loggerFactory = provider.GetRequiredService<Microsoft.Extensions.Logging.ILoggerFactory>();
-                 var logger = loggerFactory.CreateLogger("Polly.HttpClientRetry");
-                 var configuration = provider.GetRequiredService<IConfiguration>();
-                 HttpRetryPolicyFactory.SetConfiguration(configuration);
-                 return HttpRetryPolicyFactory.GetRetryPolicy(logger);
-             });
+            {
+                var loggerFactory = provider.GetRequiredService<Microsoft.Extensions.Logging.ILoggerFactory>();
+                var logger = loggerFactory.CreateLogger("Polly.HttpClientRetry");
+                var configuration = provider.GetRequiredService<IConfiguration>();
+                HttpRetryPolicyFactory.SetConfiguration(configuration);
+                return HttpRetryPolicyFactory.GetRetryPolicy(logger);
+            });
 
             return services;
         }
