@@ -63,6 +63,8 @@ namespace UKHO.ADDS.EFS.Orchestrator
                                 options.TokenCredential = new DefaultAzureCredential();
                             })
                     );
+
+                    builder.Services.AddAllElasticApm();
                 }
 
                 builder.AddConfiguration(ServiceConfiguration.ServiceName, ProcessNames.ConfigurationService);
@@ -70,9 +72,6 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 builder.AddServiceDefaults().AddOrchestratorServices();
 
                 builder.AddRedisDistributedCache(ProcessNames.RedisCache);
-
-                builder.Services.AddAllElasticApm();
-
 
                 var app = builder.Build();
 

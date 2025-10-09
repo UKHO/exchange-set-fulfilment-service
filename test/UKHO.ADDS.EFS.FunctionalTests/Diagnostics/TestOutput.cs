@@ -1,14 +1,14 @@
 using Xunit.Abstractions;
 
-namespace UKHO.ADDS.EFS.FunctionalTests.Services
+namespace UKHO.ADDS.EFS.FunctionalTests.Diagnostics
 {
     /// <summary>
     /// Provides ambient context for the current test output helper.
     /// This allows static utility classes to access logging without direct dependencies.
     /// </summary>
-    public static class TestOutputContext
+    public static class TestOutput
     {
-        private static readonly AsyncLocal<ITestOutputHelper?> _current = new AsyncLocal<ITestOutputHelper?>();
+        private static readonly AsyncLocal<ITestOutputHelper?> _current = new();
         
         /// <summary>
         /// Gets or sets the current test output helper for the executing context.
@@ -23,6 +23,14 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
         /// Clears the current test output helper reference.
         /// </summary>
         public static void Clear() => Current = null;
+
+        // To log message regarding the test execution with timestamp and thread id
+        public static void LogMessage(string message)
+        {
+            var logEntry = $"Test {message} started on thread {Environment.CurrentManagedThreadId} at {DateTime.Now:HH:mm:ss.fff}";
+            Current?.WriteLine(logEntry);
+            Console.WriteLine(logEntry); // Also write to console for visibility in test runs
+        }
 
         /// <summary>
         /// Writes a message to the current output helper if available.
@@ -64,7 +72,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Services
 
         /// <summary>
         /// Begins a scope where <see cref="Current"/> is set to the provided helper and restored on dispose.
-        /// Usage: using var _ = TestOutputContext.BeginScope(helper);
+        /// Usage: using var _ = TestOutput.BeginScope(helper);
         /// </summary>
         /// <param name="helper">The test output helper to set for the scope.</param>
         /// <returns>An <see cref="IDisposable"/> that restores the previous helper when disposed.</returns>
