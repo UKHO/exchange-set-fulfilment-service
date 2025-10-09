@@ -254,22 +254,15 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                             {
                                 try
                                 {
-                                    // Get the parent folder
-                                    var parentFolder = workSpaceRootPath;
-
-                                    // Get the ZIP file name without extension to create a new folder
                                     var folderName = Path.GetFileNameWithoutExtension(downloadPath);
+                                    var extractFolder = Path.Combine(workSpaceRootPath, folderName);
 
-                                    // Create extraction folder path in the same directory as the zip
-                                    var extractFolder = Path.Combine(parentFolder, folderName);
-
-                                    // Create the extraction folder if it doesn't exist
                                     if (!Directory.Exists(extractFolder))
                                     {
                                         Directory.CreateDirectory(extractFolder);
                                     }
 
-                                    ExtractZipFileWithFolderStructure(downloadPath, extractFolder);
+                                    ExtractZipFile(downloadPath, extractFolder, item.fileName);
                                     
                                     // Delete the original ZIP file after extraction
                                     if (File.Exists(downloadPath))
@@ -279,7 +272,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                                 }
                                 catch (Exception ex)
                                 {
-                                    // Add structured logging for ZIP extraction errors
                                     var zipExtractionError = new ZipExtractionErrorLogView
                                     {
                                         ZipFilePath = downloadPath,
@@ -289,7 +281,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                                         FileName = item.fileName
                                     };
                                     
-                                    // Log with both structured and standard error formats
+                                    // Log the extraction error with structured format
                                     _logger.LogZipExtractionFailed(zipExtractionError);
                                 }
                             }
@@ -317,23 +309,18 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         }
 
         /// <summary>
-        /// Custom method to extract ZIP file with proper preservation of folder structure.
-        /// This handles nested folders properly, ensuring the full path structure is maintained.
+        /// Extracts a ZIP file preserving the folder structure
         /// </summary>
         /// <param name="zipFilePath">Path to the ZIP file</param>
         /// <param name="destinationDirectoryPath">Path to extract the ZIP contents</param>
-        private void ExtractZipFileWithFolderStructure(string zipFilePath, string destinationDirectoryPath)
+        /// <param name="originalFileName">The original file name for logging purposes</param>
+        private void ExtractZipFile(string zipFilePath, string destinationDirectoryPath, string originalFileName)
         {
             try
             {
-                if (!Directory.Exists(destinationDirectoryPath))
-                {
-                    Directory.CreateDirectory(destinationDirectoryPath);
-                }
-
                 using var archive = ZipFile.OpenRead(zipFilePath);
-
-                // First, create all directories to ensure proper structure
+                
+                // create all directories
                 foreach (var entry in archive.Entries)
                 {
                     if (string.IsNullOrEmpty(entry.FullName))
@@ -341,11 +328,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                         continue;
                     }
 
-                    // Normalize path separators for consistency
                     var normalizedPath = entry.FullName.Replace('\\', Path.DirectorySeparatorChar)
-                                                      .Replace('/', Path.DirectorySeparatorChar);
-
-                    if (normalizedPath.EndsWith(Path.DirectorySeparatorChar))
+                                                     .Replace('/', Path.DirectorySeparatorChar);
+                    
+                    if (normalizedPath.EndsWith(Path.DirectorySeparatorChar.ToString(), StringComparison.Ordinal))
                     {
                         var dirPath = Path.Combine(destinationDirectoryPath, normalizedPath);
                         if (!Directory.Exists(dirPath))
@@ -355,54 +341,53 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                     }
                     else
                     {
-                        // For a file entry, make sure its directory exists
-                        var fileInfo = new FileInfo(Path.Combine(destinationDirectoryPath, normalizedPath));
-                        if (!Directory.Exists(fileInfo.DirectoryName) && fileInfo.DirectoryName != null)
+                        var filePath = Path.Combine(destinationDirectoryPath, normalizedPath);
+                        var fileDirectory = Path.GetDirectoryName(filePath);
+                        
+                        if (!string.IsNullOrEmpty(fileDirectory) && !Directory.Exists(fileDirectory))
                         {
-                            Directory.CreateDirectory(fileInfo.DirectoryName);
+                            Directory.CreateDirectory(fileDirectory);
                         }
                     }
                 }
 
-                // Then extract all files
+                // extract all files
                 foreach (var entry in archive.Entries)
                 {
-                    if (string.IsNullOrEmpty(entry.FullName) || entry.FullName.EndsWith("/") || entry.FullName.EndsWith("\\"))
+                    if (string.IsNullOrEmpty(entry.FullName) || 
+                        entry.FullName.EndsWith("/", StringComparison.Ordinal) || 
+                        entry.FullName.EndsWith("\\", StringComparison.Ordinal))
                     {
-                        continue;
+                        continue; 
                     }
 
-                    // Normalize path separators for consistency
                     var normalizedPath = entry.FullName.Replace('\\', Path.DirectorySeparatorChar)
-                                                      .Replace('/', Path.DirectorySeparatorChar);
-
-                    var filePath = Path.Combine(destinationDirectoryPath, normalizedPath);
+                                                     .Replace('/', Path.DirectorySeparatorChar);
                     
-                    var directoryPath = Path.GetDirectoryName(filePath);
-                    if (directoryPath != null && !Directory.Exists(directoryPath))
+                    var extractPath = Path.Combine(destinationDirectoryPath, normalizedPath);
+                    
+                    var parentDir = Path.GetDirectoryName(extractPath);
+                    if (!string.IsNullOrEmpty(parentDir) && !Directory.Exists(parentDir))
                     {
-                        Directory.CreateDirectory(directoryPath);
+                        Directory.CreateDirectory(parentDir);
                     }
-
-                    entry.ExtractToFile(filePath, true);
+                    
+                    entry.ExtractToFile(extractPath, true);
                 }
             }
             catch (Exception ex)
             {
-                // Add structured logging at line 382 for extraction failures
                 var zipExtractionError = new ZipExtractionErrorLogView
                 {
                     ZipFilePath = zipFilePath,
                     DestinationDirectoryPath = destinationDirectoryPath,
                     ExceptionMessage = ex.Message,
                     ExceptionType = ex.GetType().Name,
-                    FileName = Path.GetFileName(zipFilePath)
+                    FileName = originalFileName
                 };
                 
-                // Log with structured format
                 _logger.LogZipExtractionFailed(zipExtractionError);
                 
-                // Re-throw the exception to maintain the original behavior
                 throw;
             }
         }
