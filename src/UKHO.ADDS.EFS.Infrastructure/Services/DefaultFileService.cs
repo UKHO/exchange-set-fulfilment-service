@@ -66,6 +66,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                 var batchModel = exchangeSetType == ExchangeSetType.Complete
                     ? GetBatchModelForCompleteExchangeSet()
                     : GetBatchModelForCustomExchangeSet(userIdentifier.UserIdentity, exchangeSetType);
+
                 var createBatchResponseResult = await _fileShareReadWriteClient.CreateBatchAsync(batchModel, (string)correlationId, cancellationToken);
 
                 if (createBatchResponseResult.IsFailure(out var error, out _))
@@ -86,7 +87,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                 _logger.TestLog("CreateBatchAsync called Exception-" + ex.ToString());
+                _logger.TestLog("CreateBatchAsync called Exception-" + ex.ToString());
                 throw new InvalidOperationException("Failed to create batch.");
             }
         }
@@ -260,7 +261,8 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                 BusinessUnit = _businessUnit,
                 Acl = new Acl
                 {
-                    ReadUsers = [userIdentity]
+                    ReadUsers = [userIdentity],
+                     ReadGroups = ["public"]
                 },
                 Attributes =
                 [
