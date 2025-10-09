@@ -24,6 +24,7 @@ param efs_storage_outputs_blobendpoint string
 @secure()
 param efs_redis_password_value string
 
+@secure()
 param elasticapmapikey_value string
 
 param elasticapmserverurl_value string
@@ -69,6 +70,10 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2025-02-02-preview' = {
         {
           name: 'connectionstrings--efs-redis'
           value: 'efs-redis:6379,password=${efs_redis_password_value}'
+        }
+        {
+          name: 'elasticapm--apikey'
+          value: elasticapmapikey_value
         }
       ]
       activeRevisionsMode: 'Single'
@@ -142,7 +147,7 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2025-02-02-preview' = {
             }
             {
               name: 'ElasticAPM__ApiKey'
-              value: elasticapmapikey_value
+              secretRef: 'elasticapm--apikey'
             }
             {
               name: 'ElasticAPM__ServerURL'

@@ -51,11 +51,10 @@ namespace UKHO.ADDS.EFS.LocalHost
             var addsEnvironment = builder.AddParameter("addsEnvironment");
             var orchestratorCpu = builder.AddParameter("orchestratorCpu");
             var orchestratorMemory = builder.AddParameter("orchestratorMemory");
-            var elasticApmApiKey = builder.AddParameter("elasticAPMApiKey");
+            var elasticApmApiKey = builder.AddParameter("elasticAPMApiKey", true);
             var elasticApmServerUrl = builder.AddParameter("elasticAPMServerURL");
             var elasticApmServiceName = builder.AddParameter("elasticAPMServiceName");
             var elasticApmEnvironment = builder.AddParameter("elasticAPMEnvironment");
-
 
             // Existing user managed identity
             var efsServiceIdentity = builder.AddAzureUserAssignedIdentity(ServiceConfiguration.EfsServiceIdentity).PublishAsExisting(efsServiceIdentityName, efsRetainResourceGroup);
