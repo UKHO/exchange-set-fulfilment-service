@@ -269,7 +269,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                 throw;
             }
 
-            //var expiryTimeSpan = _configuration.GetValue<TimeSpan>(BatchExpiresInConfigKey);
+            var expiryTimeSpan = _configuration.GetValue<TimeSpan>(BatchExpiresInConfigKey);
 
             return new BatchModel
             {
@@ -285,7 +285,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                     new("Product Code", "S-100"),
                     new("Media Type", "Zip")
                 ],
-                ExpiryDate = DateTime.UtcNow.AddDays(7).ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture)
+                ExpiryDate = DateTime.UtcNow.AddDays(expiryTimeSpan.Days).ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture)
             };
         }
         private void LogFileShareServiceError(CorrelationId correlationId, string endPoint, IError error, BatchId batchId)
