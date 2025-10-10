@@ -151,7 +151,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             var productEditionList = new ProductEditionList
             {
                 ResponseCode = System.Net.HttpStatusCode.NotModified,
-                LastModified=DateTime.UtcNow.AddDays(-1),
+                LastModified = DateTime.UtcNow.AddDays(-1),
             };
 
             A.CallTo(() => _productService.GetS100ProductUpdatesSinceAsync(_job!.RequestedFilter, _job.ProductIdentifier, _job, A<CancellationToken>.Ignored))

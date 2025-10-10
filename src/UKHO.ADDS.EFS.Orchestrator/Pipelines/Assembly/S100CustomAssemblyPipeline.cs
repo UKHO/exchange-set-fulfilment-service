@@ -32,7 +32,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly
             AddPipelineNode<GetS100ProductVersionsNode>(cancellationToken);
             AddPipelineNode<CheckExchangeSetSizeExceededNode>(cancellationToken);
 
-
             AddPipelineNode<CheckFingerprintNode>(cancellationToken);
             AddPipelineNode<CreateFileShareBatchNode>(cancellationToken);
             AddPipelineNode<ScheduleBuildNode>(cancellationToken);
@@ -51,7 +50,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly
                 Response = _exchangeSetResponseFactory.CreateResponse(context.Job),
                 ScsLastModified = context.ResponseInfo.LastModified,
                 ScsResponseCode = context.ResponseInfo.ResponseCode,
-
             };
         }
 

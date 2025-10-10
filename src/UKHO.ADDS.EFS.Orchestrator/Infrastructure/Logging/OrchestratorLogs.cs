@@ -60,7 +60,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         // Exchange set size exceeded event
         private const int ExchangeSetSizeExceededId = BaseEventId + 35;
 
-
         // SCS failed eventId
         private const int SalesCatalogueServiceFailedId = BaseEventId + 36;
 
@@ -130,8 +129,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging
         // Exchange set size exceeded event
         public static readonly EventId ExchangeSetSizeExceeded = new(ExchangeSetSizeExceededId, nameof(ExchangeSetSizeExceeded));
 
-
-        //SCS service failed
+        // SCS service failed
         public static readonly EventId SalesCatalogueServiceFailed = new(SalesCatalogueServiceFailedId, nameof(SalesCatalogueServiceFailed));
 
         [LoggerMessage(UnhandledHttpErrorId, LogLevel.Error, "An unhandled exception was caught by the HTTP pipeline: {@message}", EventName = nameof(UnhandledHttpError))]

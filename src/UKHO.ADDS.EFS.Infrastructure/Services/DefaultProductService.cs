@@ -125,7 +125,6 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                 var retryPolicy =
                     HttpRetryPolicyFactory.GetGenericResultRetryPolicy<S100ProductResponse?>(_logger, nameof(GetProductEditionListAsync));
 
-
                 var s100ProductNamesResult = await retryPolicy.ExecuteAsync(async () =>
                 {
                     var payload = productNames.Select(x => (string)x).ToList();
@@ -254,7 +253,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                     parsed = default;
                 }
 
-                 productEditionList.LastModified = parsed;            
+                productEditionList.LastModified = parsed;            
             }
 
             _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, (HttpStatusCode)apiException.ResponseStatusCode));
