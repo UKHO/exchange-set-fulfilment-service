@@ -60,39 +60,28 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         /// <returns>A result containing the batch handle on success or error information on failure.</returns>
         public async Task<Batch> CreateBatchAsync(CorrelationId correlationId, ExchangeSetType exchangeSetType, UserIdentifier userIdentifier, CancellationToken cancellationToken)
         {
-            try
+            var batchModel = exchangeSetType == ExchangeSetType.Complete
+                ? GetBatchModelForCompleteExchangeSet()
+                : GetBatchModelForCustomExchangeSet(userIdentifier.UserIdentity, exchangeSetType);
+
+            var createBatchResponseResult = await _fileShareReadWriteClient.CreateBatchAsync(batchModel, (string)correlationId, cancellationToken);
+
+            if (createBatchResponseResult.IsFailure(out var error, out _))
             {
-                _logger.TestLog("CreateBatchAsync called.");
-                _logger.TestLog("User identifier- " + userIdentifier.ToString());
-
-                var batchModel = exchangeSetType == ExchangeSetType.Complete
-                    ? GetBatchModelForCompleteExchangeSet()
-                    : GetBatchModelForCustomExchangeSet(userIdentifier.UserIdentity, exchangeSetType);
-
-                var createBatchResponseResult = await _fileShareReadWriteClient.CreateBatchAsync(batchModel, (string)correlationId, cancellationToken);
-
-                if (createBatchResponseResult.IsFailure(out var error, out _))
-                {
-                    LogFileShareServiceError(correlationId, CreateBatch, error, BatchId.None);
-                }
-
-                if (createBatchResponseResult.IsSuccess(out var response))
-                {
-                    return new()
-                    {
-                        BatchId = BatchId.From(response.BatchId),
-                        BatchExpiryDateTime = batchModel.ExpiryDate == null ? DateTime.MinValue : (DateTime)batchModel.ExpiryDate,
-                       // : DateTime.ParseExact(batchModel.ExpiryDate, "yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal)
-                    };
-                }
-
-                throw new InvalidOperationException("Failed to create batch.");
+                LogFileShareServiceError(correlationId, CreateBatch, error, BatchId.None);
             }
-            catch (Exception ex)
+
+            if (createBatchResponseResult.IsSuccess(out var response))
             {
-                _logger.TestLog("CreateBatchAsync called Exception-" + ex.ToString());
-                throw new InvalidOperationException("Failed to create batch.");
+                return new()
+                {
+                    BatchId = BatchId.From(response.BatchId),
+                    BatchExpiryDateTime = batchModel.ExpiryDate == null ? DateTime.MinValue
+                    : DateTime.ParseExact(batchModel.ExpiryDate, "yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal)
+                };
             }
+
+            throw new InvalidOperationException("Failed to create batch.");
         }
 
         /// <summary>
@@ -255,20 +244,6 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         /// <returns>A configured batch model with appropriate access control and attributes.</returns>
         private BatchModel GetBatchModelForCustomExchangeSet(string userIdentity, ExchangeSetType exchangeSetType)
         {
-            _logger.TestLog("GetBatchModelForCustomExchangeSet started");
-
-            _logger.TestLog("User identifier- " + userIdentity);
-            try
-            {
-                _logger.TestLog("BatchExpiresIn- " + _configuration.GetValue<TimeSpan>(BatchExpiresInConfigKey));
-                _logger.TestLog("BatchExpiresIn2- " + _configuration.GetValue<TimeSpan>(BatchExpiresInConfigKey2));
-            }
-            catch (Exception ex)
-            {
-                _logger.TestLog("Error occurred while getting batch expiration settings: " + ex.Message);
-                throw;
-            }
-
             var expiryTimeSpan = _configuration.GetValue<TimeSpan>(BatchExpiresInConfigKey);
 
             return new BatchModel
@@ -285,10 +260,10 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                     new("Product Code", "S-100"),
                     new("Media Type", "Zip")
                 ],
-                //ExpiryDate = DateTime.UtcNow.AddDays(expiryTimeSpan.Days).ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture)
-                ExpiryDate = DateTime.UtcNow.AddDays(expiryTimeSpan.Days)
+                ExpiryDate = DateTime.UtcNow.AddDays(expiryTimeSpan.Days).ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture)
             };
         }
+
         private void LogFileShareServiceError(CorrelationId correlationId, string endPoint, IError error, BatchId batchId)
         {
             var fileShareServiceLogView = new FileShareServiceLogView

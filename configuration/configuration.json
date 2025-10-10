@@ -191,7 +191,6 @@
     },
     "vne": {
         "orchestrator": {
-            "BatchExpiresIn2": "7.00:00:00",
             "BusinessUnit": "ADDS-S100",
             "Logging": {
                 "LogLevel": {
