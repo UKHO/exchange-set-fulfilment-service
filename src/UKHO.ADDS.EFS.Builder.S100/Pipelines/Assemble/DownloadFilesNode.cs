@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.IO.Compression;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging;
@@ -19,19 +20,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private readonly int _maxConcurrentDownloads;
         private readonly SemaphoreSlim _downloadFileConcurrencyLimiter;
         private ILogger _logger;
-
-        private const long FileSizeInBytes = 10485760;
         private const string ProductName = "Product Name";
         private const string EditionNumber = "Edition Number";
         private const string UpdateNumber = "Update Number";
-        private const int ProducerCodeStartIndex = 3;
-        private const int ProducerCodeLength = 4;
-        private const string H5Extension = ".h5";
-        private const int MinimumFilenameLength = 7; // Producer code starts at index 3 and is 4 chars long
-        private const int NumericExtensionLength = 4; // Includes the period (.)
-        private const int NumericPartStartIndex = 1;  // Skip the period
-        private const int MinNumericValue = 000;
-        private const int MaxNumericValue = 999;
         private const int FileStreamBufferSize = 81920; // 80KB buffer size
         private const int DefaultConcurrentDownloads = 1; // Default number of concurrent downloads if not specified in config
 
@@ -67,7 +58,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
                 var latestBatches = SelectLatestBatchesByProductEditionAndUpdate(context.Subject.BatchDetails);
 
-                return await DownloadLatestBatchFilesAsync(latestBatches, downloadPath, context.Subject.Build.GetCorrelationId(), context.Subject.WorkSpaceSpoolDataSetFilesPath, context.Subject.WorkSpaceSpoolSupportFilesPath);
+                return await DownloadLatestBatchFilesAsync(latestBatches, downloadPath, context.Subject.Build.GetCorrelationId());
             }
             catch (Exception ex)
             {
@@ -94,9 +85,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private async Task<NodeResultStatus> DownloadLatestBatchFilesAsync(
             IEnumerable<BatchDetails> latestBatches,
             string workSpaceRootPath,
-            CorrelationId correlationId,
-            string workSpaceSpoolDataSetFilesPath,
-            string workSpaceSpoolSupportFilesPath)
+            CorrelationId correlationId)
         {
             var createdDirectories = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             CreateDirectoryIfNotExists(workSpaceRootPath, createdDirectories);
@@ -110,13 +99,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 return NodeResultStatus.Succeeded;
             }
 
-            CreateRequiredDirectories(
-                allFilesToProcess,
-                workSpaceRootPath,
-                workSpaceSpoolDataSetFilesPath,
-                workSpaceSpoolSupportFilesPath,
-                createdDirectories);
-
             // Create a shared dictionary for file locks that will be used during download
             // This dictionary is managed throughout the download process
             var fileLocks = new ConcurrentDictionary<string, SemaphoreSlim>();
@@ -126,8 +108,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 var downloadTasks = CreateDownloadTasks(
                     allFilesToProcess,
                     workSpaceRootPath,
-                    workSpaceSpoolDataSetFilesPath,
-                    workSpaceSpoolSupportFilesPath,
                     correlationId,
                     fileLocks);
 
@@ -163,32 +143,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             return nullableFileSize.HasValue ? FileSize.From(nullableFileSize.Value) : FileSize.Zero;
         }
 
-        private void CreateRequiredDirectories(
-            List<(BatchDetails batch, string fileName, FileSize fileSize)> allFilesToProcess,
-            string workSpaceRootPath,
-            string workSpaceSpoolDataSetFilesPath,
-            string workSpaceSpoolSupportFilesPath,
-            HashSet<string> createdDirectories)
-        {
-            var fileDirectoryPaths = allFilesToProcess
-                .Select(item => GetDirectoryPathForFile(
-                    workSpaceRootPath,
-                    item.fileName,
-                    workSpaceSpoolDataSetFilesPath,
-                    workSpaceSpoolSupportFilesPath))
-                .Distinct();
-
-            foreach (var directoryPath in fileDirectoryPaths)
-            {
-                CreateDirectoryIfNotExists(directoryPath, createdDirectories);
-            }
-        }
-
         private IEnumerable<Task> CreateDownloadTasks(
             List<(BatchDetails batch, string fileName, FileSize fileSize)> allFilesToProcess,
             string workSpaceRootPath,
-            string workSpaceSpoolDataSetFilesPath,
-            string workSpaceSpoolSupportFilesPath,
             CorrelationId correlationId,
             ConcurrentDictionary<string, SemaphoreSlim> fileLocks)
         {
@@ -199,12 +156,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 await _downloadFileConcurrencyLimiter.WaitAsync();
                 try
                 {
-                    var directoryPath = GetDirectoryPathForFile(
-                        workSpaceRootPath,
-                        item.fileName,
-                        workSpaceSpoolDataSetFilesPath,
-                        workSpaceSpoolSupportFilesPath);
-                    var downloadPath = Path.Combine(directoryPath, item.fileName);
+                    var downloadPath = Path.Combine(workSpaceRootPath, item.fileName);
 
                     // Get or create a semaphore for this specific file to prevent concurrent access
                     var fileLock = fileLocks.GetOrAdd(downloadPath, _ => new SemaphoreSlim(1, 1));
@@ -239,9 +191,19 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                                     LogFssDownloadFailed(item.batch, item.fileName, error);
                                     throw new Exception($"Failed to download {item.fileName}");
                                 }
+
+                                // Ensure all data is written to disk
+                                await outputFileStream.FlushAsync();
                             }
-                            // Ensure all data is written to disk
-                            await outputFileStream.FlushAsync();
+
+                            // Close the file stream before extracting
+                            await outputFileStream.DisposeAsync();
+
+                            // Check if the file is a ZIP file and needs extraction
+                            if (Path.GetExtension(downloadPath).Equals(".zip", StringComparison.OrdinalIgnoreCase))
+                            {
+                                ExtractAndDeleteZip(downloadPath, workSpaceRootPath, item.fileName);
+                            }
                         }
                         finally
                         {
@@ -265,6 +227,105 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             });
         }
 
+        private void ExtractAndDeleteZip(string downloadPath, string workSpaceRootPath, string originalFileName)
+        {
+            try
+            {
+                var folderName = Path.GetFileNameWithoutExtension(downloadPath);
+                var extractFolder = Path.Combine(workSpaceRootPath, folderName);
+
+                if (!Directory.Exists(extractFolder))
+                {
+                    Directory.CreateDirectory(extractFolder);
+                }
+
+                ExtractZipFile(downloadPath, extractFolder, originalFileName);
+
+                // Delete the original ZIP file after extraction
+                if (File.Exists(downloadPath))
+                {
+                    File.Delete(downloadPath);
+                }
+            }
+            catch (Exception ex)
+            {
+                var zipExtractionError = new ZipExtractionErrorLogView
+                {
+                    ZipFilePath = downloadPath,
+                    DestinationDirectoryPath = Path.Combine(workSpaceRootPath, Path.GetFileNameWithoutExtension(downloadPath)),
+                    ExceptionMessage = ex.Message,
+                    ExceptionType = ex.GetType().Name,
+                    FileName = originalFileName
+                };
+
+                _logger.LogZipExtractionFailed(zipExtractionError);
+            }
+        }
+
+        /// <summary>
+        /// Extracts a ZIP file preserving the folder structure
+        /// </summary>
+        /// <param name="zipFilePath">Path to the ZIP file</param>
+        /// <param name="destinationDirectoryPath">Path to extract the ZIP contents</param>
+        /// <param name="originalFileName">The original file name for logging purposes</param>
+        private void ExtractZipFile(string zipFilePath, string destinationDirectoryPath, string originalFileName)
+        {
+            try
+            {
+                using var archive = ZipFile.OpenRead(zipFilePath);
+
+                foreach (var entry in archive.Entries)
+                {
+                    if (string.IsNullOrEmpty(entry.FullName))
+                        continue;
+
+                    var normalizedPath = NormalizeEntryPath(entry.FullName);
+                    var destinationPath = Path.Combine(destinationDirectoryPath, normalizedPath);
+
+                    // Zip Slip protection
+                    if (!destinationPath.StartsWith(Path.GetFullPath(destinationDirectoryPath), StringComparison.OrdinalIgnoreCase))
+                        throw new InvalidOperationException($"Entry '{entry.FullName}' is trying to extract outside of the target directory.");
+
+                    if (IsDirectoryEntry(entry))
+                    {
+                        Directory.CreateDirectory(destinationPath);
+                    }
+                    else
+                    {
+                        Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
+                        entry.ExtractToFile(destinationPath, overwrite: true);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                var zipExtractionError = new ZipExtractionErrorLogView
+                {
+                    ZipFilePath = zipFilePath,
+                    DestinationDirectoryPath = destinationDirectoryPath,
+                    ExceptionMessage = ex.Message,
+                    ExceptionType = ex.GetType().Name,
+                    FileName = originalFileName
+                };
+
+                _logger.LogZipExtractionFailed(zipExtractionError);
+                throw;
+            }
+        }
+
+        private static string NormalizeEntryPath(string entryName)
+        {
+            return entryName.Replace('\\', Path.DirectorySeparatorChar)
+                            .Replace('/', Path.DirectorySeparatorChar)
+                            .TrimStart(Path.DirectorySeparatorChar);
+        }
+
+        private static bool IsDirectoryEntry(ZipArchiveEntry entry)
+        {
+            return entry.FullName.EndsWith("/", StringComparison.Ordinal) ||
+                   entry.FullName.EndsWith("\\", StringComparison.Ordinal);
+        }
+
         private static void CreateDirectoryIfNotExists(string downloadPath, HashSet<string>? createdDirectories = null)
         {
             // Early return if we've already created this directory
@@ -281,51 +342,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
             // Add to our tracking set if we're using one
             createdDirectories?.Add(downloadPath);
-        }
-
-        private string GetDirectoryPathForFile(string workSpaceRootPath, string fileName, string workSpaceSpoolDataSetFilesPath, string workSpaceSpoolSupportFilesPath)
-        {
-            var extension = Path.GetExtension(fileName);
-
-            // Check if file should go into dataset-specific folder
-            if (IsDatasetFile(fileName, extension))
-            {
-                // Extract the producer code from filename (chars 4-7 per S-100 standard)
-                var producerCode = fileName.Substring(ProducerCodeStartIndex, ProducerCodeLength);
-                return Path.Combine(workSpaceRootPath, workSpaceSpoolDataSetFilesPath, producerCode);
-            }
-
-            // All other files go to support files folder
-            return Path.Combine(workSpaceRootPath, workSpaceSpoolSupportFilesPath);
-        }
-
-        /// <summary>
-        /// Determines if the file is an S-100 dataset file that should be placed in a producer-specific subfolder.
-        /// </summary>
-        /// <param name="fileName">The name of the file</param>
-        /// <param name="extension">The file extension</param>
-        /// <returns>True if the file is a dataset file, false otherwise</returns>
-        private static bool IsDatasetFile(string fileName, string extension)
-        {
-            // File must be long enough to contain a producer code
-            if (fileName.Length < MinimumFilenameLength)
-            {
-                return false;
-            }
-
-            // Check for numeric extensions (.000 to .999) using ReadOnlySpan for better performance
-            if (extension.Length == NumericExtensionLength)
-            {
-                ReadOnlySpan<char> numericPart = extension.AsSpan(NumericPartStartIndex);
-                if (int.TryParse(numericPart, out var extNum) &&
-                    extNum is >= MinNumericValue and <= MaxNumericValue)
-                {
-                    return true;
-                }
-            }
-
-            // H5 extension
-            return extension.Equals(H5Extension, StringComparison.OrdinalIgnoreCase);
         }
 
         private void LogFssDownloadFailed(BatchDetails batch, string fileName, IError error)

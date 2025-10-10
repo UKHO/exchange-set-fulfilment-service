@@ -13,6 +13,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
         private const int DownloadFilesNodeFailedId = BaseEventId + 4;
         private const int DownloadFilesNodeFssDownloadFailedId = BaseEventId + 5;
         private const int DownloadFilesNodeNoFilesToProcessErrorId = BaseEventId + 6;
+        private const int ZipExtractionFailedId = BaseEventId + 7;
 
         // The assembly pipeline failed
         public static readonly EventId AssemblyPipelineFailed = new(AssemblyPipelineFailedId, nameof(AssemblyPipelineFailed));
@@ -49,5 +50,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
 
         [LoggerMessage(DownloadFilesNodeNoFilesToProcessErrorId, LogLevel.Error, "DownloadFilesNode failed: {@errorMessage}", EventName = nameof(DownloadFilesNodeNoFilesToProcessError))]
         public static partial void LogDownloadFilesNodeNoFilesToProcessError(this ILogger logger, string errorMessage);
+        
+        // ZIP extraction failed
+        public static readonly EventId ZipExtractionFailed = new(ZipExtractionFailedId, nameof(ZipExtractionFailed));
+        
+        [LoggerMessage(ZipExtractionFailedId, LogLevel.Error, "ZIP extraction failed: {@zipExtractionError}", EventName = nameof(ZipExtractionFailed))]
+        public static partial void LogZipExtractionFailed(this ILogger logger, [LogProperties] ZipExtractionErrorLogView zipExtractionError);
     }
 }

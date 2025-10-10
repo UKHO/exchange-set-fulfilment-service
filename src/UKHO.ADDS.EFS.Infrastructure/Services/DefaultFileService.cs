@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System.Globalization;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
@@ -70,7 +71,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                 return new()
                 {
                     BatchId = BatchId.From(response.BatchId),
-                    BatchExpiryDateTime = batchModel.ExpiryDate == null ? DateTime.MinValue : (DateTime)batchModel.ExpiryDate
+                    BatchExpiryDateTime = batchModel.ExpiryDate == null ? DateTime.MinValue : DateTime.ParseExact(batchModel.ExpiryDate, "yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal)
                 };
             }
 
@@ -254,7 +255,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                     new("Product Code", "S-100"),
                     new("Media Type", "Zip")
                 ],
-                ExpiryDate = DateTime.UtcNow.Add(expiryTimeSpan)
+                ExpiryDate = DateTime.UtcNow.AddDays(expiryTimeSpan.Days).ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture)
             };
         }
 

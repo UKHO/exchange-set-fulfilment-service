@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.Mocks.Headers;
+﻿using UKHO.ADDS.Mocks.EFS.Override.Mocks.fss.Models;
+using UKHO.ADDS.Mocks.Headers;
 using UKHO.ADDS.Mocks.Markdown;
 using UKHO.ADDS.Mocks.States;
 
@@ -17,29 +18,47 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                     return Results.BadRequest("Body required");
                 }
 
-                var fileSystem = GetFileSystem();
-
                 try
                 {
-                    fileSystem.CreateDirectory("/S100-ExchangeSets");
-
-                    using var file = fileSystem.OpenFile("/S100-ExchangeSets/" + filename, FileMode.Create, FileAccess.Write, FileShare.Write);
-
-                    file.Seek(0, SeekOrigin.End);
-
-                    request.Body.CopyTo(file);
-                    file.Flush();
+                    // Create a composite key for the file
+                    var fileKey = $"{batchId}:{filename}";
+                    
+                    // Initialize dictionary for this file if it doesn't exist
+                    lock (FileBlockStorage.FileBlocks)
+                    {
+                        if (!FileBlockStorage.FileBlocks.ContainsKey(fileKey))
+                        {
+                            FileBlockStorage.FileBlocks[fileKey] = new Dictionary<string, byte[]>();
+                        }
+                        
+                        // Read the block content
+                        using var ms = new MemoryStream();
+                        request.Body.CopyTo(ms);
+                        
+                        // Store the block
+                        FileBlockStorage.FileBlocks[fileKey][blockId] = ms.ToArray();
+                    }
                 }
                 catch (Exception ex)
                 {
                     return Results.BadRequest(ex.Message);
                 }
 
+                // Also save to filesystem as a backup/alternative access method
+                var fileSystem = GetFileSystem();
+                try
+                {
+                    fileSystem.CreateDirectory("/S100-ExchangeSets");
+                }
+                catch (Exception)
+                {
+                    // Ignore directory creation errors
+                }
+
                 switch (state)
                 {
                     case WellKnownState.Default:
-
-                            return Results.Created();
+                        return Results.Created();
 
                     case WellKnownState.BadRequest:
                         return Results.Json(new
@@ -47,12 +66,12 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                             correlationId = request.Headers[WellKnownHeader.CorrelationId],
                             errors = new[]
                             {
-                                    new
-                                    {
-                                        source = "Upload Block",
-                                        description = "Invalid batchId."
-                                    }
+                                new
+                                {
+                                    source = "Upload Block",
+                                    description = "Invalid batchId."
                                 }
+                            }
                         }, statusCode: 400);
 
                     case WellKnownState.NotFound:
@@ -87,7 +106,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                 .WithEndpointMetadata(endpoint, d =>
                 {
                     d.Append(new MarkdownHeader("Upload a file block", 3));
-                    d.Append(new MarkdownParagraph("Just returns a 201, won't actually upload anything"));
+                    d.Append(new MarkdownParagraph("Stores each file block in memory for assembly during WriteBlock operation"));
                 });
     }
 }

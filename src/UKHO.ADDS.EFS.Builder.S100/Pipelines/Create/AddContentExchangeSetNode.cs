@@ -12,7 +12,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
     internal class AddContentExchangeSetNode : S100ExchangeSetPipelineNode
     {
         /// <summary>
-        /// Executes the node logic to add content to the exchange set by processing the dataset and support files paths.
+        /// Executes the node logic to add content to the exchange set by processing dataset and support files paths.
         /// Returns <see cref="NodeResultStatus.Succeeded"/> if all content is added successfully; otherwise, returns <see cref="NodeResultStatus.Failed"/>.
         /// </summary>
         /// <param name="context">The pipeline execution context containing job and workspace information.</param>
@@ -24,23 +24,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
             var authKey = context.Subject.WorkspaceAuthenticationKey;
             var toolClient = context.Subject.ToolClient;
 
-            // Paths to check directory exists
-            var datasetFilesPath = BuildWorkspacePath(context.Subject, context.Subject.WorkSpaceSpoolDataSetFilesPath);
-            var supportFilesPath = BuildWorkspacePath(context.Subject, context.Subject.WorkSpaceSpoolSupportFilesPath);
+            var downloadPath = Path.Combine(context.Subject.WorkSpaceRootPath, context.Subject.WorkSpaceSpoolPath);
+            
+            var catalogPaths = GetCatalogPaths(context.Subject, downloadPath);
 
-            // Validate the paths and filter out those that do not exist
-            var validContentPaths = new[] {
-                    (Path: context.Subject.WorkSpaceSpoolDataSetFilesPath, FullPath: datasetFilesPath),
-                    (Path: context.Subject.WorkSpaceSpoolSupportFilesPath, FullPath: supportFilesPath)
-                }
-                .Where(x => Directory.Exists(x.FullPath))
-                .Select(x => x.Path)
-                .ToArray();
-
-            // Process each path
-            foreach (var path in validContentPaths)
+            // Process each catalog path
+            foreach (var catalogPath in catalogPaths)
             {
-                if (!await AddContentForPathAsync(toolClient, path, jobId, authKey, logger))
+                if (!await AddContentForPathAsync(toolClient, catalogPath, jobId, authKey, logger))
                 {
                     return NodeResultStatus.Failed;
                 }
@@ -50,14 +41,37 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
         }
 
         /// <summary>
-        /// Builds a full workspace path by combining the root path, spool path, and the specified sub-path.
+        /// Gets all catalog paths that need to be processed from the workspace.
         /// </summary>
-        /// <param name="context">The pipeline context containing workspace path information.</param>
-        /// <param name="subPath">The sub-path to combine with the workspace root and spool paths.</param>
-        /// <returns>A fully qualified workspace path.</returns>
-        private static string BuildWorkspacePath(S100ExchangeSetPipelineContext context, string subPath)
+        /// <param name="context">The pipeline context containing workspace information.</param>
+        /// <param name="downloadPath">The download path where content folders are located.</param>
+        /// <returns>A list of catalog paths relative to the workspace that need to be processed.</returns>
+        private static List<string> GetCatalogPaths(S100ExchangeSetPipelineContext context, string downloadPath)
         {
-            return Path.Combine(context.WorkSpaceRootPath, context.WorkSpaceSpoolPath, subPath);
+            if (!Directory.Exists(downloadPath))
+            {
+                return [];
+            }
+
+            var catalogPaths = new List<string>();
+            
+            var folderNames = Directory.GetDirectories(downloadPath)
+                .Select(Path.GetFileName)
+                .Where(name => !string.IsNullOrEmpty(name) && name.Length > 5)
+                .ToList();
+
+            foreach (var folderName in folderNames)
+            {
+                var fullFolderPath = Path.Combine(downloadPath, folderName);
+
+                if (Directory.Exists(fullFolderPath))
+                {
+                    var catalogPath = folderName + "/S100_ROOT/CATALOG.XML";
+                    catalogPaths.Add(catalogPath);
+                }
+            }
+
+            return catalogPaths;
         }
 
         private async Task<bool> AddContentForPathAsync(IToolClient toolClient, string path, JobId jobId, string authKey, ILogger logger)

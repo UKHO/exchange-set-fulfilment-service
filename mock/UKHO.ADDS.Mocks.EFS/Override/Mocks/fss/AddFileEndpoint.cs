@@ -11,11 +11,23 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                 {
                     EchoHeaders(request, response, [WellKnownHeader.CorrelationId]);
                     var state = GetState(request);
+                    
+                    // Prepare storage for the file blocks
+                    var fileSystem = GetFileSystem();
+                    try
+                    {
+                        fileSystem.CreateDirectory("/S100-ExchangeSets");
+                        // Create a directory to store blocks for this file
+                        fileSystem.CreateDirectory($"/S100-ExchangeSets/{fileName}_blocks");
+                    }
+                    catch (Exception)
+                    {
+                        // Ignore directory creation errors
+                    }
 
                     switch (state)
                     {
                         case WellKnownState.Default:
-
                             return Results.Created();
 
                         case WellKnownState.BadRequest:
@@ -64,7 +76,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                 .WithEndpointMetadata(endpoint, d =>
                 {
                     d.Append(new MarkdownHeader("Adds a file", 3));
-                    d.Append(new MarkdownParagraph("Just returns a 201, won't actually create anything"));
+                    d.Append(new MarkdownParagraph("Registers a file in the batch and prepares for block uploads"));
                 });
     }
 }
