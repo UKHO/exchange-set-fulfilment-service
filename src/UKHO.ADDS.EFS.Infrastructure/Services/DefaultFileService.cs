@@ -30,6 +30,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         private const string CreateBatch = "CreateBatch";
         private const string AddFileToBatch = "AddFileToBatch";
         private const string BatchExpiresInConfigKey = "orchestrator:Response:BatchExpiresIn";
+        private const string BatchExpiresInConfigKey2 = "orchestrator:BatchExpiresIn2";
         private const string BusinessUnitConfigKey = "orchestrator:BusinessUnit";
         private readonly IFileShareReadWriteClient _fileShareReadWriteClient;
         private readonly IConfiguration _configuration;
@@ -257,6 +258,16 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
             _logger.TestLog("GetBatchModelForCustomExchangeSet started");
 
             _logger.TestLog("User identifier- " + userIdentity);
+            try
+            {
+                _logger.TestLog("BatchExpiresIn- " + _configuration.GetValue<TimeSpan>(BatchExpiresInConfigKey));
+                _logger.TestLog("BatchExpiresIn2- " + _configuration.GetValue<TimeSpan>(BatchExpiresInConfigKey2));
+            }
+            catch (Exception ex)
+            {
+                _logger.TestLog("Error occurred while getting batch expiration settings: " + ex.Message);
+                throw;
+            }
 
             //var expiryTimeSpan = _configuration.GetValue<TimeSpan>(BatchExpiresInConfigKey);
 
