@@ -14,6 +14,6 @@ namespace UKHO.ADDS.Clients.FileShareService.ReadWrite.Models
         public IList<KeyValuePair<string, string>> Attributes { get; set; }
 
         [JsonPropertyName("expiryDate")]
-        public DateTime? ExpiryDate { get; set; }
+        public string? ExpiryDate { get; set; }
     }
 }

@@ -51,7 +51,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
             ExchangeSetType = ExchangeSetType,
             CallbackUri = CallbackUri,
             ProductIdentifier = ProductIdentifier,
-            ProductVersions = ProductVersions,
+            ProductVersions = ProductVersions
         };
 
         public static AssemblyPipelineParameters CreateFrom(JobRequestApiMessage message, IConfiguration configuration, CorrelationId correlationId)
