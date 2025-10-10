@@ -18,11 +18,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Assertions
         {
             // Open both ZIP archives for reading
             using var sourceArchive = ZipFile.OpenRead(sourceZipPath);
-            /*
-             * Note: commenting below line as the target zip file is corrupt and cannot be opened
-             *       this should be uncommented once the issue is fixed
-             */
-            // using var targetArchive = ZipFile.OpenRead(targetZipPath);
+            using var targetArchive = ZipFile.OpenRead(targetZipPath);
 
             // Helper method to extract the directory path from a full entry name
             static string? GetDirectoryPath(string fullName)
@@ -41,11 +37,6 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Assertions
             TestOutput.WriteLine($"Expected Zip File Directory Structure: {string.Join(", ", sourceDirectories)}");
 
             // Get distinct directory paths from target archive
-            /*
-             * Note: commenting below line as the target zip file is corrupt and cannot be opened
-             *       this should be uncommented once the issue is fixed
-             */
-            /*
             var targetDirectories = targetArchive.Entries
                 .Select(e => GetDirectoryPath(e.FullName))
                 .Distinct()
@@ -53,7 +44,6 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Assertions
                 .ToList();
 
             TestOutput.WriteLine($"Actual Zip File Directory Structure: {string.Join(", ", targetDirectories)}");
-            */
 
             // Compare directory structures of both ZIP files using soft assertions
             /*
@@ -62,11 +52,6 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Assertions
             // sourceDirectories.Should().BeEquivalentTo(targetDirectories, "directory structures in both ZIP files should match");
 
             // If product names are specified, validate their presence in the target zip
-            /*
-             * Note: commenting below line as the target zip file is corrupt and cannot be opened
-             *       this should be uncommented once the issue is fixed
-             */
-            /*
             if (products != null)
             {
                 var expectedProductPaths = new List<string>();
@@ -100,7 +85,6 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Assertions
                 actualProductPaths.Should().BeEquivalentTo(expectedProductPaths,
                     "all expected product files should be present in the ZIP");
             }
-            */
         }
 
     }
