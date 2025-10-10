@@ -1,4 +1,6 @@
-﻿using UKHO.ADDS.Mocks.Headers;
+﻿using System.Text.Json;
+using UKHO.ADDS.Mocks.EFS.Override.Mocks.fss.Models;
+using UKHO.ADDS.Mocks.Headers;
 using UKHO.ADDS.Mocks.Markdown;
 using UKHO.ADDS.Mocks.States;
 
@@ -18,18 +20,91 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                     {
                         message = "Body required with one or more",
                         blockIds = new[]
-                          {
-                              "00001" 
-                          }
+                        {
+                            "00001" 
+                        }
                     };
 
                     return Results.BadRequest(errorObj);
                 }
 
+                // Try to read the block IDs from the request
+                WriteBlockRequest blockRequest;
+                try
+                {
+                    using var streamReader = new StreamReader(request.Body);
+                    var requestBody = streamReader.ReadToEnd();
+                    blockRequest = JsonSerializer.Deserialize<WriteBlockRequest>(requestBody, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new WriteBlockRequest();
+                }
+                catch
+                {
+                    return Results.BadRequest("Invalid request format. Expected a JSON object with blockIds array.");
+                }
+
+                // Check if the blockIds are present
+                if (blockRequest.BlockIds == null || !blockRequest.BlockIds.Any())
+                {
+                    return Results.BadRequest("No block IDs provided in the request.");
+                }
+
+                var fileSystem = GetFileSystem();
+                var fileKey = $"{batchId}:{filename}";
+
+                try
+                {
+                    // Check if we have blocks for this file
+                    if (!FileBlockStorage.FileBlocks.ContainsKey(fileKey))
+                    {
+                        return Results.BadRequest($"No blocks found for file {filename}");
+                    }
+
+                    var fileBlocks = FileBlockStorage.FileBlocks[fileKey];
+
+                    // Create a memory stream to assemble the complete file
+                    using var assembledFile = new MemoryStream();
+
+                    // Process blocks in order
+                    foreach (var blockId in blockRequest.BlockIds.OrderBy(id => id))
+                    {
+                        if (!fileBlocks.TryGetValue(blockId, out var blockData))
+                        {
+                            return Results.BadRequest($"Block {blockId} not found for file {filename}");
+                        }
+
+                        assembledFile.Write(blockData, 0, blockData.Length);
+                    }
+
+                    // Write the assembled file to the file system
+                    try
+                    {
+                        fileSystem.CreateDirectory("/S100-ExchangeSets");
+                        
+                        using var finalFile = fileSystem.OpenFile($"/S100-ExchangeSets/{filename}", FileMode.Create, FileAccess.Write, FileShare.None);
+                        assembledFile.Position = 0;
+                        assembledFile.CopyTo(finalFile);
+                        finalFile.Flush();
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log the error but continue - we might still be able to succeed
+                        Console.WriteLine($"Error writing to file system: {ex.Message}");
+                    }
+                    
+                    // Clean up the blocks to free memory
+                    FileBlockStorage.FileBlocks.Remove(fileKey);
+                }
+                catch (Exception ex)
+                {
+                    return Results.Json(new
+                    {
+                        correlationId = request.Headers[WellKnownHeader.CorrelationId],
+                        details = $"Failed to assemble file: {ex.Message}"
+                    }, statusCode: 500);
+                }
+
                 switch (state)
                 {
                     case WellKnownState.Default:
-
                         return Results.NoContent();
 
                     case WellKnownState.BadRequest:
@@ -38,12 +113,12 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                             correlationId = request.Headers[WellKnownHeader.CorrelationId],
                             errors = new[]
                             {
-                                    new
-                                    {
-                                        source = "Write Block",
-                                        description = "Invalid BatchId"
-                                    }
+                                new
+                                {
+                                    source = "Write Block",
+                                    description = "Invalid BatchId"
                                 }
+                            }
                         }, statusCode: 400);
 
                     case WellKnownState.NotFound:
@@ -69,8 +144,6 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                             details = "Internal Server Error"
                         }, statusCode: 500);
 
-
-
                     default:
                         // Just send default responses
                         return WellKnownStateHandler.HandleWellKnownState(state);
@@ -80,7 +153,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                 .WithEndpointMetadata(endpoint, d =>
                 {
                     d.Append(new MarkdownHeader("Write a file block", 3));
-                    d.Append(new MarkdownParagraph("Just returns a 204, won't actually upload anything"));
+                    d.Append(new MarkdownParagraph("Assembles the file from uploaded blocks and creates the final file"));
                 });
     }
 }
