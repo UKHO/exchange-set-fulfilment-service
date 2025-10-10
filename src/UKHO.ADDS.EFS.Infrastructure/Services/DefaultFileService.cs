@@ -30,7 +30,6 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         private const string CreateBatch = "CreateBatch";
         private const string AddFileToBatch = "AddFileToBatch";
         private const string BatchExpiresInConfigKey = "orchestrator:Response:BatchExpiresIn";
-        private const string BatchExpiresInConfigKey2 = "orchestrator:BatchExpiresIn2";
         private const string BusinessUnitConfigKey = "orchestrator:BusinessUnit";
         private readonly IFileShareReadWriteClient _fileShareReadWriteClient;
         private readonly IConfiguration _configuration;
@@ -60,28 +59,28 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         /// <returns>A result containing the batch handle on success or error information on failure.</returns>
         public async Task<Batch> CreateBatchAsync(CorrelationId correlationId, ExchangeSetType exchangeSetType, UserIdentifier userIdentifier, CancellationToken cancellationToken)
         {
-            var batchModel = exchangeSetType == ExchangeSetType.Complete
-                ? GetBatchModelForCompleteExchangeSet()
-                : GetBatchModelForCustomExchangeSet(userIdentifier.UserIdentity, exchangeSetType);
+                var batchModel = exchangeSetType == ExchangeSetType.Complete
+                    ? GetBatchModelForCompleteExchangeSet()
+                    : GetBatchModelForCustomExchangeSet(userIdentifier.UserIdentity, exchangeSetType);
 
-            var createBatchResponseResult = await _fileShareReadWriteClient.CreateBatchAsync(batchModel, (string)correlationId, cancellationToken);
+                var createBatchResponseResult = await _fileShareReadWriteClient.CreateBatchAsync(batchModel, (string)correlationId, cancellationToken);
 
-            if (createBatchResponseResult.IsFailure(out var error, out _))
-            {
-                LogFileShareServiceError(correlationId, CreateBatch, error, BatchId.None);
-            }
-
-            if (createBatchResponseResult.IsSuccess(out var response))
-            {
-                return new()
+                if (createBatchResponseResult.IsFailure(out var error, out _))
                 {
-                    BatchId = BatchId.From(response.BatchId),
-                    BatchExpiryDateTime = batchModel.ExpiryDate == null ? DateTime.MinValue
-                    : DateTime.ParseExact(batchModel.ExpiryDate, "yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal)
-                };
-            }
+                    LogFileShareServiceError(correlationId, CreateBatch, error, BatchId.None);
+                }
 
-            throw new InvalidOperationException("Failed to create batch.");
+                if (createBatchResponseResult.IsSuccess(out var response))
+                {
+                    return new()
+                    {
+                        BatchId = BatchId.From(response.BatchId),
+                        BatchExpiryDateTime = batchModel.ExpiryDate == null ? DateTime.MinValue
+                        : DateTime.ParseExact(batchModel.ExpiryDate, "yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal)
+                    };
+                }
+
+                throw new InvalidOperationException("Failed to create batch.");
         }
 
         /// <summary>
