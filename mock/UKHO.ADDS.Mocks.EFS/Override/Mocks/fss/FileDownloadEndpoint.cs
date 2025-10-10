@@ -128,7 +128,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
 
             // Try to parse standard format first: ProductName_Edition_Update
             var standardPattern = @"^([0-9]{3}[A-Z]{2}[A-Za-z0-9_]+)_(\d+)_(\d+)$";
-            var match = Regex.Match(nameWithoutExtension, standardPattern, RegexOptions.IgnoreCase);
+            var match = Regex.Match(nameWithoutExtension, standardPattern, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
 
             if (match.Success)
             {
