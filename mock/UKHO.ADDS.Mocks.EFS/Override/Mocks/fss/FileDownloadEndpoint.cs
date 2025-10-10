@@ -21,7 +21,6 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
 
                         try
                         {
-                            // Create the service directly with its dependency
                             var s100FileSource = new S100FileSource();
                             var s100Service = new S100DownloadFileService(s100FileSource);
                             
@@ -33,7 +32,6 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
 
                                 if (zipResult.IsSuccess(out var exchangeSetFile, out var error))
                                 {
-                                    // Set the proper filename and headers
                                     response.Headers["Content-Disposition"] = $"attachment; filename=\"{fileName}\"";
                                     response.Headers["Content-Length"] = exchangeSetFile.Size.ToString();
 
@@ -41,8 +39,6 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                                 }
                                 else
                                 {
-                                    // Log the error but return 500 status
-                                    Console.WriteLine($"Failed to generate S100 file for product {productName}: {error.Message}");
                                     return Results.Json(new
                                     {
                                         correlationId = request.Headers[WellKnownHeader.CorrelationId],
@@ -53,8 +49,6 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                         }
                         catch (Exception ex)
                         {
-                            // Log exception and return 500 status
-                            Console.WriteLine($"Exception generating S100 file for {fileName}: {ex.Message}");
                             return Results.Json(new
                             {
                                 correlationId = request.Headers[WellKnownHeader.CorrelationId],
