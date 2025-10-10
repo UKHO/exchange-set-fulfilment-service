@@ -1,9 +1,11 @@
 ﻿using System.Net;
 using FluentValidation.Results;
 using UKHO.ADDS.Clients.Common.Constants;
+using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Orchestrator.Api.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
+using UKHO.ADDS.EFS.Orchestrator.Api.ResponseHandlers;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Extensions;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Generators;
 using UKHO.ADDS.EFS.Orchestrator.Infrastructure.Logging;
@@ -22,7 +24,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
         /// </summary>
         /// <param name="routeBuilder">The endpoint route builder</param>
         /// <param name="loggerFactory">The logger factory</param>
-        public static void RegisterS100CustomExchangeSetApi(this IEndpointRouteBuilder routeBuilder, ILoggerFactory loggerFactory,ICorrelationIdGenerator correlationIdGenerator)
+        public static void RegisterS100CustomExchangeSetApi(this IEndpointRouteBuilder routeBuilder, ILoggerFactory loggerFactory,
+            ICorrelationIdGenerator correlationIdGenerator, IScsResponseHandler scsResponseHandler)
         {
             var logger = loggerFactory.CreateLogger("S100ExchangeSetApi");
             var exchangeSetEndpoint = routeBuilder.MapGroup("/v2/exchangeSet/s100");
@@ -67,7 +70,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                              return HandleErrorResponse(result.ErrorResponse);
                          }
 
-                         return Results.Accepted(null, result.Response);
+                         return scsResponseHandler.HandleScsResponse(result, ExchangeSetType.ProductNames.ToString(), logger, httpContext);
                      }
                      catch (Exception)
                      {
@@ -121,7 +124,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                         return HandleErrorResponse(result.ErrorResponse);
                     }
 
-                    return Results.Accepted(null, result.Response);
+                    return scsResponseHandler.HandleScsResponse(result, ExchangeSetType.ProductVersions.ToString(), logger, httpContext);
                 }
                 catch (Exception)
                 {
@@ -168,7 +171,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                         return HandleErrorResponse(result.ErrorResponse);
                     }
 
-                    return Results.Accepted(null, result.Response);
+                    return scsResponseHandler.HandleScsResponse(result, ExchangeSetType.UpdatesSince.ToString(), logger, httpContext);
                 }
                 catch (Exception)
                 {
@@ -191,7 +194,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             {
                 return Results.Json(errorResponse, statusCode: (int)HttpStatusCode.RequestEntityTooLarge);
             }
-            
+
             // For other errors, return as Bad Request
             return Results.BadRequest(errorResponse);
         }

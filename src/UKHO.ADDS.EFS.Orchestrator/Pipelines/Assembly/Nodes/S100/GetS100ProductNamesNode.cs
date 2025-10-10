@@ -32,6 +32,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
         {
             var job = context.Subject.Job;
             var build = context.Subject.Build;
+            var scsResponse = context.Subject.ResponseInfo;
 
             var productNameList = new List<ProductName>();
 
@@ -44,8 +45,19 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                 productNameList.AddRange(build.Products?.Select(p => p.ProductName) ?? []);
             }
 
-            var productEditionList = await _productService.GetProductEditionListAsync(DataStandard.S100, productNameList, job, Environment.CancellationToken);
+            ProductEditionList productEditionList;
 
+            try
+            {
+                productEditionList = await _productService.GetProductEditionListAsync(DataStandard.S100, productNameList, job, Environment.CancellationToken);
+                scsResponse.ResponseCode = productEditionList.ResponseCode;
+                scsResponse.LastModified = productEditionList.LastModified;
+            }
+            catch (Exception)
+            {
+                await context.Subject.SignalAssemblyError();
+                return NodeResultStatus.Failed;
+            }
             var nodeResult = NodeResultStatus.NotRun;
 
             switch (productEditionList.ResponseCode)

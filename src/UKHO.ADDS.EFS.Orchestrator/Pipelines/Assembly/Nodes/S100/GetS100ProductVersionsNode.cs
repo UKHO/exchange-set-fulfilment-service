@@ -34,11 +34,24 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             var job = context.Subject.Job;
             var build = context.Subject.Build;
             var productVersions = job.ProductVersions;
+            var scsResponse = context.Subject.ResponseInfo;
 
             // Call the product service to get product versions
-            var productEditionList = await _productService.GetProductVersionsListAsync(DataStandard.S100, productVersions, job, Environment.CancellationToken);
+            ProductEditionList productEditionList;
+            try
+            {
+                productEditionList = await _productService.GetProductVersionsListAsync(DataStandard.S100, productVersions, job, Environment.CancellationToken);
 
-            if (productEditionList.ResponseCode == HttpStatusCode.OK)
+                scsResponse.ResponseCode = productEditionList.ResponseCode;
+                scsResponse.LastModified = productEditionList.LastModified;
+            }
+            catch (Exception)
+            {
+                await context.Subject.SignalAssemblyError();
+                return NodeResultStatus.Failed;
+            }
+
+            if (productEditionList.ResponseCode == HttpStatusCode.OK || productEditionList.ResponseCode == HttpStatusCode.NotModified)
             {
                 // Log any requested products that weren't returned, but don't fail the build
                 if (productEditionList.ProductCountSummary.MissingProducts.HasProducts)
@@ -49,10 +62,19 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                 build.ProductEditions = productEditionList.Products;
 
                 job.RequestedProductCount = ProductCount.From(productVersions.Count());
-                job.ExchangeSetProductCount = productEditionList.Count;
-                job.RequestedProductsAlreadyUpToDateCount = productEditionList.ProductCountSummary.RequestedProductsAlreadyUpToDateCount;
+                job.ExchangeSetProductCount = ProductCount.From(productEditionList.Count());
+                if (productEditionList.ResponseCode == HttpStatusCode.NotModified)
+                {
+                    job.RequestedProductsAlreadyUpToDateCount = ProductCount.From(productVersions.Count());
+                }
+                else
+                {
+                    job.RequestedProductsAlreadyUpToDateCount = productEditionList.ProductCountSummary.RequestedProductsAlreadyUpToDateCount.IsInitialized()
+                        ? productEditionList.ProductCountSummary.RequestedProductsAlreadyUpToDateCount
+                        : ProductCount.From(0);
+                }
                 job.RequestedProductsNotInExchangeSet = productEditionList.ProductCountSummary.MissingProducts;
-  
+
                 await context.Subject.SignalBuildRequired();
                 return NodeResultStatus.Succeeded;
             }

@@ -29,6 +29,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
         {
             var job = context.Subject.Job;
             var build = context.Subject.Build;
+            var scsResponse = context.Subject.ResponseInfo;
 
             var sinceDateTime = job.RequestedFilter;
 
@@ -40,6 +41,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             try
             {
                 productEditionList = await _productService.GetS100ProductUpdatesSinceAsync(sinceDateTime, productIdentifier, job, Environment.CancellationToken);
+                scsResponse.ResponseCode = productEditionList.ResponseCode;
+                scsResponse.LastModified = productEditionList.LastModified;
             }
             catch (Exception)
             {
@@ -47,20 +50,38 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                 return NodeResultStatus.Failed;
             }
 
-            if (productEditionList?.HasProducts != true)
+            var evaluation = await EvaluateScsResponseAsync(productEditionList, context, job);
+            if (evaluation != NodeResultStatus.Succeeded ||
+                (evaluation == NodeResultStatus.Succeeded && scsResponse.ResponseCode == System.Net.HttpStatusCode.NotModified))
             {
-                await context.Subject.SignalAssemblyError();
-                return NodeResultStatus.Failed;
+                return evaluation;
             }
 
             build.ProductEditions = productEditionList;
 
             job.RequestedProductCount = ProductCount.From(productNameList.Count);
             job.ExchangeSetProductCount = productEditionList.Count;
-            job.RequestedProductsAlreadyUpToDateCount = productEditionList.ProductCountSummary.RequestedProductsAlreadyUpToDateCount; 
-            job.RequestedProductsNotInExchangeSet = productEditionList.ProductCountSummary.MissingProducts; 
+            job.RequestedProductsAlreadyUpToDateCount = productEditionList.ProductCountSummary.RequestedProductsAlreadyUpToDateCount;
+            job.RequestedProductsNotInExchangeSet = productEditionList.ProductCountSummary.MissingProducts;
 
             await context.Subject.SignalBuildRequired();
+            return NodeResultStatus.Succeeded;
+        }
+
+        private static async Task<NodeResultStatus> EvaluateScsResponseAsync(ProductEditionList productEditionList, IExecutionContext<PipelineContext<S100Build>> context, Job job)
+        {
+            if (productEditionList.ResponseCode == System.Net.HttpStatusCode.NotModified)
+            {
+                await context.Subject.SignalNoBuildRequired();
+                return NodeResultStatus.Succeeded;
+            }
+
+            if (productEditionList.ResponseCode != System.Net.HttpStatusCode.OK || !productEditionList.HasProducts)
+            {
+                await context.Subject.SignalAssemblyError();
+                return NodeResultStatus.Failed;
+            }
+
             return NodeResultStatus.Succeeded;
         }
     }

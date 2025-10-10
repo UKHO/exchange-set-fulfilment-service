@@ -74,6 +74,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 }
             };
             productEditionList.Add(new ProductEdition { ProductName = ProductName.From(ProductIdentifier) });
+            productEditionList.ResponseCode = System.Net.HttpStatusCode.OK;
 
             A.CallTo(() => _productService.GetS100ProductUpdatesSinceAsync(_job!.RequestedFilter, _job.ProductIdentifier, _job, A<CancellationToken>.Ignored))
                 .Returns(productEditionList);
@@ -141,6 +142,47 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             var result = await _node.ExecuteAsync(_executionContext);
 
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
+        }
+
+        [Test]
+        public async Task WhenPerformExecuteAsyncIsCalledAndServiceReturnsNotModified_ThenNodeSucceeded()
+        {
+            SetupJobAndBuild();
+            var productEditionList = new ProductEditionList
+            {
+                ResponseCode = System.Net.HttpStatusCode.NotModified,
+                LastModified = DateTime.UtcNow.AddDays(-1),
+            };
+
+            A.CallTo(() => _productService.GetS100ProductUpdatesSinceAsync(_job!.RequestedFilter, _job.ProductIdentifier, _job, A<CancellationToken>.Ignored))
+                .Returns(productEditionList);
+
+            _node = new GetS100ProductUpdatesSinceNode(_nodeEnvironment, _productService);
+
+            var result = await _node.ExecuteAsync(_executionContext);
+
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
+            
+        }
+
+        [Test]
+        public async Task WhenPerformExecuteAsyncIsCalledAndServiceReturnsNotOk_ThenNodeFailed()
+        {
+            SetupJobAndBuild();
+            var productEditionList = new ProductEditionList
+            {
+                ResponseCode = System.Net.HttpStatusCode.BadRequest
+            };
+
+            A.CallTo(() => _productService.GetS100ProductUpdatesSinceAsync(_job!.RequestedFilter, _job.ProductIdentifier, _job, A<CancellationToken>.Ignored))
+                .Returns(productEditionList);
+
+            _node = new GetS100ProductUpdatesSinceNode(_nodeEnvironment, _productService);
+
+            var result = await _node.ExecuteAsync(_executionContext);
+
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
+
         }
 
         private void SetupJobAndBuild(JobState jobState = JobState.Created, ExchangeSetType exchangeSetType = ExchangeSetType.UpdatesSince)

@@ -12,5 +12,7 @@ namespace UKHO.ADDS.EFS.Domain.Constants
         public const string ContentTypeTextPlain = "text/plain";
         public const string LastModifiedHeaderKey = "Last-Modified";
         public const string IfModifiedSinceHeaderKey = "If-Modified-Since";
+        public const string ErrorOriginHeaderKey = "X-Error-Origin-Service";
+        public const string ErrorOriginStatusHeaderKey = "X-Error-Origin-Status";
     }
 }

@@ -93,6 +93,11 @@ resource "azurerm_api_management_product_policy" "efs_product_policy" {
 
 		 <base />
 	  </inbound>
+      <outbound>
+        <set-header name="X-Error-Origin-Service" exists-action="delete" />
+        <set-header name="X-Error-Origin-Status" exists-action="delete" />
+        <base />
+      </outbound>
 	</policies>
 	XML
 }
