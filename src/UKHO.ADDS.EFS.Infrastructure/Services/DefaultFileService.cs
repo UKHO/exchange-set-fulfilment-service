@@ -81,8 +81,8 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                     return new()
                     {
                         BatchId = BatchId.From(response.BatchId),
-                        BatchExpiryDateTime = batchModel.ExpiryDate == null ? DateTime.MinValue
-                        : DateTime.ParseExact(batchModel.ExpiryDate, "yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal)
+                        BatchExpiryDateTime = batchModel.ExpiryDate == null ? DateTime.MinValue : (DateTime)batchModel.ExpiryDate,
+                       // : DateTime.ParseExact(batchModel.ExpiryDate, "yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal)
                     };
                 }
 
@@ -285,7 +285,8 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                     new("Product Code", "S-100"),
                     new("Media Type", "Zip")
                 ],
-                ExpiryDate = DateTime.UtcNow.AddDays(expiryTimeSpan.Days).ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture)
+                //ExpiryDate = DateTime.UtcNow.AddDays(expiryTimeSpan.Days).ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture)
+                ExpiryDate = DateTime.UtcNow.AddDays(expiryTimeSpan.Days)
             };
         }
         private void LogFileShareServiceError(CorrelationId correlationId, string endPoint, IError error, BatchId batchId)
