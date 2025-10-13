@@ -443,9 +443,23 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
         private static string NormalizeEntryPath(string entryName)
         {
-            return entryName.Replace('\\', Path.DirectorySeparatorChar)
-                            .Replace('/', Path.DirectorySeparatorChar)
-                            .TrimStart(Path.DirectorySeparatorChar);
+            // Replace directory separators and trim leading separators
+            var normalized = entryName.Replace('\\', Path.DirectorySeparatorChar)
+                                      .Replace('/', Path.DirectorySeparatorChar)
+                                      .TrimStart(Path.DirectorySeparatorChar);
+
+            // Remove any parent directory traversals
+            var parts = normalized.Split(Path.DirectorySeparatorChar)
+                                  .Where(part => part != ".." && part != "." && !string.IsNullOrWhiteSpace(part));
+            var safePath = string.Join(Path.DirectorySeparatorChar, parts);
+
+            // Reject absolute paths
+            if (Path.IsPathRooted(safePath))
+            {
+                return string.Empty;
+            }
+
+            return safePath;
         }
 
         private static bool IsDirectoryEntry(ZipArchiveEntry entry)
