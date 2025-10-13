@@ -107,11 +107,11 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 options.WaitForJobsToComplete = true;
             });
 
-            builder.Services.AddScoped<UserIdentifier>(x =>
+            builder.Services.AddScoped(x =>
             {
                 var accessor = x.GetRequiredService<IHttpContextAccessor>();
-                var userIdentity = accessor.HttpContext?.User?.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier")?.Value ?? string.Empty;
-                return new UserIdentifier(userIdentity);
+                var identity = accessor.HttpContext?.User?.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier")?.Value ?? string.Empty;
+                return new UserIdentifier() { Identity = identity };
             });
 
             return builder;

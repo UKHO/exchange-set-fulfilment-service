@@ -44,7 +44,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.UnitTests.Services
             _logger = A.Fake<ILogger<DefaultFileService>>();
             _correlationId = CorrelationId.From("correlationId");
             _cancellationToken = CancellationToken.None;
-            _userIdentifier = new UserIdentifier("userId");
+            _userIdentifier = new UserIdentifier() { Identity = "userId" };
             _batchHandle = new BatchHandle(BatchId);
             _fileStream = new MemoryStream([1, 2, 3]);
             _fileName = "file.zip";

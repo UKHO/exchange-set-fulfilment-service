@@ -61,7 +61,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         {
                 var batchModel = exchangeSetType == ExchangeSetType.Complete
                     ? GetBatchModelForCompleteExchangeSet()
-                    : GetBatchModelForCustomExchangeSet(userIdentifier.UserIdentity, exchangeSetType);
+                    : GetBatchModelForCustomExchangeSet(userIdentifier.Identity, exchangeSetType);
 
                 var createBatchResponseResult = await _fileShareReadWriteClient.CreateBatchAsync(batchModel, (string)correlationId, cancellationToken);
 
