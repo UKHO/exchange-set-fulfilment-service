@@ -255,7 +255,6 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                 Attributes =
                 [
                     new("Exchange Set Type", GetExchangeSetTypeAttributeValue(exchangeSetType)),
-                    new("Frequency", "DAILY"),
                     new("Product Code", "S-100"),
                     new("Media Type", "Zip")
                 ],
