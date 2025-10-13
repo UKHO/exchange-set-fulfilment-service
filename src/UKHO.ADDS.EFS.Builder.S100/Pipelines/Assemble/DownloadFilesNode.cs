@@ -281,28 +281,21 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             {
                 using var archive = ZipFile.OpenRead(zipFilePath);
 
-                var entryCount = 0;
-                var totalExtractedSize = 0L;
-
-                // Pre-validate entry count to prevent excessive entries
                 if (archive.Entries.Count > MaxEntryCount)
                 {
                     throw new InvalidOperationException($"ZIP file contains too many entries ({archive.Entries.Count}). Maximum allowed: {MaxEntryCount}");
                 }
 
+                var totalExtractedSize = 0L;
                 foreach (var entry in archive.Entries)
                 {
-                    entryCount++;
-
-                    if (string.IsNullOrEmpty(entry.FullName))
+                    if (!ShouldProcessEntry(entry))
                         continue;
 
                     var normalizedPath = NormalizeEntryPath(entry.FullName);
                     var destinationPath = Path.Combine(destinationDirectoryPath, normalizedPath);
 
-                    // Zip Slip protection
-                    if (!destinationPath.StartsWith(Path.GetFullPath(destinationDirectoryPath), StringComparison.OrdinalIgnoreCase))
-                        throw new InvalidOperationException($"Entry '{entry.FullName}' is trying to extract outside of the target directory.");
+                    ValidateZipEntry(entry, destinationPath, destinationDirectoryPath, ref totalExtractedSize);
 
                     if (IsDirectoryEntry(entry))
                     {
@@ -310,30 +303,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                         continue;
                     }
 
-                    // Validate individual file size
-                    if (entry.Length > MaxExtractedFileSize)
-                    {
-                        throw new InvalidOperationException($"Entry '{entry.FullName}' is too large ({entry.Length} bytes). Maximum allowed: {MaxExtractedFileSize} bytes");
-                    }
-
-                    // Validate compression ratio to detect zip bombs
-                    if (entry.CompressedLength > 0)
-                    {
-                        var compressionRatio = entry.Length / entry.CompressedLength;
-                        if (compressionRatio > MaxCompressionRatio)
-                        {
-                            throw new InvalidOperationException($"Entry '{entry.FullName}' has suspicious compression ratio ({compressionRatio}). Maximum allowed: {MaxCompressionRatio}");
-                        }
-                    }
-
-                    // Validate total extracted size
-                    totalExtractedSize += entry.Length;
-                    if (totalExtractedSize > MaxTotalExtractedSize)
-                    {
-                        throw new InvalidOperationException($"Total extracted size would exceed limit ({totalExtractedSize} bytes). Maximum allowed: {MaxTotalExtractedSize} bytes");
-                    }
-
-                    // Create directory and extract file securely
                     Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
                     ExtractEntry(entry, destinationPath);
                 }
@@ -354,51 +323,43 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             }
         }
 
-        /// <summary>
-        /// Securely extracts a single ZIP entry with controlled resource consumption
-        /// </summary>
-        /// <param name="entry">The ZIP entry to extract</param>
-        /// <param name="destinationPath">The destination file path</param>
-        private static void ExtractEntry(ZipArchiveEntry entry, string destinationPath)
+        private static bool ShouldProcessEntry(ZipArchiveEntry entry)
         {
-            using var entryStream = entry.Open();
-            using var outputStream = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, FileShare.None);
+            return !string.IsNullOrEmpty(entry.FullName);
+        }
 
-            var buffer = new byte[ExtractionBufferSize];
-            var totalBytesRead = 0L;
-            int bytesRead;
+        private void ValidateZipEntry(ZipArchiveEntry entry, string destinationPath, string destinationDirectoryPath, ref long totalExtractedSize)
+        {
+            if (IsZipSlip(destinationPath, destinationDirectoryPath))
+                throw new InvalidOperationException($"Entry '{entry.FullName}' is trying to extract outside of the target directory.");
 
-            while ((bytesRead = entryStream.Read(buffer, 0, buffer.Length)) > 0)
+            if (!IsDirectoryEntry(entry))
             {
-                totalBytesRead += bytesRead;
-
-                // Double-check against the declared length during extraction
-                if (totalBytesRead > entry.Length)
+                if (entry.Length > MaxExtractedFileSize)
                 {
-                    throw new InvalidOperationException($"Entry '{entry.FullName}' actual size exceeds declared size. Possible zip bomb attack.");
+                    throw new InvalidOperationException($"Entry '{entry.FullName}' is too large ({entry.Length} bytes). Maximum allowed: {MaxExtractedFileSize} bytes");
                 }
 
-                // Additional safety check against maximum file size
-                if (totalBytesRead > MaxExtractedFileSize)
+                if (entry.CompressedLength > 0)
                 {
-                    throw new InvalidOperationException($"Entry '{entry.FullName}' size during extraction exceeds maximum allowed size ({MaxExtractedFileSize} bytes).");
+                    var compressionRatio = entry.Length / entry.CompressedLength;
+                    if (compressionRatio > MaxCompressionRatio)
+                    {
+                        throw new InvalidOperationException($"Entry '{entry.FullName}' has suspicious compression ratio ({compressionRatio}). Maximum allowed: {MaxCompressionRatio}");
+                    }
                 }
 
-                outputStream.Write(buffer, 0, bytesRead);
+                totalExtractedSize += entry.Length;
+                if (totalExtractedSize > MaxTotalExtractedSize)
+                {
+                    throw new InvalidOperationException($"Total extracted size would exceed limit ({totalExtractedSize} bytes). Maximum allowed: {MaxTotalExtractedSize} bytes");
+                }
             }
         }
 
-        private static string NormalizeEntryPath(string entryName)
+        private static bool IsZipSlip(string destinationPath, string destinationDirectoryPath)
         {
-            return entryName.Replace('\\', Path.DirectorySeparatorChar)
-                            .Replace('/', Path.DirectorySeparatorChar)
-                            .TrimStart(Path.DirectorySeparatorChar);
-        }
-
-        private static bool IsDirectoryEntry(ZipArchiveEntry entry)
-        {
-            return entry.FullName.EndsWith("/", StringComparison.Ordinal) ||
-                   entry.FullName.EndsWith("\\", StringComparison.Ordinal);
+            return !destinationPath.StartsWith(Path.GetFullPath(destinationDirectoryPath), StringComparison.OrdinalIgnoreCase);
         }
 
         private static void CreateDirectoryIfNotExists(string downloadPath, HashSet<string>? createdDirectories = null)
@@ -429,6 +390,48 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             };
 
             _logger.LogDownloadFilesNodeFssDownloadFailed(downloadFilesLogView);
+        }
+
+        private static string NormalizeEntryPath(string entryName)
+        {
+            return entryName.Replace('\\', Path.DirectorySeparatorChar)
+                            .Replace('/', Path.DirectorySeparatorChar)
+                            .TrimStart(Path.DirectorySeparatorChar);
+        }
+
+        private static bool IsDirectoryEntry(ZipArchiveEntry entry)
+        {
+            return entry.FullName.EndsWith("/", StringComparison.Ordinal) ||
+                   entry.FullName.EndsWith("\\", StringComparison.Ordinal);
+        }
+
+        private static void ExtractEntry(ZipArchiveEntry entry, string destinationPath)
+        {
+            using var entryStream = entry.Open();
+            using var outputStream = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, FileShare.None);
+
+            var buffer = new byte[ExtractionBufferSize];
+            var totalBytesRead = 0L;
+            int bytesRead;
+
+            while ((bytesRead = entryStream.Read(buffer, 0, buffer.Length)) > 0)
+            {
+                totalBytesRead += bytesRead;
+
+                // Double-check against the declared length during extraction
+                if (totalBytesRead > entry.Length)
+                {
+                    throw new InvalidOperationException($"Entry '{entry.FullName}' actual size exceeds declared size. Possible zip bomb attack.");
+                }
+
+                // Additional safety check against maximum file size
+                if (totalBytesRead > MaxExtractedFileSize)
+                {
+                    throw new InvalidOperationException($"Entry '{entry.FullName}' size during extraction exceeds maximum allowed size ({MaxExtractedFileSize} bytes).");
+                }
+
+                outputStream.Write(buffer, 0, bytesRead);
+            }
         }
     }
 }
