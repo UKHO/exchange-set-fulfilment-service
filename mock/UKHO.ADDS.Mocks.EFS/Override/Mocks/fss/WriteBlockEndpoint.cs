@@ -11,9 +11,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
         public override void RegisterSingleEndpoint(IEndpointMock endpoint) =>
             endpoint.MapPut("/batch/{batchId}/files/{fileName}", (string batchId, string filename, HttpRequest request, HttpResponse response) =>
             {
-                EchoHeaders(request, response, [WellKnownHeader.CorrelationId]);
-                var state = GetState(request);
-                var correlationId = GetCorrelationId(request);
+                var (state, correlationId) = SetupRequest(request, response);
 
                 if (request.Body.Length == 0)
                 {
@@ -39,7 +37,6 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                     return Results.BadRequest("No block IDs provided in the request.");
                 }
 
-                var fileSystem = GetFileSystem();
                 var fileKey = $"{batchId}:{filename}";
 
                 try
@@ -69,8 +66,9 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                     // Write the assembled file to the file system
                     try
                     {
-                        fileSystem.CreateDirectory("/S100-ExchangeSets");
-                        using var finalFile = fileSystem.OpenFile($"/S100-ExchangeSets/{filename}", FileMode.Create, FileAccess.Write, FileShare.None);
+                        var fileSystem = GetFileSystem();
+                        fileSystem.CreateDirectory(S100ExchangeSetsPath);
+                        using var finalFile = fileSystem.OpenFile($"{S100ExchangeSetsPath}/{filename}", FileMode.Create, FileAccess.Write, FileShare.None);
                         assembledFile.Position = 0;
                         assembledFile.CopyTo(finalFile);
                         finalFile.Flush();
@@ -88,22 +86,12 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                     return Results.Json(CreateDetailsResponse(correlationId, $"Failed to assemble file: {ex.Message}"), statusCode: 500);
                 }
 
-                switch (state)
+                return state switch
                 {
-                    case WellKnownState.Default:
-                        return Results.NoContent();
-                    case WellKnownState.BadRequest:
-                        return Results.Json(CreateErrorResponse(correlationId, "Write Block", "Invalid BatchId"), statusCode: 400);
-                    case WellKnownState.NotFound:
-                        return Results.Json(CreateDetailsResponse(correlationId, "Not Found"), statusCode: 404);
-                    case WellKnownState.UnsupportedMediaType:
-                        return Results.Json(CreateUnsupportedMediaTypeResponse(), statusCode: 415);
-                    case WellKnownState.InternalServerError:
-                        return Results.Json(CreateDetailsResponse(correlationId, InternalServerErrorMessage), statusCode: 500);
-                    default:
-                        // Just send default responses
-                        return WellKnownStateHandler.HandleWellKnownState(state);
-                }
+                    WellKnownState.Default => Results.NoContent(),
+                    WellKnownState.BadRequest => Results.Json(CreateErrorResponse(correlationId, "Write Block", "Invalid BatchId"), statusCode: 400),
+                    _ => ProcessCommonStates(state, correlationId, "Write Block") ?? WellKnownStateHandler.HandleWellKnownState(state)
+                };
             })
                 .Produces<string>()
                 .WithEndpointMetadata(endpoint, d =>

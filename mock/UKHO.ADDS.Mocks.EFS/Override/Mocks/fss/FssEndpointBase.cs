@@ -9,6 +9,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
     public abstract class FssEndpointBase : ServiceEndpointMock
     {
         protected const string InternalServerErrorMessage = "Internal Server Error";
+        protected const string S100ExchangeSetsPath = "/S100-ExchangeSets";
 
         /// <summary>
         /// Creates a standard error response with correlationId and error details
@@ -75,6 +76,62 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                 WellKnownState.UnsupportedMediaType => Results.Json(CreateUnsupportedMediaTypeResponse(), statusCode: 415),
                 WellKnownState.InternalServerError => Results.Json(CreateDetailsResponse(correlationId, InternalServerErrorMessage), statusCode: 500),
                 _ => null // Not handled, let the endpoint handle it
+            };
+        }
+
+        /// <summary>
+        /// Common request setup for FSS endpoints - extracts headers and initializes common values
+        /// </summary>
+        /// <param name="request">The HTTP request</param>
+        /// <param name="response">The HTTP response</param>
+        /// <returns>Tuple containing state and correlationId</returns>
+        protected (string state, string correlationId) SetupRequest(HttpRequest request, HttpResponse response)
+        {
+            EchoHeaders(request, response, [WellKnownHeader.CorrelationId]);
+            var state = GetState(request);
+            var correlationId = GetCorrelationId(request);
+            return (state, correlationId);
+        }
+
+        /// <summary>
+        /// Safely creates the S100-ExchangeSets directory and any subdirectories
+        /// </summary>
+        /// <param name="subPath">Optional subdirectory path within S100-ExchangeSets</param>
+        protected void EnsureS100DirectoryExists(string? subPath = null)
+        {
+            var fileSystem = GetFileSystem();
+            try
+            {
+                fileSystem.CreateDirectory(S100ExchangeSetsPath);
+                if (!string.IsNullOrEmpty(subPath))
+                {
+                    fileSystem.CreateDirectory($"{S100ExchangeSetsPath}/{subPath}");
+                }
+            }
+            catch (Exception)
+            {
+                // Ignore directory creation errors
+            }
+        }
+
+        /// <summary>
+        /// Processes common FSS error states with default error handling
+        /// </summary>
+        /// <param name="state">The current state</param>
+        /// <param name="correlationId">The correlation ID</param>
+        /// <param name="source">The source component name</param>
+        /// <param name="customBadRequestResponse">Custom bad request response, or null to use HandleCommonErrorStates</param>
+        /// <returns>IResult for common error states, or null if state should be handled by endpoint</returns>
+        protected static IResult? ProcessCommonStates(string state, string correlationId, string source, IResult? customBadRequestResponse = null)
+        {
+            return state switch
+            {
+                WellKnownState.BadRequest when customBadRequestResponse != null => customBadRequestResponse,
+                WellKnownState.NotFound => Results.Json(CreateDetailsResponse(correlationId, "Not Found"), statusCode: 404),
+                WellKnownState.UnsupportedMediaType => Results.Json(CreateUnsupportedMediaTypeResponse(), statusCode: 415),
+                WellKnownState.InternalServerError => Results.Json(CreateDetailsResponse(correlationId, InternalServerErrorMessage), statusCode: 500),
+                _ when state != WellKnownState.Default => WellKnownStateHandler.HandleWellKnownState(state),
+                _ => null // Let endpoint handle Default state and custom BadRequest
             };
         }
     }

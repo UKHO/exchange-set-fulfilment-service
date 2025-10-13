@@ -12,50 +12,14 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
         public override void RegisterSingleEndpoint(IEndpointMock endpoint) =>
             endpoint.MapGet("/batch/{batchId}/files/{fileName}", (string batchId, string fileName, HttpRequest request, HttpResponse response) =>
             {
-                EchoHeaders(request, response, [WellKnownHeader.CorrelationId]);
-                var state = GetState(request);
-                var correlationId = GetCorrelationId(request);
+                var (state, correlationId) = SetupRequest(request, response);
 
-                switch (state)
+                return state switch
                 {
-                    case WellKnownState.Default:
-                        try
-                        {
-                            var s100FileSource = new S100FileSource();
-                            var s100Service = new S100DownloadFileService(s100FileSource);
-                            var (productName, editionNumber, productUpdateNumber) = ParseS100FileName(fileName);
-                            if (!string.IsNullOrEmpty(productName))
-                            {
-                                var zipResult = s100Service.GenerateZipFile(productName, editionNumber, productUpdateNumber);
-                                if (zipResult.IsSuccess(out var exchangeSetFile, out var error))
-                                {
-                                    response.Headers["Content-Disposition"] = $"attachment; filename=\"{fileName}\"";
-                                    response.Headers["Content-Length"] = exchangeSetFile.Size.ToString();
-                                    return Results.File(exchangeSetFile.FileStream, exchangeSetFile.MimeType, fileName);
-                                }
-                                else
-                                {
-                                    return Results.Json(CreateDetailsResponse(correlationId, InternalServerErrorMessage), statusCode: 500);
-                                }
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            return Results.Json(CreateDetailsResponse(correlationId, InternalServerErrorMessage), statusCode: 500);
-                        }
-                        return Results.Json(CreateDetailsResponse(correlationId, InternalServerErrorMessage), statusCode: 500);
-                    case WellKnownState.BadRequest:
-                        return Results.Json(CreateErrorResponse(correlationId, "File Download", "Invalid batchId."), statusCode: 400);
-                    case WellKnownState.NotFound:
-                        return Results.Json(CreateDetailsResponse(correlationId, "Not Found"), statusCode: 404);
-                    case WellKnownState.UnsupportedMediaType:
-                        return Results.Json(CreateUnsupportedMediaTypeResponse(), statusCode: 415);
-                    case WellKnownState.InternalServerError:
-                        return Results.Json(CreateDetailsResponse(correlationId, InternalServerErrorMessage), statusCode: 500);
-                    default:
-                        // Just send default responses
-                        return WellKnownStateHandler.HandleWellKnownState(state);
-                }
+                    WellKnownState.Default => HandleDefaultState(fileName, response, correlationId),
+                    WellKnownState.BadRequest => Results.Json(CreateErrorResponse(correlationId, "File Download", "Invalid batchId."), statusCode: 400),
+                    _ => ProcessCommonStates(state, correlationId, "File Download") ?? WellKnownStateHandler.HandleWellKnownState(state)
+                };
             })
                 .Produces<string>()
                 .WithEndpointMetadata(endpoint, d =>
@@ -67,6 +31,33 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                     d.Append(new MarkdownParagraph("- Example: `101CA100129_1_0.zip` → Product: `101CA100129`, Edition: `1`, Update: `0`"));
                     d.Append(new MarkdownParagraph("- ProductName must start with S100 product codes: 101, 102, 104, or 111"));
                 });
+
+        private IResult HandleDefaultState(string fileName, HttpResponse response, string correlationId)
+        {
+            try
+            {
+                var s100FileSource = new S100FileSource();
+                var s100Service = new S100DownloadFileService(s100FileSource);
+                var (productName, editionNumber, productUpdateNumber) = ParseS100FileName(fileName);
+                
+                if (!string.IsNullOrEmpty(productName))
+                {
+                    var zipResult = s100Service.GenerateZipFile(productName, editionNumber, productUpdateNumber);
+                    if (zipResult.IsSuccess(out var exchangeSetFile, out var error))
+                    {
+                        response.Headers["Content-Disposition"] = $"attachment; filename=\"{fileName}\"";
+                        response.Headers["Content-Length"] = exchangeSetFile.Size.ToString();
+                        return Results.File(exchangeSetFile.FileStream, exchangeSetFile.MimeType, fileName);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Fall through to error response
+            }
+            
+            return Results.Json(CreateDetailsResponse(correlationId, InternalServerErrorMessage), statusCode: 500);
+        }
 
         /// <summary>
         /// Parses S100 filename to extract productName, editionNumber, and productUpdateNumber

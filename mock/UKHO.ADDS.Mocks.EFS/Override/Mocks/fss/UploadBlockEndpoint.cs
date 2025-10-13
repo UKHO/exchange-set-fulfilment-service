@@ -10,9 +10,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
         public override void RegisterSingleEndpoint(IEndpointMock endpoint) =>
             endpoint.MapPut("/batch/{batchId}/files/{fileName}/{blockId}", (string batchId, string filename, string blockId, HttpRequest request, HttpResponse response) =>
             {
-                EchoHeaders(request, response, [WellKnownHeader.CorrelationId]);
-                var state = GetState(request);
-                var correlationId = GetCorrelationId(request);
+                var (state, correlationId) = SetupRequest(request, response);
 
                 if (request.Body.Length == 0)
                 {
@@ -46,37 +44,14 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                 }
 
                 // Also save to filesystem as a backup/alternative access method
-                var fileSystem = GetFileSystem();
-                try
+                EnsureS100DirectoryExists();
+
+                return state switch
                 {
-                    fileSystem.CreateDirectory("/S100-ExchangeSets");
-                }
-                catch (Exception)
-                {
-                    // Ignore directory creation errors
-                }
-
-                switch (state)
-                {
-                    case WellKnownState.Default:
-                        return Results.Created();
-
-                    case WellKnownState.BadRequest:
-                        return Results.Json(CreateErrorResponse(correlationId, "Upload Block", "Invalid batchId."), statusCode: 400);
-
-                    case WellKnownState.NotFound:
-                        return Results.Json(CreateDetailsResponse(correlationId, "Not Found"), statusCode: 404);
-
-                    case WellKnownState.UnsupportedMediaType:
-                        return Results.Json(CreateUnsupportedMediaTypeResponse(), statusCode: 415);
-
-                    case WellKnownState.InternalServerError:
-                        return Results.Json(CreateDetailsResponse(correlationId, InternalServerErrorMessage), statusCode: 500);
-
-                    default:
-                        // Just send default responses
-                        return WellKnownStateHandler.HandleWellKnownState(state);
-                }
+                    WellKnownState.Default => Results.Created(),
+                    WellKnownState.BadRequest => Results.Json(CreateErrorResponse(correlationId, "Upload Block", "Invalid batchId."), statusCode: 400),
+                    _ => ProcessCommonStates(state, correlationId, "Upload Block") ?? WellKnownStateHandler.HandleWellKnownState(state)
+                };
             })
                 .Produces<string>()
                 .WithEndpointMetadata(endpoint, d =>

@@ -9,44 +9,17 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
         public override void RegisterSingleEndpoint(IEndpointMock endpoint) =>
             endpoint.MapPost("/batch/{batchId}/files/{fileName}", (string batchId, string fileName, HttpRequest request, HttpResponse response) =>
                 {
-                    EchoHeaders(request, response, [WellKnownHeader.CorrelationId]);
-                    var state = GetState(request);
-                    var correlationId = GetCorrelationId(request);
+                    var (state, correlationId) = SetupRequest(request, response);
                     
                     // Prepare storage for the file blocks
-                    var fileSystem = GetFileSystem();
-                    try
+                    EnsureS100DirectoryExists($"{fileName}_blocks");
+
+                    return state switch
                     {
-                        fileSystem.CreateDirectory("/S100-ExchangeSets");
-                        // Create a directory to store blocks for this file
-                        fileSystem.CreateDirectory($"/S100-ExchangeSets/{fileName}_blocks");
-                    }
-                    catch (Exception)
-                    {
-                        // Ignore directory creation errors
-                    }
-
-                    switch (state)
-                    {
-                        case WellKnownState.Default:
-                            return Results.Created();
-
-                        case WellKnownState.BadRequest:
-                            return Results.Json(CreateErrorResponse(correlationId, "Add File", "Batch ID is missing in the URI."), statusCode: 400);
-
-                        case WellKnownState.NotFound:
-                            return Results.Json(CreateDetailsResponse(correlationId, "Not Found"), statusCode: 404);
-
-                        case WellKnownState.UnsupportedMediaType:
-                            return Results.Json(CreateUnsupportedMediaTypeResponse(), statusCode: 415);
-
-                        case WellKnownState.InternalServerError:
-                            return Results.Json(CreateDetailsResponse(correlationId, InternalServerErrorMessage), statusCode: 500);
-
-                        default:
-                            // Just send default responses
-                            return WellKnownStateHandler.HandleWellKnownState(state);
-                    }
+                        WellKnownState.Default => Results.Created(),
+                        WellKnownState.BadRequest => Results.Json(CreateErrorResponse(correlationId, "Add File", "Batch ID is missing in the URI."), statusCode: 400),
+                        _ => ProcessCommonStates(state, correlationId, "Add File") ?? WellKnownStateHandler.HandleWellKnownState(state)
+                    };
                 })
                 .Produces<string>()
                 .WithEndpointMetadata(endpoint, d =>
