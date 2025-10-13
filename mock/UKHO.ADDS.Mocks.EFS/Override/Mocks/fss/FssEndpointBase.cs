@@ -1,4 +1,5 @@
 using UKHO.ADDS.Mocks.Headers;
+using UKHO.ADDS.Mocks.States;
 
 namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
 {
@@ -56,5 +57,25 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
         /// <returns>The correlation ID string</returns>
         protected static string GetCorrelationId(HttpRequest request) =>
             request.Headers[WellKnownHeader.CorrelationId];
+
+        /// <summary>
+        /// Handles common error states using standard error responses
+        /// </summary>
+        /// <param name="state">The well-known state string</param>
+        /// <param name="correlationId">The correlation ID</param>
+        /// <param name="source">The source component name</param>
+        /// <param name="badRequestDescription">Custom bad request description</param>
+        /// <returns>IResult for the error state, or null if not handled</returns>
+        protected static IResult? HandleCommonErrorStates(string state, string correlationId, string source, string badRequestDescription = "Invalid request.")
+        {
+            return state switch
+            {
+                WellKnownState.BadRequest => Results.Json(CreateErrorResponse(correlationId, source, badRequestDescription), statusCode: 400),
+                WellKnownState.NotFound => Results.Json(CreateDetailsResponse(correlationId, "Not Found"), statusCode: 404),
+                WellKnownState.UnsupportedMediaType => Results.Json(CreateUnsupportedMediaTypeResponse(), statusCode: 415),
+                WellKnownState.InternalServerError => Results.Json(CreateDetailsResponse(correlationId, InternalServerErrorMessage), statusCode: 500),
+                _ => null // Not handled, let the endpoint handle it
+            };
+        }
     }
 }
