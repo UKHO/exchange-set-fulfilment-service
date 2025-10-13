@@ -9,6 +9,7 @@ using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.Files;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Services;
+using UKHO.ADDS.EFS.Domain.User;
 using UKHO.ADDS.EFS.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Infrastructure.Logging.Services;
 using UKHO.ADDS.Infrastructure.Results;
@@ -56,26 +57,30 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result containing the batch handle on success or error information on failure.</returns>
-        public async Task<Batch> CreateBatchAsync(CorrelationId correlationId, ExchangeSetType exchangeSetType, CancellationToken cancellationToken)
+        public async Task<Batch> CreateBatchAsync(CorrelationId correlationId, ExchangeSetType exchangeSetType, UserIdentifier userIdentifier, CancellationToken cancellationToken)
         {
-            var batchModel = exchangeSetType == ExchangeSetType.Complete ? GetBatchModelForCompleteExchangeSet() : GetBatchModelForCustomExchangeSet();
-            var createBatchResponseResult = await _fileShareReadWriteClient.CreateBatchAsync(batchModel, (string)correlationId, cancellationToken);
+                var batchModel = exchangeSetType == ExchangeSetType.Complete
+                    ? GetBatchModelForCompleteExchangeSet()
+                    : GetBatchModelForCustomExchangeSet(userIdentifier.Identity, exchangeSetType);
 
-            if (createBatchResponseResult.IsFailure(out var error, out _))
-            {
-                LogFileShareServiceError(correlationId, CreateBatch, error, BatchId.None);
-            }
+                var createBatchResponseResult = await _fileShareReadWriteClient.CreateBatchAsync(batchModel, (string)correlationId, cancellationToken);
 
-            if (createBatchResponseResult.IsSuccess(out var response))
-            {
-                return new()
+                if (createBatchResponseResult.IsFailure(out var error, out _))
                 {
-                    BatchId = BatchId.From(response.BatchId),
-                    BatchExpiryDateTime = batchModel.ExpiryDate == null ? DateTime.MinValue : DateTime.ParseExact(batchModel.ExpiryDate, "yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal)
-                };
-            }
+                    LogFileShareServiceError(correlationId, CreateBatch, error, BatchId.None);
+                }
 
-            throw new InvalidOperationException("Failed to create batch.");
+                if (createBatchResponseResult.IsSuccess(out var response))
+                {
+                    return new()
+                    {
+                        BatchId = BatchId.From(response.BatchId),
+                        BatchExpiryDateTime = batchModel.ExpiryDate == null ? DateTime.MinValue
+                        : DateTime.ParseExact(batchModel.ExpiryDate, "yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal)
+                    };
+                }
+
+                throw new InvalidOperationException("Failed to create batch.");
         }
 
         /// <summary>
@@ -236,7 +241,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         /// Creates a batch model with predefined settings for S-100 product type for custom exchangeset.
         /// </summary>
         /// <returns>A configured batch model with appropriate access control and attributes.</returns>
-        private BatchModel GetBatchModelForCustomExchangeSet()
+        private BatchModel GetBatchModelForCustomExchangeSet(string userIdentity, ExchangeSetType exchangeSetType)
         {
             var expiryTimeSpan = _configuration.GetValue<TimeSpan>(BatchExpiresInConfigKey);
 
@@ -245,13 +250,11 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                 BusinessUnit = _businessUnit,
                 Acl = new Acl
                 {
-                    ReadUsers = ["public"], ///TODO: To be set correctly for custom Exchange set
-                    ReadGroups = ["public"] ///TODO: To be set correctly for custom Exchange set
+                    ReadUsers = [userIdentity]
                 },
                 Attributes =
                 [
-                    new("Exchange Set Type", "Base"),
-                    new("Frequency", "DAILY"),
+                    new("Exchange Set Type", GetExchangeSetTypeAttributeValue(exchangeSetType)),
                     new("Product Code", "S-100"),
                     new("Media Type", "Zip")
                 ],
@@ -288,6 +291,22 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
             };
 
             _logger.LogFileShareSearchCommittedBatchesError(searchCommittedBatchesLogView);
+        }
+
+        /// <summary>
+        /// Returns the attribute value for Exchange Set Type based on the ExchangeSetType enum.
+        /// </summary>
+        /// <param name="exchangeSetType">The exchange set type</param>
+        /// <returns>String value for the attribute.</returns>
+        private static string GetExchangeSetTypeAttributeValue(ExchangeSetType exchangeSetType)
+        {
+            return exchangeSetType switch
+            {
+                ExchangeSetType.ProductNames => "Base",
+                ExchangeSetType.ProductVersions => "Update",
+                ExchangeSetType.UpdatesSince => "Update",
+                _ => "Base"
+            };
         }
     }
 }

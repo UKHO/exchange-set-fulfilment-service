@@ -259,7 +259,8 @@ jobs:
             arguments: "-healthEndPointUrl $(ORCHESTRATOR_URL)/health -waitTimeInMinute 2 -onErrorContinue 0"
 
         - task: DotNetCoreCLI@2
-          displayName: ".Net Core - NuGet restore test projects only"          
+          displayName: ".Net Core - NuGet restore test projects only"
+          condition: eq('${{ parameters.ShortName }}', 'dev')
           inputs:
             command: restore
             projects: "**/UKHO.ADDS.EFS.FunctionalTests.csproj"
@@ -270,7 +271,8 @@ jobs:
             restoreDirectory: '$(Build.SourcesDirectory)/efs/packagesForTests'
 
         - task: DotNetCoreCLI@2
-          displayName: Run Functional tests          
+          displayName: Run Functional tests
+          condition: eq('${{ parameters.ShortName }}', 'dev')
           inputs:
             command: test
             projects: "**/UKHO.ADDS.EFS.FunctionalTests.csproj"
