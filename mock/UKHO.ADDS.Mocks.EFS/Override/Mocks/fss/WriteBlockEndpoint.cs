@@ -8,24 +8,18 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
 {
     public class WriteBlockEndpoint : ServiceEndpointMock
     {
+        private const string InternalServerErrorMessage = "Internal Server Error";
+
         public override void RegisterSingleEndpoint(IEndpointMock endpoint) =>
             endpoint.MapPut("/batch/{batchId}/files/{fileName}", (string batchId, string filename, HttpRequest request, HttpResponse response) =>
             {
                 EchoHeaders(request, response, [WellKnownHeader.CorrelationId]);
                 var state = GetState(request);
+                var correlationId = request.Headers[WellKnownHeader.CorrelationId];
 
                 if (request.Body.Length == 0)
                 {
-                    var errorObj = new
-                    {
-                        message = "Body required with one or more",
-                        blockIds = new[]
-                        {
-                            "00001" 
-                        }
-                    };
-
-                    return Results.BadRequest(errorObj);
+                    return Results.BadRequest(CreateBodyRequiredError());
                 }
 
                 // Try to read the block IDs from the request
@@ -78,7 +72,6 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                     try
                     {
                         fileSystem.CreateDirectory("/S100-ExchangeSets");
-                        
                         using var finalFile = fileSystem.OpenFile($"/S100-ExchangeSets/{filename}", FileMode.Create, FileAccess.Write, FileShare.None);
                         assembledFile.Position = 0;
                         assembledFile.CopyTo(finalFile);
@@ -89,61 +82,26 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                         // Log the error but continue - we might still be able to succeed
                         Console.WriteLine($"Error writing to file system: {ex.Message}");
                     }
-                    
                     // Clean up the blocks to free memory
                     FileBlockStorage.FileBlocks.Remove(fileKey);
                 }
                 catch (Exception ex)
                 {
-                    return Results.Json(new
-                    {
-                        correlationId = request.Headers[WellKnownHeader.CorrelationId],
-                        details = $"Failed to assemble file: {ex.Message}"
-                    }, statusCode: 500);
+                    return Results.Json(CreateDetailsResponse(correlationId, $"Failed to assemble file: {ex.Message}"), statusCode: 500);
                 }
 
                 switch (state)
                 {
                     case WellKnownState.Default:
                         return Results.NoContent();
-
                     case WellKnownState.BadRequest:
-                        return Results.Json(new
-                        {
-                            correlationId = request.Headers[WellKnownHeader.CorrelationId],
-                            errors = new[]
-                            {
-                                new
-                                {
-                                    source = "Write Block",
-                                    description = "Invalid BatchId"
-                                }
-                            }
-                        }, statusCode: 400);
-
+                        return Results.Json(CreateErrorResponse(correlationId, "Write Block", "Invalid BatchId"), statusCode: 400);
                     case WellKnownState.NotFound:
-                        return Results.Json(new
-                        {
-                            correlationId = request.Headers[WellKnownHeader.CorrelationId],
-                            details = "Not Found"
-                        }, statusCode: 404);
-
+                        return Results.Json(CreateDetailsResponse(correlationId, "Not Found"), statusCode: 404);
                     case WellKnownState.UnsupportedMediaType:
-                        return Results.Json(new
-                        {
-                            type = "https://example.com",
-                            title = "Unsupported Media Type",
-                            status = 415,
-                            traceId = "00-012-0123-01"
-                        }, statusCode: 415);
-
+                        return Results.Json(CreateUnsupportedMediaTypeResponse(), statusCode: 415);
                     case WellKnownState.InternalServerError:
-                        return Results.Json(new
-                        {
-                            correlationId = request.Headers[WellKnownHeader.CorrelationId],
-                            details = "Internal Server Error"
-                        }, statusCode: 500);
-
+                        return Results.Json(CreateDetailsResponse(correlationId, InternalServerErrorMessage), statusCode: 500);
                     default:
                         // Just send default responses
                         return WellKnownStateHandler.HandleWellKnownState(state);
@@ -155,5 +113,31 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                     d.Append(new MarkdownHeader("Write a file block", 3));
                     d.Append(new MarkdownParagraph("Assembles the file from uploaded blocks and creates the final file"));
                 });
+
+        private static object CreateBodyRequiredError() => new
+        {
+            message = "Body required with one or more",
+            blockIds = new[] { "00001" }
+        };
+        private static object CreateErrorResponse(string correlationId, string source, string description) => new
+        {
+            correlationId,
+            errors = new[]
+            {
+                new { source, description }
+            }
+        };
+        private static object CreateDetailsResponse(string correlationId, string details) => new
+        {
+            correlationId,
+            details
+        };
+        private static object CreateUnsupportedMediaTypeResponse() => new
+        {
+            type = "https://example.com",
+            title = "Unsupported Media Type",
+            status = 415,
+            traceId = "00-012-0123-01"
+        };
     }
 }

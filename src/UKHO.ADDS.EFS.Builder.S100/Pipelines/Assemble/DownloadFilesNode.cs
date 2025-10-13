@@ -25,6 +25,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private const string UpdateNumber = "Update Number";
         private const int FileStreamBufferSize = 81920; // 80KB buffer size
         private const int DefaultConcurrentDownloads = 1; // Default number of concurrent downloads if not specified in config
+        
+        // Security limits for ZIP extraction
+        private const long MaxExtractedFileSize = 100 * 1024 * 1024; // 100MB per file
+        private const long MaxTotalExtractedSize = 500 * 1024 * 1024; // 500MB total
+        private const int MaxEntryCount = 10000; // Maximum number of entries
+        private const int MaxCompressionRatio = 100; // Maximum compression ratio
+        private const int ExtractionBufferSize = 8192; // 8KB buffer for extraction
 
         public DownloadFilesNode(IFileShareReadOnlyClient fileShareReadOnlyClient, IConfiguration configuration)
         {
@@ -263,7 +270,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         }
 
         /// <summary>
-        /// Extracts a ZIP file preserving the folder structure
+        /// Securely extracts a ZIP file with resource consumption controls to prevent zip bomb attacks
         /// </summary>
         /// <param name="zipFilePath">Path to the ZIP file</param>
         /// <param name="destinationDirectoryPath">Path to extract the ZIP contents</param>
@@ -273,9 +280,20 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             try
             {
                 using var archive = ZipFile.OpenRead(zipFilePath);
+                
+                var entryCount = 0;
+                var totalExtractedSize = 0L;
+
+                // Pre-validate entry count to prevent excessive entries
+                if (archive.Entries.Count > MaxEntryCount)
+                {
+                    throw new InvalidOperationException($"ZIP file contains too many entries ({archive.Entries.Count}). Maximum allowed: {MaxEntryCount}");
+                }
 
                 foreach (var entry in archive.Entries)
                 {
+                    entryCount++;
+                    
                     if (string.IsNullOrEmpty(entry.FullName))
                         continue;
 
@@ -289,12 +307,35 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                     if (IsDirectoryEntry(entry))
                     {
                         Directory.CreateDirectory(destinationPath);
+                        continue;
                     }
-                    else
+
+                    // Validate individual file size
+                    if (entry.Length > MaxExtractedFileSize)
                     {
-                        Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
-                        entry.ExtractToFile(destinationPath, overwrite: true);
+                        throw new InvalidOperationException($"Entry '{entry.FullName}' is too large ({entry.Length} bytes). Maximum allowed: {MaxExtractedFileSize} bytes");
                     }
+
+                    // Validate compression ratio to detect zip bombs
+                    if (entry.CompressedLength > 0)
+                    {
+                        var compressionRatio = entry.Length / entry.CompressedLength;
+                        if (compressionRatio > MaxCompressionRatio)
+                        {
+                            throw new InvalidOperationException($"Entry '{entry.FullName}' has suspicious compression ratio ({compressionRatio}). Maximum allowed: {MaxCompressionRatio}");
+                        }
+                    }
+
+                    // Validate total extracted size
+                    totalExtractedSize += entry.Length;
+                    if (totalExtractedSize > MaxTotalExtractedSize)
+                    {
+                        throw new InvalidOperationException($"Total extracted size would exceed limit ({totalExtractedSize} bytes). Maximum allowed: {MaxTotalExtractedSize} bytes");
+                    }
+
+                    // Create directory and extract file securely
+                    Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
+                    ExtractEntry(entry, destinationPath);
                 }
             }
             catch (Exception ex)
@@ -310,6 +351,40 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
                 _logger.LogZipExtractionFailed(zipExtractionError);
                 throw;
+            }
+        }
+
+        /// <summary>
+        /// Securely extracts a single ZIP entry with controlled resource consumption
+        /// </summary>
+        /// <param name="entry">The ZIP entry to extract</param>
+        /// <param name="destinationPath">The destination file path</param>
+        private static void ExtractEntry(ZipArchiveEntry entry, string destinationPath)
+        {
+            using var entryStream = entry.Open();
+            using var outputStream = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, FileShare.None);
+            
+            var buffer = new byte[ExtractionBufferSize];
+            var totalBytesRead = 0L;
+            int bytesRead;
+
+            while ((bytesRead = entryStream.Read(buffer, 0, buffer.Length)) > 0)
+            {
+                totalBytesRead += bytesRead;
+                
+                // Double-check against the declared length during extraction
+                if (totalBytesRead > entry.Length)
+                {
+                    throw new InvalidOperationException($"Entry '{entry.FullName}' actual size exceeds declared size. Possible zip bomb attack.");
+                }
+
+                // Additional safety check against maximum file size
+                if (totalBytesRead > MaxExtractedFileSize)
+                {
+                    throw new InvalidOperationException($"Entry '{entry.FullName}' size during extraction exceeds maximum allowed size ({MaxExtractedFileSize} bytes).");
+                }
+
+                outputStream.Write(buffer, 0, bytesRead);
             }
         }
 

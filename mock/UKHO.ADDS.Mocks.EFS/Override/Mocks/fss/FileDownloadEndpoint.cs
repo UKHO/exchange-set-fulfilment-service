@@ -9,96 +9,51 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
 {
     public class FileDownloadEndpoint : ServiceEndpointMock
     {
+        private const string InternalServerErrorMessage = "Internal Server Error";
+
         public override void RegisterSingleEndpoint(IEndpointMock endpoint) =>
             endpoint.MapGet("/batch/{batchId}/files/{fileName}", (string batchId, string fileName, HttpRequest request, HttpResponse response) =>
             {
                 EchoHeaders(request, response, [WellKnownHeader.CorrelationId]);
                 var state = GetState(request);
+                var correlationId = request.Headers[WellKnownHeader.CorrelationId];
 
                 switch (state)
                 {
                     case WellKnownState.Default:
-
                         try
                         {
                             var s100FileSource = new S100FileSource();
                             var s100Service = new S100DownloadFileService(s100FileSource);
-                            
                             var (productName, editionNumber, productUpdateNumber) = ParseS100FileName(fileName);
-
                             if (!string.IsNullOrEmpty(productName))
                             {
                                 var zipResult = s100Service.GenerateZipFile(productName, editionNumber, productUpdateNumber);
-
                                 if (zipResult.IsSuccess(out var exchangeSetFile, out var error))
                                 {
                                     response.Headers["Content-Disposition"] = $"attachment; filename=\"{fileName}\"";
                                     response.Headers["Content-Length"] = exchangeSetFile.Size.ToString();
-
                                     return Results.File(exchangeSetFile.FileStream, exchangeSetFile.MimeType, fileName);
                                 }
                                 else
                                 {
-                                    return Results.Json(new
-                                    {
-                                        correlationId = request.Headers[WellKnownHeader.CorrelationId],
-                                        details = "Internal Server Error"
-                                    }, statusCode: 500);
+                                    return Results.Json(CreateDetailsResponse(correlationId, InternalServerErrorMessage), statusCode: 500);
                                 }
                             }
                         }
                         catch (Exception ex)
                         {
-                            return Results.Json(new
-                            {
-                                correlationId = request.Headers[WellKnownHeader.CorrelationId],
-                                details = "Internal Server Error"
-                            }, statusCode: 500);
+                            return Results.Json(CreateDetailsResponse(correlationId, InternalServerErrorMessage), statusCode: 500);
                         }
-
-                        return Results.Json(new
-                        {
-                            correlationId = request.Headers[WellKnownHeader.CorrelationId],
-                            details = "Internal Server Error"
-                        }, statusCode: 500);
-
+                        return Results.Json(CreateDetailsResponse(correlationId, InternalServerErrorMessage), statusCode: 500);
                     case WellKnownState.BadRequest:
-                        return Results.Json(new
-                        {
-                            correlationId = request.Headers[WellKnownHeader.CorrelationId],
-                            errors = new[]
-                            {
-                                    new
-                                    {
-                                        source = "File Download",
-                                        description = "Invalid batchId."
-                                    }
-                                }
-                        }, statusCode: 400);
-
+                        return Results.Json(CreateErrorResponse(correlationId, "File Download", "Invalid batchId."), statusCode: 400);
                     case WellKnownState.NotFound:
-                        return Results.Json(new
-                        {
-                            correlationId = request.Headers[WellKnownHeader.CorrelationId],
-                            details = "Not Found"
-                        }, statusCode: 404);
-
+                        return Results.Json(CreateDetailsResponse(correlationId, "Not Found"), statusCode: 404);
                     case WellKnownState.UnsupportedMediaType:
-                        return Results.Json(new
-                        {
-                            type = "https://example.com",
-                            title = "Unsupported Media Type",
-                            status = 415,
-                            traceId = "00-012-0123-01"
-                        }, statusCode: 415);
-
+                        return Results.Json(CreateUnsupportedMediaTypeResponse(), statusCode: 415);
                     case WellKnownState.InternalServerError:
-                        return Results.Json(new
-                        {
-                            correlationId = request.Headers[WellKnownHeader.CorrelationId],
-                            details = "Internal Server Error"
-                        }, statusCode: 500);
-
+                        return Results.Json(CreateDetailsResponse(correlationId, InternalServerErrorMessage), statusCode: 500);
                     default:
                         // Just send default responses
                         return WellKnownStateHandler.HandleWellKnownState(state);
@@ -142,5 +97,26 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
             // If filename doesn't match expected format, throw an exception
             throw new ArgumentException($"Filename '{fileName}' does not match expected S100 format 'ProductName_Edition_Update.zip' (e.g., '101CA100129_1_0.zip')", nameof(fileName));
         }
+
+        private static object CreateErrorResponse(string correlationId, string source, string description) => new
+        {
+            correlationId,
+            errors = new[]
+            {
+                new { source, description }
+            }
+        };
+        private static object CreateDetailsResponse(string correlationId, string details) => new
+        {
+            correlationId,
+            details
+        };
+        private static object CreateUnsupportedMediaTypeResponse() => new
+        {
+            type = "https://example.com",
+            title = "Unsupported Media Type",
+            status = 415,
+            traceId = "00-012-0123-01"
+        };
     }
 }
