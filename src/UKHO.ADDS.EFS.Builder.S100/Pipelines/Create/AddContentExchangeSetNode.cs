@@ -23,10 +23,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
             var jobId = context.Subject.JobId;
             var authKey = context.Subject.WorkspaceAuthenticationKey;
             var toolClient = context.Subject.ToolClient;
-
             var downloadPath = Path.Combine(context.Subject.WorkSpaceRootPath, context.Subject.WorkSpaceSpoolPath);
-            
-            var catalogPaths = GetCatalogPaths(downloadPath);
+
+            var catalogPaths = GetCatalogPaths(context, downloadPath);
 
             // Process each catalog path
             foreach (var catalogPath in catalogPaths)
@@ -40,26 +39,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
             return NodeResultStatus.Succeeded;
         }
 
-        /// <summary>
-        /// Gets all catalog paths that need to be processed from the workspace.
-        /// </summary>
-        /// <param name="downloadPath">The download path where content folders are located.</param>
-        /// <returns>A list of catalog paths relative to the workspace that need to be processed.</returns>
-        private static List<string> GetCatalogPaths(string downloadPath)
+        private static List<string> GetCatalogPaths(IExecutionContext<S100ExchangeSetPipelineContext> context, string downloadPath)
         {
-            if (!Directory.Exists(downloadPath))
-            {
-                return [];
-            }
-
+            var batchFileNameDetails = context.Subject.BatchFileNameDetails;
             var catalogPaths = new List<string>();
-            
-            var folderNames = Directory.GetDirectories(downloadPath)
-                .Select(Path.GetFileName)
-                .Where(name => !string.IsNullOrEmpty(name) && name.Length > 5)
-                .ToList();
 
-            foreach (var folderName in folderNames)
+            foreach (var folderName in batchFileNameDetails)
             {
                 var fullFolderPath = Path.Combine(downloadPath, folderName);
 

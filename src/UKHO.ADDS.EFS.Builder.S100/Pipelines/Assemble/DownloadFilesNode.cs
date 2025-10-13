@@ -65,6 +65,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
                 var latestBatches = SelectLatestBatchesByProductEditionAndUpdate(context.Subject.BatchDetails);
 
+                context.Subject.BatchFileNameDetails = latestBatches
+                    .SelectMany(b => b.Files)
+                    .Select(f => Path.GetFileNameWithoutExtension(f.Filename))
+                    .ToList();
+
                 return await DownloadLatestBatchFilesAsync(latestBatches, downloadPath, context.Subject.Build.GetCorrelationId());
             }
             catch (Exception ex)
@@ -375,7 +380,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             return destinationPath;
         }
 
-        private void ValidateZipEntry(ZipArchiveEntry entry, string destinationPath, string destinationDirectoryPath, ref long totalExtractedSize)
+        private static void ValidateZipEntry(ZipArchiveEntry entry, string destinationPath, string destinationDirectoryPath, ref long totalExtractedSize)
         {
             // The IsZipSlip check is now redundant as GetSafeDestinationPath already ensures path safety
             // but we'll keep it for defense in depth
