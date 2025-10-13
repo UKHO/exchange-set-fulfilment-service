@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using UKHO.ADDS.EFS.Domain.User;
 
 namespace UKHO.ADDS.EFS.Domain.Services.Injection
 {
