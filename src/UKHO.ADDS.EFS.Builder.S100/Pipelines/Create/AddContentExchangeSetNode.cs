@@ -48,11 +48,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
             {
                 var fullFolderPath = Path.Combine(downloadPath, folderName);
 
-                if (Directory.Exists(fullFolderPath))
+                if (!Directory.Exists(fullFolderPath))
                 {
-                    var catalogPath = folderName + "/S100_ROOT/CATALOG.XML";
-                    catalogPaths.Add(catalogPath);
+                    return [];
                 }
+
+                var catalogPath = folderName + "/S100_ROOT/CATALOG.XML";
+                catalogPaths.Add(catalogPath);
             }
 
             return catalogPaths;

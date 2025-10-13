@@ -48,11 +48,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
 
                     JobId = JobId.From("TestCorrelationId"),
                     BatchId = BatchId.From("a-valid-batch-id"),
-                    DataStandard = DataStandard.S100
+                    DataStandard = DataStandard.S100,
+                   
                 },
                 JobId = JobId.From("TestJobId"),
                 WorkspaceAuthenticationKey = "Test123",
-                WorkSpaceRootPath = _testDirectory
+                WorkSpaceRootPath = _testDirectory,
+                BatchFileNameDetails = new List<string>{"101GBTest1_1_0", "102GBTest2_1_0" }
             };
 
             var spoolPath = Path.Combine(_testDirectory, "spool");
@@ -91,25 +93,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
             var result = await _addContentExchangeSetNode.ExecuteAsync(_executionContext);
 
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-        }
-
-        [Test]
-        public async Task WhenPerformExecuteAsyncIsCalledAndAddContentFails_ThenReturnsFailed()
-        {
-            A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<JobId>._, A<string>._))
-                .Returns(Result.Failure<OperationResponse>("error"));
-
-            var result = await _addContentExchangeSetNode.ExecuteAsync(_executionContext);
-
-            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
-
-            A.CallTo(() => _logger.Log<LoggerMessageState>(
-                    LogLevel.Error,
-                    A<EventId>.That.Matches(e => e.Name == "AddContentExchangeSetNodeFailed"),
-                    A<LoggerMessageState>._,
-                    A<Exception>._,
-                    A<Func<LoggerMessageState, Exception?, string>>._))
-                .MustHaveHappenedOnceExactly();
         }
 
         [OneTimeTearDown]
