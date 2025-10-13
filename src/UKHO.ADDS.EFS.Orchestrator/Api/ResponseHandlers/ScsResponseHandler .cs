@@ -55,10 +55,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api.ResponseHandlers
                 return;
             }
 
-            var formatted = lastModified.Value.ToUniversalTime().ToString("R");
-            if (!string.IsNullOrEmpty(formatted))
+            var lastModifiedHeader = lastModified.Value.ToUniversalTime().ToString("R");
+            if (!string.IsNullOrEmpty(lastModifiedHeader))
             {
-                httpContext.Response.Headers[ApiHeaderKeys.LastModifiedHeaderKey] = formatted;
+                httpContext.Response.Headers[ApiHeaderKeys.LastModifiedHeaderKey] = lastModifiedHeader;
             }
         }
     }

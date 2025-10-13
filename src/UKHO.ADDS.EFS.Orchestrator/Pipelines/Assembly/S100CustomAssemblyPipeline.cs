@@ -49,7 +49,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly
                 ErrorResponse = context.ErrorResponse?.Errors?.Count > 0 ? context.ErrorResponse : null,
                 Response = _exchangeSetResponseFactory.CreateResponse(context.Job),
                 ScsLastModified = context.ResponseInfo.LastModified,
-                ScsResponseCode = context.ResponseInfo.ResponseCode,
+                ScsResponseCode = context.ResponseInfo.ResponseCode
             };
         }
 

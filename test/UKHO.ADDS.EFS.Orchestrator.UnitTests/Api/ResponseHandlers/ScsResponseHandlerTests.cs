@@ -16,6 +16,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Api.ResponseHandlers
 {
     public class ScsResponseHandlerTests
     {
+        private const string R = "R";
+        private const string DummyJobId = "dummy-job-id";
+        private const string DummyBatchId = "dummy-batch-id";
         private ScsResponseHandler _handler = null!;
         private ILoggerFactory _loggerFactory = null!;
         private ILogger _logger = null!;
@@ -56,14 +59,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Api.ResponseHandlers
                 scsResponseCode: HttpStatusCode.OK,
                 scsLastModified: now,
                 buildStatus: Domain.Builds.BuildState.Scheduled,
-                responseModel: NewExchangeSetResponse(now.AddHours(1), BatchId.From("dummy-batch-id"))
+                responseModel: NewExchangeSetResponse(now.AddHours(1), BatchId.From(DummyBatchId))
             );
 
             var result = _handler.HandleScsResponse(response, "ProductNames", _logger, _httpContext);
 
             await ExecuteAndAssertStatusAsync(result, _httpContext, StatusCodes.Status202Accepted);
             Assert.That(_httpContext.Response.Headers.ContainsKey(ApiHeaderKeys.LastModifiedHeaderKey), Is.True);
-            Assert.That(_httpContext.Response.Headers[ApiHeaderKeys.LastModifiedHeaderKey], Is.EqualTo(now.ToUniversalTime().ToString("R")));
+            Assert.That(_httpContext.Response.Headers[ApiHeaderKeys.LastModifiedHeaderKey], Is.EqualTo(now.ToUniversalTime().ToString(R)));
         }
 
         [Test]
@@ -74,14 +77,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Api.ResponseHandlers
                 scsResponseCode: HttpStatusCode.NotModified,
                 scsLastModified: lastModified,
                 buildStatus: Domain.Builds.BuildState.Scheduled,
-                responseModel: NewExchangeSetResponse(lastModified.AddHours(1), BatchId.From("dummy-batch-id"))
+                responseModel: NewExchangeSetResponse(lastModified.AddHours(1), BatchId.From(DummyBatchId))
             );
 
             var result = _handler.HandleScsResponse(response, "ProductVersion", _logger, _httpContext);
 
             await ExecuteAndAssertStatusAsync(result, _httpContext, StatusCodes.Status202Accepted);
             Assert.That(_httpContext.Response.Headers.ContainsKey(ApiHeaderKeys.LastModifiedHeaderKey), Is.True);
-            Assert.That(_httpContext.Response.Headers[ApiHeaderKeys.LastModifiedHeaderKey], Is.EqualTo(lastModified.ToUniversalTime().ToString("R")));
+            Assert.That(_httpContext.Response.Headers[ApiHeaderKeys.LastModifiedHeaderKey], Is.EqualTo(lastModified.ToUniversalTime().ToString(R)));
         }
 
         [Test]
@@ -99,7 +102,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Api.ResponseHandlers
 
             await ExecuteAndAssertStatusAsync(result, _httpContext, StatusCodes.Status304NotModified);
             Assert.That(_httpContext.Response.Headers.ContainsKey(ApiHeaderKeys.LastModifiedHeaderKey), Is.True);
-            Assert.That(_httpContext.Response.Headers[ApiHeaderKeys.LastModifiedHeaderKey], Is.EqualTo(lastModified.ToUniversalTime().ToString("R")));
+            Assert.That(_httpContext.Response.Headers[ApiHeaderKeys.LastModifiedHeaderKey], Is.EqualTo(lastModified.ToUniversalTime().ToString(R)));
         }
 
         [TestCase(HttpStatusCode.BadRequest)]
@@ -132,10 +135,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Api.ResponseHandlers
         {
             return new AssemblyPipelineResponse
             {
-                JobId = JobId.From("dummy-job-id"),
+                JobId = JobId.From(DummyJobId),
                 JobStatus = JobState.Submitted,
                 DataStandard = DataStandard.S100,
-                BatchId = BatchId.From("dummy-batch-id"),
+                BatchId = BatchId.From(DummyBatchId),
                 ScsResponseCode = scsResponseCode,
                 ScsLastModified = scsLastModified,
                 BuildStatus = buildStatus,

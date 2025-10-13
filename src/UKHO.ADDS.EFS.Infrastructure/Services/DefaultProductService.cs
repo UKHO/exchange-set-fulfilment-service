@@ -40,11 +40,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                 throw new NotImplementedException($"Data standard {dataStandard} is not supported.");
             }
 
-            var headersOption = new HeadersInspectionHandlerOption
-            {
-                InspectResponseHeaders = true
-            };
-
+            var headersOption = CreateHeadersOption();
             try
             {
                 var headerDateString = sinceDateTime?.ToString(DateTimeFormat);
@@ -105,7 +101,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
 
                     default:
                         _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, (HttpStatusCode)apiException.ResponseStatusCode));
-                        return (new ProductList(), sinceDateTime);
+                        return ([], sinceDateTime);
                 }
             }
         }
@@ -116,10 +112,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
             {
                 throw new NotImplementedException($"Data standard {dataStandard} is not supported.");
             }
-            var headersOption = new HeadersInspectionHandlerOption
-            {
-                InspectResponseHeaders = true
-            };
+            var headersOption = CreateHeadersOption();
             try
             {
                 var retryPolicy =
@@ -150,10 +143,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
 
         public async Task<ProductEditionList> GetS100ProductUpdatesSinceAsync(string sinceDateTime, DataStandardProduct productIdentifier, Job job, CancellationToken cancellationToken)
         {
-            var headersOption = new HeadersInspectionHandlerOption
-            {
-                InspectResponseHeaders = true
-            };
+            var headersOption = CreateHeadersOption();
 
             try
             {
@@ -195,10 +185,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
             {
                 throw new NotImplementedException($"Data standard {dataStandard} is not supported.");
             }
-            var headersOption = new HeadersInspectionHandlerOption
-            {
-                InspectResponseHeaders = true
-            };
+            var headersOption = CreateHeadersOption();
 
             try
             {
@@ -275,6 +262,14 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
 
             _logger.LogSalesCatalogueApiError(SalesCatalogApiErrorLogView.Create(job));
             return [];
+        }
+
+        private static HeadersInspectionHandlerOption CreateHeadersOption()
+        {
+            return new HeadersInspectionHandlerOption
+            {
+                InspectResponseHeaders = true
+            };
         }
     }
 }
