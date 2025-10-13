@@ -32,7 +32,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                     d.Append(new MarkdownParagraph("- ProductName must start with S100 product codes: 101, 102, 104, or 111"));
                 });
 
-        private IResult HandleFileDownload(string fileName, HttpResponse response, string correlationId)
+        private static IResult HandleFileDownload(string fileName, HttpResponse response, string correlationId)
         {
             var fileResult = GenerateS100File(fileName);
             
@@ -59,7 +59,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                 }
 
                 var zipResult = s100Service.GenerateZipFile(productName, editionNumber, productUpdateNumber);
-                if (zipResult.IsSuccess(out var exchangeSetFile, out var error))
+                if (zipResult.IsSuccess(out var exchangeSetFile, out _))
                 {
                     return (true, exchangeSetFile);
                 }

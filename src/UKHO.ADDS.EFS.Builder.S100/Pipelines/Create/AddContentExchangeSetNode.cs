@@ -26,7 +26,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
 
             var downloadPath = Path.Combine(context.Subject.WorkSpaceRootPath, context.Subject.WorkSpaceSpoolPath);
             
-            var catalogPaths = GetCatalogPaths(context.Subject, downloadPath);
+            var catalogPaths = GetCatalogPaths(downloadPath);
 
             // Process each catalog path
             foreach (var catalogPath in catalogPaths)
@@ -43,10 +43,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
         /// <summary>
         /// Gets all catalog paths that need to be processed from the workspace.
         /// </summary>
-        /// <param name="context">The pipeline context containing workspace information.</param>
         /// <param name="downloadPath">The download path where content folders are located.</param>
         /// <returns>A list of catalog paths relative to the workspace that need to be processed.</returns>
-        private static List<string> GetCatalogPaths(S100ExchangeSetPipelineContext context, string downloadPath)
+        private static List<string> GetCatalogPaths(string downloadPath)
         {
             if (!Directory.Exists(downloadPath))
             {

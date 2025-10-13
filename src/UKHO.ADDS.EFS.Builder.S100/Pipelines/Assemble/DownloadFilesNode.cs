@@ -59,19 +59,80 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
             try
             {
-                var downloadPath = Path.Combine(context.Subject.WorkSpaceRootPath, context.Subject.WorkSpaceSpoolPath);
+                var setupResult = SetupDownloadEnvironment(context);
+                if (!setupResult.IsSuccess)
+                {
+                    return NodeResultStatus.Failed;
+                }
 
-                CreateDirectoryIfNotExists(downloadPath);
-
-                var latestBatches = SelectLatestBatchesByProductEditionAndUpdate(context.Subject.BatchDetails);
-
-                return await DownloadLatestBatchFilesAsync(latestBatches, downloadPath, context.Subject.Build.GetCorrelationId());
+                return await ProcessBatchDownloads(setupResult.LatestBatches, setupResult.DownloadPath, context.Subject.Build.GetCorrelationId());
             }
             catch (Exception ex)
             {
                 _logger.LogDownloadFilesNodeFailed(ex);
                 return NodeResultStatus.Failed;
             }
+        }
+
+        private (bool IsSuccess, IEnumerable<BatchDetails> LatestBatches, string DownloadPath) SetupDownloadEnvironment(IExecutionContext<S100ExchangeSetPipelineContext> context)
+        {
+            try
+            {
+                var downloadPath = Path.Combine(context.Subject.WorkSpaceRootPath, context.Subject.WorkSpaceSpoolPath);
+                CreateDirectoryIfNotExists(downloadPath);
+
+                var latestBatches = SelectLatestBatchesByProductEditionAndUpdate(context.Subject.BatchDetails);
+                return (true, latestBatches, downloadPath);
+            }
+            catch
+            {
+                return (false, Enumerable.Empty<BatchDetails>(), string.Empty);
+            }
+        }
+
+        private async Task<NodeResultStatus> ProcessBatchDownloads(IEnumerable<BatchDetails> latestBatches, string workSpaceRootPath, CorrelationId correlationId)
+        {
+            var createdDirectories = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            CreateDirectoryIfNotExists(workSpaceRootPath, createdDirectories);
+
+            var allFilesToProcess = GetAllFilesToProcess(latestBatches);
+            if (allFilesToProcess.Count == 0)
+            {
+                _logger.LogDownloadFilesNodeNoFilesToProcessError("No files found for processing, continuing with empty exchange set generation");
+                return NodeResultStatus.Succeeded;
+            }
+
+            return await ExecuteDownloadTasks(allFilesToProcess, workSpaceRootPath, correlationId);
+        }
+
+        private async Task<NodeResultStatus> ExecuteDownloadTasks(List<(BatchDetails batch, string fileName, FileSize fileSize)> allFilesToProcess, string workSpaceRootPath, CorrelationId correlationId)
+        {
+            var fileLocks = new ConcurrentDictionary<string, SemaphoreSlim>();
+
+            try
+            {
+                var downloadTasks = CreateDownloadTasks(allFilesToProcess, workSpaceRootPath, correlationId, fileLocks);
+                await Task.WhenAll(downloadTasks);
+                return NodeResultStatus.Succeeded;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDownloadFilesNodeFailed(ex);
+                return NodeResultStatus.Failed;
+            }
+            finally
+            {
+                CleanupFileLocks(fileLocks);
+            }
+        }
+
+        private static void CleanupFileLocks(ConcurrentDictionary<string, SemaphoreSlim> fileLocks)
+        {
+            foreach (var semaphore in fileLocks.Values)
+            {
+                semaphore.Dispose();
+            }
+            fileLocks.Clear();
         }
 
         private static IEnumerable<BatchDetails> SelectLatestBatchesByProductEditionAndUpdate(IEnumerable<BatchDetails> batchDetails)
@@ -87,54 +148,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 })
                 .GroupBy(x => (x.productName, x.editionNumber, x.updateNumber))
                 .Select(g => g.OrderByDescending(x => x.Batch.BatchPublishedDate).First().Batch);
-        }
-
-        private async Task<NodeResultStatus> DownloadLatestBatchFilesAsync(
-            IEnumerable<BatchDetails> latestBatches,
-            string workSpaceRootPath,
-            CorrelationId correlationId)
-        {
-            var createdDirectories = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            CreateDirectoryIfNotExists(workSpaceRootPath, createdDirectories);
-
-            var allFilesToProcess = GetAllFilesToProcess(latestBatches);
-            if (allFilesToProcess.Count == 0)
-            {
-                // Changed to return Succeeded for empty file lists
-                // This allows the pipeline to continue and generate an empty exchange set
-                _logger.LogDownloadFilesNodeNoFilesToProcessError("No files found for processing, continuing with empty exchange set generation");
-                return NodeResultStatus.Succeeded;
-            }
-
-            // Create a shared dictionary for file locks that will be used during download
-            // This dictionary is managed throughout the download process
-            var fileLocks = new ConcurrentDictionary<string, SemaphoreSlim>();
-
-            try
-            {
-                var downloadTasks = CreateDownloadTasks(
-                    allFilesToProcess,
-                    workSpaceRootPath,
-                    correlationId,
-                    fileLocks);
-
-                await Task.WhenAll(downloadTasks);
-                return NodeResultStatus.Succeeded;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogDownloadFilesNodeFailed(ex);
-                return NodeResultStatus.Failed;
-            }
-            finally
-            {
-                // Clean up all semaphores AFTER all tasks have completed
-                foreach (var semaphore in fileLocks.Values)
-                {
-                    semaphore.Dispose();
-                }
-                fileLocks.Clear();
-            }
         }
 
         private List<(BatchDetails batch, string fileName, FileSize fileSize)> GetAllFilesToProcess(IEnumerable<BatchDetails> latestBatches)
@@ -158,83 +171,154 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         {
             var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<Stream>(_logger, "DownloadFile");
 
-            return allFilesToProcess.Select(async item =>
+            return allFilesToProcess.Select(item => 
+                CreateSingleDownloadTask(item, workSpaceRootPath, correlationId, fileLocks, retryPolicy));
+        }
+
+        private async Task CreateSingleDownloadTask(
+            (BatchDetails batch, string fileName, FileSize fileSize) item,
+            string workSpaceRootPath,
+            CorrelationId correlationId,
+            ConcurrentDictionary<string, SemaphoreSlim> fileLocks,
+            object retryPolicy)
+        {
+            await _downloadFileConcurrencyLimiter.WaitAsync();
+            try
             {
-                await _downloadFileConcurrencyLimiter.WaitAsync();
-                try
+                await ProcessSingleFileDownload(item, workSpaceRootPath, correlationId, fileLocks, retryPolicy);
+            }
+            finally
+            {
+                _downloadFileConcurrencyLimiter.Release();
+            }
+        }
+
+        private async Task ProcessSingleFileDownload(
+            (BatchDetails batch, string fileName, FileSize fileSize) item,
+            string workSpaceRootPath,
+            CorrelationId correlationId,
+            ConcurrentDictionary<string, SemaphoreSlim> fileLocks,
+            object retryPolicy)
+        {
+            var downloadPath = Path.Combine(workSpaceRootPath, item.fileName);
+            var fileLock = fileLocks.GetOrAdd(downloadPath, _ => new SemaphoreSlim(1, 1));
+
+            await fileLock.WaitAsync();
+            try
+            {
+                await DownloadAndProcessFile(item, downloadPath, workSpaceRootPath, correlationId, retryPolicy);
+            }
+            finally
+            {
+                fileLock.Release();
+            }
+        }
+
+        private async Task DownloadAndProcessFile(
+            (BatchDetails batch, string fileName, FileSize fileSize) item,
+            string downloadPath,
+            string workSpaceRootPath,
+            CorrelationId correlationId,
+            object retryPolicy)
+        {
+            PrepareFileForDownload(downloadPath);
+
+            FileStream? outputFileStream = null;
+            try
+            {
+                outputFileStream = CreateDownloadFileStream(downloadPath);
+                
+                if (item.fileSize != FileSize.Zero)
                 {
-                    var downloadPath = Path.Combine(workSpaceRootPath, item.fileName);
-
-                    // Get or create a semaphore for this specific file to prevent concurrent access
-                    var fileLock = fileLocks.GetOrAdd(downloadPath, _ => new SemaphoreSlim(1, 1));
-
-                    await fileLock.WaitAsync();
-                    try
-                    {
-                        // Check if file already exists and delete it to ensure clean state
-                        if (File.Exists(downloadPath))
-                        {
-                            File.Delete(downloadPath);
-                        }
-
-                        FileStream? outputFileStream = null;
-                        try
-                        {
-                            outputFileStream = new FileStream(
-                                downloadPath,
-                                FileMode.Create,
-                                FileAccess.Write,
-                                FileShare.None,
-                                FileStreamBufferSize,
-                                FileOptions.Asynchronous);
-
-                            if (item.fileSize != FileSize.Zero)
-                            {
-                                var streamResult = await retryPolicy.ExecuteAsync(() =>
-                                    _fileShareReadOnlyClient.DownloadFileAsync(item.batch.BatchId, item.fileName, outputFileStream, (string)correlationId, item.fileSize.Value));
-
-                                if (streamResult.IsFailure(out var error, out var value))
-                                {
-                                    LogFssDownloadFailed(item.batch, item.fileName, error);
-                                    throw new Exception($"Failed to download {item.fileName}");
-                                }
-
-                                // Ensure all data is written to disk
-                                await outputFileStream.FlushAsync();
-                            }
-
-                            // Close the file stream before extracting
-                            await outputFileStream.DisposeAsync();
-
-                            // Check if the file is a ZIP file and needs extraction
-                            if (Path.GetExtension(downloadPath).Equals(".zip", StringComparison.OrdinalIgnoreCase))
-                            {
-                                ExtractAndDeleteZip(downloadPath, workSpaceRootPath, item.fileName);
-                            }
-                        }
-                        finally
-                        {
-                            // Dispose the file stream in finally block to ensure it's always closed
-                            if (outputFileStream != null)
-                            {
-                                await outputFileStream.DisposeAsync();
-                            }
-                        }
-                    }
-                    finally
-                    {
-                        fileLock.Release();
-                        // DO NOT dispose the semaphore here - it will be disposed collectively at the end
-                    }
+                    await DownloadFileContent(item, outputFileStream, correlationId, retryPolicy);
                 }
-                finally
+
+                await outputFileStream.DisposeAsync();
+                ProcessDownloadedFile(downloadPath, workSpaceRootPath, item.fileName);
+            }
+            finally
+            {
+                if (outputFileStream != null)
                 {
-                    _downloadFileConcurrencyLimiter.Release();
+                    await outputFileStream.DisposeAsync();
                 }
-            });
+            }
+        }
+
+        private static void PrepareFileForDownload(string downloadPath)
+        {
+            if (File.Exists(downloadPath))
+            {
+                File.Delete(downloadPath);
+            }
+        }
+
+        private static FileStream CreateDownloadFileStream(string downloadPath)
+        {
+            return new FileStream(
+                downloadPath,
+                FileMode.Create,
+                FileAccess.Write,
+                FileShare.None,
+                FileStreamBufferSize,
+                FileOptions.Asynchronous);
+        }
+
+        private async Task DownloadFileContent(
+            (BatchDetails batch, string fileName, FileSize fileSize) item,
+            FileStream outputFileStream,
+            CorrelationId correlationId,
+            object retryPolicy)
+        {
+            // Use dynamic to avoid complex type casting - the retry policy ExecuteAsync method is generic
+            dynamic dynamicRetryPolicy = retryPolicy;
+            
+            Func<Task<IResult<Stream>>> downloadFunc = () =>
+                _fileShareReadOnlyClient.DownloadFileAsync(item.batch.BatchId, item.fileName, outputFileStream, (string)correlationId, item.fileSize.Value);
+            
+            IResult<Stream> streamResult = await dynamicRetryPolicy.ExecuteAsync(downloadFunc);
+
+            if (streamResult.IsFailure(out IError error, out Stream value))
+            {
+                LogFssDownloadFailed(item.batch, item.fileName, error);
+                throw new Exception($"Failed to download {item.fileName}");
+            }
+
+            await outputFileStream.FlushAsync();
+        }
+
+        private void ProcessDownloadedFile(string downloadPath, string workSpaceRootPath, string fileName)
+        {
+            if (Path.GetExtension(downloadPath).Equals(".zip", StringComparison.OrdinalIgnoreCase))
+            {
+                ExtractAndDeleteZip(downloadPath, workSpaceRootPath, fileName);
+            }
         }
 
         private void ExtractAndDeleteZip(string downloadPath, string workSpaceRootPath, string originalFileName)
+        {
+            try
+            {
+                var extractionResult = PrepareZipExtraction(downloadPath, workSpaceRootPath);
+                if (!extractionResult.IsSuccess)
+                {
+                    return;
+                }
+
+                ExtractZipFile(downloadPath, extractionResult.ExtractFolder, originalFileName);
+                
+                if (File.Exists(downloadPath))
+                {
+                    File.Delete(downloadPath);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogZipExtractionError(downloadPath, workSpaceRootPath, originalFileName, ex);
+            }
+        }
+
+        private static (bool IsSuccess, string ExtractFolder) PrepareZipExtraction(string downloadPath, string workSpaceRootPath)
         {
             try
             {
@@ -246,26 +330,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                     Directory.CreateDirectory(extractFolder);
                 }
 
-                ExtractZipFile(downloadPath, extractFolder, originalFileName);
-
-                // Delete the original ZIP file after extraction
-                if (File.Exists(downloadPath))
-                {
-                    File.Delete(downloadPath);
-                }
+                return (true, extractFolder);
             }
-            catch (Exception ex)
+            catch
             {
-                var zipExtractionError = new ZipExtractionErrorLogView
-                {
-                    ZipFilePath = downloadPath,
-                    DestinationDirectoryPath = Path.Combine(workSpaceRootPath, Path.GetFileNameWithoutExtension(downloadPath)),
-                    ExceptionMessage = ex.Message,
-                    ExceptionType = ex.GetType().Name,
-                    FileName = originalFileName
-                };
-
-                _logger.LogZipExtractionFailed(zipExtractionError);
+                return (false, string.Empty);
             }
         }
 
@@ -281,76 +350,84 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             {
                 using var archive = ZipFile.OpenRead(zipFilePath);
                 
-                var entryCount = 0;
-                var totalExtractedSize = 0L;
-
-                // Pre-validate entry count to prevent excessive entries
-                if (archive.Entries.Count > MaxEntryCount)
-                {
-                    throw new InvalidOperationException($"ZIP file contains too many entries ({archive.Entries.Count}). Maximum allowed: {MaxEntryCount}");
-                }
-
+                ValidateZipArchive(archive);
+                var extractionState = new ZipExtractionState();
+                
                 foreach (var entry in archive.Entries)
                 {
-                    entryCount++;
-                    
-                    if (string.IsNullOrEmpty(entry.FullName))
-                        continue;
-
-                    var normalizedPath = NormalizeEntryPath(entry.FullName);
-                    var destinationPath = Path.Combine(destinationDirectoryPath, normalizedPath);
-
-                    // Zip Slip protection
-                    if (!destinationPath.StartsWith(Path.GetFullPath(destinationDirectoryPath), StringComparison.OrdinalIgnoreCase))
-                        throw new InvalidOperationException($"Entry '{entry.FullName}' is trying to extract outside of the target directory.");
-
-                    if (IsDirectoryEntry(entry))
-                    {
-                        Directory.CreateDirectory(destinationPath);
-                        continue;
-                    }
-
-                    // Validate individual file size
-                    if (entry.Length > MaxExtractedFileSize)
-                    {
-                        throw new InvalidOperationException($"Entry '{entry.FullName}' is too large ({entry.Length} bytes). Maximum allowed: {MaxExtractedFileSize} bytes");
-                    }
-
-                    // Validate compression ratio to detect zip bombs
-                    if (entry.CompressedLength > 0)
-                    {
-                        var compressionRatio = entry.Length / entry.CompressedLength;
-                        if (compressionRatio > MaxCompressionRatio)
-                        {
-                            throw new InvalidOperationException($"Entry '{entry.FullName}' has suspicious compression ratio ({compressionRatio}). Maximum allowed: {MaxCompressionRatio}");
-                        }
-                    }
-
-                    // Validate total extracted size
-                    totalExtractedSize += entry.Length;
-                    if (totalExtractedSize > MaxTotalExtractedSize)
-                    {
-                        throw new InvalidOperationException($"Total extracted size would exceed limit ({totalExtractedSize} bytes). Maximum allowed: {MaxTotalExtractedSize} bytes");
-                    }
-
-                    // Create directory and extract file securely
-                    Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
-                    ExtractEntry(entry, destinationPath);
+                    ProcessZipEntry(entry, destinationDirectoryPath, extractionState);
                 }
             }
             catch (Exception ex)
             {
-                var zipExtractionError = new ZipExtractionErrorLogView
-                {
-                    ZipFilePath = zipFilePath,
-                    DestinationDirectoryPath = destinationDirectoryPath,
-                    ExceptionMessage = ex.Message,
-                    ExceptionType = ex.GetType().Name,
-                    FileName = originalFileName
-                };
-
-                _logger.LogZipExtractionFailed(zipExtractionError);
+                LogZipExtractionError(zipFilePath, destinationDirectoryPath, originalFileName, ex);
                 throw;
+            }
+        }
+
+        private static void ValidateZipArchive(ZipArchive archive)
+        {
+            if (archive.Entries.Count > MaxEntryCount)
+            {
+                throw new InvalidOperationException($"ZIP file contains too many entries ({archive.Entries.Count}). Maximum allowed: {MaxEntryCount}");
+            }
+        }
+
+        private static void ProcessZipEntry(ZipArchiveEntry entry, string destinationDirectoryPath, ZipExtractionState state)
+        {
+            if (string.IsNullOrEmpty(entry.FullName))
+                return;
+
+            var fileName = Path.GetFileName(entry.FullName.Replace("../", "").Replace("..\\", ""));
+            if (string.IsNullOrEmpty(fileName) || fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+                return;
+
+            var destinationPath = Path.Combine(destinationDirectoryPath, fileName);
+
+            ValidateZipSlipProtection(entry.FullName, destinationPath, destinationDirectoryPath);
+
+            if (IsDirectoryEntry(entry))
+            {
+                Directory.CreateDirectory(destinationPath);
+                return;
+            }
+
+            ValidateZipEntry(entry, state);
+            Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
+            ExtractEntry(entry, destinationPath);
+        }
+
+        private static void ValidateZipSlipProtection(string entryFullName, string destinationPath, string destinationDirectoryPath)
+        {
+            if (!destinationPath.StartsWith(Path.GetFullPath(destinationDirectoryPath), StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException($"Entry '{entryFullName}' is trying to extract outside of the target directory.");
+        }
+
+        private static void ValidateZipEntry(ZipArchiveEntry entry, ZipExtractionState state)
+        {
+            if (entry.Length > MaxExtractedFileSize)
+            {
+                throw new InvalidOperationException($"Entry '{entry.FullName}' is too large ({entry.Length} bytes). Maximum allowed: {MaxExtractedFileSize} bytes");
+            }
+
+            ValidateCompressionRatio(entry);
+            
+            state.TotalExtractedSize += entry.Length;
+            if (state.TotalExtractedSize > MaxTotalExtractedSize)
+            {
+                throw new InvalidOperationException($"Total extracted size would exceed limit ({state.TotalExtractedSize} bytes). Maximum allowed: {MaxTotalExtractedSize} bytes");
+            }
+        }
+
+        private static void ValidateCompressionRatio(ZipArchiveEntry entry)
+        {
+            if (entry.CompressedLength > 0)
+            {
+                var compressionRatio = entry.Length / entry.CompressedLength;
+                if (compressionRatio > MaxCompressionRatio)
+                {
+                    throw new InvalidOperationException($"Entry '{entry.FullName}' has suspicious compression ratio ({compressionRatio}). Maximum allowed: {MaxCompressionRatio}");
+                }
             }
         }
 
@@ -372,19 +449,21 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             {
                 totalBytesRead += bytesRead;
                 
-                // Double-check against the declared length during extraction
-                if (totalBytesRead > entry.Length)
-                {
-                    throw new InvalidOperationException($"Entry '{entry.FullName}' actual size exceeds declared size. Possible zip bomb attack.");
-                }
-
-                // Additional safety check against maximum file size
-                if (totalBytesRead > MaxExtractedFileSize)
-                {
-                    throw new InvalidOperationException($"Entry '{entry.FullName}' size during extraction exceeds maximum allowed size ({MaxExtractedFileSize} bytes).");
-                }
-
+                ValidateExtractedBytes(entry, totalBytesRead);
                 outputStream.Write(buffer, 0, bytesRead);
+            }
+        }
+
+        private static void ValidateExtractedBytes(ZipArchiveEntry entry, long totalBytesRead)
+        {
+            if (totalBytesRead > entry.Length)
+            {
+                throw new InvalidOperationException($"Entry '{entry.FullName}' actual size exceeds declared size. Possible zip bomb attack.");
+            }
+
+            if (totalBytesRead > MaxExtractedFileSize)
+            {
+                throw new InvalidOperationException($"Entry '{entry.FullName}' size during extraction exceeds maximum allowed size ({MaxExtractedFileSize} bytes).");
             }
         }
 
@@ -429,6 +508,25 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             };
 
             _logger.LogDownloadFilesNodeFssDownloadFailed(downloadFilesLogView);
+        }
+
+        private void LogZipExtractionError(string zipFilePath, string destinationDirectoryPath, string originalFileName, Exception ex)
+        {
+            var zipExtractionError = new ZipExtractionErrorLogView
+            {
+                ZipFilePath = zipFilePath,
+                DestinationDirectoryPath = destinationDirectoryPath,
+                ExceptionMessage = ex.Message,
+                ExceptionType = ex.GetType().Name,
+                FileName = originalFileName
+            };
+
+            _logger.LogZipExtractionFailed(zipExtractionError);
+        }
+
+        private class ZipExtractionState
+        {
+            public long TotalExtractedSize { get; set; }
         }
     }
 }
