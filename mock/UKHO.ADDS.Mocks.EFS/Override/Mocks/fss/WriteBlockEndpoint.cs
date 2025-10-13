@@ -18,72 +18,22 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                     return Results.BadRequest(CreateBodyRequiredError());
                 }
 
-                // Try to read the block IDs from the request
-                WriteBlockRequest blockRequest;
-                try
+                var blockRequestResult = ParseBlockRequest(request);
+                if (blockRequestResult.IsError)
                 {
-                    using var streamReader = new StreamReader(request.Body);
-                    var requestBody = streamReader.ReadToEnd();
-                    blockRequest = JsonSerializer.Deserialize<WriteBlockRequest>(requestBody, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new WriteBlockRequest();
-                }
-                catch
-                {
-                    return Results.BadRequest("Invalid request format. Expected a JSON object with blockIds array.");
+                    return blockRequestResult.ErrorResult;
                 }
 
-                // Check if the blockIds are present
-                if (blockRequest.BlockIds == null || !blockRequest.BlockIds.Any())
+                var validationResult = ValidateBlockRequest(blockRequestResult.BlockRequest);
+                if (validationResult != null)
                 {
-                    return Results.BadRequest("No block IDs provided in the request.");
+                    return validationResult;
                 }
 
-                var fileKey = $"{batchId}:{filename}";
-
-                try
+                var assemblyResult = AssembleFileFromBlocks(batchId, filename, blockRequestResult.BlockRequest, correlationId);
+                if (assemblyResult != null)
                 {
-                    // Check if we have blocks for this file
-                    if (!FileBlockStorage.FileBlocks.ContainsKey(fileKey))
-                    {
-                        return Results.BadRequest($"No blocks found for file {filename}");
-                    }
-
-                    var fileBlocks = FileBlockStorage.FileBlocks[fileKey];
-
-                    // Create a memory stream to assemble the complete file
-                    using var assembledFile = new MemoryStream();
-
-                    // Process blocks in order
-                    foreach (var blockId in blockRequest.BlockIds.OrderBy(id => id))
-                    {
-                        if (!fileBlocks.TryGetValue(blockId, out var blockData))
-                        {
-                            return Results.BadRequest($"Block {blockId} not found for file {filename}");
-                        }
-
-                        assembledFile.Write(blockData, 0, blockData.Length);
-                    }
-
-                    // Write the assembled file to the file system
-                    try
-                    {
-                        var fileSystem = GetFileSystem();
-                        fileSystem.CreateDirectory(S100ExchangeSetsPath);
-                        using var finalFile = fileSystem.OpenFile($"{S100ExchangeSetsPath}/{filename}", FileMode.Create, FileAccess.Write, FileShare.None);
-                        assembledFile.Position = 0;
-                        assembledFile.CopyTo(finalFile);
-                        finalFile.Flush();
-                    }
-                    catch (Exception ex)
-                    {
-                        // Log the error but continue - we might still be able to succeed
-                        Console.WriteLine($"Error writing to file system: {ex.Message}");
-                    }
-                    // Clean up the blocks to free memory
-                    FileBlockStorage.FileBlocks.Remove(fileKey);
-                }
-                catch (Exception ex)
-                {
-                    return Results.Json(CreateDetailsResponse(correlationId, $"Failed to assemble file: {ex.Message}"), statusCode: 500);
+                    return assemblyResult;
                 }
 
                 return state switch
@@ -99,6 +49,92 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                     d.Append(new MarkdownHeader("Write a file block", 3));
                     d.Append(new MarkdownParagraph("Assembles the file from uploaded blocks and creates the final file"));
                 });
+
+        private static (WriteBlockRequest BlockRequest, bool IsError, IResult ErrorResult) ParseBlockRequest(HttpRequest request)
+        {
+            try
+            {
+                using var streamReader = new StreamReader(request.Body);
+                var requestBody = streamReader.ReadToEnd();
+                var blockRequest = JsonSerializer.Deserialize<WriteBlockRequest>(requestBody, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new WriteBlockRequest();
+                return (blockRequest, false, null!);
+            }
+            catch
+            {
+                return (null!, true, Results.BadRequest("Invalid request format. Expected a JSON object with blockIds array."));
+            }
+        }
+
+        private static IResult? ValidateBlockRequest(WriteBlockRequest blockRequest)
+        {
+            if (blockRequest.BlockIds == null || !blockRequest.BlockIds.Any())
+            {
+                return Results.BadRequest("No block IDs provided in the request.");
+            }
+            return null;
+        }
+
+        private IResult? AssembleFileFromBlocks(string batchId, string filename, WriteBlockRequest blockRequest, string correlationId)
+        {
+            var fileKey = $"{batchId}:{filename}";
+
+            try
+            {
+                if (!FileBlockStorage.FileBlocks.ContainsKey(fileKey))
+                {
+                    return Results.BadRequest($"No blocks found for file {filename}");
+                }
+
+                var fileBlocks = FileBlockStorage.FileBlocks[fileKey];
+                var assembledData = AssembleBlocksInOrder(blockRequest.BlockIds, fileBlocks, filename);
+                if (assembledData.IsError)
+                {
+                    return assembledData.ErrorResult;
+                }
+
+                WriteAssembledFileToStorage(filename, assembledData.Data);
+                FileBlockStorage.FileBlocks.Remove(fileKey);
+                
+                return null; // Success, no error result
+            }
+            catch (Exception ex)
+            {
+                return Results.Json(CreateDetailsResponse(correlationId, $"Failed to assemble file: {ex.Message}"), statusCode: 500);
+            }
+        }
+
+        private static (byte[] Data, bool IsError, IResult ErrorResult) AssembleBlocksInOrder(IEnumerable<string> blockIds, Dictionary<string, byte[]> fileBlocks, string filename)
+        {
+            using var assembledFile = new MemoryStream();
+
+            foreach (var blockId in blockIds.OrderBy(id => id))
+            {
+                if (!fileBlocks.TryGetValue(blockId, out var blockData))
+                {
+                    return (null!, true, Results.BadRequest($"Block {blockId} not found for file {filename}"));
+                }
+                assembledFile.Write(blockData, 0, blockData.Length);
+            }
+
+            return (assembledFile.ToArray(), false, null!);
+        }
+
+        private void WriteAssembledFileToStorage(string filename, byte[] assembledData)
+        {
+            try
+            {
+                var fileSystem = GetFileSystem();
+                fileSystem.CreateDirectory(S100ExchangeSetsPath);
+                using var finalFile = fileSystem.OpenFile($"{S100ExchangeSetsPath}/{filename}", FileMode.Create, FileAccess.Write, FileShare.None);
+                finalFile.Write(assembledData, 0, assembledData.Length);
+                finalFile.Flush();
+            }
+            catch (Exception ex)
+            {
+                // Log the error but continue - we might still be able to succeed
+                Console.WriteLine($"Error writing to file system: {ex.Message}");
+            }
+        }
 
         private static object CreateBodyRequiredError() => new
         {

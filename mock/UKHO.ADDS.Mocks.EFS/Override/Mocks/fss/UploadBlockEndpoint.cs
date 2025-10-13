@@ -17,33 +17,12 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                     return Results.BadRequest("Body required");
                 }
 
-                try
+                var storageResult = StoreBlockData(batchId, filename, blockId, request);
+                if (storageResult != null)
                 {
-                    // Create a composite key for the file
-                    var fileKey = $"{batchId}:{filename}";
-                    
-                    // Initialize dictionary for this file if it doesn't exist
-                    lock (FileBlockStorage.FileBlocks)
-                    {
-                        if (!FileBlockStorage.FileBlocks.ContainsKey(fileKey))
-                        {
-                            FileBlockStorage.FileBlocks[fileKey] = new Dictionary<string, byte[]>();
-                        }
-                        
-                        // Read the block content
-                        using var ms = new MemoryStream();
-                        request.Body.CopyTo(ms);
-                        
-                        // Store the block
-                        FileBlockStorage.FileBlocks[fileKey][blockId] = ms.ToArray();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    return Results.BadRequest(ex.Message);
+                    return storageResult;
                 }
 
-                // Also save to filesystem as a backup/alternative access method
                 EnsureS100DirectoryExists();
 
                 return state switch
@@ -59,5 +38,41 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                     d.Append(new MarkdownHeader("Upload a file block", 3));
                     d.Append(new MarkdownParagraph("Stores each file block in memory for assembly during WriteBlock operation"));
                 });
+
+        private static IResult? StoreBlockData(string batchId, string filename, string blockId, HttpRequest request)
+        {
+            try
+            {
+                var fileKey = $"{batchId}:{filename}";
+                
+                lock (FileBlockStorage.FileBlocks)
+                {
+                    EnsureFileKeyExists(fileKey);
+                    var blockData = ReadBlockContent(request);
+                    FileBlockStorage.FileBlocks[fileKey][blockId] = blockData;
+                }
+                
+                return null; // Success
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(ex.Message);
+            }
+        }
+
+        private static void EnsureFileKeyExists(string fileKey)
+        {
+            if (!FileBlockStorage.FileBlocks.ContainsKey(fileKey))
+            {
+                FileBlockStorage.FileBlocks[fileKey] = new Dictionary<string, byte[]>();
+            }
+        }
+
+        private static byte[] ReadBlockContent(HttpRequest request)
+        {
+            using var ms = new MemoryStream();
+            request.Body.CopyTo(ms);
+            return ms.ToArray();
+        }
     }
 }

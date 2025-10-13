@@ -16,7 +16,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
 
                 return state switch
                 {
-                    WellKnownState.Default => HandleDefaultState(fileName, response, correlationId),
+                    WellKnownState.Default => HandleFileDownload(fileName, response, correlationId),
                     WellKnownState.BadRequest => Results.Json(CreateErrorResponse(correlationId, "File Download", "Invalid batchId."), statusCode: 400),
                     _ => ProcessCommonStates(state, correlationId, "File Download") ?? WellKnownStateHandler.HandleWellKnownState(state)
                 };
@@ -32,7 +32,20 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                     d.Append(new MarkdownParagraph("- ProductName must start with S100 product codes: 101, 102, 104, or 111"));
                 });
 
-        private IResult HandleDefaultState(string fileName, HttpResponse response, string correlationId)
+        private IResult HandleFileDownload(string fileName, HttpResponse response, string correlationId)
+        {
+            var fileResult = GenerateS100File(fileName);
+            
+            if (fileResult.IsSuccess)
+            {
+                SetDownloadHeaders(response, fileName, fileResult.ExchangeSetFile.Size);
+                return Results.File(fileResult.ExchangeSetFile.FileStream, fileResult.ExchangeSetFile.MimeType, fileName);
+            }
+            
+            return Results.Json(CreateDetailsResponse(correlationId, InternalServerErrorMessage), statusCode: 500);
+        }
+
+        private static (bool IsSuccess, dynamic ExchangeSetFile) GenerateS100File(string fileName)
         {
             try
             {
@@ -40,23 +53,29 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                 var s100Service = new S100DownloadFileService(s100FileSource);
                 var (productName, editionNumber, productUpdateNumber) = ParseS100FileName(fileName);
                 
-                if (!string.IsNullOrEmpty(productName))
+                if (string.IsNullOrEmpty(productName))
                 {
-                    var zipResult = s100Service.GenerateZipFile(productName, editionNumber, productUpdateNumber);
-                    if (zipResult.IsSuccess(out var exchangeSetFile, out var error))
-                    {
-                        response.Headers["Content-Disposition"] = $"attachment; filename=\"{fileName}\"";
-                        response.Headers["Content-Length"] = exchangeSetFile.Size.ToString();
-                        return Results.File(exchangeSetFile.FileStream, exchangeSetFile.MimeType, fileName);
-                    }
+                    return (false, null!);
+                }
+
+                var zipResult = s100Service.GenerateZipFile(productName, editionNumber, productUpdateNumber);
+                if (zipResult.IsSuccess(out var exchangeSetFile, out var error))
+                {
+                    return (true, exchangeSetFile);
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                // Fall through to error response
+                // Fall through to failure case
             }
             
-            return Results.Json(CreateDetailsResponse(correlationId, InternalServerErrorMessage), statusCode: 500);
+            return (false, null!);
+        }
+
+        private static void SetDownloadHeaders(HttpResponse response, string fileName, long fileSize)
+        {
+            response.Headers["Content-Disposition"] = $"attachment; filename=\"{fileName}\"";
+            response.Headers["Content-Length"] = fileSize.ToString();
         }
 
         /// <summary>
