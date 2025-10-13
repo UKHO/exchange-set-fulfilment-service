@@ -7,7 +7,6 @@ namespace UKHO.ADDS.EFS.Domain.Services.Injection
     {
         public static IServiceCollection AddDomain(this IServiceCollection collection)
         {
-            collection.AddScoped<UserIdentifier>();
 
             return collection;
         }
