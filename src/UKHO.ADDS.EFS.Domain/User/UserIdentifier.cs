@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using Microsoft.AspNetCore.Http;
 
 namespace UKHO.ADDS.EFS.Domain.User
 {
@@ -7,9 +6,10 @@ namespace UKHO.ADDS.EFS.Domain.User
     public class UserIdentifier
     {
         public string UserIdentity { get; set; }
-        public UserIdentifier(IHttpContextAccessor httpContextAccessor)
+
+        public UserIdentifier(string userIdentity)
         {
-            UserIdentity = Convert.ToString(httpContextAccessor.HttpContext?.User?.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier")?.Value) ?? string.Empty;
+            UserIdentity = userIdentity ?? string.Empty;
         }
     }
 }

@@ -9,6 +9,7 @@ using UKHO.ADDS.EFS.Domain.Builds.S100;
 using UKHO.ADDS.EFS.Domain.Builds.S57;
 using UKHO.ADDS.EFS.Domain.Builds.S63;
 using UKHO.ADDS.EFS.Domain.Services.Injection;
+using UKHO.ADDS.EFS.Domain.User;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
 using UKHO.ADDS.EFS.Infrastructure.Injection;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
@@ -104,6 +105,13 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddQuartzHostedService(options =>
             {
                 options.WaitForJobsToComplete = true;
+            });
+
+            builder.Services.AddScoped<UserIdentifier>(x =>
+            {
+                var accessor = x.GetRequiredService<IHttpContextAccessor>();
+                var userIdentity = accessor.HttpContext?.User?.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier")?.Value ?? string.Empty;
+                return new UserIdentifier(userIdentity);
             });
 
             return builder;
