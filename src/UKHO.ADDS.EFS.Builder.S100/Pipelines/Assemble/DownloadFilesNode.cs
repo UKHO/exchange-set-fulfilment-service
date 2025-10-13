@@ -292,9 +292,17 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                     if (!ShouldProcessEntry(entry))
                         continue;
 
-                    var normalizedPath = NormalizeEntryPath(entry.FullName);
-                    var destinationPath = Path.Combine(destinationDirectoryPath, normalizedPath);
+                    // Generate a safe path for the entry that is guaranteed to be within the destination directory
+                    string? destinationPath = GetSafeDestinationPath(entry, destinationDirectoryPath);
 
+                    // If the path is null, it means it's not safe and we should skip this entry
+                    if (destinationPath == null)
+                    {
+                        _logger.LogWarning("Skipping potentially malicious zip entry: {EntryName}", entry.FullName);
+                        continue;
+                    }
+
+                    // Now validate the entry for other security checks
                     ValidateZipEntry(entry, destinationPath, destinationDirectoryPath, ref totalExtractedSize);
 
                     if (IsDirectoryEntry(entry))
@@ -303,8 +311,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                         continue;
                     }
 
-                    Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
-                    ExtractEntry(entry, destinationPath, destinationDirectoryPath);
+                    // Create the parent directory for the file if it doesn't exist
+                    string? directoryName = Path.GetDirectoryName(destinationPath);
+                    if (!string.IsNullOrEmpty(directoryName))
+                    {
+                        Directory.CreateDirectory(directoryName);
+                    }
+
+                    ExtractEntry(entry, destinationPath);
                 }
             }
             catch (Exception ex)
@@ -328,8 +342,43 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             return !string.IsNullOrEmpty(entry.FullName);
         }
 
+        /// <summary>
+        /// Generates a safe destination path for a ZIP entry, ensuring it is within the target directory.
+        /// Returns null if the path would be outside the target directory (zip slip attempt).
+        /// </summary>
+        /// <param name="entry">The ZIP archive entry</param>
+        /// <param name="destinationDirectoryPath">The base directory where files should be extracted</param>
+        /// <returns>A safe path within the destination directory, or null if unsafe</returns>
+        private static string? GetSafeDestinationPath(ZipArchiveEntry entry, string destinationDirectoryPath)
+        {
+            // Normalize the entry path to use the correct directory separator and remove any leading separators
+            string normalizedEntryPath = NormalizeEntryPath(entry.FullName);
+
+            // Construct the full destination path
+            string destinationPath = Path.GetFullPath(Path.Combine(destinationDirectoryPath, normalizedEntryPath));
+
+            // Get the full path of the destination directory with trailing separator to ensure we're comparing directories properly
+            string fullDestinationDirPath = Path.GetFullPath(destinationDirectoryPath);
+            if (!fullDestinationDirPath.EndsWith(Path.DirectorySeparatorChar.ToString(), StringComparison.Ordinal))
+            {
+                fullDestinationDirPath += Path.DirectorySeparatorChar;
+            }
+
+            // Check if the resulting path starts with the destination directory path
+            // This prevents directory traversal attacks (zip slip)
+            if (!destinationPath.StartsWith(fullDestinationDirPath, StringComparison.OrdinalIgnoreCase))
+            {
+                // The path would be outside the target directory - possible zip slip attempt
+                return null;
+            }
+
+            return destinationPath;
+        }
+
         private void ValidateZipEntry(ZipArchiveEntry entry, string destinationPath, string destinationDirectoryPath, ref long totalExtractedSize)
         {
+            // The IsZipSlip check is now redundant as GetSafeDestinationPath already ensures path safety
+            // but we'll keep it for defense in depth
             if (IsZipSlip(destinationPath, destinationDirectoryPath))
                 throw new InvalidOperationException($"Entry '{entry.FullName}' is trying to extract outside of the target directory.");
 
@@ -405,18 +454,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                    entry.FullName.EndsWith("\\", StringComparison.Ordinal);
         }
 
-        private static void ExtractEntry(ZipArchiveEntry entry, string destinationPath, string targetDirectory)
+        private static void ExtractEntry(ZipArchiveEntry entry, string destinationPath)
         {
-            string canonicalDestinationPath = Path.GetFullPath(destinationPath);
-            string canonicalTargetDirectory = Path.GetFullPath(targetDirectory);
-
-            if (!canonicalDestinationPath.StartsWith(canonicalTargetDirectory, StringComparison.OrdinalIgnoreCase))
-            {
-                throw new InvalidOperationException($"Entry '{entry.FullName}' is trying to extract outside of the target directory.");
-            }
-
             using var entryStream = entry.Open();
-            using var outputStream = new FileStream(canonicalDestinationPath, FileMode.Create, FileAccess.Write, FileShare.None);
+            using var outputStream = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, FileShare.None);
 
             var buffer = new byte[ExtractionBufferSize];
             var totalBytesRead = 0L;
