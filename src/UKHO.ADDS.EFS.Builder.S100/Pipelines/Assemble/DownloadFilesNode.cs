@@ -304,7 +304,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                     }
 
                     Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
-                    ExtractEntry(entry, destinationPath);
+                    ExtractEntry(entry, destinationPath, destinationDirectoryPath);
                 }
             }
             catch (Exception ex)
@@ -405,10 +405,18 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                    entry.FullName.EndsWith("\\", StringComparison.Ordinal);
         }
 
-        private static void ExtractEntry(ZipArchiveEntry entry, string destinationPath)
+        private static void ExtractEntry(ZipArchiveEntry entry, string destinationPath, string targetDirectory)
         {
+            string canonicalDestinationPath = Path.GetFullPath(destinationPath);
+            string canonicalTargetDirectory = Path.GetFullPath(targetDirectory);
+
+            if (!canonicalDestinationPath.StartsWith(canonicalTargetDirectory, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException($"Entry '{entry.FullName}' is trying to extract outside of the target directory.");
+            }
+
             using var entryStream = entry.Open();
-            using var outputStream = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, FileShare.None);
+            using var outputStream = new FileStream(canonicalDestinationPath, FileMode.Create, FileAccess.Write, FileShare.None);
 
             var buffer = new byte[ExtractionBufferSize];
             var totalBytesRead = 0L;
