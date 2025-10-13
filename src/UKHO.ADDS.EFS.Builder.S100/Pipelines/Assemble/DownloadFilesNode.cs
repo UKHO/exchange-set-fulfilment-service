@@ -74,7 +74,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             }
         }
 
-        private (bool IsSuccess, IEnumerable<BatchDetails> LatestBatches, string DownloadPath) SetupDownloadEnvironment(IExecutionContext<S100ExchangeSetPipelineContext> context)
+        private static (bool IsSuccess, IEnumerable<BatchDetails> LatestBatches, string DownloadPath) SetupDownloadEnvironment(IExecutionContext<S100ExchangeSetPipelineContext> context)
         {
             try
             {
@@ -223,26 +223,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         {
             PrepareFileForDownload(downloadPath);
 
-            FileStream? outputFileStream = null;
-            try
+            using var outputFileStream = CreateDownloadFileStream(downloadPath);
+            
+            if (item.fileSize != FileSize.Zero)
             {
-                outputFileStream = CreateDownloadFileStream(downloadPath);
-                
-                if (item.fileSize != FileSize.Zero)
-                {
-                    await DownloadFileContent(item, outputFileStream, correlationId, retryPolicy);
-                }
+                await DownloadFileContent(item, outputFileStream, correlationId, retryPolicy);
+            }
 
-                await outputFileStream.DisposeAsync();
-                ProcessDownloadedFile(downloadPath, workSpaceRootPath, item.fileName);
-            }
-            finally
-            {
-                if (outputFileStream != null)
-                {
-                    await outputFileStream.DisposeAsync();
-                }
-            }
+            ProcessDownloadedFile(downloadPath, workSpaceRootPath, item.fileName);
         }
 
         private static void PrepareFileForDownload(string downloadPath)
@@ -278,7 +266,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             
             IResult<Stream> streamResult = await dynamicRetryPolicy.ExecuteAsync(downloadFunc);
 
-            if (streamResult.IsFailure(out IError error, out Stream value))
+            if (streamResult.IsFailure(out IError error, out _))
             {
                 LogFssDownloadFailed(item.batch, item.fileName, error);
                 throw new Exception($"Failed to download {item.fileName}");
@@ -522,11 +510,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             };
 
             _logger.LogZipExtractionFailed(zipExtractionError);
-        }
-
-        private class ZipExtractionState
-        {
-            public long TotalExtractedSize { get; set; }
         }
     }
 }
