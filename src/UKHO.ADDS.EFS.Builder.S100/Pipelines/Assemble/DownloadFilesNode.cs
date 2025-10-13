@@ -298,7 +298,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                         continue;
 
                     // Generate a safe path for the entry that is guaranteed to be within the destination directory
-                    string? destinationPath = GetSafeDestinationPath(entry, destinationDirectoryPath);
+                    var destinationPath = GetSafeDestinationPath(entry, destinationDirectoryPath);
 
                     // If the path is null, it means it's not safe and we should skip this entry
                     if (destinationPath == null)
@@ -317,7 +317,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                     }
 
                     // Create the parent directory for the file if it doesn't exist
-                    string? directoryName = Path.GetDirectoryName(destinationPath);
+                    var directoryName = Path.GetDirectoryName(destinationPath);
                     if (!string.IsNullOrEmpty(directoryName))
                     {
                         Directory.CreateDirectory(directoryName);
