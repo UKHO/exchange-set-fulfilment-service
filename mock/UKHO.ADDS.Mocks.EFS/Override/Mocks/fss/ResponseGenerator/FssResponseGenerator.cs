@@ -60,7 +60,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss.ResponseGenerator
                     ["batchPublishedDate"] = DateTime.UtcNow.AddDays(-1).ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
                     ["expiryDate"] = null, // Empty expiryDate
                     ["isAllFilesZipAvailable"] = true,
-                    ["files"] = CreateFilesArray("", batchId, "", true) // Pass true to indicate empty products case
+                    ["files"] = CreateFilesArray(batchId, "", 0, "", true) // Pass true to indicate empty products case
                 });
             }
 
@@ -81,7 +81,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss.ResponseGenerator
                             ["batchPublishedDate"] = DateTime.UtcNow.AddMonths(-2).ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
                             ["expiryDate"] = DateTime.UtcNow.AddMonths(2).ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
                             ["isAllFilesZipAvailable"] = true,
-                            ["files"] = CreateFilesArray(product.ProductName, batchId, updateNumber.ToString(), false, product.EditionNumber)
+                            ["files"] = CreateFilesArray(batchId, product.ProductName, product.EditionNumber, updateNumber.ToString(), false)
                         });
                     });
                 }
@@ -107,7 +107,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss.ResponseGenerator
             return array;
         }
 
-        private static JsonArray CreateFilesArray(string productName, string batchId, string updateNo, bool isEmptyProducts = false, int editionNumber = 0)
+        private static JsonArray CreateFilesArray(string batchId, string productName, int editionNumber = 0, string updateNo = "", bool isEmptyProducts = false)
         {
             if (isEmptyProducts)
             {
