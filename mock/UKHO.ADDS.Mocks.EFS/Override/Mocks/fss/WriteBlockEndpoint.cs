@@ -129,10 +129,9 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                 finalFile.Write(assembledData, 0, assembledData.Length);
                 finalFile.Flush();
             }
-            catch (Exception ex)
+            catch(Exception)
             {
                 // Log the error but continue - we might still be able to succeed
-                Console.WriteLine($"Error writing to file system: {ex.Message}");
             }
         }
 

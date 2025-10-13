@@ -64,9 +64,9 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                     return (true, exchangeSetFile);
                 }
             }
-            catch
+            catch(Exception)
             {
-                // Fall through to failure case
+                return (false, null!);
             }
             
             return (false, null!);
