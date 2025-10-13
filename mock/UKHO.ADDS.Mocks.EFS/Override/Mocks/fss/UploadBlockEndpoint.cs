@@ -5,16 +5,14 @@ using UKHO.ADDS.Mocks.States;
 
 namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
 {
-    public class UploadBlockEndpoint : ServiceEndpointMock
+    public class UploadBlockEndpoint : FssEndpointBase
     {
-        private const string InternalServerErrorMessage = "Internal Server Error";
-
         public override void RegisterSingleEndpoint(IEndpointMock endpoint) =>
             endpoint.MapPut("/batch/{batchId}/files/{fileName}/{blockId}", (string batchId, string filename, string blockId, HttpRequest request, HttpResponse response) =>
             {
                 EchoHeaders(request, response, [WellKnownHeader.CorrelationId]);
                 var state = GetState(request);
-                var correlationId = request.Headers[WellKnownHeader.CorrelationId];
+                var correlationId = GetCorrelationId(request);
 
                 if (request.Body.Length == 0)
                 {
@@ -86,26 +84,5 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                     d.Append(new MarkdownHeader("Upload a file block", 3));
                     d.Append(new MarkdownParagraph("Stores each file block in memory for assembly during WriteBlock operation"));
                 });
-
-        private static object CreateErrorResponse(string correlationId, string source, string description) => new
-        {
-            correlationId,
-            errors = new[]
-            {
-                new { source, description }
-            }
-        };
-        private static object CreateDetailsResponse(string correlationId, string details) => new
-        {
-            correlationId,
-            details
-        };
-        private static object CreateUnsupportedMediaTypeResponse() => new
-        {
-            type = "https://example.com",
-            title = "Unsupported Media Type",
-            status = 415,
-            traceId = "00-012-0123-01"
-        };
     }
 }

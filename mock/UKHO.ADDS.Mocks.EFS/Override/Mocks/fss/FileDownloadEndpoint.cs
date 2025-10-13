@@ -7,16 +7,14 @@ using UKHO.FakePenrose.S100SampleExchangeSets.SampleFileSources;
 
 namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
 {
-    public class FileDownloadEndpoint : ServiceEndpointMock
+    public class FileDownloadEndpoint : FssEndpointBase
     {
-        private const string InternalServerErrorMessage = "Internal Server Error";
-
         public override void RegisterSingleEndpoint(IEndpointMock endpoint) =>
             endpoint.MapGet("/batch/{batchId}/files/{fileName}", (string batchId, string fileName, HttpRequest request, HttpResponse response) =>
             {
                 EchoHeaders(request, response, [WellKnownHeader.CorrelationId]);
                 var state = GetState(request);
-                var correlationId = request.Headers[WellKnownHeader.CorrelationId];
+                var correlationId = GetCorrelationId(request);
 
                 switch (state)
                 {
@@ -97,26 +95,5 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
             // If filename doesn't match expected format, throw an exception
             throw new ArgumentException($"Filename '{fileName}' does not match expected S100 format 'ProductName_Edition_Update.zip' (e.g., '101CA100129_1_0.zip')", nameof(fileName));
         }
-
-        private static object CreateErrorResponse(string correlationId, string source, string description) => new
-        {
-            correlationId,
-            errors = new[]
-            {
-                new { source, description }
-            }
-        };
-        private static object CreateDetailsResponse(string correlationId, string details) => new
-        {
-            correlationId,
-            details
-        };
-        private static object CreateUnsupportedMediaTypeResponse() => new
-        {
-            type = "https://example.com",
-            title = "Unsupported Media Type",
-            status = 415,
-            traceId = "00-012-0123-01"
-        };
     }
 }

@@ -4,16 +4,15 @@ using UKHO.ADDS.Mocks.States;
 
 namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
 {
-    public class AddFileEndpoint : ServiceEndpointMock
+    public class AddFileEndpoint : FssEndpointBase
     {
-        private const string InternalServerErrorMessage = "Internal Server Error";
-
         public override void RegisterSingleEndpoint(IEndpointMock endpoint) =>
             endpoint.MapPost("/batch/{batchId}/files/{fileName}", (string batchId, string fileName, HttpRequest request, HttpResponse response) =>
                 {
                     EchoHeaders(request, response, [WellKnownHeader.CorrelationId]);
                     var state = GetState(request);
-                    var correlationId = request.Headers[WellKnownHeader.CorrelationId];
+                    var correlationId = GetCorrelationId(request);
+                    
                     // Prepare storage for the file blocks
                     var fileSystem = GetFileSystem();
                     try
@@ -55,26 +54,5 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                     d.Append(new MarkdownHeader("Adds a file", 3));
                     d.Append(new MarkdownParagraph("Registers a file in the batch and prepares for block uploads"));
                 });
-
-        private static object CreateErrorResponse(string correlationId, string source, string description) => new
-        {
-            correlationId,
-            errors = new[]
-            {
-                new { source, description }
-            }
-        };
-        private static object CreateDetailsResponse(string correlationId, string details) => new
-        {
-            correlationId,
-            details
-        };
-        private static object CreateUnsupportedMediaTypeResponse() => new
-        {
-            type = "https://example.com",
-            title = "Unsupported Media Type",
-            status = 415,
-            traceId = "00-012-0123-01"
-        };
     }
 }
