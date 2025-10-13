@@ -16,7 +16,7 @@ public class S100DownloadFileService : IS100DownloadFileService
         _s100FileSource = s100FileSource ?? throw new ArgumentNullException(nameof(s100FileSource));
     }
 
-    public IResult<S100ExchangeSetFile> GenerateZipFile(string productName, int editionNumber = 1, int productUpdateNumber = 0)
+    public IResult<S100ExchangeSetFile> GenerateZipFile(string productName, int editionNumber = 1, int updateNumber = 0)
     {
         try
         {
@@ -25,7 +25,7 @@ public class S100DownloadFileService : IS100DownloadFileService
                 return Result.Failure<S100ExchangeSetFile>("Product name cannot be null or empty");
             }
 
-            var zipFile = _s100FileSource.GetZipFile(productName, editionNumber, productUpdateNumber);
+            var zipFile = _s100FileSource.GetZipFile(productName, editionNumber, updateNumber);
 
             if (zipFile?.FileStream == null)
             {

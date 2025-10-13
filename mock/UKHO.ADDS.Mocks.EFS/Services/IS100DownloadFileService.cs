@@ -13,7 +13,7 @@ public interface IS100DownloadFileService
     /// </summary>
     /// <param name="productName">The product name following S-100 naming convention</param>
     /// <param name="editionNumber">Edition number (default: 1)</param>
-    /// <param name="productUpdateNumber">Product update number (default: 0)</param>
+    /// <param name="updateNumber">Product update number (default: 0)</param>
     /// <returns>A result containing the ZIP file stream and metadata</returns>
-    IResult<S100ExchangeSetFile> GenerateZipFile(string productName, int editionNumber = 1, int productUpdateNumber = 0);
+    IResult<S100ExchangeSetFile> GenerateZipFile(string productName, int editionNumber = 1, int updateNumber = 0);
 }
