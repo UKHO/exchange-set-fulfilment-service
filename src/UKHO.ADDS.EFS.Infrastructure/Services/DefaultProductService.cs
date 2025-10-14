@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Globalization;
+using System.Net;
 using Microsoft.Extensions.Logging;
 using Microsoft.Kiota.Abstractions;
 using Microsoft.Kiota.Http.HttpClientLibrary.Middleware.Options;
@@ -66,7 +67,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                     ? values.FirstOrDefault()
                     : null;
 
-                DateTime.TryParse(lastModifiedHeader, out var lastModifiedActual);
+                DateTime.TryParse(lastModifiedHeader, CultureInfo.InvariantCulture, out var lastModifiedActual);
 
                 if (s100BasicCatalogueResult.IsSuccess(out var catalogueList) && catalogueList is not null)
                 {
@@ -87,7 +88,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                                 ? values.FirstOrDefault()
                                 : null;
 
-                            if (!DateTime.TryParse(lastModifiedHeader, out var parsed))
+                            if (!DateTime.TryParse(lastModifiedHeader, CultureInfo.InvariantCulture, out var parsed))
                             {
                                 // Fall back if header missing or unparsable
                                 parsed = sinceDateTime ?? default;
@@ -234,13 +235,13 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                     ? values.FirstOrDefault()
                     : null;
 
-                if (!DateTime.TryParse(lastModifiedHeader, out var parsed))
+                if (!DateTime.TryParse(lastModifiedHeader, CultureInfo.InvariantCulture, out var parsed))
                 {
                     // Fall back if header missing or unparsable
                     parsed = default;
                 }
 
-                productEditionList.LastModified = parsed;            
+                productEditionList.LastModified = parsed;
             }
 
             _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, (HttpStatusCode)apiException.ResponseStatusCode));
@@ -253,7 +254,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                 ? values.FirstOrDefault()
                 : null;
 
-            _ = DateTime.TryParse(lastModifiedHeader, out var lastModifiedActual);
+            _ = DateTime.TryParse(lastModifiedHeader, CultureInfo.InvariantCulture, out var lastModifiedActual);
 
             if (s100ProductNamesResult.IsSuccess(out var productList) && productList is not null)
             {
