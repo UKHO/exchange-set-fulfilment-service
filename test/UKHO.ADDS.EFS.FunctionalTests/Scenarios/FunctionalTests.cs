@@ -8,8 +8,7 @@ using Xunit.Abstractions;
 namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
 {
     [Collection("Startup Collection")]
-    // currently dissabled parallel test runs due to test failing on dev pipeline
-    // [EnableParallelization] // Needed to parallelize inside the class, not just between classes
+    [EnableParallelization] // Needed to parallelize inside the class, not just between classes
     public class FunctionalTests(StartupFixture startup, ITestOutputHelper output) : FunctionalTestBase(startup, output)
     {
         private readonly string _jobId = $"job-autoTest-" + Guid.NewGuid();
