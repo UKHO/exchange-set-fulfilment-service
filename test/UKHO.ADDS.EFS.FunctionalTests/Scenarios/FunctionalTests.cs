@@ -31,7 +31,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
 
 
         [Theory]
-        [InlineData("ProductName eq '101GB004DEVQK'", "Single101Product.zip")]
+        [InlineData("ProductName eq '101GB01569B'", "Single101Product.zip")]
         [InlineData("ProductName eq '102CA005N5040W00130'", "Single102Product.zip")]
         [InlineData("ProductName eq '104CA00_20241103T001500Z_GB3DEVK0_DCF2'", "Single104Product.zip")]
         [InlineData("ProductName eq '111FR00_20241217T001500Z_GB3DEVK0_DCF2'", "Single111Product.zip")]
@@ -42,7 +42,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
 
         [Theory]
         [InlineData("ProductName eq '111CA00_20241217T001500Z_GB3DEVQ0_DCF2' or ProductName eq '104CA00_20241103T001500Z_GB3DEVK0_DCF2'", "MultipleProducts.zip")]
-        [InlineData("ProductName eq '101GB004DEVQK' or startswith(ProductName, '104')", "SingleProductAndStartWithS104Products.zip")]
+        [InlineData("ProductName eq '101GB01569B' or startswith(ProductName, '104')", "SingleProductAndStartWithS104Products.zip")]
         public async Task S100FilterTests01(string filter, string zipFileName)
         {
             await TestExecutionHelper.ExecuteFullExchangeSetTestSteps(_jobId, CreatePayload(filter), _endpoint, zipFileName);
@@ -80,7 +80,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
         [Fact]
         public async Task S100ProductsTests()
         {
-            var productNames = new string[] { "104CA00_20241103T001500Z_GB3DEVK0_DCF2", "101GB004DEVQP", "101FR005DEVQG" };
+            var productNames = new string[] { "104CA00_20241103T001500Z_GB3DEVK0_DCF2", "101GB01569B", "101DE005DEVQG" };
             await TestExecutionHelper.ExecuteFullExchangeSetTestSteps(_jobId, CreatePayload(products: productNames), _endpoint, "SelectedProducts.zip", productNames: productNames);
         }
 
@@ -88,7 +88,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
         [Fact]
         public async Task S100ProductsAndFilterTests()
         {
-            var productNames = new string[] { "104CA00_20241103T001500Z_GB3DEVK0_DCF2", "101GB004DEVQP", "101FR005DEVQG" };
+            var productNames = new string[] { "104CA00_20241103T001500Z_GB3DEVK0_DCF2", "101GB01569B", "101DE005DEVQG" };
             await TestExecutionHelper.ExecuteFullExchangeSetTestSteps(_jobId, CreatePayload(filter: "startswith(ProductName, '101')", products: productNames), _endpoint, "SelectedProductsOnly.zip", productNames: productNames);
         }
     }

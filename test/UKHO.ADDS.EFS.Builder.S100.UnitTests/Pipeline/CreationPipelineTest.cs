@@ -40,7 +40,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
                     DataStandard = DataStandard.S100
                 },
                 JobId = JobId.From("TestJobId"),
-                WorkspaceAuthenticationKey = "Test123"
+                WorkspaceAuthenticationKey = "Test123",
+                BatchFileNameDetails = new List<string> { "101GBTest1_1_0", "102GBTest2_1_0" }
             };
 
             A.CallTo(() => _context.Subject).Returns(exchangeSetPipelineContext);
@@ -73,9 +74,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
 
             A.CallTo(() => _toolClient.AddExchangeSetAsync(A<JobId>._, A<string>._))
                 .MustHaveHappened();
-
-            A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<JobId>._, A<string>._))
-               .MustHaveHappened();
 
             A.CallTo(() => _toolClient.SignExchangeSetAsync(A<JobId>._, A<string>._))
                 .MustHaveHappened();
