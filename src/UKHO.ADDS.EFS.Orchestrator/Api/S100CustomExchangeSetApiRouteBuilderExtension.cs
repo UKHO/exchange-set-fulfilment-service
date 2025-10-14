@@ -25,7 +25,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
         public static void RegisterS100CustomExchangeSetApi(this IEndpointRouteBuilder routeBuilder, ILoggerFactory loggerFactory,ICorrelationIdGenerator correlationIdGenerator)
         {
             var logger = loggerFactory.CreateLogger("S100ExchangeSetApi");
-            var exchangeSetEndpoint = routeBuilder.MapGroup("/v2/exchangeSet/s100");
+            var exchangeSetEndpoint = routeBuilder.MapGroup("/v2/exchangeSet/s100").WithTags("s100").RequireAuthorization();
 
             // POST /v2/exchangeSet/s100/productNames
             exchangeSetEndpoint.MapPost("/productNames", async (
@@ -75,6 +75,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                      }
                  })
             .Produces<CustomExchangeSetResponse>(202)
+            .Produces<ErrorResponseModel>(400)
             .Produces<ErrorResponseModel>(413)
             .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", correlationIdGenerator.CreateForCustomExchageSet().ToString())
             .WithDescription("Provide all the latest releasable baseline data for a specified set of S100 Products.")
@@ -129,6 +130,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 }
             })
             .Produces<CustomExchangeSetResponse>(202)
+            .Produces<ErrorResponseModel>(400)
             .Produces<ErrorResponseModel>(413)
             .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", correlationIdGenerator.CreateForCustomExchageSet().ToString())
             .WithDescription("Given a set of S100 Product versions (e.g. Edition x Update y) provide any later releasable files.")
@@ -176,6 +178,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 }
             })
             .Produces<CustomExchangeSetResponse>(202)
+            .Produces<ErrorResponseModel>(400)
             .Produces(304)
             .Produces<ErrorResponseModel>(413)
             .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", correlationIdGenerator.CreateForCustomExchageSet().ToString())

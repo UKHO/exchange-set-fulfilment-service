@@ -16,7 +16,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
         public static void RegisterJobsApi(this IEndpointRouteBuilder routeBuilder, ILoggerFactory loggerFactory,ICorrelationIdGenerator correlationIdGenerator)
         {
             var logger = loggerFactory.CreateLogger("JobsApi");
-            var jobsEndpoint = routeBuilder.MapGroup("/jobs");
+            var jobsEndpoint = routeBuilder.MapGroup("/jobs").WithTags("s100");
 
             jobsEndpoint.MapPost("/", async (JobRequestApiMessage message, IConfiguration configuration, IAssemblyPipelineFactory pipelineFactory, HttpContext httpContext) =>
             {

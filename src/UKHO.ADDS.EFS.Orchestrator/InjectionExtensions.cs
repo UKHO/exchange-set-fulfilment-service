@@ -121,6 +121,52 @@ namespace UKHO.ADDS.EFS.Orchestrator
         {
             serviceCollection.AddOpenApi(options =>
             {
+                // Set OpenAPI document info (title, version, description, servers, contact, externalDocs, security)
+                _ = options.AddDocumentTransformer((document, context, cancellationToken) =>
+                {
+                    document.Info = new OpenApiInfo
+                    {
+                        Title = "S100 Exchange Set Service API",
+                        Version = "1.0",
+                        Description = "API for generating S100 exchange sets.",
+                        Contact = new OpenApiContact
+                        {
+                            Name = "Abzu Delivery Team",
+                            Email = "Abzudeliveryteam@UKHO.gov.uk"
+                        }
+                    };
+                    document.ExternalDocs = new OpenApiExternalDocs
+                    {
+                        Url = new Uri("https://github.com/UKHO/exchange-set-fulfilment-service")
+                    };
+                    document.Servers = new List<OpenApiServer>
+                    {
+                        new OpenApiServer { Url = "https://exchangesetservice.admiralty.co.uk" }
+                    };
+                    // Add JWT Bearer security scheme directly to the document
+                    document.Components ??= new OpenApiComponents();
+                    document.Components.SecuritySchemes ??= new Dictionary<string, OpenApiSecurityScheme>();
+                    document.Components.SecuritySchemes["jwtBearerAuth"] = new OpenApiSecurityScheme
+                    {
+                        Type = SecuritySchemeType.Http,
+                        Scheme = "bearer",
+                        BearerFormat = "JWT",
+                        In = ParameterLocation.Header,
+                        Name = "Authorization",
+                        Description = "JWT Authorization header using the Bearer scheme."
+                    };
+                    // Add security requirement
+                    document.SecurityRequirements = new List<OpenApiSecurityRequirement>
+                    {
+                        new OpenApiSecurityRequirement
+                        {
+                            [ new OpenApiSecurityScheme { Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "jwtBearerAuth" } } ] = new List<string>()
+                        }
+                    };
+                    return Task.CompletedTask;
+                });
+
+                // Add security scheme
                 options.AddOperationTransformer((operation, context, cancellationToken) =>
                 {
                     var headers = context.Description.ActionDescriptor.EndpointMetadata.OfType<OpenApiHeaderParameter>();
