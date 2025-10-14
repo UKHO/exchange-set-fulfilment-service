@@ -14,7 +14,6 @@ using UKHO.ADDS.EFS.Orchestrator.Validators.S100;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Api
 {
-
     /// <summary>
     /// Extension methods for registering S100 Exchange Set API endpoints
     /// </summary>
