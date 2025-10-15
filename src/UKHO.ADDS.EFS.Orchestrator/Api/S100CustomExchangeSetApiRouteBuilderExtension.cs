@@ -26,7 +26,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
         /// </summary>
         /// <param name="routeBuilder">The endpoint route builder</param>
         /// <param name="loggerFactory">The logger factory</param>
-        public static void RegisterS100CustomExchangeSetApi(this IEndpointRouteBuilder routeBuilder, ILoggerFactory loggerFactory,ICorrelationIdGenerator correlationIdGenerator)
+        public static void RegisterS100CustomExchangeSetApi(this IEndpointRouteBuilder routeBuilder, ILoggerFactory loggerFactory, ICorrelationIdGenerator correlationIdGenerator)
         {
             var logger = loggerFactory.CreateLogger("S100ExchangeSetApi");
             var exchangeSetEndpoint = routeBuilder.MapGroup("/v2/exchangeSet/s100").WithTags("s100").RequireAuthorization();
@@ -202,7 +202,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             .Produces(429)
             .Produces<InternalServerError>(500)
             .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", correlationIdGenerator.CreateForCustomExchageSet().ToString())
-            .WithDescription("Given a set of S100 Product versions (e.g. Edition x Update y) provide any later releasable files.")
+            .WithDescription("Given a list of Product name identifiers and their edition and update numbers, return all the versions of the Products that are releasable from that version onwards.\r\n\r\nBusiness Rules:\r\nIf none of the Products exist then Product exchange set with baseline releasable data Products will be returned.\r\n\r\nIf none of the Products requested have an update, then a 'Not modified' response will be returned. If none of the Products requested exist, then status code 400 ('Bad Request') response will be returned.")
             .WithRequiredAuthorization(AuthenticationConstants.AdOrB2C);
 
             // POST /v2/exchangeSet/s100/updatesSince
@@ -255,8 +255,26 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             .Produces(429)
             .Produces<InternalServerError>(500)
             .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", correlationIdGenerator.CreateForCustomExchageSet().ToString())
-            .WithDescription("Provide all the releasable S100 data after a datetime.")
-            .WithRequiredAuthorization(AuthenticationConstants.AdOrB2C);
+            .WithDescription("Given a datetime, build an Exchange Set of all the releasable Product versions that have been issued since that datetime.")
+            .WithRequiredAuthorization(AuthenticationConstants.AdOrB2C)
+            .WithOpenApi(operation =>
+            {
+                // Add parameter descriptions for callbackUri and productIdentifier
+                if (operation.Parameters != null)
+                {
+                    var callbackUriParam = operation.Parameters.FirstOrDefault(p => p.Name == "callbackUri");
+                    if (callbackUriParam != null)
+                    {
+                        callbackUriParam.Description = "Optional callback URI for asynchronous notification.";
+                    }
+                    var productIdentifierParam = operation.Parameters.FirstOrDefault(p => p.Name == "productIdentifier");
+                    if (productIdentifierParam != null)
+                    {
+                        productIdentifierParam.Description = "Optional product identifier to filter updates for a specific product.";
+                    }
+                }
+                return operation;
+            });
         }
 
         private static IResult HandleErrorResponse(ErrorResponseModel errorResponse)
