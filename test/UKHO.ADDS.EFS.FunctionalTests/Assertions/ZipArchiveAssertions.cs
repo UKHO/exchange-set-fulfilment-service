@@ -46,10 +46,9 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Assertions
             TestOutput.WriteLine($"Actual Zip File Directory Structure: {string.Join(", ", targetDirectories)}");
 
             // Compare directory structures of both ZIP files using soft assertions
-            sourceDirectories.Should().BeEquivalentTo(targetDirectories,
-                "directory structures in both ZIP files should match");
+            sourceDirectories.Should().BeEquivalentTo(targetDirectories, "directory structures in both ZIP files should match");
 
-            // If product names are specified, validate their presence in the source archive
+            // If product names are specified, validate their presence in the target zip
             if (products != null)
             {
                 var expectedProductPaths = new List<string>();
@@ -57,11 +56,21 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Assertions
                 {
                     var productIdentifier = productName[..3];
                     var folderName = productName[3..7];
+                    /*
+                     * As currently the files under SUPPORT_FILES folder are named randomly as per new test data generation
+                     * so commenting the below code
+                     * 
                     if (productIdentifier == "101")
                     {
                         expectedProductPaths.Add($"S100_ROOT/S-{productIdentifier}/SUPPORT_FILES/{productName}");
                     }
-                    expectedProductPaths.Add($"S100_ROOT/S-{productIdentifier}/DATASET_FILES/{folderName}/{productName}");
+                    */
+
+                    /*
+                     * In current FSS zip files the "folderName" not present as per new test data generation
+                     * expectedProductPaths.Add($"S100_ROOT/S-{productIdentifier}/DATASET_FILES/{folderName}/{productName}");
+                     */
+                    expectedProductPaths.Add($"S100_ROOT/S-{productIdentifier}/DATASET_FILES/{productName}");
                 }
                 //added file expected other than product name
                 expectedProductPaths.Add("S100_ROOT/CATALOG");
@@ -73,6 +82,11 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Assertions
                 var actualProductPaths = targetArchive.Entries
                     .Where(e => e.FullName.Contains('.')) // Assuming product files have extensions
                     .Select(e => e.FullName[..e.FullName.IndexOf('.')]) // Get the file name without extension
+                    /*
+                     * As currently the files under SUPPORT_FILES folder are named randomly as per new test data generation
+                     * so Skip SUPPORT_FILES folder entries
+                    */
+                    .Where(path => !path.Contains("SUPPORT_FILES")) // Filter out SUPPORT_FILES
                     .Distinct()
                     .OrderBy(p => p)
                     .ToList();

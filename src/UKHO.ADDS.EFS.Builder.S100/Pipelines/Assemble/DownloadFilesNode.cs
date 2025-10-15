@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.IO.Compression;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging;
@@ -19,21 +20,18 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private readonly int _maxConcurrentDownloads;
         private readonly SemaphoreSlim _downloadFileConcurrencyLimiter;
         private ILogger _logger;
-
-        private const long FileSizeInBytes = 10485760;
         private const string ProductName = "Product Name";
         private const string EditionNumber = "Edition Number";
         private const string UpdateNumber = "Update Number";
-        private const int ProducerCodeStartIndex = 3;
-        private const int ProducerCodeLength = 4;
-        private const string H5Extension = ".h5";
-        private const int MinimumFilenameLength = 7; // Producer code starts at index 3 and is 4 chars long
-        private const int NumericExtensionLength = 4; // Includes the period (.)
-        private const int NumericPartStartIndex = 1;  // Skip the period
-        private const int MinNumericValue = 000;
-        private const int MaxNumericValue = 999;
         private const int FileStreamBufferSize = 81920; // 80KB buffer size
         private const int DefaultConcurrentDownloads = 1; // Default number of concurrent downloads if not specified in config
+
+        // Security limits for ZIP extraction
+        private const long MaxExtractedFileSize = 100 * 1024 * 1024; // 100MB per file
+        private const long MaxTotalExtractedSize = 500 * 1024 * 1024; // 500MB total
+        private const int MaxEntryCount = 10000; // Maximum number of entries
+        private const int MaxCompressionRatio = 100; // Maximum compression ratio
+        private const int ExtractionBufferSize = 8192; // 8KB buffer for extraction
 
         public DownloadFilesNode(IFileShareReadOnlyClient fileShareReadOnlyClient, IConfiguration configuration)
         {
@@ -67,7 +65,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
                 var latestBatches = SelectLatestBatchesByProductEditionAndUpdate(context.Subject.BatchDetails);
 
-                return await DownloadLatestBatchFilesAsync(latestBatches, downloadPath, context.Subject.Build.GetCorrelationId(), context.Subject.WorkSpaceSpoolDataSetFilesPath, context.Subject.WorkSpaceSpoolSupportFilesPath);
+                context.Subject.BatchFileNameDetails = latestBatches
+                    .SelectMany(b => b.Files)
+                    .Select(f => Path.GetFileNameWithoutExtension(f.Filename))
+                    .ToList();
+
+                return await DownloadLatestBatchFilesAsync(latestBatches, downloadPath, context.Subject.Build.GetCorrelationId());
             }
             catch (Exception ex)
             {
@@ -94,9 +97,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private async Task<NodeResultStatus> DownloadLatestBatchFilesAsync(
             IEnumerable<BatchDetails> latestBatches,
             string workSpaceRootPath,
-            CorrelationId correlationId,
-            string workSpaceSpoolDataSetFilesPath,
-            string workSpaceSpoolSupportFilesPath)
+            CorrelationId correlationId)
         {
             var createdDirectories = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             CreateDirectoryIfNotExists(workSpaceRootPath, createdDirectories);
@@ -110,13 +111,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 return NodeResultStatus.Succeeded;
             }
 
-            CreateRequiredDirectories(
-                allFilesToProcess,
-                workSpaceRootPath,
-                workSpaceSpoolDataSetFilesPath,
-                workSpaceSpoolSupportFilesPath,
-                createdDirectories);
-
             // Create a shared dictionary for file locks that will be used during download
             // This dictionary is managed throughout the download process
             var fileLocks = new ConcurrentDictionary<string, SemaphoreSlim>();
@@ -126,8 +120,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 var downloadTasks = CreateDownloadTasks(
                     allFilesToProcess,
                     workSpaceRootPath,
-                    workSpaceSpoolDataSetFilesPath,
-                    workSpaceSpoolSupportFilesPath,
                     correlationId,
                     fileLocks);
 
@@ -163,32 +155,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             return nullableFileSize.HasValue ? FileSize.From(nullableFileSize.Value) : FileSize.Zero;
         }
 
-        private void CreateRequiredDirectories(
-            List<(BatchDetails batch, string fileName, FileSize fileSize)> allFilesToProcess,
-            string workSpaceRootPath,
-            string workSpaceSpoolDataSetFilesPath,
-            string workSpaceSpoolSupportFilesPath,
-            HashSet<string> createdDirectories)
-        {
-            var fileDirectoryPaths = allFilesToProcess
-                .Select(item => GetDirectoryPathForFile(
-                    workSpaceRootPath,
-                    item.fileName,
-                    workSpaceSpoolDataSetFilesPath,
-                    workSpaceSpoolSupportFilesPath))
-                .Distinct();
-
-            foreach (var directoryPath in fileDirectoryPaths)
-            {
-                CreateDirectoryIfNotExists(directoryPath, createdDirectories);
-            }
-        }
-
         private IEnumerable<Task> CreateDownloadTasks(
             List<(BatchDetails batch, string fileName, FileSize fileSize)> allFilesToProcess,
             string workSpaceRootPath,
-            string workSpaceSpoolDataSetFilesPath,
-            string workSpaceSpoolSupportFilesPath,
             CorrelationId correlationId,
             ConcurrentDictionary<string, SemaphoreSlim> fileLocks)
         {
@@ -199,12 +168,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 await _downloadFileConcurrencyLimiter.WaitAsync();
                 try
                 {
-                    var directoryPath = GetDirectoryPathForFile(
-                        workSpaceRootPath,
-                        item.fileName,
-                        workSpaceSpoolDataSetFilesPath,
-                        workSpaceSpoolSupportFilesPath);
-                    var downloadPath = Path.Combine(directoryPath, item.fileName);
+                    var downloadPath = Path.Combine(workSpaceRootPath, item.fileName);
 
                     // Get or create a semaphore for this specific file to prevent concurrent access
                     var fileLock = fileLocks.GetOrAdd(downloadPath, _ => new SemaphoreSlim(1, 1));
@@ -239,9 +203,19 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                                     LogFssDownloadFailed(item.batch, item.fileName, error);
                                     throw new Exception($"Failed to download {item.fileName}");
                                 }
+
+                                // Ensure all data is written to disk
+                                await outputFileStream.FlushAsync();
                             }
-                            // Ensure all data is written to disk
-                            await outputFileStream.FlushAsync();
+
+                            // Close the file stream before extracting
+                            await outputFileStream.DisposeAsync();
+
+                            // Check if the file is a ZIP file and needs extraction
+                            if (Path.GetExtension(downloadPath).Equals(".zip", StringComparison.OrdinalIgnoreCase))
+                            {
+                                ExtractAndDeleteZip(downloadPath, workSpaceRootPath, item.fileName);
+                            }
                         }
                         finally
                         {
@@ -265,6 +239,183 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             });
         }
 
+        private void ExtractAndDeleteZip(string downloadPath, string workSpaceRootPath, string originalFileName)
+        {
+            try
+            {
+                var folderName = Path.GetFileNameWithoutExtension(downloadPath);
+                var extractFolder = Path.Combine(workSpaceRootPath, folderName);
+
+                if (!Directory.Exists(extractFolder))
+                {
+                    Directory.CreateDirectory(extractFolder);
+                }
+
+                ExtractZipFile(downloadPath, extractFolder, originalFileName);
+
+                // Delete the original ZIP file after extraction
+                if (File.Exists(downloadPath))
+                {
+                    File.Delete(downloadPath);
+                }
+            }
+            catch (Exception ex)
+            {
+                var zipExtractionError = new ZipExtractionErrorLogView
+                {
+                    ZipFilePath = downloadPath,
+                    DestinationDirectoryPath = Path.Combine(workSpaceRootPath, Path.GetFileNameWithoutExtension(downloadPath)),
+                    ExceptionMessage = ex.Message,
+                    ExceptionType = ex.GetType().Name,
+                    FileName = originalFileName
+                };
+
+                _logger.LogZipExtractionFailed(zipExtractionError);
+            }
+        }
+
+        /// <summary>
+        /// Securely extracts a ZIP file with resource consumption controls to prevent zip bomb attacks
+        /// </summary>
+        /// <param name="zipFilePath">Path to the ZIP file</param>
+        /// <param name="destinationDirectoryPath">Path to extract the ZIP contents</param>
+        /// <param name="originalFileName">The original file name for logging purposes</param>
+        private void ExtractZipFile(string zipFilePath, string destinationDirectoryPath, string originalFileName)
+        {
+            try
+            {
+                using var archive = ZipFile.OpenRead(zipFilePath);
+
+                if (archive.Entries.Count > MaxEntryCount)
+                {
+                    throw new InvalidOperationException($"ZIP file contains too many entries ({archive.Entries.Count}). Maximum allowed: {MaxEntryCount}");
+                }
+
+                var totalExtractedSize = 0L;
+                foreach (var entry in archive.Entries)
+                {
+                    if (!ShouldProcessEntry(entry))
+                        continue;
+
+                    // Generate a safe path for the entry that is guaranteed to be within the destination directory
+                    var destinationPath = GetSafeDestinationPath(entry, destinationDirectoryPath);
+
+                    // If the path is null, it means it's not safe and we should skip this entry
+                    if (destinationPath == null)
+                    {
+                        _logger.LogWarning("Skipping potentially malicious zip entry: {EntryName}", entry.FullName);
+                        continue;
+                    }
+
+                    // Now validate the entry for other security checks
+                    ValidateZipEntry(entry, destinationPath, destinationDirectoryPath, ref totalExtractedSize);
+
+                    if (IsDirectoryEntry(entry))
+                    {
+                        Directory.CreateDirectory(destinationPath);
+                        continue;
+                    }
+
+                    // Create the parent directory for the file if it doesn't exist
+                    var directoryName = Path.GetDirectoryName(destinationPath);
+                    if (!string.IsNullOrEmpty(directoryName))
+                    {
+                        Directory.CreateDirectory(directoryName);
+                    }
+
+                    ExtractEntry(entry, destinationPath);
+                }
+            }
+            catch (Exception ex)
+            {
+                var zipExtractionError = new ZipExtractionErrorLogView
+                {
+                    ZipFilePath = zipFilePath,
+                    DestinationDirectoryPath = destinationDirectoryPath,
+                    ExceptionMessage = ex.Message,
+                    ExceptionType = ex.GetType().Name,
+                    FileName = originalFileName
+                };
+
+                _logger.LogZipExtractionFailed(zipExtractionError);
+                throw;
+            }
+        }
+
+        private static bool ShouldProcessEntry(ZipArchiveEntry entry)
+        {
+            return !string.IsNullOrEmpty(entry.FullName);
+        }
+
+        /// <summary>
+        /// Generates a safe destination path for a ZIP entry, ensuring it is within the target directory.
+        /// Returns null if the path would be outside the target directory (zip slip attempt).
+        /// </summary>
+        /// <param name="entry">The ZIP archive entry</param>
+        /// <param name="destinationDirectoryPath">The base directory where files should be extracted</param>
+        /// <returns>A safe path within the destination directory, or null if unsafe</returns>
+        private static string? GetSafeDestinationPath(ZipArchiveEntry entry, string destinationDirectoryPath)
+        {
+            // Normalize the entry path to use the correct directory separator and remove any leading separators
+            string normalizedEntryPath = NormalizeEntryPath(entry.FullName);
+
+            // Construct the full destination path
+            string destinationPath = Path.GetFullPath(Path.Combine(destinationDirectoryPath, normalizedEntryPath));
+
+            // Get the full path of the destination directory with trailing separator to ensure we're comparing directories properly
+            string fullDestinationDirPath = Path.GetFullPath(destinationDirectoryPath);
+            if (!fullDestinationDirPath.EndsWith(Path.DirectorySeparatorChar.ToString(), StringComparison.Ordinal))
+            {
+                fullDestinationDirPath += Path.DirectorySeparatorChar;
+            }
+
+            // Check if the resulting path starts with the destination directory path
+            // This prevents directory traversal attacks (zip slip)
+            if (!destinationPath.StartsWith(fullDestinationDirPath, StringComparison.OrdinalIgnoreCase))
+            {
+                // The path would be outside the target directory - possible zip slip attempt
+                return null;
+            }
+
+            return destinationPath;
+        }
+
+        private static void ValidateZipEntry(ZipArchiveEntry entry, string destinationPath, string destinationDirectoryPath, ref long totalExtractedSize)
+        {
+            // The IsZipSlip check is now redundant as GetSafeDestinationPath already ensures path safety
+            // but we'll keep it for defense in depth
+            if (IsZipSlip(destinationPath, destinationDirectoryPath))
+                throw new InvalidOperationException($"Entry '{entry.FullName}' is trying to extract outside of the target directory.");
+
+            if (!IsDirectoryEntry(entry))
+            {
+                if (entry.Length > MaxExtractedFileSize)
+                {
+                    throw new InvalidOperationException($"Entry '{entry.FullName}' is too large ({entry.Length} bytes). Maximum allowed: {MaxExtractedFileSize} bytes");
+                }
+
+                if (entry.CompressedLength > 0)
+                {
+                    var compressionRatio = entry.Length / entry.CompressedLength;
+                    if (compressionRatio > MaxCompressionRatio)
+                    {
+                        throw new InvalidOperationException($"Entry '{entry.FullName}' has suspicious compression ratio ({compressionRatio}). Maximum allowed: {MaxCompressionRatio}");
+                    }
+                }
+
+                totalExtractedSize += entry.Length;
+                if (totalExtractedSize > MaxTotalExtractedSize)
+                {
+                    throw new InvalidOperationException($"Total extracted size would exceed limit ({totalExtractedSize} bytes). Maximum allowed: {MaxTotalExtractedSize} bytes");
+                }
+            }
+        }
+
+        private static bool IsZipSlip(string destinationPath, string destinationDirectoryPath)
+        {
+            return !destinationPath.StartsWith(Path.GetFullPath(destinationDirectoryPath), StringComparison.OrdinalIgnoreCase);
+        }
+
         private static void CreateDirectoryIfNotExists(string downloadPath, HashSet<string>? createdDirectories = null)
         {
             // Early return if we've already created this directory
@@ -283,51 +434,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             createdDirectories?.Add(downloadPath);
         }
 
-        private string GetDirectoryPathForFile(string workSpaceRootPath, string fileName, string workSpaceSpoolDataSetFilesPath, string workSpaceSpoolSupportFilesPath)
-        {
-            var extension = Path.GetExtension(fileName);
-
-            // Check if file should go into dataset-specific folder
-            if (IsDatasetFile(fileName, extension))
-            {
-                // Extract the producer code from filename (chars 4-7 per S-100 standard)
-                var producerCode = fileName.Substring(ProducerCodeStartIndex, ProducerCodeLength);
-                return Path.Combine(workSpaceRootPath, workSpaceSpoolDataSetFilesPath, producerCode);
-            }
-
-            // All other files go to support files folder
-            return Path.Combine(workSpaceRootPath, workSpaceSpoolSupportFilesPath);
-        }
-
-        /// <summary>
-        /// Determines if the file is an S-100 dataset file that should be placed in a producer-specific subfolder.
-        /// </summary>
-        /// <param name="fileName">The name of the file</param>
-        /// <param name="extension">The file extension</param>
-        /// <returns>True if the file is a dataset file, false otherwise</returns>
-        private static bool IsDatasetFile(string fileName, string extension)
-        {
-            // File must be long enough to contain a producer code
-            if (fileName.Length < MinimumFilenameLength)
-            {
-                return false;
-            }
-
-            // Check for numeric extensions (.000 to .999) using ReadOnlySpan for better performance
-            if (extension.Length == NumericExtensionLength)
-            {
-                ReadOnlySpan<char> numericPart = extension.AsSpan(NumericPartStartIndex);
-                if (int.TryParse(numericPart, out var extNum) &&
-                    extNum is >= MinNumericValue and <= MaxNumericValue)
-                {
-                    return true;
-                }
-            }
-
-            // H5 extension
-            return extension.Equals(H5Extension, StringComparison.OrdinalIgnoreCase);
-        }
-
         private void LogFssDownloadFailed(BatchDetails batch, string fileName, IError error)
         {
             var downloadFilesLogView = new DownloadFilesLogView
@@ -338,6 +444,62 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             };
 
             _logger.LogDownloadFilesNodeFssDownloadFailed(downloadFilesLogView);
+        }
+
+        private static string NormalizeEntryPath(string entryName)
+        {
+            // Replace directory separators and trim leading separators
+            var normalized = entryName.Replace('\\', Path.DirectorySeparatorChar)
+                                      .Replace('/', Path.DirectorySeparatorChar)
+                                      .TrimStart(Path.DirectorySeparatorChar);
+
+            // Remove any parent directory traversals
+            var parts = normalized.Split(Path.DirectorySeparatorChar)
+                                  .Where(part => part != ".." && part != "." && !string.IsNullOrWhiteSpace(part));
+            var safePath = string.Join(Path.DirectorySeparatorChar, parts);
+
+            // Reject absolute paths
+            if (Path.IsPathRooted(safePath))
+            {
+                return string.Empty;
+            }
+
+            return safePath;
+        }
+
+        private static bool IsDirectoryEntry(ZipArchiveEntry entry)
+        {
+            return entry.FullName.EndsWith("/", StringComparison.Ordinal) ||
+                   entry.FullName.EndsWith("\\", StringComparison.Ordinal);
+        }
+
+        private static void ExtractEntry(ZipArchiveEntry entry, string destinationPath)
+        {
+            using var entryStream = entry.Open();
+            using var outputStream = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, FileShare.None);
+
+            var buffer = new byte[ExtractionBufferSize];
+            var totalBytesRead = 0L;
+            int bytesRead;
+
+            while ((bytesRead = entryStream.Read(buffer, 0, buffer.Length)) > 0)
+            {
+                totalBytesRead += bytesRead;
+
+                // Double-check against the declared length during extraction
+                if (totalBytesRead > entry.Length)
+                {
+                    throw new InvalidOperationException($"Entry '{entry.FullName}' actual size exceeds declared size. Possible zip bomb attack.");
+                }
+
+                // Additional safety check against maximum file size
+                if (totalBytesRead > MaxExtractedFileSize)
+                {
+                    throw new InvalidOperationException($"Entry '{entry.FullName}' size during extraction exceeds maximum allowed size ({MaxExtractedFileSize} bytes).");
+                }
+
+                outputStream.Write(buffer, 0, bytesRead);
+            }
         }
     }
 }

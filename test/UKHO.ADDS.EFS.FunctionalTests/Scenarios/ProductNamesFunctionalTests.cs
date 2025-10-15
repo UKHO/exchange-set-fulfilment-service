@@ -32,7 +32,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
         //PBI 244063 - Use the existing Product Names Node (GetS100ProductNamesNode) from existing pipeline (S100AssemblyPipeline) to new pipeline (S100CustomAssemblyPipeline).
         [Theory]
         [DisableParallelization] // This test runs in parallel with other tests. However, its test cases are run sequentially.
-        [InlineData(new string[] { "101GB004DEVQK" }, "https://valid.com/callback", "Single101Product.zip", 1, 1)] // Test Case 245610 - Product Name (S-101 product) Node Integration
+        [InlineData(new string[] { "101GB01569B" }, "https://valid.com/callback", "Single101Product.zip", 1, 1)] // Test Case 245610 - Product Name (S-101 product) Node Integration
         [InlineData(new string[] { "102CA005N5040W00130" }, "https://adds-mocks-efs/callback/callback", "Single102Product.zip", 1, 1)] // Test Case 245610 - Product Name (S-102 product) Node Integration
         [InlineData(new string[] { "104CA00_20241103T001500Z_GB3DEVK0_DCF2" }, "", "Single104Product.zip", 1, 1)] // Test Case 243519 - Valid input with valid callBackURI and // Test Case 245610 - Product Name (S-104 product) Node Integration
         [InlineData(new string[] { "111FR00_20241217T001500Z_GB3DEVK0_DCF2" }, null, "Single111Product.zip", 1, 1)] // Test Case 245610 - Product Name (S-111 product) Node Integration
