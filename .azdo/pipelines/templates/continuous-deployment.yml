@@ -274,12 +274,12 @@ jobs:
           displayName: Run Functional tests
           condition: eq('${{ parameters.ShortName }}', 'dev')
           inputs:
-            command: test
-            projects: "**/UKHO.ADDS.EFS.FunctionalTests.csproj"
-            arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)/efs/test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura --no-restore'
-            publishTestResults: true
-            testRunTitle: FunctionalTests
-            restoreDirectory: '$(Build.SourcesDirectory)/efs/packagesForTests'
-          env:
-            ORCHESTRATOR_URL: $(ORCHESTRATOR_URL)
-            ADDSMOCK_URL: $(ADDSMOCK_URL)
+           command: test
+           projects: "**/UKHO.ADDS.EFS.FunctionalTests.csproj"
+           arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)/efs/test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura --no-restore'
+           publishTestResults: true
+           testRunTitle: FunctionalTests
+           restoreDirectory: '$(Build.SourcesDirectory)/efs/packagesForTests'
+           env:
+           ORCHESTRATOR_URL: $(ORCHESTRATOR_URL)
+           ADDSMOCK_URL: $(ADDSMOCK_URL)
