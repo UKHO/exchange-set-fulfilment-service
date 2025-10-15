@@ -5,6 +5,71 @@ info:
 servers:
   - url: https://efs-orchestrator.mangomeadow-42e84c72.uksouth.azurecontainerapps.io/
 paths:
+  /client_credentials:
+    post:
+      summary: Get token from AAD.
+      operationId: getESSTokenUsingClientCredentials
+      tags:
+         - auth
+      description: |
+        Returns a token direct from AAD using Client Credentials
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                client_id:
+                  type: string
+                  description: The application ID that's assigned to the distributor's app. This will be provided to the distributor when they register their application.
+                client_secret:
+                  type: string
+                  description: The client secret that has been generated for the distributor's app when the app was registered. The client secret must be URL-encoded before being sent.
+      responses:
+        200:
+          description: OK.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token_type:
+                    type: string
+                  expires_in:
+                    type: string
+                  ext_expires_in:
+                    type: string
+                  access_token:
+                    type: string
+              example: |
+                {
+                  "token_type": "Bearer",
+                  "expires_in": 3599,
+                  "ext_expires_in": 3599,
+                  "access_token": ""
+                }
+        400:
+          description: Bad request - Request missing client_id and/or client_secret.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorDescription"
+              example:
+                {
+                  "correlationId": "184ef711-b039-4c24-b81a-89081d8f324c",
+                  "errors": [
+                      {
+                        "source": "request",
+                        "description": "request missing client_id and/or client_secret"
+                      }
+                    ]
+                }
+        401:
+          $ref: "#/components/responses/unauthorised"
+        403:
+          $ref: "#/components/responses/forbidden"
+        429:
+          $ref: "#/components/responses/tooManyRequests"
   /v2/exchangeSet/s100/productNames:
     post:
       tags:
@@ -114,6 +179,20 @@ paths:
 components:
   schemas:
     BatchId: {}     
+    errorDescription:
+      type: object
+      properties:
+        correlationId:
+          type: string
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              source:
+                type: string
+              description:
+                type: string
     CustomExchangeSetResponse:
       required:
         - links
@@ -213,5 +292,25 @@ components:
         sinceDateTime:
           type: string
           format: date-time
+  responses:
+    unauthorised:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorDescription'
+    forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorDescription'
+    tooManyRequests:
+      description: Too Many Requests
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorDescription'
 tags:
   - name: UKHO.ADDS.EFS.Orchestrator
+  - name: auth
