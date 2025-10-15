@@ -62,7 +62,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                 build.ProductEditions = productEditionList.Products;
 
                 job.RequestedProductCount = ProductCount.From(productVersions.Count());
-                job.ExchangeSetProductCount = ProductCount.From(productEditionList.Count());
+                job.ExchangeSetProductCount = productEditionList.Count;
                 if (productEditionList.ResponseCode == HttpStatusCode.NotModified)
                 {
                     job.RequestedProductsAlreadyUpToDateCount = ProductCount.From(productVersions.Count());

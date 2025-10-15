@@ -34,11 +34,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         /// <summary>
         /// Gets or sets the HTTP status code representing the response from the SCS service.
         /// </summary>
-        public HttpStatusCode ScsResponseCode { get; set; }
+        public HttpStatusCode ScsResponseCode { get; init; }
 
         /// <summary>
         /// Gets or sets the date and time when the entity was last modified in the SCS system.
         /// </summary>
-        public DateTime? ScsLastModified { get; set; }
+        public DateTime? ScsLastModified { get; init; }
     }
 }

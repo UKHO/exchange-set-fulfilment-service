@@ -50,7 +50,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                 return NodeResultStatus.Failed;
             }
 
-            var evaluation = await EvaluateScsResponseAsync(productEditionList, context, job);
+            var evaluation = await EvaluateScsResponseAsync(productEditionList, context);
             if (evaluation != NodeResultStatus.Succeeded ||
                 (evaluation == NodeResultStatus.Succeeded && scsResponse.ResponseCode == System.Net.HttpStatusCode.NotModified))
             {
@@ -68,7 +68,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             return NodeResultStatus.Succeeded;
         }
 
-        private static async Task<NodeResultStatus> EvaluateScsResponseAsync(ProductEditionList productEditionList, IExecutionContext<PipelineContext<S100Build>> context, Job job)
+        private static async Task<NodeResultStatus> EvaluateScsResponseAsync(ProductEditionList productEditionList, IExecutionContext<PipelineContext<S100Build>> context)
         {
             if (productEditionList.ResponseCode == System.Net.HttpStatusCode.NotModified)
             {
