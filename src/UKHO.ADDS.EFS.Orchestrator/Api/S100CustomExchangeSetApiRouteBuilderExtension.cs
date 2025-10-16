@@ -82,7 +82,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             .Produces(429)
             .Produces<InternalServerError>(500)
             .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", correlationIdGenerator.CreateForCustomExchageSet().ToString())
-            .WithDescription("Given a list of Product names, return all the products that are releasable.\r\n\r\nBusiness Rules:\r\nOnly Products that are releasable at the date of the request will be returned.\r\n\r\nIf valid Products are requested then Product exchange set with baseline data including requested Products will be returned.\r\n\r\nIf a requested Product has been cancelled or replaced, then the replacement Product will not be included in the response payload. Only the specific Products requested will be returned.\r\n\r\nIf none of the Products requested exist then exchange set with baseline releasable data without requested Products will be returned.")
+            .WithDescription("Given a list of Product names, return all the products that are releasable.\r\n\r\n**Business Rules:**\r\n\r\nOnly Products that are releasable at the date of the request will be returned.\r\n\r\nIf valid Products are requested then Product exchange set with baseline data including requested Products will be returned.\r\n\r\nIf a requested Product has been cancelled or replaced, then the replacement Product will not be included in the response payload. Only the specific Products requested will be returned.\r\n\r\nIf none of the Products requested exist then exchange set with baseline releasable data without requested Products will be returned.")
             .WithRequiredAuthorization(AuthenticationConstants.AdOrB2C);
 
             // POST /v2/exchangeSet/s100/productVersions
@@ -140,7 +140,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             .Produces(429)
             .Produces<InternalServerError>(500)
             .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", correlationIdGenerator.CreateForCustomExchageSet().ToString())
-            .WithDescription("Given a list of Product name identifiers and their edition and update numbers, return all the versions of the Products that are releasable from that version onwards.\r\n\r\nBusiness Rules:\r\nIf none of the Products exist then Product exchange set with baseline releasable data Products will be returned.\r\n\r\nIf none of the Products requested have an update, then a 'Not modified' response will be returned. If none of the Products requested exist, then status code 400 ('Bad Request') response will be returned.")
+            .WithDescription("Given a list of Product name identifiers and their edition and update numbers, return all the versions of the Products that are releasable from that version onwards.\r\n\r\n**Business Rules:**\r\n\r\nIf none of the Products exist then Product exchange set with baseline releasable data Products will be returned.\r\n\r\nIf none of the Products requested have an update, then a 'Not modified' response will be returned. If none of the Products requested exist, then status code 400 ('Bad Request') response will be returned.")
             .WithRequiredAuthorization(AuthenticationConstants.AdOrB2C);
 
             // POST /v2/exchangeSet/s100/updatesSince

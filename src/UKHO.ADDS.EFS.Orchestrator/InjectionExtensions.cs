@@ -185,18 +185,65 @@ namespace UKHO.ADDS.EFS.Orchestrator
                         });
                     }
 
-                    if (operation.Responses.ContainsKey("401"))
-                    {
-                        operation.Responses["401"].Description = "Unauthorised - either you have not provided any credentials, or your credentials are not recognised.";
-                    }
-                    if (operation.Responses.ContainsKey("403"))
-                    {
-                        operation.Responses["403"].Description = "Forbidden - you have been authorised, but you are not allowed to access this resource.";
-                    }
-                    if (operation.Responses.ContainsKey("429"))
-                    {
-                        operation.Responses["429"].Description = "You have sent too many requests in a given amount of time. Please back-off for the time in the Retry-After header (in seconds) and try again.";
-                    }
+
+                        // Refactored code for the selected block:
+                        const string CallbackUriDescription =
+                            "An optional callback URI that will be used to notify the requestor once the requested Exchange Set is ready to download from the File Share Service. " +
+                            "The data for the notification will follow the CloudEvents 1.0 standard, with the data portion containing the same Exchange Set data as the response to the original API request. " +
+                            "If not specified, then no call back notification will be sent.";
+
+                        const string ProductIdentifierDescription =
+                            "An optional identifier parameter determines the product identifier of S-100 Exchange Set. " +
+                            "If the value is s101, the S-100 Exchange Set will give updates specific to s101 products only. " +
+                            "The default value of identifier is s100, which means the S-100 Exchange Set will give updated for all product identifier.\r\n\r\n" +
+                            "Available values : s101, s102, s104, s111";
+
+                        const string AcceptedDescription =
+                            "Request to create Exchange Set is accepted. Response body has Exchange Set status URL to track changes to the status of the task. " +
+                            "It also contains the URL that the Exchange Set will be available on as well as the number of products in that Exchange Set.";
+
+                        const string UnauthorizedDescription =
+                            "Unauthorised - either you have not provided any credentials, or your credentials are not recognised.";
+
+                        const string ForbiddenDescription =
+                            "Forbidden - you have been authorised, but you are not allowed to access this resource.";
+
+                        const string TooManyRequestsDescription =
+                            "You have sent too many requests in a given amount of time. Please back-off for the time in the Retry-After header (in seconds) and try again.";
+
+                        const string NotModifiedDescription =
+                            "If there are no updates since the sinceDateTime parameter, then a 'Not modified' response will be returned.";
+
+                        if (operation.Parameters is { Count: > 0 })
+                        {
+                            foreach (var param in operation.Parameters)
+                            {
+                                param.Description = param.Name switch
+                                {
+                                    "callbackUri" => CallbackUriDescription,
+                                    "productIdentifier" => ProductIdentifierDescription,
+                                    _ => param.Description
+                                };
+                            }
+                        }
+
+                        var responseDescriptions = new Dictionary<string, string>
+                        {
+                            ["202"] = AcceptedDescription,
+                            ["401"] = UnauthorizedDescription,
+                            ["403"] = ForbiddenDescription,
+                            ["429"] = TooManyRequestsDescription,
+                            ["304"] = NotModifiedDescription
+                        };
+
+                        foreach (var kvp in responseDescriptions)
+                        {
+                            if (operation.Responses.TryGetValue(kvp.Key, out var response))
+                            {
+                                response.Description = kvp.Value;
+                            }
+                        }
+
                     // Always add 500 Internal Server Error response if missing
                     var error500Example = new OpenApiObject
                     {
