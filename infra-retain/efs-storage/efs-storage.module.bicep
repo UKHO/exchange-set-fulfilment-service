@@ -16,7 +16,7 @@ resource efs_storage 'Microsoft.Storage/storageAccounts@2024-01-01' = {
   }
   properties: {
     accessTier: 'Hot'
-    allowSharedKeyAccess: true
+    allowSharedKeyAccess: false
     minimumTlsVersion: 'TLS1_2'
     networkAcls: {
       defaultAction: 'Allow'
