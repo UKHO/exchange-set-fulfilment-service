@@ -13,6 +13,10 @@ param adds_mocks_efs_containerimage string
 
 param adds_mocks_efs_containerport string
 
+param addsMocksCpu string
+
+param addsMocksMemory string
+
 resource adds_mocks_efs 'Microsoft.App/containerApps@2025-02-02-preview' = {
   name: 'adds-mocks-efs'
   location: location
@@ -64,6 +68,10 @@ resource adds_mocks_efs 'Microsoft.App/containerApps@2025-02-02-preview' = {
               value: adds_mocks_efs_containerport
             }
           ]
+          resources: {
+            cpu: json(addsMocksCpu)
+            memory: addsMocksMemory
+          }
         }
       ]
       scale: {
