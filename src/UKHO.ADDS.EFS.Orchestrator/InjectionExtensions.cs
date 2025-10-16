@@ -166,7 +166,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     return Task.CompletedTask;
                 });
 
-                // Add security scheme
+                // Add security scheme and response descriptions
                 options.AddOperationTransformer((operation, context, cancellationToken) =>
                 {
                     var headers = context.Description.ActionDescriptor.EndpointMetadata.OfType<OpenApiHeaderParameter>();
@@ -183,6 +183,66 @@ namespace UKHO.ADDS.EFS.Orchestrator
                             Description = header.Description,
                             Schema = new OpenApiSchema { Type = OpenApiRequiredType, Default = new OpenApiString(header.ExpectedValue) }
                         });
+                    }
+
+                    if (operation.Responses.ContainsKey("401"))
+                    {
+                        operation.Responses["401"].Description = "Unauthorised - either you have not provided any credentials, or your credentials are not recognised.";
+                    }
+                    if (operation.Responses.ContainsKey("403"))
+                    {
+                        operation.Responses["403"].Description = "Forbidden - you have been authorised, but you are not allowed to access this resource.";
+                    }
+                    if (operation.Responses.ContainsKey("429"))
+                    {
+                        operation.Responses["429"].Description = "You have sent too many requests in a given amount of time. Please back-off for the time in the Retry-After header (in seconds) and try again.";
+                    }
+                    // Always add 500 Internal Server Error response if missing
+                    var error500Example = new OpenApiObject
+                    {
+                        ["correlationId"] = new OpenApiString("string"),
+                        ["detail"] = new OpenApiString("string")
+                    };
+                    if (!operation.Responses.ContainsKey("500"))
+                    {
+                        operation.Responses["500"] = new OpenApiResponse
+                        {
+                            Description = "Internal Server Error.",
+                            Content = new Dictionary<string, OpenApiMediaType>
+                            {
+                                ["application/json"] = new OpenApiMediaType
+                                {
+                                    Schema = new OpenApiSchema
+                                    {
+                                        Reference = new OpenApiReference
+                                        {
+                                            Type = ReferenceType.Schema,
+                                            Id = "InternalServerError"
+                                        }
+                                    },
+                                    Example = error500Example
+                                }
+                            }
+                        };
+                    }
+                    else
+                    {
+                        operation.Responses["500"].Description = "Internal Server Error.";
+                        operation.Responses["500"].Content = new Dictionary<string, OpenApiMediaType>
+                        {
+                            ["application/json"] = new OpenApiMediaType
+                            {
+                                Schema = new OpenApiSchema
+                                {
+                                    Reference = new OpenApiReference
+                                    {
+                                        Type = ReferenceType.Schema,
+                                        Id = "InternalServerError"
+                                    }
+                                },
+                                Example = error500Example
+                            }
+                        };
                     }
 
                     return Task.CompletedTask;
