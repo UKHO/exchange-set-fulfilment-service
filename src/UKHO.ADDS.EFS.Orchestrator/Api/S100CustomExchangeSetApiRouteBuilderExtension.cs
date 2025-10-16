@@ -26,7 +26,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
         public static void RegisterS100CustomExchangeSetApi(this IEndpointRouteBuilder routeBuilder, ILoggerFactory loggerFactory, ICorrelationIdGenerator correlationIdGenerator)
         {
             var logger = loggerFactory.CreateLogger("S100ExchangeSetApi");
-            var exchangeSetEndpoint = routeBuilder.MapGroup("/v2/exchangeSet/s100").WithTags("s100").RequireAuthorization();
+            var exchangeSetEndpoint = routeBuilder.MapGroup("/v2/exchangeSet/s100").WithTags("s100");
 
             // POST /v2/exchangeSet/s100/productNames
             exchangeSetEndpoint.MapPost("/productNames", async (
