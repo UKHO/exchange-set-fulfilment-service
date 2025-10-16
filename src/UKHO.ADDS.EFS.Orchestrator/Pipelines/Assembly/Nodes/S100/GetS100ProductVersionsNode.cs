@@ -8,6 +8,7 @@ using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
+using UKHO.ADDS.Clients.Common.Constants;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 {
@@ -44,6 +45,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
                 scsResponse.ResponseCode = productEditionList.ResponseCode;
                 scsResponse.LastModified = productEditionList.LastModified;
+                scsResponse.ServiceName = ServiceNameType.SCS;
             }
             catch (Exception)
             {

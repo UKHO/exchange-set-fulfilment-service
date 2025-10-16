@@ -12,6 +12,7 @@ using UKHO.ADDS.EFS.Infrastructure.Logging;
 using UKHO.ADDS.EFS.Infrastructure.Logging.Services;
 using UKHO.ADDS.Infrastructure.Results;
 using Attribute = UKHO.ADDS.EFS.Domain.Files.Attribute;
+using UKHO.ADDS.Infrastructure.Results.Errors.Http;
 
 namespace UKHO.ADDS.EFS.Infrastructure.Services
 {
@@ -60,9 +61,17 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
             var batchModel = exchangeSetType == ExchangeSetType.Complete ? GetBatchModelForCompleteExchangeSet() : GetBatchModelForCustomExchangeSet();
             var createBatchResponseResult = await _fileShareReadWriteClient.CreateBatchAsync(batchModel, (string)correlationId, cancellationToken);
 
-            if (createBatchResponseResult.IsFailure(out var error, out _))
+            if (createBatchResponseResult.IsFailure(out var error, out _)) 
             {
                 LogFileShareServiceError(correlationId, CreateBatch, error, BatchId.None);
+                // Try to extract HttpStatusCode from error, fallback to InternalServerError
+                var statusCode = error is HttpError httpError ? httpError.StatusCode : System.Net.HttpStatusCode.InternalServerError;
+                return new Batch
+                {
+                    BatchId = BatchId.None,
+                    BatchExpiryDateTime = DateTime.MinValue,
+                    ResponseCode = statusCode
+                };
             }
 
             if (createBatchResponseResult.IsSuccess(out var response))

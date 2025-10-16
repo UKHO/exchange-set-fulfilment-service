@@ -14,12 +14,12 @@ using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Api.ResponseHandlers
 {
-    public class ScsResponseHandlerTests
+    public class ExtenalApiResponseHandlerTests
     {
         private const string R = "R";
         private const string DummyJobId = "dummy-job-id";
         private const string DummyBatchId = "dummy-batch-id";
-        private ScsResponseHandler _handler = null!;
+        private ExternalApiResponseHandler _handler = null!;
         private ILoggerFactory _loggerFactory = null!;
         private ILogger _logger = null!;
         private DefaultHttpContext _httpContext = null!;
@@ -27,7 +27,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Api.ResponseHandlers
         [SetUp]
         public void SetUp()
         {
-            _handler = new ScsResponseHandler();
+            _handler = new ExternalApiResponseHandler();
             _logger = A.Fake<ILogger>();
             _loggerFactory = A.Fake<ILoggerFactory>();
             A.CallTo(() => _loggerFactory.CreateLogger("S100ExchangeSetApi")).Returns(_logger);
@@ -44,25 +44,26 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Api.ResponseHandlers
         public void TearDown() => _loggerFactory?.Dispose();
 
         [Test]
-        public async Task WhenHandleScsResponseReturnsNullResult_ThenReturns500()
+        public async Task WhenUstreamApiResponseIsNull_ThenHandlerReturns500()
         {
-            var result = _handler.HandleScsResponse(null!, "ProductNames", _logger, _httpContext);
+            var result = _handler.HandleExternalApiResponse(null!, "ProductNames", _logger, _httpContext);
 
             await ExecuteAndAssertStatusAsync(result, _httpContext, StatusCodes.Status500InternalServerError);
         }
 
         [Test]
-        public async Task WhenHandleScsResponseScsResponseOk_ThenReturns202()
+        public async Task WhenExternalApiResponseIsOk_ThenHandlerReturns202()
         {
             var now = DateTime.UtcNow;
             var response = NewPipelineResponse(
-                scsResponseCode: HttpStatusCode.OK,
-                scsLastModified: now,
+                externalApiResponseCode: HttpStatusCode.OK,
+                externalApiLastModified: now,
+                externalApiServiceName: ServiceNameType.FSS,
                 buildStatus: Domain.Builds.BuildState.Scheduled,
                 responseModel: NewExchangeSetResponse(now.AddHours(1), BatchId.From(DummyBatchId))
             );
 
-            var result = _handler.HandleScsResponse(response, "ProductNames", _logger, _httpContext);
+            var result = _handler.HandleExternalApiResponse(response, "ProductNames", _logger, _httpContext);
 
             await ExecuteAndAssertStatusAsync(result, _httpContext, StatusCodes.Status202Accepted);
             Assert.That(_httpContext.Response.Headers.ContainsKey(ApiHeaderKeys.LastModifiedHeaderKey), Is.True);
@@ -70,17 +71,18 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Api.ResponseHandlers
         }
 
         [Test]
-        public async Task WhenHandleScsResponseScsProductVersionReturnNotModified_ThenReturns202()
+        public async Task WhenExternalApiResponseIsProductVersionReturnNotModified_ThenHanlerReturns202()
         {
             var lastModified = DateTime.UtcNow.AddHours(-1);
             var response = NewPipelineResponse(
-                scsResponseCode: HttpStatusCode.NotModified,
-                scsLastModified: lastModified,
+                externalApiResponseCode: HttpStatusCode.NotModified,
+                externalApiLastModified: lastModified,
+                externalApiServiceName: ServiceNameType.SCS,
                 buildStatus: Domain.Builds.BuildState.Scheduled,
                 responseModel: NewExchangeSetResponse(lastModified.AddHours(1), BatchId.From(DummyBatchId))
             );
 
-            var result = _handler.HandleScsResponse(response, "ProductVersion", _logger, _httpContext);
+            var result = _handler.HandleExternalApiResponse(response, "ProductVersion", _logger, _httpContext);
 
             await ExecuteAndAssertStatusAsync(result, _httpContext, StatusCodes.Status202Accepted);
             Assert.That(_httpContext.Response.Headers.ContainsKey(ApiHeaderKeys.LastModifiedHeaderKey), Is.True);
@@ -88,49 +90,52 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Api.ResponseHandlers
         }
 
         [Test]
-        public async Task WhenHandleScsResponseScsReturnNotModified_ThenReturns304AndAppendsLastModified()
+        public async Task WhenExternalApiResponseIsNotModified_ThenHandlerReturns304AndAppendsLastModified()
         {
             var lastModified = DateTime.UtcNow.AddDays(-1);
             var response = NewPipelineResponse(
-                scsResponseCode: HttpStatusCode.NotModified,
-                scsLastModified: lastModified,
+                externalApiResponseCode: HttpStatusCode.NotModified,
+                externalApiLastModified: lastModified,
+                externalApiServiceName: ServiceNameType.FSS,
                 buildStatus: Domain.Builds.BuildState.NotScheduled,
                 responseModel: NewExchangeSetResponse(lastModified.AddHours(1), BatchId.None)
             );
 
-            var result = _handler.HandleScsResponse(response, "UpdatesSince", _logger, _httpContext);
+            var result = _handler.HandleExternalApiResponse(response, "UpdatesSince", _logger, _httpContext);
 
             await ExecuteAndAssertStatusAsync(result, _httpContext, StatusCodes.Status304NotModified);
             Assert.That(_httpContext.Response.Headers.ContainsKey(ApiHeaderKeys.LastModifiedHeaderKey), Is.True);
             Assert.That(_httpContext.Response.Headers[ApiHeaderKeys.LastModifiedHeaderKey], Is.EqualTo(lastModified.ToUniversalTime().ToString(R)));
         }
 
-        [TestCase(HttpStatusCode.BadRequest)]
-        [TestCase(HttpStatusCode.Unauthorized)]
-        [TestCase(HttpStatusCode.Forbidden)]
-        [TestCase(HttpStatusCode.UnsupportedMediaType)]
-        [TestCase(HttpStatusCode.InternalServerError)]
-        public async Task WhenHandleScsResponseScsReturnErrorStatus_ThenAppendsErrorOriginHeadersAndReturns500(HttpStatusCode scsStatus)
+        [TestCase(HttpStatusCode.BadRequest, ServiceNameType.SCS)]
+        [TestCase(HttpStatusCode.Unauthorized, ServiceNameType.SCS)]
+        [TestCase(HttpStatusCode.Forbidden, ServiceNameType.FSS)]
+        [TestCase(HttpStatusCode.UnsupportedMediaType, ServiceNameType.FSS)]
+        [TestCase(HttpStatusCode.InternalServerError, ServiceNameType.FSS)]
+        public async Task WhenExternalApiResponseIsReturnErrorStatus_ThenHandlerAppendsErrorOriginHeadersAndReturns500(HttpStatusCode externalApiStatus, ServiceNameType externalApiServiceName)
         {
             var response = NewPipelineResponse(
-                scsResponseCode: scsStatus,
-                scsLastModified: null,
+                externalApiResponseCode: externalApiStatus,
+                externalApiLastModified: null,
+                externalApiServiceName: externalApiServiceName,
                 buildStatus: Domain.Builds.BuildState.NotScheduled,
                 responseModel: NewExchangeSetResponse(DateTime.UtcNow.AddHours(1), BatchId.None)
             );
 
-            var result = _handler.HandleScsResponse(response, "ProductVersions", _logger, _httpContext);
+            var result = _handler.HandleExternalApiResponse(response, "ProductVersions", _logger, _httpContext);
 
             await ExecuteAndAssertStatusAsync(result, _httpContext, StatusCodes.Status500InternalServerError);
             Assert.That(_httpContext.Response.Headers.ContainsKey(ApiHeaderKeys.ErrorOriginHeaderKey), Is.True);
             Assert.That(_httpContext.Response.Headers.ContainsKey(ApiHeaderKeys.ErrorOriginStatusHeaderKey), Is.True);
-            Assert.That(_httpContext.Response.Headers[ApiHeaderKeys.ErrorOriginHeaderKey], Is.EqualTo(ScsResponseHandler.ScsServiceName));
-            Assert.That(_httpContext.Response.Headers[ApiHeaderKeys.ErrorOriginStatusHeaderKey], Is.EqualTo(((int)scsStatus).ToString()));
+            Assert.That(_httpContext.Response.Headers[ApiHeaderKeys.ErrorOriginHeaderKey], Is.EqualTo(externalApiServiceName.ToString()));
+            Assert.That(_httpContext.Response.Headers[ApiHeaderKeys.ErrorOriginStatusHeaderKey], Is.EqualTo(((int)externalApiStatus).ToString()));
         }
 
         // Helpers to reduce duplication
-        private AssemblyPipelineResponse NewPipelineResponse(HttpStatusCode scsResponseCode = HttpStatusCode.OK,
-            DateTime? scsLastModified = null, Domain.Builds.BuildState buildStatus = Domain.Builds.BuildState.NotScheduled,
+        private AssemblyPipelineResponse NewPipelineResponse(HttpStatusCode externalApiResponseCode = HttpStatusCode.OK,
+            DateTime? externalApiLastModified = null, Domain.Builds.BuildState buildStatus = Domain.Builds.BuildState.NotScheduled,
+            ServiceNameType externalApiServiceName = ServiceNameType.SCS,
             CustomExchangeSetResponse? responseModel = null)
         {
             return new AssemblyPipelineResponse
@@ -139,8 +144,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Api.ResponseHandlers
                 JobStatus = JobState.Submitted,
                 DataStandard = DataStandard.S100,
                 BatchId = BatchId.From(DummyBatchId),
-                ScsResponseCode = scsResponseCode,
-                ScsLastModified = scsLastModified,
+                ExternalApiResponseCode = externalApiResponseCode,
+                ExternalApiLastModified = externalApiLastModified,
+                ExternalApiServiceName = externalApiServiceName,
                 BuildStatus = buildStatus,
                 Response = responseModel
             };

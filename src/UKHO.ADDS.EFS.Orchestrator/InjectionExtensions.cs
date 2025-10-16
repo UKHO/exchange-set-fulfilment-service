@@ -78,7 +78,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
             builder.Services.AddSingleton<IBuilderLogForwarder, BuilderLogForwarder>();
             builder.Services.AddSingleton<StorageInitializerService>();
             builder.Services.AddSingleton<ICorrelationIdGenerator, CorrelationIdGenerator>();
-            builder.Services.AddSingleton<IScsResponseHandler, ScsResponseHandler>();
+            builder.Services.AddSingleton<IExternalApiResponseHandler, ExternalApiResponseHandler>();
             builder.Services.AddDomain();
             builder.Services.AddInfrastructure();
 

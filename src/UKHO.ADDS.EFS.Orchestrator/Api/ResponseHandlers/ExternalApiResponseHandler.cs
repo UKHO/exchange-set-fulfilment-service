@@ -6,10 +6,9 @@ using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 namespace UKHO.ADDS.EFS.Orchestrator.Api.ResponseHandlers
 {
 
-    public class ScsResponseHandler : IScsResponseHandler
+    public class ExternalApiResponseHandler : IExternalApiResponseHandler
     {
-        public const string ScsServiceName = "SCS";
-        public IResult HandleScsResponse(AssemblyPipelineResponse result, string requestType, ILogger logger, HttpContext httpContext)
+        public IResult HandleExternalApiResponse(AssemblyPipelineResponse result, string requestType, ILogger logger, HttpContext httpContext)
         {
             if (result is null)
             {
@@ -18,34 +17,34 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api.ResponseHandlers
 
             AppendErrorOriginHeadersIfNeeded(result, httpContext);
 
-            switch (result.ScsResponseCode)
+            switch (result.ExternalApiResponseCode)
             {
                 case HttpStatusCode.OK:
-                    AppendLastModifiedHeader(httpContext, result.ScsLastModified);
+                    AppendLastModifiedHeader(httpContext, result.ExternalApiLastModified);
                     return Results.Accepted(null, result.Response);
 
                 case HttpStatusCode.NotModified:
-                    AppendLastModifiedHeader(httpContext, result.ScsLastModified);
+                    AppendLastModifiedHeader(httpContext, result.ExternalApiLastModified);
 
                     return result.BuildStatus == Domain.Builds.BuildState.Scheduled
                         ? Results.Accepted(null, result.Response)
                         : Results.StatusCode(StatusCodes.Status304NotModified);
 
                 default:
-                    logger.LogSalesCatalogueServiceFailed(requestType, (int)result.ScsResponseCode);
+                    logger.LogSalesCatalogueServiceFailed(requestType, (int)result.ExternalApiResponseCode);
                     return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
 
         private static void AppendErrorOriginHeadersIfNeeded(AssemblyPipelineResponse result, HttpContext httpContext)
         {
-            var scsStatus = (int)result.ScsResponseCode;
+            var externalApiStatus = (int)result.ExternalApiResponseCode;
 
-            if (scsStatus < 400 || scsStatus > 599)
+            if (externalApiStatus < 400 || externalApiStatus > 599)
                 return;
 
-            httpContext.Response.Headers[ApiHeaderKeys.ErrorOriginHeaderKey] = ScsServiceName;
-            httpContext.Response.Headers[ApiHeaderKeys.ErrorOriginStatusHeaderKey] = scsStatus.ToString();
+            httpContext.Response.Headers[ApiHeaderKeys.ErrorOriginHeaderKey] = result.ExternalApiServiceName.ToString();
+            httpContext.Response.Headers[ApiHeaderKeys.ErrorOriginStatusHeaderKey] = externalApiStatus.ToString();
         }
 
         private static void AppendLastModifiedHeader(HttpContext httpContext, DateTime? lastModified)

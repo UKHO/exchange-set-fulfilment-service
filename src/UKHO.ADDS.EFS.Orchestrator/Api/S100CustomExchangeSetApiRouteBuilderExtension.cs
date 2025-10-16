@@ -31,26 +31,26 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
         /// <param name="routeBuilder">The endpoint route builder</param>
         /// <param name="loggerFactory">The logger factory</param>
         /// <param name="correlationIdGenerator">The correlation ID generator</param>
-        /// <param name="scsResponseHandler">The SCS response handler</param>
+        /// <param name="externalApiResponseHandler">The SCS response handler</param>
         public static void RegisterS100CustomExchangeSetApi(
             this IEndpointRouteBuilder routeBuilder,
             ILoggerFactory loggerFactory,
             ICorrelationIdGenerator correlationIdGenerator,
-            IScsResponseHandler scsResponseHandler)
+            IExternalApiResponseHandler externalApiResponseHandler)
         {
             var logger = loggerFactory.CreateLogger(ApiLoggerName);
             var exchangeSetEndpoint = routeBuilder.MapGroup(BaseRoutePath);
 
-            RegisterProductNamesEndpoint(exchangeSetEndpoint, logger, correlationIdGenerator, scsResponseHandler);
-            RegisterProductVersionsEndpoint(exchangeSetEndpoint, logger, correlationIdGenerator, scsResponseHandler);
-            RegisterUpdatesSinceEndpoint(exchangeSetEndpoint, logger, correlationIdGenerator, scsResponseHandler);
+            RegisterProductNamesEndpoint(exchangeSetEndpoint, logger, correlationIdGenerator, externalApiResponseHandler);
+            RegisterProductVersionsEndpoint(exchangeSetEndpoint, logger, correlationIdGenerator, externalApiResponseHandler);
+            RegisterUpdatesSinceEndpoint(exchangeSetEndpoint, logger, correlationIdGenerator, externalApiResponseHandler);
         }
 
         private static void RegisterProductNamesEndpoint(
             RouteGroupBuilder exchangeSetEndpoint,
             ILogger logger,
             ICorrelationIdGenerator correlationIdGenerator,
-            IScsResponseHandler scsResponseHandler)
+            IExternalApiResponseHandler externalApiResponseHandler)
         {
             exchangeSetEndpoint.MapPost("/productNames", async (
                     List<string> productNamesRequest,
@@ -82,7 +82,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                             correlationId.ToString(), callbackUri),
                         ExchangeSetType.ProductNames,
                         pipelineFactory,
-                        scsResponseHandler,
+                        externalApiResponseHandler,
                         logger,
                         httpContext);
                 })
@@ -99,7 +99,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             RouteGroupBuilder exchangeSetEndpoint,
             ILogger logger,
             ICorrelationIdGenerator correlationIdGenerator,
-            IScsResponseHandler scsResponseHandler)
+            IExternalApiResponseHandler externalApiResponseHandler)
         {
             exchangeSetEndpoint.MapPost("/productVersions", async (
                     List<ProductVersionRequest> productVersionsRequest,
@@ -132,7 +132,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                             configuration, correlationId.ToString(), callbackUri),
                         ExchangeSetType.ProductVersions,
                         pipelineFactory,
-                        scsResponseHandler,
+                        externalApiResponseHandler,
                         logger,
                         httpContext);
                 })
@@ -149,7 +149,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             RouteGroupBuilder exchangeSetEndpoint,
             ILogger logger,
             ICorrelationIdGenerator correlationIdGenerator,
-            IScsResponseHandler scsResponseHandler)
+            IExternalApiResponseHandler externalApiResponseHandler)
         {
             exchangeSetEndpoint.MapPost("/updatesSince", async (
                     UpdatesSinceRequest updatesSinceRequest,
@@ -178,7 +178,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                             correlationId.ToString(), productIdentifier, callbackUri),
                         ExchangeSetType.UpdatesSince,
                         pipelineFactory,
-                        scsResponseHandler,
+                        externalApiResponseHandler,
                         logger,
                         httpContext);
                 })
@@ -198,7 +198,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             Func<AssemblyPipelineParameters> createParameters,
             ExchangeSetType exchangeSetType,
             IAssemblyPipelineFactory pipelineFactory,
-            IScsResponseHandler scsResponseHandler,
+            IExternalApiResponseHandler externalApiResponseHandler,
             ILogger logger,
             HttpContext httpContext)
         {
@@ -214,7 +214,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 return HandleErrorResponse(result.ErrorResponse);
             }
 
-            return scsResponseHandler.HandleScsResponse(result, exchangeSetType.ToString(), logger, httpContext);
+            return externalApiResponseHandler.HandleExternalApiResponse(result, exchangeSetType.ToString(), logger, httpContext);
         }
 
         /// <summary>
