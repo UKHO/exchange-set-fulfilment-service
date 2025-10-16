@@ -1,188 +1,360 @@
-﻿namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
+﻿using FakeItEasy;
+using FakeItEasy.Core;
+using Microsoft.Extensions.Logging;
+using UKHO.ADDS.Clients.FileShareService.ReadWrite;
+using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
+using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
+using UKHO.ADDS.EFS.Builder.S100.Pipelines;
+using UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute;
+using UKHO.ADDS.EFS.Domain.Builds;
+using UKHO.ADDS.EFS.Domain.Builds.S100;
+using UKHO.ADDS.EFS.Domain.Jobs;
+using UKHO.ADDS.EFS.Domain.Products;
+using UKHO.ADDS.EFS.Domain.Services;
+using UKHO.ADDS.Infrastructure.Pipelines;
+using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
+using UKHO.ADDS.Infrastructure.Results;
+
+namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
 {
-    // TODO Reinstate
+    [TestFixture]
+    internal class UploadFilesNodeTests
+    {
+        private IFileShareReadWriteClient _fileShareReadWriteClient;
+        private IFileNameGeneratorService _fileNameGeneratorService;
+        private UploadFilesNode _uploadFilesNode;
+        private IExecutionContext<S100ExchangeSetPipelineContext> _executionContext;
+        private ILoggerFactory _loggerFactory;
+        private ILogger _logger;
+        private string _tempFilePath;
+        private string _testDirectory;
 
-    //[TestFixture]
-    //internal class UploadFilesNodeTests
-    //{
-    //    private IFileShareReadWriteClient _fileShareReadWriteClient;
-    //    private UploadFilesNode _uploadFilesNode;
-    //    private IExecutionContext<ExchangeSetPipelineContext> _executionContext;
-    //    private ILoggerFactory _loggerFactory;
-    //    private ILogger _logger;
-    //    private string _tempFilePath;
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
+        {
+            _testDirectory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(_testDirectory);
+        }
 
-    //    [OneTimeSetUp]
-    //    public void OneTimeSetUp()
-    //    {
-    //        _fileShareReadWriteClient = A.Fake<IFileShareReadWriteClient>();
-    //        _loggerFactory = A.Fake<ILoggerFactory>();
+        [SetUp]
+        public void SetUp()
+        {
+            _fileShareReadWriteClient = A.Fake<IFileShareReadWriteClient>();
+            _fileNameGeneratorService = A.Fake<IFileNameGeneratorService>();
+            _loggerFactory = A.Fake<ILoggerFactory>();
+            _logger = A.Fake<ILogger<UploadFilesNode>>();
+            _executionContext = A.Fake<IExecutionContext<S100ExchangeSetPipelineContext>>();
+
+            _uploadFilesNode = new UploadFilesNode(_fileShareReadWriteClient, _fileNameGeneratorService);
+
+            var exchangeSetPipelineContext = new S100ExchangeSetPipelineContext(null, null, null, null, _loggerFactory)
+            {
+                Build = new S100Build
+                {
+                    JobId = JobId.From("TestJobId"),
+                    BatchId = BatchId.From("TestBatchId"),
+                    DataStandard = DataStandard.S100,
+                    BuildCommitInfo = new BuildCommitInfo()
+                },
+                JobId = JobId.From("TestJobId"),
+                BatchId = BatchId.From("TestBatchId"),
+                ExchangeSetFilePath = _testDirectory,
+                ExchangeSetArchiveFolderName = "ExchangeSetArchive",
+                ExchangeSetNameTemplate = "S100-ExchangeSet-[jobid].zip"
+            };
+
+            var archivePath = Path.Combine(_testDirectory, "ExchangeSetArchive");
+            Directory.CreateDirectory(archivePath);
+
+            A.CallTo(() => _executionContext.Subject).Returns(exchangeSetPipelineContext);
+            A.CallTo(() => _loggerFactory.CreateLogger(typeof(UploadFilesNode).FullName!)).Returns(_logger);
+            A.CallTo(() => _fileNameGeneratorService.GenerateFileName(A<string>._, A<JobId>._, A<DateTime?>._))
+                .Returns("S100-ExchangeSet-TestJobId.zip");
+
+            _tempFilePath = Path.Combine(archivePath, "TestJobId.zip");
+            File.WriteAllText(_tempFilePath, "Temporary test file content.");
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            if (!string.IsNullOrEmpty(_tempFilePath) && File.Exists(_tempFilePath))
+            {
+                File.Delete(_tempFilePath);
+            }
+
+            var archivePath = Path.Combine(_testDirectory, "ExchangeSetArchive");
+            if (Directory.Exists(archivePath))
+            {
+                Directory.Delete(archivePath, recursive: true);
+            }
+
+            _loggerFactory?.Dispose();
+        }
+
+        [Test]
+        public void WhenFileShareReadWriteClientIsNull_ThenThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() => new UploadFilesNode(null, _fileNameGeneratorService));
+        }
+
+        [Test]
+        public async Task WhenPerformExecuteAsyncIsCalledAndUploadSucceeds_ThenReturnsSucceeded()
+        {
+            var batchHandle = new BatchHandle("TestBatchId");
+            var fakeResult = A.Fake<IResult<AddFileToBatchResponse>>();
+            var response = new AddFileToBatchResponse();
+            IError? error = null;
+
+            A.CallTo(() => fakeResult.IsSuccess(out response, out error)).Returns(true);
+            A.CallTo(() => _fileShareReadWriteClient.AddFileToBatchAsync(
+                A<BatchHandle>._,
+                A<Stream>._,
+                A<string>._,
+                A<string>._,
+                A<string>._,
+                A<CancellationToken>._))
+                .Returns(Task.FromResult(fakeResult));
+
+            var result = await _uploadFilesNode.ExecuteAsync(_executionContext);
+
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
+            A.CallTo(() => _fileNameGeneratorService.GenerateFileName(
+                "S100-ExchangeSet-[jobid].zip", 
+                JobId.From("TestJobId"),
+                A<DateTime?>._))
+                .MustHaveHappenedOnceExactly();
+        }
+
+        [Test]
+        public async Task WhenPerformExecuteAsyncIsCalledAndFileDoesNotExist_ThenReturnsFailed()
+        {
+            if (File.Exists(_tempFilePath))
+            {
+                File.Delete(_tempFilePath);
+            }
+
+            var result = await _uploadFilesNode.ExecuteAsync(_executionContext);
+
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
+            A.CallTo(() => _logger.Log<LoggerMessageState>(
+                LogLevel.Error,
+                A<EventId>.That.Matches(e => e.Name == "UploadFilesNotFound"),
+                A<LoggerMessageState>._,
+                A<Exception>._,
+                A<Func<LoggerMessageState, Exception?, string>>._))
+                .MustHaveHappenedOnceExactly();
+        }
+
+        [Test]
+        public async Task WhenPerformExecuteAsyncIsCalledAndAddFileToBatchFails_ThenReturnsFailed()
+        {
+            var fakeResult = A.Fake<IResult<AddFileToBatchResponse>>();
+            var fakeError = A.Fake<IError>();
+            AddFileToBatchResponse? response = null;
+
+            A.CallTo(() => fakeResult.IsSuccess(out response, out fakeError)).Returns(false);
+            A.CallTo(() => _fileShareReadWriteClient.AddFileToBatchAsync(
+                A<BatchHandle>._,
+                A<Stream>._,
+                A<string>._,
+                A<string>._,
+                A<string>._,
+                A<CancellationToken>._))
+                .Returns(Task.FromResult(fakeResult));
+
+            var result = await _uploadFilesNode.ExecuteAsync(_executionContext);
+
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
+            A.CallTo(() => _logger.Log<LoggerMessageState>(
+                    LogLevel.Error,
+                    A<EventId>.That.Matches(e => e.Name == "FileShareAddFileToBatchError"),
+                    A<LoggerMessageState>._,
+                    A<Exception>._,
+                    A<Func<LoggerMessageState, Exception?, string>>._))
+                .MustHaveHappenedOnceExactly();
+        }
+
+        [Test]
+        public async Task WhenPerformExecuteAsyncIsCalledAndThrowsException_ThenReturnsFailed()
+        {
+            A.CallTo(() => _fileShareReadWriteClient.AddFileToBatchAsync(
+                A<BatchHandle>._,
+                A<Stream>._,
+                A<string>._,
+                A<string>._,
+                A<string>._,
+                A<CancellationToken>._))
+                .Throws(new Exception("Test exception"));
+
+            var result = await _uploadFilesNode.ExecuteAsync(_executionContext);
+
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
+            A.CallTo(() => _logger.Log<LoggerMessageState>(
+                    LogLevel.Error,
+                    A<EventId>.That.Matches(e => e.Name == "AddFileNodeFailed"),
+                    A<LoggerMessageState>._,
+                    A<Exception>.That.Matches(ex => ex.Message == "Test exception"),
+                    A<Func<LoggerMessageState, Exception?, string>>._))
+                .MustHaveHappenedOnceExactly();
+        }
+
+        [Test]
+        public async Task WhenAddFileToBatchSucceedsWithFileDetails_ThenUpdatesCommitInfo()
+        {
+            var fakeResult = A.Fake<IResult<AddFileToBatchResponse>>();
+            var response = new AddFileToBatchResponse();
+            IError? error = null;
+
+            A.CallTo(() => fakeResult.IsSuccess(out response, out error)).Returns(true);
             
-    //        _uploadFilesNode = new UploadFilesNode(_fileShareReadWriteClient);
-    //        _executionContext = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
-    //    }
-
-    //    [SetUp]
-    //    public void SetUp()
-    //    {
-    //        string tempPath = Path.GetTempPath();
-    //        var context = new ExchangeSetPipelineContext(null, null, null, null, _loggerFactory)
-    //        {
-    //            Job = new S100ExchangeSetJob { CorrelationId = "TestCorrelationId", Id = "TestJobId" },
-    //            BatchId = "TestBatchId",
-    //            ExchangeSetFilePath = Directory.GetParent(tempPath.TrimEnd(Path.DirectorySeparatorChar))!.FullName!,
-    //            ExchangeSetArchiveFolderName = new DirectoryInfo(tempPath.TrimEnd(Path.DirectorySeparatorChar)).Name
-    //        };
+            var batchHandleWithFiles = new BatchHandle("TestBatchId");
+            batchHandleWithFiles.AddFile("S100-ExchangeSet-TestJobId.zip", "ABC123");
             
-    //        _logger = A.Fake<ILogger<UploadFilesNode>>();
+            A.CallTo(() => _fileShareReadWriteClient.AddFileToBatchAsync(
+                A<BatchHandle>._,
+                A<Stream>._,
+                A<string>._,
+                A<string>._,
+                A<string>._,
+                A<CancellationToken>._))
+                .ReturnsLazily((IFakeObjectCall call) =>
+                {
+                    var handle = call.Arguments.Get<BatchHandle>(0);
+                    if (handle != null)
+                    {
+                        handle.FileDetails.Add(new FileDetail { FileName = "S100-ExchangeSet-TestJobId.zip", Hash = "ABC123" });
+                    }
+                    return Task.FromResult(fakeResult);
+                });
+
+            var result = await _uploadFilesNode.ExecuteAsync(_executionContext);
+
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
+        }
+
+        [Test]
+        public async Task WhenAddFileToBatchSucceedsWithoutFileDetails_ThenDoesNotUpdateCommitInfo()
+        {
+            var fakeResult = A.Fake<IResult<AddFileToBatchResponse>>();
+            var response = new AddFileToBatchResponse();
+            IError? error = null;
+
+            A.CallTo(() => fakeResult.IsSuccess(out response, out error)).Returns(true);
+            A.CallTo(() => _fileShareReadWriteClient.AddFileToBatchAsync(
+                A<BatchHandle>._,
+                A<Stream>._,
+                A<string>._,
+                A<string>._,
+                A<string>._,
+                A<CancellationToken>._))
+                .Returns(Task.FromResult(fakeResult));
+
+            var result = await _uploadFilesNode.ExecuteAsync(_executionContext);
+
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
+        }
+
+        [Test]
+        public async Task WhenAddFileToBatchFailsWithRetriableStatusCode_ThenRetriesExpectedNumberOfTimes()
+        {
+            int callCount = 0;
+            A.CallTo(() => _fileShareReadWriteClient.AddFileToBatchAsync(
+                A<BatchHandle>._,
+                A<Stream>._,
+                A<string>._,
+                A<string>._,
+                A<string>._,
+                A<CancellationToken>._))
+                .ReturnsLazily((IFakeObjectCall call) =>
+                {
+                    callCount++;
+                    var error = new Error("Retriable error", new Dictionary<string, object> { { "StatusCode", 503 } });
+                    IResult<AddFileToBatchResponse> result = Result.Failure<AddFileToBatchResponse>(error);
+                    return Task.FromResult(result);
+                });
+
+            var result = await _uploadFilesNode.ExecuteAsync(_executionContext);
+
+            Assert.That(callCount, Is.EqualTo(4), "Should retry 3 times plus the initial call (total 4)");
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
+        }
+
+        [Test]
+        public async Task WhenUploadSucceeds_ThenUsesCorrectParameters()
+        {
+            var fakeResult = A.Fake<IResult<AddFileToBatchResponse>>();
+            var response = new AddFileToBatchResponse();
+            IError? error = null;
+
+            A.CallTo(() => fakeResult.IsSuccess(out response, out error)).Returns(true);
+            A.CallTo(() => _fileShareReadWriteClient.AddFileToBatchAsync(
+                A<BatchHandle>._,
+                A<Stream>._,
+                A<string>._,
+                A<string>._,
+                A<string>._,
+                A<CancellationToken>._))
+                .Returns(Task.FromResult(fakeResult));
+
+            var result = await _uploadFilesNode.ExecuteAsync(_executionContext);
+
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
             
-    //        A.CallTo(() => _loggerFactory.CreateLogger(typeof(UploadFilesNode).FullName!)).Returns(_logger);
+            A.CallTo(() => _fileShareReadWriteClient.AddFileToBatchAsync(
+                A<BatchHandle>.That.Matches(b => b.BatchId == "TestBatchId"),
+                A<Stream>._,
+                "S100-ExchangeSet-TestJobId.zip",
+                "application/octet-stream",
+                "TestJobId",
+                A<CancellationToken>._))
+                .MustHaveHappened();
+        }
 
-    //        _tempFilePath = Path.Combine(context.ExchangeSetFilePath, context.ExchangeSetArchiveFolderName, context.Job.Id + ".zip");
-    //        File.WriteAllText(_tempFilePath, "Temporary test file content.");
-    //        A.CallTo(() => _executionContext.Subject).Returns(context);
-    //    }
+        [Test]
+        public async Task WhenFileStreamIsCreated_ThenStreamIsDisposedProperly()
+        {
+            var fakeResult = A.Fake<IResult<AddFileToBatchResponse>>();
+            var response = new AddFileToBatchResponse();
+            IError? error = null;
 
-    //    [Test]
-    //    public void WhenFileShareReadWriteClientIsNull_ThrowsArgumentNullException()
-    //    {
-    //        Assert.Throws<ArgumentNullException>(() => new UploadFilesNode(null));
-    //    }
+            A.CallTo(() => fakeResult.IsSuccess(out response, out error)).Returns(true);
+            A.CallTo(() => _fileShareReadWriteClient.AddFileToBatchAsync(
+                A<BatchHandle>._,
+                A<Stream>._,
+                A<string>._,
+                A<string>._,
+                A<string>._,
+                A<CancellationToken>._))
+                .Returns(Task.FromResult(fakeResult));
 
-    //    [Test]
-    //    public async Task WhenPerformExecuteAsyncIsCalled_ThenReturnsSucceededAndSetsBatchIdAndExchangeSetFileName()
-    //    {
-    //        A.CallTo(() => _fileShareReadWriteClient.AddFileToBatchAsync(
-    //            A<BatchHandle>._,
-    //            A<Stream>._,
-    //            A<string>._,
-    //            A<string>._,
-    //            A<string>._,
-    //            A<CancellationToken>._))
-    //            .Returns(Result.Success(new AddFileToBatchResponse()));
+            var result = await _uploadFilesNode.ExecuteAsync(_executionContext);
 
-    //        var result = await _uploadFilesNode.ExecuteAsync(_executionContext);
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
+        }
 
-    //        Assert.Multiple(() =>
-    //        {
-    //            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-    //            Assert.That(_executionContext.Subject.BatchId, Is.EqualTo("TestBatchId"));
-    //        });
-    //    }
+        [Test]
+        public async Task WhenLoggerFactoryCreatesLogger_ThenLoggerIsUsedForErrors()
+        {
+            if (File.Exists(_tempFilePath))
+            {
+                File.Delete(_tempFilePath);
+            }
 
-    //    [Test]
-    //    public async Task WhenPerformExecuteAsyncIsCalledAndFileDoesNotExists_ThenReturnsFailed()
-    //    {
-    //        if (File.Exists(_tempFilePath))
-    //            File.Delete(_tempFilePath);
+            var result = await _uploadFilesNode.ExecuteAsync(_executionContext);
 
-    //        A.CallTo(() => _fileShareReadWriteClient.AddFileToBatchAsync(
-    //            A<BatchHandle>._,
-    //            A<Stream>._,
-    //            A<string>._,
-    //            A<string>._,
-    //            A<string>._,
-    //            A<CancellationToken>._))
-    //            .Returns(Result.Success(new AddFileToBatchResponse()));
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
+            A.CallTo(() => _loggerFactory.CreateLogger(typeof(UploadFilesNode).FullName!))
+                .MustHaveHappenedOnceExactly();
+        }
 
-    //        var result = await _uploadFilesNode.ExecuteAsync(_executionContext);
-    //        Assert.Multiple(() => { Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed)); });
-
-    //        A.CallTo(() => _logger.Log<LoggerMessageState>(
-    //            LogLevel.Error,
-    //            A<EventId>.That.Matches(e => e.Name == "UploadFilesNotFound"),
-    //            A<LoggerMessageState>._,
-    //            null,
-    //            A<Func<LoggerMessageState, Exception?, string>>._))
-    //            .MustHaveHappenedOnceExactly();
-    //    }
-
-    //    [Test]
-    //    public async Task WhenPerformExecuteAsyncIsCalledAndAddFileToBatchFails_ThenReturnsFailed()
-    //    {
-    //        A.CallTo(() => _fileShareReadWriteClient.AddFileToBatchAsync(
-    //            A<BatchHandle>._,
-    //            A<Stream>._,
-    //            A<string>._,
-    //            A<string>._,
-    //            A<string>._,
-    //            A<CancellationToken>._))
-    //            .Returns(Result.Failure<AddFileToBatchResponse>(new Error("Failed to add file to batch")));
-
-    //        var result = await _uploadFilesNode.ExecuteAsync(_executionContext);
-
-    //        Assert.Multiple(() => { Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed)); });
-    //        A.CallTo(() => _logger.Log<LoggerMessageState>(
-    //                LogLevel.Error,
-    //                A<EventId>.That.Matches(e => e.Name == "FileShareAddFileToBatchError"),
-    //                A<LoggerMessageState>._,
-    //                null,
-    //                A<Func<LoggerMessageState, Exception?, string>>._))
-    //            .MustHaveHappenedOnceExactly();
-    //    }
-
-    //    [Test]
-    //    public async Task WhenPerformExecuteAsyncIsCalledAndThrowsException_ThenReturnsFailed()
-    //    {
-    //        A.CallTo(() => _fileShareReadWriteClient.AddFileToBatchAsync(
-    //            A<BatchHandle>._,
-    //            A<Stream>._,
-    //            A<string>._,
-    //            A<string>._,
-    //            A<string>._,
-    //            A<CancellationToken>._))
-    //            .Throws(new Exception("Test exception"));
-
-    //        var result = await _uploadFilesNode.ExecuteAsync(_executionContext);
-
-    //        Assert.Multiple(() => { Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed)); });
-    //        A.CallTo(() => _logger.Log<LoggerMessageState>(
-    //                LogLevel.Error,
-    //                A<EventId>.That.Matches(e => e.Name == "AddFileNodeFailed"),
-    //                A<LoggerMessageState>._,
-    //                A<Exception>._,
-    //                A<Func<LoggerMessageState, Exception?, string>>._))
-    //            .MustHaveHappenedOnceExactly();
-    //    }
-
-    //    [Test]
-    //    public async Task WhenAddFileToBatchFailsWithRetriableStatusCode_ThenRetriesExpectedNumberOfTimes()
-    //    {
-    //        int callCount = 0;
-    //        A.CallTo(() => _fileShareReadWriteClient.AddFileToBatchAsync(
-    //            A<BatchHandle>._,
-    //            A<Stream>._,
-    //            A<string>._,
-    //            A<string>._,
-    //            A<string>._,
-    //            A<CancellationToken>._))
-    //            .ReturnsLazily(() =>
-    //            {
-    //                callCount++;
-    //                return Result.Failure<AddFileToBatchResponse>(new Error("Retriable error", new Dictionary<string, object> { { "StatusCode", 503 } }));
-    //            });
-
-    //        var result = await _uploadFilesNode.ExecuteAsync(_executionContext);
-
-    //        Assert.That(callCount, Is.EqualTo(4), "Should retry 3 times plus the initial call (total 4)");
-    //    }
-
-    //    [OneTimeTearDown]
-    //    public void OneTimeTearDown()
-    //    {
-    //        if (_loggerFactory != null)
-    //        {
-    //            _loggerFactory.Dispose();
-    //        }
-    //    }
-
-    //    [TearDown]
-    //    public void TearDown()
-    //    {
-    //        if (!string.IsNullOrEmpty(_tempFilePath) && File.Exists(_tempFilePath))
-    //        {
-    //            File.Delete(_tempFilePath);
-    //        }
-    //    }
-    //}
+        [OneTimeTearDown]
+        public void OneTimeTearDown()
+        {
+            if (Directory.Exists(_testDirectory))
+            {
+                Directory.Delete(_testDirectory, recursive: true);
+            }
+        }
+    }
 }
