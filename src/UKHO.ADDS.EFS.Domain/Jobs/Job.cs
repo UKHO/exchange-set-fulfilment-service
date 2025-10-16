@@ -115,5 +115,7 @@ namespace UKHO.ADDS.EFS.Domain.Jobs
         public DataStandardProduct ProductIdentifier { get; init; }
 
         public ProductVersionList ProductVersions { get; init; }
+
+        public DateTime LastModified { get; set; }
     }
 }

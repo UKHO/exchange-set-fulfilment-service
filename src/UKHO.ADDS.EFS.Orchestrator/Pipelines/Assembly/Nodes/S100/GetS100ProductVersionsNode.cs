@@ -44,8 +44,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                 productEditionList = await _productService.GetProductVersionsListAsync(DataStandard.S100, productVersions, job, Environment.CancellationToken);
 
                 scsResponse.ResponseCode = productEditionList.ResponseCode;
-                scsResponse.LastModified = productEditionList.LastModified;
                 scsResponse.ServiceName = ServiceNameType.SCS;
+                job.LastModified = productEditionList.LastModified ?? DateTime.UtcNow;
             }
             catch (Exception)
             {

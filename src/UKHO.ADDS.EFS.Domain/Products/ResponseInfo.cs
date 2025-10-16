@@ -6,8 +6,6 @@ namespace UKHO.ADDS.EFS.Domain.Products
     {
         public HttpStatusCode ResponseCode { get; set; }
 
-        public DateTime? LastModified { get; set; }
-
         public ServiceNameType ServiceName { get; set; }
     }
 }

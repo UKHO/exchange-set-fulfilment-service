@@ -57,7 +57,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Api.ResponseHandlers
             var now = DateTime.UtcNow;
             var response = NewPipelineResponse(
                 externalApiResponseCode: HttpStatusCode.OK,
-                externalApiLastModified: now,
+                lastModified: now,
                 externalApiServiceName: ServiceNameType.FSS,
                 buildStatus: Domain.Builds.BuildState.Scheduled,
                 responseModel: NewExchangeSetResponse(now.AddHours(1), BatchId.From(DummyBatchId))
@@ -76,7 +76,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Api.ResponseHandlers
             var lastModified = DateTime.UtcNow.AddHours(-1);
             var response = NewPipelineResponse(
                 externalApiResponseCode: HttpStatusCode.NotModified,
-                externalApiLastModified: lastModified,
+                lastModified: lastModified,
                 externalApiServiceName: ServiceNameType.SCS,
                 buildStatus: Domain.Builds.BuildState.Scheduled,
                 responseModel: NewExchangeSetResponse(lastModified.AddHours(1), BatchId.From(DummyBatchId))
@@ -95,7 +95,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Api.ResponseHandlers
             var lastModified = DateTime.UtcNow.AddDays(-1);
             var response = NewPipelineResponse(
                 externalApiResponseCode: HttpStatusCode.NotModified,
-                externalApiLastModified: lastModified,
+                lastModified: lastModified,
                 externalApiServiceName: ServiceNameType.FSS,
                 buildStatus: Domain.Builds.BuildState.NotScheduled,
                 responseModel: NewExchangeSetResponse(lastModified.AddHours(1), BatchId.None)
@@ -117,7 +117,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Api.ResponseHandlers
         {
             var response = NewPipelineResponse(
                 externalApiResponseCode: externalApiStatus,
-                externalApiLastModified: null,
+                lastModified: null,
                 externalApiServiceName: externalApiServiceName,
                 buildStatus: Domain.Builds.BuildState.NotScheduled,
                 responseModel: NewExchangeSetResponse(DateTime.UtcNow.AddHours(1), BatchId.None)
@@ -134,7 +134,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Api.ResponseHandlers
 
         // Helpers to reduce duplication
         private AssemblyPipelineResponse NewPipelineResponse(HttpStatusCode externalApiResponseCode = HttpStatusCode.OK,
-            DateTime? externalApiLastModified = null, Domain.Builds.BuildState buildStatus = Domain.Builds.BuildState.NotScheduled,
+            DateTime? lastModified = null, Domain.Builds.BuildState buildStatus = Domain.Builds.BuildState.NotScheduled,
             ServiceNameType externalApiServiceName = ServiceNameType.SCS,
             CustomExchangeSetResponse? responseModel = null)
         {
@@ -145,7 +145,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Api.ResponseHandlers
                 DataStandard = DataStandard.S100,
                 BatchId = BatchId.From(DummyBatchId),
                 ExternalApiResponseCode = externalApiResponseCode,
-                ExternalApiLastModified = externalApiLastModified,
+                LastModified = lastModified,
                 ExternalApiServiceName = externalApiServiceName,
                 BuildStatus = buildStatus,
                 Response = responseModel
