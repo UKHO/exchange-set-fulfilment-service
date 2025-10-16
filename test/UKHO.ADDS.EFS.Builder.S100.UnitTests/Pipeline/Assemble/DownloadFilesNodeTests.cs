@@ -31,6 +31,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         const int CONCURRENCY_LIMIT = 4;
         private string _tempDirectory;
 
+        private const string SpoolFolder = "spool";
+        private const string DefaultBatchId = "b1";
+        private const string DefaultProductName = "Product1";
+        private const string DefaultFileName = "file1.txt";
+        private const string ZipFileExtension = ".zip";
+        private const string TxtFileExtension = ".txt";
+        private const string WorkspaceSpoolPath = "spool";
+
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
@@ -60,10 +68,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
                 {
                     JobId = JobId.From("TestCorrelationId"),
                     DataStandard = DataStandard.S100,
-                    BatchId = BatchId.From("a-batch-id"),
+                    BatchId = BatchId.From(DefaultBatchId),
                     Products =
                     [
-                        new Product { ProductName = ProductName.From("Product1"), LatestEditionNumber = EditionNumber.From(1), LatestUpdateNumber = UpdateNumber.From(0) },
+                        new Product { ProductName = ProductName.From(DefaultProductName), LatestEditionNumber = EditionNumber.From(1), LatestUpdateNumber = UpdateNumber.From(0) },
                         new Product { ProductName = ProductName.From("Product2"), LatestEditionNumber = EditionNumber.From(2), LatestUpdateNumber = UpdateNumber.From(1) }
                     ]
                 }
@@ -221,7 +229,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         {
             var olderDate = DateTime.UtcNow.AddHours(-2);
             var newerDate = DateTime.UtcNow.AddHours(-1);
-            
+
             var batch1 = CreateBatchDetails(batchId: "b1", publishedDate: olderDate);
             var batch2 = CreateBatchDetails(batchId: "b2", publishedDate: newerDate);
             _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch1, batch2 };
@@ -344,7 +352,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         {
             var olderDate = DateTime.UtcNow.AddHours(-2);
             var newerDate = DateTime.UtcNow.AddHours(-1);
-            
+
             var batch1 = CreateBatchDetails(batchId: "b1", publishedDate: olderDate);
             var batch2 = CreateBatchDetails(batchId: "b2", publishedDate: newerDate);
             _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch1, batch2 };
@@ -374,7 +382,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
             IError? outError = null;
             Stream? outStream = new MemoryStream();
             A.CallTo(() => fakeResult.IsFailure(out outError, out outStream)).Returns(false);
-            
+
             A.CallTo(() => _fileShareReadOnlyClient.DownloadFileAsync(A<string>._, A<string>._, A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._))
                 .ReturnsLazily((call) =>
                 {
@@ -387,14 +395,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
             var result = await _downloadFilesNode.ExecuteAsync(_executionContext);
 
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-            
+
             var workspaceSpoolPath = Path.Combine(_tempDirectory, "spool");
             var extractedFolder = Path.Combine(workspaceSpoolPath, "test");
             var downloadedZipPath = Path.Combine(workspaceSpoolPath, "test.zip");
-            
+
             Assert.That(Directory.Exists(extractedFolder), Is.True, $"Expected extracted folder at: {extractedFolder}");
             Assert.That(File.Exists(downloadedZipPath), Is.False, $"ZIP file should be deleted after extraction: {downloadedZipPath}");
-            
+
             var extractedFile = Path.Combine(extractedFolder, "file1.txt");
             Assert.That(File.Exists(extractedFile), Is.True, $"Expected extracted file at: {extractedFile}");
         }
@@ -409,7 +417,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
             IError? outError = null;
             Stream? outStream = new MemoryStream();
             A.CallTo(() => fakeResult.IsFailure(out outError, out outStream)).Returns(false);
-            
+
             A.CallTo(() => _fileShareReadOnlyClient.DownloadFileAsync(A<string>._, A<string>._, A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._))
                 .ReturnsLazily((call) =>
                 {
@@ -442,7 +450,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
             IError? outError = null;
             Stream? outStream = new MemoryStream();
             A.CallTo(() => fakeResult.IsFailure(out outError, out outStream)).Returns(false);
-            
+
             A.CallTo(() => _fileShareReadOnlyClient.DownloadFileAsync(A<string>._, A<string>._, A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._))
                 .ReturnsLazily((call) =>
                 {
@@ -470,7 +478,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
             IError? outError = null;
             Stream? outStream = new MemoryStream();
             A.CallTo(() => fakeResult.IsFailure(out outError, out outStream)).Returns(false);
-            
+
             A.CallTo(() => _fileShareReadOnlyClient.DownloadFileAsync(A<string>._, A<string>._, A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._))
                 .ReturnsLazily((call) =>
                 {
@@ -488,12 +496,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [Test]
         public async Task WhenZipContainsEmptyEntryName_ThenSkipsEntry()
         {
-            var batch = CreateBatchDetails(fileNames: new[] { "emptyentry.zip" });
+            const string fileName = "emptyentry.zip";
+            var batch = CreateBatchDetails(fileNames: new[] { fileName });
             _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
 
-            var zipFilePath = Path.Combine(_tempDirectory, "emptyentry.zip");
-            CreateTestZipFile(zipFilePath, new Dictionary<string, string> 
-            { 
+            var zipFilePath = Path.Combine(_tempDirectory, fileName);
+            CreateTestZipFile(zipFilePath, new Dictionary<string, string>
+            {
                 { "validfile.txt", "content" },
                 { "", "should be skipped" }
             });
@@ -502,7 +511,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
             IError? outError = null;
             Stream? outStream = new MemoryStream();
             A.CallTo(() => fakeResult.IsFailure(out outError, out outStream)).Returns(false);
-            
+
             A.CallTo(() => _fileShareReadOnlyClient.DownloadFileAsync(A<string>._, A<string>._, A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._))
                 .ReturnsLazily((call) =>
                 {
@@ -520,12 +529,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [Test]
         public async Task WhenFileAlreadyExists_ThenDeletesAndRecreates()
         {
-            var batch = CreateBatchDetails(fileNames: new[] { "existing.txt" });
+            const string existingFileName = "existing.txt";
+            var batch = CreateBatchDetails(fileNames: new[] { existingFileName });
             _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
 
             var workspaceSpoolPath = Path.Combine(_tempDirectory, "spool");
             Directory.CreateDirectory(workspaceSpoolPath);
-            var existingFilePath = Path.Combine(workspaceSpoolPath, "existing.txt");
+            var existingFilePath = Path.Combine(workspaceSpoolPath, existingFileName);
             File.WriteAllText(existingFilePath, "old content");
 
             var fakeResult = A.Fake<IResult<Stream>>();
@@ -544,7 +554,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [Test]
         public async Task WhenSameFileDownloadedConcurrently_ThenHandledCorrectly()
         {
-            var batch = CreateBatchDetails(fileNames: new[] { "concurrent1.txt", "concurrent1.txt" });
+            const string concurrentFileName = "concurrent1.txt";
+            var batch = CreateBatchDetails(fileNames: new[] { concurrentFileName, concurrentFileName });
             _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
 
             var fakeResult = A.Fake<IResult<Stream>>();
@@ -564,7 +575,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         {
             var batch = CreateBatchDetails();
             _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
-            
+
             A.CallTo(() => _fileShareReadOnlyClient.DownloadFileAsync(A<string>._, A<string>._, A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._))
                 .Throws(new UnauthorizedAccessException("Simulated access denied"));
 
@@ -597,17 +608,19 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [Test]
         public async Task WhenZipContainsDirectoryEntry_ThenCreatesDirectory()
         {
-            var batch = CreateBatchDetails(fileNames: new[] { "withdir.zip" });
+            const string fileName = "withdir.zip";
+
+            var batch = CreateBatchDetails(fileNames: new[] { fileName });
             _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
 
-            var zipFilePath = Path.Combine(_tempDirectory, "withdir.zip");
+            var zipFilePath = Path.Combine(_tempDirectory, fileName);
             CreateZipWithDirectoryEntry(zipFilePath);
 
             var fakeResult = A.Fake<IResult<Stream>>();
             IError? outError = null;
             Stream? outStream = new MemoryStream();
             A.CallTo(() => fakeResult.IsFailure(out outError, out outStream)).Returns(false);
-            
+
             A.CallTo(() => _fileShareReadOnlyClient.DownloadFileAsync(A<string>._, A<string>._, A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._))
                 .ReturnsLazily((call) =>
                 {
@@ -650,7 +663,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         {
             var effectiveFileNames = fileNames ?? new[] { "file1.txt" };
             var files = new List<BatchDetailsFiles>();
-            
+
             for (int i = 0; i < effectiveFileNames.Length; i++)
             {
                 var fileSize = fileSizes != null && i < fileSizes.Length ? fileSizes[i] : 1000;
@@ -674,11 +687,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         {
             using var zipFileStream = File.Create(zipFilePath);
             using var archive = new ZipArchive(zipFileStream, ZipArchiveMode.Create);
-            
+
             foreach (var entry in entries)
             {
                 if (string.IsNullOrEmpty(entry.Key)) continue;
-                
+
                 var zipEntry = archive.CreateEntry(entry.Key);
                 using var entryStream = zipEntry.Open();
                 var contentBytes = Encoding.UTF8.GetBytes(entry.Value);
@@ -690,7 +703,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         {
             using var zipFileStream = File.Create(zipFilePath);
             using var archive = new ZipArchive(zipFileStream, ZipArchiveMode.Create);
-            
+
             var maliciousEntries = new[]
             {
                 "../../../invalid.txt",
@@ -712,9 +725,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         {
             using var zipFileStream = File.Create(zipFilePath);
             using var archive = new ZipArchive(zipFileStream, ZipArchiveMode.Create);
-            
+
             var dirEntry = archive.CreateEntry("testdir/");
-            
+
             var fileEntry = archive.CreateEntry("testdir/file.txt");
             using var entryStream = fileEntry.Open();
             var contentBytes = Encoding.UTF8.GetBytes("content in directory");
@@ -725,7 +738,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         public void TearDown()
         {
             HttpRetryPolicyFactory.SetConfiguration(null);
-            
+
             if (Directory.Exists(_tempDirectory))
             {
                 try

@@ -29,6 +29,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         private string _tempFilePath;
         private string _testDirectory;
 
+        private const string JobId = "TestJobId";
+        private const string BatchId = "TestBatchId";
+        private const string ArchiveFolder = "ExchangeSetArchive";
+        private const string ExchangeSetNameTemplate = "S100-ExchangeSet-[jobid].zip";
+        private const string GeneratedFileName = "S100-ExchangeSet-TestJobId.zip";
+
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
@@ -51,25 +57,25 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
             {
                 Build = new S100Build
                 {
-                    JobId = JobId.From("TestJobId"),
-                    BatchId = BatchId.From("TestBatchId"),
+                    JobId = Domain.Jobs.JobId.From(JobId),
+                    BatchId = UKHO.ADDS.EFS.Domain.Jobs.BatchId.From(BatchId),
                     DataStandard = DataStandard.S100,
                     BuildCommitInfo = new BuildCommitInfo()
                 },
-                JobId = JobId.From("TestJobId"),
-                BatchId = BatchId.From("TestBatchId"),
+                JobId = Domain.Jobs.JobId.From(JobId),
+                BatchId = UKHO.ADDS.EFS.Domain.Jobs.BatchId.From(BatchId),
                 ExchangeSetFilePath = _testDirectory,
-                ExchangeSetArchiveFolderName = "ExchangeSetArchive",
-                ExchangeSetNameTemplate = "S100-ExchangeSet-[jobid].zip"
+                ExchangeSetArchiveFolderName = ArchiveFolder,
+                ExchangeSetNameTemplate = ExchangeSetNameTemplate
             };
 
-            var archivePath = Path.Combine(_testDirectory, "ExchangeSetArchive");
+            var archivePath = Path.Combine(_testDirectory, ArchiveFolder);
             Directory.CreateDirectory(archivePath);
 
             A.CallTo(() => _executionContext.Subject).Returns(exchangeSetPipelineContext);
             A.CallTo(() => _loggerFactory.CreateLogger(typeof(UploadFilesNode).FullName!)).Returns(_logger);
             A.CallTo(() => _fileNameGeneratorService.GenerateFileName(A<string>._, A<JobId>._, A<DateTime?>._))
-                .Returns("S100-ExchangeSet-TestJobId.zip");
+                .Returns(GeneratedFileName);
 
             _tempFilePath = Path.Combine(archivePath, "TestJobId.zip");
             File.WriteAllText(_tempFilePath, "Temporary test file content.");
@@ -83,7 +89,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
                 File.Delete(_tempFilePath);
             }
 
-            var archivePath = Path.Combine(_testDirectory, "ExchangeSetArchive");
+            var archivePath = Path.Combine(_testDirectory, ArchiveFolder);
             if (Directory.Exists(archivePath))
             {
                 Directory.Delete(archivePath, recursive: true);
@@ -101,7 +107,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         [Test]
         public async Task WhenPerformExecuteAsyncIsCalledAndUploadSucceeds_ThenReturnsSucceeded()
         {
-            var batchHandle = new BatchHandle("TestBatchId");
+            var batchHandle = new BatchHandle(BatchId);
             var fakeResult = A.Fake<IResult<AddFileToBatchResponse>>();
             var response = new AddFileToBatchResponse();
             IError? error = null;
@@ -120,8 +126,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
 
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
             A.CallTo(() => _fileNameGeneratorService.GenerateFileName(
-                "S100-ExchangeSet-[jobid].zip", 
-                JobId.From("TestJobId"),
+                ExchangeSetNameTemplate,
+                Domain.Jobs.JobId.From(JobId),
                 A<DateTime?>._))
                 .MustHaveHappenedOnceExactly();
         }
@@ -207,10 +213,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
             IError? error = null;
 
             A.CallTo(() => fakeResult.IsSuccess(out response, out error)).Returns(true);
-            
-            var batchHandleWithFiles = new BatchHandle("TestBatchId");
-            batchHandleWithFiles.AddFile("S100-ExchangeSet-TestJobId.zip", "ABC123");
-            
+
+            var batchHandleWithFiles = new BatchHandle(BatchId);
+            batchHandleWithFiles.AddFile(GeneratedFileName, "ABC123");
+
             A.CallTo(() => _fileShareReadWriteClient.AddFileToBatchAsync(
                 A<BatchHandle>._,
                 A<Stream>._,
@@ -223,7 +229,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
                     var handle = call.Arguments.Get<BatchHandle>(0);
                     if (handle != null)
                     {
-                        handle.FileDetails.Add(new FileDetail { FileName = "S100-ExchangeSet-TestJobId.zip", Hash = "ABC123" });
+                        handle.FileDetails.Add(new FileDetail { FileName = GeneratedFileName, Hash = "ABC123" });
                     }
                     return Task.FromResult(fakeResult);
                 });
@@ -300,13 +306,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
             var result = await _uploadFilesNode.ExecuteAsync(_executionContext);
 
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-            
+
             A.CallTo(() => _fileShareReadWriteClient.AddFileToBatchAsync(
-                A<BatchHandle>.That.Matches(b => b.BatchId == "TestBatchId"),
+                A<BatchHandle>.That.Matches(b => b.BatchId == BatchId),
                 A<Stream>._,
-                "S100-ExchangeSet-TestJobId.zip",
+                GeneratedFileName,
                 "application/octet-stream",
-                "TestJobId",
+                JobId,
                 A<CancellationToken>._))
                 .MustHaveHappened();
         }
