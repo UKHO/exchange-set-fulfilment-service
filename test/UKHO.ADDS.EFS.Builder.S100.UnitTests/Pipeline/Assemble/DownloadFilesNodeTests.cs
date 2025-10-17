@@ -37,7 +37,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         private const string DefaultFileName = "file1.txt";
         private const string ZipFileExtension = ".zip";
         private const string TxtFileExtension = ".txt";
-        private const string WorkspaceSpoolPath = "spool";
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
@@ -396,7 +395,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
 
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
 
-            var workspaceSpoolPath = Path.Combine(_tempDirectory, "spool");
+            var workspaceSpoolPath = Path.Combine(_tempDirectory, SpoolFolder);
             var extractedFolder = Path.Combine(workspaceSpoolPath, "test");
             var downloadedZipPath = Path.Combine(workspaceSpoolPath, "test.zip");
 
@@ -533,7 +532,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
             var batch = CreateBatchDetails(fileNames: new[] { existingFileName });
             _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
 
-            var workspaceSpoolPath = Path.Combine(_tempDirectory, "spool");
+            var workspaceSpoolPath = Path.Combine(_tempDirectory, SpoolFolder);
             Directory.CreateDirectory(workspaceSpoolPath);
             var existingFilePath = Path.Combine(workspaceSpoolPath, existingFileName);
             File.WriteAllText(existingFilePath, "old content");
