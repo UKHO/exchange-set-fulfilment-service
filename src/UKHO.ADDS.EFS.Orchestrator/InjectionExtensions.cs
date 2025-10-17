@@ -33,25 +33,21 @@ namespace UKHO.ADDS.EFS.Orchestrator
     internal static class InjectionExtensions
     {
         private const string OpenApiRequiredType = "string";
-
         private const string CallbackUriDescription =
             "An optional callback URI that will be used to notify the requestor once the requested Exchange Set is ready to download from the File Share Service. " +
             "The data for the notification will follow the CloudEvents 1.0 standard, with the data portion containing the same Exchange Set data as the response to the original API request. " +
             "If not specified, then no call back notification will be sent. Must be a valid HTTPS endpoint.";
-
         private const string ProductIdentifierDescription =
             "An optional identifier parameter determines the product identifier of S-100 Exchange Set. " +
             "If the value is s101, the S-100 Exchange Set will give updates specific to s101 products only. " +
             "The default value of identifier is s100, which means the S-100 Exchange Set will give updated for all product identifier.\r\n\r\n" +
             "Available values : s101, s102, s104, s111";
-
         private const string XCorrelationIdHeaderKeyDesciption = "Unique GUID.";
 
         public static WebApplicationBuilder AddOrchestratorServices(this WebApplicationBuilder builder)
         {
             var configuration = builder.Configuration;
             builder.Services.AddHttpContextAccessor();
-
             builder.Services.Configure<JsonOptions>(options => JsonCodec.DefaultOptions.CopyTo(options.SerializerOptions));
 
             // Add FluentValidation
@@ -65,30 +61,23 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             builder.Services.AddAuthorization();
             builder.Services.AddOpenApi();
-
             builder.Services.ConfigureOpenApi();
 
             builder.Services.AddTransient<IAssemblyPipelineFactory, AssemblyPipelineFactory>();
             builder.Services.AddTransient<AssemblyPipelineNodeFactory>();
             builder.Services.AddTransient<IAssemblyPipelineNodeFactory, AssemblyPipelineNodeFactory>();
-
             builder.Services.AddTransient<ICompletionPipelineFactory, CompletionPipelineFactory>();
             builder.Services.AddTransient<ICompletionPipelineNodeFactory, CompletionPipelineNodeFactory>();
-
             builder.Services.AddTransient<IS100ProductNamesRequestValidator, S100ProductNamesRequestValidator>();
             builder.Services.AddTransient<IS100ProductVersionsRequestValidator, S100ProductVersionsRequestValidator>();
             builder.Services.AddTransient<IS100UpdateSinceRequestValidator, S100UpdateSinceRequestValidator>();
-
             builder.Services.AddTransient<IExchangeSetResponseFactory, ExchangeSetResponseFactory>();
-
             builder.Services.AddSingleton<IPipelineContextFactory<S100Build>, PipelineContextFactory<S100Build>>();
             builder.Services.AddSingleton<IPipelineContextFactory<S63Build>, PipelineContextFactory<S63Build>>();
             builder.Services.AddSingleton<IPipelineContextFactory<S57Build>, PipelineContextFactory<S57Build>>();
-
             builder.Services.AddHostedService<S100BuildResponseMonitor>();
             builder.Services.AddHostedService<S63BuildResponseMonitor>();
             builder.Services.AddHostedService<S57BuildResponseMonitor>();
-
             builder.Services.AddSingleton<IBuilderLogForwarder, BuilderLogForwarder>();
             builder.Services.AddSingleton<StorageInitializerService>();
             builder.Services.AddSingleton<ICorrelationIdGenerator, CorrelationIdGenerator>();
@@ -102,20 +91,17 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     HealthStatus.Unhealthy,
                     tags: new[] { "live", "external-dependency" });
 
-            //Added Dependencies for SchedulerJob
+            // SchedulerJob dependencies
             builder.Services.AddQuartz(q =>
             {
                 var exchangeSetGenerationSchedule = configuration["orchestrator:SchedulerJob:ExchangeSetGenerationSchedule"];
                 var jobKey = new JobKey(nameof(SchedulerJob));
-
                 q.AddJob<SchedulerJob>(opts => opts.WithIdentity(jobKey));
-
                 q.AddTrigger(opts => opts
                     .ForJob(jobKey)
                     .WithCronSchedule(exchangeSetGenerationSchedule!, x => x.WithMisfireHandlingInstructionDoNothing())
                 );
             });
-
             builder.Services.AddQuartzHostedService(options =>
             {
                 options.WaitForJobsToComplete = true;
@@ -125,7 +111,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
             {
                 var accessor = x.GetRequiredService<IHttpContextAccessor>();
                 var identity = accessor.HttpContext?.User?.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier")?.Value ?? string.Empty;
-                return new UserIdentifier() { Identity = identity };
+                return new UserIdentifier { Identity = identity };
             });
 
             return builder;
@@ -136,16 +122,12 @@ namespace UKHO.ADDS.EFS.Orchestrator
             const string AcceptedDescription =
                 "Request to create Exchange Set is accepted. Response body has Exchange Set status URL to track changes to the status of the task. " +
                 "It also contains the URL that the Exchange Set will be available on as well as the number of products in that Exchange Set.";
-
             const string UnauthorizedDescription =
                 "Unauthorised - either you have not provided any credentials, or your credentials are not recognised.";
-
             const string ForbiddenDescription =
                 "Forbidden - you have been authorised, but you are not allowed to access this resource.";
-
             const string TooManyRequestsDescription =
                 "You have sent too many requests in a given amount of time. Please back-off for the time in the Retry-After header (in seconds) and try again.";
-
             const string NotModifiedDescription =
                 "If there are no updates since the sinceDateTime parameter, then a 'Not modified' response will be returned.";
 
@@ -168,10 +150,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     {
                         Url = new Uri("https://github.com/UKHO/exchange-set-fulfilment-service")
                     };
-                    document.Servers =
-                    [
-                        new OpenApiServer { Url = "https://exchangesetservice.admiralty.co.uk" }
-                    ];
+                    document.Servers = [ new OpenApiServer { Url = "https://exchangesetservice.admiralty.co.uk" } ];
                     document.Components ??= new OpenApiComponents();
                     document.Components.SecuritySchemes ??= new Dictionary<string, OpenApiSecurityScheme>();
                     document.Components.SecuritySchemes["jwtBearerAuth"] = new OpenApiSecurityScheme
@@ -190,6 +169,16 @@ namespace UKHO.ADDS.EFS.Orchestrator
                             [ new OpenApiSecurityScheme { Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "jwtBearerAuth" } } ] = []
                         }
                     ];
+                    // Add InternalServerError schema
+                    document.Components.Schemas["InternalServerError"] = new OpenApiSchema
+                    {
+                        Type = "object",
+                        Properties = new Dictionary<string, OpenApiSchema>
+                        {
+                            ["correlationId"] = new OpenApiSchema { Type = "string" },
+                            ["detail"] = new OpenApiSchema { Type = "string" }
+                        }
+                    };
                     return Task.CompletedTask;
                 });
 
@@ -216,39 +205,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                          context.Description.RelativePath?.Equals("v2/exchangeSet/s100/updatesSince", StringComparison.OrdinalIgnoreCase) == true))
                     {
                         operation.Callbacks ??= new Dictionary<string, OpenApiCallback>();
-                        var callbackExample = new OpenApiObject
-                        {
-                            ["specversion"] = new OpenApiString("1.0"),
-                            ["type"] = new OpenApiString("uk.co.admiralty.s100Data.exchangeSetCreated.v1"),
-                            ["source"] = new OpenApiString("https://exchangeset.admiralty.co.uk/s100Data"),
-                            ["id"] = new OpenApiString("2f03a25f-28b3-46ea-b009-5943250a9a41"),
-                            ["time"] = new OpenApiString("2021-02-17T14:04:04.4880776Z"),
-                            ["subject"] = new OpenApiString("Requested S-100 Exchange Set Created"),
-                            ["datacontenttype"] = new OpenApiString("application/json"),
-                            ["data"] = new OpenApiObject
-                            {
-                                ["_links"] = new OpenApiObject
-                                {
-                                    ["exchangeSetBatchStatusUri"] = new OpenApiObject { ["href"] = new OpenApiString("http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/status") },
-                                    ["exchangeSetBatchDetailsUri"] = new OpenApiObject { ["href"] = new OpenApiString("http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272") },
-                                    ["exchangeSetFileUri"] = new OpenApiObject { ["href"] = new OpenApiString("http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/exchangeset123.zip") },
-                                    ["errorFileUri"] = new OpenApiObject { ["href"] = new OpenApiString("http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/error.txt") }
-                                },
-                                ["exchangeSetUrlExpiryDateTime"] = new OpenApiString("2021-02-17T16:19:32.269Z"),
-                                ["requestedProductCount"] = new OpenApiInteger(4),
-                                ["exchangeSetProductCount"] = new OpenApiInteger(1),
-                                ["requestedProductsAlreadyUpToDateCount"] = new OpenApiInteger(0),
-                                ["requestedProductsNotInExchangeSet"] = new OpenApiArray
-                                {
-                                    new OpenApiObject
-                                    {
-                                        ["productName"] = new OpenApiString("101GB40079ABCDEFG"),
-                                        ["reason"] = new OpenApiString("invalidProduct")
-                                    }
-                                },
-                                ["fssBatchId"] = new OpenApiString("7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272")
-                            }
-                        };
+                        var callbackExample = BuildCallbackExample();
                         var callbackResponses = new OpenApiResponses
                         {
                             ["200"] = new OpenApiResponse
@@ -274,15 +231,8 @@ namespace UKHO.ADDS.EFS.Orchestrator
                                                 {
                                                     ["application/json"] = new OpenApiMediaType
                                                     {
-                                                        Schema = new OpenApiSchema
-                                                        {
-                                                            Reference = new OpenApiReference
-                                                            {
-                                                                Type = ReferenceType.Schema,
-                                                                Id = "string"
-                                                            }
-                                                        },
-                                                        Example = callbackExample,
+                                                        Schema = new OpenApiSchema { Type = "object" },
+                                                        Example = callbackExample
                                                     }
                                                 }
                                             },
@@ -300,6 +250,41 @@ namespace UKHO.ADDS.EFS.Orchestrator
             });
             return serviceCollection;
         }
+
+        private static OpenApiObject BuildCallbackExample() =>
+            new OpenApiObject
+            {
+                ["specversion"] = new OpenApiString("1.0"),
+                ["type"] = new OpenApiString("uk.co.admiralty.s100Data.exchangeSetCreated.v1"),
+                ["source"] = new OpenApiString("https://exchangeset.admiralty.co.uk/s100Data"),
+                ["id"] = new OpenApiString("2f03a25f-28b3-46ea-b009-5943250a9a41"),
+                ["time"] = new OpenApiString("2021-02-17T14:04:04.4880776Z"),
+                ["subject"] = new OpenApiString("Requested S-100 Exchange Set Created"),
+                ["datacontenttype"] = new OpenApiString("application/json"),
+                ["data"] = new OpenApiObject
+                {
+                    ["_links"] = new OpenApiObject
+                    {
+                        ["exchangeSetBatchStatusUri"] = new OpenApiObject { ["href"] = new OpenApiString("http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/status") },
+                        ["exchangeSetBatchDetailsUri"] = new OpenApiObject { ["href"] = new OpenApiString("http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272") },
+                        ["exchangeSetFileUri"] = new OpenApiObject { ["href"] = new OpenApiString("http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/exchangeset123.zip") },
+                        ["errorFileUri"] = new OpenApiObject { ["href"] = new OpenApiString("http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/error.txt") }
+                    },
+                    ["exchangeSetUrlExpiryDateTime"] = new OpenApiString("2021-02-17T16:19:32.269Z"),
+                    ["requestedProductCount"] = new OpenApiInteger(4),
+                    ["exchangeSetProductCount"] = new OpenApiInteger(1),
+                    ["requestedProductsAlreadyUpToDateCount"] = new OpenApiInteger(0),
+                    ["requestedProductsNotInExchangeSet"] = new OpenApiArray
+                    {
+                        new OpenApiObject
+                        {
+                            ["productName"] = new OpenApiString("101GB40079ABCDEFG"),
+                            ["reason"] = new OpenApiString("invalidProduct")
+                        }
+                    },
+                    ["fssBatchId"] = new OpenApiString("7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272")
+                }
+            };
 
         private static void AddOpenApiHeaderParameters(OpenApiOperation operation, IEnumerable<OpenApiHeaderParameter> headers)
         {
@@ -464,38 +449,6 @@ namespace UKHO.ADDS.EFS.Orchestrator
                         }
                     },
                     ["fssBatchId"] = new OpenApiString("7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272")
-                };
-                if (operation.Responses.TryGetValue("202", out var acceptedResponse) &&
-                    acceptedResponse.Content?.ContainsKey("application/json") == true)
-                {
-                    acceptedResponse.Content["application/json"].Example = responseExample;
-                }
-            }
-            else if (relativePath?.Equals("v2/exchangeSet/s100/updatesSince", StringComparison.OrdinalIgnoreCase) == true &&
-                httpMethod?.Equals("POST", StringComparison.OrdinalIgnoreCase) == true)
-            {
-                var requestExample = new OpenApiObject
-                {
-                    ["sinceDateTime"] = new OpenApiString("2025-10-03T00:00:00Z")
-                };
-                if (operation.RequestBody?.Content?.ContainsKey("application/json") == true)
-                {
-                    operation.RequestBody.Content["application/json"].Example = requestExample;
-                }
-                var responseExample = new OpenApiObject
-                {
-                    ["_links"] = new OpenApiObject
-                    {
-                        ["exchangeSetBatchStatusUri"] = new OpenApiObject { ["href"] = new OpenApiString("http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/status") },
-                        ["exchangeSetBatchDetailsUri"] = new OpenApiObject { ["href"] = new OpenApiString("http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272") },
-                        ["exchangeSetFileUri"] = new OpenApiObject { ["href"] = new OpenApiString("http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/exchangeset123.zip") }
-                    },
-                    ["exchangeSetUrlExpiryDateTime"] = new OpenApiString("2025-10-22T14:22:05.483Z"),
-                    ["requestedProductCount"] = new OpenApiInteger(0),
-                    ["exchangeSetProductCount"] = new OpenApiInteger(43),
-                    ["requestedProductsAlreadyUpToDateCount"] = new OpenApiInteger(0),
-                    ["requestedProductsNotInExchangeSet"] = new OpenApiArray(),
-                    ["fssBatchId"] = new OpenApiString("e094ty4f-5439-4911-9c7b-92c55755c7f9")
                 };
                 if (operation.Responses.TryGetValue("202", out var acceptedResponse) &&
                     acceptedResponse.Content?.ContainsKey("application/json") == true)
