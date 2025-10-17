@@ -208,6 +208,94 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     });
                     AddOpenApiExamples(operation, context.Description.RelativePath, context.Description.HttpMethod);
                     AddInternalServerErrorResponse(operation);
+
+                    // Add Callbacks for custom exchangeset endpoints
+                    if (context.Description.HttpMethod == "POST" &&
+                        (context.Description.RelativePath?.Equals("v2/exchangeSet/s100/productNames", StringComparison.OrdinalIgnoreCase) == true ||
+                         context.Description.RelativePath?.Equals("v2/exchangeSet/s100/productVersions", StringComparison.OrdinalIgnoreCase) == true ||
+                         context.Description.RelativePath?.Equals("v2/exchangeSet/s100/updatesSince", StringComparison.OrdinalIgnoreCase) == true))
+                    {
+                        operation.Callbacks ??= new Dictionary<string, OpenApiCallback>();
+                        var callbackExample = new OpenApiObject
+                        {
+                            ["specversion"] = new OpenApiString("1.0"),
+                            ["type"] = new OpenApiString("uk.co.admiralty.s100Data.exchangeSetCreated.v1"),
+                            ["source"] = new OpenApiString("https://exchangeset.admiralty.co.uk/s100Data"),
+                            ["id"] = new OpenApiString("2f03a25f-28b3-46ea-b009-5943250a9a41"),
+                            ["time"] = new OpenApiString("2021-02-17T14:04:04.4880776Z"),
+                            ["subject"] = new OpenApiString("Requested S-100 Exchange Set Created"),
+                            ["datacontenttype"] = new OpenApiString("application/json"),
+                            ["data"] = new OpenApiObject
+                            {
+                                ["_links"] = new OpenApiObject
+                                {
+                                    ["exchangeSetBatchStatusUri"] = new OpenApiObject { ["href"] = new OpenApiString("http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/status") },
+                                    ["exchangeSetBatchDetailsUri"] = new OpenApiObject { ["href"] = new OpenApiString("http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272") },
+                                    ["exchangeSetFileUri"] = new OpenApiObject { ["href"] = new OpenApiString("http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/exchangeset123.zip") },
+                                    ["errorFileUri"] = new OpenApiObject { ["href"] = new OpenApiString("http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/error.txt") }
+                                },
+                                ["exchangeSetUrlExpiryDateTime"] = new OpenApiString("2021-02-17T16:19:32.269Z"),
+                                ["requestedProductCount"] = new OpenApiInteger(4),
+                                ["exchangeSetProductCount"] = new OpenApiInteger(1),
+                                ["requestedProductsAlreadyUpToDateCount"] = new OpenApiInteger(0),
+                                ["requestedProductsNotInExchangeSet"] = new OpenApiArray
+                                {
+                                    new OpenApiObject
+                                    {
+                                        ["productName"] = new OpenApiString("101GB40079ABCDEFG"),
+                                        ["reason"] = new OpenApiString("invalidProduct")
+                                    }
+                                },
+                                ["fssBatchId"] = new OpenApiString("7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272")
+                            }
+                        };
+                        var callbackResponses = new OpenApiResponses
+                        {
+                            ["200"] = new OpenApiResponse
+                            {
+                                Description = "The service will ignore all response from the callback"
+                            }
+                        };
+                        var callback = new OpenApiCallback
+                        {
+                            PathItems = new Dictionary<Microsoft.OpenApi.Expressions.RuntimeExpression, OpenApiPathItem>
+                            {
+                                [Microsoft.OpenApi.Expressions.RuntimeExpression.Build("{$request.query.callbackUri}")] = new OpenApiPathItem
+                                {
+                                    Operations = new Dictionary<OperationType, OpenApiOperation>
+                                    {
+                                        [OperationType.Post] = new OpenApiOperation
+                                        {
+                                            Summary = "Notify the Exchange Set requestor that this is now ready to download on the File Share Service.",
+                                            Description = "Once the Exchange Set has been committed on File Share Service, a notification will be sent to the callbackURI (if specified).\n\nData:\r\nThe data for the notification will follow the CloudEvents 1.0 standard, with the data portion containing the same S-100 Exchange Set data as the response to the original API request ( $ref: \"#/components/schemas/s100ExchangeSetResponse\" ).",
+                                            RequestBody = new OpenApiRequestBody
+                                            {
+                                                Content = new Dictionary<string, OpenApiMediaType>
+                                                {
+                                                    ["application/json"] = new OpenApiMediaType
+                                                    {
+                                                        Schema = new OpenApiSchema
+                                                        {
+                                                            Reference = new OpenApiReference
+                                                            {
+                                                                Type = ReferenceType.Schema,
+                                                                Id = "string"
+                                                            }
+                                                        },
+                                                        Example = callbackExample,
+                                                        Examples = null // Explicitly clear multiple examples
+                                                    }
+                                                }
+                                            },
+                                            Responses = callbackResponses
+                                        }
+                                    }
+                                }
+                            }
+                        };
+                        operation.Callbacks["s100FulfilmentResponse"] = callback;
+                    }
+
                     return Task.CompletedTask;
                 });
             });
