@@ -2,6 +2,7 @@ using FakeItEasy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
+using System.Net;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
@@ -80,7 +81,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.UnitTests.Services
         }
 
         [Test]
-        public void WhenCreateBatchAsyncFails_ThenThrowsInvalidOperationException()
+        public async Task WhenCreateBatchAsyncFails_ThenThrowsInvalidOperationException()
         {
             var result = A.Fake<IResult<IBatchHandle>>();
             IBatchHandle? handle = _batchHandle;
@@ -89,8 +90,9 @@ namespace UKHO.ADDS.EFS.Infrastructure.UnitTests.Services
             A.CallTo(() => result.IsFailure(out error, out handle)).Returns(true);
             A.CallTo(() => _fileShareReadWriteClient.CreateBatchAsync(A<BatchModel>._, A<string>._, A<CancellationToken>._)).Returns(result);
 
-            Assert.That(async () => await _defaultFileService.CreateBatchAsync(_correlationId, ExchangeSetType.Complete, _userIdentifier, _cancellationToken),
-                Throws.TypeOf<InvalidOperationException>());
+            var batch = await _defaultFileService.CreateBatchAsync(_correlationId, ExchangeSetType.Complete, _userIdentifier, _cancellationToken);
+
+            Assert.That(batch.ResponseCode, Is.EqualTo(HttpStatusCode.InternalServerError));
         }
 
         [Test]
