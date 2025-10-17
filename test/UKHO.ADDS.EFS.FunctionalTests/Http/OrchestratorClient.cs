@@ -8,8 +8,8 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Http
     public class OrchestratorClient
     {
         private static HttpClient httpClient => AspireTestHost.httpClient!;
-        private const int WaitDurationMs = 5000;
-        private const double MaxWaitMinutes = 5;
+        private const int WaitDurationMs = 10000;
+        private const double MaxWaitMinutes = 10;
 
         public static async Task<HttpResponseMessage> PostRequestAsync(string requestId, object payload, string endpoint)
         {

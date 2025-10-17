@@ -9,6 +9,7 @@ using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
+using UKHO.ADDS.EFS.Domain.User;
 using UKHO.ADDS.Clients.Common.Constants;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
@@ -16,11 +17,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
     internal class CreateFileShareBatchNode : AssemblyPipelineNode<S100Build>
     {
         private readonly IFileService _fileService;
+        private readonly UserIdentifier _userIdentifier;
 
-        public CreateFileShareBatchNode(AssemblyNodeEnvironment nodeEnvironment, IFileService fileService)
+        public CreateFileShareBatchNode(AssemblyNodeEnvironment nodeEnvironment, IFileService fileService, UserIdentifier userIdentifier)
             : base(nodeEnvironment)
         {
             _fileService = fileService;
+            _userIdentifier = userIdentifier;
         }
 
         public override Task<bool> ShouldExecuteAsync(IExecutionContext<PipelineContext<S100Build>> context)
@@ -35,7 +38,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             var fssResponse = context.Subject.ResponseInfo;
             try
             {
-                var batch = await _fileService.CreateBatchAsync(job.GetCorrelationId(), job.ExchangeSetType, Environment.CancellationToken);
+                var batch = await _fileService.CreateBatchAsync(job.GetCorrelationId(), job.ExchangeSetType, _userIdentifier, Environment.CancellationToken);
+
                 job.BatchId = batch.BatchId;
                 job.ExchangeSetUrlExpiryDateTime = batch.BatchExpiryDateTime;
                 build.BatchId = batch.BatchId;

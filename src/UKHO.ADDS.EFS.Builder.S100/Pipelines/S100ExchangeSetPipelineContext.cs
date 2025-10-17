@@ -30,11 +30,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
 
         public string WorkspaceAuthenticationKey { get; set; }
         public IEnumerable<BatchDetails> BatchDetails { get; set; }
-        
+        public IEnumerable<string> BatchFileNameDetails { get; set; }
+
         public string WorkSpaceRootPath { get; set; } = "/usr/local/tomcat/ROOT";
         public string WorkSpaceSpoolPath { get; } = "spool";
-        public string WorkSpaceSpoolDataSetFilesPath { get; } = "dataSet_files";
-        public string WorkSpaceSpoolSupportFilesPath { get; } = "support_files";
         public string ExchangeSetFilePath { get; set; } = "/usr/local/tomcat/ROOT/xchg";
         public string ExchangeSetArchiveFolderName { get; set; } = "ExchangeSetArchive";
     }
