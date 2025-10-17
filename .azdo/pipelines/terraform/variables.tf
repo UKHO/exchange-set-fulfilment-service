@@ -74,6 +74,19 @@ variable "b2c_client_id" {
   type  = string
 }
 
+variable "client_credentials_operation_id" {
+    type = string
+    default = "getESSTokenUsingClientCredentials"
+}
+
+variable "client_credentials_tenant_id" {
+	type = string
+}
+
+variable "client_credentials_scope" {
+	type = string
+}
+
 locals {
   env_name              = lower(terraform.workspace)
   service_name          = "efs"

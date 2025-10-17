@@ -63,3 +63,15 @@ variable "efs_b2c_token_issuer" {
 variable "efs_b2c_client_id" {
   type  = string
 }
+
+variable "client_credentials_operation_id" {
+  type    = string  
+}
+
+variable "client_credentials_tenant_id" {
+  type    = string  
+}
+
+variable "client_credentials_scope" {
+  type    = string  
+}
