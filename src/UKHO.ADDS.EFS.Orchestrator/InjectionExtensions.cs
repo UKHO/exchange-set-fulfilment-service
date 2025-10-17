@@ -283,7 +283,6 @@ namespace UKHO.ADDS.EFS.Orchestrator
                                                             }
                                                         },
                                                         Example = callbackExample,
-                                                        Examples = null // Explicitly clear multiple examples
                                                     }
                                                 }
                                             },
