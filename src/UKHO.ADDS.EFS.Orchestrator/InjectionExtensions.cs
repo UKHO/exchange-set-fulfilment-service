@@ -5,6 +5,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using Quartz;
+using UKHO.ADDS.Clients.Common.Constants;
 using UKHO.ADDS.EFS.Domain.Builds.S100;
 using UKHO.ADDS.EFS.Domain.Builds.S57;
 using UKHO.ADDS.EFS.Domain.Builds.S63;
@@ -119,6 +120,37 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
         private static IServiceCollection ConfigureOpenApi(this IServiceCollection serviceCollection)
         {
+
+            // Parameter and response descriptions
+            const string CallbackUriDescription =
+                "An optional callback URI that will be used to notify the requestor once the requested Exchange Set is ready to download from the File Share Service. " +
+                "The data for the notification will follow the CloudEvents 1.0 standard, with the data portion containing the same Exchange Set data as the response to the original API request. " +
+                "If not specified, then no call back notification will be sent. Must be a valid HTTPS endpoint.";
+
+            const string ProductIdentifierDescription =
+                "An optional identifier parameter determines the product identifier of S-100 Exchange Set. " +
+                "If the value is s101, the S-100 Exchange Set will give updates specific to s101 products only. " +
+                "The default value of identifier is s100, which means the S-100 Exchange Set will give updated for all product identifier.\r\n\r\n" +
+                "Available values : s101, s102, s104, s111";
+
+            const string XCorrelationIdHeaderKeyDesciption = "Unique GUID.";
+
+            const string AcceptedDescription =
+                "Request to create Exchange Set is accepted. Response body has Exchange Set status URL to track changes to the status of the task. " +
+                "It also contains the URL that the Exchange Set will be available on as well as the number of products in that Exchange Set.";
+
+            const string UnauthorizedDescription =
+                "Unauthorised - either you have not provided any credentials, or your credentials are not recognised.";
+
+            const string ForbiddenDescription =
+                "Forbidden - you have been authorised, but you are not allowed to access this resource.";
+
+            const string TooManyRequestsDescription =
+                "You have sent too many requests in a given amount of time. Please back-off for the time in the Retry-After header (in seconds) and try again.";
+
+            const string NotModifiedDescription =
+                "If there are no updates since the sinceDateTime parameter, then a 'Not modified' response will be returned.";
+
             serviceCollection.AddOpenApi(options =>
             {
                 // Set OpenAPI document info (title, version, description, servers, contact, externalDocs, security)
@@ -139,11 +171,10 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     {
                         Url = new Uri("https://github.com/UKHO/exchange-set-fulfilment-service")
                     };
-                    document.Servers = new List<OpenApiServer>
-                    {
+                    document.Servers =
+                    [
                         new OpenApiServer { Url = "https://exchangesetservice.admiralty.co.uk" }
-                    };
-                    // Add JWT Bearer security scheme directly to the document
+                    ];
                     document.Components ??= new OpenApiComponents();
                     document.Components.SecuritySchemes ??= new Dictionary<string, OpenApiSecurityScheme>();
                     document.Components.SecuritySchemes["jwtBearerAuth"] = new OpenApiSecurityScheme
@@ -155,26 +186,22 @@ namespace UKHO.ADDS.EFS.Orchestrator
                         Name = "Authorization",
                         Description = "JWT Authorization header using the Bearer scheme."
                     };
-                    // Add security requirement
-                    document.SecurityRequirements = new List<OpenApiSecurityRequirement>
-                    {
+                    document.SecurityRequirements =
+                    [
                         new OpenApiSecurityRequirement
                         {
-                            [ new OpenApiSecurityScheme { Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "jwtBearerAuth" } } ] = new List<string>()
+                            [ new OpenApiSecurityScheme { Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "jwtBearerAuth" } } ] = []
                         }
-                    };
+                    ];
                     return Task.CompletedTask;
                 });
 
-                // Add security scheme and response descriptions
                 options.AddOperationTransformer((operation, context, cancellationToken) =>
                 {
                     var headers = context.Description.ActionDescriptor.EndpointMetadata.OfType<OpenApiHeaderParameter>();
-
+                    operation.Parameters ??= [];
                     foreach (var header in headers)
                     {
-                        operation.Parameters ??= new List<OpenApiParameter>();
-
                         operation.Parameters.Add(new OpenApiParameter
                         {
                             Name = header.Name,
@@ -185,66 +212,36 @@ namespace UKHO.ADDS.EFS.Orchestrator
                         });
                     }
 
-
-                        // Refactored code for the selected block:
-                        const string CallbackUriDescription =
-                            "An optional callback URI that will be used to notify the requestor once the requested Exchange Set is ready to download from the File Share Service. " +
-                            "The data for the notification will follow the CloudEvents 1.0 standard, with the data portion containing the same Exchange Set data as the response to the original API request. " +
-                            "If not specified, then no call back notification will be sent.";
-
-                        const string ProductIdentifierDescription =
-                            "An optional identifier parameter determines the product identifier of S-100 Exchange Set. " +
-                            "If the value is s101, the S-100 Exchange Set will give updates specific to s101 products only. " +
-                            "The default value of identifier is s100, which means the S-100 Exchange Set will give updated for all product identifier.\r\n\r\n" +
-                            "Available values : s101, s102, s104, s111";
-
-                        const string AcceptedDescription =
-                            "Request to create Exchange Set is accepted. Response body has Exchange Set status URL to track changes to the status of the task. " +
-                            "It also contains the URL that the Exchange Set will be available on as well as the number of products in that Exchange Set.";
-
-                        const string UnauthorizedDescription =
-                            "Unauthorised - either you have not provided any credentials, or your credentials are not recognised.";
-
-                        const string ForbiddenDescription =
-                            "Forbidden - you have been authorised, but you are not allowed to access this resource.";
-
-                        const string TooManyRequestsDescription =
-                            "You have sent too many requests in a given amount of time. Please back-off for the time in the Retry-After header (in seconds) and try again.";
-
-                        const string NotModifiedDescription =
-                            "If there are no updates since the sinceDateTime parameter, then a 'Not modified' response will be returned.";
-
-                        if (operation.Parameters is { Count: > 0 })
+                    // Set parameter descriptions
+                    foreach (var param in operation.Parameters)
+                    {
+                        param.Description = param.Name switch
                         {
-                            foreach (var param in operation.Parameters)
-                            {
-                                param.Description = param.Name switch
-                                {
-                                    "callbackUri" => CallbackUriDescription,
-                                    "productIdentifier" => ProductIdentifierDescription,
-                                    _ => param.Description
-                                };
-                            }
-                        }
-
-                        var responseDescriptions = new Dictionary<string, string>
-                        {
-                            ["202"] = AcceptedDescription,
-                            ["401"] = UnauthorizedDescription,
-                            ["403"] = ForbiddenDescription,
-                            ["429"] = TooManyRequestsDescription,
-                            ["304"] = NotModifiedDescription
+                            "callbackUri" => CallbackUriDescription,
+                            "productIdentifier" => ProductIdentifierDescription,
+                            ApiHeaderKeys.XCorrelationIdHeaderKey => XCorrelationIdHeaderKeyDesciption,
+                            _ => param.Description
                         };
+                    }
 
-                        foreach (var kvp in responseDescriptions)
+                    // Set response descriptions
+                    var responseDescriptions = new Dictionary<string, string>
+                    {
+                        ["202"] = AcceptedDescription,
+                        ["401"] = UnauthorizedDescription,
+                        ["403"] = ForbiddenDescription,
+                        ["429"] = TooManyRequestsDescription,
+                        ["304"] = NotModifiedDescription
+                    };
+                    foreach (var (status, desc) in responseDescriptions)
+                    {
+                        if (operation.Responses.TryGetValue(status, out var response))
                         {
-                            if (operation.Responses.TryGetValue(kvp.Key, out var response))
-                            {
-                                response.Description = kvp.Value;
-                            }
+                            response.Description = desc;
                         }
+                    }
 
-                    // Always add 500 Internal Server Error response if missing
+                    // add 500 Internal Server Error response
                     var error500Example = new OpenApiObject
                     {
                         ["correlationId"] = new OpenApiString("string"),
@@ -272,30 +269,9 @@ namespace UKHO.ADDS.EFS.Orchestrator
                             }
                         };
                     }
-                    else
-                    {
-                        operation.Responses["500"].Description = "Internal Server Error.";
-                        operation.Responses["500"].Content = new Dictionary<string, OpenApiMediaType>
-                        {
-                            ["application/json"] = new OpenApiMediaType
-                            {
-                                Schema = new OpenApiSchema
-                                {
-                                    Reference = new OpenApiReference
-                                    {
-                                        Type = ReferenceType.Schema,
-                                        Id = "InternalServerError"
-                                    }
-                                },
-                                Example = error500Example
-                            }
-                        };
-                    }
-
                     return Task.CompletedTask;
                 });
             });
-
             return serviceCollection;
         }
     }
