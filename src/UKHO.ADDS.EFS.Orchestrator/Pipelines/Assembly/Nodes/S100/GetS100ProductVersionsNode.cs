@@ -45,7 +45,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
                 scsResponse.ResponseCode = productEditionList.ResponseCode;
                 scsResponse.ServiceName = ServiceNameType.SCS;
-                job.LastModified = productEditionList.LastModified ?? DateTime.UtcNow;
+                job.ProductsLastModified = productEditionList.LastModified ?? DateTime.UtcNow;
             }
             catch (Exception)
             {

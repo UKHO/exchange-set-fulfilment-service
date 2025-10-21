@@ -108,17 +108,16 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Api.ResponseHandlers
             Assert.That(_httpContext.Response.Headers[ApiHeaderKeys.LastModifiedHeaderKey], Is.EqualTo(lastModified.ToUniversalTime().ToString(R)));
         }
 
-        [TestCase(HttpStatusCode.BadRequest, ServiceNameType.SCS)]
-        [TestCase(HttpStatusCode.Unauthorized, ServiceNameType.SCS)]
-        [TestCase(HttpStatusCode.Forbidden, ServiceNameType.FSS)]
-        [TestCase(HttpStatusCode.UnsupportedMediaType, ServiceNameType.FSS)]
-        [TestCase(HttpStatusCode.InternalServerError, ServiceNameType.FSS)]
-        public async Task WhenExternalApiResponseIsReturnErrorStatus_ThenHandlerAppendsErrorOriginHeadersAndReturns500(HttpStatusCode externalApiStatus, ServiceNameType externalApiServiceName)
+        [TestCase(401, "SCS")] // HttpStatusCode.Unauthorized
+        [TestCase(403, "FSS")] // HttpStatusCode.Forbidden
+        [TestCase(415, "FSS")] // HttpStatusCode.UnsupportedMediaType
+        [TestCase(500, "FSS")]
+        public async Task WhenExternalApiResponseIsReturnErrorStatus_ThenHandlerAppendsErrorOriginHeadersAndReturns500(HttpStatusCode externalApiStatus, string externalApiServiceName)
         {
             var response = NewPipelineResponse(
                 externalApiResponseCode: externalApiStatus,
                 lastModified: null,
-                externalApiServiceName: externalApiServiceName,
+                externalApiServiceName: ServiceNameType.From(externalApiServiceName),
                 buildStatus: Domain.Builds.BuildState.NotScheduled,
                 responseModel: NewExchangeSetResponse(DateTime.UtcNow.AddHours(1), BatchId.None)
             );
@@ -128,15 +127,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Api.ResponseHandlers
             await ExecuteAndAssertStatusAsync(result, _httpContext, StatusCodes.Status500InternalServerError);
             Assert.That(_httpContext.Response.Headers.ContainsKey(ApiHeaderKeys.ErrorOriginHeaderKey), Is.True);
             Assert.That(_httpContext.Response.Headers.ContainsKey(ApiHeaderKeys.ErrorOriginStatusHeaderKey), Is.True);
-            Assert.That(_httpContext.Response.Headers[ApiHeaderKeys.ErrorOriginHeaderKey], Is.EqualTo(externalApiServiceName.ToString()));
+            Assert.That(_httpContext.Response.Headers[ApiHeaderKeys.ErrorOriginHeaderKey], Is.EqualTo(externalApiServiceName));
             Assert.That(_httpContext.Response.Headers[ApiHeaderKeys.ErrorOriginStatusHeaderKey], Is.EqualTo(((int)externalApiStatus).ToString()));
         }
 
         // Helpers to reduce duplication
-        private AssemblyPipelineResponse NewPipelineResponse(HttpStatusCode externalApiResponseCode = HttpStatusCode.OK,
-            DateTime? lastModified = null, Domain.Builds.BuildState buildStatus = Domain.Builds.BuildState.NotScheduled,
-            ServiceNameType externalApiServiceName = ServiceNameType.SCS,
-            CustomExchangeSetResponse? responseModel = null)
+        private AssemblyPipelineResponse NewPipelineResponse(
+    HttpStatusCode externalApiResponseCode = HttpStatusCode.OK,
+    DateTime? lastModified = null,
+    Domain.Builds.BuildState buildStatus = Domain.Builds.BuildState.NotScheduled,
+    ServiceNameType? externalApiServiceName = null,
+    CustomExchangeSetResponse? responseModel = null)
         {
             return new AssemblyPipelineResponse
             {
@@ -146,7 +147,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Api.ResponseHandlers
                 BatchId = BatchId.From(DummyBatchId),
                 ExternalApiResponseCode = externalApiResponseCode,
                 LastModified = lastModified,
-                ExternalApiServiceName = externalApiServiceName,
+                ExternalApiServiceName = externalApiServiceName ?? ServiceNameType.SCS,
                 BuildStatus = buildStatus,
                 Response = responseModel
             };
