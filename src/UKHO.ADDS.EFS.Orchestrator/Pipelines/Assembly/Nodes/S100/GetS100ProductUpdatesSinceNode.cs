@@ -1,4 +1,5 @@
 ﻿using UKHO.ADDS.EFS.Domain.Builds.S100;
+using UKHO.ADDS.EFS.Domain.ExternalErrors;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Domain.Services;
@@ -36,13 +37,19 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             var productIdentifier = job.ProductIdentifier;
 
             ProductEditionList productEditionList;
+            ExternalServiceError? externalServiceError;
             var productNameList = build.Products?.Select(p => p.ProductName).ToList() ?? new List<ProductName>();
 
             try
             {
-                productEditionList = await _productService.GetS100ProductUpdatesSinceAsync(sinceDateTime, productIdentifier, job, Environment.CancellationToken);
-                scsResponse.ErrorResponseCode = productEditionList.ErrorResponseCode;
-                scsResponse.ServiceName = ServiceNameType.SCS;
+                (productEditionList, externalServiceError) = await _productService.GetS100ProductUpdatesSinceAsync(sinceDateTime, productIdentifier, job, Environment.CancellationToken);
+
+                if (externalServiceError != null)
+                {
+                    scsResponse.ErrorResponseCode = externalServiceError!.ErrorResponseCode;
+                    scsResponse.ServiceName = externalServiceError.ServiceName;
+                }
+
                 job.ProductsLastModified = productEditionList.ProductsLastModified?? DateTime.UtcNow;
             }
             catch (Exception)
@@ -51,7 +58,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                 return NodeResultStatus.Failed;
             }
 
-            var evaluation = await EvaluateScsResponseAsync(productEditionList, context);
+            var evaluation = await EvaluateScsResponseAsync(productEditionList, externalServiceError!, context);
             if (evaluation != NodeResultStatus.Succeeded ||
                 (evaluation == NodeResultStatus.Succeeded && scsResponse.ErrorResponseCode == System.Net.HttpStatusCode.NotModified))
             {
@@ -69,15 +76,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             return NodeResultStatus.Succeeded;
         }
 
-        private static async Task<NodeResultStatus> EvaluateScsResponseAsync(ProductEditionList productEditionList, IExecutionContext<PipelineContext<S100Build>> context)
+        private static async Task<NodeResultStatus> EvaluateScsResponseAsync(ProductEditionList productEditionList, ExternalServiceError externalServiceError, IExecutionContext<PipelineContext<S100Build>> context)
         {
-            if (productEditionList.ErrorResponseCode == System.Net.HttpStatusCode.NotModified)
+            if (externalServiceError != null && externalServiceError.ErrorResponseCode == System.Net.HttpStatusCode.NotModified)
             {
                 await context.Subject.SignalNoBuildRequired();
                 return NodeResultStatus.Succeeded;
             }
 
-            if (productEditionList.ErrorResponseCode != System.Net.HttpStatusCode.OK || !productEditionList.HasProducts)
+            if (!productEditionList.HasProducts)
             {
                 await context.Subject.SignalAssemblyError();
                 return NodeResultStatus.Failed;

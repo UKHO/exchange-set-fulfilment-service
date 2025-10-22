@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.Builds.S100;
+using UKHO.ADDS.EFS.Domain.ExternalErrors;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Domain.Services;
@@ -74,10 +75,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 }
             };
             productEditionList.Add(new ProductEdition { ProductName = ProductName.From(ProductIdentifier) });
-            productEditionList.ErrorResponseCode = System.Net.HttpStatusCode.OK;
 
             A.CallTo(() => _productService.GetS100ProductUpdatesSinceAsync(_job!.RequestedFilter, _job.ProductIdentifier, _job, A<CancellationToken>.Ignored))
-                .Returns(productEditionList);
+                .Returns((productEditionList,null));
 
             _node = new GetS100ProductUpdatesSinceNode(_nodeEnvironment, _productService);
 
@@ -91,7 +91,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         {
             SetupJobAndBuild();
             A.CallTo(() => _productService.GetS100ProductUpdatesSinceAsync(_job!.RequestedFilter, _job.ProductIdentifier, _job, A<CancellationToken>.Ignored))
-                .Returns(Task.FromResult<ProductEditionList>(null!));
+                .Returns(Task.FromResult<(ProductEditionList, ExternalServiceError?)>((null!, null)));
 
             _node = new GetS100ProductUpdatesSinceNode(_nodeEnvironment, _productService);
 
@@ -135,7 +135,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             };
 
             A.CallTo(() => _productService.GetS100ProductUpdatesSinceAsync(_job!.RequestedFilter, _job.ProductIdentifier, _job, A<CancellationToken>.Ignored))
-                .Returns(productEditionList);
+                .Returns((productEditionList, null));
 
             _node = new GetS100ProductUpdatesSinceNode(_nodeEnvironment, _productService);
 
@@ -150,12 +150,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             SetupJobAndBuild();
             var productEditionList = new ProductEditionList
             {
-                ErrorResponseCode = System.Net.HttpStatusCode.NotModified,
                 ProductsLastModified = DateTime.UtcNow.AddDays(-1),
             };
 
+            var externalServiceError = new ExternalServiceError
+            {
+                ErrorResponseCode = System.Net.HttpStatusCode.NotModified,
+                ServiceName = ServiceNameType.SalesCatalogueService
+            };
+
             A.CallTo(() => _productService.GetS100ProductUpdatesSinceAsync(_job!.RequestedFilter, _job.ProductIdentifier, _job, A<CancellationToken>.Ignored))
-                .Returns(productEditionList);
+                .Returns((productEditionList, externalServiceError));
 
             _node = new GetS100ProductUpdatesSinceNode(_nodeEnvironment, _productService);
 
@@ -169,13 +174,17 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         public async Task WhenPerformExecuteAsyncIsCalledAndServiceReturnsNotOk_ThenNodeFailed()
         {
             SetupJobAndBuild();
-            var productEditionList = new ProductEditionList
+            var productEditionList = new ProductEditionList();
+
+            var externalServiceError = new ExternalServiceError
             {
-                ErrorResponseCode = System.Net.HttpStatusCode.BadRequest
+                ErrorResponseCode = System.Net.HttpStatusCode.InternalServerError,
+                ServiceName = ServiceNameType.SalesCatalogueService
             };
 
+
             A.CallTo(() => _productService.GetS100ProductUpdatesSinceAsync(_job!.RequestedFilter, _job.ProductIdentifier, _job, A<CancellationToken>.Ignored))
-                .Returns(productEditionList);
+                .Returns((productEditionList, null));
 
             _node = new GetS100ProductUpdatesSinceNode(_nodeEnvironment, _productService);
 

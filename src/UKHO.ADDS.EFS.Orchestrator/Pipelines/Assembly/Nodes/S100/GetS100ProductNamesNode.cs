@@ -9,6 +9,7 @@ using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Clients.Common.Constants;
+using UKHO.ADDS.EFS.Domain.ExternalErrors;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 {
@@ -47,12 +48,18 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             }
 
             ProductEditionList productEditionList;
+            ExternalServiceError? externalServiceError;
 
             try
             {
-                productEditionList = await _productService.GetProductEditionListAsync(DataStandard.S100, productNameList, job, Environment.CancellationToken);
-                scsResponse.ErrorResponseCode = productEditionList.ErrorResponseCode;
-                scsResponse.ServiceName = ServiceNameType.SCS;
+                (productEditionList, externalServiceError) = await _productService.GetProductEditionListAsync(DataStandard.S100, productNameList, job, Environment.CancellationToken);
+
+                if (externalServiceError != null)
+                {
+                    scsResponse.ErrorResponseCode = externalServiceError.ErrorResponseCode;
+                    scsResponse.ServiceName = externalServiceError.ServiceName;
+                }
+
                 job.ProductsLastModified = productEditionList.ProductsLastModified ?? DateTime.UtcNow;
             }
             catch (Exception)
@@ -62,7 +69,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             }
             var nodeResult = NodeResultStatus.NotRun;
 
-            switch (productEditionList.ErrorResponseCode)
+            // Fix: Use null-conditional and null-coalescing to safely get ErrorResponseCode
+            var statusCode = externalServiceError?.ErrorResponseCode ?? HttpStatusCode.OK;
+
+            switch (statusCode)
             {
                 case HttpStatusCode.OK:
 

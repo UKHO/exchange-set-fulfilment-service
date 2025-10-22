@@ -18,7 +18,7 @@ namespace UKHO.ADDS.EFS.Domain.Services
         /// <param name="exchangeSetType">The type of exchange set to create (Complete or Custom).</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result containing the batch handle on success or error information on failure.</returns>
-        Task<(Batch, ExternalServiceError)> CreateBatchAsync(CorrelationId correlationId, ExchangeSetType exchangeSetType, UserIdentifier userIdentifier, CancellationToken cancellationToken);
+        Task<(Batch, ExternalServiceError?)> CreateBatchAsync(CorrelationId correlationId, ExchangeSetType exchangeSetType, UserIdentifier userIdentifier, CancellationToken cancellationToken);
 
         /// <summary>
         ///     Commits a batch.

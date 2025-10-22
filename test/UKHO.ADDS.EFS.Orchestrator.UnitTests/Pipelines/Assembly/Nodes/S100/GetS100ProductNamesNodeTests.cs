@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.Builds.S100;
+using UKHO.ADDS.EFS.Domain.ExternalErrors;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Domain.Services;
@@ -92,7 +93,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             var productEditionList = CreateSuccessfulProductEditionList();
 
             SetupExecutionContext(job);
-            SetupProductService(productEditionList);
+            SetupProductService(productEditionList, null);
 
             var result = await _getS100ProductNamesNode.ExecuteAsync(_executionContext);
 
@@ -108,7 +109,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             var productEditionList = CreateSuccessfulProductEditionList();
 
             SetupExecutionContextWithBuild(job, build);
-            SetupProductService(productEditionList);
+            SetupProductService(productEditionList, null);
 
             var result = await _getS100ProductNamesNode.ExecuteAsync(_executionContext);
 
@@ -129,7 +130,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             var productEditionList = CreateSuccessfulProductEditionList();
 
             SetupExecutionContextWithBuild(job, build);
-            SetupProductService(productEditionList);
+            SetupProductService(productEditionList, null);
 
             var result = await _getS100ProductNamesNode.ExecuteAsync(_executionContext);
 
@@ -149,10 +150,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         {
             var requestedProducts = CreateProductNameList(TestProductName1);
             var job = CreateTestJob(requestedProducts: requestedProducts);
-            var productEditionList = new ProductEditionList { ErrorResponseCode = statusCode };
+            var productEditionList = new ProductEditionList();
+            var externalServiceError = new Domain.ExternalErrors.ExternalServiceError
+            {
+                ErrorResponseCode = statusCode,
+                ServiceName = ServiceNameType.SalesCatalogueService
+            };
 
             SetupExecutionContext(job);
-            SetupProductService(productEditionList);
+            SetupProductService(productEditionList, externalServiceError);
 
             var result = await _getS100ProductNamesNode.ExecuteAsync(_executionContext);
 
@@ -167,7 +173,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             var productEditionList = CreateSuccessfulProductEditionList();
 
             SetupExecutionContext(job);
-            SetupProductService(productEditionList);
+            SetupProductService(productEditionList, null);
 
             await _getS100ProductNamesNode.ExecuteAsync(_executionContext);
 
@@ -184,7 +190,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             var productCount = job.RequestedProductCount;
 
             SetupExecutionContext(job);
-            SetupProductService(productEditionList);
+            SetupProductService(productEditionList, null);
 
             await _getS100ProductNamesNode.ExecuteAsync(_executionContext);
 
@@ -196,10 +202,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         {
             var requestedProducts = CreateProductNameList(TestProductName1);
             var job = CreateTestJob(requestedProducts: requestedProducts);
-            var productEditionList = new ProductEditionList { ErrorResponseCode = HttpStatusCode.OK };
+            var productEditionList = new ProductEditionList();
 
             SetupExecutionContext(job);
-            SetupProductService(productEditionList);
+            SetupProductService(productEditionList, null);
 
             var result = await _getS100ProductNamesNode.ExecuteAsync(_executionContext);
 
@@ -216,7 +222,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             var productEditionList = CreateProductEditionListWithMissingProducts();
 
             SetupExecutionContext(job);
-            SetupProductService(productEditionList);
+            SetupProductService(productEditionList, null);
 
             var result = await _getS100ProductNamesNode.ExecuteAsync(_executionContext);
 
@@ -252,7 +258,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
 
             var list = new ProductEditionList
             {
-                ErrorResponseCode = HttpStatusCode.OK,
                 ProductCountSummary = productCountSummary
             };
 
@@ -302,8 +307,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
 
         private static ProductEditionList CreateSuccessfulProductEditionList()
         {
-            var list = new ProductEditionList { ErrorResponseCode = HttpStatusCode.OK };
-            list.Add(new ProductEdition { ProductName = ProductName.From(TestProductName1), FileSize = 1000 });
+            var list = new ProductEditionList
+            {
+                new ProductEdition { ProductName = ProductName.From(TestProductName1), FileSize = 1000 }
+            };
             return list;
         }
 
@@ -325,14 +332,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             return new PipelineContext<S100Build>(job, build, _storageService);
         }
 
-        private void SetupProductService(ProductEditionList productEditionList)
+        private void SetupProductService(ProductEditionList productEditionList, ExternalServiceError? externalServiceError)
         {
             A.CallTo(() => _productService.GetProductEditionListAsync(
                     A<DataStandard>._,
                     A<IEnumerable<ProductName>>._,
                     A<Job>._,
                     A<CancellationToken>._))
-                .Returns(productEditionList);
+                .Returns((productEditionList, externalServiceError));
         }
     }
 }

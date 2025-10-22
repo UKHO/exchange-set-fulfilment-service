@@ -159,7 +159,6 @@ namespace UKHO.ADDS.EFS.Infrastructure.Adapters.Products
             var list = new ProductEditionList
             {
                 ProductCountSummary = source.ProductCounts.ToDomain() ?? new ProductCountSummary(),
-                ErrorResponseCode = HttpStatusCode.OK,
                 ProductsLastModified = lastModified ?? default
             };
 

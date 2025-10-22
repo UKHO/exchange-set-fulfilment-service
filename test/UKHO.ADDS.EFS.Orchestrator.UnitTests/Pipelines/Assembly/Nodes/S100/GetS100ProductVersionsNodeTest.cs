@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.Builds.S100;
+using UKHO.ADDS.EFS.Domain.ExternalErrors;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Domain.Services;
@@ -77,9 +78,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
 
             _pipelineContext = new PipelineContext<S100Build>(job, _s100Build, _storageService);
             A.CallTo(() => _executionContext.Subject).Returns(_pipelineContext);
-            var editionList = CreateProductEditionList(HttpStatusCode.OK, true);
+            var (editionList, externalServiceError) = CreateProductEditionList(HttpStatusCode.OK, true);
 
-            A.CallTo(() => _productService.GetProductVersionsListAsync(A<DataStandard>.Ignored, A<ProductVersionList>.Ignored, A<Job>.Ignored, A<CancellationToken>.Ignored)).Returns(Task.FromResult(editionList));
+            A.CallTo(() => _productService.GetProductVersionsListAsync(A<DataStandard>.Ignored, A<ProductVersionList>.Ignored, A<Job>.Ignored, A<CancellationToken>.Ignored))
+                .Returns((editionList, externalServiceError));
 
             var result = await _s100ProductVersionsNode.ExecuteAsync(_executionContext);
 
@@ -99,8 +101,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             _pipelineContext = new PipelineContext<S100Build>(job, _s100Build, _storageService);
             A.CallTo(() => _executionContext.Subject).Returns(_pipelineContext);
 
-            var editionList = CreateProductEditionList(HttpStatusCode.BadRequest);
-            A.CallTo(() => _productService.GetProductVersionsListAsync(DataStandard.S100, productVersions, job, default)).Returns(Task.FromResult(editionList));
+            var (editionList, externalServiceError) = CreateProductEditionList(HttpStatusCode.BadRequest);
+            A.CallTo(() => _productService.GetProductVersionsListAsync(DataStandard.S100, productVersions, job, default)).Returns((editionList, externalServiceError));
 
             var result = await _s100ProductVersionsNode.ExecuteAsync(_executionContext);
 
@@ -114,8 +116,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             _pipelineContext = new PipelineContext<S100Build>(job, _s100Build, _storageService);
             A.CallTo(() => _executionContext.Subject).Returns(_pipelineContext);
 
-            var editionList = CreateProductEditionList(HttpStatusCode.OK);
-            A.CallTo(() => _productService.GetProductVersionsListAsync(DataStandard.S100, null, job, default)).Returns(Task.FromResult(editionList));
+            var (editionList, externalServiceError) = CreateProductEditionList(HttpStatusCode.OK);
+            A.CallTo(() => _productService.GetProductVersionsListAsync(DataStandard.S100, null, job, default)).Returns((editionList, externalServiceError));
 
             var result = await _s100ProductVersionsNode.ExecuteAsync(_executionContext);
 
@@ -129,8 +131,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             _pipelineContext = new PipelineContext<S100Build>(job, _s100Build, _storageService);
             A.CallTo(() => _executionContext.Subject).Returns(_pipelineContext);
 
-            var editionList = CreateProductEditionList(HttpStatusCode.OK);
-            A.CallTo(() => _productService.GetProductVersionsListAsync(DataStandard.S100, job.ProductVersions, job, default)).Returns(Task.FromResult(editionList));
+            var (editionList, externalServiceError) = CreateProductEditionList(HttpStatusCode.OK);
+            A.CallTo(() => _productService.GetProductVersionsListAsync(DataStandard.S100, job.ProductVersions, job, default)).Returns((editionList, externalServiceError));
 
             var result = await _s100ProductVersionsNode.ExecuteAsync(_executionContext);
 
@@ -159,8 +161,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             _pipelineContext = new PipelineContext<S100Build>(job, _s100Build, _storageService);
             A.CallTo(() => _executionContext.Subject).Returns(_pipelineContext);
 
-            var editionList = CreateProductEditionList(HttpStatusCode.Forbidden);
-            A.CallTo(() => _productService.GetProductVersionsListAsync(DataStandard.S100, job.ProductVersions, job, default)).Returns(Task.FromResult(editionList));
+            var (editionList, externalServiceError) = CreateProductEditionList(HttpStatusCode.Forbidden);
+            A.CallTo(() => _productService.GetProductVersionsListAsync(DataStandard.S100, job.ProductVersions, job, default)).Returns((editionList, externalServiceError));
 
             var result = await _s100ProductVersionsNode.ExecuteAsync(_executionContext);
 
@@ -174,8 +176,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             _pipelineContext = new PipelineContext<S100Build>(job, _s100Build, _storageService);
             A.CallTo(() => _executionContext.Subject).Returns(_pipelineContext);
 
-            var editionList = CreateProductEditionList(HttpStatusCode.NotModified);
-            A.CallTo(() => _productService.GetProductVersionsListAsync(DataStandard.S100, job.ProductVersions, job, default)).Returns(Task.FromResult(editionList));
+            var (editionList, externalServiceError) = CreateProductEditionList(HttpStatusCode.NotModified);
+            A.CallTo(() => _productService.GetProductVersionsListAsync(DataStandard.S100, job.ProductVersions, job, default)).Returns((editionList, externalServiceError));
 
             var result = await _s100ProductVersionsNode.ExecuteAsync(_executionContext);
 
@@ -199,14 +201,13 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             return job;
         }
 
-        private static ProductEditionList CreateProductEditionList(HttpStatusCode code, bool hasMissingProducts = false, int productCount = 1)
+        private static (ProductEditionList, ExternalServiceError) CreateProductEditionList(HttpStatusCode code, bool hasMissingProducts = false, int productCount = 1)
         {
             var missingList = new MissingProductList();
             if (hasMissingProducts)
                 missingList.Add(new MissingProduct { });
             var editionList = new ProductEditionList
             {
-                ErrorResponseCode = code,
                 ProductCountSummary = new ProductCountSummary
                 {
                     MissingProducts = missingList,
@@ -215,7 +216,12 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             };
             for (var i = 0; i < productCount; i++)
                 editionList.Add(new ProductEdition());
-            return editionList;
+            var externalServiceError = new ExternalServiceError
+            {
+                ErrorResponseCode = code,
+                ServiceName = ServiceNameType.FileShareService
+            };
+            return (editionList, externalServiceError);
         }
     }
 }

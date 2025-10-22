@@ -93,7 +93,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.UnitTests.Services
 
             var (batch, externalServiceError) = await _defaultFileService.CreateBatchAsync(_correlationId, ExchangeSetType.Complete, _userIdentifier, _cancellationToken);
 
-            Assert.That(externalServiceError.ErrorResponseCode, Is.EqualTo(HttpStatusCode.InternalServerError));
+            Assert.That(externalServiceError?.ErrorResponseCode, Is.EqualTo(HttpStatusCode.InternalServerError));
         }
 
         [Test]

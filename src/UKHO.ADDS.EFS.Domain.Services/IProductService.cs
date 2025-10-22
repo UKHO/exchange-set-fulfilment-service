@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.EFS.Domain.Jobs;
+﻿using UKHO.ADDS.EFS.Domain.ExternalErrors;
+using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
 
 namespace UKHO.ADDS.EFS.Domain.Services
@@ -32,7 +33,7 @@ namespace UKHO.ADDS.EFS.Domain.Services
         /// <returns>
         ///     The response containing product details or an empty response if an error occurs.
         /// </returns>
-        Task<ProductEditionList> GetProductEditionListAsync(DataStandard dataStandard, IEnumerable<ProductName> productNames, Job job, CancellationToken cancellationToken);
+        Task<(ProductEditionList, ExternalServiceError?)> GetProductEditionListAsync(DataStandard dataStandard, IEnumerable<ProductName> productNames, Job job, CancellationToken cancellationToken);
 
         /// <summary>
         ///     Retrieves S-100 product details from the Sales Catalogue Service "updatesSince" endpoint.
@@ -44,7 +45,7 @@ namespace UKHO.ADDS.EFS.Domain.Services
         /// <returns>
         ///     The response containing updated S-100 product details or an empty response if an error occurs.
         /// </returns>
-        Task<ProductEditionList> GetS100ProductUpdatesSinceAsync(string sinceDateTime, DataStandardProduct productIdentifier, Job job, CancellationToken cancellationToken);
+        Task<(ProductEditionList, ExternalServiceError?)> GetS100ProductUpdatesSinceAsync(string sinceDateTime, DataStandardProduct productIdentifier, Job job, CancellationToken cancellationToken);
 
         /// <summary>
         ///     Retrieves product versions for a list of product names from the Sales Catalogue Service ProductVersions endpoint.
@@ -56,6 +57,6 @@ namespace UKHO.ADDS.EFS.Domain.Services
         /// <returns>
         ///     - ProductEditionList: The product edition list
         /// </returns>
-        Task<ProductEditionList> GetProductVersionsListAsync(DataStandard dataStandard, ProductVersionList productVersions, Job job, CancellationToken cancellationToken);
+        Task<(ProductEditionList, ExternalServiceError?)> GetProductVersionsListAsync(DataStandard dataStandard, ProductVersionList productVersions, Job job, CancellationToken cancellationToken);
     }
 }

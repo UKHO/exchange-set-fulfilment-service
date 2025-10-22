@@ -20,9 +20,6 @@ namespace UKHO.ADDS.EFS.Domain.Products
         public bool HasProducts => _products.Count > 0;
 
         [JsonIgnore]
-        public HttpStatusCode ErrorResponseCode { get; set; }
-
-        [JsonIgnore]
         public DateTime? ProductsLastModified { get; set; }
 
         public bool Add(ProductEdition product)

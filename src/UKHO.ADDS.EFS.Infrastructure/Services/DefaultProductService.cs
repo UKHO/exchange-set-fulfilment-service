@@ -6,6 +6,7 @@ using Microsoft.Kiota.Http.HttpClientLibrary.Middleware.Options;
 using UKHO.ADDS.Clients.Kiota.SalesCatalogueService;
 using UKHO.ADDS.Clients.Kiota.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Domain.Constants;
+using UKHO.ADDS.EFS.Domain.ExternalErrors;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Domain.Services;
@@ -107,7 +108,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
             }
         }
 
-        public async Task<ProductEditionList> GetProductEditionListAsync(DataStandard dataStandard, IEnumerable<ProductName> productNames, Job job, CancellationToken cancellationToken)
+        public async Task<(ProductEditionList, ExternalServiceError?)> GetProductEditionListAsync(DataStandard dataStandard, IEnumerable<ProductName> productNames, Job job, CancellationToken cancellationToken)
         {
             if (dataStandard != DataStandard.S100)
             {
@@ -142,7 +143,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
             }
         }
 
-        public async Task<ProductEditionList> GetS100ProductUpdatesSinceAsync(string sinceDateTime, DataStandardProduct productIdentifier, Job job, CancellationToken cancellationToken)
+        public async Task<(ProductEditionList, ExternalServiceError?)> GetS100ProductUpdatesSinceAsync(string sinceDateTime, DataStandardProduct productIdentifier, Job job, CancellationToken cancellationToken)
         {
             var headersOption = CreateHeadersOption();
 
@@ -180,7 +181,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
             }
         }
 
-        public async Task<ProductEditionList> GetProductVersionsListAsync(DataStandard dataStandard, ProductVersionList productVersions, Job job, CancellationToken cancellationToken)
+        public async Task<(ProductEditionList, ExternalServiceError?)> GetProductVersionsListAsync(DataStandard dataStandard, ProductVersionList productVersions, Job job, CancellationToken cancellationToken)
         {
             if (dataStandard != DataStandard.S100)
             {
@@ -222,10 +223,13 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
             }
         }
 
-        private ProductEditionList HandleApiExceptionForProductEditionList(ApiException apiException, HeadersInspectionHandlerOption headersOption, Job job)
+        private (ProductEditionList, ExternalServiceError) HandleApiExceptionForProductEditionList(ApiException apiException, HeadersInspectionHandlerOption headersOption, Job job)
         {
-            var productEditionList = new ProductEditionList
+            var productEditionList = new ProductEditionList();
+
+            var externalServiceError = new ExternalServiceError
             {
+                ServiceName = ServiceNameType.SalesCatalogueService,
                 ErrorResponseCode = (HttpStatusCode)apiException.ResponseStatusCode
             };
 
@@ -245,10 +249,10 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
             }
 
             _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, (HttpStatusCode)apiException.ResponseStatusCode));
-            return productEditionList;
+            return (productEditionList, externalServiceError);
         }
 
-        private ProductEditionList ProcessProductNamesResult(IResult<S100ProductResponse?> s100ProductNamesResult, HeadersInspectionHandlerOption headersOption, Job job)
+        private (ProductEditionList, ExternalServiceError?) ProcessProductNamesResult(IResult<S100ProductResponse?> s100ProductNamesResult, HeadersInspectionHandlerOption headersOption, Job job)
         {
             var lastModifiedHeader = headersOption.ResponseHeaders.TryGetValue(ApiHeaderKeys.LastModifiedHeaderKey, out var values)
                 ? values.FirstOrDefault()
@@ -258,11 +262,11 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
 
             if (s100ProductNamesResult.IsSuccess(out var productList) && productList is not null)
             {
-                return productList.ToDomain(lastModifiedActual);
+                return (productList.ToDomain(lastModifiedActual), null);
             }
 
             _logger.LogSalesCatalogueApiError(SalesCatalogApiErrorLogView.Create(job));
-            return [];
+            return ([],null);
         }
 
         private static HeadersInspectionHandlerOption CreateHeadersOption()

@@ -44,7 +44,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                 job.BatchId = batch.BatchId;
                 job.ExchangeSetUrlExpiryDateTime = batch.BatchExpiryDateTime;
                 build.BatchId = batch.BatchId;
-                if ( externalServiceError.ErrorResponseCode != System.Net.HttpStatusCode.OK)
+                if (externalServiceError != null)
                 {
                     fssResponse.ErrorResponseCode = externalServiceError.ErrorResponseCode;
                     fssResponse.ServiceName = externalServiceError.ServiceName;
