@@ -235,53 +235,40 @@ namespace UKHO.ADDS.EFS.Orchestrator
                                         }
                                     },
                                     ["400"] = new OpenApiResponse
-                                    { Description = "Bad request - Request missing client_id and/or client_secret.",
-                                      Content = new Dictionary<string, OpenApiMediaType>
-                                      {
-                                          ["application/json"] = new OpenApiMediaType
-                                          {
-                                              Schema = new OpenApiSchema
-                                              {
-                                                  Type = "object",
-                                                  Properties = new Dictionary<string, OpenApiSchema>
-                                                  {
-                                                      ["correlationId"] = new OpenApiSchema { Type = "string", Example = new OpenApiString("184ef711-b039-4c24-b81a-89081d8f324c") },
-
-                                                      ["errors"] = new OpenApiSchema
-                                                      {
-                                                          Type = "object",
-                                                          Properties = new Dictionary<string, OpenApiSchema>
-                                                          {
-                                                              ["source"] = new OpenApiSchema { Type = "string", Example = new OpenApiString("request") },
-                                                              ["description"] = new OpenApiSchema { Type = "string", Example = new OpenApiString("request missing client_id and/or client_secret") },
-                                                          }
-                                                      }
-
-                                                  }
-                                              }
-                                          }
-                                      }
-                                    },
-                                    ["401"] = new OpenApiResponse { Description = UnauthorizedDescription },
-                                    ["403"] = new OpenApiResponse { Description = ForbiddenDescription },
-                                    ["429"] = new OpenApiResponse
                                     {
-                                        Description = TooManyRequestsDescription,
-                                        Headers = new Dictionary<string, OpenApiHeader>
+                                        Description = "Bad request - Request missing client_id and/or client_secret.",
+                                        Content = new Dictionary<string, OpenApiMediaType>
                                         {
-                                            ["Retry-After"] = new OpenApiHeader
+                                            ["application/json"] = new OpenApiMediaType
                                             {
-                                                Description = "Specifies the time you should wait in seconds before retrying.",
                                                 Schema = new OpenApiSchema
                                                 {
-                                                    Type = "integer"
+                                                    Type = "object",
+                                                    Properties = new Dictionary<string, OpenApiSchema>
+                                                    {
+                                                        ["correlationId"] = new OpenApiSchema { Type = "string", Example = new OpenApiString("184ef711-b039-4c24-b81a-89081d8f324c") },
+
+                                                        ["errors"] = new OpenApiSchema
+                                                        {
+                                                            Type = "object",
+                                                            Properties = new Dictionary<string, OpenApiSchema>
+                                                            {
+                                                                ["source"] = new OpenApiSchema { Type = "string", Example = new OpenApiString("request") },
+                                                                ["description"] = new OpenApiSchema { Type = "string", Example = new OpenApiString("request missing client_id and/or client_secret") },
+                                                            }
+                                                        }
+
+                                                    }
                                                 }
                                             }
                                         }
-                                    }
+                                    },
+                                    ["401"] = new OpenApiResponse { Description = UnauthorizedDescription },
+                                    ["403"] = new OpenApiResponse { Description = ForbiddenDescription },
+                                    ["429"] = BuildTooManyRequestsResponse(TooManyRequestsDescription)
                                 }
                             }
-                        }                          
+                        }
                     };
                     return Task.CompletedTask;
                 });
@@ -295,10 +282,11 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     {
                         ["202"] = AcceptedDescription,
                         ["401"] = UnauthorizedDescription,
-                        ["403"] = ForbiddenDescription,
-                        ["429"] = TooManyRequestsDescription,
+                        ["403"] = ForbiddenDescription,                        
                         ["304"] = NotModifiedDescription
                     });
+                                        
+                    operation.Responses["429"] = BuildTooManyRequestsResponse(TooManyRequestsDescription);                  
                     AddOpenApiExamples(operation, context.Description.RelativePath, context.Description.HttpMethod);
                     AddInternalServerErrorResponse(operation);
 
@@ -354,6 +342,22 @@ namespace UKHO.ADDS.EFS.Orchestrator
             });
             return serviceCollection;
         }
+
+        private static OpenApiResponse BuildTooManyRequestsResponse(string TooManyRequestsDescription) => new OpenApiResponse
+        {
+            Description = TooManyRequestsDescription,
+            Headers = new Dictionary<string, OpenApiHeader>
+            {
+                ["Retry-After"] = new OpenApiHeader
+                {
+                    Description = "Specifies the time you should wait in seconds before retrying.",
+                    Schema = new OpenApiSchema
+                    {
+                        Type = "integer"
+                    }
+                }
+            }
+        };
 
         private static OpenApiObject BuildCallbackExample() =>
             new OpenApiObject
@@ -428,7 +432,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 {
                     response.Description = desc;
                 }
-            }
+            }            
         }
 
         private static void AddOpenApiExamples(OpenApiOperation operation, string relativePath, string httpMethod)
@@ -446,6 +450,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 if (operation.RequestBody?.Content?.ContainsKey("application/json") == true)
                 {
                     operation.RequestBody.Content["application/json"].Example = requestExample;
+                    operation.RequestBody.Description = "A list of S-100 product names for which the Exchange Set is requested.";
                 }
                 var responseExample = new OpenApiObject
                 {
@@ -526,6 +531,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 if (operation.RequestBody?.Content?.ContainsKey("application/json") == true)
                 {
                     operation.RequestBody.Content["application/json"].Example = requestExample;
+                    operation.RequestBody.Description = "A list of S-100 products with their edition and update numbers for which the Exchange Set is requested.";
                 }
                 var responseExample = new OpenApiObject
                 {
@@ -563,30 +569,25 @@ namespace UKHO.ADDS.EFS.Orchestrator
         }
 
         private static void AddInternalServerErrorResponse(OpenApiOperation operation)
-        {
-            var error500Example = new OpenApiObject
-            {
-                ["correlationId"] = new OpenApiString("string"),
-                ["detail"] = new OpenApiString("string")
-            };
+        {            
             if (!operation.Responses.ContainsKey("500"))
             {
                 operation.Responses["500"] = new OpenApiResponse
                 {
-                    Description = "Internal Server Error.",
+                    Description = "Internal Server Error.",                    
                     Content = new Dictionary<string, OpenApiMediaType>
                     {
                         ["application/json"] = new OpenApiMediaType
                         {
                             Schema = new OpenApiSchema
                             {
-                                Reference = new OpenApiReference
+                                Type = "object",
+                                Properties = new Dictionary<string, OpenApiSchema>
                                 {
-                                    Type = ReferenceType.Schema,
-                                    Id = "InternalServerError"
+                                    ["correlationId"] = new OpenApiSchema { Type = "string" },
+                                    ["detail"] = new OpenApiSchema { Type = "string" }
                                 }
-                            },
-                            Example = error500Example
+                            }
                         }
                     }
                 };
