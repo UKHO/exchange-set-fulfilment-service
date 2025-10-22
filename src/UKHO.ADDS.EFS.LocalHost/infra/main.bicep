@@ -13,6 +13,8 @@ param location string
 param principalId string = ''
 
 param addsEnvironment string
+param addsMocksCpu string
+param addsMocksMemory string
 @metadata({azd: {
   type: 'generate'
   config: {length:22,noSpecial:true}
