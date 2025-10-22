@@ -74,7 +74,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 }
             };
             productEditionList.Add(new ProductEdition { ProductName = ProductName.From(ProductIdentifier) });
-            productEditionList.ResponseCode = System.Net.HttpStatusCode.OK;
+            productEditionList.ErrorResponseCode = System.Net.HttpStatusCode.OK;
 
             A.CallTo(() => _productService.GetS100ProductUpdatesSinceAsync(_job!.RequestedFilter, _job.ProductIdentifier, _job, A<CancellationToken>.Ignored))
                 .Returns(productEditionList);
@@ -150,7 +150,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             SetupJobAndBuild();
             var productEditionList = new ProductEditionList
             {
-                ResponseCode = System.Net.HttpStatusCode.NotModified,
+                ErrorResponseCode = System.Net.HttpStatusCode.NotModified,
                 LastModified = DateTime.UtcNow.AddDays(-1),
             };
 
@@ -171,7 +171,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             SetupJobAndBuild();
             var productEditionList = new ProductEditionList
             {
-                ResponseCode = System.Net.HttpStatusCode.BadRequest
+                ErrorResponseCode = System.Net.HttpStatusCode.BadRequest
             };
 
             A.CallTo(() => _productService.GetS100ProductUpdatesSinceAsync(_job!.RequestedFilter, _job.ProductIdentifier, _job, A<CancellationToken>.Ignored))

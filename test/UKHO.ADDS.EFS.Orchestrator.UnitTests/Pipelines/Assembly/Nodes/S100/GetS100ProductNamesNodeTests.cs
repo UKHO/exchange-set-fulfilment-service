@@ -149,7 +149,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         {
             var requestedProducts = CreateProductNameList(TestProductName1);
             var job = CreateTestJob(requestedProducts: requestedProducts);
-            var productEditionList = new ProductEditionList { ResponseCode = statusCode };
+            var productEditionList = new ProductEditionList { ErrorResponseCode = statusCode };
 
             SetupExecutionContext(job);
             SetupProductService(productEditionList);
@@ -196,7 +196,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         {
             var requestedProducts = CreateProductNameList(TestProductName1);
             var job = CreateTestJob(requestedProducts: requestedProducts);
-            var productEditionList = new ProductEditionList { ResponseCode = HttpStatusCode.OK };
+            var productEditionList = new ProductEditionList { ErrorResponseCode = HttpStatusCode.OK };
 
             SetupExecutionContext(job);
             SetupProductService(productEditionList);
@@ -252,7 +252,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
 
             var list = new ProductEditionList
             {
-                ResponseCode = HttpStatusCode.OK,
+                ErrorResponseCode = HttpStatusCode.OK,
                 ProductCountSummary = productCountSummary
             };
 
@@ -302,7 +302,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
 
         private static ProductEditionList CreateSuccessfulProductEditionList()
         {
-            var list = new ProductEditionList { ResponseCode = HttpStatusCode.OK };
+            var list = new ProductEditionList { ErrorResponseCode = HttpStatusCode.OK };
             list.Add(new ProductEdition { ProductName = ProductName.From(TestProductName1), FileSize = 1000 });
             return list;
         }

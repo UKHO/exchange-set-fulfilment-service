@@ -19,7 +19,7 @@ namespace UKHO.ADDS.EFS.Domain.Products
 
         public DateTime? LastModified { get; set; }
 
-        public HttpStatusCode ResponseCode { get; set; }
+        public HttpStatusCode ErrorResponseCode { get; set; }
 
         public bool Add(Product product)
         {

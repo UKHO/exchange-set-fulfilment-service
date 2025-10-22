@@ -48,7 +48,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Adapters.Products
             var list = new ProductList
             {
                 LastModified = lastModified ?? default,
-                ResponseCode = HttpStatusCode.OK
+                ErrorResponseCode = HttpStatusCode.OK
             };
 
             foreach (var item in source)
@@ -159,7 +159,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Adapters.Products
             var list = new ProductEditionList
             {
                 ProductCountSummary = source.ProductCounts.ToDomain() ?? new ProductCountSummary(),
-                ResponseCode = HttpStatusCode.OK,
+                ErrorResponseCode = HttpStatusCode.OK,
                 LastModified = lastModified ?? default
             };
 

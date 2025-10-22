@@ -35,7 +35,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
         {
             var job = context.Subject.Job;
             var build = context.Subject.Build;
-            var fssResponse = context.Subject.ResponseInfo;
+            var fssResponse = context.Subject.ExternalServiceError;
             try
             {
                 var batch = await _fileService.CreateBatchAsync(job.GetCorrelationId(), job.ExchangeSetType, _userIdentifier, Environment.CancellationToken);
@@ -43,9 +43,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                 job.BatchId = batch.BatchId;
                 job.ExchangeSetUrlExpiryDateTime = batch.BatchExpiryDateTime;
                 build.BatchId = batch.BatchId;
-                if (batch.ResponseCode != System.Net.HttpStatusCode.OK)
+                if (batch.ErrorResponseCode != System.Net.HttpStatusCode.OK)
                 {
-                    fssResponse.ResponseCode = batch.ResponseCode;
+                    fssResponse.ErrorResponseCode = batch.ErrorResponseCode;
                     fssResponse.ServiceName = ServiceNameType.FSS;
                     return NodeResultStatus.Failed;
                 }

@@ -33,7 +33,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
         {
             var job = context.Subject.Job;
             var build = context.Subject.Build;
-            var scsResponse = context.Subject.ResponseInfo;
+            var scsResponse = context.Subject.ExternalServiceError;
 
             var productNameList = new List<ProductName>();
 
@@ -51,7 +51,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             try
             {
                 productEditionList = await _productService.GetProductEditionListAsync(DataStandard.S100, productNameList, job, Environment.CancellationToken);
-                scsResponse.ResponseCode = productEditionList.ResponseCode;
+                scsResponse.ErrorResponseCode = productEditionList.ErrorResponseCode;
                 scsResponse.ServiceName = ServiceNameType.SCS;
                 job.ProductsLastModified = productEditionList.LastModified ?? DateTime.UtcNow;
             }
@@ -62,7 +62,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             }
             var nodeResult = NodeResultStatus.NotRun;
 
-            switch (productEditionList.ResponseCode)
+            switch (productEditionList.ErrorResponseCode)
             {
                 case HttpStatusCode.OK:
 

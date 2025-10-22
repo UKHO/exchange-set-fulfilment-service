@@ -34,7 +34,7 @@
 //        {
 //            var expectedResponse = new S100SalesCatalogueResponse
 //            {
-//                ResponseCode = HttpStatusCode.OK,
+//                ErrorResponseCode = HttpStatusCode.OK,
 //                LastModified = DateTime.UtcNow
 //            };
 //            var expectedDate = expectedResponse.LastModified;
@@ -53,7 +53,7 @@
 
 //            Assert.Multiple(() =>
 //            {
-//                Assert.That(s100SalesCatalogueData.ResponseCode, Is.EqualTo(expectedResponse.ResponseCode));
+//                Assert.That(s100SalesCatalogueData.ErrorResponseCode, Is.EqualTo(expectedResponse.ErrorResponseCode));
 //                Assert.That(s100SalesCatalogueData.LastModified, Is.EqualTo(expectedResponse.LastModified));
 //                Assert.That(lastModified, Is.EqualTo(expectedDate));
 //            });
@@ -65,7 +65,7 @@
 //            var sinceDateTime = DateTime.UtcNow.AddDays(-1);
 //            var expectedResponse = new S100SalesCatalogueResponse
 //            {
-//                ResponseCode = HttpStatusCode.NotModified,
+//                ErrorResponseCode = HttpStatusCode.NotModified,
 //                LastModified = sinceDateTime
 //            };
 
@@ -83,7 +83,7 @@
 
 //            Assert.Multiple(() =>
 //            {
-//                Assert.That(data.ResponseCode, Is.EqualTo(expectedResponse.ResponseCode));
+//                Assert.That(data.ErrorResponseCode, Is.EqualTo(expectedResponse.ErrorResponseCode));
 //                Assert.That(result.LastModified, Is.EqualTo(sinceDateTime));
 //            });
 //        }
@@ -115,7 +115,7 @@
 //        {
 //            var expectedResponse = new S100SalesCatalogueResponse
 //            {
-//                ResponseCode = HttpStatusCode.OK,
+//                ErrorResponseCode = HttpStatusCode.OK,
 //                LastModified = DateTime.UtcNow
 //            };
 //            var successResult = A.Fake<IResult<S100SalesCatalogueResponse>>();
@@ -131,7 +131,7 @@
 
 //            Assert.Multiple(() =>
 //            {
-//                Assert.That(data.ResponseCode, Is.EqualTo(HttpStatusCode.OK));
+//                Assert.That(data.ErrorResponseCode, Is.EqualTo(HttpStatusCode.OK));
 //                Assert.That(data.LastModified, Is.EqualTo(expectedResponse.LastModified));
 //            });
 //        }
@@ -141,7 +141,7 @@
 //        {
 //            var expectedResponse = new S100SalesCatalogueResponse
 //            {
-//                ResponseCode = HttpStatusCode.BadRequest, // unexpected status code
+//                ErrorResponseCode = HttpStatusCode.BadRequest, // unexpected status code
 //                LastModified = null
 //            };
 
@@ -160,7 +160,7 @@
 //            Assert.Multiple(() =>
 //            {
 //                Assert.That(data, Is.Not.Null);
-//                Assert.That(data.ResponseCode, Is.EqualTo(default(HttpStatusCode)));
+//                Assert.That(data.ErrorResponseCode, Is.EqualTo(default(HttpStatusCode)));
 //                Assert.That(data.LastModified, Is.Null);
 //            });
 //        }
@@ -191,7 +191,7 @@
 //        {
 //            var expectedResponse = new S100SalesCatalogueResponse
 //            {
-//                ResponseCode = HttpStatusCode.OK,
+//                ErrorResponseCode = HttpStatusCode.OK,
 //                LastModified = DateTime.UtcNow
 //            };
 
@@ -222,7 +222,7 @@
 //            Assert.Multiple(() =>
 //            {
 //                Assert.That(callCount, Is.EqualTo(4), "Should retry 3 times plus the initial call (total 4)");
-//                Assert.That(data.ResponseCode, Is.EqualTo(expectedResponse.ResponseCode));
+//                Assert.That(data.ErrorResponseCode, Is.EqualTo(expectedResponse.ErrorResponseCode));
 //                Assert.That(result.LastModified, Is.EqualTo(expectedResponse.LastModified));
 //            });
 //        }

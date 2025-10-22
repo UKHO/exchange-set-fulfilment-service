@@ -48,8 +48,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly
                 BatchId = context.Job.BatchId,
                 ErrorResponse = context.ErrorResponse?.Errors?.Count > 0 ? context.ErrorResponse : null,
                 Response = _exchangeSetResponseFactory.CreateResponse(context.Job),
-                ExternalApiServiceName = context.ResponseInfo.ServiceName,
-                ExternalApiResponseCode = context.ResponseInfo.ResponseCode,
+                ExternalApiServiceName = context.ExternalServiceError.ServiceName,
+                ExternalApiResponseCode = context.ExternalServiceError.ErrorResponseCode,
                 LastModified = context.Job.ProductsLastModified
             };
         }

@@ -75,7 +75,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                 {
                     BatchId = BatchId.None,
                     BatchExpiryDateTime = DateTime.MinValue,
-                    ResponseCode = statusCode
+                    ErrorResponseCode = statusCode
                 };
             }
 

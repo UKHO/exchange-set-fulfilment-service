@@ -92,7 +92,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.UnitTests.Services
 
             var batch = await _defaultFileService.CreateBatchAsync(_correlationId, ExchangeSetType.Complete, _userIdentifier, _cancellationToken);
 
-            Assert.That(batch.ResponseCode, Is.EqualTo(HttpStatusCode.InternalServerError));
+            Assert.That(batch.ErrorResponseCode, Is.EqualTo(HttpStatusCode.InternalServerError));
         }
 
         [Test]

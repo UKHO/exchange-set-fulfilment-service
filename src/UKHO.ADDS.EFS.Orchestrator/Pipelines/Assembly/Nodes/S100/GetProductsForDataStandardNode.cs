@@ -36,7 +36,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
             var nodeResult = NodeResultStatus.NotRun;
 
-            switch (s100SalesCatalogueData.ResponseCode)
+            switch (s100SalesCatalogueData.ErrorResponseCode)
             {
                 case HttpStatusCode.OK when s100SalesCatalogueData.Products.Any():
                     // We have something to build, so move forwards with scheduling a build

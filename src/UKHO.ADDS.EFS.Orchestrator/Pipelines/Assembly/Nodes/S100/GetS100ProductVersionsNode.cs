@@ -35,7 +35,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             var job = context.Subject.Job;
             var build = context.Subject.Build;
             var productVersions = job.ProductVersions;
-            var scsResponse = context.Subject.ResponseInfo;
+            var scsResponse = context.Subject.ExternalServiceError;
 
             // Call the product service to get product versions
             ProductEditionList productEditionList;
@@ -43,7 +43,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             {
                 productEditionList = await _productService.GetProductVersionsListAsync(DataStandard.S100, productVersions, job, Environment.CancellationToken);
 
-                scsResponse.ResponseCode = productEditionList.ResponseCode;
+                scsResponse.ErrorResponseCode = productEditionList.ErrorResponseCode;
                 scsResponse.ServiceName = ServiceNameType.SCS;
                 job.ProductsLastModified = productEditionList.LastModified ?? DateTime.UtcNow;
             }
@@ -53,7 +53,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                 return NodeResultStatus.Failed;
             }
 
-            if (productEditionList.ResponseCode == HttpStatusCode.OK || productEditionList.ResponseCode == HttpStatusCode.NotModified)
+            if (productEditionList.ErrorResponseCode == HttpStatusCode.OK || productEditionList.ErrorResponseCode == HttpStatusCode.NotModified)
             {
                 // Log any requested products that weren't returned, but don't fail the build
                 if (productEditionList.ProductCountSummary.MissingProducts.HasProducts)
@@ -65,7 +65,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
                 job.RequestedProductCount = ProductCount.From(productVersions.Count());
                 job.ExchangeSetProductCount = productEditionList.Count;
-                if (productEditionList.ResponseCode == HttpStatusCode.NotModified)
+                if (productEditionList.ErrorResponseCode == HttpStatusCode.NotModified)
                 {
                     job.RequestedProductsAlreadyUpToDateCount = ProductCount.From(productVersions.Count());
                 }

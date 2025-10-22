@@ -96,7 +96,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
 
                             return (new ProductList
                             {
-                                ResponseCode = HttpStatusCode.NotModified
+                                ErrorResponseCode = HttpStatusCode.NotModified
                             }, parsed);
                         }
 
@@ -226,7 +226,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         {
             var productEditionList = new ProductEditionList
             {
-                ResponseCode = (HttpStatusCode)apiException.ResponseStatusCode
+                ErrorResponseCode = (HttpStatusCode)apiException.ResponseStatusCode
             };
 
             if (apiException.ResponseStatusCode == (int)HttpStatusCode.NotModified)

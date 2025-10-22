@@ -206,7 +206,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 missingList.Add(new MissingProduct { });
             var editionList = new ProductEditionList
             {
-                ResponseCode = code,
+                ErrorResponseCode = code,
                 ProductCountSummary = new ProductCountSummary
                 {
                     MissingProducts = missingList,
