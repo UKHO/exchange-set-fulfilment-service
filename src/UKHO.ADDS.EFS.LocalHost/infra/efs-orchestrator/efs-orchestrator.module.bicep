@@ -24,6 +24,10 @@ param efs_storage_outputs_blobendpoint string
 @secure()
 param efs_redis_password_value string
 
+param efs_app_insights_outputs_appinsightsconnectionstring string
+
+param efs_events_namespace_outputs_eventhubsendpoint string
+
 @secure()
 param elasticapmapikey_value string
 
@@ -32,10 +36,6 @@ param elasticapmserverurl_value string
 param elasticapmservicename_value string
 
 param elasticapmenvironment_value string
-
-param efs_app_insights_outputs_appinsightsconnectionstring string
-
-param efs_events_namespace_outputs_eventhubsendpoint string
 
 param efs_appconfig_outputs_appconfigendpoint string
 
@@ -146,6 +146,14 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2025-02-02-preview' = {
               secretRef: 'connectionstrings--efs-redis'
             }
             {
+              name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+              value: efs_app_insights_outputs_appinsightsconnectionstring
+            }
+            {
+              name: 'ConnectionStrings__efs-events-namespace'
+              value: efs_events_namespace_outputs_eventhubsendpoint
+            }
+            {
               name: 'ElasticAPM__ApiKey'
               secretRef: 'elasticapm--apikey'
             }
@@ -160,14 +168,6 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2025-02-02-preview' = {
             {
               name: 'ElasticAPM__Environment'
               value: elasticapmenvironment_value
-            }
-            {
-              name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-              value: efs_app_insights_outputs_appinsightsconnectionstring
-            }
-            {
-              name: 'ConnectionStrings__efs-events-namespace'
-              value: efs_events_namespace_outputs_eventhubsendpoint
             }
             {
               name: 'ConnectionStrings__efs-appconfig'

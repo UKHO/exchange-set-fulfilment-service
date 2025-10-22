@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Azure.Messaging.EventGrid;
 using NSubstitute;
 using UKHO.ADDS.Aspire.Configuration.Emulator.Common;
@@ -57,7 +58,7 @@ namespace UKHO.ADDS.Aspire.Configuration.Emulator.Tests.ConfigurationSettings
                         eventGridEvent.Data.ToString() == new BinaryData(new
                         {
                             key, label, etag
-                        }, null, null).ToString()));
+                        }, (JsonSerializerOptions?)null, null).ToString()));
         }
 
         [Fact]
@@ -100,7 +101,7 @@ namespace UKHO.ADDS.Aspire.Configuration.Emulator.Tests.ConfigurationSettings
                         eventGridEvent.Data.ToString() == new BinaryData(new
                         {
                             key, label, etag
-                        }, null, null).ToString()));
+                        }, (JsonSerializerOptions?)null, null).ToString()));
         }
 
         [Fact]
@@ -143,7 +144,7 @@ namespace UKHO.ADDS.Aspire.Configuration.Emulator.Tests.ConfigurationSettings
                         eventGridEvent.Data.ToString() == new BinaryData(new
                         {
                             key, label, etag
-                        }, null, null).ToString()));
+                        }, (JsonSerializerOptions?)null, null).ToString()));
         }
 
         [Fact]
