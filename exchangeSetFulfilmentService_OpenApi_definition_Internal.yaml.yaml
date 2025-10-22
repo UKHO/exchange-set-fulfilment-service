@@ -9,6 +9,122 @@ info:
 servers:
   - url: https://exchangesetservice.admiralty.co.uk
 paths:
+  /jobs:
+    post:
+      tags:
+        - s100
+      description: Create a job request for the given data standard. To filter (S100)
+        by product type, use the filter property "startswith(ProductName,
+        '101')"
+      parameters:
+        - name: x-correlation-id
+          in: header
+          description: Correlation ID
+          required: true
+          schema:
+            type: string
+            default: job-2ae8cfecd93649ce80fb98130bc7bbfd
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JobRequestApiMessage"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssemblyPipelineResponse"
+        "429":
+          description: You have sent too many requests in a given amount of time. Please
+            back-off for the time in the Retry-After header (in seconds) and try
+            again.
+          headers:
+            Retry-After:
+              description: Specifies the time you should wait in seconds before retrying.
+              schema:
+                type: integer
+        "500":
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  correlationId:
+                    type: string
+                  detail:
+                    type: string
+  /jobs/{jobId}:
+    get:
+      tags:
+        - s100
+      description: Gets the job for the given job id
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+        "429":
+          description: You have sent too many requests in a given amount of time. Please
+            back-off for the time in the Retry-After header (in seconds) and try
+            again.
+          headers:
+            Retry-After:
+              description: Specifies the time you should wait in seconds before retrying.
+              schema:
+                type: integer
+        "500":
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  correlationId:
+                    type: string
+                  detail:
+                    type: string
+  /jobs/{jobId}/build:
+    get:
+      tags:
+        - s100
+      description: Gets the job build memento for the given job id
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+        "429":
+          description: You have sent too many requests in a given amount of time. Please
+            back-off for the time in the Retry-After header (in seconds) and try
+            again.
+          headers:
+            Retry-After:
+              description: Specifies the time you should wait in seconds before retrying.
+              schema:
+                type: integer
+        "500":
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  correlationId:
+                    type: string
+                  detail:
+                    type: string
   /v2/exchangeSet/s100/productNames:
     post:
       tags:
