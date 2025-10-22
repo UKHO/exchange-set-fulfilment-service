@@ -179,6 +179,110 @@ namespace UKHO.ADDS.EFS.Orchestrator
                             ["detail"] = new OpenApiSchema { Type = "string" }
                         }
                     };
+
+                    // Add synthetic /auth/client_credentials endpoint (OpenAPI only, not implemented in backend)                    
+                    document.Paths ??= new OpenApiPaths();
+                    document.Paths["/auth/client_credentials"] = new OpenApiPathItem
+                    {
+                        Operations = new Dictionary<OperationType, OpenApiOperation>
+                        {
+                            [OperationType.Post] = new OpenApiOperation
+                            {
+                                Summary = "Get token from AAD",
+                                Description = "Returns a token direct from Azure AD using Client Credentials.",
+                                Tags = new List<OpenApiTag> { new() { Name = "auth" } },
+                                RequestBody = new OpenApiRequestBody
+                                {
+                                    Required = true,
+                                    Content = new Dictionary<string, OpenApiMediaType>
+                                    {
+                                        ["application/json"] = new OpenApiMediaType
+                                        {
+                                            Schema = new OpenApiSchema
+                                            {
+                                                Type = "object",
+                                                Properties = new Dictionary<string, OpenApiSchema>
+                                                {
+                                                    ["client_id"] = new OpenApiSchema { Type = "string" },
+                                                    ["client_secret"] = new OpenApiSchema { Type = "string" }
+                                                },
+                                                Required = new HashSet<string> { "client_id", "client_secret" }
+                                            }
+                                        }
+                                    }
+                                },
+                                Responses = new OpenApiResponses
+                                {
+                                    ["200"] = new OpenApiResponse
+                                    {
+                                        Description = "OK",
+                                        Content = new Dictionary<string, OpenApiMediaType>
+                                        {
+                                            ["application/json"] = new OpenApiMediaType
+                                            {
+                                                Schema = new OpenApiSchema
+                                                {
+                                                    Type = "object",
+                                                    Properties = new Dictionary<string, OpenApiSchema>
+                                                    {
+                                                        ["token_type"] = new OpenApiSchema { Type = "string", Example = new OpenApiString("Bearer") },
+                                                        ["expires_in"] = new OpenApiSchema { Type = "integer", Format = "int32", Example = new OpenApiInteger(3599) },
+                                                        ["ext_expires_in"] = new OpenApiSchema { Type = "integer", Format = "int32", Example = new OpenApiInteger(3599) },
+                                                        ["access_token"] = new OpenApiSchema { Type = "string", Example = new OpenApiString("eyJ0eXAiOiJKV1QiLCJhbGciOiJSU") },
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    ["400"] = new OpenApiResponse
+                                    { Description = "Bad request - Request missing client_id and/or client_secret.",
+                                      Content = new Dictionary<string, OpenApiMediaType>
+                                      {
+                                          ["application/json"] = new OpenApiMediaType
+                                          {
+                                              Schema = new OpenApiSchema
+                                              {
+                                                  Type = "object",
+                                                  Properties = new Dictionary<string, OpenApiSchema>
+                                                  {
+                                                      ["correlationId"] = new OpenApiSchema { Type = "string", Example = new OpenApiString("184ef711-b039-4c24-b81a-89081d8f324c") },
+
+                                                      ["errors"] = new OpenApiSchema
+                                                      {
+                                                          Type = "object",
+                                                          Properties = new Dictionary<string, OpenApiSchema>
+                                                          {
+                                                              ["source"] = new OpenApiSchema { Type = "string", Example = new OpenApiString("request") },
+                                                              ["description"] = new OpenApiSchema { Type = "string", Example = new OpenApiString("request missing client_id and/or client_secret") },
+                                                          }
+                                                      }
+
+                                                  }
+                                              }
+                                          }
+                                      }
+                                    },
+                                    ["401"] = new OpenApiResponse { Description = UnauthorizedDescription },
+                                    ["403"] = new OpenApiResponse { Description = ForbiddenDescription },
+                                    ["429"] = new OpenApiResponse
+                                    {
+                                        Description = TooManyRequestsDescription,
+                                        Headers = new Dictionary<string, OpenApiHeader>
+                                        {
+                                            ["Retry-After"] = new OpenApiHeader
+                                            {
+                                                Description = "Specifies the time you should wait in seconds before retrying.",
+                                                Schema = new OpenApiSchema
+                                                {
+                                                    Type = "integer"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }                          
+                    };
                     return Task.CompletedTask;
                 });
 
