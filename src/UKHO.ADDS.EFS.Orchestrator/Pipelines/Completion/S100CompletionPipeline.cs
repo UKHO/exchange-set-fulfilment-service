@@ -1,4 +1,5 @@
 ﻿using Serilog.Context;
+using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.Builds.S100;
 using UKHO.ADDS.EFS.Domain.Constants;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S100;
@@ -36,7 +37,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion
                 {
                     case NodeResultStatus.NotRun:
                     case NodeResultStatus.Failed:
-                        await context.SignalCompletionFailure();
+                        if (Parameters.ExitCode == BuilderExitCode.Failed)
+                        {
+                            await context.SignalBuildFailure();
+                        }
+                        else
+                        {
+                            await context.SignalCompletionFailure();
+                        }
                         break;
                 }
             }
