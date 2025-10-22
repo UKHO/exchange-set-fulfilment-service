@@ -1,5 +1,5 @@
 ﻿using System.Net;
-using UKHO.ADDS.EFS.Domain.Products;
+using UKHO.ADDS.EFS.Domain.External;
 
 namespace UKHO.ADDS.EFS.Domain.ExternalErrors
 {

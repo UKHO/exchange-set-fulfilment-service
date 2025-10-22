@@ -36,7 +36,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
         {
             var job = context.Subject.Job;
             var build = context.Subject.Build;
-            var fssResponse = context.Subject.ExternalServiceError;
+            var fssResponse = job.ExternalServiceError;
             try
             {
                 var (batch, externalServiceError) = await _fileService.CreateBatchAsync(job.GetCorrelationId(), job.ExchangeSetType, _userIdentifier, Environment.CancellationToken);

@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Vogen;
 
-namespace UKHO.ADDS.EFS.Domain.Products
+namespace UKHO.ADDS.EFS.Domain.External
 {
     [ValueObject<string>(Conversions.SystemTextJson, typeof(ValidationException))]
     [Instance("SalesCatalogueService", "SCS")]

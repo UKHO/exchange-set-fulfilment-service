@@ -30,7 +30,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
         {
             var job = context.Subject.Job;
             var build = context.Subject.Build;
-            var scsResponse = context.Subject.ExternalServiceError;
+            var scsResponse = job.ExternalServiceError;
 
             var sinceDateTime = job.RequestedFilter;
 

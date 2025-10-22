@@ -1,5 +1,5 @@
 ﻿using UKHO.ADDS.EFS.Domain.Builds.S100;
-using UKHO.ADDS.EFS.Domain.Products;
+using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Factories;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
@@ -49,8 +49,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly
                 BatchId = context.Job.BatchId,
                 ErrorResponse = context.ErrorResponse?.Errors?.Count > 0 ? context.ErrorResponse : null,
                 Response = _exchangeSetResponseFactory.CreateResponse(context.Job),
-                ExternalApiServiceName = context.ExternalServiceError.ServiceName,
-                ExternalApiResponseCode = context.ExternalServiceError.ServiceName != ServiceNameType.NotDefined ? context.ExternalServiceError.ErrorResponseCode : System.Net.HttpStatusCode.OK,
+                ExternalApiServiceName = context.Job.ExternalServiceError.ServiceName,
+                ExternalApiResponseCode = context.Job.ExternalServiceError.ServiceName != ServiceNameType.NotDefined ? context.Job.ExternalServiceError.ErrorResponseCode : System.Net.HttpStatusCode.OK,
                 ProductsLastModified = context.Job.ProductsLastModified
             };
         }

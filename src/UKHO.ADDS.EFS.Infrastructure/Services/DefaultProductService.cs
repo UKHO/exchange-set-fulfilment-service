@@ -6,6 +6,7 @@ using Microsoft.Kiota.Http.HttpClientLibrary.Middleware.Options;
 using UKHO.ADDS.Clients.Kiota.SalesCatalogueService;
 using UKHO.ADDS.Clients.Kiota.SalesCatalogueService.Models;
 using UKHO.ADDS.EFS.Domain.Constants;
+using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.ExternalErrors;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;

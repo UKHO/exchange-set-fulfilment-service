@@ -1,5 +1,7 @@
 ﻿using System.Net;
+using System.Text.Json.Serialization;
 using UKHO.ADDS.EFS.Domain.Builds;
+using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Messages;
 using UKHO.ADDS.EFS.Domain.Products;
@@ -34,6 +36,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         /// <summary>
         /// Gets or sets the HTTP status code representing the response from the SCS service.
         /// </summary>
+        [JsonIgnore]
         public HttpStatusCode ExternalApiResponseCode { get; init; }
 
         /// <summary>
@@ -44,6 +47,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         /// <summary>
         /// Gets the name of the external API service.    
         /// </summary>
-        public ServiceNameType ExternalApiServiceName { get; init; }
+        [JsonIgnore]
+        public ServiceNameType ExternalApiServiceName { get; init; } = ServiceNameType.None;
     }
 }

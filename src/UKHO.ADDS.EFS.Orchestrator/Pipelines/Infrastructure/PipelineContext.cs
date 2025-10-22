@@ -27,6 +27,5 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure
         public bool IsErrorFileCreated { get; set; }
 
         public ErrorResponseModel ErrorResponse { get; set; } = new ErrorResponseModel();
-        public ExternalServiceError ExternalServiceError { get; set; } = new ExternalServiceError { ServiceName =ServiceNameType.NotDefined};
     }
 }
