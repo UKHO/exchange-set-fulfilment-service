@@ -1,5 +1,7 @@
 using './adds-mocks-efs.module.bicep'
 
+param addsMocksCpu = '{{ parameter "addsMocksCpu" }}'
+param addsMocksMemory = '{{ parameter "addsMocksMemory" }}'
 param adds_mocks_efs_containerimage = '{{ .Image }}'
 param adds_mocks_efs_containerport = '{{ targetPortOrDefault 8080 }}'
 param efs_cae_outputs_azure_container_apps_environment_default_domain = '{{ .Env.EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN }}'

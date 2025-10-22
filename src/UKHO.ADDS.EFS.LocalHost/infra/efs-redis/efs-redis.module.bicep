@@ -30,7 +30,7 @@ resource efs_redis 'Microsoft.App/containerApps@2025-01-01' = {
     template: {
       containers: [
         {
-          image: 'docker.io/library/redis:7.4'
+          image: 'docker.io/library/redis:8.2'
           name: 'efs-redis'
           command: [
             '/bin/sh'

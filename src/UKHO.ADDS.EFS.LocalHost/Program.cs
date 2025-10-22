@@ -40,43 +40,45 @@ namespace UKHO.ADDS.EFS.LocalHost
         private static async Task BuildEfs(IDistributedApplicationBuilder builder)
         {
             // Get parameters
-            var efsServiceIdentityName = builder.AddParameter("efsServiceIdentityName");
-            var efsRetainResourceGroup = builder.AddParameter("efsRetainResourceGroup");
-            var efsContainerAppsEnvironmentName = builder.AddParameter("efsContainerAppsEnvironmentName");
-            var efsContainerRegistryName = builder.AddParameter("efsContainerRegistryName");
-            var efsApplicationInsightsName = builder.AddParameter("efsApplicationInsightsName");
-            var efsEventHubsNamespaceName = builder.AddParameter("efsEventHubsNamespaceName");
-            var efsAppConfigurationName = builder.AddParameter("efsAppConfigurationName");
-            var efsStorageAccountName = builder.AddParameter("efsStorageAccountName");
-            var addsEnvironment = builder.AddParameter("addsEnvironment");
-            var orchestratorCpu = builder.AddParameter("orchestratorCpu");
-            var orchestratorMemory = builder.AddParameter("orchestratorMemory");
-            var elasticApmApiKey = builder.AddParameter("elasticAPMApiKey", true);
-            var elasticApmServerUrl = builder.AddParameter("elasticAPMServerURL");
-            var elasticApmServiceName = builder.AddParameter("elasticAPMServiceName");
-            var elasticApmEnvironment = builder.AddParameter("elasticAPMEnvironment");
+            var efsServiceIdentityName = builder.AddPublishOnlyParameter("efsServiceIdentityName");
+            var efsRetainResourceGroup = builder.AddPublishOnlyParameter("efsRetainResourceGroup");
+            var efsContainerAppsEnvironmentName = builder.AddPublishOnlyParameter("efsContainerAppsEnvironmentName");
+            var efsContainerRegistryName = builder.AddPublishOnlyParameter("efsContainerRegistryName");
+            var efsApplicationInsightsName = builder.AddPublishOnlyParameter("efsApplicationInsightsName");
+            var efsEventHubsNamespaceName = builder.AddPublishOnlyParameter("efsEventHubsNamespaceName");
+            var efsAppConfigurationName = builder.AddPublishOnlyParameter("efsAppConfigurationName");
+            var efsStorageAccountName = builder.AddPublishOnlyParameter("efsStorageAccountName");
+            var addsEnvironment = builder.AddPublishOnlyParameter("addsEnvironment");
+            var addsMocksCpu = builder.AddPublishOnlyParameter("addsMocksCpu");
+            var addsMocksMemory = builder.AddPublishOnlyParameter("addsMocksMemory");
+            var orchestratorCpu = builder.AddPublishOnlyParameter("orchestratorCpu");
+            var orchestratorMemory = builder.AddPublishOnlyParameter("orchestratorMemory");
+            var elasticApmApiKey = builder.AddPublishOnlyParameter("elasticAPMApiKey", true);
+            var elasticApmServerUrl = builder.AddPublishOnlyParameter("elasticAPMServerURL");
+            var elasticApmServiceName = builder.AddPublishOnlyParameter("elasticAPMServiceName");
+            var elasticApmEnvironment = builder.AddPublishOnlyParameter("elasticAPMEnvironment");
 
             // Existing user managed identity
-            var efsServiceIdentity = builder.AddAzureUserAssignedIdentity(ServiceConfiguration.EfsServiceIdentity).PublishAsExisting(efsServiceIdentityName, efsRetainResourceGroup);
+            var efsServiceIdentity = builder.AddAzureUserAssignedIdentity(ServiceConfiguration.EfsServiceIdentity).PublishAsExistingWithNullCheck(efsServiceIdentityName, efsRetainResourceGroup);
 
             // App insights
             var appInsights = builder.ExecutionContext.IsPublishMode
-                ? builder.AddAzureApplicationInsights(ServiceConfiguration.AppInsightsName).PublishAsExisting(efsApplicationInsightsName, null)
+                ? builder.AddAzureApplicationInsights(ServiceConfiguration.AppInsightsName).PublishAsExisting(efsApplicationInsightsName!, null)
                 : null;
 
             // Event hubs
             var eventHubs = builder.ExecutionContext.IsPublishMode
-                ? builder.AddAzureEventHubs(ServiceConfiguration.EventHubsNamespaceName).PublishAsExisting(efsEventHubsNamespaceName, efsRetainResourceGroup)
+                ? builder.AddAzureEventHubs(ServiceConfiguration.EventHubsNamespaceName).PublishAsExisting(efsEventHubsNamespaceName!, efsRetainResourceGroup)
                 : null;
 
             // Container registry
-            var acr = builder.AddAzureContainerRegistry(ServiceConfiguration.ContainerRegistryName).PublishAsExisting(efsContainerRegistryName, null);
+            var acr = builder.AddAzureContainerRegistry(ServiceConfiguration.ContainerRegistryName).PublishAsExistingWithNullCheck(efsContainerRegistryName, null);
 
             // Container apps environment
-            var acaEnv = builder.AddAzureContainerAppEnvironment(ServiceConfiguration.AcaEnvironmentName).PublishAsExisting(efsContainerAppsEnvironmentName, efsRetainResourceGroup);
+            var acaEnv = builder.AddAzureContainerAppEnvironment(ServiceConfiguration.AcaEnvironmentName).PublishAsExistingWithNullCheck(efsContainerAppsEnvironmentName, efsRetainResourceGroup);
 
             // Storage configuration
-            var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e => { e.WithDataVolume(); }).PublishAsExisting(efsStorageAccountName, null);
+            var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e => { e.WithDataVolume(); }).PublishAsExistingWithNullCheck(efsStorageAccountName, null);
             var storageQueue = storage.AddQueues(StorageConfiguration.QueuesName);
             var storageTable = storage.AddTables(StorageConfiguration.TablesName);
             var storageBlob = storage.AddBlobs(StorageConfiguration.BlobsName);
@@ -92,11 +94,18 @@ namespace UKHO.ADDS.EFS.LocalHost
             // ADDS Mock
             var mockService = builder.AddProject<UKHO_ADDS_Mocks_EFS>(ProcessNames.MockService)
                 .WithDashboard("Dashboard")
-                .WithExternalHttpEndpoints()
-                .PublishAsAzureContainerApp((infra, app) =>
+                .WithExternalHttpEndpoints();
+
+            if (builder.ExecutionContext.IsPublishMode)
+            {
+                mockService.PublishAsAzureContainerApp((infra, app) =>
                 {
                     app.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
+                    var container = app.Template.Containers.Single().Value!;
+                    container.Resources.Cpu = addsMocksCpu!.AsProvisioningParameter(infra, "addsMocksCpu");
+                    container.Resources.Memory = addsMocksMemory!.AsProvisioningParameter(infra, "addsMocksMemory");
                 });
+            }
 
             // Build Request Monitor
             IResourceBuilder<ProjectResource>? requestMonitor = null;
@@ -126,18 +135,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WaitFor(redisCache)
                 .WithAzureUserAssignedIdentity(efsServiceIdentity)
                 .WithExternalHttpEndpoints()
-                .WithScalar("API Browser")
-                .WithEnvironment("ElasticAPM__ApiKey", elasticApmApiKey)
-                .WithEnvironment("ElasticAPM__ServerURL", elasticApmServerUrl)
-                .WithEnvironment("ElasticAPM__ServiceName", elasticApmServiceName)
-                .WithEnvironment("ElasticAPM__Environment", elasticApmEnvironment)
-                .PublishAsAzureContainerApp((infra, app) =>
-                {
-                    app.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
-                    var container = app.Template.Containers.Single().Value!;
-                    container.Resources.Cpu = orchestratorCpu.AsProvisioningParameter(infra, "orchestratorCpu");
-                    container.Resources.Memory = orchestratorMemory.AsProvisioningParameter(infra, "orchestratorMemory");
-                });
+                .WithScalar("API Browser");
 
             if (builder.ExecutionContext.IsPublishMode)
             {
@@ -145,6 +143,17 @@ namespace UKHO.ADDS.EFS.LocalHost
                 orchestratorService.WaitFor(appInsights!);
                 orchestratorService.WithReference(eventHubs!);
                 orchestratorService.WaitFor(eventHubs!);
+                orchestratorService.WithEnvironment("ElasticAPM__ApiKey", elasticApmApiKey!);
+                orchestratorService.WithEnvironment("ElasticAPM__ServerURL", elasticApmServerUrl!);
+                orchestratorService.WithEnvironment("ElasticAPM__ServiceName", elasticApmServiceName!);
+                orchestratorService.WithEnvironment("ElasticAPM__Environment", elasticApmEnvironment!);
+                orchestratorService.PublishAsAzureContainerApp((infra, app) =>
+                {
+                    app.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
+                    var container = app.Template.Containers.Single().Value!;
+                    container.Resources.Cpu = orchestratorCpu!.AsProvisioningParameter(infra, "orchestratorCpu");
+                    container.Resources.Memory = orchestratorMemory!.AsProvisioningParameter(infra, "orchestratorMemory");
+                });
             }
 
             if (builder.ExecutionContext.IsRunMode)
@@ -159,7 +168,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             }
             else
             {
-                var appConfig = builder.AddConfiguration(ProcessNames.ConfigurationService, addsEnvironment, [orchestratorService]).PublishAsExisting(efsAppConfigurationName, null);
+                var appConfig = builder.AddConfiguration(ProcessNames.ConfigurationService, addsEnvironment!, [orchestratorService]).PublishAsExistingWithNullCheck(efsAppConfigurationName, null);
             }
 
             if (builder.ExecutionContext.IsRunMode)
