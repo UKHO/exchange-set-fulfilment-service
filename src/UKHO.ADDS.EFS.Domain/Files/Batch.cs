@@ -8,6 +8,5 @@ namespace UKHO.ADDS.EFS.Domain.Files
     {
         public required BatchId BatchId { get; init; }
         public DateTime BatchExpiryDateTime { get; set; } = DateTime.MinValue;
-        public HttpStatusCode ErrorResponseCode { get; set; } = HttpStatusCode.OK;
     }
 }

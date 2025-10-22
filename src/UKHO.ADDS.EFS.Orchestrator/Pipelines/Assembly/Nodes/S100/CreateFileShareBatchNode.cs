@@ -1,16 +1,17 @@
 ﻿using Microsoft.Azure.Amqp.Sasl;
 using OpenTelemetry;
+using UKHO.ADDS.Clients.Common.Constants;
 using UKHO.ADDS.EFS.Domain.Builds.S100;
+using UKHO.ADDS.EFS.Domain.ExternalErrors;
 using UKHO.ADDS.EFS.Domain.Files;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Domain.Services;
+using UKHO.ADDS.EFS.Domain.User;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
-using UKHO.ADDS.EFS.Domain.User;
-using UKHO.ADDS.Clients.Common.Constants;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 {
@@ -38,15 +39,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             var fssResponse = context.Subject.ExternalServiceError;
             try
             {
-                var batch = await _fileService.CreateBatchAsync(job.GetCorrelationId(), job.ExchangeSetType, _userIdentifier, Environment.CancellationToken);
+                var (batch, externalServiceError) = await _fileService.CreateBatchAsync(job.GetCorrelationId(), job.ExchangeSetType, _userIdentifier, Environment.CancellationToken);
 
                 job.BatchId = batch.BatchId;
                 job.ExchangeSetUrlExpiryDateTime = batch.BatchExpiryDateTime;
                 build.BatchId = batch.BatchId;
-                if (batch.ErrorResponseCode != System.Net.HttpStatusCode.OK)
+                if ( externalServiceError.ErrorResponseCode != System.Net.HttpStatusCode.OK)
                 {
-                    fssResponse.ErrorResponseCode = batch.ErrorResponseCode;
-                    fssResponse.ServiceName = ServiceNameType.FSS;
+                    fssResponse.ErrorResponseCode = externalServiceError.ErrorResponseCode;
+                    fssResponse.ServiceName = externalServiceError.ServiceName;
                     return NodeResultStatus.Failed;
                 }
                 return NodeResultStatus.Succeeded;

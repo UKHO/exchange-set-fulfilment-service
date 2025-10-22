@@ -15,6 +15,9 @@ using UKHO.ADDS.EFS.Infrastructure.Logging.Services;
 using UKHO.ADDS.Infrastructure.Results;
 using Attribute = UKHO.ADDS.EFS.Domain.Files.Attribute;
 using UKHO.ADDS.Infrastructure.Results.Errors.Http;
+using UKHO.ADDS.EFS.Domain.ExternalErrors;
+using UKHO.ADDS.EFS.Domain.Products;
+using System.Xml.Linq;
 
 namespace UKHO.ADDS.EFS.Infrastructure.Services
 {
@@ -58,38 +61,50 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         /// <param name="correlationId">The correlation identifier for tracking the request.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result containing the batch handle on success or error information on failure.</returns>
-        public async Task<Batch> CreateBatchAsync(CorrelationId correlationId, ExchangeSetType exchangeSetType, UserIdentifier userIdentifier, CancellationToken cancellationToken)
+        public async Task<(Batch, ExternalServiceError)> CreateBatchAsync(CorrelationId correlationId, ExchangeSetType exchangeSetType, UserIdentifier userIdentifier, CancellationToken cancellationToken)
         {
-                var batchModel = exchangeSetType == ExchangeSetType.Complete
-                    ? GetBatchModelForCompleteExchangeSet()
-                    : GetBatchModelForCustomExchangeSet(userIdentifier.Identity, exchangeSetType);
+            var batchModel = exchangeSetType == ExchangeSetType.Complete
+                ? GetBatchModelForCompleteExchangeSet()
+                : GetBatchModelForCustomExchangeSet(userIdentifier.Identity, exchangeSetType);
 
-                var createBatchResponseResult = await _fileShareReadWriteClient.CreateBatchAsync(batchModel, (string)correlationId, cancellationToken);
+            var createBatchResponseResult = await _fileShareReadWriteClient.CreateBatchAsync(batchModel, (string)correlationId, cancellationToken);
 
-            if (createBatchResponseResult.IsFailure(out var error, out _)) 
+            var batch = new Batch
+            {
+                BatchId = BatchId.None,
+                BatchExpiryDateTime = DateTime.MinValue
+            };
+
+            if (createBatchResponseResult.IsFailure(out var error, out _))
             {
                 LogFileShareServiceError(correlationId, CreateBatch, error, BatchId.None);
-                // Try to extract HttpStatusCode from error, fallback to InternalServerError
-                var statusCode = error is HttpError httpError ? httpError.StatusCode : System.Net.HttpStatusCode.InternalServerError;
-                return new Batch
+
+                var externalServiceError = new ExternalServiceError
                 {
-                    BatchId = BatchId.None,
-                    BatchExpiryDateTime = DateTime.MinValue,
-                    ErrorResponseCode = statusCode
+                    // Try to extract HttpStatusCode from error, fallback to InternalServerError
+                    ErrorResponseCode = error is HttpError httpError ? httpError.StatusCode : System.Net.HttpStatusCode.InternalServerError,
+                    ServiceName = ServiceNameType.FileShareService
                 };
+
+                return (batch, externalServiceError);
             }
 
-                if (createBatchResponseResult.IsSuccess(out var response))
+            if (createBatchResponseResult.IsSuccess(out var response))
+            {
+                var externalServiceError = new ExternalServiceError
                 {
-                    return new()
-                    {
-                        BatchId = BatchId.From(response.BatchId),
-                        BatchExpiryDateTime = batchModel.ExpiryDate == null ? DateTime.MinValue
-                        : DateTime.ParseExact(batchModel.ExpiryDate, "yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal)
-                    };
-                }
+                    ErrorResponseCode = System.Net.HttpStatusCode.OK
+                };
 
-                throw new InvalidOperationException("Failed to create batch.");
+                return (new()
+                {
+                    BatchId = BatchId.From(response.BatchId),
+                    BatchExpiryDateTime = batchModel.ExpiryDate == null ? DateTime.MinValue
+                    : DateTime.ParseExact(batchModel.ExpiryDate, "yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal)
+                }, externalServiceError);
+            }
+
+            throw new InvalidOperationException("Failed to create batch.");
         }
 
         /// <summary>

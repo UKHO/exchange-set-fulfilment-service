@@ -1,13 +1,14 @@
+using System.Net;
 using FakeItEasy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
-using System.Net;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
 using UKHO.ADDS.EFS.Domain.External;
+using UKHO.ADDS.EFS.Domain.ExternalErrors;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.User;
 using UKHO.ADDS.EFS.Infrastructure.Services;
@@ -74,7 +75,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.UnitTests.Services
             A.CallTo(() => result.IsFailure(out error, out handle)).Returns(false);
             A.CallTo(() => _fileShareReadWriteClient.CreateBatchAsync(A<BatchModel>._, A<string>._, A<CancellationToken>._)).Returns(result);
 
-            var batch = await _defaultFileService.CreateBatchAsync(_correlationId, exchangeSetType, _userIdentifier, _cancellationToken);
+            var (batch, externalServiceError) = await _defaultFileService.CreateBatchAsync(_correlationId, exchangeSetType, _userIdentifier, _cancellationToken);
 
             Assert.That(batch.BatchId.Value, Is.EqualTo(BatchId));
             Assert.That(batch.BatchExpiryDateTime, Is.Not.EqualTo(DateTime.MinValue));
@@ -90,9 +91,9 @@ namespace UKHO.ADDS.EFS.Infrastructure.UnitTests.Services
             A.CallTo(() => result.IsFailure(out error, out handle)).Returns(true);
             A.CallTo(() => _fileShareReadWriteClient.CreateBatchAsync(A<BatchModel>._, A<string>._, A<CancellationToken>._)).Returns(result);
 
-            var batch = await _defaultFileService.CreateBatchAsync(_correlationId, ExchangeSetType.Complete, _userIdentifier, _cancellationToken);
+            var (batch, externalServiceError) = await _defaultFileService.CreateBatchAsync(_correlationId, ExchangeSetType.Complete, _userIdentifier, _cancellationToken);
 
-            Assert.That(batch.ErrorResponseCode, Is.EqualTo(HttpStatusCode.InternalServerError));
+            Assert.That(externalServiceError.ErrorResponseCode, Is.EqualTo(HttpStatusCode.InternalServerError));
         }
 
         [Test]
