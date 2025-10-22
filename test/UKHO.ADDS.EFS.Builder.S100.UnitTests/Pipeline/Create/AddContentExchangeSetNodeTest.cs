@@ -21,18 +21,19 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         private IExecutionContext<S100ExchangeSetPipelineContext> _executionContext;
         private ILoggerFactory _loggerFactory;
         private ILogger _logger;
-
         private string _testDirectory;
+
+        private const string JobId = "TestJobId";
+        private const string BatchId = "a-valid-batch-id";
+        private const string WorkspaceAuthKey = "Test123";
+        private const string SpoolFolder = "spool";
+        private const string DataSetFilesFolder = "dataSet_files";
+        private const string SupportFilesFolder = "support_files";
+        private static readonly List<string> DefaultBatchFileNameDetails = new() { "101GBTest1_1_0", "102GBTest2_1_0" };
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
-            _toolClient = A.Fake<IToolClient>();
-            _addContentExchangeSetNode = new AddContentExchangeSetNode();
-            _executionContext = A.Fake<IExecutionContext<S100ExchangeSetPipelineContext>>();
-            _loggerFactory = A.Fake<ILoggerFactory>();
-            _logger = A.Fake<ILogger<AddContentExchangeSetNode>>();
-
             _testDirectory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             Directory.CreateDirectory(_testDirectory);
         }
@@ -40,26 +41,29 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         [SetUp]
         public void Setup()
         {
+            _toolClient = A.Fake<IToolClient>();
+            _addContentExchangeSetNode = new AddContentExchangeSetNode();
+            _executionContext = A.Fake<IExecutionContext<S100ExchangeSetPipelineContext>>();
+            _loggerFactory = A.Fake<ILoggerFactory>();
+            _logger = A.Fake<ILogger<AddContentExchangeSetNode>>();
+
             var exchangeSetPipelineContext = new S100ExchangeSetPipelineContext(null, _toolClient, null, null, _loggerFactory)
             {
                 Build = new S100Build
                 {
-                    // TODO - wrong, jobid == correlationid
-
-                    JobId = JobId.From("TestCorrelationId"),
-                    BatchId = BatchId.From("a-valid-batch-id"),
+                    JobId = Domain.Jobs.JobId.From(JobId),
+                    BatchId = Domain.Jobs.BatchId.From(BatchId),
                     DataStandard = DataStandard.S100,
-                   
                 },
-                JobId = JobId.From("TestJobId"),
-                WorkspaceAuthenticationKey = "Test123",
+                JobId = Domain.Jobs.JobId.From(JobId),
+                WorkspaceAuthenticationKey = WorkspaceAuthKey,
                 WorkSpaceRootPath = _testDirectory,
-                BatchFileNameDetails = new List<string>{"101GBTest1_1_0", "102GBTest2_1_0" }
+                BatchFileNameDetails = DefaultBatchFileNameDetails
             };
 
-            var spoolPath = Path.Combine(_testDirectory, "spool");
-            var datasetFilesPath = Path.Combine(spoolPath, "dataSet_files");
-            var supportFilesPath = Path.Combine(spoolPath, "support_files");
+            var spoolPath = Path.Combine(_testDirectory, SpoolFolder);
+            var datasetFilesPath = Path.Combine(spoolPath, DataSetFilesFolder);
+            var supportFilesPath = Path.Combine(spoolPath, SupportFilesFolder);
 
             Directory.CreateDirectory(datasetFilesPath);
             Directory.CreateDirectory(supportFilesPath);
@@ -71,35 +75,167 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         [TearDown]
         public void TearDown()
         {
-            // Clean up test directories after each test
             if (Directory.Exists(_testDirectory))
             {
                 Directory.Delete(_testDirectory, recursive: true);
             }
+            _loggerFactory?.Dispose();
         }
 
         [Test]
         public async Task WhenPerformExecuteAsyncIsCalledAndAddContentSucceeds_ThenReturnSucceeded()
         {
+            CreateRequiredDirectoryStructure();
             var fakeResult = A.Fake<IResult<OperationResponse>>();
             var opResponse = new OperationResponse { Code = 0, Type = "Success", Message = "OK" };
             IError? error = null;
-
             A.CallTo(() => fakeResult.IsSuccess(out opResponse, out error)).Returns(true);
-
             A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<JobId>._, A<string>._))
                 .Returns(Task.FromResult(fakeResult));
-
             var result = await _addContentExchangeSetNode.ExecuteAsync(_executionContext);
-
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
+            A.CallTo(() => _toolClient.AddContentAsync($"{DefaultBatchFileNameDetails[0]}/S100_ROOT/CATALOG.XML", Domain.Jobs.JobId.From(JobId), WorkspaceAuthKey))
+                .MustHaveHappenedOnceExactly();
+            A.CallTo(() => _toolClient.AddContentAsync($"{DefaultBatchFileNameDetails[1]}/S100_ROOT/CATALOG.XML", Domain.Jobs.JobId.From(JobId), WorkspaceAuthKey))
+                .MustHaveHappenedOnceExactly();
+        }
+
+        [Test]
+        public async Task WhenPerformExecuteAsyncIsCalledAndAddContentFails_ThenReturnFailed()
+        {
+            CreateRequiredDirectoryStructure();
+            var fakeResult = A.Fake<IResult<OperationResponse>>();
+            var fakeError = A.Fake<IError>();
+            OperationResponse? opResponse = null;
+            A.CallTo(() => fakeResult.IsSuccess(out opResponse, out fakeError)).Returns(false);
+            A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<JobId>._, A<string>._))
+                .Returns(Task.FromResult(fakeResult));
+            var result = await _addContentExchangeSetNode.ExecuteAsync(_executionContext);
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
+            A.CallTo(() => _logger.Log<LoggerMessageState>(
+                    LogLevel.Error,
+                    A<EventId>.That.Matches(e => e.Name == "AddContentExchangeSetNodeFailed"),
+                    A<LoggerMessageState>._,
+                    A<Exception>._,
+                    A<Func<LoggerMessageState, Exception?, string>>._))
+                .MustHaveHappenedOnceExactly();
+        }
+
+        [Test]
+        public async Task WhenPerformExecuteAsyncIsCalledAndFirstAddContentSucceedsButSecondFails_ThenReturnFailed()
+        {
+            CreateRequiredDirectoryStructure();
+            var successResult = A.Fake<IResult<OperationResponse>>();
+            var opResponse = new OperationResponse { Code = 0, Type = "Success", Message = "OK" };
+            IError? successError = null;
+            A.CallTo(() => successResult.IsSuccess(out opResponse, out successError)).Returns(true);
+            var failureResult = A.Fake<IResult<OperationResponse>>();
+            var fakeError = A.Fake<IError>();
+            OperationResponse? failureOpResponse = null;
+            A.CallTo(() => failureResult.IsSuccess(out failureOpResponse, out fakeError)).Returns(false);
+            A.CallTo(() => _toolClient.AddContentAsync($"{DefaultBatchFileNameDetails[0]}/S100_ROOT/CATALOG.XML", A<JobId>._, A<string>._))
+                .Returns(Task.FromResult(successResult));
+            A.CallTo(() => _toolClient.AddContentAsync($"{DefaultBatchFileNameDetails[1]}/S100_ROOT/CATALOG.XML", A<JobId>._, A<string>._))
+                .Returns(Task.FromResult(failureResult));
+            var result = await _addContentExchangeSetNode.ExecuteAsync(_executionContext);
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
+            A.CallTo(() => _toolClient.AddContentAsync($"{DefaultBatchFileNameDetails[0]}/S100_ROOT/CATALOG.XML", Domain.Jobs.JobId.From(JobId), WorkspaceAuthKey))
+                .MustHaveHappenedOnceExactly();
+            A.CallTo(() => _toolClient.AddContentAsync($"{DefaultBatchFileNameDetails[1]}/S100_ROOT/CATALOG.XML", Domain.Jobs.JobId.From(JobId), WorkspaceAuthKey))
+                .MustHaveHappenedOnceExactly();
+            A.CallTo(() => _logger.Log<LoggerMessageState>(
+                    LogLevel.Error,
+                    A<EventId>.That.Matches(e => e.Name == "AddContentExchangeSetNodeFailed"),
+                    A<LoggerMessageState>._,
+                    A<Exception>._,
+                    A<Func<LoggerMessageState, Exception?, string>>._))
+                .MustHaveHappenedOnceExactly();
+        }
+
+        [Test]
+        public async Task WhenPerformExecuteAsyncIsCalledAndNoBatchDirectoriesExist_ThenReturnSucceeded()
+        {
+            var result = await _addContentExchangeSetNode.ExecuteAsync(_executionContext);
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
+            A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<JobId>._, A<string>._))
+                .MustNotHaveHappened();
+        }
+
+        [Test]
+        public async Task WhenPerformExecuteAsyncIsCalledAndOnlyFirstBatchDirectoryExists_ThenReturnSucceededButNoCalls()
+        {
+            var spoolPath = Path.Combine(_testDirectory, SpoolFolder);
+            var firstBatchPath = Path.Combine(spoolPath, DefaultBatchFileNameDetails[0]);
+            Directory.CreateDirectory(firstBatchPath);
+            var result = await _addContentExchangeSetNode.ExecuteAsync(_executionContext);
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
+            A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<JobId>._, A<string>._))
+                .MustNotHaveHappened();
+        }
+
+        [Test]
+        public async Task WhenPerformExecuteAsyncIsCalledWithEmptyBatchFileNameDetails_ThenReturnSucceeded()
+        {
+            _executionContext.Subject.BatchFileNameDetails = new List<string>();
+            var result = await _addContentExchangeSetNode.ExecuteAsync(_executionContext);
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
+        }
+
+        [Test]
+        public async Task WhenPerformExecuteAsyncIsCalledWithSingleBatchFile_ThenReturnSucceeded()
+        {
+            _executionContext.Subject.BatchFileNameDetails = new List<string> { "SingleBatch_1_0" };
+            var spoolPath = Path.Combine(_testDirectory, SpoolFolder);
+            var batchPath = Path.Combine(spoolPath, "SingleBatch_1_0");
+            Directory.CreateDirectory(batchPath);
+            var fakeResult = A.Fake<IResult<OperationResponse>>();
+            var opResponse = new OperationResponse { Code = 0, Type = "Success", Message = "OK" };
+            IError? error = null;
+            A.CallTo(() => fakeResult.IsSuccess(out opResponse, out error)).Returns(true);
+            A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<JobId>._, A<string>._))
+                .Returns(Task.FromResult(fakeResult));
+            var result = await _addContentExchangeSetNode.ExecuteAsync(_executionContext);
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
+            A.CallTo(() => _toolClient.AddContentAsync("SingleBatch_1_0/S100_ROOT/CATALOG.XML", Domain.Jobs.JobId.From(JobId), WorkspaceAuthKey))
+                .MustHaveHappenedOnceExactly();
+        }
+
+        [Test]
+        public async Task WhenPerformExecuteAsyncIsCalledAndLoggerFactoryCreatesLogger_ThenLoggerIsUsedForErrors()
+        {
+            CreateRequiredDirectoryStructure();
+            var fakeResult = A.Fake<IResult<OperationResponse>>();
+            var fakeError = A.Fake<IError>();
+            OperationResponse? opResponse = null;
+            A.CallTo(() => fakeResult.IsSuccess(out opResponse, out fakeError)).Returns(false);
+            A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<JobId>._, A<string>._))
+                .Returns(Task.FromResult(fakeResult));
+            var result = await _addContentExchangeSetNode.ExecuteAsync(_executionContext);
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
+            A.CallTo(() => _loggerFactory.CreateLogger(typeof(AddContentExchangeSetNode).FullName!))
+                .MustHaveHappenedOnceExactly();
+            A.CallTo(() => _logger.Log<LoggerMessageState>(
+                    LogLevel.Error,
+                    A<EventId>.That.Matches(e => e.Name == "AddContentExchangeSetNodeFailed"),
+                    A<LoggerMessageState>._,
+                    A<Exception>._,
+                    A<Func<LoggerMessageState, Exception?, string>>._))
+                .MustHaveHappenedOnceExactly();
+        }
+
+        private void CreateRequiredDirectoryStructure()
+        {
+            var spoolPath = Path.Combine(_testDirectory, SpoolFolder);
+            foreach (var batchFileName in _executionContext.Subject.BatchFileNameDetails)
+            {
+                var batchPath = Path.Combine(spoolPath, batchFileName);
+                Directory.CreateDirectory(batchPath);
+            }
         }
 
         [OneTimeTearDown]
         public void OneTimeTearDown()
         {
-            _loggerFactory?.Dispose();
-
             if (Directory.Exists(_testDirectory))
             {
                 Directory.Delete(_testDirectory, recursive: true);

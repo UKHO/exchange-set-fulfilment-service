@@ -11,6 +11,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
     /// </summary>
     internal class AddContentExchangeSetNode : S100ExchangeSetPipelineNode
     {
+        public override Task<bool> ShouldExecuteAsync(IExecutionContext<S100ExchangeSetPipelineContext> context)
+        {
+            return Task.FromResult(context.Subject.BatchFileNameDetails != null);
+        }
+
         /// <summary>
         /// Executes the node logic to add content to the exchange set by processing dataset and support files paths.
         /// Returns <see cref="NodeResultStatus.Succeeded"/> if all content is added successfully; otherwise, returns <see cref="NodeResultStatus.Failed"/>.
@@ -24,7 +29,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
             var authKey = context.Subject.WorkspaceAuthenticationKey;
             var toolClient = context.Subject.ToolClient;
             var downloadPath = Path.Combine(context.Subject.WorkSpaceRootPath, context.Subject.WorkSpaceSpoolPath);
-
+           
             var catalogPaths = GetCatalogPaths(context, downloadPath);
 
             // Process each catalog path
