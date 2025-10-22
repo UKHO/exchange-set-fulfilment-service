@@ -566,6 +566,38 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     acceptedResponse.Content["application/json"].Example = responseExample;
                 }
             }
+            else if (relativePath?.Equals("v2/exchangeSet/s100/updatesSince", StringComparison.OrdinalIgnoreCase) == true &&
+                httpMethod?.Equals("POST", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                // Add header for 202 response
+                if (operation.Responses.TryGetValue("202", out var acceptedResponse))
+                {
+                    acceptedResponse.Headers ??= new Dictionary<string, OpenApiHeader>();
+                    acceptedResponse.Headers["Date"] = new OpenApiHeader
+                    {
+                        Description = "Returns the current date and time on the server and should be used in subsequent requests this operation to ensure that there are no gaps due to minor time difference between your own and UKHO systems. The date format is in ISO 8601 format.",
+                        Schema = new OpenApiSchema
+                        {
+                            Type = "string",
+                            Example = new OpenApiString("2025-08-25T07:28:00.000Z")
+                        }
+                    };
+                }
+                // Add header for 304 response
+                if (operation.Responses.TryGetValue("304", out var notModifiedResponse))
+                {
+                    notModifiedResponse.Headers ??= new Dictionary<string, OpenApiHeader>();
+                    notModifiedResponse.Headers["Last-Modified"] = new OpenApiHeader
+                    {
+                        Description = "Returns the last modified date and time of the resource in ISO 8601 format.",
+                        Schema = new OpenApiSchema
+                        {
+                            Type = "string",
+                            Example = new OpenApiString("2025-08-25T07:28:00.000Z")
+                        }
+                    };
+                }
+            }
         }
 
         private static void AddInternalServerErrorResponse(OpenApiOperation operation)
