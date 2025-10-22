@@ -13,7 +13,7 @@ namespace UKHO.ADDS.EFS.Domain.Services
         /// <returns>
         ///     A tuple containing:
         ///     - ProductList: The product list
-        ///     - LastModified: The timestamp when the data was last modified. Will be the original sinceDateTime if response is
+        ///     - ProductsLastModified: The timestamp when the data was last modified. Will be the original sinceDateTime if response is
         ///     NotModified.
         /// </returns>
         /// <remarks>

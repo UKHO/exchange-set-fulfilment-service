@@ -146,7 +146,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Api.ResponseHandlers
                 DataStandard = DataStandard.S100,
                 BatchId = BatchId.From(DummyBatchId),
                 ExternalApiResponseCode = externalApiResponseCode,
-                LastModified = lastModified,
+                ProductsLastModified = lastModified,
                 ExternalApiServiceName = externalApiServiceName ?? ServiceNameType.SCS,
                 BuildStatus = buildStatus,
                 Response = responseModel

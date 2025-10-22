@@ -20,11 +20,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api.ResponseHandlers
             switch (result.ExternalApiResponseCode)
             {
                 case HttpStatusCode.OK:
-                    AppendLastModifiedHeader(httpContext, result.LastModified);
+                    AppendLastModifiedHeader(httpContext, result.ProductsLastModified);
                     return Results.Accepted(null, result.Response);
 
                 case HttpStatusCode.NotModified:
-                    AppendLastModifiedHeader(httpContext, result.LastModified);
+                    AppendLastModifiedHeader(httpContext, result.ProductsLastModified);
 
                     return result.BuildStatus == Domain.Builds.BuildState.Scheduled
                         ? Results.Accepted(null, result.Response)

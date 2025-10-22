@@ -50,7 +50,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly
                 Response = _exchangeSetResponseFactory.CreateResponse(context.Job),
                 ExternalApiServiceName = context.ExternalServiceError.ServiceName,
                 ExternalApiResponseCode = context.ExternalServiceError.ErrorResponseCode,
-                LastModified = context.Job.ProductsLastModified
+                ProductsLastModified = context.Job.ProductsLastModified
             };
         }
 

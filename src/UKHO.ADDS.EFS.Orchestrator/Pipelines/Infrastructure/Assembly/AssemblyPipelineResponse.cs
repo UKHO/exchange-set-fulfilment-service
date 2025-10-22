@@ -39,7 +39,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         /// <summary>
         /// Gets or sets the date and time when the entity was last modified in the SCS system.
         /// </summary>
-        public DateTime? LastModified { get; init; }
+        public DateTime? ProductsLastModified { get; init; }
 
         /// <summary>
         /// Gets the name of the external API service.    

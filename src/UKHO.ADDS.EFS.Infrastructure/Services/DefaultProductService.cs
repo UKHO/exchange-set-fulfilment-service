@@ -72,7 +72,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                 if (s100BasicCatalogueResult.IsSuccess(out var catalogueList) && catalogueList is not null)
                 {
                     var response = catalogueList.ToDomain(lastModifiedActual);
-                    return (response, response.LastModified);
+                    return (response, response.ProductsLastModified);
                 }
 
                 _logger.LogSalesCatalogueApiError(SalesCatalogApiErrorLogView.Create(job));
@@ -241,7 +241,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                     parsed = default;
                 }
 
-                productEditionList.LastModified = parsed;
+                productEditionList.ProductsLastModified = parsed;
             }
 
             _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, (HttpStatusCode)apiException.ResponseStatusCode));

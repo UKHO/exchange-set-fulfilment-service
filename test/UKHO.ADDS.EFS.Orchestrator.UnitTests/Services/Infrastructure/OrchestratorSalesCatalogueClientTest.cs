@@ -60,7 +60,7 @@
 //            var apiResponse = new S100SalesCatalogueResponse
 //            {
 //                ErrorResponseCode = HttpStatusCode.OK,
-//                LastModified = lastModifiedTime
+//                ProductsLastModified = lastModifiedTime
 //            };
 
 //            var result = Result.Success(apiResponse);
@@ -82,7 +82,7 @@
 //            var apiResponse = new S100SalesCatalogueResponse
 //            {
 //                ErrorResponseCode = HttpStatusCode.NotModified,
-//                LastModified = sinceDateTime
+//                ProductsLastModified = sinceDateTime
 //            };
 
 //            var result = Result.Success(apiResponse);
@@ -143,7 +143,7 @@
 //            var apiResponse = new S100SalesCatalogueResponse
 //            {
 //                ErrorResponseCode = HttpStatusCode.OK,
-//                LastModified = DateTime.UtcNow
+//                ProductsLastModified = DateTime.UtcNow
 //            };
 
 //            var result = Result.Success(apiResponse);
@@ -299,7 +299,7 @@
 //            var apiResponse = new S100SalesCatalogueResponse
 //            {
 //                ErrorResponseCode = HttpStatusCode.OK,
-//                LastModified = DateTime.UtcNow
+//                ProductsLastModified = DateTime.UtcNow
 //            };
 
 //            var result = Result.Success(apiResponse);
