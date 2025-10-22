@@ -8,6 +8,12 @@
       "addsEnvironment": {
         "value": "${AZURE_ADDS_ENVIRONMENT}"
       },
+      "addsMocksCpu": {
+        "value": "${AZURE_ADDS_MOCKS_CPU}"
+      },
+      "addsMocksMemory": {
+        "value": "${AZURE_ADDS_MOCKS_MEMORY}"
+      },
       "efs_redis_password": {
         "value": "${AZURE_EFS_REDIS_PASSWORD}"
       },
