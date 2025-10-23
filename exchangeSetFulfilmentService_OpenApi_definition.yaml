@@ -546,6 +546,7 @@ paths:
       tags:
         - auth
       summary: Get token from AAD
+      operationId: getEFSTokenUsingClientCredentials
       description: Returns a token direct from Azure AD using Client Credentials.
       requestBody:
         content:
