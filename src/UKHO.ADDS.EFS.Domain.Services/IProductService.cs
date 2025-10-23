@@ -21,7 +21,7 @@ namespace UKHO.ADDS.EFS.Domain.Services
         ///     The method returns an empty response with the original sinceDateTime when an error occurs or when
         ///     an unexpected HTTP status code is returned from the API.
         /// </remarks>
-        Task<(ProductList ProductList, DateTime? LastModified)> GetProductVersionListAsync(DataStandard dataStandard, DateTime? sinceDateTime, Job job);
+        Task<(ProductList ProductList, ExternalServiceError ExternalServiceError, DateTime? LastModified)> GetProductVersionListAsync(DataStandard dataStandard, DateTime? sinceDateTime, Job job);
 
         /// <summary>
         ///     Retrieves product names and their details from the Sales Catalogue Service.

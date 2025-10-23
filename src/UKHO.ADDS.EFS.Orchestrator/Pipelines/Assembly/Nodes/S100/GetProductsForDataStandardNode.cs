@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using UKHO.ADDS.EFS.Domain.Builds.S100;
+using UKHO.ADDS.EFS.Domain.ExternalErrors;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Domain.Services;
@@ -32,11 +33,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             var job = context.Subject.Job;
             var build = context.Subject.Build;
 
-            var (s100SalesCatalogueData, lastModified) = await _productService.GetProductVersionListAsync(DataStandard.S100, job.DataStandardTimestamp, job);
+            var (s100SalesCatalogueData, externalServiceError, lastModified) = await _productService.GetProductVersionListAsync(DataStandard.S100, job.DataStandardTimestamp, job);
 
             var nodeResult = NodeResultStatus.NotRun;
 
-            switch (s100SalesCatalogueData.ErrorResponseCode)
+            switch (externalServiceError.ErrorResponseCode)
             {
                 case HttpStatusCode.OK when s100SalesCatalogueData.Products.Any():
                     // We have something to build, so move forwards with scheduling a build

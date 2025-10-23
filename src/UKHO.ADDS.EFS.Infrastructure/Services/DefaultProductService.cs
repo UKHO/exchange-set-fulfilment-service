@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.Net;
+using Azure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Kiota.Abstractions;
 using Microsoft.Kiota.Http.HttpClientLibrary.Middleware.Options;
@@ -36,7 +37,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<(ProductList ProductList, DateTime? LastModified)> GetProductVersionListAsync(DataStandard dataStandard, DateTime? sinceDateTime, Job job)
+        public async Task<(ProductList ProductList, ExternalServiceError ExternalServiceError, DateTime? LastModified )> GetProductVersionListAsync(DataStandard dataStandard, DateTime? sinceDateTime, Job job)
         {
             if (dataStandard != DataStandard.S100)
             {
@@ -74,11 +75,11 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                 if (s100BasicCatalogueResult.IsSuccess(out var catalogueList) && catalogueList is not null)
                 {
                     var response = catalogueList.ToDomain(lastModifiedActual);
-                    return (response, response.ProductsLastModified);
+                    return (response, new ExternalServiceError(HttpStatusCode.OK, ExternalServiceName.NotDefined), response.ProductsLastModified);
                 }
 
                 _logger.LogSalesCatalogueApiError(SalesCatalogApiErrorLogView.Create(job));
-                return (new ProductList(), sinceDateTime);
+                return (new ProductList(), new ExternalServiceError(HttpStatusCode.InternalServerError, ExternalServiceName.SalesCatalogueService), sinceDateTime);
             }
             catch (ApiException apiException)
             {
@@ -96,15 +97,12 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                                 parsed = sinceDateTime ?? default;
                             }
 
-                            return (new ProductList
-                            {
-                                ErrorResponseCode = HttpStatusCode.NotModified
-                            }, parsed);
+                            return (new ProductList(), new ExternalServiceError(HttpStatusCode.NotModified, ExternalServiceName.SalesCatalogueService), parsed);
                         }
 
                     default:
                         _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, (HttpStatusCode)apiException.ResponseStatusCode));
-                        return ([], sinceDateTime);
+                        return ([], new ExternalServiceError(HttpStatusCode.InternalServerError, ExternalServiceName.SalesCatalogueService), sinceDateTime );
                 }
             }
         }

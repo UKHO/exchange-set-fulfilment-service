@@ -48,7 +48,6 @@ namespace UKHO.ADDS.EFS.Infrastructure.Adapters.Products
             var list = new ProductList
             {
                 ProductsLastModified = lastModified ?? default,
-                ErrorResponseCode = HttpStatusCode.OK
             };
 
             foreach (var item in source)
