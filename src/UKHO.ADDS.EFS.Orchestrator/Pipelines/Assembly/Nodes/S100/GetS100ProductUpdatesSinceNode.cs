@@ -1,4 +1,5 @@
 ﻿using UKHO.ADDS.EFS.Domain.Builds.S100;
+using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.ExternalErrors;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
@@ -59,9 +60,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                 return NodeResultStatus.Failed;
             }
 
+            var externalApiResponseCode = job.ExternalServiceError?.ErrorResponseCode ?? System.Net.HttpStatusCode.OK;
+
             var evaluation = await EvaluateScsResponseAsync(productEditionList, externalServiceError!, context);
             if (evaluation != NodeResultStatus.Succeeded ||
-                (evaluation == NodeResultStatus.Succeeded && job.ExternalServiceError.ErrorResponseCode == System.Net.HttpStatusCode.NotModified))
+                (evaluation == NodeResultStatus.Succeeded && externalApiResponseCode == System.Net.HttpStatusCode.NotModified))
             {
                 return evaluation;
             }

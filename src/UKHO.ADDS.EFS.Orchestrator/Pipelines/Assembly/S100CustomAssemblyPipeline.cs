@@ -40,6 +40,9 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly
 
             var result = await Pipeline.ExecuteAsync(context);
 
+            var externalApiServiceName = context.Job.ExternalServiceError?.ServiceName ?? ExternalServiceName.NotDefined;
+            var externalApiResponseCode = context.Job.ExternalServiceError?.ErrorResponseCode ?? System.Net.HttpStatusCode.OK;
+
             return new AssemblyPipelineResponse()
             {
                 JobId = context.Job.Id,
@@ -49,9 +52,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly
                 BatchId = context.Job.BatchId,
                 ErrorResponse = context.ErrorResponse?.Errors?.Count > 0 ? context.ErrorResponse : null,
                 Response = _exchangeSetResponseFactory.CreateResponse(context.Job),
-                ExternalApiServiceName = context.Job.ExternalServiceError.ServiceName,
-                // If ServiceName is NotDefined, it means no external API error occurred, so we map to HttpStatusCode.OK
-                ExternalApiResponseCode = context.Job.ExternalServiceError.ServiceName != ExternalServiceName.NotDefined ? context.Job.ExternalServiceError.ErrorResponseCode : System.Net.HttpStatusCode.OK,
+                ExternalApiServiceName = externalApiServiceName,
+                ExternalApiResponseCode = externalApiResponseCode,
                 ProductsLastModified = context.Job.ProductsLastModified
             };
         }
