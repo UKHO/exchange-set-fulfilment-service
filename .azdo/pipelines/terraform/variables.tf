@@ -76,7 +76,7 @@ variable "b2c_client_id" {
 
 variable "client_credentials_operation_id" {
     type = string
-    default = "getESSTokenUsingClientCredentials"
+    default = "getEFSTokenUsingClientCredentials"
 }
 
 variable "client_credentials_tenant_id" {
