@@ -35,7 +35,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             var job = context.Subject.Job;
             var build = context.Subject.Build;
             var productVersions = job.ProductVersions;
-            var scsResponse = job.ExternalServiceError;
 
             // Call the product service to get product versions
             ProductEditionList productEditionList;
@@ -47,8 +46,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
                 if (externalServiceError != null)
                 {
-                    scsResponse.ErrorResponseCode = externalServiceError.ErrorResponseCode;
-                    scsResponse.ServiceName = externalServiceError.ServiceName;
+                    job.ExternalServiceError = new ExternalServiceError(
+                        externalServiceError.ErrorResponseCode,
+                        externalServiceError.ServiceName
+                    );
                 }
 
                 job.ProductsLastModified = productEditionList.ProductsLastModified ?? DateTime.UtcNow;

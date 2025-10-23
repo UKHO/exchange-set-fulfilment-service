@@ -152,11 +152,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             var requestedProducts = CreateProductNameList(TestProductName1);
             var job = CreateTestJob(requestedProducts: requestedProducts);
             var productEditionList = new ProductEditionList();
-            var externalServiceError = new Domain.ExternalErrors.ExternalServiceError
-            {
-                ErrorResponseCode = statusCode,
-                ServiceName = ExternalServiceName.SalesCatalogueService
-            };
+            var externalServiceError = new ExternalServiceError(statusCode, ExternalServiceName.SalesCatalogueService);
 
             SetupExecutionContext(job);
             SetupProductService(productEditionList, externalServiceError);

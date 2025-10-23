@@ -5,8 +5,13 @@ namespace UKHO.ADDS.EFS.Domain.ExternalErrors
 {
     public class ExternalServiceError
     {
-        public HttpStatusCode ErrorResponseCode { get; set; }
+        public HttpStatusCode ErrorResponseCode { get; private set; }
+        public ExternalServiceName ServiceName { get; private set; }
 
-        public ExternalServiceName ServiceName { get; set; }
+        public ExternalServiceError(HttpStatusCode errorResponseCode, ExternalServiceName serviceName)
+        {
+            ErrorResponseCode = errorResponseCode;
+            ServiceName = serviceName;
+        }
     }
 }

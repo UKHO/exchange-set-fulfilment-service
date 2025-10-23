@@ -217,11 +217,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             };
             for (var i = 0; i < productCount; i++)
                 editionList.Add(new ProductEdition());
-            var externalServiceError = new ExternalServiceError
-            {
-                ErrorResponseCode = code,
-                ServiceName = ExternalServiceName.FileShareService
-            };
+            var externalServiceError = new ExternalServiceError(code, ExternalServiceName.FileShareService);
             return (editionList, externalServiceError);
         }
     }

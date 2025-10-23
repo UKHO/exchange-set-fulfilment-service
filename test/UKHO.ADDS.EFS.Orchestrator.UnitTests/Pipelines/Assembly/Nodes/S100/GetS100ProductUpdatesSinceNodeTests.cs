@@ -154,11 +154,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 ProductsLastModified = DateTime.UtcNow.AddDays(-1),
             };
 
-            var externalServiceError = new ExternalServiceError
-            {
-                ErrorResponseCode = System.Net.HttpStatusCode.NotModified,
-                ServiceName = ExternalServiceName.SalesCatalogueService
-            };
+            var externalServiceError = new ExternalServiceError(System.Net.HttpStatusCode.NotModified, ExternalServiceName.SalesCatalogueService);
 
             A.CallTo(() => _productService.GetS100ProductUpdatesSinceAsync(_job!.RequestedFilter, _job.ProductIdentifier, _job, A<CancellationToken>.Ignored))
                 .Returns((productEditionList, externalServiceError));
@@ -176,11 +172,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             SetupJobAndBuild();
             var productEditionList = new ProductEditionList();
 
-            var externalServiceError = new ExternalServiceError
-            {
-                ErrorResponseCode = System.Net.HttpStatusCode.InternalServerError,
-                ServiceName = ExternalServiceName.SalesCatalogueService
-            };
+            var externalServiceError = new ExternalServiceError(System.Net.HttpStatusCode.InternalServerError, ExternalServiceName.SalesCatalogueService);
 
             A.CallTo(() => _productService.GetS100ProductUpdatesSinceAsync(_job!.RequestedFilter, _job.ProductIdentifier, _job, A<CancellationToken>.Ignored))
                 .Returns((productEditionList, null));

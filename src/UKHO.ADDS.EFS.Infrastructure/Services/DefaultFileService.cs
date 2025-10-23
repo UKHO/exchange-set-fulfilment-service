@@ -78,12 +78,10 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
             {
                 LogFileShareServiceError(correlationId, CreateBatch, error, BatchId.None);
 
-                var externalServiceError = new ExternalServiceError
-                {
-                    // Try to extract HttpStatusCode from error, fallback to InternalServerError
-                    ErrorResponseCode = error is HttpError httpError ? httpError.StatusCode : System.Net.HttpStatusCode.InternalServerError,
-                    ServiceName = ExternalServiceName.FileShareService
-                };
+                var externalServiceError = new ExternalServiceError(
+                    error is HttpError httpError ? httpError.StatusCode : System.Net.HttpStatusCode.InternalServerError,
+                    ExternalServiceName.FileShareService
+                );
 
                 return (batch, externalServiceError);
             }

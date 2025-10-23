@@ -33,7 +33,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
         {
             var job = context.Subject.Job;
             var build = context.Subject.Build;
-            var scsResponse = job.ExternalServiceError;
 
             var productNameList = new List<ProductName>();
 
@@ -55,8 +54,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
                 if (job.ExchangeSetType == ExchangeSetType.ProductNames && externalServiceError != null)
                 {
-                    scsResponse.ErrorResponseCode = externalServiceError.ErrorResponseCode;
-                    scsResponse.ServiceName = externalServiceError.ServiceName;
+                    job.ExternalServiceError = new ExternalServiceError(
+                        externalServiceError.ErrorResponseCode,
+                        externalServiceError.ServiceName
+                    );
                 }
 
                 job.ProductsLastModified = productEditionList.ProductsLastModified ?? DateTime.UtcNow;

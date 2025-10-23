@@ -30,7 +30,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
         {
             var job = context.Subject.Job;
             var build = context.Subject.Build;
-            var scsResponse = job.ExternalServiceError;
 
             var sinceDateTime = job.RequestedFilter;
 
@@ -46,8 +45,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
                 if (externalServiceError != null)
                 {
-                    scsResponse.ErrorResponseCode = externalServiceError!.ErrorResponseCode;
-                    scsResponse.ServiceName = externalServiceError.ServiceName;
+                    job.ExternalServiceError = new ExternalServiceError(
+                        externalServiceError.ErrorResponseCode,
+                        externalServiceError.ServiceName
+                    );
                 }
 
                 job.ProductsLastModified = productEditionList.ProductsLastModified ?? DateTime.UtcNow;
@@ -60,7 +61,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
             var evaluation = await EvaluateScsResponseAsync(productEditionList, externalServiceError!, context);
             if (evaluation != NodeResultStatus.Succeeded ||
-                (evaluation == NodeResultStatus.Succeeded && scsResponse.ErrorResponseCode == System.Net.HttpStatusCode.NotModified))
+                (evaluation == NodeResultStatus.Succeeded && job.ExternalServiceError.ErrorResponseCode == System.Net.HttpStatusCode.NotModified))
             {
                 return evaluation;
             }

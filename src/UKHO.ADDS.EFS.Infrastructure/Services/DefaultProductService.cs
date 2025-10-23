@@ -228,11 +228,10 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         {
             var productEditionList = new ProductEditionList();
 
-            var externalServiceError = new ExternalServiceError
-            {
-                ServiceName = ExternalServiceName.SalesCatalogueService,
-                ErrorResponseCode = (HttpStatusCode)apiException.ResponseStatusCode
-            };
+            var externalServiceError = new ExternalServiceError(
+                (HttpStatusCode)apiException.ResponseStatusCode,
+                ExternalServiceName.SalesCatalogueService
+            );
 
             if (apiException.ResponseStatusCode == (int)HttpStatusCode.NotModified)
             {

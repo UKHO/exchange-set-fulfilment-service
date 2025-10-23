@@ -1,4 +1,5 @@
 ﻿using UKHO.ADDS.EFS.Domain.Builds.S100;
+using UKHO.ADDS.EFS.Domain.ExternalErrors;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Services;
 using UKHO.ADDS.EFS.Domain.User;
@@ -30,7 +31,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
         {
             var job = context.Subject.Job;
             var build = context.Subject.Build;
-            var fssResponse = job.ExternalServiceError;
+
             try
             {
                 var (batch, externalServiceError) = await _fileService.CreateBatchAsync(job.GetCorrelationId(), job.ExchangeSetType, _userIdentifier, Environment.CancellationToken);
@@ -40,8 +41,10 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                 build.BatchId = batch.BatchId;
                 if (externalServiceError != null)
                 {
-                    fssResponse.ErrorResponseCode = externalServiceError.ErrorResponseCode;
-                    fssResponse.ServiceName = externalServiceError.ServiceName;
+                    job.ExternalServiceError = new ExternalServiceError(
+                        externalServiceError.ErrorResponseCode,
+                        externalServiceError.ServiceName
+                    );
                     return NodeResultStatus.Failed;
                 }
                 return NodeResultStatus.Succeeded;
