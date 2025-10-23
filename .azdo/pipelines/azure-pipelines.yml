@@ -92,10 +92,7 @@ stages:
       steps:
         - checkout: self
           clean: true
-
-        - script: git submodule update --init --recursive
-          displayName: Restore mock submodule
-          workingDirectory: '$(Build.SourcesDirectory)'
+          submodules: true
 
         - task: UseDotNet@2
           displayName: 'Use .NET SDK for Stryker'
@@ -109,7 +106,7 @@ stages:
             command: custom
             custom: tool
             workingDirectory: $(Agent.TempDirectory)
-            arguments: install dotnet-stryker --tool-path $(Agent.BuildDirectory)/tools
+            arguments: install dotnet-stryker --tool-path $(Agent.BuildDirectory)/tools --configfile $(Build.SourcesDirectory)/BuildNuget.config
 
         - task: Powershell@2
           displayName: "Run Stryker for EFS Orchestrator UnitTests"
