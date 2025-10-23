@@ -1,4 +1,4 @@
-openapi: 3.1.1
+openapi: 3.0.1
 info:
   title: S100 Exchange Set Service API
   description: API for generating S100 exchange sets.
@@ -59,7 +59,7 @@ paths:
           required: true
           schema:
             type: string
-            default: f4482b289ba14cdcb9e5781e52180d65
+            default: 63d8110ab7824349bd8ce23cac85b6a2
       requestBody:
         description: A list of S-100 product names for which the Exchange Set is requested.
         content:
@@ -68,13 +68,11 @@ paths:
               type: array
               items:
                 type: string
-            examples:
-              default:
-                value:
-                  - 101HR17QFG4
-                  - 102CA5QUF3C
-                  - 104EA4ZL566
-                  - 111AR401R12
+            example:
+              - 101HR17QFG4
+              - 102CA5QUF3C
+              - 104EA4ZL566
+              - 111AR401R12
         required: true
       responses:
         "202":
@@ -86,24 +84,22 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CustomExchangeSetResponse"
-              examples:
-                default:
-                  value:
-                    links:
-                      exchangeSetBatchStatusUri:
-                        uri: https://filesvnexte2e.admiralty.co.uk/batch/22c68246-87ae-4f7e-8556-8ee9eeb95037/status
-                      exchangeSetBatchDetailsUri:
-                        uri: https://filesvnexte2e.admiralty.co.uk/batch/22c68246-87ae-4f7e-8556-8ee9eeb95037
-                      exchangeSetFileUri:
-                        uri: https://filesvnexte2e.admiralty.co.uk/batch/22c68246-87ae-4f7e-8556-8ee9eeb95037/files/V01X01.zip
-                    exchangeSetUrlExpiryDateTime: 2025-10-23T11:22:40.388Z
-                    requestedProductCount: 4
-                    exchangeSetProductCount: 3
-                    requestedProductsAlreadyUpToDateCount: 0
-                    requestedProductsNotInExchangeSet:
-                      - productName: 111AR401R12
-                        reason: invalidProduct
-                    fssBatchId: 22c68246-87ae-4f7e-8556-8vc9cvb95037
+              example:
+                links:
+                  exchangeSetBatchStatusUri:
+                    uri: https://filesvnexte2e.admiralty.co.uk/batch/22c68246-87ae-4f7e-8556-8ee9eeb95037/status
+                  exchangeSetBatchDetailsUri:
+                    uri: https://filesvnexte2e.admiralty.co.uk/batch/22c68246-87ae-4f7e-8556-8ee9eeb95037
+                  exchangeSetFileUri:
+                    uri: https://filesvnexte2e.admiralty.co.uk/batch/22c68246-87ae-4f7e-8556-8ee9eeb95037/files/V01X01.zip
+                exchangeSetUrlExpiryDateTime: 2025-10-23T11:22:40.388Z
+                requestedProductCount: 4
+                exchangeSetProductCount: 3
+                requestedProductsAlreadyUpToDateCount: 0
+                requestedProductsNotInExchangeSet:
+                  - productName: 111AR401R12
+                    reason: invalidProduct
+                fssBatchId: 22c68246-87ae-4f7e-8556-8vc9cvb95037
         "400":
           description: Bad Request
           content:
@@ -157,34 +153,32 @@ paths:
                   application/json:
                     schema:
                       type: object
-                    examples:
-                      default:
-                        value:
-                          specversion: "1.0"
-                          type: uk.co.admiralty.s100Data.exchangeSetCreated.v1
-                          source: https://exchangeset.admiralty.co.uk/s100Data
-                          id: 2f03a25f-28b3-46ea-b009-5943250a9a41
-                          time: 2021-02-17T14:04:04.4880776Z
-                          subject: Requested S-100 Exchange Set Created
-                          datacontenttype: application/json
-                          data:
-                            _links:
-                              exchangeSetBatchStatusUri:
-                                href: http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/status
-                              exchangeSetBatchDetailsUri:
-                                href: http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272
-                              exchangeSetFileUri:
-                                href: http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/exchangeset123.zip
-                              errorFileUri:
-                                href: http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/error.txt
-                            exchangeSetUrlExpiryDateTime: 2021-02-17T16:19:32.269Z
-                            requestedProductCount: 4
-                            exchangeSetProductCount: 1
-                            requestedProductsAlreadyUpToDateCount: 0
-                            requestedProductsNotInExchangeSet:
-                              - productName: 101GB40079ABCDEFG
-                                reason: invalidProduct
-                            fssBatchId: 7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272
+                    example:
+                      specversion: "1.0"
+                      type: uk.co.admiralty.s100Data.exchangeSetCreated.v1
+                      source: https://exchangeset.admiralty.co.uk/s100Data
+                      id: 2f03a25f-28b3-46ea-b009-5943250a9a41
+                      time: 2021-02-17T14:04:04.4880776Z
+                      subject: Requested S-100 Exchange Set Created
+                      datacontenttype: application/json
+                      data:
+                        _links:
+                          exchangeSetBatchStatusUri:
+                            href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/status
+                          exchangeSetBatchDetailsUri:
+                            href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272
+                          exchangeSetFileUri:
+                            href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/exchangeset123.zip
+                          errorFileUri:
+                            href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/error.txt
+                        exchangeSetUrlExpiryDateTime: 2021-02-17T16:19:32.269Z
+                        requestedProductCount: 4
+                        exchangeSetProductCount: 1
+                        requestedProductsAlreadyUpToDateCount: 0
+                        requestedProductsNotInExchangeSet:
+                          - productName: 101GB40079ABCDEFG
+                            reason: invalidProduct
+                        fssBatchId: 7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272
               responses:
                 "200":
                   description: The service will ignore all response from the callback
@@ -229,7 +223,7 @@ paths:
           required: true
           schema:
             type: string
-            default: d155a98daee942cfb508ccc47a502b9f
+            default: c768bb6be9074b68b519af66d47376b3
       requestBody:
         description: A list of S-100 products with their edition and update numbers for
           which the Exchange Set is requested.
@@ -239,30 +233,28 @@ paths:
               type: array
               items:
                 $ref: "#/components/schemas/ProductVersionRequest"
-            examples:
-              default:
-                value:
-                  - productName: 101GB40079ABCDEFG
-                    editionNumber: 5
-                    updateNumber: 10
-                  - productName: 101DE00904820801012
-                    editionNumber: 36
-                    updateNumber: 5
-                  - productName: 102CA32904820801013
-                    editionNumber: 13
-                    updateNumber: 0
-                  - productName: 104US00_CHES_TYPE1_20210630_0600
-                    editionNumber: 9
-                    updateNumber: 0
-                  - productName: 101FR40079QWERTY
-                    editionNumber: 2
-                    updateNumber: 2
-                  - productName: 111US00_ches_dcf8_20190703T00Z
-                    editionNumber: 11
-                    updateNumber: 0
-                  - productName: 102AR00904820801012
-                    editionNumber: 11
-                    updateNumber: 0
+            example:
+              - productName: 101GB40079ABCDEFG
+                editionNumber: 5
+                updateNumber: 10
+              - productName: 101DE00904820801012
+                editionNumber: 36
+                updateNumber: 5
+              - productName: 102CA32904820801013
+                editionNumber: 13
+                updateNumber: 0
+              - productName: 104US00_CHES_TYPE1_20210630_0600
+                editionNumber: 9
+                updateNumber: 0
+              - productName: 101FR40079QWERTY
+                editionNumber: 2
+                updateNumber: 2
+              - productName: 111US00_ches_dcf8_20190703T00Z
+                editionNumber: 11
+                updateNumber: 0
+              - productName: 102AR00904820801012
+                editionNumber: 11
+                updateNumber: 0
         required: true
       responses:
         "202":
@@ -274,26 +266,24 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CustomExchangeSetResponse"
-              examples:
-                default:
-                  value:
-                    _links:
-                      exchangeSetBatchStatusUri:
-                        href: http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/status
-                      exchangeSetBatchDetailsUri:
-                        href: http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272
-                      exchangeSetFileUri:
-                        href: http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/exchangeset123.zip
-                    exchangeSetUrlExpiryDateTime: 2021-02-17T16:19:32.269Z
-                    requestedProductCount: 7
-                    returnedProductCount: 4
-                    requestedProductsAlreadyUpToDateCount: 1
-                    requestedProductsNotReturned:
-                      - productName: 102CA32904820801013
-                        reason: productWithdrawn
-                      - productName: 101DE00904820801012
-                        reason: InvalidProduct
-                    fssBatchId: 7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272
+              example:
+                _links:
+                  exchangeSetBatchStatusUri:
+                    href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/status
+                  exchangeSetBatchDetailsUri:
+                    href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272
+                  exchangeSetFileUri:
+                    href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/exchangeset123.zip
+                exchangeSetUrlExpiryDateTime: 2021-02-17T16:19:32.269Z
+                requestedProductCount: 7
+                returnedProductCount: 4
+                requestedProductsAlreadyUpToDateCount: 1
+                requestedProductsNotReturned:
+                  - productName: 102CA32904820801013
+                    reason: productWithdrawn
+                  - productName: 101DE00904820801012
+                    reason: InvalidProduct
+                fssBatchId: 7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272
         "400":
           description: Bad Request
           content:
@@ -347,34 +337,32 @@ paths:
                   application/json:
                     schema:
                       type: object
-                    examples:
-                      default:
-                        value:
-                          specversion: "1.0"
-                          type: uk.co.admiralty.s100Data.exchangeSetCreated.v1
-                          source: https://exchangeset.admiralty.co.uk/s100Data
-                          id: 2f03a25f-28b3-46ea-b009-5943250a9a41
-                          time: 2021-02-17T14:04:04.4880776Z
-                          subject: Requested S-100 Exchange Set Created
-                          datacontenttype: application/json
-                          data:
-                            _links:
-                              exchangeSetBatchStatusUri:
-                                href: http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/status
-                              exchangeSetBatchDetailsUri:
-                                href: http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272
-                              exchangeSetFileUri:
-                                href: http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/exchangeset123.zip
-                              errorFileUri:
-                                href: http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/error.txt
-                            exchangeSetUrlExpiryDateTime: 2021-02-17T16:19:32.269Z
-                            requestedProductCount: 4
-                            exchangeSetProductCount: 1
-                            requestedProductsAlreadyUpToDateCount: 0
-                            requestedProductsNotInExchangeSet:
-                              - productName: 101GB40079ABCDEFG
-                                reason: invalidProduct
-                            fssBatchId: 7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272
+                    example:
+                      specversion: "1.0"
+                      type: uk.co.admiralty.s100Data.exchangeSetCreated.v1
+                      source: https://exchangeset.admiralty.co.uk/s100Data
+                      id: 2f03a25f-28b3-46ea-b009-5943250a9a41
+                      time: 2021-02-17T14:04:04.4880776Z
+                      subject: Requested S-100 Exchange Set Created
+                      datacontenttype: application/json
+                      data:
+                        _links:
+                          exchangeSetBatchStatusUri:
+                            href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/status
+                          exchangeSetBatchDetailsUri:
+                            href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272
+                          exchangeSetFileUri:
+                            href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/exchangeset123.zip
+                          errorFileUri:
+                            href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/error.txt
+                        exchangeSetUrlExpiryDateTime: 2021-02-17T16:19:32.269Z
+                        requestedProductCount: 4
+                        exchangeSetProductCount: 1
+                        requestedProductsAlreadyUpToDateCount: 0
+                        requestedProductsNotInExchangeSet:
+                          - productName: 101GB40079ABCDEFG
+                            reason: invalidProduct
+                        fssBatchId: 7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272
               responses:
                 "200":
                   description: The service will ignore all response from the callback
@@ -417,7 +405,7 @@ paths:
           required: true
           schema:
             type: string
-            default: 272c59df778d45f38a3afe84d3e3fdf2
+            default: 4df0f9009a8b4f9fb7f5cc55add395a3
       requestBody:
         content:
           application/json:
@@ -438,8 +426,7 @@ paths:
                 systems. The date format is in ISO 8601 format.
               schema:
                 type: string
-                examples:
-                  - 2025-08-25T07:28:00.000Z
+                example: 2025-08-25T07:28:00.000Z
           content:
             application/json:
               schema:
@@ -453,8 +440,7 @@ paths:
                 format.
               schema:
                 type: string
-                examples:
-                  - 2025-08-25T07:28:00.000Z
+                example: 2025-08-25T07:28:00.000Z
         "400":
           description: Bad Request
           content:
@@ -510,34 +496,32 @@ paths:
                   application/json:
                     schema:
                       type: object
-                    examples:
-                      default:
-                        value:
-                          specversion: "1.0"
-                          type: uk.co.admiralty.s100Data.exchangeSetCreated.v1
-                          source: https://exchangeset.admiralty.co.uk/s100Data
-                          id: 2f03a25f-28b3-46ea-b009-5943250a9a41
-                          time: 2021-02-17T14:04:04.4880776Z
-                          subject: Requested S-100 Exchange Set Created
-                          datacontenttype: application/json
-                          data:
-                            _links:
-                              exchangeSetBatchStatusUri:
-                                href: http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/status
-                              exchangeSetBatchDetailsUri:
-                                href: http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272
-                              exchangeSetFileUri:
-                                href: http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/exchangeset123.zip
-                              errorFileUri:
-                                href: http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/error.txt
-                            exchangeSetUrlExpiryDateTime: 2021-02-17T16:19:32.269Z
-                            requestedProductCount: 4
-                            exchangeSetProductCount: 1
-                            requestedProductsAlreadyUpToDateCount: 0
-                            requestedProductsNotInExchangeSet:
-                              - productName: 101GB40079ABCDEFG
-                                reason: invalidProduct
-                            fssBatchId: 7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272
+                    example:
+                      specversion: "1.0"
+                      type: uk.co.admiralty.s100Data.exchangeSetCreated.v1
+                      source: https://exchangeset.admiralty.co.uk/s100Data
+                      id: 2f03a25f-28b3-46ea-b009-5943250a9a41
+                      time: 2021-02-17T14:04:04.4880776Z
+                      subject: Requested S-100 Exchange Set Created
+                      datacontenttype: application/json
+                      data:
+                        _links:
+                          exchangeSetBatchStatusUri:
+                            href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/status
+                          exchangeSetBatchDetailsUri:
+                            href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272
+                          exchangeSetFileUri:
+                            href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/exchangeset123.zip
+                          errorFileUri:
+                            href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/error.txt
+                        exchangeSetUrlExpiryDateTime: 2021-02-17T16:19:32.269Z
+                        requestedProductCount: 4
+                        exchangeSetProductCount: 1
+                        requestedProductsAlreadyUpToDateCount: 0
+                        requestedProductsNotInExchangeSet:
+                          - productName: 101GB40079ABCDEFG
+                            reason: invalidProduct
+                        fssBatchId: 7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272
               responses:
                 "200":
                   description: The service will ignore all response from the callback
@@ -546,8 +530,8 @@ paths:
       tags:
         - auth
       summary: Get token from AAD
-      operationId: getEFSTokenUsingClientCredentials
       description: Returns a token direct from Azure AD using Client Credentials.
+      operationId: getEFSTokenUsingClientCredentials
       requestBody:
         content:
           application/json:
@@ -572,22 +556,18 @@ paths:
                 properties:
                   token_type:
                     type: string
-                    examples:
-                      - Bearer
+                    example: Bearer
                   expires_in:
                     type: integer
                     format: int32
-                    examples:
-                      - 3599
+                    example: 3599
                   ext_expires_in:
                     type: integer
                     format: int32
-                    examples:
-                      - 3599
+                    example: 3599
                   access_token:
                     type: string
-                    examples:
-                      - eyJ0eXAiOiJKV1QiLCJhbGciOiJSU
+                    example: eyJ0eXAiOiJKV1QiLCJhbGciOiJSU
         "400":
           description: Bad request - Request missing client_id and/or client_secret.
           content:
@@ -597,19 +577,16 @@ paths:
                 properties:
                   correlationId:
                     type: string
-                    examples:
-                      - 184ef711-b039-4c24-b81a-89081d8f324c
+                    example: 184ef711-b039-4c24-b81a-89081d8f324c
                   errors:
                     type: object
                     properties:
                       source:
                         type: string
-                        examples:
-                          - request
+                        example: request
                       description:
                         type: string
-                        examples:
-                          - request missing client_id and/or client_secret
+                        example: request missing client_id and/or client_secret
         "401":
           description: Unauthorised - either you have not provided any credentials, or
             your credentials are not recognised.
@@ -750,13 +727,12 @@ components:
     Link2:
       required:
         - uri
-      type:
-        - object
-        - "null"
+      type: object
       properties:
         uri:
           type: string
           format: uri
+      nullable: true
     MessageVersion: {}
     MissingProductList: {}
     ProductCount: {}
@@ -764,26 +740,22 @@ components:
       type: object
       properties:
         productName:
-          type:
-            - string
-            - "null"
+          type: string
+          nullable: true
         editionNumber:
-          type:
-            - integer
-            - "null"
+          type: integer
           format: int32
+          nullable: true
         updateNumber:
-          type:
-            - integer
-            - "null"
+          type: integer
           format: int32
+          nullable: true
     UpdatesSinceRequest:
       type: object
       properties:
         sinceDateTime:
-          type:
-            - string
-            - "null"
+          type: string
+          nullable: true
   securitySchemes:
     jwtBearerAuth:
       type: http
