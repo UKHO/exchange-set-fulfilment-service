@@ -47,7 +47,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Adapters.Products
 
             var list = new ProductList
             {
-                ProductsLastModified = lastModified ?? default,
+                ProductsLastModified = lastModified ?? default
             };
 
             foreach (var item in source)
