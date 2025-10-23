@@ -92,10 +92,7 @@ stages:
       steps:
         - checkout: self
           clean: true
-
-        - script: git submodule update --init --recursive
-          displayName: Restore mock submodule
-          workingDirectory: '$(Build.SourcesDirectory)'
+          submodules: true
 
         - task: UseDotNet@2
           displayName: 'Use .NET SDK for Stryker'
