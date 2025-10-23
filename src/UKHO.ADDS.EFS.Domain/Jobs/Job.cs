@@ -119,6 +119,6 @@ namespace UKHO.ADDS.EFS.Domain.Jobs
 
         public DateTime ProductsLastModified { get; set; }
 
-        public ExternalServiceError ExternalServiceError { get; set; } = new ExternalServiceError { ServiceName = ServiceNameType.NotDefined };
+        public ExternalServiceError ExternalServiceError { get; set; } = new ExternalServiceError { ServiceName = ExternalServiceName.NotDefined };
     }
 }

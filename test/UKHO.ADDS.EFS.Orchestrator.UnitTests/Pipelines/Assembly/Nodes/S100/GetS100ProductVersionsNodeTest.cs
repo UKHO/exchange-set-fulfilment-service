@@ -220,7 +220,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             var externalServiceError = new ExternalServiceError
             {
                 ErrorResponseCode = code,
-                ServiceName = ServiceNameType.FileShareService
+                ServiceName = ExternalServiceName.FileShareService
             };
             return (editionList, externalServiceError);
         }

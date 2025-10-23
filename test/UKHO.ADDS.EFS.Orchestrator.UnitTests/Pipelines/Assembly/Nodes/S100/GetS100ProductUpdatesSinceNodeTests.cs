@@ -157,7 +157,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             var externalServiceError = new ExternalServiceError
             {
                 ErrorResponseCode = System.Net.HttpStatusCode.NotModified,
-                ServiceName = ServiceNameType.SalesCatalogueService
+                ServiceName = ExternalServiceName.SalesCatalogueService
             };
 
             A.CallTo(() => _productService.GetS100ProductUpdatesSinceAsync(_job!.RequestedFilter, _job.ProductIdentifier, _job, A<CancellationToken>.Ignored))
@@ -179,7 +179,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             var externalServiceError = new ExternalServiceError
             {
                 ErrorResponseCode = System.Net.HttpStatusCode.InternalServerError,
-                ServiceName = ServiceNameType.SalesCatalogueService
+                ServiceName = ExternalServiceName.SalesCatalogueService
             };
 
             A.CallTo(() => _productService.GetS100ProductUpdatesSinceAsync(_job!.RequestedFilter, _job.ProductIdentifier, _job, A<CancellationToken>.Ignored))

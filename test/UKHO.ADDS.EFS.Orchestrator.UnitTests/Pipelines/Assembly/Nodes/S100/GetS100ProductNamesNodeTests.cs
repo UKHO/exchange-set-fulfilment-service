@@ -155,7 +155,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             var externalServiceError = new Domain.ExternalErrors.ExternalServiceError
             {
                 ErrorResponseCode = statusCode,
-                ServiceName = ServiceNameType.SalesCatalogueService
+                ServiceName = ExternalServiceName.SalesCatalogueService
             };
 
             SetupExecutionContext(job);

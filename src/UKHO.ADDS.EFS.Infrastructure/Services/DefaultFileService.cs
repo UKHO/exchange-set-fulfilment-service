@@ -82,7 +82,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                 {
                     // Try to extract HttpStatusCode from error, fallback to InternalServerError
                     ErrorResponseCode = error is HttpError httpError ? httpError.StatusCode : System.Net.HttpStatusCode.InternalServerError,
-                    ServiceName = ServiceNameType.FileShareService
+                    ServiceName = ExternalServiceName.FileShareService
                 };
 
                 return (batch, externalServiceError);

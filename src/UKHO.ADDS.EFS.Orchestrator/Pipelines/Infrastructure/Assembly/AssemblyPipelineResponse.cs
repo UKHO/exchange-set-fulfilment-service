@@ -48,6 +48,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         /// Gets the name of the external API service.    
         /// </summary>
         [JsonIgnore]
-        public ServiceNameType ExternalApiServiceName { get; init; } = ServiceNameType.None;
+        public ExternalServiceName ExternalApiServiceName { get; init; } = ExternalServiceName.NotDefined;
     }
 }

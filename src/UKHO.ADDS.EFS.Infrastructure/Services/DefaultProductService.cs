@@ -230,7 +230,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
 
             var externalServiceError = new ExternalServiceError
             {
-                ServiceName = ServiceNameType.SalesCatalogueService,
+                ServiceName = ExternalServiceName.SalesCatalogueService,
                 ErrorResponseCode = (HttpStatusCode)apiException.ResponseStatusCode
             };
 
