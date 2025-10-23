@@ -1,4 +1,7 @@
-﻿using UKHO.ADDS.EFS.Domain.Builds;
+﻿using System.Net;
+using System.Text.Json.Serialization;
+using UKHO.ADDS.EFS.Domain.Builds;
+using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Messages;
 using UKHO.ADDS.EFS.Domain.Products;
@@ -29,5 +32,22 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly
         /// Success response data for the request, if no errors
         /// </summary>
         internal CustomExchangeSetResponse? Response { get; init; }
+
+        /// <summary>
+        /// Gets or sets the HTTP status code representing the response from the SCS service.
+        /// </summary>
+        [JsonIgnore]
+        public HttpStatusCode ExternalApiResponseCode { get; init; }
+
+        /// <summary>
+        /// Gets or sets the date and time when the entity was last modified in the SCS system.
+        /// </summary>
+        public DateTime? ProductsLastModified { get; init; }
+
+        /// <summary>
+        /// Gets the name of the external API service.    
+        /// </summary>
+        [JsonIgnore]
+        public ExternalServiceName ExternalApiServiceName { get; init; } = ExternalServiceName.NotDefined;
     }
 }

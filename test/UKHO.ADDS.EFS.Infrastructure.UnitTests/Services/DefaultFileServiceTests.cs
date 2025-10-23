@@ -1,3 +1,4 @@
+using System.Net;
 using FakeItEasy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -7,6 +8,7 @@ using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
 using UKHO.ADDS.EFS.Domain.External;
+using UKHO.ADDS.EFS.Domain.ExternalErrors;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.User;
 using UKHO.ADDS.EFS.Infrastructure.Services;
@@ -73,14 +75,14 @@ namespace UKHO.ADDS.EFS.Infrastructure.UnitTests.Services
             A.CallTo(() => result.IsFailure(out error, out handle)).Returns(false);
             A.CallTo(() => _fileShareReadWriteClient.CreateBatchAsync(A<BatchModel>._, A<string>._, A<CancellationToken>._)).Returns(result);
 
-            var batch = await _defaultFileService.CreateBatchAsync(_correlationId, exchangeSetType, _userIdentifier, _cancellationToken);
+            var (batch, externalServiceError) = await _defaultFileService.CreateBatchAsync(_correlationId, exchangeSetType, _userIdentifier, _cancellationToken);
 
             Assert.That(batch.BatchId.Value, Is.EqualTo(BatchId));
             Assert.That(batch.BatchExpiryDateTime, Is.Not.EqualTo(DateTime.MinValue));
         }
 
         [Test]
-        public void WhenCreateBatchAsyncFails_ThenThrowsInvalidOperationException()
+        public async Task WhenCreateBatchAsyncFails_ThenThrowsInvalidOperationException()
         {
             var result = A.Fake<IResult<IBatchHandle>>();
             IBatchHandle? handle = _batchHandle;
@@ -89,8 +91,9 @@ namespace UKHO.ADDS.EFS.Infrastructure.UnitTests.Services
             A.CallTo(() => result.IsFailure(out error, out handle)).Returns(true);
             A.CallTo(() => _fileShareReadWriteClient.CreateBatchAsync(A<BatchModel>._, A<string>._, A<CancellationToken>._)).Returns(result);
 
-            Assert.That(async () => await _defaultFileService.CreateBatchAsync(_correlationId, ExchangeSetType.Complete, _userIdentifier, _cancellationToken),
-                Throws.TypeOf<InvalidOperationException>());
+            var (batch, externalServiceError) = await _defaultFileService.CreateBatchAsync(_correlationId, ExchangeSetType.Complete, _userIdentifier, _cancellationToken);
+
+            Assert.That(externalServiceError?.ErrorResponseCode, Is.EqualTo(HttpStatusCode.InternalServerError));
         }
 
         [Test]

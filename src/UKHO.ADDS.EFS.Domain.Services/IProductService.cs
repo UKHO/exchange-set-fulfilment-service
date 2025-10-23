@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.EFS.Domain.Jobs;
+﻿using UKHO.ADDS.EFS.Domain.ExternalErrors;
+using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
 
 namespace UKHO.ADDS.EFS.Domain.Services
@@ -13,14 +14,14 @@ namespace UKHO.ADDS.EFS.Domain.Services
         /// <returns>
         ///     A tuple containing:
         ///     - ProductList: The product list
-        ///     - LastModified: The timestamp when the data was last modified. Will be the original sinceDateTime if response is
+        ///     - ProductsLastModified: The timestamp when the data was last modified. Will be the original sinceDateTime if response is
         ///     NotModified.
         /// </returns>
         /// <remarks>
         ///     The method returns an empty response with the original sinceDateTime when an error occurs or when
         ///     an unexpected HTTP status code is returned from the API.
         /// </remarks>
-        Task<(ProductList ProductList, DateTime? LastModified)> GetProductVersionListAsync(DataStandard dataStandard, DateTime? sinceDateTime, Job job);
+        Task<(ProductList ProductList, ExternalServiceError ExternalServiceError, DateTime? LastModified)> GetProductVersionListAsync(DataStandard dataStandard, DateTime? sinceDateTime, Job job);
 
         /// <summary>
         ///     Retrieves product names and their details from the Sales Catalogue Service.
@@ -32,7 +33,7 @@ namespace UKHO.ADDS.EFS.Domain.Services
         /// <returns>
         ///     The response containing product details or an empty response if an error occurs.
         /// </returns>
-        Task<ProductEditionList> GetProductEditionListAsync(DataStandard dataStandard, IEnumerable<ProductName> productNames, Job job, CancellationToken cancellationToken);
+        Task<(ProductEditionList, ExternalServiceError?)> GetProductEditionListAsync(DataStandard dataStandard, IEnumerable<ProductName> productNames, Job job, CancellationToken cancellationToken);
 
         /// <summary>
         ///     Retrieves S-100 product details from the Sales Catalogue Service "updatesSince" endpoint.
@@ -44,7 +45,7 @@ namespace UKHO.ADDS.EFS.Domain.Services
         /// <returns>
         ///     The response containing updated S-100 product details or an empty response if an error occurs.
         /// </returns>
-        Task<ProductEditionList> GetS100ProductUpdatesSinceAsync(string sinceDateTime, DataStandardProduct productIdentifier, Job job, CancellationToken cancellationToken);
+        Task<(ProductEditionList, ExternalServiceError?)> GetS100ProductUpdatesSinceAsync(string sinceDateTime, DataStandardProduct productIdentifier, Job job, CancellationToken cancellationToken);
 
         /// <summary>
         ///     Retrieves product versions for a list of product names from the Sales Catalogue Service ProductVersions endpoint.
@@ -56,6 +57,6 @@ namespace UKHO.ADDS.EFS.Domain.Services
         /// <returns>
         ///     - ProductEditionList: The product edition list
         /// </returns>
-        Task<ProductEditionList> GetProductVersionsListAsync(DataStandard dataStandard, ProductVersionList productVersions, Job job, CancellationToken cancellationToken);
+        Task<(ProductEditionList, ExternalServiceError?)> GetProductVersionsListAsync(DataStandard dataStandard, ProductVersionList productVersions, Job job, CancellationToken cancellationToken);
     }
 }

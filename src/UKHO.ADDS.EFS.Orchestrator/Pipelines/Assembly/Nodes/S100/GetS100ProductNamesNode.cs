@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using UKHO.ADDS.EFS.Domain.Builds.S100;
+using UKHO.ADDS.EFS.Domain.ExternalErrors;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Domain.Services;
@@ -44,11 +45,34 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                 productNameList.AddRange(build.Products?.Select(p => p.ProductName) ?? []);
             }
 
-            var productEditionList = await _productService.GetProductEditionListAsync(DataStandard.S100, productNameList, job, Environment.CancellationToken);
+            ProductEditionList productEditionList;
+            ExternalServiceError? externalServiceError;
 
+            try
+            {
+                (productEditionList, externalServiceError) = await _productService.GetProductEditionListAsync(DataStandard.S100, productNameList, job, Environment.CancellationToken);
+
+                if (job.ExchangeSetType == ExchangeSetType.ProductNames && externalServiceError != null)
+                {
+                    job.ExternalServiceError = new ExternalServiceError(
+                        externalServiceError.ErrorResponseCode,
+                        externalServiceError.ServiceName
+                    );
+                }
+
+                job.ProductsLastModified = productEditionList.ProductsLastModified ?? DateTime.UtcNow;
+            }
+            catch (Exception)
+            {
+                await context.Subject.SignalAssemblyError();
+                return NodeResultStatus.Failed;
+            }
             var nodeResult = NodeResultStatus.NotRun;
 
-            switch (productEditionList.ResponseCode)
+            // Fix: Use null-conditional and null-coalescing to safely get ErrorResponseCode
+            var statusCode = externalServiceError?.ErrorResponseCode ?? HttpStatusCode.OK;
+
+            switch (statusCode)
             {
                 case HttpStatusCode.OK:
 
