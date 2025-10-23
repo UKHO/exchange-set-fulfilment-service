@@ -50,6 +50,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly
                 ErrorResponse = context.ErrorResponse?.Errors?.Count > 0 ? context.ErrorResponse : null,
                 Response = _exchangeSetResponseFactory.CreateResponse(context.Job),
                 ExternalApiServiceName = context.Job.ExternalServiceError.ServiceName,
+                // If ServiceName is NotDefined, it means no external API error occurred, so we map to HttpStatusCode.OK
                 ExternalApiResponseCode = context.Job.ExternalServiceError.ServiceName != ServiceNameType.NotDefined ? context.Job.ExternalServiceError.ErrorResponseCode : System.Net.HttpStatusCode.OK,
                 ProductsLastModified = context.Job.ProductsLastModified
             };

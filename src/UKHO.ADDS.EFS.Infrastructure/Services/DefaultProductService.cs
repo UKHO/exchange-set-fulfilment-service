@@ -267,7 +267,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
             }
 
             _logger.LogSalesCatalogueApiError(SalesCatalogApiErrorLogView.Create(job));
-            return ([],null);
+            return ([], null);
         }
 
         private static HeadersInspectionHandlerOption CreateHeadersOption()

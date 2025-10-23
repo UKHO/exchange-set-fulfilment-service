@@ -168,7 +168,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             var result = await _node.ExecuteAsync(_executionContext);
 
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-            
         }
 
         [Test]
@@ -183,7 +182,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 ServiceName = ServiceNameType.SalesCatalogueService
             };
 
-
             A.CallTo(() => _productService.GetS100ProductUpdatesSinceAsync(_job!.RequestedFilter, _job.ProductIdentifier, _job, A<CancellationToken>.Ignored))
                 .Returns((productEditionList, null));
 
@@ -192,7 +190,6 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             var result = await _node.ExecuteAsync(_executionContext);
 
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
-
         }
 
         private void SetupJobAndBuild(JobState jobState = JobState.Created, ExchangeSetType exchangeSetType = ExchangeSetType.UpdatesSince)

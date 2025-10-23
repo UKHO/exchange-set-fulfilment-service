@@ -15,7 +15,7 @@ using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 
 namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Api.ResponseHandlers
 {
-    public class ExtenalApiResponseHandlerTests
+    public class ExternalApiResponseHandlerTests
     {
         private const string R = "R";
         private const string DummyJobId = "dummy-job-id";
@@ -45,7 +45,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Api.ResponseHandlers
         public void TearDown() => _loggerFactory?.Dispose();
 
         [Test]
-        public async Task WhenUstreamApiResponseIsNull_ThenHandlerReturns500()
+        public async Task WhenUpstreamApiResponseIsNull_ThenHandlerReturns500()
         {
             var result = _handler.HandleExternalApiResponse(null!, "ProductNames", _logger, _httpContext);
 
@@ -72,7 +72,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Api.ResponseHandlers
         }
 
         [Test]
-        public async Task WhenExternalApiResponseIsProductVersionReturnNotModified_ThenHanlerReturns202()
+        public async Task WhenExternalApiResponseIsProductVersionReturnNotModified_ThenHandlerReturns202()
         {
             var lastModified = DateTime.UtcNow.AddHours(-1);
             var response = NewPipelineResponse(
@@ -133,12 +133,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Api.ResponseHandlers
         }
 
         // Helpers to reduce duplication
-        private AssemblyPipelineResponse NewPipelineResponse(
-    HttpStatusCode externalApiResponseCode = HttpStatusCode.OK,
-    DateTime? lastModified = null,
-    Domain.Builds.BuildState buildStatus = Domain.Builds.BuildState.NotScheduled,
-    ServiceNameType? externalApiServiceName = null,
-    CustomExchangeSetResponse? responseModel = null)
+        private AssemblyPipelineResponse NewPipelineResponse(HttpStatusCode externalApiResponseCode = HttpStatusCode.OK, DateTime? lastModified = null, Domain.Builds.BuildState buildStatus = Domain.Builds.BuildState.NotScheduled, ServiceNameType? externalApiServiceName = null, CustomExchangeSetResponse? responseModel = null)
         {
             return new AssemblyPipelineResponse
             {

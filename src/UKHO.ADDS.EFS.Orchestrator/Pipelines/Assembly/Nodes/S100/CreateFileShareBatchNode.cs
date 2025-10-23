@@ -1,11 +1,5 @@
-﻿using Microsoft.Azure.Amqp.Sasl;
-using OpenTelemetry;
-using UKHO.ADDS.Clients.Common.Constants;
-using UKHO.ADDS.EFS.Domain.Builds.S100;
-using UKHO.ADDS.EFS.Domain.ExternalErrors;
-using UKHO.ADDS.EFS.Domain.Files;
+﻿using UKHO.ADDS.EFS.Domain.Builds.S100;
 using UKHO.ADDS.EFS.Domain.Jobs;
-using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Domain.Services;
 using UKHO.ADDS.EFS.Domain.User;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;

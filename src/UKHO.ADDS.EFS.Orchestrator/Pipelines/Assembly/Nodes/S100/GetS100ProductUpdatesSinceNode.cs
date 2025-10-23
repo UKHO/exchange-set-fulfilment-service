@@ -50,7 +50,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
                     scsResponse.ServiceName = externalServiceError.ServiceName;
                 }
 
-                job.ProductsLastModified = productEditionList.ProductsLastModified?? DateTime.UtcNow;
+                job.ProductsLastModified = productEditionList.ProductsLastModified ?? DateTime.UtcNow;
             }
             catch (Exception)
             {
