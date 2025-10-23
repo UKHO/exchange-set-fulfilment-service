@@ -45,11 +45,11 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
             }
 
             var headersOption = CreateHeadersOption();
+            var headerDateString = sinceDateTime?.ToString(DateTimeFormat);
+            var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<List<S100BasicCatalogue>?>(_logger, nameof(GetProductVersionListAsync));
+
             try
             {
-                var headerDateString = sinceDateTime?.ToString(DateTimeFormat);
-                var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<List<S100BasicCatalogue>?>(_logger, nameof(GetProductVersionListAsync));
-
                 var s100BasicCatalogueResult = await retryPolicy.ExecuteAsync(async () =>
                 {
                     var result = await _salesCatalogueClient.V2.Catalogues.S100.Basic.GetAsync(config =>
@@ -58,19 +58,13 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                         {
                             config.Headers.Add(ApiHeaderKeys.IfModifiedSinceHeaderKey, headerDateString);
                         }
-
                         config.Headers.Add(ApiHeaderKeys.XCorrelationIdHeaderKey, (string)job.GetCorrelationId());
                         config.Options.Add(headersOption);
                     });
-
                     return Result.Success(result);
                 });
 
-                var lastModifiedHeader = headersOption.ResponseHeaders.TryGetValue(ApiHeaderKeys.LastModifiedHeaderKey, out var values)
-                    ? values.FirstOrDefault()
-                    : null;
-
-                DateTime.TryParse(lastModifiedHeader, CultureInfo.InvariantCulture, out var lastModifiedActual);
+                var lastModifiedActual = GetLastModifiedHeader(headersOption, sinceDateTime);
 
                 if (s100BasicCatalogueResult.IsSuccess(out var catalogueList) && catalogueList is not null)
                 {
@@ -83,28 +77,31 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
             }
             catch (ApiException apiException)
             {
-                switch (apiException.ResponseStatusCode)
-                {
-                    case (int)HttpStatusCode.NotModified:
-                        {
-                            var lastModifiedHeader = headersOption.ResponseHeaders.TryGetValue(ApiHeaderKeys.LastModifiedHeaderKey, out var values)
-                                ? values.FirstOrDefault()
-                                : null;
-
-                            if (!DateTime.TryParse(lastModifiedHeader, CultureInfo.InvariantCulture, out var parsed))
-                            {
-                                // Fall back if header missing or unparsable
-                                parsed = sinceDateTime ?? default;
-                            }
-
-                            return (new ProductList(), new ExternalServiceError(HttpStatusCode.NotModified, ExternalServiceName.SalesCatalogueService), parsed);
-                        }
-
-                    default:
-                        _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, (HttpStatusCode)apiException.ResponseStatusCode));
-                        return ([], new ExternalServiceError(HttpStatusCode.InternalServerError, ExternalServiceName.SalesCatalogueService), sinceDateTime );
-                }
+                return HandleApiExceptionForProductVersionList(apiException, headersOption, sinceDateTime, job);
             }
+        }
+
+        private static DateTime? GetLastModifiedHeader(HeadersInspectionHandlerOption headersOption, DateTime? fallback)
+        {
+            var lastModifiedHeader = headersOption.ResponseHeaders.TryGetValue(ApiHeaderKeys.LastModifiedHeaderKey, out var values)
+                ? values.FirstOrDefault()
+                : null;
+            if (DateTime.TryParse(lastModifiedHeader, CultureInfo.InvariantCulture, out var lastModifiedActual))
+            {
+                return lastModifiedActual;
+            }
+            return fallback;
+        }
+
+        private (ProductList, ExternalServiceError, DateTime?) HandleApiExceptionForProductVersionList(ApiException apiException, HeadersInspectionHandlerOption headersOption, DateTime? sinceDateTime, Job job)
+        {
+            if (apiException.ResponseStatusCode == (int)HttpStatusCode.NotModified)
+            {
+                var lastModifiedActual = GetLastModifiedHeader(headersOption, sinceDateTime);
+                return (new ProductList(), new ExternalServiceError(HttpStatusCode.NotModified, ExternalServiceName.SalesCatalogueService), lastModifiedActual);
+            }
+            _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, (HttpStatusCode)apiException.ResponseStatusCode));
+            return ([], new ExternalServiceError(HttpStatusCode.InternalServerError, ExternalServiceName.SalesCatalogueService), sinceDateTime);
         }
 
         public async Task<(ProductEditionList, ExternalServiceError?)> GetProductEditionListAsync(DataStandard dataStandard, IEnumerable<ProductName> productNames, Job job, CancellationToken cancellationToken)
