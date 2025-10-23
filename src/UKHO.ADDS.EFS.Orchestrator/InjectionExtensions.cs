@@ -373,10 +373,10 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 {
                     ["_links"] = new OpenApiObject
                     {
-                        ["exchangeSetBatchStatusUri"] = new OpenApiObject { ["href"] = new OpenApiString("http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/status") },
-                        ["exchangeSetBatchDetailsUri"] = new OpenApiObject { ["href"] = new OpenApiString("http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272") },
-                        ["exchangeSetFileUri"] = new OpenApiObject { ["href"] = new OpenApiString("http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/exchangeset123.zip") },
-                        ["errorFileUri"] = new OpenApiObject { ["href"] = new OpenApiString("http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/error.txt") }
+                        ["exchangeSetBatchStatusUri"] = new OpenApiObject { ["href"] = new OpenApiString("https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/status") },
+                        ["exchangeSetBatchDetailsUri"] = new OpenApiObject { ["href"] = new OpenApiString("https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272") },
+                        ["exchangeSetFileUri"] = new OpenApiObject { ["href"] = new OpenApiString("https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/exchangeset123.zip") },
+                        ["errorFileUri"] = new OpenApiObject { ["href"] = new OpenApiString("https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/error.txt") }
                     },
                     ["exchangeSetUrlExpiryDateTime"] = new OpenApiString("2021-02-17T16:19:32.269Z"),
                     ["requestedProductCount"] = new OpenApiInteger(4),
@@ -537,9 +537,9 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 {
                     ["_links"] = new OpenApiObject
                     {
-                        ["exchangeSetBatchStatusUri"] = new OpenApiObject { ["href"] = new OpenApiString("http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/status") },
-                        ["exchangeSetBatchDetailsUri"] = new OpenApiObject { ["href"] = new OpenApiString("http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272") },
-                        ["exchangeSetFileUri"] = new OpenApiObject { ["href"] = new OpenApiString("http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/exchangeset123.zip") }
+                        ["exchangeSetBatchStatusUri"] = new OpenApiObject { ["href"] = new OpenApiString("https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/status") },
+                        ["exchangeSetBatchDetailsUri"] = new OpenApiObject { ["href"] = new OpenApiString("https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272") },
+                        ["exchangeSetFileUri"] = new OpenApiObject { ["href"] = new OpenApiString("https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/exchangeset123.zip") }
                     },
                     ["exchangeSetUrlExpiryDateTime"] = new OpenApiString("2021-02-17T16:19:32.269Z"),
                     ["requestedProductCount"] = new OpenApiInteger(7),
