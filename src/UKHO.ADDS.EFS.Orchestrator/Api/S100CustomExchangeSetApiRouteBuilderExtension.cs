@@ -150,7 +150,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID",
                     correlationIdGenerator.CreateForCustomExchageSet().ToString())
                 .WithDescription(
-                    "Given a list of Product name identifiers and their edition and update numbers, return all the versions of the Products that are releasable from that version onwards.\r\n\r\n**Business Rules:**\r\n\r\nIf none of the Products exist then Product exchange set with baseline releasable data Products will be returned.\r\n\r\nIf none of the Products requested have an update, then a 'Not modified' response will be returned. If none of the Products requested exist, then status code 400 ('Bad Request') response will be returned.")
+                    "Given a list of Product name identifiers and their edition and update numbers, return all the versions of the Products that are releasable from that version onwards.\r\n\r\n**Business Rules:**\r\n\r\nIf none of the Products exist then Product exchange set with baseline releasable data Products will be returned.\r\n\r\nIf none of the Products requested have an update, then 'Accepted' response will be returned. with all the requested products count reflected in 'requestedProductsAlreadyUpToDateCount'. If none of the Products requested exist, then status code 400 ('Bad Request') response will be returned.")
                 .WithRequiredAuthorization(AuthenticationConstants.AdOrB2C);
         }
 
