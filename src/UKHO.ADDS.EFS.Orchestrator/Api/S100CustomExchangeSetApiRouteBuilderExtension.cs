@@ -29,59 +29,64 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             var exchangeSetEndpoint = routeBuilder.MapGroup("/v2/exchangeSet/s100").WithTags("s100");
 
             // POST /v2/exchangeSet/s100/productNames
-            var productNamesEndpoint = exchangeSetEndpoint.MapPost("/productNames", async (
+            exchangeSetEndpoint.MapPost("/productNames", async (
                 List<string> productNamesRequest,
                 IConfiguration configuration,
                 IAssemblyPipelineFactory pipelineFactory,
                 HttpContext httpContext,
                 IS100ProductNamesRequestValidator productNameValidator,
                 string? callbackUri = null) =>
-                 {
-                     try
-                     {
-                         var correlationId = httpContext.GetCorrelationId();
+            {
+                try
+                {
+                    var correlationId = httpContext.GetCorrelationId();
 
-                         if (productNamesRequest == null || productNamesRequest.Count == 0)
-                         {
-                             return BadRequestForMalformedBody(correlationId.ToString(), logger);
-                         }
-                         else
-                         {
-                             var validationResult = await productNameValidator.ValidateAsync((productNamesRequest, callbackUri));
-                             var validationResponse = HandleValidationResult(validationResult, logger, (string)correlationId);
-                             if (validationResponse != null)
-                             {
-                                 return validationResponse;
-                             }
-                         }
+                    if (productNamesRequest == null || productNamesRequest.Count == 0)
+                    {
+                        return BadRequestForMalformedBody(correlationId.ToString(), logger);
+                    }
+                    else
+                    {
+                        var validationResult = await productNameValidator.ValidateAsync((productNamesRequest, callbackUri));
+                        var validationResponse = HandleValidationResult(validationResult, logger, (string)correlationId);
+                        if (validationResponse != null)
+                        {
+                            return validationResponse;
+                        }
+                    }
 
-                         var parameters = AssemblyPipelineParameters.CreateFromS100ProductNames(productNamesRequest!, configuration, (string)correlationId, callbackUri);
-                         var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
+                    var parameters = AssemblyPipelineParameters.CreateFromS100ProductNames(productNamesRequest!, configuration, (string)correlationId, callbackUri);
+                    var pipeline = pipelineFactory.CreateAssemblyPipeline(parameters);
 
-                         logger.LogAssemblyPipelineStarted(parameters);
+                    logger.LogAssemblyPipelineStarted(parameters);
 
-                         var result = await pipeline.RunAsync(httpContext.RequestAborted);
+                    var result = await pipeline.RunAsync(httpContext.RequestAborted);
 
-                         // Check for errors in the response
-                         if (result.ErrorResponse != null)
-                         {
-                             return HandleErrorResponse(result.ErrorResponse);
-                         }
+                    // Check for errors in the response
+                    if (result.ErrorResponse != null)
+                    {
+                        return HandleErrorResponse(result.ErrorResponse);
+                    }
 
-                         return Results.Accepted(null, result.Response);
-                     }
-                     catch (Exception)
-                     {
-                         throw;
-                     }
-                 });
-
-            ApplyCommonMetadata(productNamesEndpoint, correlationIdGenerator)
-                .Produces<CustomExchangeSetResponse>(202)
-                .WithDescription("Given a list of Product names, return all the products that are releasable.\r\n\r\n**Business Rules:**\r\n\r\nOnly Products that are releasable at the date of the request will be returned.\r\n\r\nIf valid Products are requested then Product exchange set with baseline data including requested Products will be returned.\r\n\r\nIf a requested Product has been cancelled or replaced, then the replacement Product will not be included in the response payload. Only the specific Products requested will be returned.\r\n\r\nIf none of the Products requested exist then exchange set with baseline releasable data without requested Products will be returned.");
+                    return Results.Accepted(null, result.Response);
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+            })
+            .Produces<CustomExchangeSetResponse>(202)
+            .Produces<ErrorResponseModel>(400)
+            .Produces(401)
+            .Produces(403)
+            .Produces(429)
+            .Produces<InternalServerError>(500)
+            .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", correlationIdGenerator.CreateForCustomExchageSet().ToString())
+            .WithDescription("Given a list of Product names, return all the products that are releasable.\r\n\r\n**Business Rules:**\r\n\r\nOnly Products that are releasable at the date of the request will be returned.\r\n\r\nIf valid Products are requested then Product exchange set with baseline data including requested Products will be returned.\r\n\r\nIf a requested Product has been cancelled or replaced, then the replacement Product will not be included in the response payload. Only the specific Products requested will be returned.\r\n\r\nIf none of the Products requested exist then exchange set with baseline releasable data without requested Products will be returned.")
+            .WithRequiredAuthorization(AuthenticationConstants.AdOrB2C);
 
             // POST /v2/exchangeSet/s100/productVersions
-            var productVersionsEndpoint = exchangeSetEndpoint.MapPost("/productVersions", async (
+            exchangeSetEndpoint.MapPost("/productVersions", async (
                 List<ProductVersionRequest> productVersionsRequest,
                 IConfiguration configuration,
                 IAssemblyPipelineFactory pipelineFactory,
@@ -127,14 +132,19 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 {
                     throw;
                 }
-            });
-
-            ApplyCommonMetadata(productVersionsEndpoint, correlationIdGenerator)
-                .Produces<CustomExchangeSetResponse>(202)
-                .WithDescription("Given a list of Product name identifiers and their edition and update numbers, return all the versions of the Products that are releasable from that version onwards.\r\n\r\n**Business Rules:**\r\n\r\nIf none of the Products exist then Product exchange set with baseline releasable data Products will be returned.\r\n\r\nIf none of the Products requested have an update, then a 'Not modified' response will be returned. If none of the Products requested exist, then status code 400 ('Bad Request') response will be returned.");
+            })
+            .Produces<CustomExchangeSetResponse>(202)
+            .Produces<ErrorResponseModel>(400)
+            .Produces(401)
+            .Produces(403)
+            .Produces(429)
+            .Produces<InternalServerError>(500)
+            .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", correlationIdGenerator.CreateForCustomExchageSet().ToString())
+            .WithDescription("Given a list of Product name identifiers and their edition and update numbers, return all the versions of the Products that are releasable from that version onwards.\r\n\r\n**Business Rules:**\r\n\r\nIf none of the Products exist then Product exchange set with baseline releasable data Products will be returned.\r\n\r\nIf none of the Products requested have an update, then a 'Not modified' response will be returned. If none of the Products requested exist, then status code 400 ('Bad Request') response will be returned.")
+            .WithRequiredAuthorization(AuthenticationConstants.AdOrB2C);
 
             // POST /v2/exchangeSet/s100/updatesSince
-            var updatesSinceEndpoint = exchangeSetEndpoint.MapPost("/updatesSince", async (
+            exchangeSetEndpoint.MapPost("/updatesSince", async (
                 UpdatesSinceRequest updatesSinceRequest,
                 IConfiguration configuration,
                 IAssemblyPipelineFactory pipelineFactory,
@@ -173,28 +183,18 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 {
                     throw;
                 }
-            });
-            
-            ApplyCommonMetadata(updatesSinceEndpoint, correlationIdGenerator)
-                .Produces<CustomExchangeSetResponse>(202)
-                .Produces(304)
-                .Produces(404)
-                .WithDescription("Given a datetime, build an Exchange Set of all the releasable Product versions that have been issued since that datetime.");
-        }
-
-        /// <summary>
-        /// Applies common metadata to S100 API endpoints including standard HTTP status codes and authorization
-        /// </summary>
-        private static RouteHandlerBuilder ApplyCommonMetadata(RouteHandlerBuilder endpoint, ICorrelationIdGenerator correlationIdGenerator)
-        {
-            return endpoint
-                .Produces<ErrorResponseModel>(400)
-                .Produces(401)
-                .Produces(403)
-                .Produces(429)
-                .Produces<InternalServerError>(500)
-                .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", correlationIdGenerator.CreateForCustomExchageSet().ToString())
-                .WithRequiredAuthorization(AuthenticationConstants.AdOrB2C);
+            })
+            .Produces<CustomExchangeSetResponse>(202)
+            .Produces(304)
+            .Produces<ErrorResponseModel>(400)
+            .Produces(401)
+            .Produces(403)
+            .Produces(404)
+            .Produces(429)
+            .Produces<InternalServerError>(500)
+            .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID", correlationIdGenerator.CreateForCustomExchageSet().ToString())
+            .WithDescription("Given a datetime, build an Exchange Set of all the releasable Product versions that have been issued since that datetime.")
+            .WithRequiredAuthorization(AuthenticationConstants.AdOrB2C);
         }
 
         private static IResult HandleErrorResponse(ErrorResponseModel errorResponse)
@@ -205,7 +205,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             {
                 return Results.Json(errorResponse, statusCode: (int)HttpStatusCode.RequestEntityTooLarge);
             }
-            
+
             // For other errors, return as Bad Request
             return Results.BadRequest(errorResponse);
         }
