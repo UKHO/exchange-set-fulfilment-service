@@ -72,7 +72,7 @@ resources:
     type: github
 
 stages:
-  # - stage: VulnerabilityChecks
+  # - stage: VulnerabilityChecks 
   #   displayName: Checks
   #   dependsOn: []
   #   jobs:
