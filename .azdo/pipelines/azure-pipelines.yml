@@ -177,7 +177,7 @@ stages:
         DeployRedis: ${{ parameters.DeployRedis }}
 
   - stage: vnexte2eDeploy
-    dependsOn:
+    dependsOn: 
     - vnextiatDeploy
     displayName: vNextE2E Deploy
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))

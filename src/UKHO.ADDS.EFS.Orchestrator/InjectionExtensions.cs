@@ -508,7 +508,22 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 operation.RequestBody.Content["application/json"].Example = requestExample;
                 operation.RequestBody.Description = "A list of S-100 product names for which the Exchange Set is requested.";
             }
-            var responseExample = BuildProductNamesResponseExample();
+            var responseExample = BuildProductResponseExample(
+                "uri",
+                new Dictionary<string, string>
+                {
+                    { "exchangeSetBatchStatusUri", "https://filesvnexte2e.admiralty.co.uk/batch/22c68246-87ae-4f7e-8556-8ee9eeb95037/status" },
+                    { "exchangeSetBatchDetailsUri", "https://filesvnexte2e.admiralty.co.uk/batch/22c68246-87ae-4f7e-8556-8ee9eeb95037" },
+                    { "exchangeSetFileUri", "https://filesvnexte2e.admiralty.co.uk/batch/22c68246-87ae-4f7e-8556-8ee9eeb95037/files/V01X01.zip" }
+                },
+                "2025-10-23T11:22:40.388Z",
+                4,
+                3,
+                0,
+                "requestedProductsNotInExchangeSet",
+                new List<(string, string)> { ("111AR401R12", "invalidProduct") },
+                "22c68246-87ae-4f7e-8556-8vc9cvb95037"
+            );
             if (operation.Responses.TryGetValue("202", out var acceptedResponse) &&
                 acceptedResponse.Content?.ContainsKey("application/json") == true)
             {
@@ -568,7 +583,26 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 operation.RequestBody.Content["application/json"].Example = requestExample;
                 operation.RequestBody.Description = "A list of S-100 products with their edition and update numbers for which the Exchange Set is requested.";
             }
-            var responseExample = BuildProductVersionsResponseExample();
+            var responseExample = BuildProductResponseExample(
+                "href",
+                new Dictionary<string, string>
+                {
+                    { "exchangeSetBatchStatusUri", "https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/status" },
+                    { "exchangeSetBatchDetailsUri", "https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272" },
+                    { "exchangeSetFileUri", "https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/exchangeset123.zip" }
+                },
+                "2021-02-17T16:19:32.269Z",
+                7,
+                4,
+                1,
+                "requestedProductsNotReturned",
+                new List<(string, string)>
+                {
+                    ("102CA32904820801013", "productWithdrawn"),
+                    ("101DE00904820801012", "InvalidProduct")
+                },
+                "7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272"
+            );
             if (operation.Responses.TryGetValue("202", out var acceptedResponse) &&
                 acceptedResponse.Content?.ContainsKey("application/json") == true)
             {
@@ -635,63 +669,43 @@ namespace UKHO.ADDS.EFS.Orchestrator
             }
         }
 
-        // Helper for product names response example
-        private static OpenApiObject BuildProductNamesResponseExample()
+        private static OpenApiObject BuildProductResponseExample(
+            string linksKey,
+            Dictionary<string, string> links,
+            string expiryDate,
+            int requestedProductCount,
+            int returnedProductCount,
+            int alreadyUpToDateCount,
+            string notReturnedKey,
+            List<(string productName, string reason)> notReturned,
+            string batchId)
         {
-            return new OpenApiObject
+            var linksObj = new OpenApiObject();
+            foreach (var kvp in links)
             {
-                ["links"] = new OpenApiObject
-                {
-                    ["exchangeSetBatchStatusUri"] = new OpenApiObject { ["uri"] = new OpenApiString("https://filesvnexte2e.admiralty.co.uk/batch/22c68246-87ae-4f7e-8556-8ee9eeb95037/status") },
-                    ["exchangeSetBatchDetailsUri"] = new OpenApiObject { ["uri"] = new OpenApiString("https://filesvnexte2e.admiralty.co.uk/batch/22c68246-87ae-4f7e-8556-8ee9eeb95037") },
-                    ["exchangeSetFileUri"] = new OpenApiObject { ["uri"] = new OpenApiString("https://filesvnexte2e.admiralty.co.uk/batch/22c68246-87ae-4f7e-8556-8ee9eeb95037/files/V01X01.zip") }
-                },
-                ["exchangeSetUrlExpiryDateTime"] = new OpenApiString("2025-10-23T11:22:40.388Z"),
-                ["requestedProductCount"] = new OpenApiInteger(4),
-                ["exchangeSetProductCount"] = new OpenApiInteger(3),
-                ["requestedProductsAlreadyUpToDateCount"] = new OpenApiInteger(0),
-                ["requestedProductsNotInExchangeSet"] = new OpenApiArray
-                {
-                    new OpenApiObject
-                    {
-                        ["productName"] = new OpenApiString("111AR401R12"),
-                        ["reason"] = new OpenApiString("invalidProduct")
-                    }
-                },
-                ["fssBatchId"] = new OpenApiString("22c68246-87ae-4f7e-8556-8vc9cvb95037")
-            };
-        }
-
-        // Helper for product versions response example
-        private static OpenApiObject BuildProductVersionsResponseExample()
-        {
-            return new OpenApiObject
+                linksObj[kvp.Key] = new OpenApiObject { [linksKey] = new OpenApiString(kvp.Value) };
+            }
+            var notReturnedArray = new OpenApiArray();
+            foreach (var item in notReturned)
             {
-                ["_links"] = new OpenApiObject
+                var obj = new OpenApiObject
                 {
-                    ["exchangeSetBatchStatusUri"] = new OpenApiObject { ["href"] = new OpenApiString("https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/status") },
-                    ["exchangeSetBatchDetailsUri"] = new OpenApiObject { ["href"] = new OpenApiString("https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272") },
-                    ["exchangeSetFileUri"] = new OpenApiObject { ["href"] = new OpenApiString("https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/exchangeset123.zip") }
-                },
-                ["exchangeSetUrlExpiryDateTime"] = new OpenApiString("2021-02-17T16:19:32.269Z"),
-                ["requestedProductCount"] = new OpenApiInteger(7),
-                ["returnedProductCount"] = new OpenApiInteger(4),
-                ["requestedProductsAlreadyUpToDateCount"] = new OpenApiInteger(1),
-                ["requestedProductsNotReturned"] = new OpenApiArray
-                {
-                    new OpenApiObject
-                    {
-                        ["productName"] = new OpenApiString("102CA32904820801013"),
-                        ["reason"] = new OpenApiString("productWithdrawn")
-                    },
-                    new OpenApiObject
-                    {
-                        ["productName"] = new OpenApiString("101DE00904820801012"),
-                        ["reason"] = new OpenApiString("InvalidProduct")
-                    }
-                },
-                ["fssBatchId"] = new OpenApiString("7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272")
+                    ["productName"] = new OpenApiString(item.productName),
+                    ["reason"] = new OpenApiString(item.reason)
+                };
+                notReturnedArray.Add(obj);
+            }
+            var responseObj = new OpenApiObject
+            {
+                [linksKey == "uri" ? "links" : "_links"] = linksObj,
+                ["exchangeSetUrlExpiryDateTime"] = new OpenApiString(expiryDate),
+                ["requestedProductCount"] = new OpenApiInteger(requestedProductCount),
+                [linksKey == "uri" ? "exchangeSetProductCount" : "returnedProductCount"] = new OpenApiInteger(returnedProductCount),
+                ["requestedProductsAlreadyUpToDateCount"] = new OpenApiInteger(alreadyUpToDateCount),
+                [notReturnedKey] = notReturnedArray,
+                ["fssBatchId"] = new OpenApiString(batchId)
             };
+            return responseObj;
         }
     }
 }
