@@ -59,7 +59,7 @@ paths:
           required: true
           schema:
             type: string
-            default: 63d8110ab7824349bd8ce23cac85b6a2
+            default: 546f6ad62a18437e96a5f1dff5cda796
       requestBody:
         description: A list of S-100 product names for which the Exchange Set is requested.
         content:
@@ -223,7 +223,7 @@ paths:
           required: true
           schema:
             type: string
-            default: c768bb6be9074b68b519af66d47376b3
+            default: 5e7330745b7e46c49c7156dfca6e9b07
       requestBody:
         description: A list of S-100 products with their edition and update numbers for
           which the Exchange Set is requested.
@@ -405,7 +405,7 @@ paths:
           required: true
           schema:
             type: string
-            default: 4df0f9009a8b4f9fb7f5cc55add395a3
+            default: 6ad7c6c0fcd64f8d96369faf77c6e287
       requestBody:
         content:
           application/json:
@@ -632,6 +632,10 @@ components:
           $ref: "#/components/schemas/DataStandard"
         batchId:
           $ref: "#/components/schemas/BatchId"
+        productsLastModified:
+          type: string
+          format: date-time
+          nullable: true
     BatchId: {}
     BuildState:
       enum:
