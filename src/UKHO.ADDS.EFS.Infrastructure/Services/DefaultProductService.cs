@@ -1,12 +1,14 @@
-﻿
+﻿using System.Globalization;
 using System.Net;
+using Azure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Kiota.Abstractions;
 using Microsoft.Kiota.Http.HttpClientLibrary.Middleware.Options;
 using UKHO.ADDS.Clients.Kiota.SalesCatalogueService;
 using UKHO.ADDS.Clients.Kiota.SalesCatalogueService.Models;
-using UKHO.ADDS.Clients.Kiota.SalesCatalogueService.V1.ProductData.Item.Products.ProductIdentifiers;
 using UKHO.ADDS.EFS.Domain.Constants;
+using UKHO.ADDS.EFS.Domain.External;
+using UKHO.ADDS.EFS.Domain.ExternalErrors;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Domain.Services;
@@ -35,23 +37,19 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<(ProductList ProductList, DateTime? LastModified)> GetProductVersionListAsync(DataStandard dataStandard, DateTime? sinceDateTime, Job job)
+        public async Task<(ProductList ProductList, ExternalServiceError ExternalServiceError, DateTime? LastModified )> GetProductVersionListAsync(DataStandard dataStandard, DateTime? sinceDateTime, Job job)
         {
             if (dataStandard != DataStandard.S100)
             {
                 throw new NotImplementedException($"Data standard {dataStandard} is not supported.");
             }
 
-            var headersOption = new HeadersInspectionHandlerOption
-            {
-                InspectResponseHeaders = true
-            };
+            var headersOption = CreateHeadersOption();
+            var headerDateString = sinceDateTime?.ToString(DateTimeFormat);
+            var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<List<S100BasicCatalogue>?>(_logger, nameof(GetProductVersionListAsync));
 
             try
             {
-                var headerDateString = sinceDateTime?.ToString(DateTimeFormat);
-                var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<List<S100BasicCatalogue>?>(_logger, nameof(GetProductVersionListAsync));
-
                 var s100BasicCatalogueResult = await retryPolicy.ExecuteAsync(async () =>
                 {
                     var result = await _salesCatalogueClient.V2.Catalogues.S100.Basic.GetAsync(config =>
@@ -60,65 +58,59 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                         {
                             config.Headers.Add(ApiHeaderKeys.IfModifiedSinceHeaderKey, headerDateString);
                         }
-
                         config.Headers.Add(ApiHeaderKeys.XCorrelationIdHeaderKey, (string)job.GetCorrelationId());
                         config.Options.Add(headersOption);
                     });
-
                     return Result.Success(result);
                 });
 
-                var lastModifiedHeader = headersOption.ResponseHeaders.TryGetValue(ApiHeaderKeys.LastModifiedHeaderKey, out var values)
-                    ? values.FirstOrDefault()
-                    : null;
-
-                DateTime.TryParse(lastModifiedHeader, out var lastModifiedActual);
+                var lastModifiedActual = GetLastModifiedHeader(headersOption, sinceDateTime);
 
                 if (s100BasicCatalogueResult.IsSuccess(out var catalogueList) && catalogueList is not null)
                 {
                     var response = catalogueList.ToDomain(lastModifiedActual);
-                    return (response, response.LastModified);
+                    return (response, new ExternalServiceError(HttpStatusCode.OK, ExternalServiceName.NotDefined), response.ProductsLastModified);
                 }
 
                 _logger.LogSalesCatalogueApiError(SalesCatalogApiErrorLogView.Create(job));
-                return (new ProductList(), sinceDateTime);
+                return (new ProductList(), new ExternalServiceError(HttpStatusCode.InternalServerError, ExternalServiceName.SalesCatalogueService), sinceDateTime);
             }
             catch (ApiException apiException)
             {
-                switch (apiException.ResponseStatusCode)
-                {
-                    case (int)HttpStatusCode.NotModified:
-                        {
-                            var lastModifiedHeader = headersOption.ResponseHeaders.TryGetValue(ApiHeaderKeys.LastModifiedHeaderKey, out var values)
-                                ? values.FirstOrDefault()
-                                : null;
-
-                            if (!DateTime.TryParse(lastModifiedHeader, out var parsed))
-                            {
-                                // Fall back if header missing or unparsable
-                                parsed = sinceDateTime ?? default;
-                            }
-
-                            return (new ProductList
-                            {
-                                ResponseCode = HttpStatusCode.NotModified
-                            }, parsed);
-                        }
-
-                    default:
-                        _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, (HttpStatusCode)apiException.ResponseStatusCode));
-                        return (new ProductList(), sinceDateTime);
-                }
+                return HandleApiExceptionForProductVersionList(apiException, headersOption, sinceDateTime, job);
             }
         }
 
-        public async Task<ProductEditionList> GetProductEditionListAsync(DataStandard dataStandard, IEnumerable<ProductName> productNames, Job job, CancellationToken cancellationToken)
+        private static DateTime? GetLastModifiedHeader(HeadersInspectionHandlerOption headersOption, DateTime? fallback)
+        {
+            var lastModifiedHeader = headersOption.ResponseHeaders.TryGetValue(ApiHeaderKeys.LastModifiedHeaderKey, out var values)
+                ? values.FirstOrDefault()
+                : null;
+            if (DateTime.TryParse(lastModifiedHeader, CultureInfo.InvariantCulture, out var lastModifiedActual))
+            {
+                return lastModifiedActual;
+            }
+            return fallback;
+        }
+
+        private (ProductList, ExternalServiceError, DateTime?) HandleApiExceptionForProductVersionList(ApiException apiException, HeadersInspectionHandlerOption headersOption, DateTime? sinceDateTime, Job job)
+        {
+            if (apiException.ResponseStatusCode == (int)HttpStatusCode.NotModified)
+            {
+                var lastModifiedActual = GetLastModifiedHeader(headersOption, sinceDateTime);
+                return (new ProductList(), new ExternalServiceError(HttpStatusCode.NotModified, ExternalServiceName.SalesCatalogueService), lastModifiedActual);
+            }
+            _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, (HttpStatusCode)apiException.ResponseStatusCode));
+            return ([], new ExternalServiceError(HttpStatusCode.InternalServerError, ExternalServiceName.SalesCatalogueService), sinceDateTime);
+        }
+
+        public async Task<(ProductEditionList, ExternalServiceError?)> GetProductEditionListAsync(DataStandard dataStandard, IEnumerable<ProductName> productNames, Job job, CancellationToken cancellationToken)
         {
             if (dataStandard != DataStandard.S100)
             {
                 throw new NotImplementedException($"Data standard {dataStandard} is not supported.");
             }
-
+            var headersOption = CreateHeadersOption();
             try
             {
                 var retryPolicy =
@@ -132,29 +124,25 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                         requestConfiguration =>
                         {
                             requestConfiguration.Headers.Add(ApiHeaderKeys.XCorrelationIdHeaderKey, (string)job.GetCorrelationId());
+                            requestConfiguration.Options.Add(headersOption);
                         },
                         cancellationToken);
 
                     return Result.Success(result);
                 });
 
-                if (s100ProductNamesResult.IsSuccess(out var response) && response is not null)
-                {
-                    return response.ToDomain();
-                }
-
-                _logger.LogSalesCatalogueApiError(SalesCatalogApiErrorLogView.Create(job));
-                return new ProductEditionList();
+                return ProcessProductNamesResult(s100ProductNamesResult, headersOption, job);
             }
             catch (ApiException apiException)
             {
-                _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, (HttpStatusCode)apiException.ResponseStatusCode));
-                return new ProductEditionList();
+                return HandleApiExceptionForProductEditionList(apiException, headersOption, job);
             }
         }
 
-        public async Task<ProductEditionList> GetS100ProductUpdatesSinceAsync(string sinceDateTime, DataStandardProduct productIdentifier, Job job, CancellationToken cancellationToken)
+        public async Task<(ProductEditionList, ExternalServiceError?)> GetS100ProductUpdatesSinceAsync(string sinceDateTime, DataStandardProduct productIdentifier, Job job, CancellationToken cancellationToken)
         {
+            var headersOption = CreateHeadersOption();
+
             try
             {
                 var retryPolicy =
@@ -173,6 +161,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
 
                                 requestConfiguration.QueryParameters.SinceDateTime = DateTimeOffset.Parse(sinceDateTime);
                                 requestConfiguration.Headers.Add(ApiHeaderKeys.XCorrelationIdHeaderKey, (string)job.GetCorrelationId());
+                                requestConfiguration.Options.Add(headersOption);
                             },
                             cancellationToken);
 
@@ -180,27 +169,21 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
 
                 });
 
-                if (s100ProductUpdatesResult.IsSuccess(out var response) && response is not null)
-                {
-                    return response.ToDomain();
-                }
-
-                _logger.LogSalesCatalogueApiError(SalesCatalogApiErrorLogView.Create(job));
-                return new ProductEditionList();
+                return ProcessProductNamesResult(s100ProductUpdatesResult, headersOption, job);
             }
             catch (ApiException apiException)
             {
-                _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, (HttpStatusCode)apiException.ResponseStatusCode));
-                return new ProductEditionList();
+                return HandleApiExceptionForProductEditionList(apiException, headersOption, job);
             }
         }
 
-        public async Task<ProductEditionList> GetProductVersionsListAsync(DataStandard dataStandard, ProductVersionList productVersions, Job job, CancellationToken cancellationToken)
+        public async Task<(ProductEditionList, ExternalServiceError?)> GetProductVersionsListAsync(DataStandard dataStandard, ProductVersionList productVersions, Job job, CancellationToken cancellationToken)
         {
             if (dataStandard != DataStandard.S100)
             {
                 throw new NotImplementedException($"Data standard {dataStandard} is not supported.");
             }
+            var headersOption = CreateHeadersOption();
 
             try
             {
@@ -221,25 +204,72 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                         requestConfiguration =>
                         {
                             requestConfiguration.Headers.Add(ApiHeaderKeys.XCorrelationIdHeaderKey, (string)job.GetCorrelationId());
+                            requestConfiguration.Options.Add(headersOption);
                         },
                         cancellationToken);
 
                     return Result.Success(result);
                 });
 
-                if (s100ProductVersionResult.IsSuccess(out var response) && response is not null)
-                {
-                    return response.ToDomain();
-                }
-
-                _logger.LogSalesCatalogueApiError(SalesCatalogApiErrorLogView.Create(job));
-                return [];
+                return ProcessProductNamesResult(s100ProductVersionResult, headersOption, job);
             }
             catch (ApiException apiException)
             {
-                _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, (HttpStatusCode)apiException.ResponseStatusCode));
-                return [];
+                return HandleApiExceptionForProductEditionList(apiException, headersOption, job);
             }
+        }
+
+        private (ProductEditionList, ExternalServiceError) HandleApiExceptionForProductEditionList(ApiException apiException, HeadersInspectionHandlerOption headersOption, Job job)
+        {
+            var productEditionList = new ProductEditionList();
+
+            var externalServiceError = new ExternalServiceError(
+                (HttpStatusCode)apiException.ResponseStatusCode,
+                ExternalServiceName.SalesCatalogueService
+            );
+
+            if (apiException.ResponseStatusCode == (int)HttpStatusCode.NotModified)
+            {
+                var lastModifiedHeader = headersOption.ResponseHeaders.TryGetValue(ApiHeaderKeys.LastModifiedHeaderKey, out var values)
+                    ? values.FirstOrDefault()
+                    : null;
+
+                if (!DateTime.TryParse(lastModifiedHeader, CultureInfo.InvariantCulture, out var parsed))
+                {
+                    // Fall back if header missing or unparsable
+                    parsed = default;
+                }
+
+                productEditionList.ProductsLastModified = parsed;
+            }
+
+            _logger.LogUnexpectedSalesCatalogueStatusCode(SalesCatalogUnexpectedStatusLogView.Create(job, (HttpStatusCode)apiException.ResponseStatusCode));
+            return (productEditionList, externalServiceError);
+        }
+
+        private (ProductEditionList, ExternalServiceError?) ProcessProductNamesResult(IResult<S100ProductResponse?> s100ProductNamesResult, HeadersInspectionHandlerOption headersOption, Job job)
+        {
+            var lastModifiedHeader = headersOption.ResponseHeaders.TryGetValue(ApiHeaderKeys.LastModifiedHeaderKey, out var values)
+                ? values.FirstOrDefault()
+                : null;
+
+            _ = DateTime.TryParse(lastModifiedHeader, CultureInfo.InvariantCulture, out var lastModifiedActual);
+
+            if (s100ProductNamesResult.IsSuccess(out var productList) && productList is not null)
+            {
+                return (productList.ToDomain(lastModifiedActual), null);
+            }
+
+            _logger.LogSalesCatalogueApiError(SalesCatalogApiErrorLogView.Create(job));
+            return ([], null);
+        }
+
+        private static HeadersInspectionHandlerOption CreateHeadersOption()
+        {
+            return new HeadersInspectionHandlerOption
+            {
+                InspectResponseHeaders = true
+            };
         }
     }
 }

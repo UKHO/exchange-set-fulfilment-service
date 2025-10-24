@@ -34,10 +34,10 @@
 //        {
 //            var expectedResponse = new S100SalesCatalogueResponse
 //            {
-//                ResponseCode = HttpStatusCode.OK,
-//                LastModified = DateTime.UtcNow
+//                ErrorResponseCode = HttpStatusCode.OK,
+//                ProductsLastModified = DateTime.UtcNow
 //            };
-//            var expectedDate = expectedResponse.LastModified;
+//            var expectedDate = expectedResponse.ProductsLastModified;
 
 //            var successResult = A.Fake<IResult<S100SalesCatalogueResponse>>();
 //            S100SalesCatalogueResponse outResponse;
@@ -49,12 +49,12 @@
 
 //            var result = await _salesCatalogueService.GetS100ProductsFromSpecificDateAsync(null, _exchangeSetJob);
 //            S100SalesCatalogueResponse s100SalesCatalogueData = result.s100SalesCatalogueData;
-//            DateTime? lastModified = result.LastModified; 
+//            DateTime? lastModified = result.ProductsLastModified; 
 
 //            Assert.Multiple(() =>
 //            {
-//                Assert.That(s100SalesCatalogueData.ResponseCode, Is.EqualTo(expectedResponse.ResponseCode));
-//                Assert.That(s100SalesCatalogueData.LastModified, Is.EqualTo(expectedResponse.LastModified));
+//                Assert.That(s100SalesCatalogueData.ErrorResponseCode, Is.EqualTo(expectedResponse.ErrorResponseCode));
+//                Assert.That(s100SalesCatalogueData.ProductsLastModified, Is.EqualTo(expectedResponse.ProductsLastModified));
 //                Assert.That(lastModified, Is.EqualTo(expectedDate));
 //            });
 //        }
@@ -65,8 +65,8 @@
 //            var sinceDateTime = DateTime.UtcNow.AddDays(-1);
 //            var expectedResponse = new S100SalesCatalogueResponse
 //            {
-//                ResponseCode = HttpStatusCode.NotModified,
-//                LastModified = sinceDateTime
+//                ErrorResponseCode = HttpStatusCode.NotModified,
+//                ProductsLastModified = sinceDateTime
 //            };
 
 //            var successResult = A.Fake<IResult<S100SalesCatalogueResponse>>();
@@ -83,8 +83,8 @@
 
 //            Assert.Multiple(() =>
 //            {
-//                Assert.That(data.ResponseCode, Is.EqualTo(expectedResponse.ResponseCode));
-//                Assert.That(result.LastModified, Is.EqualTo(sinceDateTime));
+//                Assert.That(data.ErrorResponseCode, Is.EqualTo(expectedResponse.ErrorResponseCode));
+//                Assert.That(result.ProductsLastModified, Is.EqualTo(sinceDateTime));
 //            });
 //        }
 
@@ -106,7 +106,7 @@
 //            Assert.Multiple(() =>
 //            {
 //                Assert.That(data, Is.Not.Null);
-//                Assert.That(data.LastModified, Is.Null);
+//                Assert.That(data.ProductsLastModified, Is.Null);
 //            });
 //        }
 
@@ -115,8 +115,8 @@
 //        {
 //            var expectedResponse = new S100SalesCatalogueResponse
 //            {
-//                ResponseCode = HttpStatusCode.OK,
-//                LastModified = DateTime.UtcNow
+//                ErrorResponseCode = HttpStatusCode.OK,
+//                ProductsLastModified = DateTime.UtcNow
 //            };
 //            var successResult = A.Fake<IResult<S100SalesCatalogueResponse>>();
 //            S100SalesCatalogueResponse outResponse;
@@ -131,8 +131,8 @@
 
 //            Assert.Multiple(() =>
 //            {
-//                Assert.That(data.ResponseCode, Is.EqualTo(HttpStatusCode.OK));
-//                Assert.That(data.LastModified, Is.EqualTo(expectedResponse.LastModified));
+//                Assert.That(data.ErrorResponseCode, Is.EqualTo(HttpStatusCode.OK));
+//                Assert.That(data.ProductsLastModified, Is.EqualTo(expectedResponse.ProductsLastModified));
 //            });
 //        }
 
@@ -141,8 +141,8 @@
 //        {
 //            var expectedResponse = new S100SalesCatalogueResponse
 //            {
-//                ResponseCode = HttpStatusCode.BadRequest, // unexpected status code
-//                LastModified = null
+//                ErrorResponseCode = HttpStatusCode.BadRequest, // unexpected status code
+//                ProductsLastModified = null
 //            };
 
 //            var successResult = A.Fake<IResult<S100SalesCatalogueResponse>>();
@@ -160,8 +160,8 @@
 //            Assert.Multiple(() =>
 //            {
 //                Assert.That(data, Is.Not.Null);
-//                Assert.That(data.ResponseCode, Is.EqualTo(default(HttpStatusCode)));
-//                Assert.That(data.LastModified, Is.Null);
+//                Assert.That(data.ErrorResponseCode, Is.EqualTo(default(HttpStatusCode)));
+//                Assert.That(data.ProductsLastModified, Is.Null);
 //            });
 //        }
 
@@ -182,7 +182,7 @@
 //            Assert.Multiple(() =>
 //            {
 //                Assert.That(data, Is.Not.Null);
-//                Assert.That(result.LastModified, Is.Null);
+//                Assert.That(result.ProductsLastModified, Is.Null);
 //            });
 //        }
 
@@ -191,8 +191,8 @@
 //        {
 //            var expectedResponse = new S100SalesCatalogueResponse
 //            {
-//                ResponseCode = HttpStatusCode.OK,
-//                LastModified = DateTime.UtcNow
+//                ErrorResponseCode = HttpStatusCode.OK,
+//                ProductsLastModified = DateTime.UtcNow
 //            };
 
 //            int callCount = 0;
@@ -222,8 +222,8 @@
 //            Assert.Multiple(() =>
 //            {
 //                Assert.That(callCount, Is.EqualTo(4), "Should retry 3 times plus the initial call (total 4)");
-//                Assert.That(data.ResponseCode, Is.EqualTo(expectedResponse.ResponseCode));
-//                Assert.That(result.LastModified, Is.EqualTo(expectedResponse.LastModified));
+//                Assert.That(data.ErrorResponseCode, Is.EqualTo(expectedResponse.ErrorResponseCode));
+//                Assert.That(result.ProductsLastModified, Is.EqualTo(expectedResponse.ProductsLastModified));
 //            });
 //        }
 //    }

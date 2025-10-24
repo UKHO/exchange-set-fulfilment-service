@@ -8,6 +8,7 @@ using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
+using UKHO.ADDS.EFS.Domain.ExternalErrors;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 {
@@ -36,9 +37,32 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
             var productVersions = job.ProductVersions;
 
             // Call the product service to get product versions
-            var productEditionList = await _productService.GetProductVersionsListAsync(DataStandard.S100, productVersions, job, Environment.CancellationToken);
+            ProductEditionList productEditionList;
+            ExternalServiceError? externalServiceError;
 
-            if (productEditionList.ResponseCode == HttpStatusCode.OK)
+            try
+            {
+                (productEditionList, externalServiceError) = await _productService.GetProductVersionsListAsync(DataStandard.S100, productVersions, job, Environment.CancellationToken);
+
+                if (externalServiceError != null)
+                {
+                    job.ExternalServiceError = new ExternalServiceError(
+                        externalServiceError.ErrorResponseCode,
+                        externalServiceError.ServiceName
+                    );
+                }
+
+                job.ProductsLastModified = productEditionList.ProductsLastModified ?? DateTime.UtcNow;
+            }
+            catch (Exception)
+            {
+                await context.Subject.SignalAssemblyError();
+                return NodeResultStatus.Failed;
+            }
+
+            var statusCode = externalServiceError?.ErrorResponseCode ?? HttpStatusCode.OK;
+
+            if (statusCode == HttpStatusCode.OK || statusCode == HttpStatusCode.NotModified)
             {
                 // Log any requested products that weren't returned, but don't fail the build
                 if (productEditionList.ProductCountSummary.MissingProducts.HasProducts)
@@ -50,9 +74,20 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
                 job.RequestedProductCount = ProductCount.From(productVersions.Count());
                 job.ExchangeSetProductCount = productEditionList.Count;
-                job.RequestedProductsAlreadyUpToDateCount = productEditionList.ProductCountSummary.RequestedProductsAlreadyUpToDateCount;
+
+                if (statusCode == HttpStatusCode.NotModified)
+                {
+                    job.RequestedProductsAlreadyUpToDateCount = ProductCount.From(productVersions.Count());
+                }
+                else
+                {
+                    job.RequestedProductsAlreadyUpToDateCount = productEditionList.ProductCountSummary.RequestedProductsAlreadyUpToDateCount.IsInitialized()
+                        ? productEditionList.ProductCountSummary.RequestedProductsAlreadyUpToDateCount
+                        : ProductCount.From(0);
+                }
+
                 job.RequestedProductsNotInExchangeSet = productEditionList.ProductCountSummary.MissingProducts;
-  
+
                 await context.Subject.SignalBuildRequired();
                 return NodeResultStatus.Succeeded;
             }

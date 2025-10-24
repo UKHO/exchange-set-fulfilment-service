@@ -1,6 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Domain.External;
+using UKHO.ADDS.EFS.Domain.ExternalErrors;
 using UKHO.ADDS.EFS.Domain.Products;
 
 namespace UKHO.ADDS.EFS.Domain.Jobs
@@ -115,5 +116,9 @@ namespace UKHO.ADDS.EFS.Domain.Jobs
         public DataStandardProduct ProductIdentifier { get; init; }
 
         public ProductVersionList ProductVersions { get; init; }
+
+        public DateTime ProductsLastModified { get; set; }
+
+        public ExternalServiceError ExternalServiceError { get; set; }
     }
 }
