@@ -271,7 +271,7 @@ jobs:
             restoreDirectory: '$(Build.SourcesDirectory)/efs/packagesForTests'
 
         - task: DotNetCoreCLI@2
-          displayName: Run Functional tests
+          displayName: Run Functional Tests
           condition: eq('${{ parameters.ShortName }}', 'dev')
           inputs:
             command: test
