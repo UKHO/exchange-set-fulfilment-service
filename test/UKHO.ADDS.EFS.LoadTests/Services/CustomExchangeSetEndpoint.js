@@ -34,7 +34,7 @@ export function getProductNames(customData, customExchangeSetSize) {
     };
 
     const response = http.post(url, payload, params);
-    console.log(response);
+    
     check(response, {
         'Product Names created successfully': (r) => r.status === 202,
         'Product Names ID is present': (r) => r.json().fssBatchId !== undefined
@@ -76,7 +76,7 @@ export function getProductVersions(customData, customExchangeSetSize) {
     };
 
     const response = http.post(url, payload, params);
-    console.log(response);
+   
     check(response, {
         'Product Versions created successfully': (r) => r.status === 202,
         'Product Versions ID is present': (r) => r.json().fssBatchId !== undefined
@@ -118,7 +118,7 @@ export function updateSince(customData, customExchangeSetSize) {
     };
 
     const response = http.post(url, payload, params);
-    console.log(response);
+    
     check(response, {
         'Update Since created successfully': (r) => r.status === 202,
         'Update Since ID is present': (r) => r.json().fssBatchId !== undefined
