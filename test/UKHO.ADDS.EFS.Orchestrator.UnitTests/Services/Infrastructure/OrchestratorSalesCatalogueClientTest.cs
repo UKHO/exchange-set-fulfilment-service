@@ -59,8 +59,8 @@
 //            var lastModifiedTime = DateTime.UtcNow;
 //            var apiResponse = new S100SalesCatalogueResponse
 //            {
-//                ResponseCode = HttpStatusCode.OK,
-//                LastModified = lastModifiedTime
+//                ErrorResponseCode = HttpStatusCode.OK,
+//                ProductsLastModified = lastModifiedTime
 //            };
 
 //            var result = Result.Success(apiResponse);
@@ -81,8 +81,8 @@
 //            var sinceDateTime = DateTime.UtcNow.AddDays(-7);
 //            var apiResponse = new S100SalesCatalogueResponse
 //            {
-//                ResponseCode = HttpStatusCode.NotModified,
-//                LastModified = sinceDateTime
+//                ErrorResponseCode = HttpStatusCode.NotModified,
+//                ProductsLastModified = sinceDateTime
 //            };
 
 //            var result = Result.Success(apiResponse);
@@ -103,7 +103,7 @@
 //            var sinceDateTime = DateTime.UtcNow.AddDays(-7);
 //            var apiResponse = new S100SalesCatalogueResponse
 //            {
-//                ResponseCode = HttpStatusCode.BadRequest
+//                ErrorResponseCode = HttpStatusCode.BadRequest
 //            };
 
 //            var result = Result.Success(apiResponse);
@@ -142,8 +142,8 @@
 //            DateTime? sinceDateTime = null;
 //            var apiResponse = new S100SalesCatalogueResponse
 //            {
-//                ResponseCode = HttpStatusCode.OK,
-//                LastModified = DateTime.UtcNow
+//                ErrorResponseCode = HttpStatusCode.OK,
+//                ProductsLastModified = DateTime.UtcNow
 //            };
 
 //            var result = Result.Success(apiResponse);
@@ -166,7 +166,7 @@
 //            var jobTimestamp = _job.DataStandardTimestamp;
 //            var apiResponse = new S100ProductNamesResponse
 //            {
-//                ResponseCode = HttpStatusCode.OK,
+//                ErrorResponseCode = HttpStatusCode.OK,
 //                Products = new List<S100ProductNames> { new() { ProductName = "Product1" } }
 //            };
 
@@ -189,7 +189,7 @@
 //            var jobTimestamp = _job.DataStandardTimestamp;
 //            var apiResponse = new S100ProductNamesResponse
 //            {
-//                ResponseCode = HttpStatusCode.NotModified
+//                ErrorResponseCode = HttpStatusCode.NotModified
 //            };
 
 //            var result = Result.Success(apiResponse);
@@ -211,7 +211,7 @@
 //            var jobTimestamp = _job.DataStandardTimestamp;
 //            var apiResponse = new S100ProductNamesResponse
 //            {
-//                ResponseCode = HttpStatusCode.BadRequest
+//                ErrorResponseCode = HttpStatusCode.BadRequest
 //            };
 
 //            var result = Result.Success(apiResponse);
@@ -251,7 +251,7 @@
 //            var productNames = Array.Empty<string>();
 //            var apiResponse = new S100ProductNamesResponse
 //            {
-//                ResponseCode = HttpStatusCode.OK
+//                ErrorResponseCode = HttpStatusCode.OK
 //            };
 
 //            var result = Result.Success(apiResponse);
@@ -275,7 +275,7 @@
 //            var cancellationToken = new CancellationToken(true);
 //            var apiResponse = new S100ProductNamesResponse
 //            {
-//                ResponseCode = HttpStatusCode.OK
+//                ErrorResponseCode = HttpStatusCode.OK
 //            };
 
 //            var result = Result.Success(apiResponse);
@@ -298,8 +298,8 @@
 //            var sinceDateTime = DateTime.UtcNow.AddDays(-7);
 //            var apiResponse = new S100SalesCatalogueResponse
 //            {
-//                ResponseCode = HttpStatusCode.OK,
-//                LastModified = DateTime.UtcNow
+//                ErrorResponseCode = HttpStatusCode.OK,
+//                ProductsLastModified = DateTime.UtcNow
 //            };
 
 //            var result = Result.Success(apiResponse);
@@ -321,7 +321,7 @@
 //            var productNames = new[] { "Product1" };
 //            var apiResponse = new S100ProductNamesResponse
 //            {
-//                ResponseCode = HttpStatusCode.OK
+//                ErrorResponseCode = HttpStatusCode.OK
 //            };
 
 //            var result = Result.Success(apiResponse);

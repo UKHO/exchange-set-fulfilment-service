@@ -1,11 +1,12 @@
 ﻿using UKHO.ADDS.EFS.Domain.Builds.S100;
+using UKHO.ADDS.EFS.Domain.ExternalErrors;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Services;
+using UKHO.ADDS.EFS.Domain.User;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure;
 using UKHO.ADDS.EFS.Orchestrator.Pipelines.Infrastructure.Assembly;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
-using UKHO.ADDS.EFS.Domain.User;
 
 namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 {
@@ -33,19 +34,26 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S100
 
             try
             {
-                var batch = await _fileService.CreateBatchAsync(job.GetCorrelationId(), job.ExchangeSetType, _userIdentifier, Environment.CancellationToken);
+                var (batch, externalServiceError) = await _fileService.CreateBatchAsync(job.GetCorrelationId(), job.ExchangeSetType, _userIdentifier, Environment.CancellationToken);
 
                 job.BatchId = batch.BatchId;
                 job.ExchangeSetUrlExpiryDateTime = batch.BatchExpiryDateTime;
                 build.BatchId = batch.BatchId;
+                if (externalServiceError != null)
+                {
+                    job.ExternalServiceError = new ExternalServiceError(
+                        externalServiceError.ErrorResponseCode,
+                        externalServiceError.ServiceName
+                    );
+                    return NodeResultStatus.Failed;
+                }
+                return NodeResultStatus.Succeeded;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                // Could not create a batch, so the job should fail
                 await context.Subject.SignalAssemblyError();
+                return NodeResultStatus.Failed;
             }
-
-            return NodeResultStatus.Succeeded;
         }
     }
 }
