@@ -625,7 +625,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 "href",
                 new Dictionary<string, string>
                 {
-                    { "exchangeSetBatchStatusUri", "http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/status" },
+                    { "exchangeSetBatchStatusUri", "https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/status" },
                     { "exchangeSetBatchDetailsUri", "https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272" },
                     { "exchangeSetFileUri", "https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/exchangeset123.zip" }
                 },
