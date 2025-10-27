@@ -46,7 +46,9 @@ namespace UKHO.ADDS.EFS.Orchestrator
         private const string XCorrelationIdHeaderKeyDesciption = "Unique GUID.";
         private const string AcceptedDescription =
             "Request to create Exchange Set is accepted. Response body has Exchange Set status URL to track changes to the status of the task. " +
-            "It also contains the URL that the Exchange Set will be available on as well as the number of products in that Exchange Set.";
+            "It also contains the URL that the Exchange Set will be available on as well as the number of products in that Exchange Set.\r\n\r\n" +
+            "If there are no updates for any of the productVersions, then status code 202 ('Accepted') will be returned with an empty Exchange Set and the exchangeSetProductCount will be 0.\r\n\r\n" +
+            "If a requested Product has been cancelled or replaced, then the replacement Product will not be included in the response payload. Only the specific Products requested will be returned.";
         private const string UnauthorizedDescription =
             "Unauthorised - either you have not provided any credentials, or your credentials are not recognised.";
         private const string ForbiddenDescription =
@@ -281,8 +283,8 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     AddOpenApiHeaderParameters(operation, headers);
                     SetParameterDescriptions(operation);
                     SetCommonResponseDescriptions(operation);
-                                        
-                    operation.Responses["429"] = BuildTooManyRequestsResponse(TooManyRequestsDescription);                  
+
+                    operation.Responses["429"] = BuildTooManyRequestsResponse(TooManyRequestsDescription);
                     AddOpenApiExamples(operation, context.Description.RelativePath, context.Description.HttpMethod);
                     AddInternalServerErrorResponse(operation);
 
@@ -357,7 +359,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
             SetResponseDescriptions(operation, standardResponses);
 
             // Add special handling for UpdatesSince endpoint response headers
-            if (operation.Responses.TryGetValue("202", out var acceptedResponse) && 
+            if (operation.Responses.TryGetValue("202", out var acceptedResponse) &&
                 operation.Responses.TryGetValue("304", out var notModifiedResponse))
             {
                 // These are likely added by the UpdatesSince endpoint
@@ -366,8 +368,8 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     acceptedResponse.Headers = new Dictionary<string, OpenApiHeader>();
                 }
 
-                if (!acceptedResponse.Headers.ContainsKey("Date") && 
-                    notModifiedResponse?.Headers != null && 
+                if (!acceptedResponse.Headers.ContainsKey("Date") &&
+                    notModifiedResponse?.Headers != null &&
                     notModifiedResponse.Headers.ContainsKey("Last-Modified"))
                 {
                     acceptedResponse.Headers["Date"] = new OpenApiHeader
@@ -472,7 +474,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 {
                     response.Description = desc;
                 }
-            }            
+            }
         }
 
         private static void AddOpenApiExamples(OpenApiOperation operation, string? relativePath, string? httpMethod)
@@ -490,7 +492,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
             else if (string.Equals(relativePath, "v2/exchangeSet/s100/updatesSince", StringComparison.OrdinalIgnoreCase) &&
                 string.Equals(httpMethod, "POST", StringComparison.OrdinalIgnoreCase))
             {
-                AddUpdatesSinceHeaders(operation);
+                AddUpdatesSinceExamples(operation);
             }
         }
 
@@ -610,11 +612,42 @@ namespace UKHO.ADDS.EFS.Orchestrator
             }
         }
 
-        private static void AddUpdatesSinceHeaders(OpenApiOperation operation)
+        private static void AddUpdatesSinceExamples(OpenApiOperation operation)
         {
+            var requestExample = new OpenApiObject { ["sinceDateTime"] = new OpenApiString("2025-10-03T00:00:00Z") };
+            if (operation.RequestBody?.Content?.ContainsKey("application/json") == true)
+            {
+                operation.RequestBody.Content["application/json"].Example = requestExample;
+                operation.RequestBody.Description = "The JSON body containing sinceDateTime.";
+            }
+
+            var responseExample = BuildProductResponseExample(
+                "href",
+                new Dictionary<string, string>
+                {
+                    { "exchangeSetBatchStatusUri", "http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/status" },
+                    { "exchangeSetBatchDetailsUri", "https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272" },
+                    { "exchangeSetFileUri", "https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/exchangeset123.zip" }
+                },
+                "2021-02-17T16:19:32.269Z",
+                7,
+                4,
+                1,
+                "requestedProductsNotReturned",
+                new List<(string, string)>
+                {
+                    ("102CA32904820801013", "productWithdrawn"),
+                    ("101DE00904820801012", "InvalidProduct")
+                },
+                "7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272"
+            );
+            
+
             // Add header for 202 response
             if (operation.Responses.TryGetValue("202", out var acceptedResponse))
             {
+                acceptedResponse.Content["application/json"].Example = responseExample;
+
                 acceptedResponse.Headers ??= new Dictionary<string, OpenApiHeader>();
                 acceptedResponse.Headers["Date"] = new OpenApiHeader
                 {
@@ -626,7 +659,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     }
                 };
             }
-            
+
             // Add header for 304 response
             if (operation.Responses.TryGetValue("304", out var notModifiedResponse))
             {
@@ -644,12 +677,12 @@ namespace UKHO.ADDS.EFS.Orchestrator
         }
 
         private static void AddInternalServerErrorResponse(OpenApiOperation operation)
-        {            
+        {
             if (!operation.Responses.ContainsKey("500"))
             {
                 operation.Responses["500"] = new OpenApiResponse
                 {
-                    Description = "Internal Server Error.",                    
+                    Description = "Internal Server Error.",
                     Content = new Dictionary<string, OpenApiMediaType>
                     {
                         ["application/json"] = new OpenApiMediaType

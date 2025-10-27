@@ -59,7 +59,7 @@ paths:
           required: true
           schema:
             type: string
-            default: 546f6ad62a18437e96a5f1dff5cda796
+            default: b6d2944ed9414d6a8275f939eadac8ae
       requestBody:
         description: A list of S-100 product names for which the Exchange Set is requested.
         content:
@@ -76,10 +76,22 @@ paths:
         required: true
       responses:
         "202":
-          description: Request to create Exchange Set is accepted. Response body has
+          description: "Request to create Exchange Set is accepted. Response body has
             Exchange Set status URL to track changes to the status of the task.
             It also contains the URL that the Exchange Set will be available on
-            as well as the number of products in that Exchange Set.
+            as well as the number of products in that Exchange Set.\r
+
+            \r
+
+            If there are no updates for any of the productVersions, then status
+            code 202 ('Accepted') will be returned with an empty Exchange Set
+            and the exchangeSetProductCount will be 0.\r
+
+            \r
+
+            If a requested Product has been cancelled or replaced, then the
+            replacement Product will not be included in the response payload.
+            Only the specific Products requested will be returned."
           content:
             application/json:
               schema:
@@ -201,9 +213,9 @@ paths:
 
         \r
 
-        If none of the Products requested have an update, then a 'Not modified'
-        response will be returned. If none of the Products requested exist, then
-        status code 400 ('Bad Request') response will be returned."
+        If none of the Products requested have an update, then 'Accepted'
+        response will be returned. with all the requested products count
+        reflected in 'requestedProductsAlreadyUpToDateCount'."
       parameters:
         - name: callbackUri
           in: query
@@ -223,7 +235,7 @@ paths:
           required: true
           schema:
             type: string
-            default: 5e7330745b7e46c49c7156dfca6e9b07
+            default: 6d30b1d240404730b5bd01431b35cf57
       requestBody:
         description: A list of S-100 products with their edition and update numbers for
           which the Exchange Set is requested.
@@ -258,10 +270,22 @@ paths:
         required: true
       responses:
         "202":
-          description: Request to create Exchange Set is accepted. Response body has
+          description: "Request to create Exchange Set is accepted. Response body has
             Exchange Set status URL to track changes to the status of the task.
             It also contains the URL that the Exchange Set will be available on
-            as well as the number of products in that Exchange Set.
+            as well as the number of products in that Exchange Set.\r
+
+            \r
+
+            If there are no updates for any of the productVersions, then status
+            code 202 ('Accepted') will be returned with an empty Exchange Set
+            and the exchangeSetProductCount will be 0.\r
+
+            \r
+
+            If a requested Product has been cancelled or replaced, then the
+            replacement Product will not be included in the response payload.
+            Only the specific Products requested will be returned."
           content:
             application/json:
               schema:
@@ -405,19 +429,34 @@ paths:
           required: true
           schema:
             type: string
-            default: 6ad7c6c0fcd64f8d96369faf77c6e287
+            default: c17ce69576094218b0318e31adfd7f64
       requestBody:
+        description: The JSON body containing sinceDateTime.
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/UpdatesSinceRequest"
+            example:
+              sinceDateTime: 2025-10-03T00:00:00Z
         required: true
       responses:
         "202":
-          description: Request to create Exchange Set is accepted. Response body has
+          description: "Request to create Exchange Set is accepted. Response body has
             Exchange Set status URL to track changes to the status of the task.
             It also contains the URL that the Exchange Set will be available on
-            as well as the number of products in that Exchange Set.
+            as well as the number of products in that Exchange Set.\r
+
+            \r
+
+            If there are no updates for any of the productVersions, then status
+            code 202 ('Accepted') will be returned with an empty Exchange Set
+            and the exchangeSetProductCount will be 0.\r
+
+            \r
+
+            If a requested Product has been cancelled or replaced, then the
+            replacement Product will not be included in the response payload.
+            Only the specific Products requested will be returned."
           headers:
             Date:
               description: Returns the current date and time on the server and should be used
@@ -431,6 +470,24 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CustomExchangeSetResponse"
+              example:
+                _links:
+                  exchangeSetBatchStatusUri:
+                    href: http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/status
+                  exchangeSetBatchDetailsUri:
+                    href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272
+                  exchangeSetFileUri:
+                    href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/exchangeset123.zip
+                exchangeSetUrlExpiryDateTime: 2021-02-17T16:19:32.269Z
+                requestedProductCount: 7
+                returnedProductCount: 4
+                requestedProductsAlreadyUpToDateCount: 1
+                requestedProductsNotReturned:
+                  - productName: 102CA32904820801013
+                    reason: productWithdrawn
+                  - productName: 101DE00904820801012
+                    reason: InvalidProduct
+                fssBatchId: 7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272
         "304":
           description: If there are no updates since the sinceDateTime parameter, then a
             'Not modified' response will be returned.
@@ -455,6 +512,10 @@ paths:
             access this resource.
         "404":
           description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundResponseModel"
         "429":
           description: You have sent too many requests in a given amount of time. Please
             back-off for the time in the Retry-After header (in seconds) and try
@@ -739,6 +800,13 @@ components:
       nullable: true
     MessageVersion: {}
     MissingProductList: {}
+    NotFoundResponseModel:
+      type: object
+      properties:
+        correlationId:
+          type: string
+        detail:
+          type: string
     ProductCount: {}
     ProductVersionRequest:
       type: object
