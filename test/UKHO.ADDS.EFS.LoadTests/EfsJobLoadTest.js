@@ -5,13 +5,16 @@ import { Counter } from 'k6/metrics';
 
 import { getSmallJobFilter, getMediumJobFilter } from './Services/JobFilterProvider.js';
 import { create, status, build } from './Services/JobScenarios.js';
-import { authenticateUsingAzure } from './Services/AzureTokenProvider.js';
+import { getSmallProductNamesData, getMediumProductNamesData, getSmallUpdateSinceData, getMediumUpdateSinceData, getSmallProductVersionsData, getMediumProductVersionsData } from './Services/CustomExchangeSetDataProvider.js';
+import { getProductNames, getProductVersions, updateSince } from './Services/CustomExchangeSetEndpoint.js';
 
 const config = JSON.parse(open('./config.json'));
 
 // Custom counters for tracking job creation requests
 const smallJobCounter = new Counter('small_job_requests');
 const mediumJobCounter = new Counter('medium_job_requests');
+const smallCustomExchangeSetCounter = new Counter('small_custom_exchange_requests');
+const mediumCustomExchangeSetCounter = new Counter('medium_custom_exchange_set_requests');
 
 const totalRequests = config.NumberOfRequests; // Total requests for the entire test duration
 
@@ -19,6 +22,8 @@ const totalRequests = config.NumberOfRequests; // Total requests for the entire 
 const CYCLE = {
   SMALL_JOBS: totalRequests * 0.95,   // 95% of 1000
   MEDIUM_JOBS: totalRequests * 0.05,   // 5% of 1000
+  SMALL_CUSTOM_EXCHANGE_SETS: totalRequests * 0.95,   // 95% of 1000
+  MEDIUM_CUSTOM_EXCHANGE_SETS: totalRequests * 0.05,   // 5% of 1000
   STATUS_CHECKS: totalRequests,
   BUILD_CHECKS: totalRequests
 };
@@ -46,6 +51,84 @@ export let options = {
       executor: 'constant-arrival-rate',
       exec: 'createMediumJob',
       rate: Math.ceil(CYCLE.MEDIUM_JOBS / (TEST_DURATION / 120)),
+      timeUnit: '120s',
+      duration: `${TEST_DURATION}s`,
+      preAllocatedVUs: 1,
+      maxVUs: 2,
+      startTime: '5s',
+      gracefulStop: '30s'
+    },
+
+    // Small productNames Custom Exchange Set (95% of job creation requests)
+    SmallProductNamesCreation: {
+      executor: 'constant-arrival-rate',
+      exec: 'smallProductNamesCustomExchangeSet',
+      rate: Math.ceil(CYCLE.SMALL_CUSTOM_EXCHANGE_SETS / (TEST_DURATION / 120)),
+      timeUnit: '120s',
+      duration: `${TEST_DURATION}s`,
+      preAllocatedVUs: 5,
+      maxVUs: 50,
+      startTime: '0s',
+      gracefulStop: '30s'
+    },
+
+    // Medium productNames Custom Exchange Set (5% of job creation requests)
+    MediumProductNamesCreation: {
+      executor: 'constant-arrival-rate',
+      exec: 'MediumProductNamesCustomExchangeSet',
+      rate: Math.ceil(CYCLE.MEDIUM_CUSTOM_EXCHANGE_SETS / (TEST_DURATION / 120)),
+      timeUnit: '120s',
+      duration: `${TEST_DURATION}s`,
+      preAllocatedVUs: 1,
+      maxVUs: 2,
+      startTime: '5s',
+      gracefulStop: '30s'
+    },
+
+    // Small Product Versions Custom Exchange Set (95% of job creation requests)
+    SmallProductVersionsCreation: {
+      executor: 'constant-arrival-rate',
+      exec: 'smallProductVersionsCustomExchangeSet',
+      rate: Math.ceil(CYCLE.SMALL_CUSTOM_EXCHANGE_SETS / (TEST_DURATION / 120)),
+      timeUnit: '120s',
+      duration: `${TEST_DURATION}s`,
+      preAllocatedVUs: 5,
+      maxVUs: 50,
+      startTime: '0s',
+      gracefulStop: '30s'
+    },
+
+    // Medium Product Versions Custom Exchange Set (5% of job creation requests)
+    MediumProductVersionsCreation: {
+      executor: 'constant-arrival-rate',
+      exec: 'MediumProductVersionsCustomExchangeSet',
+      rate: Math.ceil(CYCLE.MEDIUM_CUSTOM_EXCHANGE_SETS / (TEST_DURATION / 120)),
+      timeUnit: '120s',
+      duration: `${TEST_DURATION}s`,
+      preAllocatedVUs: 1,
+      maxVUs: 2,
+      startTime: '5s',
+      gracefulStop: '30s'
+    },
+
+    // Small UpdateSince Custom Exchange Set (95% of job creation requests)
+    SmallUpdateSinceCreation: {
+      executor: 'constant-arrival-rate',
+      exec: 'smallUpdateSinceCustomExchangeSet',
+      rate: Math.ceil(CYCLE.SMALL_CUSTOM_EXCHANGE_SETS / (TEST_DURATION / 120)),
+      timeUnit: '120s',
+      duration: `${TEST_DURATION}s`,
+      preAllocatedVUs: 5,
+      maxVUs: 50,
+      startTime: '0s',
+      gracefulStop: '30s'
+    },
+
+    // Medium UpdateSince Custom Exchange Set (5% of job creation requests)
+    MediumUpdateSinceCreation: {
+      executor: 'constant-arrival-rate',
+      exec: 'MediumUpdateSinceCustomExchangeSet',
+      rate: Math.ceil(CYCLE.MEDIUM_CUSTOM_EXCHANGE_SETS / (TEST_DURATION / 120)),
       timeUnit: '120s',
       duration: `${TEST_DURATION}s`,
       preAllocatedVUs: 1,
@@ -137,6 +220,84 @@ export function getBuildStatusOfJob() {
   }
   
   sleep(1);
+}
+
+export function smallProductNamesCustomExchangeSet() {
+    smallCustomExchangeSetCounter.add(1);
+    const customData = getSmallProductNamesData();
+    const result = getProductNames(customData, 'Small');
+
+    if (result.status === 'success') {
+        const buildTimeStr = (typeof result.buildTime === 'number' && !isNaN(result.buildTime)) ? result.buildTime.toFixed(2) : 'N/A';
+        console.log(`Total time: ${result.totalTime.toFixed(2)}s, Build time: ${buildTimeStr}ms`);
+    }
+
+    sleep(1);
+}
+
+export function MediumProductNamesCustomExchangeSet() {
+    mediumCustomExchangeSetCounter.add(1);
+    const customData = getMediumProductNamesData();
+    const result = getProductNames(customData, 'Medium');
+
+    if (result.status === 'success') {
+        const buildTimeStr = (typeof result.buildTime === 'number' && !isNaN(result.buildTime)) ? result.buildTime.toFixed(2) : 'N/A';
+        console.log(`Total time: ${result.totalTime.toFixed(2)}s, Build time: ${buildTimeStr}ms`);
+    }
+
+    sleep(1);
+}
+
+export function smallUpdateSinceCustomExchangeSet() {
+    smallCustomExchangeSetCounter.add(1);
+    const customData = getSmallUpdateSinceData();
+    const result = updateSince(customData, 'Small');
+
+    if (result.status === 'success') {
+        const buildTimeStr = (typeof result.buildTime === 'number' && !isNaN(result.buildTime)) ? result.buildTime.toFixed(2) : 'N/A';
+        console.log(`Total time: ${result.totalTime.toFixed(2)}s, Build time: ${buildTimeStr}ms`);
+    }
+
+    sleep(1);
+}
+
+export function MediumUpdateSinceCustomExchangeSet() {
+    mediumCustomExchangeSetCounter.add(1);
+    const customData = getMediumUpdateSinceData();
+    const result = updateSince(customData, 'Medium');
+
+    if (result.status === 'success') {
+        const buildTimeStr = (typeof result.buildTime === 'number' && !isNaN(result.buildTime)) ? result.buildTime.toFixed(2) : 'N/A';
+        console.log(`Total time: ${result.totalTime.toFixed(2)}s, Build time: ${buildTimeStr}ms`);
+    }
+
+    sleep(1);
+}
+
+export function smallProductVersionsCustomExchangeSet() {
+    smallCustomExchangeSetCounter.add(1);
+    const customData = getSmallProductVersionsData();
+    const result = getProductVersions(customData, 'Small');
+
+    if (result.status === 'success') {
+        const buildTimeStr = (typeof result.buildTime === 'number' && !isNaN(result.buildTime)) ? result.buildTime.toFixed(2) : 'N/A';
+        console.log(`Total time: ${result.totalTime.toFixed(2)}s, Build time: ${buildTimeStr}ms`);
+    }
+
+    sleep(1);
+}
+
+export function MediumProductVersionsCustomExchangeSet() {
+    mediumCustomExchangeSetCounter.add(1);
+    const customData = getMediumProductVersionsData();
+    const result = getProductVersions(customData, 'Medium');
+
+    if (result.status === 'success') {
+        const buildTimeStr = (typeof result.buildTime === 'number' && !isNaN(result.buildTime)) ? result.buildTime.toFixed(2) : 'N/A';
+        console.log(`Total time: ${result.totalTime.toFixed(2)}s, Build time: ${buildTimeStr}ms`);
+    }
+
+    sleep(1);
 }
 
 export function handleSummary(data) {
