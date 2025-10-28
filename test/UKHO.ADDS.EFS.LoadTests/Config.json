@@ -1,42 +1,726 @@
 {
-  "Base_URL": "",
-  "EFS_TENANT_ID": "",
-  "EFS_CLIENT_ID": "",
-  "EFS_SCOPES": "",
-  "EFS_CLIENT_SECRET": "",
-  "JobsEndpoint": "/jobs",
-  "JobStatusEndpoint": "/jobs/{jobId}",
-  "JobBuildEndpoint": "/jobs/{jobId}/build",
-  "DownloadFlag": false,
-  "FilterData": {
-    "Small": [
-      "ProductName eq '101MM16OTMU' or ProductName eq '111MT1KZ7WA' or ProductName eq '111MT4B4UXI' or ProductName eq '111MT3XY8ZL' or ProductName eq '111MT4WE4S3' or ProductName eq '111MT2GVMYG' or ProductName eq '111MT3Q6RFX' or ProductName eq '104MT44S5X6' or ProductName eq '104MT48TK4Z' or ProductName eq '104MT3LISYV' or ProductName eq '104MT3RQ15I' ",
-      "ProductName eq '104MT44S5X6' or ProductName eq '104MT48TK4Z'",
-      "ProductName eq '111MT1KZ7WA'",
-      "ProductName eq '111MT4B4UXI'",
-      "ProductName eq '111MT3XY8ZL'",
-      "ProductName eq '111MT4WE4S3'",
-      "ProductName eq '111MT2GVMYG'",
-      "ProductName eq '111MT3Q6RFX'",
-      "ProductName eq '104MT44S5X6'",
-      "ProductName eq '104MT48TK4Z'",
-      "ProductName eq '104MT3LISYV'",
-      "ProductName eq '104MT3RQ15I'"
-    ],
-    "Medium": [
-      "ProductName eq '111MT4B4UXI' or ProductName eq '111MT3XY8ZL' or ProductName eq '111MT4WE4S3' or ProductName eq '111MT2GVMYG' or ProductName eq '111MT3Q6RFX' or ProductName eq '104MT44S5X6' or ProductName eq '104MT48TK4Z' or ProductName eq '104MT3LISYV' or ProductName eq '104MT3RQ15I' or ProductName eq '104MT4NDECN' or ProductName eq '102MT48I4XD' or ProductName eq '102MT5H1MTQ' or ProductName eq '102MT54IZDN' or ProductName eq '102MT2YALAC' or ProductName eq '101MT3GSZ00' or ProductName eq '102MT210UN5' or ProductName eq '101MT4921M6' or ProductName eq '101MT2SZYFL' or ProductName eq '101MT5H8L6R' or ProductName eq '101MT14BZDU' or ProductName eq '101MT5B8NRY' or ProductName eq '101MT14DGLY' or ProductName eq '101MT301IL8' or ProductName eq '101MT3ITQIM' or ProductName eq '104LV1OD2U8'",
-      "ProductName eq '111MT4B4UXI' or ProductName eq '111MT3XY8ZL' or ProductName eq '111MT4WE4S3' or ProductName eq '111MT2GVMYG' or ProductName eq '111MT3Q6RFX' or ProductName eq '104MT44S5X6' or ProductName eq '104MT48TK4Z' or ProductName eq '104MT3LISYV' or ProductName eq '104MT3RQ15I' or ProductName eq '104MT4NDECN' or ProductName eq '102MT48I4XD' or ProductName eq '102MT5H1MTQ' or ProductName eq '102MT54IZDN' or ProductName eq '102MT2YALAC' or ProductName eq '101MT3GSZ00' or ProductName eq '102MT210UN5' or ProductName eq '101MT4921M6' or ProductName eq '101MT2SZYFL' or ProductName eq '101MT5H8L6R' or ProductName eq '101MT14BZDU' or ProductName eq '101MT5B8NRY' or ProductName eq '101MT14DGLY' or ProductName eq '101MT301IL8' or ProductName eq '101MT3ITQIM' or ProductName eq '104LV1OD2U8'",
-      "ProductName eq '111MT4B4UXI' or ProductName eq '111MT3XY8ZL' or ProductName eq '111MT4WE4S3' or ProductName eq '111MT2GVMYG' or ProductName eq '111MT3Q6RFX' or ProductName eq '104MT44S5X6' or ProductName eq '104MT48TK4Z' or ProductName eq '104MT3LISYV' or ProductName eq '104MT3RQ15I' or ProductName eq '104MT4NDECN' or ProductName eq '102MT48I4XD' or ProductName eq '102MT5H1MTQ' or ProductName eq '102MT54IZDN' or ProductName eq '102MT2YALAC' or ProductName eq '101MT3GSZ00' or ProductName eq '102MT210UN5' or ProductName eq '101MT4921M6' or ProductName eq '101MT2SZYFL' or ProductName eq '101MT5H8L6R' or ProductName eq '101MT14BZDU' or ProductName eq '101MT5B8NRY' or ProductName eq '101MT14DGLY' or ProductName eq '101MT301IL8' or ProductName eq '101MT3ITQIM' or ProductName eq '104LV1OD2U8'",
-      "ProductName eq '111MT4B4UXI' or ProductName eq '111MT3XY8ZL' or ProductName eq '111MT4WE4S3' or ProductName eq '111MT2GVMYG' or ProductName eq '111MT3Q6RFX' or ProductName eq '104MT44S5X6' or ProductName eq '104MT48TK4Z' or ProductName eq '104MT3LISYV' or ProductName eq '104MT3RQ15I' or ProductName eq '104MT4NDECN' or ProductName eq '102MT48I4XD' or ProductName eq '102MT5H1MTQ' or ProductName eq '102MT54IZDN' or ProductName eq '102MT2YALAC' or ProductName eq '101MT3GSZ00' or ProductName eq '102MT210UN5' or ProductName eq '101MT4921M6' or ProductName eq '101MT2SZYFL' or ProductName eq '101MT5H8L6R' or ProductName eq '101MT14BZDU' or ProductName eq '101MT5B8NRY' or ProductName eq '101MT14DGLY' or ProductName eq '101MT301IL8' or ProductName eq '101MT3ITQIM' or ProductName eq '104LV1OD2U8'",
-      "ProductName eq '111MT4B4UXI' or ProductName eq '111MT3XY8ZL' or ProductName eq '111MT4WE4S3' or ProductName eq '111MT2GVMYG' or ProductName eq '111MT3Q6RFX' or ProductName eq '104MT44S5X6' or ProductName eq '104MT48TK4Z' or ProductName eq '104MT3LISYV' or ProductName eq '104MT3RQ15I' or ProductName eq '104MT4NDECN' or ProductName eq '102MT48I4XD' or ProductName eq '102MT5H1MTQ' or ProductName eq '102MT54IZDN' or ProductName eq '102MT2YALAC' or ProductName eq '101MT3GSZ00' or ProductName eq '102MT210UN5' or ProductName eq '101MT4921M6' or ProductName eq '101MT2SZYFL' or ProductName eq '101MT5H8L6R' or ProductName eq '101MT14BZDU' or ProductName eq '101MT5B8NRY' or ProductName eq '101MT14DGLY' or ProductName eq '101MT301IL8' or ProductName eq '101MT3ITQIM' or ProductName eq '104LV1OD2U8' or ProductName eq '104NO1S1W3D' or ProductName eq '104IS47R3UR'",
-      "ProductName eq '111MT4B4UXI' or ProductName eq '111MT3XY8ZL' or ProductName eq '111MT4WE4S3' or ProductName eq '111MT2GVMYG' or ProductName eq '111MT3Q6RFX' or ProductName eq '104MT44S5X6' or ProductName eq '104MT48TK4Z' or ProductName eq '104MT3LISYV' or ProductName eq '104MT3RQ15I' or ProductName eq '104MT4NDECN' or ProductName eq '102MT48I4XD' or ProductName eq '102MT5H1MTQ' or ProductName eq '102MT54IZDN' or ProductName eq '102MT2YALAC' or ProductName eq '101MT3GSZ00' or ProductName eq '102MT210UN5' or ProductName eq '101MT4921M6' or ProductName eq '101MT2SZYFL' or ProductName eq '101MT5H8L6R' or ProductName eq '101MT14BZDU' or ProductName eq '101MT5B8NRY' or ProductName eq '101MT14DGLY' or ProductName eq '101MT301IL8' or ProductName eq '101MT3ITQIM' or ProductName eq '104LV1OD2U8' or ProductName eq '104NO1S1W3D' or ProductName eq '104IS47R3UR'",
-      "ProductName eq '111MT4B4UXI' or ProductName eq '111MT3XY8ZL' or ProductName eq '111MT4WE4S3' or ProductName eq '111MT2GVMYG' or ProductName eq '111MT3Q6RFX' or ProductName eq '104MT44S5X6' or ProductName eq '104MT48TK4Z' or ProductName eq '104MT3LISYV' or ProductName eq '104MT3RQ15I' or ProductName eq '104MT4NDECN' or ProductName eq '102MT48I4XD' or ProductName eq '102MT5H1MTQ' or ProductName eq '102MT54IZDN' or ProductName eq '102MT2YALAC' or ProductName eq '101MT3GSZ00' or ProductName eq '102MT210UN5' or ProductName eq '101MT4921M6' or ProductName eq '101MT2SZYFL' or ProductName eq '101MT5H8L6R' or ProductName eq '101MT14BZDU' or ProductName eq '101MT5B8NRY' or ProductName eq '101MT14DGLY' or ProductName eq '101MT301IL8' or ProductName eq '101MT3ITQIM' or ProductName eq '104LV1OD2U8' or ProductName eq '104NO1S1W3D' or ProductName eq '104IS47R3UR'",
-      "ProductName eq '111MT4B4UXI' or ProductName eq '111MT3XY8ZL' or ProductName eq '111MT4WE4S3' or ProductName eq '111MT2GVMYG' or ProductName eq '111MT3Q6RFX' or ProductName eq '104MT44S5X6' or ProductName eq '104MT48TK4Z' or ProductName eq '104MT3LISYV' or ProductName eq '104MT3RQ15I' or ProductName eq '104MT4NDECN' or ProductName eq '102MT48I4XD' or ProductName eq '102MT5H1MTQ' or ProductName eq '102MT54IZDN' or ProductName eq '102MT2YALAC' or ProductName eq '101MT3GSZ00' or ProductName eq '102MT210UN5' or ProductName eq '101MT4921M6' or ProductName eq '101MT2SZYFL' or ProductName eq '101MT5H8L6R' or ProductName eq '101MT14BZDU' or ProductName eq '101MT5B8NRY' or ProductName eq '101MT14DGLY' or ProductName eq '101MT301IL8' or ProductName eq '101MT3ITQIM' or ProductName eq '104LV1OD2U8' or ProductName eq '104NO1S1W3D' or ProductName eq '104IS47R3UR'",
-      "ProductName eq '101MM16OTMU' or ProductName eq '111MT1KZ7WA' or ProductName eq '111MT4B4UXI' or ProductName eq '111MT3XY8ZL' or ProductName eq '111MT4WE4S3' or ProductName eq '111MT2GVMYG' or ProductName eq '111MT3Q6RFX' or ProductName eq '104MT44S5X6' or ProductName eq '104MT48TK4Z' or ProductName eq '104MT3LISYV' or ProductName eq '104MT3RQ15I' or ProductName eq '104MT4NDECN' or ProductName eq '102MT48I4XD' or ProductName eq '102MT5H1MTQ' or ProductName eq '102MT54IZDN' or ProductName eq '102MT2YALAC' or ProductName eq '101MT3GSZ00' or ProductName eq '102MT210UN5' or ProductName eq '101MT4921M6' or ProductName eq '101MT2SZYFL' or ProductName eq '101MT5H8L6R' or ProductName eq '101MT14BZDU' or ProductName eq '101MT5B8NRY' or ProductName eq '101MT14DGLY' or ProductName eq '101MT301IL8' or ProductName eq '101MT3ITQIM' or ProductName eq '104LV1OD2U8' or ProductName eq '104NO1S1W3D' or ProductName eq '104IS47R3UR' or ProductName eq '104KR5A5X13' or ProductName eq '104OM3GWL7R' or ProductName eq '111MT4B4UXI' or ProductName eq '111MT3XY8ZL' or ProductName eq '111MT4WE4S3' or ProductName eq '111MT2GVMYG' or ProductName eq '111MT3Q6RFX' or ProductName eq '104MT44S5X6' or ProductName eq '104MT48TK4Z' or ProductName eq '104MT3LISYV' or ProductName eq '104MT3RQ15I' or ProductName eq '104MT4NDECN' or ProductName eq '102MT48I4XD' or ProductName eq '102MT5H1MTQ' or ProductName eq '102MT54IZDN' or ProductName eq '102MT2YALAC' or ProductName eq '101MT3GSZ00' or ProductName eq '102MT210UN5' or ProductName eq '101MT4921M6' or ProductName eq '101MT2SZYFL' or ProductName eq '101MT5H8L6R' or ProductName eq '101MT14BZDU' or ProductName eq '101MT5B8NRY' or ProductName eq '101MT14DGLY' or ProductName eq '101MT301IL8' or ProductName eq '101MT3ITQIM' or ProductName eq '104LV1OD2U8' or ProductName eq '104NO1S1W3D' or ProductName eq '104IS47R3UR'"
-    ]
-  },
-  "NumberOfRequests": 10000,
-  "DurationInSeconds": 1800,
-  "EFSToken": "",
-  "CompletedJobId": ""
+    "Base_URL": "",
+    "EFS_TENANT_ID": "",
+    "EFS_CLIENT_ID": "",
+    "EFS_SCOPES": "",
+    "EFS_CLIENT_SECRET": "",
+    "JobsEndpoint": "/jobs",
+    "JobStatusEndpoint": "/jobs/{jobId}",
+    "JobBuildEndpoint": "/jobs/{jobId}/build",
+    "ProductNamesEndpoint": "/v2/exchangeSet/s100/productNames",
+    "ProductVersionsEndpoint": "/v2/exchangeSet/s100/productVersions",
+    "UpdatesSinceEndpoint": "/v2/exchangeSet/s100/updatesSince",
+    "DownloadFlag": false,
+    "FilterData": {
+        "Small": [
+            "ProductName eq '101MM16OTMU' or ProductName eq '111MT1KZ7WA' or ProductName eq '111MT4B4UXI' or ProductName eq '111MT3XY8ZL' or ProductName eq '111MT4WE4S3' or ProductName eq '111MT2GVMYG' or ProductName eq '111MT3Q6RFX' or ProductName eq '104MT44S5X6' or ProductName eq '104MT48TK4Z' or ProductName eq '104MT3LISYV' or ProductName eq '104MT3RQ15I' ",
+            "ProductName eq '104MT44S5X6' or ProductName eq '104MT48TK4Z'",
+            "ProductName eq '111MT1KZ7WA'",
+            "ProductName eq '111MT4B4UXI'",
+            "ProductName eq '111MT3XY8ZL'",
+            "ProductName eq '111MT4WE4S3'",
+            "ProductName eq '111MT2GVMYG'",
+            "ProductName eq '111MT3Q6RFX'",
+            "ProductName eq '104MT44S5X6'",
+            "ProductName eq '104MT48TK4Z'",
+            "ProductName eq '104MT3LISYV'",
+            "ProductName eq '104MT3RQ15I'"
+        ],
+        "Medium": [
+            "ProductName eq '111MT4B4UXI' or ProductName eq '111MT3XY8ZL' or ProductName eq '111MT4WE4S3' or ProductName eq '111MT2GVMYG' or ProductName eq '111MT3Q6RFX' or ProductName eq '104MT44S5X6' or ProductName eq '104MT48TK4Z' or ProductName eq '104MT3LISYV' or ProductName eq '104MT3RQ15I' or ProductName eq '104MT4NDECN' or ProductName eq '102MT48I4XD' or ProductName eq '102MT5H1MTQ' or ProductName eq '102MT54IZDN' or ProductName eq '102MT2YALAC' or ProductName eq '101MT3GSZ00' or ProductName eq '102MT210UN5' or ProductName eq '101MT4921M6' or ProductName eq '101MT2SZYFL' or ProductName eq '101MT5H8L6R' or ProductName eq '101MT14BZDU' or ProductName eq '101MT5B8NRY' or ProductName eq '101MT14DGLY' or ProductName eq '101MT301IL8' or ProductName eq '101MT3ITQIM' or ProductName eq '104LV1OD2U8'",
+            "ProductName eq '111MT4B4UXI' or ProductName eq '111MT3XY8ZL' or ProductName eq '111MT4WE4S3' or ProductName eq '111MT2GVMYG' or ProductName eq '111MT3Q6RFX' or ProductName eq '104MT44S5X6' or ProductName eq '104MT48TK4Z' or ProductName eq '104MT3LISYV' or ProductName eq '104MT3RQ15I' or ProductName eq '104MT4NDECN' or ProductName eq '102MT48I4XD' or ProductName eq '102MT5H1MTQ' or ProductName eq '102MT54IZDN' or ProductName eq '102MT2YALAC' or ProductName eq '101MT3GSZ00' or ProductName eq '102MT210UN5' or ProductName eq '101MT4921M6' or ProductName eq '101MT2SZYFL' or ProductName eq '101MT5H8L6R' or ProductName eq '101MT14BZDU' or ProductName eq '101MT5B8NRY' or ProductName eq '101MT14DGLY' or ProductName eq '101MT301IL8' or ProductName eq '101MT3ITQIM' or ProductName eq '104LV1OD2U8'",
+            "ProductName eq '111MT4B4UXI' or ProductName eq '111MT3XY8ZL' or ProductName eq '111MT4WE4S3' or ProductName eq '111MT2GVMYG' or ProductName eq '111MT3Q6RFX' or ProductName eq '104MT44S5X6' or ProductName eq '104MT48TK4Z' or ProductName eq '104MT3LISYV' or ProductName eq '104MT3RQ15I' or ProductName eq '104MT4NDECN' or ProductName eq '102MT48I4XD' or ProductName eq '102MT5H1MTQ' or ProductName eq '102MT54IZDN' or ProductName eq '102MT2YALAC' or ProductName eq '101MT3GSZ00' or ProductName eq '102MT210UN5' or ProductName eq '101MT4921M6' or ProductName eq '101MT2SZYFL' or ProductName eq '101MT5H8L6R' or ProductName eq '101MT14BZDU' or ProductName eq '101MT5B8NRY' or ProductName eq '101MT14DGLY' or ProductName eq '101MT301IL8' or ProductName eq '101MT3ITQIM' or ProductName eq '104LV1OD2U8'",
+            "ProductName eq '111MT4B4UXI' or ProductName eq '111MT3XY8ZL' or ProductName eq '111MT4WE4S3' or ProductName eq '111MT2GVMYG' or ProductName eq '111MT3Q6RFX' or ProductName eq '104MT44S5X6' or ProductName eq '104MT48TK4Z' or ProductName eq '104MT3LISYV' or ProductName eq '104MT3RQ15I' or ProductName eq '104MT4NDECN' or ProductName eq '102MT48I4XD' or ProductName eq '102MT5H1MTQ' or ProductName eq '102MT54IZDN' or ProductName eq '102MT2YALAC' or ProductName eq '101MT3GSZ00' or ProductName eq '102MT210UN5' or ProductName eq '101MT4921M6' or ProductName eq '101MT2SZYFL' or ProductName eq '101MT5H8L6R' or ProductName eq '101MT14BZDU' or ProductName eq '101MT5B8NRY' or ProductName eq '101MT14DGLY' or ProductName eq '101MT301IL8' or ProductName eq '101MT3ITQIM' or ProductName eq '104LV1OD2U8'",
+            "ProductName eq '111MT4B4UXI' or ProductName eq '111MT3XY8ZL' or ProductName eq '111MT4WE4S3' or ProductName eq '111MT2GVMYG' or ProductName eq '111MT3Q6RFX' or ProductName eq '104MT44S5X6' or ProductName eq '104MT48TK4Z' or ProductName eq '104MT3LISYV' or ProductName eq '104MT3RQ15I' or ProductName eq '104MT4NDECN' or ProductName eq '102MT48I4XD' or ProductName eq '102MT5H1MTQ' or ProductName eq '102MT54IZDN' or ProductName eq '102MT2YALAC' or ProductName eq '101MT3GSZ00' or ProductName eq '102MT210UN5' or ProductName eq '101MT4921M6' or ProductName eq '101MT2SZYFL' or ProductName eq '101MT5H8L6R' or ProductName eq '101MT14BZDU' or ProductName eq '101MT5B8NRY' or ProductName eq '101MT14DGLY' or ProductName eq '101MT301IL8' or ProductName eq '101MT3ITQIM' or ProductName eq '104LV1OD2U8' or ProductName eq '104NO1S1W3D' or ProductName eq '104IS47R3UR'",
+            "ProductName eq '111MT4B4UXI' or ProductName eq '111MT3XY8ZL' or ProductName eq '111MT4WE4S3' or ProductName eq '111MT2GVMYG' or ProductName eq '111MT3Q6RFX' or ProductName eq '104MT44S5X6' or ProductName eq '104MT48TK4Z' or ProductName eq '104MT3LISYV' or ProductName eq '104MT3RQ15I' or ProductName eq '104MT4NDECN' or ProductName eq '102MT48I4XD' or ProductName eq '102MT5H1MTQ' or ProductName eq '102MT54IZDN' or ProductName eq '102MT2YALAC' or ProductName eq '101MT3GSZ00' or ProductName eq '102MT210UN5' or ProductName eq '101MT4921M6' or ProductName eq '101MT2SZYFL' or ProductName eq '101MT5H8L6R' or ProductName eq '101MT14BZDU' or ProductName eq '101MT5B8NRY' or ProductName eq '101MT14DGLY' or ProductName eq '101MT301IL8' or ProductName eq '101MT3ITQIM' or ProductName eq '104LV1OD2U8' or ProductName eq '104NO1S1W3D' or ProductName eq '104IS47R3UR'",
+            "ProductName eq '111MT4B4UXI' or ProductName eq '111MT3XY8ZL' or ProductName eq '111MT4WE4S3' or ProductName eq '111MT2GVMYG' or ProductName eq '111MT3Q6RFX' or ProductName eq '104MT44S5X6' or ProductName eq '104MT48TK4Z' or ProductName eq '104MT3LISYV' or ProductName eq '104MT3RQ15I' or ProductName eq '104MT4NDECN' or ProductName eq '102MT48I4XD' or ProductName eq '102MT5H1MTQ' or ProductName eq '102MT54IZDN' or ProductName eq '102MT2YALAC' or ProductName eq '101MT3GSZ00' or ProductName eq '102MT210UN5' or ProductName eq '101MT4921M6' or ProductName eq '101MT2SZYFL' or ProductName eq '101MT5H8L6R' or ProductName eq '101MT14BZDU' or ProductName eq '101MT5B8NRY' or ProductName eq '101MT14DGLY' or ProductName eq '101MT301IL8' or ProductName eq '101MT3ITQIM' or ProductName eq '104LV1OD2U8' or ProductName eq '104NO1S1W3D' or ProductName eq '104IS47R3UR'",
+            "ProductName eq '111MT4B4UXI' or ProductName eq '111MT3XY8ZL' or ProductName eq '111MT4WE4S3' or ProductName eq '111MT2GVMYG' or ProductName eq '111MT3Q6RFX' or ProductName eq '104MT44S5X6' or ProductName eq '104MT48TK4Z' or ProductName eq '104MT3LISYV' or ProductName eq '104MT3RQ15I' or ProductName eq '104MT4NDECN' or ProductName eq '102MT48I4XD' or ProductName eq '102MT5H1MTQ' or ProductName eq '102MT54IZDN' or ProductName eq '102MT2YALAC' or ProductName eq '101MT3GSZ00' or ProductName eq '102MT210UN5' or ProductName eq '101MT4921M6' or ProductName eq '101MT2SZYFL' or ProductName eq '101MT5H8L6R' or ProductName eq '101MT14BZDU' or ProductName eq '101MT5B8NRY' or ProductName eq '101MT14DGLY' or ProductName eq '101MT301IL8' or ProductName eq '101MT3ITQIM' or ProductName eq '104LV1OD2U8' or ProductName eq '104NO1S1W3D' or ProductName eq '104IS47R3UR'",
+            "ProductName eq '101MM16OTMU' or ProductName eq '111MT1KZ7WA' or ProductName eq '111MT4B4UXI' or ProductName eq '111MT3XY8ZL' or ProductName eq '111MT4WE4S3' or ProductName eq '111MT2GVMYG' or ProductName eq '111MT3Q6RFX' or ProductName eq '104MT44S5X6' or ProductName eq '104MT48TK4Z' or ProductName eq '104MT3LISYV' or ProductName eq '104MT3RQ15I' or ProductName eq '104MT4NDECN' or ProductName eq '102MT48I4XD' or ProductName eq '102MT5H1MTQ' or ProductName eq '102MT54IZDN' or ProductName eq '102MT2YALAC' or ProductName eq '101MT3GSZ00' or ProductName eq '102MT210UN5' or ProductName eq '101MT4921M6' or ProductName eq '101MT2SZYFL' or ProductName eq '101MT5H8L6R' or ProductName eq '101MT14BZDU' or ProductName eq '101MT5B8NRY' or ProductName eq '101MT14DGLY' or ProductName eq '101MT301IL8' or ProductName eq '101MT3ITQIM' or ProductName eq '104LV1OD2U8' or ProductName eq '104NO1S1W3D' or ProductName eq '104IS47R3UR' or ProductName eq '104KR5A5X13' or ProductName eq '104OM3GWL7R' or ProductName eq '111MT4B4UXI' or ProductName eq '111MT3XY8ZL' or ProductName eq '111MT4WE4S3' or ProductName eq '111MT2GVMYG' or ProductName eq '111MT3Q6RFX' or ProductName eq '104MT44S5X6' or ProductName eq '104MT48TK4Z' or ProductName eq '104MT3LISYV' or ProductName eq '104MT3RQ15I' or ProductName eq '104MT4NDECN' or ProductName eq '102MT48I4XD' or ProductName eq '102MT5H1MTQ' or ProductName eq '102MT54IZDN' or ProductName eq '102MT2YALAC' or ProductName eq '101MT3GSZ00' or ProductName eq '102MT210UN5' or ProductName eq '101MT4921M6' or ProductName eq '101MT2SZYFL' or ProductName eq '101MT5H8L6R' or ProductName eq '101MT14BZDU' or ProductName eq '101MT5B8NRY' or ProductName eq '101MT14DGLY' or ProductName eq '101MT301IL8' or ProductName eq '101MT3ITQIM' or ProductName eq '104LV1OD2U8' or ProductName eq '104NO1S1W3D' or ProductName eq '104IS47R3UR'"
+        ]
+    },
+    "CustomExchangeSetData": {
+        "smallProductNames": [
+            [ "101BE3O2K03" ],
+            [ "101CL4IGIRB" ],
+            [ "101HR17QFG4" ],
+            [ "101TH30FNLT" ],
+            [ "101UA1L2UQV" ],
+            [ "102C218E218" ],
+            [ "104AL3R8S9Y", "104BD5K501U", "104BE29TILQ" ],
+            [ "104AL3R8S9Y", "104BD5K501U", "104BE29TILQ", "104BE5TJZLH", "104C15EIXHJ", "104C23PKYK3", "104C35QBE1R", "104CA1N43ED", "104CA4ZYKBZ" ]
+        ],
+        "mediumProductNames": [
+            [ "104AL3R8S9Y", "104BD5K501U", "104BE29TILQ", "104BE5TJZLH", "104C15EIXHJ", "104C23PKYK3", "104C35QBE1R", "104CA1N43ED", "104CA4ZYKBZ", "104CU5XQG2W", "104DE5Y9FBI", "104EA4ZL566", "104EG2KYLG1", "104FI3GZV4F", "104GB1UKAYJ" ],
+            [ "104AL3R8S9Y", "104BD5K501U", "104BE29TILQ", "104BE5TJZLH", "104C15EIXHJ", "104C23PKYK3", "104C35QBE1R", "104CA1N43ED", "104CA4ZYKBZ", "104CU5XQG2W", "104DE5Y9FBI", "104EA4ZL566", "104EG2KYLG1", "104FI3GZV4F", "104GB1UKAYJ", "104GR1B5OPN", "104HR48DQX3", "104ID5AGPR5", "104IN2NQ8OQ", "104IT1RM426" ],
+            [ "104AL3R8S9Y", "104BD5K501U", "104BE29TILQ", "104BE5TJZLH", "104C15EIXHJ", "104C23PKYK3", "104C35QBE1R", "104CA1N43ED", "104CA4ZYKBZ", "104CU5XQG2W", "104DE5Y9FBI", "104EA4ZL566", "104EG2KYLG1", "104FI3GZV4F", "104GB1UKAYJ", "104GR1B5OPN", "104HR48DQX3", "104ID5AGPR5", "104IN2NQ8OQ", "104IT1RM426", "104IT2IDYFG", "104JP2IZWV0", "104LT4RWVMN", "104LT5MM55M", "104MM1C8VYW", "104MM4IJ8VV", "104MY2CI3TZ", "104NG3K1FGE", "104NL22KGY2", "104NL2R1MOR" ],
+            [ "104AL3R8S9Y", "104BD5K501U", "104BE29TILQ", "104BE5TJZLH", "104C15EIXHJ", "104C23PKYK3", "104C35QBE1R", "104CA1N43ED", "104CA4ZYKBZ", "104CU5XQG2W", "104DE5Y9FBI", "104EA4ZL566", "104EG2KYLG1", "104FI3GZV4F", "104GB1UKAYJ", "104GR1B5OPN", "104HR48DQX3", "104ID5AGPR5", "104IN2NQ8OQ", "104IT1RM426", "104IT2IDYFG", "104JP2IZWV0", "104LT4RWVMN", "104LT5MM55M", "104MM1C8VYW", "104MM4IJ8VV", "104MY2CI3TZ", "104NG3K1FGE", "104NL22KGY2", "104NL2R1MOR", "104NZ1FVZOH", "104PA26DLPR", "104PA30ZB6R", "104PE5NDR35", "104PG3BOQ30", "104PL34POV4", "104PL5FDY85", "104RO5814J5", "104S14K0OJ4", "104SB1X6NV1", "104SB3GVTX3" ]
+        ],
+        "smallProductVersions": [
+            [
+                {
+                    "productName": "101BE3O2K03",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                }
+            ],
+            [
+                {
+                    "productName": "101CL4IGIRB",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                }
+            ],
+            [
+                {
+                    "productName": "101HR17QFG4",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                }
+            ],
+            [
+                {
+                    "productName": "101TH30FNLT",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                }
+            ],
+            [
+                {
+                    "productName": "101UA1L2UQV",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                }
+            ],
+            [
+                {
+                    "productName": "102C218E218",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                }
+            ],
+            [
+                {
+                    "productName": "104AL3R8S9Y",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104BD5K501U",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104BE29TILQ",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                }
+            ],
+            [
+                {
+                    "productName": "104AL3R8S9Y",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104BD5K501U",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104BE29TILQ",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104BE5TJZLH",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104C15EIXHJ",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104C23PKYK3",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104C35QBE1R",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104CA1N43ED",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104CA4ZYKBZ",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                }
+            ]
+        ],
+        "mediumProductVersions": [
+            [
+                {
+                    "productName": "104AL3R8S9Y",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104BD5K501U",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104BE29TILQ",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104BE5TJZLH",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104C15EIXHJ",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104C23PKYK3",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104C35QBE1R",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104CA1N43ED",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104CA4ZYKBZ",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104CU5XQG2W",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104DE5Y9FBI",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104EA4ZL566",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104EG2KYLG1",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104FI3GZV4F",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104GB1UKAYJ",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                }
+            ],
+            [
+                {
+                    "productName": "104AL3R8S9Y",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104BD5K501U",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104BE29TILQ",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104BE5TJZLH",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104C15EIXHJ",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104C23PKYK3",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104C35QBE1R",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104CA1N43ED",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104CA4ZYKBZ",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104CU5XQG2W",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104DE5Y9FBI",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104EA4ZL566",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104EG2KYLG1",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104FI3GZV4F",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104GB1UKAYJ",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104GR1B5OPN",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104HR48DQX3",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104ID5AGPR5",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104IN2NQ8OQ",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104IT1RM426",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                }
+            ],
+            [
+                {
+                    "productName": "104AL3R8S9Y",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104AL3R8S9Y",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104BD5K501U",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104BE29TILQ",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104BE5TJZLH",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104C15EIXHJ",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104C23PKYK3",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104C35QBE1R",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104CA1N43ED",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104CA4ZYKBZ",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104CU5XQG2W",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104DE5Y9FBI",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104EA4ZL566",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104EG2KYLG1",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104FI3GZV4F",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104GB1UKAYJ",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104GR1B5OPN",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104HR48DQX3",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104ID5AGPR5",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104IN2NQ8OQ",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104IT1RM426",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104IT2IDYFG",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104JP2IZWV0",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104LT4RWVMN",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104LT5MM55M",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104MM1C8VYW",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104MM4IJ8VV",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104MY2CI3TZ",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104NG3K1FGE",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104NL22KGY2",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104NL2R1MOR",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                }
+            ],
+            [
+                {
+                    "productName": "104AL3R8S9Y",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104BD5K501U",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104BE29TILQ",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104BE5TJZLH",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104C15EIXHJ",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104C23PKYK3",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104C35QBE1R",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104CA1N43ED",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104CA4ZYKBZ",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104CU5XQG2W",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104DE5Y9FBI",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104EA4ZL566",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104EG2KYLG1",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104FI3GZV4F",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104GB1UKAYJ",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104GR1B5OPN",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104HR48DQX3",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104ID5AGPR5",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104IN2NQ8OQ",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104IT1RM426",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104IT2IDYFG",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104JP2IZWV0",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104LT4RWVMN",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104LT5MM55M",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104MM1C8VYW",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104MM4IJ8VV",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104MY2CI3TZ",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104NG3K1FGE",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104NL22KGY2",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104NL2R1MOR",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104NZ1FVZOH",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104PA26DLPR",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104PA30ZB6R",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104PE5NDR35",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104PG3BOQ30",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104PL34POV4",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104PL5FDY85",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104RO5814J5",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104S14K0OJ4",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104SB1X6NV1",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                },
+                {
+                    "productName": "104SB3GVTX3",
+                    "editionNumber": 1,
+                    "updateNumber": 0
+                }
+            ]
+        ],
+        "smallUpdateSince": [
+            { "sinceDateTime": "2025-10-15T16:10:00.000Z" },
+            { "sinceDateTime": "2025-10-15T16:30:00.000Z" },
+            { "sinceDateTime": "2025-10-15T17:00:00.000Z" }
+        ],
+        "mediumUpdateSince": [
+            { "sinceDateTime": "2025-10-15T16:10:00.000Z" },
+            { "sinceDateTime": "2025-10-15T16:30:00.000Z" },
+            { "sinceDateTime": "2025-10-15T17:00:00.000Z" }
+        ]
+    },
+    "NumberOfRequests": 10000,
+    "DurationInSeconds": 1800,
+    "EFSToken": "",
+    "CompletedJobId": ""
 }
