@@ -195,7 +195,7 @@ stages:
           ContainerImage: ${{ variables.Container }}
 
   - stage: vNextE2eDeployApim
-    dependsOn: 
+    dependsOn:
     - vNextIatDeployApim
     displayName: vNext E2E Apim Deploy
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
