@@ -150,7 +150,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID",
                     correlationIdGenerator.CreateForCustomExchageSet().ToString())
                 .WithDescription(
-                    "Given a list of Product name identifiers and their edition and update numbers, return all the versions of the Products that are releasable from that version onwards.\r\n\r\n**Business Rules:**\r\n\r\nIf none of the Products exist then Product exchange set with baseline releasable data Products will be returned.\r\n\r\nIf none of the Products requested have an update, then 'Accepted' response will be returned. with all the requested products count reflected in 'requestedProductsAlreadyUpToDateCount'.")
+                    "Given a list of Product name identifiers and their edition and update numbers, return all the versions of the Products that are releasable from that version onwards.\r\n\r\n**Business Rules:**\r\n\r\nIf none of the requested products exist, the status will be Accepted and an empty Exchange Set will be created. The total number of requested products will be reflected in requestedProductsNotReturned.\r\n\r\nIf none of the requested products have updates available, the status will be Accepted and an empty Exchange Set will be created. The total number of requested products will be reflected in requestedProductsAlreadyUpToDateCount.")
                 .WithRequiredAuthorization(AuthenticationConstants.AdOrB2C);
         }
 

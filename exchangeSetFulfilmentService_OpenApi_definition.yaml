@@ -59,7 +59,7 @@ paths:
           required: true
           schema:
             type: string
-            default: b6d2944ed9414d6a8275f939eadac8ae
+            default: b1130a6457c44cb2bc4c9d2769c7e658
       requestBody:
         description: A list of S-100 product names for which the Exchange Set is requested.
         content:
@@ -208,14 +208,16 @@ paths:
 
         \r
 
-        If none of the Products exist then Product exchange set with baseline
-        releasable data Products will be returned.\r
+        If none of the requested products exist, the status will be Accepted and
+        an empty Exchange Set will be created. The total number of requested
+        products will be reflected in requestedProductsNotReturned.\r
 
         \r
 
-        If none of the Products requested have an update, then 'Accepted'
-        response will be returned. with all the requested products count
-        reflected in 'requestedProductsAlreadyUpToDateCount'."
+        If none of the requested products have updates available, the status
+        will be Accepted and an empty Exchange Set will be created. The total
+        number of requested products will be reflected in
+        requestedProductsAlreadyUpToDateCount."
       parameters:
         - name: callbackUri
           in: query
@@ -235,7 +237,7 @@ paths:
           required: true
           schema:
             type: string
-            default: 6d30b1d240404730b5bd01431b35cf57
+            default: 3a8980bc4c404bfeac08aa031b03bc96
       requestBody:
         description: A list of S-100 products with their edition and update numbers for
           which the Exchange Set is requested.
@@ -429,7 +431,7 @@ paths:
           required: true
           schema:
             type: string
-            default: c17ce69576094218b0318e31adfd7f64
+            default: 50c1300cd4a345c5a498656bf7f0b811
       requestBody:
         description: The JSON body containing sinceDateTime.
         content:
@@ -473,20 +475,16 @@ paths:
               example:
                 _links:
                   exchangeSetBatchStatusUri:
-                    href: http://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/status
+                    href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/status
                   exchangeSetBatchDetailsUri:
                     href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272
                   exchangeSetFileUri:
                     href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/exchangeset123.zip
                 exchangeSetUrlExpiryDateTime: 2021-02-17T16:19:32.269Z
-                requestedProductCount: 7
-                returnedProductCount: 4
-                requestedProductsAlreadyUpToDateCount: 1
-                requestedProductsNotReturned:
-                  - productName: 102CA32904820801013
-                    reason: productWithdrawn
-                  - productName: 101DE00904820801012
-                    reason: InvalidProduct
+                requestedProductCount: 0
+                returnedProductCount: 43
+                requestedProductsAlreadyUpToDateCount: 0
+                requestedProductsNotReturned: []
                 fssBatchId: 7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272
         "304":
           description: If there are no updates since the sinceDateTime parameter, then a

@@ -602,14 +602,13 @@ namespace UKHO.ADDS.EFS.Orchestrator
                                 { "exchangeSetFileUri", "https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/exchangeset123.zip" }
                             },
                             "2021-02-17T16:19:32.269Z",
-                            7,
-                            4,
-                            1,
+                            0,
+                            43,
+                            0,
                             "requestedProductsNotReturned",
                             new List<(string, string)>
                             {
-                                ("102CA32904820801013", "productWithdrawn"),
-                                ("101DE00904820801012", "InvalidProduct")
+
                             },
                             "7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272"
                         ),
