@@ -33,6 +33,32 @@ jobs:
       deploy:
         steps:
         - checkout: self
+
+        - script: |
+            YQ_VERSION="v4.44.3"
+            mkdir -p $HOME/bin
+            curl -L "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64" -o $HOME/bin/yq
+            chmod +x $HOME/bin/yq
+            export PATH="$HOME/bin:$PATH"
+            yq --version
+
+            echo "----------------------------------------"
+            echo "ORIGINAL FILE CONTENT:"
+            echo "----------------------------------------"
+            cat $(Build.SourcesDirectory)/exchangeSetFulfilmentService_OpenApi_definition.yaml || echo "❌ Cannot read original file"
+            echo "----------------------------------------"
+            
+            echo "Running YQ transformation..."
+            yq eval --from-file $(Build.SourcesDirectory)/.azdo/pipelines/powershell/filter.yq $(Build.SourcesDirectory)/exchangeSetFulfilmentService_OpenApi_definition.yaml > $(Build.SourcesDirectory)/exchangeSetFulfilmentService_OpenApi_definition_filtered.yaml
+
+            echo "Checking if filtered file was created..."
+            ls -la $(Build.SourcesDirectory) | grep exchangeSetFulfilmentService_OpenApi_definition_filtered.yaml || echo "❌ File not found!"
+
+            echo "----------------------------------------"
+            echo "FILTERED FILE CONTENT:"
+            echo "----------------------------------------"
+            cat $(Build.SourcesDirectory)/exchangeSetFulfilmentService_OpenApi_definition_filtered.yaml || echo "❌ Cannot read filtered file"
+          displayName: "Transforming and verifying OpenAPI spec"
   
         - task: AzureKeyVault@2
           displayName: 'Read APIM terraform Variables'

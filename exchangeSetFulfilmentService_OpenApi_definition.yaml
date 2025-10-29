@@ -9,10 +9,127 @@ info:
 servers:
   - url: https://exchangesetservice.admiralty.co.uk
 paths:
+  /jobs:
+    post:
+      tags:
+        - s100
+      description: Create a job request for the given data standard. To filter (S100)
+        by product type, use the filter property "startswith(ProductName,
+        '101')"
+      parameters:
+        - name: x-correlation-id
+          in: header
+          description: Correlation ID
+          required: true
+          schema:
+            type: string
+            default: job-081f20fdd7944cd29e519d6bd96125d4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JobRequestApiMessage"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssemblyPipelineResponse"
+        "429":
+          description: You have sent too many requests in a given amount of time. Please
+            back-off for the time in the Retry-After header (in seconds) and try
+            again.
+          headers:
+            Retry-After:
+              description: Specifies the time you should wait in seconds before retrying.
+              schema:
+                type: integer
+        "500":
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  correlationId:
+                    type: string
+                  detail:
+                    type: string
+  /jobs/{jobId}:
+    get:
+      tags:
+        - s100
+      description: Gets the job for the given job id
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+        "429":
+          description: You have sent too many requests in a given amount of time. Please
+            back-off for the time in the Retry-After header (in seconds) and try
+            again.
+          headers:
+            Retry-After:
+              description: Specifies the time you should wait in seconds before retrying.
+              schema:
+                type: integer
+        "500":
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  correlationId:
+                    type: string
+                  detail:
+                    type: string
+  /jobs/{jobId}/build:
+    get:
+      tags:
+        - s100
+      description: Gets the job build memento for the given job id
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+        "429":
+          description: You have sent too many requests in a given amount of time. Please
+            back-off for the time in the Retry-After header (in seconds) and try
+            again.
+          headers:
+            Retry-After:
+              description: Specifies the time you should wait in seconds before retrying.
+              schema:
+                type: integer
+        "500":
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  correlationId:
+                    type: string
+                  detail:
+                    type: string
   /v2/exchangeSet/s100/productNames:
     post:
       tags:
         - s100
+        - public
       description: "Given a list of Product names, return all the products that are
         releasable.\r
 
@@ -59,7 +176,7 @@ paths:
           required: true
           schema:
             type: string
-            default: b1130a6457c44cb2bc4c9d2769c7e658
+            default: 1f390f0920fd4d5abeab7b81ccee9c90
       requestBody:
         description: A list of S-100 product names for which the Exchange Set is requested.
         content:
@@ -198,6 +315,7 @@ paths:
     post:
       tags:
         - s100
+        - public
       description: "Given a list of Product name identifiers and their edition and
         update numbers, return all the versions of the Products that are
         releasable from that version onwards.\r
@@ -396,6 +514,7 @@ paths:
     post:
       tags:
         - s100
+        - public
       description: Given a datetime, build an Exchange Set of all the releasable
         Product versions that have been issued since that datetime.
       parameters:

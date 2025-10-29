@@ -1,0 +1,6 @@
+.paths |= with_entries(
+  select(
+    (.value[]? | [.tags[]?] | flatten | any_c(. == "public"))
+  )
+)
+| .paths[][].tags |= map(select(. != "public"))

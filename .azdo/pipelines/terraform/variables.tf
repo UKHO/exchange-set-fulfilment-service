@@ -94,6 +94,6 @@ locals {
   product_name          = local.env_name == "prod" ? "${var.product_name}" : "${var.product_name} ${var.env_suffix[local.env_name]}"
   api_name              = local.env_name == "prod" ? "${var.api_name}" : "${var.api_name} ${var.env_suffix[local.env_name]}"
   apim_api_path         = local.env_name == "prod" ? "${local.service_name}" : "${local.service_name}-${local.env_name}"
-  apim_api_openapi      = file("${path.module}/../../../exchangeSetFulfilmentService_OpenApi_definition.yaml")
+  apim_api_openapi      = file("${path.module}/../../../exchangeSetFulfilmentService_OpenApi_definition_filtered.yaml")
   
 }
