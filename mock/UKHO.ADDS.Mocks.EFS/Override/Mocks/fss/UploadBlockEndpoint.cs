@@ -1,5 +1,4 @@
 ﻿using UKHO.ADDS.Mocks.EFS.Override.Mocks.fss.Models;
-using UKHO.ADDS.Mocks.Headers;
 using UKHO.ADDS.Mocks.Markdown;
 using UKHO.ADDS.Mocks.States;
 
@@ -8,7 +7,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
     public class UploadBlockEndpoint : FssEndpointBase
     {
         public override void RegisterSingleEndpoint(IEndpointMock endpoint) =>
-            endpoint.MapPut("/batch/{batchId}/files/{fileName}/{blockId}", (string batchId, string filename, string blockId, HttpRequest request, HttpResponse response) =>
+            endpoint.MapPut("/batch/{batchId}/files/{fileName}/{blockId}", async (string batchId, string filename, string blockId, HttpRequest request, HttpResponse response) =>
             {
                 var (state, correlationId) = SetupRequest(request, response);
 
@@ -17,7 +16,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                     return Results.BadRequest("Body required");
                 }
 
-                var storageResult = StoreBlockData(batchId, filename, blockId, request);
+                var storageResult = await StoreBlockData(batchId, filename, blockId, request);
                 if (storageResult != null)
                 {
                     return storageResult;
@@ -39,19 +38,22 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                     d.Append(new MarkdownParagraph("Stores each file block in memory for assembly during WriteBlock operation"));
                 });
 
-        private static IResult? StoreBlockData(string batchId, string filename, string blockId, HttpRequest request)
+        private static async Task<IResult?> StoreBlockData(string batchId, string filename, string blockId, HttpRequest request)
         {
             try
             {
                 var fileKey = $"{batchId}:{filename}";
-                
+
                 lock (FileBlockStorage.FileBlocks)
                 {
                     EnsureFileKeyExists(fileKey);
-                    var blockData = ReadBlockContent(request);
+                }
+                var blockData = await ReadBlockContent(request);
+                lock (FileBlockStorage.FileBlocks)
+                {
                     FileBlockStorage.FileBlocks[fileKey][blockId] = blockData;
                 }
-                
+
                 return null; // Success
             }
             catch (Exception ex)
@@ -68,11 +70,22 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
             }
         }
 
-        private static byte[] ReadBlockContent(HttpRequest request)
+        private static async Task<byte[]> ReadBlockContent(HttpRequest request)
         {
-            using var ms = new MemoryStream();
-            request.Body.CopyTo(ms);
-            return ms.ToArray();
+            var length = request.ContentLength ?? 0;
+            if (length == 0)
+                return [];
+
+            var buffer = new byte[length];
+            var read = 0;
+            while (read < length)
+            {
+                var bytesRead = await request.Body.ReadAsync(buffer, read, (int)length - read);
+                if (bytesRead == 0)
+                    break;
+                read += bytesRead;
+            }
+            return buffer;
         }
     }
 }
