@@ -176,7 +176,7 @@ paths:
           required: true
           schema:
             type: string
-            default: 1f390f0920fd4d5abeab7b81ccee9c90
+            default: b1130a6457c44cb2bc4c9d2769c7e658
       requestBody:
         description: A list of S-100 product names for which the Exchange Set is requested.
         content:
