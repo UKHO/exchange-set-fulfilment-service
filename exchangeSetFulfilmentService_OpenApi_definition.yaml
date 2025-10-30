@@ -707,6 +707,7 @@ paths:
     post:
       tags:
         - auth
+        - public
       summary: Get token from AAD
       description: Returns a token direct from Azure AD using Client Credentials.
       operationId: getEFSTokenUsingClientCredentials
