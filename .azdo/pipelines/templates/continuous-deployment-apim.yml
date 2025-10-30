@@ -53,7 +53,7 @@ jobs:
               echo "Running YQ transformation..."
               yq eval --from-file "$(Build.SourcesDirectory)/.azdo/pipelines/powershell/filter.yq" \
                 "$(Build.SourcesDirectory)/exchangeSetFulfilmentService_OpenApi_definition.yaml" \
-                > "$(Build.SourcesDirectory)/exchangeSetFulfilmentService_OpenApi_definition_filtered_.yaml"
+                > "$(Build.SourcesDirectory)/exchangeSetFulfilmentService_OpenApi_definition_filtered.yaml"
 
               echo "Verifying filtered file creation..."
               if [ ! -f "$(Build.SourcesDirectory)/exchangeSetFulfilmentService_OpenApi_definition_filtered.yaml" ]; then
