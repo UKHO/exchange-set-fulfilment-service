@@ -238,7 +238,7 @@ jobs:
             parameters:
               AzureSubscription: ${{ variables.AzureSubscription }}
               AppName: adds-mocks-efs
-              MaxWaitTime: 3
+              MaxWaitTime: 1
 
         - script: |
             DOMAIN=$(azd env get-value EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN)
