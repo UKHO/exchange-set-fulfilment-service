@@ -45,10 +45,13 @@ namespace UKHO.ADDS.EFS.Orchestrator
             "Available values : s101, s102, s104, s111";
         private const string XCorrelationIdHeaderKeyDesciption = "Unique GUID.";
         private const string AcceptedDescription =
-            "Request to create Exchange Set is accepted. Response body has Exchange Set status URL to track changes to the status of the task. " +
-            "It also contains the URL that the Exchange Set will be available on as well as the number of products in that Exchange Set.\r\n\r\n" +
-            "If there are no updates for any of the productVersions, then status code 202 ('Accepted') will be returned with an empty Exchange Set and the exchangeSetProductCount will be 0.\r\n\r\n" +
-            "If a requested Product has been cancelled or replaced, then the replacement Product will not be included in the response payload. Only the specific Products requested will be returned.";
+     "Request to create Exchange Set is accepted. Response body has Exchange Set status URL to track changes to the status of the task. " +
+     "It also contains the URL that the Exchange Set will be available on as well as the number of products in that Exchange Set.";
+        private const string CancelReplaceDescription = "If a requested Product has been cancelled or replaced, then the replacement Product will not be included in the response payload. Only the specific Products requested will be returned.";
+        private const string ProductVersionAcceptedDescription = AcceptedDescription +
+            "\r\n\r\n If there are no updates for any of the productVersions, then status code 202 ('Accepted') will be returned with an empty Exchange Set and the exchangeSetProductCount will be 0.\r\n\r\n" + CancelReplaceDescription;
+        private const string ProductNameAcceptedDescription = AcceptedDescription +
+            "\r\n\r\n If none of the requested products are available, then status code 202 ('Accepted') will be returned with an empty Exchange Set and the exchangeSetProductCount will be 0.\r\n\r\n" + CancelReplaceDescription;
         private const string UnauthorizedDescription =
             "Unauthorised - either you have not provided any credentials, or your credentials are not recognised.";
         private const string ForbiddenDescription =
@@ -351,7 +354,6 @@ namespace UKHO.ADDS.EFS.Orchestrator
         {
             var standardResponses = new Dictionary<string, string>
             {
-                ["202"] = AcceptedDescription,
                 ["401"] = UnauthorizedDescription,
                 ["403"] = ForbiddenDescription,
                 ["304"] = NotModifiedDescription,
@@ -485,6 +487,10 @@ namespace UKHO.ADDS.EFS.Orchestrator
             {
                 if (string.Equals(relativePath, "v2/exchangeSet/s100/productNames", StringComparison.OrdinalIgnoreCase))
                 {
+                    if (operation.Responses.TryGetValue("202", out var acceptedResponse))
+                    {
+                        acceptedResponse.Description = ProductNameAcceptedDescription;
+                    }
                     AddProductEndpointExamples(
                         operation,
                         new OpenApiArray
@@ -517,6 +523,10 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 }
                 else if (string.Equals(relativePath, "v2/exchangeSet/s100/productVersions", StringComparison.OrdinalIgnoreCase))
                 {
+                    if (operation.Responses.TryGetValue("202", out var acceptedResponse))
+                    {
+                        acceptedResponse.Description = ProductVersionAcceptedDescription;
+                    }
                     AddProductEndpointExamples(
                         operation,
                         new OpenApiArray
@@ -591,6 +601,10 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 }
                 else if (string.Equals(relativePath, "v2/exchangeSet/s100/updatesSince", StringComparison.OrdinalIgnoreCase))
                 {
+                    if (operation.Responses.TryGetValue("202", out var acceptedResponse))
+                    {
+                        acceptedResponse.Description = AcceptedDescription;
+                    }
                     AddProductEndpointExamples(
                         operation,
                         new OpenApiObject { ["sinceDateTime"] = new OpenApiString("2025-10-03T00:00:00Z") },
