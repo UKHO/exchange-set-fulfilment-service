@@ -57,6 +57,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
             "You have sent too many requests in a given amount of time. Please back-off for the time in the Retry-After header (in seconds) and try again.";
         private const string NotModifiedDescription =
             "If there are no updates since the sinceDateTime parameter, then a 'Not modified' response will be returned.";
+        private const string BadRequestDescription = "Bad Request. In case of a malformed request, only the HTTP status code will be returned without an error body.";
 
         public static WebApplicationBuilder AddOrchestratorServices(this WebApplicationBuilder builder)
         {
@@ -353,7 +354,8 @@ namespace UKHO.ADDS.EFS.Orchestrator
                 ["202"] = AcceptedDescription,
                 ["401"] = UnauthorizedDescription,
                 ["403"] = ForbiddenDescription,
-                ["304"] = NotModifiedDescription
+                ["304"] = NotModifiedDescription,
+                ["400"] = BadRequestDescription
             };
 
             SetResponseDescriptions(operation, standardResponses);
