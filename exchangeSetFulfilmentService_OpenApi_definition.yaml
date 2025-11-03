@@ -1,123 +1,711 @@
 openapi: 3.0.1
 info:
-  title: UKHO.ADDS.EFS.Orchestrator | v1
-  version: 1.0.0
+  title: S100 Exchange Set Service API
+  description: API for generating S100 exchange sets.
+  contact:
+    name: Abzu Delivery Team
+    email: Abzudeliveryteam@UKHO.gov.uk
+  version: "1.0"
 servers:
-  - url: https://efs-orchestrator.mangomeadow-42e84c72.uksouth.azurecontainerapps.io/
+  - url: https://exchangesetservice.admiralty.co.uk
 paths:
   /v2/exchangeSet/s100/productNames:
     post:
       tags:
-        - UKHO.ADDS.EFS.Orchestrator
-      description: Provide all the latest releasable baseline data for a specified set
-        of S100 Products.
+        - s100
+      description: "Given a list of Product names, return all the products that are
+        releasable.\r
+
+        \r
+
+        **Business Rules:**\r
+
+        \r
+
+        Only Products that are releasable at the date of the request will be
+        returned.\r
+
+        \r
+
+        If valid Products are requested then Product exchange set with baseline
+        data including requested Products will be returned.\r
+
+        \r
+
+        If a requested Product has been cancelled or replaced, then the
+        replacement Product will not be included in the response payload. Only
+        the specific Products requested will be returned.\r
+
+        \r
+
+        If none of the Products requested exist then exchange set with baseline
+        releasable data without requested Products will be returned."
       parameters:
         - name: callbackUri
           in: query
+          description: An optional callback URI that will be used to notify the requestor
+            once the requested Exchange Set is ready to download from the File
+            Share Service. The data for the notification will follow the
+            CloudEvents 1.0 standard, with the data portion containing the same
+            Exchange Set data as the response to the original API request. If
+            not specified, then no call back notification will be sent. Must be
+            a valid HTTPS endpoint.
           schema:
             type: string
             default: null
-        - name: x-correlation-id
+        - name: X-Correlation-ID
           in: header
-          description: Correlation ID
+          description: Unique GUID.
           required: true
           schema:
             type: string
-            default: 1dee7c991e3e49358619d6538b56b998
+            default: b1130a6457c44cb2bc4c9d2769c7e658
       requestBody:
+        description: A list of S-100 product names for which the Exchange Set is requested.
         content:
           application/json:
             schema:
               type: array
               items:
                 type: string
+            example:
+              - 101HR17QFG4
+              - 102CA5QUF3C
+              - 104EA4ZL566
+              - 111AR401R12
         required: true
       responses:
         "202":
-          description: Accepted
+          description: "Request to create Exchange Set is accepted. Response body has
+            Exchange Set status URL to track changes to the status of the task.
+            It also contains the URL that the Exchange Set will be available on
+            as well as the number of products in that Exchange Set.\r
+
+            \r
+
+            If there are no updates for any of the productVersions, then status
+            code 202 ('Accepted') will be returned with an empty Exchange Set
+            and the exchangeSetProductCount will be 0.\r
+
+            \r
+
+            If a requested Product has been cancelled or replaced, then the
+            replacement Product will not be included in the response payload.
+            Only the specific Products requested will be returned."
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/CustomExchangeSetResponse"
+              example:
+                links:
+                  exchangeSetBatchStatusUri:
+                    uri: https://filesvnexte2e.admiralty.co.uk/batch/22c68246-87ae-4f7e-8556-8ee9eeb95037/status
+                  exchangeSetBatchDetailsUri:
+                    uri: https://filesvnexte2e.admiralty.co.uk/batch/22c68246-87ae-4f7e-8556-8ee9eeb95037
+                  exchangeSetFileUri:
+                    uri: https://filesvnexte2e.admiralty.co.uk/batch/22c68246-87ae-4f7e-8556-8ee9eeb95037/files/V01X01.zip
+                exchangeSetUrlExpiryDateTime: 2025-10-23T11:22:40.388Z
+                requestedProductCount: 4
+                exchangeSetProductCount: 3
+                requestedProductsAlreadyUpToDateCount: 0
+                requestedProductsNotInExchangeSet:
+                  - productName: 111AR401R12
+                    reason: invalidProduct
+                fssBatchId: 22c68246-87ae-4f7e-8556-8vc9cvb95037
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseModel"
+        "401":
+          description: Unauthorised - either you have not provided any credentials, or
+            your credentials are not recognised.
+        "403":
+          description: Forbidden - you have been authorised, but you are not allowed to
+            access this resource.
+        "429":
+          description: You have sent too many requests in a given amount of time. Please
+            back-off for the time in the Retry-After header (in seconds) and try
+            again.
+          headers:
+            Retry-After:
+              description: Specifies the time you should wait in seconds before retrying.
+              schema:
+                type: integer
+        "500":
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  correlationId:
+                    type: string
+                  detail:
+                    type: string
+      callbacks:
+        s100FulfilmentResponse:
+          "{$request.query.callbackUri}":
+            post:
+              summary: Notify the Exchange Set requestor that this is now ready to download on
+                the File Share Service.
+              description: "Once the Exchange Set has been committed on File Share Service, a
+                notification will be sent to the callbackURI (if specified).
+
+
+                Data:\r
+
+                The data for the notification will follow the CloudEvents 1.0
+                standard, with the data portion containing the same S-100
+                Exchange Set data as the response to the original API request (
+                $ref: \"#/components/schemas/s100ExchangeSetResponse\" )."
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      type: object
+                    example:
+                      specversion: "1.0"
+                      type: uk.co.admiralty.s100Data.exchangeSetCreated.v1
+                      source: https://exchangeset.admiralty.co.uk/s100Data
+                      id: 2f03a25f-28b3-46ea-b009-5943250a9a41
+                      time: 2021-02-17T14:04:04.4880776Z
+                      subject: Requested S-100 Exchange Set Created
+                      datacontenttype: application/json
+                      data:
+                        _links:
+                          exchangeSetBatchStatusUri:
+                            href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/status
+                          exchangeSetBatchDetailsUri:
+                            href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272
+                          exchangeSetFileUri:
+                            href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/exchangeset123.zip
+                          errorFileUri:
+                            href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/error.txt
+                        exchangeSetUrlExpiryDateTime: 2021-02-17T16:19:32.269Z
+                        requestedProductCount: 4
+                        exchangeSetProductCount: 1
+                        requestedProductsAlreadyUpToDateCount: 0
+                        requestedProductsNotInExchangeSet:
+                          - productName: 101GB40079ABCDEFG
+                            reason: invalidProduct
+                        fssBatchId: 7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272
+              responses:
+                "200":
+                  description: The service will ignore all response from the callback
   /v2/exchangeSet/s100/productVersions:
     post:
       tags:
-        - UKHO.ADDS.EFS.Orchestrator
-      description: Given a set of S100 Product versions (e.g. Edition x Update y)
-        provide any later releasable files.
+        - s100
+      description: "Given a list of Product name identifiers and their edition and
+        update numbers, return all the versions of the Products that are
+        releasable from that version onwards.\r
+
+        \r
+
+        **Business Rules:**\r
+
+        \r
+
+        If none of the requested products exist, the status will be Accepted and
+        an empty Exchange Set will be created. The total number of requested
+        products will be reflected in requestedProductsNotReturned.\r
+
+        \r
+
+        If none of the requested products have updates available, the status
+        will be Accepted and an empty Exchange Set will be created. The total
+        number of requested products will be reflected in
+        requestedProductsAlreadyUpToDateCount."
       parameters:
         - name: callbackUri
           in: query
+          description: An optional callback URI that will be used to notify the requestor
+            once the requested Exchange Set is ready to download from the File
+            Share Service. The data for the notification will follow the
+            CloudEvents 1.0 standard, with the data portion containing the same
+            Exchange Set data as the response to the original API request. If
+            not specified, then no call back notification will be sent. Must be
+            a valid HTTPS endpoint.
           schema:
             type: string
             default: null
-        - name: x-correlation-id
+        - name: X-Correlation-ID
           in: header
-          description: Correlation ID
+          description: Unique GUID.
           required: true
           schema:
             type: string
-            default: 4c546aeafda34e9fb851e939cf6d8323
+            default: 3a8980bc4c404bfeac08aa031b03bc96
       requestBody:
+        description: A list of S-100 products with their edition and update numbers for
+          which the Exchange Set is requested.
         content:
           application/json:
             schema:
               type: array
               items:
-                $ref: "#/components/schemas/S100ProductVersionsRequest"
+                $ref: "#/components/schemas/ProductVersionRequest"
+            example:
+              - productName: 101GB40079ABCDEFG
+                editionNumber: 5
+                updateNumber: 10
+              - productName: 101DE00904820801012
+                editionNumber: 36
+                updateNumber: 5
+              - productName: 102CA32904820801013
+                editionNumber: 13
+                updateNumber: 0
+              - productName: 104US00_CHES_TYPE1_20210630_0600
+                editionNumber: 9
+                updateNumber: 0
+              - productName: 101FR40079QWERTY
+                editionNumber: 2
+                updateNumber: 2
+              - productName: 111US00_ches_dcf8_20190703T00Z
+                editionNumber: 11
+                updateNumber: 0
+              - productName: 102AR00904820801012
+                editionNumber: 11
+                updateNumber: 0
         required: true
       responses:
         "202":
-          description: Accepted
+          description: "Request to create Exchange Set is accepted. Response body has
+            Exchange Set status URL to track changes to the status of the task.
+            It also contains the URL that the Exchange Set will be available on
+            as well as the number of products in that Exchange Set.\r
+
+            \r
+
+            If there are no updates for any of the productVersions, then status
+            code 202 ('Accepted') will be returned with an empty Exchange Set
+            and the exchangeSetProductCount will be 0.\r
+
+            \r
+
+            If a requested Product has been cancelled or replaced, then the
+            replacement Product will not be included in the response payload.
+            Only the specific Products requested will be returned."
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/CustomExchangeSetResponse"
+              example:
+                _links:
+                  exchangeSetBatchStatusUri:
+                    href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/status
+                  exchangeSetBatchDetailsUri:
+                    href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272
+                  exchangeSetFileUri:
+                    href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/exchangeset123.zip
+                exchangeSetUrlExpiryDateTime: 2021-02-17T16:19:32.269Z
+                requestedProductCount: 7
+                returnedProductCount: 4
+                requestedProductsAlreadyUpToDateCount: 1
+                requestedProductsNotReturned:
+                  - productName: 102CA32904820801013
+                    reason: productWithdrawn
+                  - productName: 101DE00904820801012
+                    reason: InvalidProduct
+                fssBatchId: 7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseModel"
+        "401":
+          description: Unauthorised - either you have not provided any credentials, or
+            your credentials are not recognised.
+        "403":
+          description: Forbidden - you have been authorised, but you are not allowed to
+            access this resource.
+        "429":
+          description: You have sent too many requests in a given amount of time. Please
+            back-off for the time in the Retry-After header (in seconds) and try
+            again.
+          headers:
+            Retry-After:
+              description: Specifies the time you should wait in seconds before retrying.
+              schema:
+                type: integer
+        "500":
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  correlationId:
+                    type: string
+                  detail:
+                    type: string
+      callbacks:
+        s100FulfilmentResponse:
+          "{$request.query.callbackUri}":
+            post:
+              summary: Notify the Exchange Set requestor that this is now ready to download on
+                the File Share Service.
+              description: "Once the Exchange Set has been committed on File Share Service, a
+                notification will be sent to the callbackURI (if specified).
+
+
+                Data:\r
+
+                The data for the notification will follow the CloudEvents 1.0
+                standard, with the data portion containing the same S-100
+                Exchange Set data as the response to the original API request (
+                $ref: \"#/components/schemas/s100ExchangeSetResponse\" )."
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      type: object
+                    example:
+                      specversion: "1.0"
+                      type: uk.co.admiralty.s100Data.exchangeSetCreated.v1
+                      source: https://exchangeset.admiralty.co.uk/s100Data
+                      id: 2f03a25f-28b3-46ea-b009-5943250a9a41
+                      time: 2021-02-17T14:04:04.4880776Z
+                      subject: Requested S-100 Exchange Set Created
+                      datacontenttype: application/json
+                      data:
+                        _links:
+                          exchangeSetBatchStatusUri:
+                            href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/status
+                          exchangeSetBatchDetailsUri:
+                            href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272
+                          exchangeSetFileUri:
+                            href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/exchangeset123.zip
+                          errorFileUri:
+                            href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/error.txt
+                        exchangeSetUrlExpiryDateTime: 2021-02-17T16:19:32.269Z
+                        requestedProductCount: 4
+                        exchangeSetProductCount: 1
+                        requestedProductsAlreadyUpToDateCount: 0
+                        requestedProductsNotInExchangeSet:
+                          - productName: 101GB40079ABCDEFG
+                            reason: invalidProduct
+                        fssBatchId: 7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272
+              responses:
+                "200":
+                  description: The service will ignore all response from the callback
   /v2/exchangeSet/s100/updatesSince:
     post:
       tags:
-        - UKHO.ADDS.EFS.Orchestrator
-      description: Provide all the releasable S100 data after a datetime.
+        - s100
+      description: Given a datetime, build an Exchange Set of all the releasable
+        Product versions that have been issued since that datetime.
       parameters:
         - name: callbackUri
           in: query
+          description: An optional callback URI that will be used to notify the requestor
+            once the requested Exchange Set is ready to download from the File
+            Share Service. The data for the notification will follow the
+            CloudEvents 1.0 standard, with the data portion containing the same
+            Exchange Set data as the response to the original API request. If
+            not specified, then no call back notification will be sent. Must be
+            a valid HTTPS endpoint.
           schema:
             type: string
             default: null
         - name: productIdentifier
           in: query
+          description: "An optional identifier parameter determines the product identifier
+            of S-100 Exchange Set. If the value is s101, the S-100 Exchange Set
+            will give updates specific to s101 products only. The default value
+            of identifier is s100, which means the S-100 Exchange Set will give
+            updated for all product identifier.\r
+
+            \r
+
+            Available values : s101, s102, s104, s111"
           schema:
             type: string
             default: null
-        - name: x-correlation-id
+        - name: X-Correlation-ID
           in: header
-          description: Correlation ID
+          description: Unique GUID.
           required: true
           schema:
             type: string
-            default: 96f71c03f61242e38a5a519246a514c3
+            default: 50c1300cd4a345c5a498656bf7f0b811
       requestBody:
+        description: The JSON body containing sinceDateTime.
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/S100UpdatesSinceRequest"
+              $ref: "#/components/schemas/UpdatesSinceRequest"
+            example:
+              sinceDateTime: 2025-10-03T00:00:00Z
         required: true
       responses:
         "202":
-          description: Accepted
+          description: "Request to create Exchange Set is accepted. Response body has
+            Exchange Set status URL to track changes to the status of the task.
+            It also contains the URL that the Exchange Set will be available on
+            as well as the number of products in that Exchange Set.\r
+
+            \r
+
+            If there are no updates for any of the productVersions, then status
+            code 202 ('Accepted') will be returned with an empty Exchange Set
+            and the exchangeSetProductCount will be 0.\r
+
+            \r
+
+            If a requested Product has been cancelled or replaced, then the
+            replacement Product will not be included in the response payload.
+            Only the specific Products requested will be returned."
+          headers:
+            Date:
+              description: Returns the current date and time on the server and should be used
+                in subsequent requests this operation to ensure that there are
+                no gaps due to minor time difference between your own and UKHO
+                systems. The date format is in ISO 8601 format.
+              schema:
+                type: string
+                example: 2025-08-25T07:28:00.000Z
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/CustomExchangeSetResponse"
+              example:
+                _links:
+                  exchangeSetBatchStatusUri:
+                    href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/status
+                  exchangeSetBatchDetailsUri:
+                    href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272
+                  exchangeSetFileUri:
+                    href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/exchangeset123.zip
+                exchangeSetUrlExpiryDateTime: 2021-02-17T16:19:32.269Z
+                requestedProductCount: 0
+                returnedProductCount: 43
+                requestedProductsAlreadyUpToDateCount: 0
+                requestedProductsNotReturned: []
+                fssBatchId: 7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272
         "304":
-          description: Not Modified
+          description: If there are no updates since the sinceDateTime parameter, then a
+            'Not modified' response will be returned.
+          headers:
+            Last-Modified:
+              description: Returns the last modified date and time of the resource in ISO 8601
+                format.
+              schema:
+                type: string
+                example: 2025-08-25T07:28:00.000Z
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseModel"
+        "401":
+          description: Unauthorised - either you have not provided any credentials, or
+            your credentials are not recognised.
+        "403":
+          description: Forbidden - you have been authorised, but you are not allowed to
+            access this resource.
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundResponseModel"
+        "429":
+          description: You have sent too many requests in a given amount of time. Please
+            back-off for the time in the Retry-After header (in seconds) and try
+            again.
+          headers:
+            Retry-After:
+              description: Specifies the time you should wait in seconds before retrying.
+              schema:
+                type: integer
+        "500":
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  correlationId:
+                    type: string
+                  detail:
+                    type: string
+      callbacks:
+        s100FulfilmentResponse:
+          "{$request.query.callbackUri}":
+            post:
+              summary: Notify the Exchange Set requestor that this is now ready to download on
+                the File Share Service.
+              description: "Once the Exchange Set has been committed on File Share Service, a
+                notification will be sent to the callbackURI (if specified).
+
+
+                Data:\r
+
+                The data for the notification will follow the CloudEvents 1.0
+                standard, with the data portion containing the same S-100
+                Exchange Set data as the response to the original API request (
+                $ref: \"#/components/schemas/s100ExchangeSetResponse\" )."
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      type: object
+                    example:
+                      specversion: "1.0"
+                      type: uk.co.admiralty.s100Data.exchangeSetCreated.v1
+                      source: https://exchangeset.admiralty.co.uk/s100Data
+                      id: 2f03a25f-28b3-46ea-b009-5943250a9a41
+                      time: 2021-02-17T14:04:04.4880776Z
+                      subject: Requested S-100 Exchange Set Created
+                      datacontenttype: application/json
+                      data:
+                        _links:
+                          exchangeSetBatchStatusUri:
+                            href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/status
+                          exchangeSetBatchDetailsUri:
+                            href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272
+                          exchangeSetFileUri:
+                            href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/exchangeset123.zip
+                          errorFileUri:
+                            href: https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/error.txt
+                        exchangeSetUrlExpiryDateTime: 2021-02-17T16:19:32.269Z
+                        requestedProductCount: 4
+                        exchangeSetProductCount: 1
+                        requestedProductsAlreadyUpToDateCount: 0
+                        requestedProductsNotInExchangeSet:
+                          - productName: 101GB40079ABCDEFG
+                            reason: invalidProduct
+                        fssBatchId: 7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272
+              responses:
+                "200":
+                  description: The service will ignore all response from the callback
+  /auth/client_credentials:
+    post:
+      tags:
+        - auth
+      summary: Get token from AAD
+      description: Returns a token direct from Azure AD using Client Credentials.
+      operationId: getEFSTokenUsingClientCredentials
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - client_id
+                - client_secret
+              type: object
+              properties:
+                client_id:
+                  type: string
+                client_secret:
+                  type: string
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token_type:
+                    type: string
+                    example: Bearer
+                  expires_in:
+                    type: integer
+                    format: int32
+                    example: 3599
+                  ext_expires_in:
+                    type: integer
+                    format: int32
+                    example: 3599
+                  access_token:
+                    type: string
+                    example: eyJ0eXAiOiJKV1QiLCJhbGciOiJSU
+        "400":
+          description: Bad request - Request missing client_id and/or client_secret.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  correlationId:
+                    type: string
+                    example: 184ef711-b039-4c24-b81a-89081d8f324c
+                  errors:
+                    type: object
+                    properties:
+                      source:
+                        type: string
+                        example: request
+                      description:
+                        type: string
+                        example: request missing client_id and/or client_secret
+        "401":
+          description: Unauthorised - either you have not provided any credentials, or
+            your credentials are not recognised.
+        "403":
+          description: Forbidden - you have been authorised, but you are not allowed to
+            access this resource.
+        "429":
+          description: You have sent too many requests in a given amount of time. Please
+            back-off for the time in the Retry-After header (in seconds) and try
+            again.
+          headers:
+            Retry-After:
+              description: Specifies the time you should wait in seconds before retrying.
+              schema:
+                type: integer
 components:
   schemas:
-    BatchId: {}     
+    InternalServerError:
+      type: object
+      properties:
+        correlationId:
+          type: string
+        detail:
+          type: string
+    AssemblyPipelineResponse:
+      required:
+        - jobId
+        - jobStatus
+        - buildStatus
+        - dataStandard
+        - batchId
+      type: object
+      properties:
+        version:
+          $ref: "#/components/schemas/MessageVersion"
+        jobId:
+          $ref: "#/components/schemas/JobId"
+        jobStatus:
+          $ref: "#/components/schemas/JobState"
+        buildStatus:
+          $ref: "#/components/schemas/BuildState"
+        dataStandard:
+          $ref: "#/components/schemas/DataStandard"
+        batchId:
+          $ref: "#/components/schemas/BatchId"
+        productsLastModified:
+          type: string
+          format: date-time
+          nullable: true
+    BatchId: {}
+    BuildState:
+      enum:
+        - none
+        - notScheduled
+        - scheduled
+        - failed
+        - succeeded
     CustomExchangeSetResponse:
       required:
         - links
-        - exchangeSetUrlExpiryDateTime
       type: object
       properties:
         links:
@@ -126,20 +714,36 @@ components:
           type: string
           format: date-time
         requestedProductCount:
-          type: integer
-          format: int32
+          $ref: "#/components/schemas/ProductCount"
         exchangeSetProductCount:
-          type: integer
-          format: int32
+          $ref: "#/components/schemas/ProductCount"
         requestedProductsAlreadyUpToDateCount:
-          type: integer
-          format: int32
+          $ref: "#/components/schemas/ProductCount"
         requestedProductsNotInExchangeSet:
+          $ref: "#/components/schemas/MissingProductList"
+        fssBatchId:
+          $ref: "#/components/schemas/BatchId"
+    DataStandard:
+      enum:
+        - s100
+        - s63
+        - s57
+    ErrorDetail:
+      type: object
+      properties:
+        source:
+          type: string
+        description:
+          type: string
+    ErrorResponseModel:
+      type: object
+      properties:
+        correlationId:
+          type: string
+        errors:
           type: array
           items:
-            $ref: "#/components/schemas/ProductNotInExchangeSet"
-        fssBatchId:
-          $ref: "#/components/schemas/BatchId"    
+            $ref: "#/components/schemas/ErrorDetail"
     ExchangeSetLinks:
       required:
         - exchangeSetBatchStatusUri
@@ -151,67 +755,86 @@ components:
         exchangeSetBatchDetailsUri:
           $ref: "#/components/schemas/Link"
         exchangeSetFileUri:
-          $ref: "#/components/schemas/Link2"    
+          $ref: "#/components/schemas/Link2"
+    JobId: {}
+    JobRequestApiMessage:
+      required:
+        - products
+        - filter
+      type: object
+      properties:
+        dataStandard:
+          $ref: "#/components/schemas/DataStandard"
+        products:
+          type: array
+          items:
+            type: string
+        filter:
+          type: string
+    JobState:
+      enum:
+        - created
+        - upToDate
+        - duplicate
+        - submitted
+        - failed
+        - completed
     Link:
       required:
-        - href
+        - uri
       type: object
       properties:
-        href:
+        uri:
           type: string
+          format: uri
     Link2:
       required:
-        - href
+        - uri
       type: object
       properties:
-        href:
+        uri:
           type: string
+          format: uri
       nullable: true
-    ProductNotIncludedReason:
-      enum:
-        - productWithdrawn
-        - invalidProduct
-        - noDataAvailableForCancelledProduct
-    ProductNotInExchangeSet:
-      required:
-        - productName
-        - reason
+    MessageVersion: {}
+    MissingProductList: {}
+    NotFoundResponseModel:
+      type: object
+      properties:
+        correlationId:
+          type: string
+        detail:
+          type: string
+    ProductCount: {}
+    ProductVersionRequest:
       type: object
       properties:
         productName:
           type: string
-        reason:
-          $ref: "#/components/schemas/ProductNotIncludedReason"
-    S100ProductVersion:
-      required:
-        - productName
-        - editionNumber
-      type: object
-      properties:
-        productName:
-          type: string
+          nullable: true
         editionNumber:
           type: integer
           format: int32
+          nullable: true
         updateNumber:
           type: integer
           format: int32
-    S100ProductVersionsRequest:
-      required:
-        - productVersions
-      type: object
-      properties:
-        productVersions:
-          type: array
-          items:
-            $ref: "#/components/schemas/S100ProductVersion"
-    S100UpdatesSinceRequest:
-      required:
-        - sinceDateTime
+          nullable: true
+    UpdatesSinceRequest:
       type: object
       properties:
         sinceDateTime:
           type: string
-          format: date-time
+          nullable: true
+  securitySchemes:
+    jwtBearerAuth:
+      type: http
+      description: JWT Authorization header using the Bearer scheme.
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - jwtBearerAuth: []
 tags:
-  - name: UKHO.ADDS.EFS.Orchestrator
+  - name: s100
+externalDocs:
+  url: https://github.com/UKHO/exchange-set-fulfilment-service

@@ -16,4 +16,7 @@ module "APIM" {
   product_quota                      = var.product_quota
   efs_b2c_token_issuer               = var.b2c_token_issuer
   efs_b2c_client_id                  = var.b2c_client_id
+  client_credentials_operation_id    = var.client_credentials_operation_id
+  client_credentials_tenant_id       = var.client_credentials_tenant_id
+  client_credentials_scope           = var.client_credentials_scope
 }

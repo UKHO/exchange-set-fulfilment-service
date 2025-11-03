@@ -5,6 +5,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using Quartz;
+using UKHO.ADDS.Clients.Common.Constants;
 using UKHO.ADDS.EFS.Domain.Builds.S100;
 using UKHO.ADDS.EFS.Domain.Builds.S57;
 using UKHO.ADDS.EFS.Domain.Builds.S63;
@@ -33,12 +34,38 @@ namespace UKHO.ADDS.EFS.Orchestrator
     internal static class InjectionExtensions
     {
         private const string OpenApiRequiredType = "string";
+        private const string CallbackUriDescription =
+            "An optional callback URI that will be used to notify the requestor once the requested Exchange Set is ready to download from the File Share Service. " +
+            "The data for the notification will follow the CloudEvents 1.0 standard, with the data portion containing the same Exchange Set data as the response to the original API request. " +
+            "If not specified, then no call back notification will be sent. Must be a valid HTTPS endpoint.";
+        private const string ProductIdentifierDescription =
+            "An optional identifier parameter determines the product identifier of S-100 Exchange Set. " +
+            "If the value is s101, the S-100 Exchange Set will give updates specific to s101 products only. " +
+            "The default value of identifier is s100, which means the S-100 Exchange Set will give updated for all product identifier.\r\n\r\n" +
+            "Available values : s101, s102, s104, s111";
+        private const string XCorrelationIdHeaderKeyDesciption = "Unique GUID.";
+        private const string AcceptedDescription =
+     "Request to create Exchange Set is accepted. Response body has Exchange Set status URL to track changes to the status of the task. " +
+     "It also contains the URL that the Exchange Set will be available on as well as the number of products in that Exchange Set.";
+        private const string CancelReplaceDescription = "If a requested Product has been cancelled or replaced, then the replacement Product will not be included in the response payload. Only the specific Products requested will be returned.";
+        private const string ProductVersionAcceptedDescription = AcceptedDescription +
+            "\r\n\r\n If there are no updates for any of the productVersions, then status code 202 ('Accepted') will be returned with an empty Exchange Set and the exchangeSetProductCount will be 0.\r\n\r\n" + CancelReplaceDescription;
+        private const string ProductNameAcceptedDescription = AcceptedDescription +
+            "\r\n\r\n If none of the requested products are available, then status code 202 ('Accepted') will be returned with an empty Exchange Set and the exchangeSetProductCount will be 0.\r\n\r\n" + CancelReplaceDescription;
+        private const string UnauthorizedDescription =
+            "Unauthorised - either you have not provided any credentials, or your credentials are not recognised.";
+        private const string ForbiddenDescription =
+            "Forbidden - you have been authorised, but you are not allowed to access this resource.";
+        private const string TooManyRequestsDescription =
+            "You have sent too many requests in a given amount of time. Please back-off for the time in the Retry-After header (in seconds) and try again.";
+        private const string NotModifiedDescription =
+            "If there are no updates since the sinceDateTime parameter, then a 'Not modified' response will be returned.";
+        private const string BadRequestDescription = "Bad Request. In case of a malformed request, only the HTTP status code will be returned without an error body.";
 
         public static WebApplicationBuilder AddOrchestratorServices(this WebApplicationBuilder builder)
         {
             var configuration = builder.Configuration;
             builder.Services.AddHttpContextAccessor();
-
             builder.Services.Configure<JsonOptions>(options => JsonCodec.DefaultOptions.CopyTo(options.SerializerOptions));
 
             // Add FluentValidation
@@ -52,30 +79,23 @@ namespace UKHO.ADDS.EFS.Orchestrator
 
             builder.Services.AddAuthorization();
             builder.Services.AddOpenApi();
-
             builder.Services.ConfigureOpenApi();
 
             builder.Services.AddTransient<IAssemblyPipelineFactory, AssemblyPipelineFactory>();
             builder.Services.AddTransient<AssemblyPipelineNodeFactory>();
             builder.Services.AddTransient<IAssemblyPipelineNodeFactory, AssemblyPipelineNodeFactory>();
-
             builder.Services.AddTransient<ICompletionPipelineFactory, CompletionPipelineFactory>();
             builder.Services.AddTransient<ICompletionPipelineNodeFactory, CompletionPipelineNodeFactory>();
-
             builder.Services.AddTransient<IS100ProductNamesRequestValidator, S100ProductNamesRequestValidator>();
             builder.Services.AddTransient<IS100ProductVersionsRequestValidator, S100ProductVersionsRequestValidator>();
             builder.Services.AddTransient<IS100UpdateSinceRequestValidator, S100UpdateSinceRequestValidator>();
-
             builder.Services.AddTransient<IExchangeSetResponseFactory, ExchangeSetResponseFactory>();
-
             builder.Services.AddSingleton<IPipelineContextFactory<S100Build>, PipelineContextFactory<S100Build>>();
             builder.Services.AddSingleton<IPipelineContextFactory<S63Build>, PipelineContextFactory<S63Build>>();
             builder.Services.AddSingleton<IPipelineContextFactory<S57Build>, PipelineContextFactory<S57Build>>();
-
             builder.Services.AddHostedService<S100BuildResponseMonitor>();
             builder.Services.AddHostedService<S63BuildResponseMonitor>();
             builder.Services.AddHostedService<S57BuildResponseMonitor>();
-
             builder.Services.AddSingleton<IBuilderLogForwarder, BuilderLogForwarder>();
             builder.Services.AddSingleton<StorageInitializerService>();
             builder.Services.AddSingleton<ICorrelationIdGenerator, CorrelationIdGenerator>();
@@ -90,20 +110,17 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     HealthStatus.Unhealthy,
                     tags: new[] { "live", "external-dependency" });
 
-            //Added Dependencies for SchedulerJob
+            // SchedulerJob dependencies
             builder.Services.AddQuartz(q =>
             {
                 var exchangeSetGenerationSchedule = configuration["orchestrator:SchedulerJob:ExchangeSetGenerationSchedule"];
                 var jobKey = new JobKey(nameof(SchedulerJob));
-
                 q.AddJob<SchedulerJob>(opts => opts.WithIdentity(jobKey));
-
                 q.AddTrigger(opts => opts
                     .ForJob(jobKey)
                     .WithCronSchedule(exchangeSetGenerationSchedule!, x => x.WithMisfireHandlingInstructionDoNothing())
                 );
             });
-
             builder.Services.AddQuartzHostedService(options =>
             {
                 options.WaitForJobsToComplete = true;
@@ -113,7 +130,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
             {
                 var accessor = x.GetRequiredService<IHttpContextAccessor>();
                 var identity = accessor.HttpContext?.User?.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier")?.Value ?? string.Empty;
-                return new UserIdentifier() { Identity = identity };
+                return new UserIdentifier { Identity = identity };
             });
 
             return builder;
@@ -123,29 +140,611 @@ namespace UKHO.ADDS.EFS.Orchestrator
         {
             serviceCollection.AddOpenApi(options =>
             {
+                _ = options.AddDocumentTransformer((document, context, cancellationToken) =>
+                {
+                    document.Info = new OpenApiInfo
+                    {
+                        Title = "S100 Exchange Set Service API",
+                        Version = "1.0",
+                        Description = "API for generating S100 exchange sets.",
+                        Contact = new OpenApiContact
+                        {
+                            Name = "Abzu Delivery Team",
+                            Email = "Abzudeliveryteam@UKHO.gov.uk"
+                        }
+                    };
+                    document.ExternalDocs = new OpenApiExternalDocs
+                    {
+                        Url = new Uri("https://github.com/UKHO/exchange-set-fulfilment-service")
+                    };
+                    document.Servers = [ new OpenApiServer { Url = "https://exchangesetservice.admiralty.co.uk" } ];
+                    document.Components ??= new OpenApiComponents();
+                    document.Components.SecuritySchemes ??= new Dictionary<string, OpenApiSecurityScheme>();
+                    document.Components.SecuritySchemes["jwtBearerAuth"] = new OpenApiSecurityScheme
+                    {
+                        Type = SecuritySchemeType.Http,
+                        Scheme = "bearer",
+                        BearerFormat = "JWT",
+                        In = ParameterLocation.Header,
+                        Name = "Authorization",
+                        Description = "JWT Authorization header using the Bearer scheme."
+                    };
+                    document.SecurityRequirements =
+                    [
+                        new OpenApiSecurityRequirement
+                        {
+                            [ new OpenApiSecurityScheme { Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "jwtBearerAuth" } } ] = []
+                        }
+                    ];
+                    // Add InternalServerError schema
+                    document.Components.Schemas["InternalServerError"] = new OpenApiSchema
+                    {
+                        Type = "object",
+                        Properties = new Dictionary<string, OpenApiSchema>
+                        {
+                            ["correlationId"] = new OpenApiSchema { Type = "string" },
+                            ["detail"] = new OpenApiSchema { Type = "string" }
+                        }
+                    };
+
+                    // Add synthetic /auth/client_credentials endpoint (OpenAPI only, not implemented in backend)                    
+                    document.Paths ??= new OpenApiPaths();
+                    document.Paths["/auth/client_credentials"] = new OpenApiPathItem
+                    {
+                        Operations = new Dictionary<OperationType, OpenApiOperation>
+                        {
+                            [OperationType.Post] = new OpenApiOperation
+                            {
+                                Summary = "Get token from AAD",
+                                OperationId = "getEFSTokenUsingClientCredentials",
+                                Description = "Returns a token direct from Azure AD using Client Credentials.",
+                                Tags = new List<OpenApiTag> { new() { Name = "auth" } },
+                                RequestBody = new OpenApiRequestBody
+                                {
+                                    Required = true,
+                                    Content = new Dictionary<string, OpenApiMediaType>
+                                    {
+                                        ["application/json"] = new OpenApiMediaType
+                                        {
+                                            Schema = new OpenApiSchema
+                                            {
+                                                Type = "object",
+                                                Properties = new Dictionary<string, OpenApiSchema>
+                                                {
+                                                    ["client_id"] = new OpenApiSchema { Type = "string" },
+                                                    ["client_secret"] = new OpenApiSchema { Type = "string" }
+                                                },
+                                                Required = new HashSet<string> { "client_id", "client_secret" }
+                                            }
+                                        }
+                                    }
+                                },
+                                Responses = new OpenApiResponses
+                                {
+                                    ["200"] = new OpenApiResponse
+                                    {
+                                        Description = "OK",
+                                        Content = new Dictionary<string, OpenApiMediaType>
+                                        {
+                                            ["application/json"] = new OpenApiMediaType
+                                            {
+                                                Schema = new OpenApiSchema
+                                                {
+                                                    Type = "object",
+                                                    Properties = new Dictionary<string, OpenApiSchema>
+                                                    {
+                                                        ["token_type"] = new OpenApiSchema { Type = "string", Example = new OpenApiString("Bearer") },
+                                                        ["expires_in"] = new OpenApiSchema { Type = "integer", Format = "int32", Example = new OpenApiInteger(3599) },
+                                                        ["ext_expires_in"] = new OpenApiSchema { Type = "integer", Format = "int32", Example = new OpenApiInteger(3599) },
+                                                        ["access_token"] = new OpenApiSchema { Type = "string", Example = new OpenApiString("eyJ0eXAiOiJKV1QiLCJhbGciOiJSU") },
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    ["400"] = new OpenApiResponse
+                                    {
+                                        Description = "Bad request - Request missing client_id and/or client_secret.",
+                                        Content = new Dictionary<string, OpenApiMediaType>
+                                        {
+                                            ["application/json"] = new OpenApiMediaType
+                                            {
+                                                Schema = new OpenApiSchema
+                                                {
+                                                    Type = "object",
+                                                    Properties = new Dictionary<string, OpenApiSchema>
+                                                    {
+                                                        ["correlationId"] = new OpenApiSchema { Type = "string", Example = new OpenApiString("184ef711-b039-4c24-b81a-89081d8f324c") },
+
+                                                        ["errors"] = new OpenApiSchema
+                                                        {
+                                                            Type = "object",
+                                                            Properties = new Dictionary<string, OpenApiSchema>
+                                                            {
+                                                                ["source"] = new OpenApiSchema { Type = "string", Example = new OpenApiString("request") },
+                                                                ["description"] = new OpenApiSchema { Type = "string", Example = new OpenApiString("request missing client_id and/or client_secret") },
+                                                            }
+                                                        }
+
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    ["401"] = new OpenApiResponse { Description = UnauthorizedDescription },
+                                    ["403"] = new OpenApiResponse { Description = ForbiddenDescription },
+                                    ["429"] = BuildTooManyRequestsResponse(TooManyRequestsDescription)
+                                }
+                            }
+                        }
+                    };
+                    return Task.CompletedTask;
+                });
+
                 options.AddOperationTransformer((operation, context, cancellationToken) =>
                 {
                     var headers = context.Description.ActionDescriptor.EndpointMetadata.OfType<OpenApiHeaderParameter>();
+                    AddOpenApiHeaderParameters(operation, headers);
+                    SetParameterDescriptions(operation);
+                    SetCommonResponseDescriptions(operation);
 
-                    foreach (var header in headers)
-                    {
-                        operation.Parameters ??= new List<OpenApiParameter>();
+                    operation.Responses["429"] = BuildTooManyRequestsResponse(TooManyRequestsDescription);
+                    AddOpenApiExamples(operation, context.Description.RelativePath, context.Description.HttpMethod);
+                    AddInternalServerErrorResponse(operation);
 
-                        operation.Parameters.Add(new OpenApiParameter
-                        {
-                            Name = header.Name,
-                            In = ParameterLocation.Header,
-                            Required = header.Required,
-                            Description = header.Description,
-                            Schema = new OpenApiSchema { Type = OpenApiRequiredType, Default = new OpenApiString(header.ExpectedValue) }
-                        });
-                    }
+                    // Add Callbacks for custom exchangeset endpoints
+                    AddCallbacksForExchangeSetEndpoints(operation, context.Description.RelativePath, context.Description.HttpMethod);
 
                     return Task.CompletedTask;
                 });
             });
-
             return serviceCollection;
+        }
+
+        private static void AddCallbacksForExchangeSetEndpoints(OpenApiOperation operation, string? relativePath, string? httpMethod)
+        {
+            if (httpMethod == "POST" &&
+                (string.Equals(relativePath, "v2/exchangeSet/s100/productNames", StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(relativePath, "v2/exchangeSet/s100/productVersions", StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(relativePath, "v2/exchangeSet/s100/updatesSince", StringComparison.OrdinalIgnoreCase)))
+            {
+                operation.Callbacks ??= new Dictionary<string, OpenApiCallback>();
+                var callbackExample = BuildCallbackExample();
+                var callbackResponses = new OpenApiResponses
+                {
+                    ["200"] = new OpenApiResponse
+                    {
+                        Description = "The service will ignore all response from the callback"
+                    }
+                };
+                var callback = new OpenApiCallback
+                {
+                    PathItems = new Dictionary<Microsoft.OpenApi.Expressions.RuntimeExpression, OpenApiPathItem>
+                    {
+                        [Microsoft.OpenApi.Expressions.RuntimeExpression.Build("{$request.query.callbackUri}")] = new OpenApiPathItem
+                        {
+                            Operations = new Dictionary<OperationType, OpenApiOperation>
+                            {
+                                [OperationType.Post] = new OpenApiOperation
+                                {
+                                    Summary = "Notify the Exchange Set requestor that this is now ready to download on the File Share Service.",
+                                    Description = "Once the Exchange Set has been committed on File Share Service, a notification will be sent to the callbackURI (if specified).\n\nData:\r\nThe data for the notification will follow the CloudEvents 1.0 standard, with the data portion containing the same S-100 Exchange Set data as the response to the original API request ( $ref: \"#/components/schemas/s100ExchangeSetResponse\" ).",
+                                    RequestBody = new OpenApiRequestBody
+                                    {
+                                        Content = new Dictionary<string, OpenApiMediaType>
+                                        {
+                                            ["application/json"] = new OpenApiMediaType
+                                            {
+                                                Schema = new OpenApiSchema { Type = "object" },
+                                                Example = callbackExample
+                                            }
+                                        }
+                                    },
+                                    Responses = callbackResponses
+                                }
+                            }
+                        }
+                    }
+                };
+                operation.Callbacks["s100FulfilmentResponse"] = callback;
+            }
+        }
+
+        private static void SetCommonResponseDescriptions(OpenApiOperation operation)
+        {
+            var standardResponses = new Dictionary<string, string>
+            {
+                ["401"] = UnauthorizedDescription,
+                ["403"] = ForbiddenDescription,
+                ["304"] = NotModifiedDescription,
+                ["400"] = BadRequestDescription
+            };
+
+            SetResponseDescriptions(operation, standardResponses);
+
+            // Add special handling for UpdatesSince endpoint response headers
+            if (operation.Responses.TryGetValue("202", out var acceptedResponse) &&
+                operation.Responses.TryGetValue("304", out var notModifiedResponse))
+            {
+                // These are likely added by the UpdatesSince endpoint
+                if (acceptedResponse.Headers == null)
+                {
+                    acceptedResponse.Headers = new Dictionary<string, OpenApiHeader>();
+                }
+
+                if (!acceptedResponse.Headers.ContainsKey("Date") &&
+                    notModifiedResponse?.Headers != null &&
+                    notModifiedResponse.Headers.ContainsKey("Last-Modified"))
+                {
+                    acceptedResponse.Headers["Date"] = new OpenApiHeader
+                    {
+                        Description = "Returns the current date and time on the server and should be used in subsequent requests this operation to ensure that there are no gaps due to minor time difference between your own and UKHO systems. The date format is in ISO 8601 format.",
+                        Schema = new OpenApiSchema
+                        {
+                            Type = "string",
+                            Example = new OpenApiString("2025-08-25T07:28:00.000Z")
+                        }
+                    };
+                }
+            }
+        }
+
+        private static OpenApiResponse BuildTooManyRequestsResponse(string TooManyRequestsDescription) => new OpenApiResponse
+        {
+            Description = TooManyRequestsDescription,
+            Headers = new Dictionary<string, OpenApiHeader>
+            {
+                ["Retry-After"] = new OpenApiHeader
+                {
+                    Description = "Specifies the time you should wait in seconds before retrying.",
+                    Schema = new OpenApiSchema
+                    {
+                        Type = "integer"
+                    }
+                }
+            }
+        };
+
+        private static OpenApiObject BuildCallbackExample() =>
+            new OpenApiObject
+            {
+                ["specversion"] = new OpenApiString("1.0"),
+                ["type"] = new OpenApiString("uk.co.admiralty.s100Data.exchangeSetCreated.v1"),
+                ["source"] = new OpenApiString("https://exchangeset.admiralty.co.uk/s100Data"),
+                ["id"] = new OpenApiString("2f03a25f-28b3-46ea-b009-5943250a9a41"),
+                ["time"] = new OpenApiString("2021-02-17T14:04:04.4880776Z"),
+                ["subject"] = new OpenApiString("Requested S-100 Exchange Set Created"),
+                ["datacontenttype"] = new OpenApiString("application/json"),
+                ["data"] = new OpenApiObject
+                {
+                    ["_links"] = new OpenApiObject
+                    {
+                        ["exchangeSetBatchStatusUri"] = new OpenApiObject { ["href"] = new OpenApiString("https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/status") },
+                        ["exchangeSetBatchDetailsUri"] = new OpenApiObject { ["href"] = new OpenApiString("https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272") },
+                        ["exchangeSetFileUri"] = new OpenApiObject { ["href"] = new OpenApiString("https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/exchangeset123.zip") },
+                        ["errorFileUri"] = new OpenApiObject { ["href"] = new OpenApiString("https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/error.txt") }
+                    },
+                    ["exchangeSetUrlExpiryDateTime"] = new OpenApiString("2021-02-17T16:19:32.269Z"),
+                    ["requestedProductCount"] = new OpenApiInteger(4),
+                    ["exchangeSetProductCount"] = new OpenApiInteger(1),
+                    ["requestedProductsAlreadyUpToDateCount"] = new OpenApiInteger(0),
+                    ["requestedProductsNotInExchangeSet"] = new OpenApiArray
+                    {
+                        new OpenApiObject
+                        {
+                            ["productName"] = new OpenApiString("101GB40079ABCDEFG"),
+                            ["reason"] = new OpenApiString("invalidProduct")
+                        }
+                    },
+                    ["fssBatchId"] = new OpenApiString("7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272")
+                }
+            };
+
+        private static void AddOpenApiHeaderParameters(OpenApiOperation operation, IEnumerable<OpenApiHeaderParameter> headers)
+        {
+            operation.Parameters ??= [];
+            foreach (var header in headers)
+            {
+                operation.Parameters.Add(new OpenApiParameter
+                {
+                    Name = header.Name,
+                    In = ParameterLocation.Header,
+                    Required = header.Required,
+                    Description = header.Description,
+                    Schema = new OpenApiSchema { Type = OpenApiRequiredType, Default = new OpenApiString(header.ExpectedValue) }
+                });
+            }
+        }
+
+        private static void SetParameterDescriptions(OpenApiOperation operation)
+        {
+            foreach (var param in operation.Parameters)
+            {
+                param.Description = param.Name switch
+                {
+                    "callbackUri" => CallbackUriDescription,
+                    "productIdentifier" => ProductIdentifierDescription,
+                    ApiHeaderKeys.XCorrelationIdHeaderKey => XCorrelationIdHeaderKeyDesciption,
+                    _ => param.Description
+                };
+            }
+        }
+
+        private static void SetResponseDescriptions(OpenApiOperation operation, Dictionary<string, string> responseDescriptions)
+        {
+            foreach (var (status, desc) in responseDescriptions)
+            {
+                if (operation.Responses.TryGetValue(status, out var response))
+                {
+                    response.Description = desc;
+                }
+            }
+        }
+
+        private static void AddOpenApiExamples(OpenApiOperation operation, string? relativePath, string? httpMethod)
+        {
+            if (string.Equals(httpMethod, "POST", StringComparison.OrdinalIgnoreCase))
+            {
+                if (string.Equals(relativePath, "v2/exchangeSet/s100/productNames", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (operation.Responses.TryGetValue("202", out var acceptedResponse))
+                    {
+                        acceptedResponse.Description = ProductNameAcceptedDescription;
+                    }
+                    AddProductEndpointExamples(
+                        operation,
+                        new OpenApiArray
+                        {
+                            new OpenApiString("101HR17QFG4"),
+                            new OpenApiString("102CA5QUF3C"),
+                            new OpenApiString("104EA4ZL566"),
+                            new OpenApiString("111AR401R12")
+                        },
+                        "A list of S-100 product names for which the Exchange Set is requested.",
+                        BuildProductResponseExample(
+                            "uri",
+                            new Dictionary<string, string>
+                            {
+                                { "exchangeSetBatchStatusUri", "https://filesvnexte2e.admiralty.co.uk/batch/22c68246-87ae-4f7e-8556-8ee9eeb95037/status" },
+                                { "exchangeSetBatchDetailsUri", "https://filesvnexte2e.admiralty.co.uk/batch/22c68246-87ae-4f7e-8556-8ee9eeb95037" },
+                                { "exchangeSetFileUri", "https://filesvnexte2e.admiralty.co.uk/batch/22c68246-87ae-4f7e-8556-8ee9eeb95037/files/V01X01.zip" }
+                            },
+                            "2025-10-23T11:22:40.388Z",
+                            4,
+                            3,
+                            0,
+                            "requestedProductsNotInExchangeSet",
+                            new List<(string, string)> { ("111AR401R12", "invalidProduct") },
+                            "22c68246-87ae-4f7e-8556-8vc9cvb95037"
+                        ),
+                        null,
+                        null
+                    );
+                }
+                else if (string.Equals(relativePath, "v2/exchangeSet/s100/productVersions", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (operation.Responses.TryGetValue("202", out var acceptedResponse))
+                    {
+                        acceptedResponse.Description = ProductVersionAcceptedDescription;
+                    }
+                    AddProductEndpointExamples(
+                        operation,
+                        new OpenApiArray
+                        {
+                            new OpenApiObject
+                            {
+                                ["productName"] = new OpenApiString("101GB40079ABCDEFG"),
+                                ["editionNumber"] = new OpenApiInteger(5),
+                                ["updateNumber"] = new OpenApiInteger(10)
+                            },
+                            new OpenApiObject
+                            {
+                                ["productName"] = new OpenApiString("101DE00904820801012"),
+                                ["editionNumber"] = new OpenApiInteger(36),
+                                ["updateNumber"] = new OpenApiInteger(5)
+                            },
+                            new OpenApiObject
+                            {
+                                ["productName"] = new OpenApiString("102CA32904820801013"),
+                                ["editionNumber"] = new OpenApiInteger(13),
+                                ["updateNumber"] = new OpenApiInteger(0)
+                            },
+                            new OpenApiObject
+                            {
+                                ["productName"] = new OpenApiString("104US00_CHES_TYPE1_20210630_0600"),
+                                ["editionNumber"] = new OpenApiInteger(9),
+                                ["updateNumber"] = new OpenApiInteger(0)
+                            },
+                            new OpenApiObject
+                            {
+                                ["productName"] = new OpenApiString("101FR40079QWERTY"),
+                                ["editionNumber"] = new OpenApiInteger(2),
+                                ["updateNumber"] = new OpenApiInteger(2)
+                            },
+                            new OpenApiObject
+                            {
+                                ["productName"] = new OpenApiString("111US00_ches_dcf8_20190703T00Z"),
+                                ["editionNumber"] = new OpenApiInteger(11),
+                                ["updateNumber"] = new OpenApiInteger(0)
+                            },
+                            new OpenApiObject
+                            {
+                                ["productName"] = new OpenApiString("102AR00904820801012"),
+                                ["editionNumber"] = new OpenApiInteger(11),
+                                ["updateNumber"] = new OpenApiInteger(0)
+                            }
+                        },
+                        "A list of S-100 products with their edition and update numbers for which the Exchange Set is requested.",
+                        BuildProductResponseExample(
+                            "href",
+                            new Dictionary<string, string>
+                            {
+                                { "exchangeSetBatchStatusUri", "https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/status" },
+                                { "exchangeSetBatchDetailsUri", "https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272" },
+                                { "exchangeSetFileUri", "https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/exchangeset123.zip" }
+                            },
+                            "2021-02-17T16:19:32.269Z",
+                            7,
+                            4,
+                            1,
+                            "requestedProductsNotReturned",
+                            new List<(string, string)>
+                            {
+                                ("102CA32904820801013", "productWithdrawn"),
+                                ("101DE00904820801012", "InvalidProduct")
+                            },
+                            "7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272"
+                        ),
+                        null,
+                        null
+                    );
+                }
+                else if (string.Equals(relativePath, "v2/exchangeSet/s100/updatesSince", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (operation.Responses.TryGetValue("202", out var acceptedResponse))
+                    {
+                        acceptedResponse.Description = AcceptedDescription;
+                    }
+                    AddProductEndpointExamples(
+                        operation,
+                        new OpenApiObject { ["sinceDateTime"] = new OpenApiString("2025-10-03T00:00:00Z") },
+                        "The JSON body containing sinceDateTime.",
+                        BuildProductResponseExample(
+                            "href",
+                            new Dictionary<string, string>
+                            {
+                                { "exchangeSetBatchStatusUri", "https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/status" },
+                                { "exchangeSetBatchDetailsUri", "https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272" },
+                                { "exchangeSetFileUri", "https://fss.ukho.gov.uk/batch/7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272/files/exchangeset123.zip" }
+                            },
+                            "2021-02-17T16:19:32.269Z",
+                            0,
+                            43,
+                            0,
+                            "requestedProductsNotReturned",
+                            new List<(string, string)>
+                            {
+
+                            },
+                            "7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272"
+                        ),
+                        new KeyValuePair<string, OpenApiHeader>("Date", new OpenApiHeader
+                        {
+                            Description = "Returns the current date and time on the server and should be used in subsequent requests this operation to ensure that there are no gaps due to minor time difference between your own and UKHO systems. The date format is in ISO 8601 format.",
+                            Schema = new OpenApiSchema
+                            {
+                                Type = "string",
+                                Example = new OpenApiString("2025-08-25T07:28:00.000Z")
+                            }
+                        }),
+                        new KeyValuePair<string, OpenApiHeader>("Last-Modified", new OpenApiHeader
+                        {
+                            Description = "Returns the last modified date and time of the resource in ISO 8601 format.",
+                            Schema = new OpenApiSchema
+                            {
+                                Type = "string",
+                                Example = new OpenApiString("2025-08-25T07:28:00.000Z")
+                            }
+                        })
+                    );
+                }
+            }
+        }
+
+        // Helper method to reduce duplication for product endpoint examples
+        private static void AddProductEndpointExamples(
+            OpenApiOperation operation,
+            IOpenApiAny requestExample,
+            string requestDescription,
+            IOpenApiAny responseExample,
+            KeyValuePair<string, OpenApiHeader>? acceptedHeader,
+            KeyValuePair<string, OpenApiHeader>? notModifiedHeader)
+        {
+            if (operation.RequestBody?.Content?.ContainsKey("application/json") == true)
+            {
+                operation.RequestBody.Content["application/json"].Example = requestExample;
+                operation.RequestBody.Description = requestDescription;
+            }
+            if (operation.Responses.TryGetValue("202", out var acceptedResponse) &&
+                acceptedResponse.Content?.ContainsKey("application/json") == true)
+            {
+                acceptedResponse.Content["application/json"].Example = responseExample;
+                if (acceptedHeader.HasValue)
+                {
+                    acceptedResponse.Headers ??= new Dictionary<string, OpenApiHeader>();
+                    acceptedResponse.Headers[acceptedHeader.Value.Key] = acceptedHeader.Value.Value;
+                }
+            }
+            if (operation.Responses.TryGetValue("304", out var notModifiedResponse) && notModifiedHeader.HasValue)
+            {
+                notModifiedResponse.Headers ??= new Dictionary<string, OpenApiHeader>();
+                notModifiedResponse.Headers[notModifiedHeader.Value.Key] = notModifiedHeader.Value.Value;
+            }
+        }
+
+        private static OpenApiObject BuildProductResponseExample(
+            string linksKey,
+            Dictionary<string, string> links,
+            string expiryDate,
+            int requestedProductCount,
+            int returnedProductCount,
+            int alreadyUpToDateCount,
+            string notReturnedKey,
+            List<(string productName, string reason)> notReturned,
+            string batchId)
+        {
+            var linksObj = new OpenApiObject();
+            foreach (var kvp in links)
+            {
+                linksObj[kvp.Key] = new OpenApiObject { [linksKey] = new OpenApiString(kvp.Value) };
+            }
+            var notReturnedArray = new OpenApiArray();
+            foreach (var item in notReturned)
+            {
+                var obj = new OpenApiObject
+                {
+                    ["productName"] = new OpenApiString(item.productName),
+                    ["reason"] = new OpenApiString(item.reason)
+                };
+                notReturnedArray.Add(obj);
+            }
+            var responseObj = new OpenApiObject
+            {
+                [linksKey == "uri" ? "links" : "_links"] = linksObj,
+                ["exchangeSetUrlExpiryDateTime"] = new OpenApiString(expiryDate),
+                ["requestedProductCount"] = new OpenApiInteger(requestedProductCount),
+                [linksKey == "uri" ? "exchangeSetProductCount" : "returnedProductCount"] = new OpenApiInteger(returnedProductCount),
+                ["requestedProductsAlreadyUpToDateCount"] = new OpenApiInteger(alreadyUpToDateCount),
+                [notReturnedKey] = notReturnedArray,
+                ["fssBatchId"] = new OpenApiString(batchId)
+            };
+            return responseObj;
+        }
+
+        private static void AddInternalServerErrorResponse(OpenApiOperation operation)
+        {
+            if (!operation.Responses.ContainsKey("500"))
+            {
+                operation.Responses["500"] = new OpenApiResponse
+                {
+                    Description = "Internal Server Error.",
+                    Content = new Dictionary<string, OpenApiMediaType>
+                    {
+                        ["application/json"] = new OpenApiMediaType
+                        {
+                            Schema = new OpenApiSchema
+                            {
+                                Type = "object",
+                                Properties = new Dictionary<string, OpenApiSchema>
+                                {
+                                    ["correlationId"] = new OpenApiSchema { Type = "string" },
+                                    ["detail"] = new OpenApiSchema { Type = "string" }
+                                }
+                            }
+                        }
+                    }
+                };
+            }
         }
     }
 }

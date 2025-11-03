@@ -1,8 +1,8 @@
 ﻿using System.Net;
 using FluentValidation.Results;
+using Microsoft.AspNetCore.Http.HttpResults;
 using UKHO.ADDS.Clients.Common.Constants;
 using UKHO.ADDS.EFS.Domain.Jobs;
-using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
 using UKHO.ADDS.EFS.Orchestrator.Api.Messages;
 using UKHO.ADDS.EFS.Orchestrator.Api.Metadata;
@@ -41,7 +41,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             IExternalApiResponseHandler externalApiResponseHandler)
         {
             var logger = loggerFactory.CreateLogger(ApiLoggerName);
-            var exchangeSetEndpoint = routeBuilder.MapGroup(BaseRoutePath);
+            var exchangeSetEndpoint = routeBuilder.MapGroup(BaseRoutePath).WithTags("s100");
 
             RegisterProductNamesEndpoint(exchangeSetEndpoint, logger, correlationIdGenerator, externalApiResponseHandler);
             RegisterProductVersionsEndpoint(exchangeSetEndpoint, logger, correlationIdGenerator, externalApiResponseHandler);
@@ -89,11 +89,14 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                         httpContext);
                 })
                 .Produces<CustomExchangeSetResponse>(202)
-                .Produces<ErrorResponseModel>(413)
+                .Produces<ErrorResponseModel>(400)
+                .Produces(401)
+                .Produces(403)
+                .Produces(429)
+                .Produces<InternalServerError>(500)
                 .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID",
                     correlationIdGenerator.CreateForCustomExchageSet().ToString())
-                .WithDescription(
-                    "Provide all the latest releasable baseline data for a specified set of S100 Products.")
+                .WithDescription("Given a list of Product names, return all the products that are releasable.\r\n\r\n**Business Rules:**\r\n\r\nOnly Products that are releasable at the date of the request will be returned.\r\n\r\nIf valid Products are requested then Product exchange set with baseline data including requested Products will be returned.\r\n\r\nIf a requested Product has been cancelled or replaced, then the replacement Product will not be included in the response payload. Only the specific Products requested will be returned.\r\n\r\nIf none of the Products requested exist then exchange set with baseline releasable data without requested Products will be returned.")
                 .WithRequiredAuthorization(AuthenticationConstants.AdOrB2C);
         }
 
@@ -139,11 +142,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                         httpContext);
                 })
                 .Produces<CustomExchangeSetResponse>(202)
-                .Produces<ErrorResponseModel>(413)
+                .Produces<ErrorResponseModel>(400)
+                .Produces(401)
+                .Produces(403)
+                .Produces(429)
+                .Produces<InternalServerError>(500)
                 .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID",
                     correlationIdGenerator.CreateForCustomExchageSet().ToString())
                 .WithDescription(
-                    "Given a set of S100 Product versions (e.g. Edition x Update y) provide any later releasable files.")
+                    "Given a list of Product name identifiers and their edition and update numbers, return all the versions of the Products that are releasable from that version onwards.\r\n\r\n**Business Rules:**\r\n\r\nIf none of the requested products exist, the status will be Accepted and an empty Exchange Set will be created. The total number of requested products will be reflected in requestedProductsNotReturned.\r\n\r\nIf none of the requested products have updates available, the status will be Accepted and an empty Exchange Set will be created. The total number of requested products will be reflected in requestedProductsAlreadyUpToDateCount.")
                 .WithRequiredAuthorization(AuthenticationConstants.AdOrB2C);
         }
 
@@ -186,10 +193,15 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
                 })
                 .Produces<CustomExchangeSetResponse>(202)
                 .Produces(304)
-                .Produces<ErrorResponseModel>(413)
+                .Produces<ErrorResponseModel>(400)
+                .Produces(401)
+                .Produces(403)
+                .Produces<NotFoundResponseModel>(404)
+                .Produces(429)
+                .Produces<InternalServerError>(500)
                 .WithRequiredHeader(ApiHeaderKeys.XCorrelationIdHeaderKey, "Correlation ID",
                     correlationIdGenerator.CreateForCustomExchageSet().ToString())
-                .WithDescription("Provide all the releasable S100 data after a datetime.")
+                .WithDescription("Given a datetime, build an Exchange Set of all the releasable Product versions that have been issued since that datetime.")
                 .WithRequiredAuthorization(AuthenticationConstants.AdOrB2C);
         }
 
