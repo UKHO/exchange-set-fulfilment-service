@@ -41,7 +41,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Api
             IExternalApiResponseHandler externalApiResponseHandler)
         {
             var logger = loggerFactory.CreateLogger(ApiLoggerName);
-            var exchangeSetEndpoint = routeBuilder.MapGroup(BaseRoutePath).WithTags("s100");
+            var exchangeSetEndpoint = routeBuilder.MapGroup(BaseRoutePath).WithTags("public");
 
             RegisterProductNamesEndpoint(exchangeSetEndpoint, logger, correlationIdGenerator, externalApiResponseHandler);
             RegisterProductVersionsEndpoint(exchangeSetEndpoint, logger, correlationIdGenerator, externalApiResponseHandler);
