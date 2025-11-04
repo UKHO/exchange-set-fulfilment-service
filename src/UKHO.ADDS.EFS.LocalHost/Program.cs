@@ -101,6 +101,8 @@ namespace UKHO.ADDS.EFS.LocalHost
                 mockService.PublishAsAzureContainerApp((infra, app) =>
                 {
                     app.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
+                    app.Template.Scale.MinReplicas = 1;
+                    app.Template.Scale.MaxReplicas = 1;
                     var container = app.Template.Containers.Single().Value!;
                     container.Resources.Cpu = addsMocksCpu!.AsProvisioningParameter(infra, "addsMocksCpu");
                     container.Resources.Memory = addsMocksMemory!.AsProvisioningParameter(infra, "addsMocksMemory");

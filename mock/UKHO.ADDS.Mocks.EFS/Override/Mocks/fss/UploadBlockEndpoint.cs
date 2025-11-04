@@ -1,5 +1,4 @@
 ﻿using UKHO.ADDS.Mocks.EFS.Override.Mocks.fss.Models;
-using UKHO.ADDS.Mocks.Headers;
 using UKHO.ADDS.Mocks.Markdown;
 using UKHO.ADDS.Mocks.States;
 
@@ -44,14 +43,14 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
             try
             {
                 var fileKey = $"{batchId}:{filename}";
-                
+
                 lock (FileBlockStorage.FileBlocks)
                 {
                     EnsureFileKeyExists(fileKey);
                     var blockData = ReadBlockContent(request);
                     FileBlockStorage.FileBlocks[fileKey][blockId] = blockData;
                 }
-                
+
                 return null; // Success
             }
             catch (Exception ex)

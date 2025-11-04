@@ -34,7 +34,7 @@ steps:
         Write-Host "Checking running state..."
         $runningState = az containerapp revision show --name ${{ parameters.AppName }} --resource-group efs-$env:AZURE_ENV_NAME-rg --revision $revision --query "properties.runningState" --output tsv
 
-        if ($runningState -eq "Running" ) {
+        if ($runningState -eq "Running" -or $runningState -eq "RunningAtMaxScale") {
           Write-Host "Container is running"
           $isServiceActive = 'true'
           break
