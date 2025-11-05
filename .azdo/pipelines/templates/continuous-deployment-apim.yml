@@ -62,6 +62,7 @@ jobs:
               else
                 echo "Filtered file created successfully."
                 ls -lh "$(Build.SourcesDirectory)/exchangeSetFulfilmentService_OpenApi_definition_filtered.yaml"
+                cat "$(Build.SourcesDirectory)/exchangeSetFulfilmentService_OpenApi_definition_filtered.yaml"
               fi
 
         - task: AzureKeyVault@2

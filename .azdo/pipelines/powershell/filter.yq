@@ -4,3 +4,4 @@
   )
 )
 | .paths[][].tags |= map(select(. != "public"))
+| del(.tags)
