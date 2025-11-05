@@ -3,5 +3,5 @@
     (.value[]? | [.tags[]?] | flatten | any_c(. == "public"))
   )
 )
-| .paths[][].tags |= map(select(. != "public"))
+| del(.paths[][].tags)
 | del(.tags)
