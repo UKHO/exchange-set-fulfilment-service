@@ -9,10 +9,126 @@ info:
 servers:
   - url: https://exchangesetservice.admiralty.co.uk
 paths:
+  /jobs:
+    post:
+      tags:
+        - private
+      description: Create a job request for the given data standard. To filter (S100)
+        by product type, use the filter property "startswith(ProductName,
+        '101')"
+      parameters:
+        - name: x-correlation-id
+          in: header
+          description: Correlation ID
+          required: true
+          schema:
+            type: string
+            default: job-bf9f6b2021d04dda9d9f62cc0e865caa
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JobRequestApiMessage"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssemblyPipelineResponse"
+        "429":
+          description: You have sent too many requests in a given amount of time. Please
+            back-off for the time in the Retry-After header (in seconds) and try
+            again.
+          headers:
+            Retry-After:
+              description: Specifies the time you should wait in seconds before retrying.
+              schema:
+                type: integer
+        "500":
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  correlationId:
+                    type: string
+                  detail:
+                    type: string
+  /jobs/{jobId}:
+    get:
+      tags:
+        - private
+      description: Gets the job for the given job id
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+        "429":
+          description: You have sent too many requests in a given amount of time. Please
+            back-off for the time in the Retry-After header (in seconds) and try
+            again.
+          headers:
+            Retry-After:
+              description: Specifies the time you should wait in seconds before retrying.
+              schema:
+                type: integer
+        "500":
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  correlationId:
+                    type: string
+                  detail:
+                    type: string
+  /jobs/{jobId}/build:
+    get:
+      tags:
+        - private
+      description: Gets the job build memento for the given job id
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+        "429":
+          description: You have sent too many requests in a given amount of time. Please
+            back-off for the time in the Retry-After header (in seconds) and try
+            again.
+          headers:
+            Retry-After:
+              description: Specifies the time you should wait in seconds before retrying.
+              schema:
+                type: integer
+        "500":
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  correlationId:
+                    type: string
+                  detail:
+                    type: string
   /v2/exchangeSet/s100/productNames:
     post:
       tags:
-        - s100
+        - public
       description: "Given a list of Product names, return all the products that are
         releasable.\r
 
@@ -59,7 +175,7 @@ paths:
           required: true
           schema:
             type: string
-            default: b1130a6457c44cb2bc4c9d2769c7e658
+            default: 343eafb314c54ec2a9fa582505c16171
       requestBody:
         description: A list of S-100 product names for which the Exchange Set is requested.
         content:
@@ -83,9 +199,9 @@ paths:
 
             \r
 
-            If there are no updates for any of the productVersions, then status
-            code 202 ('Accepted') will be returned with an empty Exchange Set
-            and the exchangeSetProductCount will be 0.\r
+            \ If none of the requested products are available, then status code
+            202 ('Accepted') will be returned with an empty Exchange Set and the
+            exchangeSetProductCount will be 0.\r
 
             \r
 
@@ -113,7 +229,8 @@ paths:
                     reason: invalidProduct
                 fssBatchId: 22c68246-87ae-4f7e-8556-8vc9cvb95037
         "400":
-          description: Bad Request
+          description: Bad Request. In case of a malformed request, only the HTTP status
+            code will be returned without an error body.
           content:
             application/json:
               schema:
@@ -197,7 +314,7 @@ paths:
   /v2/exchangeSet/s100/productVersions:
     post:
       tags:
-        - s100
+        - public
       description: "Given a list of Product name identifiers and their edition and
         update numbers, return all the versions of the Products that are
         releasable from that version onwards.\r
@@ -237,7 +354,7 @@ paths:
           required: true
           schema:
             type: string
-            default: 3a8980bc4c404bfeac08aa031b03bc96
+            default: 1fcf391d028840b3bdc8811265f0d495
       requestBody:
         description: A list of S-100 products with their edition and update numbers for
           which the Exchange Set is requested.
@@ -279,9 +396,9 @@ paths:
 
             \r
 
-            If there are no updates for any of the productVersions, then status
-            code 202 ('Accepted') will be returned with an empty Exchange Set
-            and the exchangeSetProductCount will be 0.\r
+            \ If there are no updates for any of the productVersions, then
+            status code 202 ('Accepted') will be returned with an empty Exchange
+            Set and the exchangeSetProductCount will be 0.\r
 
             \r
 
@@ -311,7 +428,8 @@ paths:
                     reason: InvalidProduct
                 fssBatchId: 7b4cdf10-adfa-4ed6-b2fe-d1543d8b7272
         "400":
-          description: Bad Request
+          description: Bad Request. In case of a malformed request, only the HTTP status
+            code will be returned without an error body.
           content:
             application/json:
               schema:
@@ -395,7 +513,7 @@ paths:
   /v2/exchangeSet/s100/updatesSince:
     post:
       tags:
-        - s100
+        - public
       description: Given a datetime, build an Exchange Set of all the releasable
         Product versions that have been issued since that datetime.
       parameters:
@@ -431,7 +549,7 @@ paths:
           required: true
           schema:
             type: string
-            default: 50c1300cd4a345c5a498656bf7f0b811
+            default: 4446eba6b0fc44e598a6799abe556a36
       requestBody:
         description: The JSON body containing sinceDateTime.
         content:
@@ -443,22 +561,10 @@ paths:
         required: true
       responses:
         "202":
-          description: "Request to create Exchange Set is accepted. Response body has
+          description: Request to create Exchange Set is accepted. Response body has
             Exchange Set status URL to track changes to the status of the task.
             It also contains the URL that the Exchange Set will be available on
-            as well as the number of products in that Exchange Set.\r
-
-            \r
-
-            If there are no updates for any of the productVersions, then status
-            code 202 ('Accepted') will be returned with an empty Exchange Set
-            and the exchangeSetProductCount will be 0.\r
-
-            \r
-
-            If a requested Product has been cancelled or replaced, then the
-            replacement Product will not be included in the response payload.
-            Only the specific Products requested will be returned."
+            as well as the number of products in that Exchange Set.
           headers:
             Date:
               description: Returns the current date and time on the server and should be used
@@ -497,7 +603,8 @@ paths:
                 type: string
                 example: 2025-08-25T07:28:00.000Z
         "400":
-          description: Bad Request
+          description: Bad Request. In case of a malformed request, only the HTTP status
+            code will be returned without an error body.
           content:
             application/json:
               schema:
@@ -587,7 +694,7 @@ paths:
   /auth/client_credentials:
     post:
       tags:
-        - auth
+        - public
       summary: Get token from AAD
       description: Returns a token direct from Azure AD using Client Credentials.
       operationId: getEFSTokenUsingClientCredentials
@@ -835,6 +942,7 @@ components:
 security:
   - jwtBearerAuth: []
 tags:
-  - name: s100
+  - name: private
+  - name: public
 externalDocs:
   url: https://github.com/UKHO/exchange-set-fulfilment-service

@@ -198,7 +198,7 @@ namespace UKHO.ADDS.EFS.Orchestrator
                                 Summary = "Get token from AAD",
                                 OperationId = "getEFSTokenUsingClientCredentials",
                                 Description = "Returns a token direct from Azure AD using Client Credentials.",
-                                Tags = new List<OpenApiTag> { new() { Name = "auth" } },
+                                Tags = [new() { Name = "public" }],
                                 RequestBody = new OpenApiRequestBody
                                 {
                                     Required = true,

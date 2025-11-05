@@ -1,0 +1,7 @@
+.paths |= with_entries(
+  select(
+    (.value[]? | [.tags[]?] | flatten | any_c(. == "public"))
+  )
+)
+| del(.paths[][].tags)
+| del(.tags)
