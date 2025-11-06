@@ -66,11 +66,8 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Assertions
                     }
                     */
 
-                    /*
-                     * In current FSS zip files the "folderName" not present as per new test data generation
-                     * expectedProductPaths.Add($"S100_ROOT/S-{productIdentifier}/DATASET_FILES/{folderName}/{productName}");
-                     */
-                    expectedProductPaths.Add($"S100_ROOT/S-{productIdentifier}/DATASET_FILES/{productName}");
+                    // Below folder structure needs to be updated as per the final exchange set structure
+                    expectedProductPaths.Add($"S100_ROOT/S-{productIdentifier}/DATASET_FILES/{folderName}/{productName}/{productName}");
                 }
                 //added file expected other than product name
                 expectedProductPaths.Add("S100_ROOT/CATALOG");
