@@ -272,5 +272,7 @@ Test data files are located in the `TestData/` folder and include:
 - ZIP files for structure comparison testing
 - Product-specific test datasets
 - Exchange set validation samples
+- Any changes in the actual exchange set zip file will need updates to the corresponding test data files.
 
 Use `[CopyToOutputDirectory]` in the project file to ensure test data is available at runtime.
+
