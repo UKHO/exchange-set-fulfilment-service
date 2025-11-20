@@ -15,14 +15,17 @@ parameters:
 
 jobs:
 - deployment: ${{ parameters.ShortName }}APIMDeploy
-  displayName: "${{ upper(parameters.ShortName) }} - APIM deploy"
+  displayName: ${{ upper(parameters.ShortName) }} - APIM deploy
   environment: ${{ parameters.AzureDevOpsEnvironment }}
+  dependsOn: ${{ parameters.ShortName }}DeployResources
   pool: $(LinuxPool)
   container:  ${{parameters.ContainerImage}}
   workspace:
     clean: all
   variables:
   - template: var/${{ lower(parameters.ShortName) }}-deploy.yml
+  - name: apim_api_backend_url
+    value: efs-orchestrator.$[ dependencies.${{ parameters.ShortName }}DeployResources.outputs['GetInfrastructureDetails.EFS_CONTAINER_APPS_ENVIRONMENT_DEFAULTDOMAIN'] ]
   strategy:
     runOnce:
       deploy:
@@ -71,7 +74,7 @@ jobs:
 
         - task: PowerShell@2
           name: APIMDeployment
-          displayName: "terraform APIM deployment"
+          displayName: Terraform APIM deployment
           condition: succeeded()
           inputs:
             targetType: filePath
@@ -84,7 +87,7 @@ jobs:
             ARM_SUBSCRIPTION_ID: $(TERRAFORM-SUBSCRIPTION-ID)
             TF_VAR_apim_rg: $(APIM_RESOURCE_GROUP_NAME)
             TF_VAR_apim_name: $(APIM_SERVICE_NAME)
-            TF_VAR_apim_api_backend_url: $(APIM_API_BACKEND_URL)
+            TF_VAR_apim_api_backend_url: $(apim_api_backend_url)
             TF_VAR_b2c_token_issuer: $(APIM_B2C_TOKEN_ISSUER)
             TF_VAR_b2c_client_id: $(AZURE_EFS_B2C_APP_CLIENTID)
             TF_VAR_client_credentials_tenant_id: $(AZURE_EFS_B2C_APP_TENANTID)
