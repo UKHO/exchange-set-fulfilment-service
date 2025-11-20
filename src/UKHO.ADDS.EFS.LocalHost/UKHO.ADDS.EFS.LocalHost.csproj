@@ -29,7 +29,6 @@
     <PackageReference Include="Aspire.Hosting.Redis" Version="9.5.1" />
     <PackageReference Include="CliWrap" Version="3.9.0" />
     <PackageReference Include="Docker.DotNet" Version="3.125.15" />
-    <PackageReference Include="KubernetesClient" Version="17.0.14" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
     <PackageReference Include="Aspire.Hosting.Azure.ApplicationInsights" Version="9.5.1" />
 	  <PackageReference Include="Aspire.Hosting.Azure.EventHubs" Version="9.5.1" />
