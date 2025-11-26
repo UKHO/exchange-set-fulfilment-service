@@ -29,7 +29,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                     d.Append(new MarkdownParagraph("**S100 Filename Format:**"));
                     d.Append(new MarkdownParagraph("- Required: `{ProductName}_{EditionNumber}_{ProductUpdateNumber}.zip`"));
                     d.Append(new MarkdownParagraph("- Example: `101CA100129_1_0.zip` → Product: `101CA100129`, Edition: `1`, Update: `0`"));
-                    d.Append(new MarkdownParagraph("- ProductName must start with S100 product codes: 101, 102, 104, or 111"));
+                    d.Append(new MarkdownParagraph("- ProductName must start with S100 product types: 101, 102, 104, or 111"));
                 });
 
         private static IResult HandleFileDownload(string fileName, HttpResponse response, string correlationId)

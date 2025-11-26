@@ -23,7 +23,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
     internal class DefaultFileService : IFileService
     {
         private const string ProductCode = "S-100";
-        private const string ProductCodeQueryClause = $"$batch(Product Code) eq '{ProductCode}'";
+        private const string ProductCodeQueryClause = $"$batch(Product Type) eq '{ProductCode}'";
         private const string ExpiryDateQueryClause = $"ExpiryDate eq null ";
         private const string MediaTypeQueryClause = $"$batch(Media Type) eq 'Zip' ";
         private const int Limit = 100;
@@ -247,7 +247,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                 [
                     new("Exchange Set Type", "Base"),
                     new("Frequency", "DAILY"),
-                    new("Product Code", "S-100"),
+                    new("Product Type", "S-100"),
                     new("Media Type", "Zip")
                 ],
                 ExpiryDate = null
@@ -271,7 +271,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                 Attributes =
                 [
                     new("Exchange Set Type", GetExchangeSetTypeAttributeValue(exchangeSetType)),
-                    new("Product Code", "S-100"),
+                    new("Product Type", "S-100"),
                     new("Media Type", "Zip")
                 ],
                 ExpiryDate = DateTime.UtcNow.AddDays(expiryTimeSpan.Days).ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture)
