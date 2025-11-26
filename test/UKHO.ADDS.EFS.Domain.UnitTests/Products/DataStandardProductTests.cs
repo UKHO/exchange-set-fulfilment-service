@@ -54,7 +54,7 @@ namespace UKHO.ADDS.EFS.Domain.UnitTests.Products
         {
             const int unknown = 99999;
             var ex = Assert.Throws<ValidationException>(() => DataStandardProduct.From(unknown));
-            Assert.Contains("Unknown DataStandardProduct type", ex.Message, StringComparison.Ordinal);
+            Assert.Contains("Unknown DataStandardProduct code", ex.Message, StringComparison.Ordinal);
             Assert.Contains(unknown.ToString(), ex.Message, StringComparison.Ordinal);
         }
 
