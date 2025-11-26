@@ -124,8 +124,8 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
 
         [Theory]
         [DisableParallelization] // This test runs in parallel with other tests. However, its test cases are run sequentially.
-        [InlineData("https://valid.com/callback", "S333", HttpStatusCode.BadRequest, "Invalid product identifier, It must be exactly 4 characters, starting with 'S' or 's' followed by a valid 3-digit product code")] // Test Case 244907 - Invalid Product Identifier Format
-        [InlineData("https://valid.com/callback", "S101, s102", HttpStatusCode.BadRequest, "Invalid product identifier, It must be exactly 4 characters, starting with 'S' or 's' followed by a valid 3-digit product code")] // Test Case 244907 - Invalid Product Identifier Format
+        [InlineData("https://valid.com/callback", "S333", HttpStatusCode.BadRequest, "Invalid product identifier, It must be exactly 4 characters, starting with 'S' or 's' followed by a valid 3-digit product type")] // Test Case 244907 - Invalid Product Identifier Format
+        [InlineData("https://valid.com/callback", "S101, s102", HttpStatusCode.BadRequest, "Invalid product identifier, It must be exactly 4 characters, starting with 'S' or 's' followed by a valid 3-digit product type")] // Test Case 244907 - Invalid Product Identifier Format
         public async Task ValidateUpdateSincePayloadWithInvalidProductIdentifier(string? callbackUri, string? productIdentifier, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
         {
             using var scope = new AssertionScope(); // root scope

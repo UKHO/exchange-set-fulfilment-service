@@ -23,7 +23,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
         private const string UpdateNumberQueryClause = "$batch(Update Number) eq '{0}' ";
         private const string BusinessUnit = "ADDS-S100";
         private const string ProductCode = "S-100";
-        private const string ProductCodeQueryClause = $"$batch(Product Code) eq '{ProductCode}' and ";
+        private const string ProductCodeQueryClause = $"$batch(Product Type) eq '{ProductCode}' and ";
         private const int MaxSearchOperations = 5;
         private const int UpdateNumberLimit = 5;
         private const int ProductLimit = 4;

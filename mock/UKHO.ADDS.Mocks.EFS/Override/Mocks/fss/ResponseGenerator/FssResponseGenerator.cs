@@ -55,7 +55,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss.ResponseGenerator
                     ["batchId"] = batchId,
                     ["status"] = "Committed",
                     ["allFilesZipSize"] = null,
-                    ["attributes"] = new JsonArray { CreateAttribute("Product Code", filterDetails.ProductCode), CreateAttribute("Media Type", "Zip") },
+                    ["attributes"] = new JsonArray { CreateAttribute("Product Type", filterDetails.ProductCode), CreateAttribute("Media Type", "Zip") },
                     ["businessUnit"] = filterDetails.BusinessUnit,
                     ["batchPublishedDate"] = DateTime.UtcNow.AddDays(-1).ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
                     ["expiryDate"] = null, // Empty expiryDate
@@ -76,7 +76,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss.ResponseGenerator
                             ["batchId"] = batchId,
                             ["status"] = "Committed",
                             ["allFilesZipSize"] = null,
-                            ["attributes"] = new JsonArray { CreateAttribute("Product Name", product.ProductName), CreateAttribute("Edition Number", product.EditionNumber.ToString()), CreateAttribute("Update Number", updateNumber.ToString()), CreateAttribute("Product Code", filterDetails.ProductCode) },
+                            ["attributes"] = new JsonArray { CreateAttribute("Product Name", product.ProductName), CreateAttribute("Edition Number", product.EditionNumber.ToString()), CreateAttribute("Update Number", updateNumber.ToString()), CreateAttribute("Product Type", filterDetails.ProductCode) },
                             ["businessUnit"] = filterDetails.BusinessUnit,
                             ["batchPublishedDate"] = DateTime.UtcNow.AddMonths(-2).ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
                             ["expiryDate"] = DateTime.UtcNow.AddMonths(2).ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
@@ -148,8 +148,8 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss.ResponseGenerator
         private static JsonObject CreateLinkObject(string productCode, Product product)
         {
             var filterValue = !string.IsNullOrEmpty(product?.ProductName)
-                ? $"$batch(Product Code) eq '{productCode}' and $batch(Product Name) eq '{product.ProductName}' and $batch(Edition Number) eq '{product.EditionNumber}' and $batch(Update Number) eq '{product.UpdateNumbers.FirstOrDefault()}'"
-                : $"$batch(Product Code) eq '{productCode}'";
+                ? $"$batch(Product Type) eq '{productCode}' and $batch(Product Name) eq '{product.ProductName}' and $batch(Edition Number) eq '{product.EditionNumber}' and $batch(Update Number) eq '{product.UpdateNumbers.FirstOrDefault()}'"
+                : $"$batch(Product Type) eq '{productCode}'";
 
             var encodedFilterUrl = $"/batch?limit=10&start=0&$filter={Uri.EscapeDataString(filterValue)}";
 

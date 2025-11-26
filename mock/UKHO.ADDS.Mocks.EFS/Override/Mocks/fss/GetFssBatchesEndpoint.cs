@@ -72,7 +72,7 @@ namespace UKHO.ADDS.Mocks.EFS.Override.Mocks.fss
                     d.Append(new MarkdownParagraph("S-100 Sample query attributes:"));
                     d.Append(new MarkdownList(
                         new MarkdownTextListItem("Key $Filter"),
-                        new MarkdownTextListItem("Value BusinessUnit eq 'ADDS-S100' and $batch(Product Code) eq 'S-100' and  (($batch(Product Name) eq '101GB004DEVQK' and $batch(Edition Number) eq '2' and (($batch(Update Number) eq '0' or $batch(Update Number) eq '1' ))))")
+                        new MarkdownTextListItem("Value BusinessUnit eq 'ADDS-S100' and $batch(Product Type) eq 'S-100' and  (($batch(Product Name) eq '101GB004DEVQK' and $batch(Edition Number) eq '2' and (($batch(Update Number) eq '0' or $batch(Update Number) eq '1' ))))")
                     ));
                 });
 
