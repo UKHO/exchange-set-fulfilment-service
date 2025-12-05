@@ -70,6 +70,11 @@ resources:
     name: UKHO/exchange-set-fulfilment-service-pvt
     ref: refs/heads/main
     type: github
+  - repository: TriggerADDSAutoTestsPipeline
+    type: github
+    endpoint: ukho
+    name: ukho/devops-trigger-adds-autotest-pipeline
+    ref: refs/heads/main 
 
 stages:
   - stage: VulnerabilityChecks
@@ -175,6 +180,7 @@ stages:
         DeployAddsMock: ${{ parameters.DeployAddsMock }}
         IncludeAddsMock: false
         DeployRedis: ${{ parameters.DeployRedis }}
+        RunAddsTests: 'vNextIAT'
 
   - stage: vnexte2eDeploy
     dependsOn:
@@ -209,3 +215,4 @@ stages:
         DeployAddsMock: ${{ parameters.DeployAddsMock }}
         IncludeAddsMock: false
         DeployRedis: ${{ parameters.DeployRedis }}
+        RunAddsTests: 'IAT'
