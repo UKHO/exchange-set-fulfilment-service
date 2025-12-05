@@ -25,7 +25,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
         private const string AuthKey = "Test Auth Key";
         private const string ExceptionMessage = "Test ExceptionMessage";
         private const string DestinationPath = "xchg";
-        private const string IICBaseUrl = "http://localhost/xchg-7.4/v7.4/";
+        private const string IICBaseUrl = "http://localhost/xchg-7.5/v7.5/";
 
         [SetUp]
         public void SetUp()
