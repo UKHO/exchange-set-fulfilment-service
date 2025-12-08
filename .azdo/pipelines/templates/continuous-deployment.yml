@@ -29,6 +29,13 @@ parameters:
 - name: AdditionalDebugging
   type: boolean
   default: false
+- name: RunAddsTests
+  type: string
+  default: 'skip'
+  values:
+  - 'skip'
+  - 'vNextIAT'
+  - 'IAT'
 
 jobs:
 - deployment: ${{ parameters.ShortName }}DeployApp
@@ -282,4 +289,12 @@ jobs:
             restoreDirectory: '$(Build.SourcesDirectory)/efs/packagesForTests'
           env:
             ORCHESTRATOR_URL: $(ORCHESTRATOR_URL)
-            ADDSMOCK_URL: $(ADDSMOCK_URL)
+            ADDSMOCK_URL: $(ADDSMOCK_URL)        
+
+- ${{ if ne(parameters.RunAddsTests, 'skip') }}:
+  - template:  template.yml@TriggerADDSAutoTestsPipeline
+    parameters:
+      serviceConnection: 'addse2eauto Test - A.011.13'
+      environment: ${{ parameters.RunAddsTests }}
+      dependsOn:
+      - ${{ parameters.ShortName }}DeployApp
