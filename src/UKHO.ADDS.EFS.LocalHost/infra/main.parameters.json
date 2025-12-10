@@ -20,8 +20,29 @@
       "efsAppConfigurationName": {
         "value": "${AZURE_EFS_APP_CONFIGURATION_NAME}"
       },
+      "efsAppRegClientId": {
+        "value": "${AZURE_EFS_APP_REG_CLIENT_ID}"
+      },
+      "efsAppRegTenantId": {
+        "value": "${AZURE_EFS_APP_REG_TENANT_ID}"
+      },
       "efsApplicationInsightsName": {
         "value": "${AZURE_EFS_APPLICATION_INSIGHTS_NAME}"
+      },
+      "efsB2cAppClientId": {
+        "value": "${AZURE_EFS_B2C_APP_CLIENT_ID}"
+      },
+      "efsB2cAppDomain": {
+        "value": "${AZURE_EFS_B2C_APP_DOMAIN}"
+      },
+      "efsB2cAppInstance": {
+        "value": "${AZURE_EFS_B2C_APP_INSTANCE}"
+      },
+      "efsB2cAppSigninPolicy": {
+        "value": "${AZURE_EFS_B2C_APP_SIGNIN_POLICY}"
+      },
+      "efsB2cAppTenantId": {
+        "value": "${AZURE_EFS_B2C_APP_TENANT_ID}"
       },
       "efsContainerAppsEnvironmentName": {
         "value": "${AZURE_EFS_CONTAINER_APPS_ENVIRONMENT_NAME}"

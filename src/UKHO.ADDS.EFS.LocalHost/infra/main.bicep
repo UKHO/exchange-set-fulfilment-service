@@ -23,7 +23,14 @@ param addsMocksMemory string
 @secure()
 param efs_redis_password string
 param efsAppConfigurationName string
+param efsAppRegClientId string
+param efsAppRegTenantId string
 param efsApplicationInsightsName string
+param efsB2cAppClientId string
+param efsB2cAppDomain string
+param efsB2cAppInstance string
+param efsB2cAppSigninPolicy string
+param efsB2cAppTenantId string
 param efsContainerAppsEnvironmentName string
 param efsContainerRegistryName string
 param efsEventHubsNamespaceName string
