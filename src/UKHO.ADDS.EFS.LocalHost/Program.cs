@@ -57,6 +57,13 @@ namespace UKHO.ADDS.EFS.LocalHost
             var elasticApmServerUrl = builder.AddPublishOnlyParameter("elasticAPMServerURL");
             var elasticApmServiceName = builder.AddPublishOnlyParameter("elasticAPMServiceName");
             var elasticApmEnvironment = builder.AddPublishOnlyParameter("elasticAPMEnvironment");
+            var efsAppRegClientId = builder.AddPublishOnlyParameter("efsAppRegClientId");
+            var efsAppRegTenantId = builder.AddPublishOnlyParameter("efsAppRegTenantId");
+            var efsB2cAppClientId = builder.AddPublishOnlyParameter("efsB2cAppClientId");
+            var efsB2cAppTenantId = builder.AddPublishOnlyParameter("efsB2cAppTenantId");
+            var efsB2cAppDomain = builder.AddPublishOnlyParameter("efsB2cAppDomain");
+            var efsB2cAppInstance = builder.AddPublishOnlyParameter("efsB2cAppInstance");
+            var efsB2cAppSigninPolicy = builder.AddPublishOnlyParameter("efsB2cAppSigninPolicy");
 
             // Existing user managed identity
             var efsServiceIdentity = builder.AddAzureUserAssignedIdentity(ServiceConfiguration.EfsServiceIdentity).PublishAsExistingWithNullCheck(efsServiceIdentityName, efsRetainResourceGroup);
@@ -149,6 +156,13 @@ namespace UKHO.ADDS.EFS.LocalHost
                 orchestratorService.WithEnvironment("ElasticAPM__ServerURL", elasticApmServerUrl!);
                 orchestratorService.WithEnvironment("ElasticAPM__ServiceName", elasticApmServiceName!);
                 orchestratorService.WithEnvironment("ElasticAPM__Environment", elasticApmEnvironment!);
+                orchestratorService.WithEnvironment("EFS_APP_REG_CLIENT_ID", efsAppRegClientId!);
+                orchestratorService.WithEnvironment("EFS_APP_REG_TENANT_ID", efsAppRegTenantId!);
+                orchestratorService.WithEnvironment("EFS_B2C_APP_CLIENT_ID", efsB2cAppClientId!);
+                orchestratorService.WithEnvironment("EFS_B2C_APP_TENANT_ID", efsB2cAppTenantId!);
+                orchestratorService.WithEnvironment("EFS_B2C_APP_DOMAIN", efsB2cAppDomain!);
+                orchestratorService.WithEnvironment("EFS_B2C_APP_INSTANCE", efsB2cAppInstance!);
+                orchestratorService.WithEnvironment("EFS_B2C_APP_SIGNIN_POLICY", efsB2cAppSigninPolicy!);
                 orchestratorService.PublishAsAzureContainerApp((infra, app) =>
                 {
                     app.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);

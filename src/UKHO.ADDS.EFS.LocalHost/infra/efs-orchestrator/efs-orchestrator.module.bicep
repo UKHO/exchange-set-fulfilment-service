@@ -37,6 +37,20 @@ param elasticapmservicename_value string
 
 param elasticapmenvironment_value string
 
+param efsappregclientid_value string
+
+param efsappregtenantid_value string
+
+param efsb2cappclientid_value string
+
+param efsb2capptenantid_value string
+
+param efsb2cappdomain_value string
+
+param efsb2cappinstance_value string
+
+param efsb2cappsigninpolicy_value string
+
 param efs_appconfig_outputs_appconfigendpoint string
 
 param addsenvironment_value string
@@ -46,20 +60,6 @@ param efs_service_identity_outputs_clientid string
 param orchestratorCpu string
 
 param orchestratorMemory string
-
-param efs_app_reg_clientid string
-
-param efs_app_reg_tenantid string
-
-param efs_b2c_app_clientid string
-
-param efs_b2c_app_domain string
-
-param efs_b2c_app_instance string
-
-param efs_b2c_app_signin_policy string
-
-param efs_b2c_app_tenantid string
 
 resource efs_orchestrator 'Microsoft.App/containerApps@2025-02-02-preview' = {
   name: 'efs-orchestrator'
@@ -170,6 +170,34 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2025-02-02-preview' = {
               value: elasticapmenvironment_value
             }
             {
+              name: 'EFS_APP_REG_CLIENT_ID'
+              value: efsappregclientid_value
+            }
+            {
+              name: 'EFS_APP_REG_TENANT_ID'
+              value: efsappregtenantid_value
+            }
+            {
+              name: 'EFS_B2C_APP_CLIENT_ID'
+              value: efsb2cappclientid_value
+            }
+            {
+              name: 'EFS_B2C_APP_TENANT_ID'
+              value: efsb2capptenantid_value
+            }
+            {
+              name: 'EFS_B2C_APP_DOMAIN'
+              value: efsb2cappdomain_value
+            }
+            {
+              name: 'EFS_B2C_APP_INSTANCE'
+              value: efsb2cappinstance_value
+            }
+            {
+              name: 'EFS_B2C_APP_SIGNIN_POLICY'
+              value: efsb2cappsigninpolicy_value
+            }
+            {
               name: 'ConnectionStrings__efs-appconfig'
               value: efs_appconfig_outputs_appconfigendpoint
             }
@@ -180,34 +208,6 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2025-02-02-preview' = {
             {
               name: 'AZURE_CLIENT_ID'
               value: efs_service_identity_outputs_clientid
-            }
-            {
-              name: 'EFS_APP_REG_CLIENTID'
-              value: efs_app_reg_clientid
-            }
-            {
-              name: 'EFS_APP_REG_TENANTID'
-              value: efs_app_reg_tenantid
-            }
-            {
-              name: 'EFS_B2C_APP_CLIENTID'
-              value: efs_b2c_app_clientid
-            }
-            {
-              name: 'EFS_B2C_APP_TENANTID'
-              value: efs_b2c_app_tenantid
-            }
-            {
-              name: 'EFS_B2C_APP_DOMAIN'
-              value: efs_b2c_app_domain
-            }
-            {
-              name: 'EFS_B2C_APP_INSTANCE'
-              value: efs_b2c_app_instance
-            }
-            {
-              name: 'EFS_B2C_APP_SIGNIN_POLICY'
-              value: efs_b2c_app_signin_policy
             }
           ]
           resources: {
