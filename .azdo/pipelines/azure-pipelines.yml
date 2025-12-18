@@ -225,7 +225,7 @@ stages:
     jobs:
     - template: templates/continuous-deployment.yml
       parameters:
-        AzureDevOpsEnvironment: Ess-prp
+        AzureDevOpsEnvironment: Ess-PreProd
         ShortName: prp
         AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
         DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
