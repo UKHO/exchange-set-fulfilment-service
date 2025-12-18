@@ -153,13 +153,13 @@ stages:
     jobs:
     - template: templates/continuous-deployment-retain.yml
       parameters:
-        AzureDevOpsEnvironment: Ess-prp
+        AzureDevOpsEnvironment: Ess-PreProd
         ShortName: prp
         AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
 
     - template: templates/continuous-deployment-apim.yml
       parameters:
-          AzureDevOpsEnvironment: Ess-prp
+          AzureDevOpsEnvironment: Ess-PreProd
           ShortName: prp
           ContinueEvenIfResourcesAreGettingDestroyed: ${{ parameters.ContinueEvenIfResourcesAreGettingDestroyed }}
           ContainerImage: ${{ variables.Container }}
