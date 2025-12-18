@@ -145,7 +145,7 @@ stages:
           ContinueEvenIfResourcesAreGettingDestroyed: ${{ parameters.ContinueEvenIfResourcesAreGettingDestroyed }}
           ContainerImage: ${{ variables.Container }}
 
-    - stage: PrpDeploy
+  - stage: PrpDeploy
     dependsOn:
     - IatDeploy
     displayName: Prp Deploy
