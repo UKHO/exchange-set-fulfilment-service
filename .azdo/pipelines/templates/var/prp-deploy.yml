@@ -3,6 +3,6 @@ variables:
 - group: ESS-Deployment-Variables-PreProd
 - template: resource-values.yml
 - name: AzureSubscription
-  value: Exchange Set Service PreProd - A.011.08
+  value: Exchange-Set-Service-Pre-A.011.08
 - name: ApimAzureSubscription
   value: UKHO-APIM-SOLAS-NonLive
