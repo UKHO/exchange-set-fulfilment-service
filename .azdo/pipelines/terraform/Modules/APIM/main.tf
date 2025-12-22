@@ -67,7 +67,22 @@ resource "azurerm_api_management_product_api" "efs_product_api_mapping" {
   api_management_name = data.azurerm_api_management.apim_instance.name
   api_name            = azurerm_api_management_api.efs_api.name
   product_id          = azurerm_api_management_product.efs_product.product_id
+}
 
+resource "azurerm_api_management_api_policy" "efs_api_policy" {
+  api_name            = azurerm_api_management_api.efs_api.name
+  api_management_name = data.azurerm_api_management.apim_instance.name
+  resource_group_name = data.azurerm_resource_group.rg.name
+
+  xml_content = <<XML
+<policies>
+  <outbound>
+    <set-header name="X-Error-Origin-Service" exists-action="delete" />
+    <set-header name="X-Error-Origin-Status" exists-action="delete" />
+    <base />
+  </outbound>
+</policies>
+XML
 }
 
 #Product quota and throttle policy
