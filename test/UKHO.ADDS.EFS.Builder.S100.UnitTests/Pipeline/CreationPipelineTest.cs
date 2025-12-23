@@ -31,7 +31,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
         public void Setup()
         {
             var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
-            var exchangeSetPipelineContext = new S100ExchangeSetPipelineContext(null, _toolClient, null, null, loggerFactory)
+            var exchangeSetPipelineContext = new S100ExchangeSetPipelineContext(null!, _toolClient, null!, null!, loggerFactory)
             {
                 Build = new S100Build
                 {
@@ -41,7 +41,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
                 },
                 JobId = JobId.From("TestJobId"),
                 WorkspaceAuthenticationKey = "Test123",
-                BatchFileNameDetails = new List<string> { "101GBTest1_1_0", "102GBTest2_1_0" }
+                BatchFileNameDetails = ["101GBTest1_1_0", "102GBTest2_1_0"]
             };
 
             A.CallTo(() => _context.Subject).Returns(exchangeSetPipelineContext);
@@ -62,7 +62,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
                 .Returns(Task.FromResult(fakeAddContentResult));
 
             var fakeSignResult = A.Fake<IResult<SigningResponse>>();
-            SigningResponse signingResponse = new() { Certificate = "cert", SigningKey = "key", Status = "Success" };
+            var signingResponse = new SigningResponse { Certificate = "cert", SigningKey = "key", Status = "Success" };
             IError? signError = null;
             A.CallTo(() => fakeSignResult.IsSuccess(out signingResponse, out signError)).Returns(true);
             A.CallTo(() => _toolClient.SignExchangeSetAsync(A<JobId>._, A<string>._)).Returns(Task.FromResult(fakeSignResult));
@@ -82,7 +82,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
         [Test]
         public void WhenContextIsNull_ThenThrowsArgumentException()
         {
-            Assert.That(async () => await _creationPipeline.ExecutePipeline(null), Throws.ArgumentException);
+            Assert.That(async () => await _creationPipeline.ExecutePipeline(null!), Throws.ArgumentException);
         }
 
         [TestCase("TestJobId", "", "TestCorrelationId")]
@@ -104,7 +104,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
         [Test]
         public async Task WhenJobIsNull_ThenReturnsFailedNodeResult()
         {
-            _context.Subject.Build = null;
+            _context.Subject.Build = null!;
             var result = await _creationPipeline.ExecutePipeline(_context.Subject);
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
         }

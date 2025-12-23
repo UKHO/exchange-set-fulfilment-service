@@ -1,5 +1,5 @@
 ﻿using FakeItEasy;
-using FakeItEasy.Core;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
@@ -11,6 +11,8 @@ using UKHO.ADDS.EFS.Domain.Builds.S100;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Domain.Services;
+using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
+using UKHO.ADDS.EFS.Infrastructure.Retries;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 using UKHO.ADDS.Infrastructure.Results;
@@ -34,6 +36,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         private const string ArchiveFolder = "ExchangeSetArchive";
         private const string ExchangeSetNameTemplate = "S100-ExchangeSet-[jobid].zip";
         private const string GeneratedFileName = "S100-ExchangeSet-TestJobId.zip";
+        private const string RetryDelayMilliseconds = "500";
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
@@ -53,7 +56,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
 
             _uploadFilesNode = new UploadFilesNode(_fileShareReadWriteClient, _fileNameGeneratorService);
 
-            var exchangeSetPipelineContext = new S100ExchangeSetPipelineContext(null, null, null, null, _loggerFactory)
+            var configuration = A.Fake<IConfiguration>();
+            A.CallTo(() => configuration["HttpRetry:RetryDelayInMilliseconds"]).Returns(RetryDelayMilliseconds);
+            A.CallTo(() => configuration[BuilderEnvironmentVariables.RetryDelayMilliseconds]).Returns(RetryDelayMilliseconds);
+            HttpRetryPolicyFactory.SetConfiguration(configuration);
+
+            var exchangeSetPipelineContext = new S100ExchangeSetPipelineContext(configuration, null!, null!, null!, _loggerFactory)
             {
                 Build = new S100Build
                 {
@@ -101,7 +109,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         [Test]
         public void WhenFileShareReadWriteClientIsNull_ThenThrowsArgumentNullException()
         {
-            Assert.Throws<ArgumentNullException>(() => new UploadFilesNode(null, _fileNameGeneratorService));
+            Assert.Throws<ArgumentNullException>(() => new UploadFilesNode(null!, _fileNameGeneratorService));
         }
 
         [Test]
@@ -224,13 +232,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
                 A<string>._,
                 A<string>._,
                 A<CancellationToken>._))
-                .ReturnsLazily((IFakeObjectCall call) =>
+                .ReturnsLazily(call =>
                 {
                     var handle = call.Arguments.Get<BatchHandle>(0);
-                    if (handle != null)
-                    {
-                        handle.FileDetails.Add(new FileDetail { FileName = GeneratedFileName, Hash = "ABC123" });
-                    }
+                    handle?.FileDetails.Add(new FileDetail { FileName = GeneratedFileName, Hash = "ABC123" });
                     return Task.FromResult(fakeResult);
                 });
 
@@ -264,7 +269,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         [Test]
         public async Task WhenAddFileToBatchFailsWithRetriableStatusCode_ThenRetriesExpectedNumberOfTimes()
         {
-            int callCount = 0;
+            var callCount = 0;
             A.CallTo(() => _fileShareReadWriteClient.AddFileToBatchAsync(
                 A<BatchHandle>._,
                 A<Stream>._,
@@ -272,7 +277,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
                 A<string>._,
                 A<string>._,
                 A<CancellationToken>._))
-                .ReturnsLazily((IFakeObjectCall call) =>
+                .ReturnsLazily(call =>
                 {
                     callCount++;
                     var error = new Error("Retriable error", new Dictionary<string, object> { { "StatusCode", 503 } });
@@ -282,8 +287,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
 
             var result = await _uploadFilesNode.ExecuteAsync(_executionContext);
 
-            Assert.That(callCount, Is.EqualTo(4), "Should retry 3 times plus the initial call (total 4)");
-            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(callCount, Is.EqualTo(4), "Should retry 3 times plus the initial call (total 4)");
+                Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
+            }
         }
 
         [Test]

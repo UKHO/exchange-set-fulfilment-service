@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using FakeItEasy;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
@@ -33,18 +34,19 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
 
             _context = A.Fake<IExecutionContext<S100ExchangeSetPipelineContext>>();
 
-            var configuration = A.Fake<Microsoft.Extensions.Configuration.IConfiguration>();
+            var configuration = A.Fake<IConfiguration>();
             var pipelineContext = new S100ExchangeSetPipelineContext(
                 configuration,
                 _toolClient,
-                null, null,
+                null!,
+                null!,
                 _loggerFactory
             )
             {
                 FileShareEndpoint = "https://test-endpoint/",
                 WorkspaceAuthenticationKey = "Test123"
             };
-            
+
             A.CallTo(() => _context.Subject).Returns(pipelineContext);
 
             _checkEndpointsNode = new CheckEndpointsNode(_fakeHttpClientFactory);
@@ -82,7 +84,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
 
             var result = await _checkEndpointsNode.ExecuteAsync(_context);
 
-            Assert.That(result.Status,Is.EqualTo(NodeResultStatus.Failed));
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
         }
 
         [Test]
@@ -108,7 +110,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
 
     public class MockHttpMessageHandler : HttpMessageHandler
     {
-        private readonly Dictionary<string, HttpResponseMessage> _responses = new();
+        private readonly Dictionary<string, HttpResponseMessage> _responses = [];
 
         public void SetResponse(string uri, HttpStatusCode statusCode)
         {
@@ -117,7 +119,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            if (_responses.TryGetValue(request.RequestUri.ToString(), out var response))
+            if (_responses.TryGetValue(request.RequestUri!.ToString(), out var response))
             {
                 return Task.FromResult(response);
             }

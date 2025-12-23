@@ -2,15 +2,12 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly;
-using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
-using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Domain.Builds.S100;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
-using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
 {
@@ -40,7 +37,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
         [SetUp]
         public void SetUp()
         {
-            _pipelineContext = new S100ExchangeSetPipelineContext(null, null, null, null, _loggerFactory)
+            _pipelineContext = new S100ExchangeSetPipelineContext(null!, null!, null!, null!, _loggerFactory)
             {
                 Build = new S100Build
                 {
@@ -59,15 +56,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
         [Test]
         public void WhenReadOnlyClientNull_ThenThrowsArgumentNullException()
         {
-            Assert.Throws<ArgumentNullException>(() =>
-                new AssemblyPipeline(null, _configuration));
+            Assert.Throws<ArgumentNullException>(() => new AssemblyPipeline(null!, _configuration));
         }
 
         [Test]
         public void WhenConfigurationNull_ThenThrowsArgumentNullException()
         {
-            Assert.Throws<ArgumentNullException>(() =>
-                new AssemblyPipeline(_fakeReadOnlyClient, null));
+            Assert.Throws<ArgumentNullException>(() => new AssemblyPipeline(_fakeReadOnlyClient, null!));
         }
 
         //[Test]
@@ -121,30 +116,30 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
             _loggerFactory?.Dispose();
         }
 
-        private static List<BatchDetails> GetBatchDetails()
-        {
-            return
-            [
-                new BatchDetails{
-                    BatchId= "TestBatchId",
-                    Attributes=
-                    [
-                        new BatchDetailsAttributes("ProductName", ""),
-                        new BatchDetailsAttributes("EditionNumber", "1"),
-                        new BatchDetailsAttributes("UpdateNumber", "0")
-                        ],
-                    BatchPublishedDate= DateTime.UtcNow,
-                    Files=
-                    [
-                        new BatchDetailsFiles("file1.txt"),
-                        new BatchDetailsFiles("ABC1234.001"),
-                        new BatchDetailsFiles("DEF5678.h5")
-                        ]
-                }
-                ];
-        }
+        //private static List<BatchDetails> GetBatchDetails()
+        //{
+        //    return
+        //    [
+        //        new BatchDetails{
+        //            BatchId= "TestBatchId",
+        //            Attributes=
+        //            [
+        //                new BatchDetailsAttributes("ProductName", ""),
+        //                new BatchDetailsAttributes("EditionNumber", "1"),
+        //                new BatchDetailsAttributes("UpdateNumber", "0")
+        //                ],
+        //            BatchPublishedDate= DateTime.UtcNow,
+        //            Files=
+        //            [
+        //                new BatchDetailsFiles("file1.txt"),
+        //                new BatchDetailsFiles("ABC1234.001"),
+        //                new BatchDetailsFiles("DEF5678.h5")
+        //                ]
+        //        }
+        //        ];
+        //}
 
-        private List<Product> GetProducts()
+        private static List<Product> GetProducts()
         {
             return [
                 new Product
@@ -168,25 +163,16 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
                 {
                     ProductName = ProductName.From("101TestProduct"),
                     EditionNumber = EditionNumber.From(1),
-                    UpdateNumbers = new UpdateNumberList { UpdateNumber.From(0), UpdateNumber.From(1) }
+                    UpdateNumbers = [UpdateNumber.From(0), UpdateNumber.From(1)]
                 }
             ];
         }
 
-        private class ThrowingAssemblyPipeline : AssemblyPipeline
+        private class ThrowingAssemblyPipeline(IFileShareReadOnlyClient readOnlyClient, IConfiguration configuration, Exception exceptionToThrow) : AssemblyPipeline(readOnlyClient, configuration)
         {
-            private readonly Exception _exceptionToThrow;
+            private readonly Exception _exceptionToThrow = exceptionToThrow;
 
-            public ThrowingAssemblyPipeline(
-                IFileShareReadOnlyClient readOnlyClient,
-                IConfiguration configuration,
-                Exception exceptionToThrow)
-                : base(readOnlyClient, configuration)
-            {
-                _exceptionToThrow = exceptionToThrow;
-            }
-
-            public new async Task<NodeResult> ExecutePipeline(S100ExchangeSetPipelineContext context)
+            public new async Task<NodeResult> ExecutePipeline(S100ExchangeSetPipelineContext _)
             {
                 await Task.Yield();
                 throw _exceptionToThrow;
