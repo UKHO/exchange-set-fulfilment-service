@@ -61,10 +61,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         {
             var fakeStream = new MemoryStream();
             var fakeResult = A.Fake<IResult<Stream>>();
-            Stream outStream = fakeStream;
+            Stream? outStream = fakeStream;
             IError? outError = null;
 
-            A.CallTo(() => fakeResult.IsFailure(out outError, out outStream!)).Returns(false);
+            A.CallTo(() => fakeResult.IsFailure(out outError, out outStream)).Returns(false);
             A.CallTo(() => _executionContext.Subject.ToolClient.ExtractExchangeSetAsync(A<JobId>._, A<string>._, A<string>._))
                 .Returns(Task.FromResult(fakeResult));
 
