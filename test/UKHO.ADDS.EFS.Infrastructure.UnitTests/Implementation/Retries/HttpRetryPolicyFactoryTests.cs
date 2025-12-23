@@ -14,7 +14,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.UnitTests.Implementation.Retries
     {
         private ILogger _logger;
         private const string METHOD_NAME = "TestMethod";
-        private const string RetryDelayMilliseconds = "1000";
+        private const string RetryDelayMilliseconds = "500";
 
         [SetUp]
         public void SetUp()

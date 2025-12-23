@@ -36,7 +36,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         private const string ArchiveFolder = "ExchangeSetArchive";
         private const string ExchangeSetNameTemplate = "S100-ExchangeSet-[jobid].zip";
         private const string GeneratedFileName = "S100-ExchangeSet-TestJobId.zip";
-        private const string RetryDelayMilliseconds = "1000";
+        private const string RetryDelayMilliseconds = "500";
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
