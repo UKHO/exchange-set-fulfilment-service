@@ -27,6 +27,12 @@ jobs:
           submodules: true
 
         - download: none
+
+        - task: UseDotNet@2
+          displayName: Use .NET SDK $(SdkVersion)
+          inputs:
+            packageType: sdk
+            version: $(SdkVersion)
   
         - script: |
             curl -fsSL https://aka.ms/install-azd.sh | bash
