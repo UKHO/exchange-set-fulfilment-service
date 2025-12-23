@@ -33,6 +33,17 @@ jobs:
           inputs:
             packageType: sdk
             version: $(SdkVersion)
+
+        - task: DotNetCoreCLI@2
+          displayName: NuGet restore for non test projects only
+          inputs:
+            command: restore
+            projects: |
+              **/*.csproj
+              !**/*Tests.csproj
+            feedsToUse: config
+            noCache: true
+            nugetConfigPath: '$(Build.SourcesDirectory)/BuildNuget.config'
   
         - script: |
             curl -fsSL https://aka.ms/install-azd.sh | bash
