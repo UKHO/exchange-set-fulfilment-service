@@ -11,14 +11,14 @@ namespace UKHO.ADDS.EFS.Infrastructure.Retries
     /// </summary>
     public static class HttpRetryPolicyFactory
     {
-        private static readonly HashSet<int> _retryStatusCodes = new()
-        {
+        private static readonly HashSet<int> _retryStatusCodes =
+        [
             408, // Request Timeout
             429, // Too Many Requests
             502, // Bad Gateway
             503, // Service Unavailable
             504  // Gateway Timeout
-        };
+        ];
 
         private const int MaxRetryAttempts = 3;
         private const int RetryDelayInMilliseconds = 10000;
@@ -37,33 +37,33 @@ namespace UKHO.ADDS.EFS.Infrastructure.Retries
         /// <returns>A tuple containing max retry attempts and retry delay in milliseconds.</returns>
         private static (int maxRetryAttempts, int retryDelayMs) LoadRetrySettings()
         {
-            var maxRetryAttempts = MaxRetryAttempts;
-            var retryDelayInMilliseconds = RetryDelayInMilliseconds;
-
-            if (_configuration != null)
+            if (_configuration is null)
             {
-                if (!int.TryParse(_configuration["HttpRetry:MaxRetryAttempts"], out maxRetryAttempts) || maxRetryAttempts <= 0)
-                {
-                    maxRetryAttempts = MaxRetryAttempts;
-                }
-
-                if (!int.TryParse(_configuration["HttpRetry:RetryDelayInMilliseconds"], out retryDelayInMilliseconds) || retryDelayInMilliseconds <= 0)
-                {
-                    retryDelayInMilliseconds = RetryDelayInMilliseconds;
-                }
-
-                if (!int.TryParse(_configuration[BuilderEnvironmentVariables.MaxRetryAttempts], out maxRetryAttempts) || maxRetryAttempts <= 0)
-                {
-                    maxRetryAttempts = MaxRetryAttempts;
-                }
-
-                if (!int.TryParse(_configuration[BuilderEnvironmentVariables.RetryDelayMilliseconds], out retryDelayInMilliseconds) || retryDelayInMilliseconds <= 0)
-                {
-                    retryDelayInMilliseconds = RetryDelayInMilliseconds;
-                }
+                return (MaxRetryAttempts, RetryDelayInMilliseconds);
+            }
+            else
+            {
+                return (
+                    GetValue(BuilderEnvironmentVariables.MaxRetryAttempts, "HttpRetry:MaxRetryAttempts", MaxRetryAttempts),
+                    GetValue(BuilderEnvironmentVariables.RetryDelayMilliseconds, "HttpRetry:RetryDelayInMilliseconds", RetryDelayInMilliseconds)
+                );
             }
 
-            return (maxRetryAttempts, retryDelayInMilliseconds);
+            static int GetValue(string envKey, string configKey, int defaultValue)
+            {
+                if (int.TryParse(_configuration![envKey], out var value) && value > 0)
+                {
+                    return value;
+                }
+                else if (int.TryParse(_configuration[configKey], out value) && value > 0)
+                {
+                    return value;
+                }
+                else
+                {
+                    return defaultValue;
+                }
+            }   
         }
 
         /// <summary>
@@ -182,7 +182,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Retries
         /// </summary>
         /// <param name="error">The error object.</param>
         /// <returns>The status code if found; otherwise, null.</returns>
-        public static int? ExtractStatusCodeFromError(IError error) =>
+        public static int? ExtractStatusCodeFromError(IError? error) =>
             error?.Metadata != null && error.Metadata.ContainsKey("StatusCode")
                 ? Convert.ToInt32(error.Metadata["StatusCode"])
                 : null;
