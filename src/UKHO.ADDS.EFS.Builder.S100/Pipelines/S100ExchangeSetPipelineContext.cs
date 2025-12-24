@@ -18,7 +18,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
         public S100ExchangeSetPipelineContext(
             IConfiguration configuration,
             IToolClient toolClient,
-            QueueClientFactory queueClientFactory,
+            IQueueClientFactory queueClientFactory,
             BlobClientFactory blobClientFactory,
             ILoggerFactory loggerFactory)
             : base(configuration, queueClientFactory, blobClientFactory, loggerFactory)

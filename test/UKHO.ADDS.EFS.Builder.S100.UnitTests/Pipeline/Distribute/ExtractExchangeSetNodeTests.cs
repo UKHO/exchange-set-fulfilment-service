@@ -71,7 +71,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
             var result = await _extractExchangeSetNode.ExecuteAsync(_executionContext);
 
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-            //TODO: check for failing log message later
         }
 
         [Test]
@@ -119,4 +118,3 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         }
     }
 }
-

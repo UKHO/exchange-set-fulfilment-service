@@ -104,7 +104,7 @@ namespace UKHO.ADDS.EFS.Builder.S57
 
         private static void AddStorageClients(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddSingleton<QueueClientFactory>();
+            services.AddSingleton<IQueueClientFactory, QueueClientFactory>();
             services.AddSingleton<BlobClientFactory>();
         }
 

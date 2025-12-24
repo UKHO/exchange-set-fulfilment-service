@@ -1,105 +1,125 @@
-﻿using FakeItEasy;
+﻿using Azure;
+using Azure.Storage.Queues;
+using Azure.Storage.Queues.Models;
+using FakeItEasy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup;
+using UKHO.ADDS.EFS.Infrastructure.Builders.Factories;
+using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
 
 namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
 {
-    // TODO Reinstate
+    internal class ReadConfigurationNodeTests
+    {
+        private ReadConfigurationNode _readConfigurationNode;
+        private IExecutionContext<S100ExchangeSetPipelineContext> _context;
+        private S100ExchangeSetPipelineContext _subject;
+        private IConfiguration _configuration;
+        private IToolClient _toolClient;
+        private ILoggerFactory _loggerFactory;
+        private IQueueClientFactory _queueClientFactory;
 
-    //internal class ReadConfigurationNodeTests
-    //{
-    //    private ReadConfigurationNode _node;
-    //    private IExecutionContext<ExchangeSetPipelineContext> _context;
-    //    private ExchangeSetPipelineContext _subject;
-    //    private IConfiguration _configuration;
-    //    private IToolClient _toolClient;
-    //    private ILoggerFactory _loggerFactory;
+        [SetUp]
+        public void SetUp()
+        {
+            var inMemorySettings = new List<KeyValuePair<string, string?>>
+                {
+                    new(BuilderEnvironmentVariables.RequestQueueName, "s100buildrequest"),
+                    new(BuilderEnvironmentVariables.AddsEnvironment, "test"),
+                    new(BuilderEnvironmentVariables.QueueEndpoint, "https://efsstoragetest.queue.core.windows.net/")
+                };
+            _configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
+            _toolClient = A.Fake<IToolClient>();
+            _loggerFactory = LoggerFactory.Create(builder => builder.AddDebug());
+            _queueClientFactory = A.Fake<IQueueClientFactory>();
 
-    //    [SetUp]
-    //    public void SetUp()
-    //    {
-    //        _node = new ReadConfigurationNode();
+            _subject = new S100ExchangeSetPipelineContext(_configuration, _toolClient, _queueClientFactory, null!, _loggerFactory);
+            _context = A.Fake<IExecutionContext<S100ExchangeSetPipelineContext>>();
+            A.CallTo(() => _context.Subject).Returns(_subject);
 
-    //        var inMemorySettings = new List<KeyValuePair<string, string?>>
-    //            {
-    //                new("Endpoints:FileShareService", "https://default-fileshare"),
-    //                new("Endpoints:BuildService", "https://default-buildservice")
-    //            };
-    //        _configuration = new ConfigurationBuilder()
-    //            .AddInMemoryCollection(inMemorySettings)
-    //            .Build();
+            _readConfigurationNode = new ReadConfigurationNode();
+        }
 
-    //        _toolClient = A.Fake<IToolClient>();
-    //        _loggerFactory = LoggerFactory.Create(builder => builder.AddDebug());
+        [TearDown]
+        public void TearDown()
+        {
+            if (_loggerFactory is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+        }
 
-    //        _subject = new ExchangeSetPipelineContext(_configuration, _toolClient, null, null, _loggerFactory);
-    //        _context = A.Fake<IExecutionContext<ExchangeSetPipelineContext>>();
-    //        A.CallTo(() => _context.Subject).Returns(_subject);
-    //    }
+        private void SetUpMessage(string? messageText = null)
+        {
+            var queueClient = A.Fake<QueueClient>();
+            var queueMessage = QueuesModelFactory.QueueMessage(
+                messageId: "TestMessageId",
+                popReceipt: "TestPopReceipt",
+                messageText: messageText ?? "{\"Timestamp\":\"2025-12-24T14:02:02Z\",\"JobId\":\"TestJobId\",\"BatchId\":\"TestBatchId\",\"DataStandard\":0,\"ExchangeSetNameTemplate\":\"TestExchangeSetNameTemplate\",\"WorkspaceKey\":\"TestWorkspaceKey\"}",
+                insertedOn: DateTimeOffset.UtcNow,
+                expiresOn: DateTimeOffset.UtcNow.AddDays(7),
+                dequeueCount: 1);
+            var queueMessageResponse = Response.FromValue(queueMessage, A.Fake<Response>());
+            A.CallTo(() => _queueClientFactory.CreateRequestQueueClient(_configuration)).Returns(queueClient);
+            A.CallTo(() => queueClient.ReceiveMessageAsync(A<TimeSpan?>.Ignored, A<CancellationToken>.Ignored)).Returns(Task.FromResult(queueMessageResponse));
+        }
 
-    //    [TearDown]
-    //    public void TearDown()
-    //    {
-    //        if (_loggerFactory is IDisposable disposable)
-    //        {
-    //            disposable.Dispose();
-    //        }
-    //    }
+        [Test]
+        public async Task WhenPerformExecuteAsyncUsesValidEnvironmentVariables_ThenReturnsSucceeded()
+        {
+            SetUpMessage();
+            _configuration[BuilderEnvironmentVariables.FileShareEndpoint] = "https://env-fileshare";
+            _configuration[BuilderEnvironmentVariables.FileShareHealthEndpoint] = "https://env-fileshare/health";
 
-    //    [Test]
-    //    public async Task WhenPerformExecuteAsyncUsesValidEnvironmentVariables_ThenReturnsSucceeded()
-    //    {
-    //        Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.JobId, "TestJobId");
-    //        Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.WorkspaceKey, "TestWorkspaceKey");
-    //        Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.FileShareEndpoint, "https://env-fileshare");
-    //        Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.BuildServiceEndpoint, "https://env-buildservice");
-    //        Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.BatchId, "TestBatchId");
+            var result = await _readConfigurationNode.ExecuteAsync(_context);
 
-    //        var result = await _node.ExecuteAsync(_context);
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
+                Assert.That(_subject.JobId, Is.EqualTo("TestJobId"));
+                Assert.That(_subject.BatchId, Is.EqualTo("TestBatchId"));
+                Assert.That(_subject.WorkspaceAuthenticationKey, Is.EqualTo("TestWorkspaceKey"));
+                Assert.That(_subject.ExchangeSetNameTemplate, Is.EqualTo("TestExchangeSetNameTemplate"));
+                Assert.That(_subject.FileShareEndpoint, Is.EqualTo("https://env-fileshare"));
+                Assert.That(_subject.FileShareHealthEndpoint, Is.EqualTo("https://env-fileshare/health"));
+            }
+        }
 
-    //        Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-    //        Assert.That(_subject.JobId, Is.EqualTo("TestJobId"));
-    //        Assert.That(_subject.WorkspaceAuthenticationKey, Is.EqualTo("TestWorkspaceKey"));
-    //        Assert.That(_subject.FileShareEndpoint, Is.EqualTo("https://env-fileshare"));
-    //        Assert.That(_subject.BatchId, Is.EqualTo("TestBatchId"));
+        [Test]
+        public async Task WhenPerformExecuteAsyncUsesValidDebugVariables_ThenReturnsSucceeded()
+        {
+            SetUpMessage();
+            _configuration["DebugEndpoints:FileShareService"] = "https://debug-fileshare";
+            _configuration["DebugEndpoints:FileShareServiceHealth"] = "https://debug-fileshare/health";
 
-    //        // Clean up
-    //        Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.JobId, null);
-    //        Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.WorkspaceKey, null);
-    //        Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.FileShareEndpoint, null);
-    //        Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.BuildServiceEndpoint, null);
-    //        Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.BatchId, null);
-    //    }
+            var result = await _readConfigurationNode.ExecuteAsync(_context);
 
-    //    [Test]
-    //    public async Task WhenPerformExecuteAsyncEnvVarsMissing_ThenUsesDefaultsAndReturnSucceeded()
-    //    {
-    //        var result = await _node.ExecuteAsync(_context);
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
+                Assert.That(_subject.JobId, Is.EqualTo("TestJobId"));
+                Assert.That(_subject.BatchId, Is.EqualTo("TestBatchId"));
+                Assert.That(_subject.WorkspaceAuthenticationKey, Is.EqualTo("TestWorkspaceKey"));
+                Assert.That(_subject.ExchangeSetNameTemplate, Is.EqualTo("TestExchangeSetNameTemplate"));
+                Assert.That(_subject.FileShareEndpoint, Is.EqualTo("https://debug-fileshare"));
+                Assert.That(_subject.FileShareHealthEndpoint, Is.EqualTo("https://debug-fileshare/health"));
+            }
+        }
 
-    //        Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-    //        Assert.That(_subject.JobId, Is.Not.Null.And.Not.Empty);
-    //        Assert.That(_subject.FileShareEndpoint, Is.EqualTo("https://default-fileshare"));
-    //        Assert.That(_subject.BatchId, Is.Not.Null.And.Not.Empty);
-    //    }
+        [Test]
+        public async Task WhenPerformExecuteAsyncHasInvalidMessage_ThenReturnsFailed()
+        {
+            SetUpMessage("{\"Invalid\":\"Message\"}");
 
-    //    [Test]
-    //    public async Task WhenPerformExecuteAsyncSetsDebugSessionAndGeneratesJobId_ThenReturnSucceeded()
-    //    {
-    //        Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.JobId, "DebugJobId");
+            var result = await _readConfigurationNode.ExecuteAsync(_context);
 
-    //        var result = await _node.ExecuteAsync(_context);
-
-    //        Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-    //        Assert.That(_subject.JobId, Is.Not.Null.And.Not.Empty);
-    //        Assert.That(Guid.TryParse(_subject.JobId, out _), Is.True);
-
-    //        Environment.SetEnvironmentVariable(BuilderEnvironmentVariables.JobId, null);
-    //    }
-    //}
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
+        }
+    }
 }
 

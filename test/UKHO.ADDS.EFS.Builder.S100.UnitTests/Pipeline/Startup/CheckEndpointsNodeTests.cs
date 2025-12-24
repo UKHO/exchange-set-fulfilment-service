@@ -44,6 +44,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
             )
             {
                 FileShareEndpoint = "https://test-endpoint/",
+                FileShareHealthEndpoint = "https://test-endpoint/health",
                 WorkspaceAuthenticationKey = "Test123"
             };
 
@@ -52,27 +53,25 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
             _checkEndpointsNode = new CheckEndpointsNode(_fakeHttpClientFactory);
         }
 
-        // TODO Reimplement
+        [Test]
+        public async Task WhenPerformExecuteAsyncAllEndpointsAreSuccessful_ThenReturnSucceeded()
+        {
+            var pingResult = A.Fake<IResult<bool>>();
+            var pingSuccess = true;
+            A.CallTo(() => pingResult.IsSuccess(out pingSuccess)).Returns(true);
+            A.CallTo(() => _toolClient.PingAsync()).Returns(Task.FromResult(pingResult));
 
-        //[Test]
-        //public async Task WhenPerformExecuteAsyncAllEndpointsAreSuccessful_ThenReturnSucceeded()
-        //{
-        //    var pingResult = A.Fake<IResult<bool>>();
-        //    var pingSuccess = true;
-        //    A.CallTo(() => pingResult.IsSuccess(out pingSuccess)).Returns(true);
-        //    A.CallTo(() => _toolClient.PingAsync()).Returns(Task.FromResult(pingResult));
+            var listResult = A.Fake<IResult<string>>();
+            var workspaceSuccess = "Workspace";
+            A.CallTo(() => listResult.IsSuccess(out workspaceSuccess)).Returns(true);
+            A.CallTo(() => _toolClient.ListWorkspaceAsync(A<string>._)).Returns(Task.FromResult(listResult));
 
-        //    var listResult = A.Fake<IResult<string>>();
-        //    var workspaceSuccess = "Workspace";
-        //    A.CallTo(() => listResult.IsSuccess(out workspaceSuccess)).Returns(true);
-        //    A.CallTo(() => _toolClient.ListWorkspaceAsync(A<string>._)).Returns(Task.FromResult(listResult));
+            _mockHttpMessageHandler.SetResponse("https://test-endpoint/health", HttpStatusCode.OK);
 
-        //    _mockHttpMessageHandler.SetResponse("https://test-endpoint/health", HttpStatusCode.OK);
+            var result = await _checkEndpointsNode.ExecuteAsync(_context);
 
-        //    var result = await _checkEndpointsNode.ExecuteAsync(_context);
-
-        //    Assert.That(result.Status,Is.EqualTo(NodeResultStatus.Succeeded));
-        //}
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
+        }
 
         [Test]
         public async Task WhenPerformExecuteAsyncPingFails_ThenReturnFailed()

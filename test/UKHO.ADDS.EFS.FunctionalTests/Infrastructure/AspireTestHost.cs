@@ -11,13 +11,11 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Infrastructure
         // Configuration settings for pipeline running
         private IConfiguration? _configuration;
 
-        private static readonly Lazy<Task<AspireTestHost>> _instance = new(() => CreateAsync());
+        private static readonly Lazy<Task<AspireTestHost>> _instance = new(CreateAsync);
 
         public static Task<AspireTestHost> Instance => _instance.Value;
 
-        #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         private AspireTestHost() { }
-        #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
         private static async Task<AspireTestHost> CreateAsync()
         {
@@ -30,7 +28,6 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Infrastructure
         public static HttpClient? httpClient { get; private set; }
         public static HttpClient? httpClientMock { get; private set; }
         public static string ProjectDirectory { get; } = Directory.GetParent(AppContext.BaseDirectory)!.Parent!.Parent!.Parent!.FullName;
-
 
         private static bool IsRunningInPipeline()
         {
@@ -46,9 +43,6 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Infrastructure
                 || !string.IsNullOrEmpty(azurePipeline);
         }
 
-
-        // CA1822 suppression comment
-        //[System.Diagnostics.CodeAnalysis.SuppressMessage]
         private async Task InitializeAsync()
         {
             if (_isRunningInPipeline)

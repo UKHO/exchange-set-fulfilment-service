@@ -85,18 +85,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
             Assert.That(async () => await _creationPipeline.ExecutePipeline(null!), Throws.ArgumentException);
         }
 
-        [TestCase("TestJobId", "", "TestCorrelationId")]
-        public async Task WhenRequiredContextPropertiesAreNull_ThenReturnsFailedNodeResult(string jobId, string authKey, string correlationId)
+        [Test]
+        public async Task WhenRequiredContextPropertiesAreNull_ToolClient_ThenReturnsFailedNodeResult()
         {
-            _context.Subject.JobId = JobId.From(jobId);
-            _context.Subject.WorkspaceAuthenticationKey = authKey;
-            _context.Subject.Build = new S100Build
-            {
-                // TODO - this is wrong
-                JobId = JobId.From(correlationId),
-                BatchId = BatchId.From("a-valid-batch-id"),
-                DataStandard = DataStandard.S100
-            };
+            var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+            var exchangeSetPipelineContext = new S100ExchangeSetPipelineContext(null!, null!, null!, null!, loggerFactory);
+            A.CallTo(() => _context.Subject).Returns(exchangeSetPipelineContext);
+
             var result = await _creationPipeline.ExecutePipeline(_context.Subject);
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
         }

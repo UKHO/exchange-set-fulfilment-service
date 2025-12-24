@@ -18,7 +18,6 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
         private string _endpoint = TestEndpointConfiguration.ProductVersionsEndpoint;
         private bool _assertCallbackTextFile = false;
 
-
         private void SetEndpoint(string? callbackUri)
         {
             _endpoint = EndpointUtility.BuildEndpoint(
@@ -27,7 +26,6 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
                 null, // No product identifier needed for this endpoint
                 out _assertCallbackTextFile);
         }
-
 
         //PBI 242767 - Input validation for the ESS API - Product Versions Endpoint
         //PBI 244060 - Input validation for the consume mock - Product Versions Endpoint
@@ -48,7 +46,6 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
             await TestExecutionHelper.ExecuteCustomExchangeSetTestSteps(_requestId, productVersions, _endpoint, zipFileName, expectedRequestedProductCount, expectedExchangeSetProductCount, _assertCallbackTextFile, productNames);
         }
 
-
         [Theory]
         [DisableParallelization] // This test runs in parallel with other tests. However, its test cases are run sequentially.
         [InlineData("[ { \"editionNumber\": 7, \"updateNumber\": 10 }, { \"editionNumber\": 36, \"updateNumber\": 0 } ]", "https://valid.com/callback", HttpStatusCode.BadRequest, "ProductName cannot be null or empty")] // Test Case 244569 - Missing ProductName
@@ -64,7 +61,6 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
 
             await ExchangeSetApiAssertions.CustomExchangeSetSubmitPostRequestAndCheckResponse(_requestId, productVersions, _endpoint, expectedStatusCode, expectedErrorMessage);
         }
-
 
         [Theory]
         [DisableParallelization] // This test runs in parallel with other tests. However, its test cases are run sequentially.
@@ -82,7 +78,6 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
             await ExchangeSetApiAssertions.CustomExchangeSetSubmitPostRequestAndCheckResponse(_requestId, productVersions, _endpoint, expectedStatusCode, expectedErrorMessage);
         }
 
-
         [Theory]
         [DisableParallelization] // This test runs in parallel with other tests. However, its test cases are run sequentially.
         [InlineData("[ { \"productName\": \"101GB40079ABCDEFG\", \"editionNumber\": 7 } ]", "https://valid.com/callback", HttpStatusCode.BadRequest, "UpdateNumber must be zero or a positive integer")] // Test Case 245040 - Missing UpdateNumber
@@ -98,12 +93,11 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
             await ExchangeSetApiAssertions.CustomExchangeSetSubmitPostRequestAndCheckResponse(_requestId, productVersions, _endpoint, expectedStatusCode, expectedErrorMessage);
         }
 
-
         [Theory]
         [DisableParallelization] // This test runs in parallel with other tests. However, its test cases are run sequentially.
         [InlineData("[ { \"productName\": \"112GB40079ABCDEFG\", \"editionNumber\": 36, \"updateNumber\": 0 } ]", "https://valid.com/callback", HttpStatusCode.BadRequest, "'112GB40079ABCDEFG' starts with digits '112' which is not a valid S-100 product identifier")] // Test Case 246904 - Invalid first three characters of S-100 product code in productName
         [InlineData("[ { \"productName\": \"101GB40079ABCDEFG\", \"editionNumber\": 7, \"updateNumber\": 10 } ]", "http://invalid.com/callback", HttpStatusCode.BadRequest, "URI is malformed or does not use HTTPS")] // Test Case 244581 - Invalid CallBackUri
-		[InlineData("[ { } ] ", "https://valid.com/callback", HttpStatusCode.BadRequest, "ProductName cannot be null or empty")] // Test Case 247164 - Array with empty object
+        [InlineData("[ { } ] ", "https://valid.com/callback", HttpStatusCode.BadRequest, "ProductName cannot be null or empty")] // Test Case 247164 - Array with empty object
         [InlineData("[ { \"productName\": \"101GB40079ABCDEFG\", \"editionNumber\": 7, \"updateNumber\": 10 }, { \"productName\": \"102NO32904820801012\", \"editionNumber\": 0, \"updateNumber\": 0 }, { \"productName\": \"\", \"editionNumber\": 7, \"updateNumber\": -1 }, { \"productName\": \"111US00_ches_dcf8_20190703T00Z\", \"editionNumber\": -1, \"updateNumber\": 0 } ]", "https://valid.com/callback", HttpStatusCode.BadRequest, "ProductName cannot be null or empty")] // Test Case 245047 - Combination of valid and invalid inputs
         public async Task ValidateProductVersionsPayloadWithValidAndInvalidInputs(string productVersions, string? callbackUri, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
         {
@@ -116,16 +110,9 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
             await ExchangeSetApiAssertions.CustomExchangeSetSubmitPostRequestAndCheckResponse(_requestId, productVersions, _endpoint, expectedStatusCode, expectedErrorMessage);
         }
 
-
         [Theory]
         [DisableParallelization] // This test runs in parallel with other tests. However, its test cases are run sequentially.
         [InlineData("[  ] ", "https://valid.com/callback", HttpStatusCode.BadRequest, "Either body is null or malformed")] // Test Case 244570 - Empty array
-        /*
-         * Suppressing the 8 failing assertion for the below bug
-         * BUG-247982
-         * Once resolved , please reintroduce the assertion for response body "Either body is null or malformed" as currently passing "" to suppress assertion failure
-         * Updates on 01 Oct 2025, this bug will not be fixed, and the specifications will be update as per current behavior that for current scenarios under automation where the api responds back with 400 but the response body will be blank
-         */
         [InlineData("[  \"\" ] ", "https://valid.com/callback", HttpStatusCode.BadRequest, "")] // Test Case 245718 - Array with Empty string
         [InlineData("", "https://valid.com/callback", HttpStatusCode.BadRequest, "")] // Test Case 247166 - Blank request body
         [InlineData("{ \"productName\": \"101GB40079ABCDEFG\", \"editionNumber\": 7, \"updateNumber\": 10 }, { \"productName\": \"102NO32904820801012\", \"editionNumber\": 36, \"updateNumber\": 0 } ", "https://valid.com/callback", HttpStatusCode.BadRequest, "")] // Test Case 247169 - Invalid json body

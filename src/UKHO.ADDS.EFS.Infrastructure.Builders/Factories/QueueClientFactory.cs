@@ -6,7 +6,7 @@ using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
 
 namespace UKHO.ADDS.EFS.Infrastructure.Builders.Factories
 {
-    public class QueueClientFactory
+    public class QueueClientFactory : IQueueClientFactory
     {
         public const string AzuriteAccountName = "devstoreaccount1";
         private const string AzuriteKey = "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==";

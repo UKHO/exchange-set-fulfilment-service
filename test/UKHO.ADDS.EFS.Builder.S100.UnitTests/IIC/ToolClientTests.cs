@@ -19,9 +19,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
         private readonly JobId _exchangeSetId = JobId.From("Test ExchangeSet Id");
 
         private const string ResourceLocation = "Test Resource Location";
-
-        //private readonly CorrelationId _correlationId = CorrelationId.From("Test Correlation Id");
-
         private const string AuthKey = "Test Auth Key";
         private const string ExceptionMessage = "Test ExceptionMessage";
         private const string DestinationPath = "xchg";
