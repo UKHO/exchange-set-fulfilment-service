@@ -20,7 +20,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
     {
         private readonly IFileShareReadWriteClient _fileShareReadWriteClient;
         private readonly IFileNameGeneratorService _fileNameGeneratorService;
-        private ILogger _logger;
 
         private const int FileBufferSize = 81920;
 
@@ -43,7 +42,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
         /// <returns>The result status of the node execution.</returns>
         protected override async Task<NodeResultStatus> PerformExecuteAsync(IExecutionContext<S100ExchangeSetPipelineContext> context)
         {
-            _logger = context.Subject.LoggerFactory.CreateLogger<UploadFilesNode>();
+            var logger = context.Subject.LoggerFactory.CreateLogger<UploadFilesNode>();
 
             var batchId = context.Subject.BatchId;
             var correlationId = context.Subject.Build.GetCorrelationId();
@@ -54,7 +53,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
 
             if (!File.Exists(filePath))
             {
-                LogExchangeSetFileNotFound(fileName, filePath, batchId, correlationId);
+                LogExchangeSetFileNotFound(fileName, filePath, batchId, correlationId, logger);
                 return NodeResultStatus.Failed;
             }
 
@@ -63,7 +62,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
                 await using var fileStream = CreateExchangeSetFileStream(filePath);
 
                 var batchHandle = new BatchHandle((string)batchId);
-                var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<AddFileToBatchResponse>(_logger, "AddFileToBatchAsync");
+                var retryPolicy = HttpRetryPolicyFactory.GetGenericResultRetryPolicy<AddFileToBatchResponse>(logger, "AddFileToBatchAsync");
                 var addFileResult = await retryPolicy.ExecuteAsync(() =>
                     _fileShareReadWriteClient.AddFileToBatchAsync(
                         batchHandle,
@@ -76,7 +75,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
 
                 if (!addFileResult.IsSuccess(out _, out var error))
                 {
-                    LogAddFileToBatchError(fileName, batchId, error);
+                    LogAddFileToBatchError(fileName, batchId, error, logger);
                     return NodeResultStatus.Failed;
                 }
 
@@ -91,7 +90,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
             }
             catch (Exception ex)
             {
-                _logger.LogUploadFilesNodeFailed(ex);
+                logger.LogUploadFilesNodeFailed(ex);
                 return NodeResultStatus.Failed;
             }
         }
@@ -118,7 +117,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
         /// <param name="fileName">The name of the file.</param>
         /// <param name="batchId">The batch identifier.</param>
         /// <param name="error">The error details.</param>
-        private void LogAddFileToBatchError(string fileName, BatchId batchId, IError error)
+        /// <param name="logger">The logger.</param>
+        private static void LogAddFileToBatchError(string fileName, BatchId batchId, IError error, ILogger logger)
         {
             var addFileLogView = new AddFileLogView
             {
@@ -127,7 +127,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
                 Error = error
             };
 
-            _logger.LogFileShareAddFileToBatchError(addFileLogView);
+            logger.LogFileShareAddFileToBatchError(addFileLogView);
         }
 
         /// <summary>
@@ -137,7 +137,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
         /// <param name="filePath">The expected file path of the missing file.</param>
         /// <param name="batchId">The identifier for the batch associated with the operation.</param>
         /// <param name="correlationId">The correlation identifier used to trace the operation across systems.</param>
-        private void LogExchangeSetFileNotFound(string fileName, string filePath, BatchId batchId, CorrelationId correlationId)
+        /// <param name="logger">The logger.</param>
+        private static void LogExchangeSetFileNotFound(string fileName, string filePath, BatchId batchId, CorrelationId correlationId, ILogger logger)
         {
             var fileNotFoundLogView = new FileNotFoundLogView
             {
@@ -147,7 +148,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
                 CorrelationId = correlationId
             };
 
-            _logger.LogUploadFilesNotFound(fileNotFoundLogView);
+            logger.LogUploadFilesNotFound(fileNotFoundLogView);
         }
     }
 }

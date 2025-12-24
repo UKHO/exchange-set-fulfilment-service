@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite;
 using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models;
+using UKHO.ADDS.Clients.FileShareService.ReadWrite.Models.Response;
 using UKHO.ADDS.EFS.Builder.S100.IIC;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Domain.Builds.S100;
@@ -45,12 +46,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
 
             _distributionPipeline = new DistributionPipeline(_fileShareReadWriteClient, _fileNameGeneratorService);
             var configuration = A.Fake<IConfiguration>();
+            var batchId = BatchId.From("a-batch-id");
             _pipelineContext = new S100ExchangeSetPipelineContext(configuration, _toolClient, null!, null!, _loggerFactory)
             {
+                BatchId = batchId,
                 Build = new S100Build()
                 {
                     JobId = JobId.From("testId"),
-                    BatchId = BatchId.From("a-batch-id"),
+                    BatchId = batchId,
                     DataStandard = DataStandard.S100
                 },
                 WorkspaceAuthenticationKey = "authKey",
@@ -63,47 +66,44 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
             A.CallTo(() => _executionContext.Subject).Returns(_pipelineContext);
         }
 
-        // TODO Reinstate
+        [Test]
+        public async Task WhenExecutePipelineAllNodesSucceed_ThenReturnsSucceededResult()
+        {
+            A.CallTo(() => _fileShareReadWriteClient.AddFileToBatchAsync(
+                    A<BatchHandle>._,
+                    A<Stream>._,
+                    A<string>._,
+                    A<string>._,
+                    A<string>._,
+                    A<CancellationToken>._))
+                .Returns(Result.Success(new AddFileToBatchResponse()));
 
-        //[Test]
-        //public async Task WhenExecutePipelineAllNodesSucceed_ThenReturnsSucceededResult()
-        //{
-        //    A.CallTo(() => _fileShareReadWriteClient.AddFileToBatchAsync(
-        //            A<BatchHandle>._,
-        //            A<Stream>._,
-        //            A<string>._,
-        //            A<string>._,
-        //            A<string>._,
-        //            A<CancellationToken>._))
-        //        .Returns(Result.Success(new AddFileToBatchResponse()));
+            var fakeStream = new MemoryStream();
+            var fakeResult = A.Fake<IResult<Stream>>();
+            Stream outStream = fakeStream;
+            var fakeError = A.Fake<IError>();
 
-        //    var fakeStream = new MemoryStream();
-        //    var fakeResult = A.Fake<IResult<Stream>>();
-        //    Stream outStream = fakeStream;
-        //    IError outError = null;
+            A.CallTo(() => fakeResult.IsFailure(out fakeError!, out outStream!)).Returns(false);
+            A.CallTo(() => _executionContext.Subject.ToolClient.ExtractExchangeSetAsync(A<JobId>._, A<string>._, A<string>._))
+                .Returns(Task.FromResult(fakeResult));
 
-        //    A.CallTo(() => fakeResult.IsFailure(out outError!, out outStream!)).Returns(false);
-        //    A.CallTo(() => _executionContext.Subject.ToolClient.ExtractExchangeSetAsync(A<string>._, A<string>._, A<string>._, A<string>._))
-        //        .Returns(Task.FromResult(fakeResult));
+            var result = await _distributionPipeline.ExecutePipeline(_pipelineContext);
 
-        //    var result = await _distributionPipeline.ExecutePipeline(_pipelineContext);
-
-        //    Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-        //    A.CallTo(() => _fileShareReadWriteClient.AddFileToBatchAsync(
-        //        A<BatchHandle>._,
-        //        A<Stream>._,
-        //        A<string>._,
-        //        A<string>._,
-        //        A<string>._,
-        //        A<CancellationToken>._))
-        //        .MustHaveHappenedOnceExactly();
-        //    A.CallTo(() => _executionContext.Subject.ToolClient.ExtractExchangeSetAsync(
-        //            A<string>._,
-        //            A<string>._,
-        //            A<string>._,
-        //            A<string>._))
-        //        .MustHaveHappenedOnceExactly();
-        //}
+            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
+            A.CallTo(() => _fileShareReadWriteClient.AddFileToBatchAsync(
+                A<BatchHandle>._,
+                A<Stream>._,
+                A<string>._,
+                A<string>._,
+                A<string>._,
+                A<CancellationToken>._))
+                .MustHaveHappenedOnceExactly();
+            A.CallTo(() => _executionContext.Subject.ToolClient.ExtractExchangeSetAsync(
+                    A<JobId>._,
+                    A<string>._,
+                    A<string>._))
+                .MustHaveHappenedOnceExactly();
+        }
 
         [Test]
         public void WhenFileShareReadWriteClientIsNull_ThenThrowsArgumentNullException()
