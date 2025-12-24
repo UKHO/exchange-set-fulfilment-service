@@ -32,7 +32,10 @@ namespace UKHO.ADDS.EFS.Infrastructure.Retries
         public static void SetConfiguration(IConfiguration configuration) => _configuration = configuration;
 
         /// <summary>
-        /// Gets the retry settings (max attempts and delay) from configuration or defaults.
+        /// <para>Gets the retry settings (max attempts and delay) from configuration or defaults.</para>
+        /// <para>If the configuration contains values from environment variables then use those.</para>
+        /// <para>If not then see if the configuration contains values in appconfig style.</para>
+        /// <para>Otherwise use the default values <see cref="MaxRetryAttempts"/> and <see cref="RetryDelayInMilliseconds"/>.</para>
         /// </summary>
         /// <returns>A tuple containing max retry attempts and retry delay in milliseconds.</returns>
         private static (int maxRetryAttempts, int retryDelayMs) LoadRetrySettings()
