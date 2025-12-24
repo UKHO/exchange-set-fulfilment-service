@@ -41,7 +41,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         [SetUp]
         public void SetUp()
         {
-            _pipelineContext = new S100ExchangeSetPipelineContext(null, _toolClient, null, null, _loggerFactory)
+            _pipelineContext = new S100ExchangeSetPipelineContext(null!, _toolClient, null!, null!, _loggerFactory)
             {
                 Build = new S100Build
                 {
@@ -61,10 +61,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         {
             var fakeStream = new MemoryStream();
             var fakeResult = A.Fake<IResult<Stream>>();
-            Stream outStream = fakeStream;
-            IError outError = null;
+            Stream? outStream = fakeStream;
+            IError? outError = null;
 
-            A.CallTo(() => fakeResult.IsFailure(out outError!, out outStream!)).Returns(false);
+            A.CallTo(() => fakeResult.IsFailure(out outError, out outStream)).Returns(false);
             A.CallTo(() => _executionContext.Subject.ToolClient.ExtractExchangeSetAsync(A<JobId>._, A<string>._, A<string>._))
                 .Returns(Task.FromResult(fakeResult));
 
@@ -79,16 +79,16 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         {
             var fakeError = A.Fake<IError>();
             var fakeResult = A.Fake<IResult<Stream>>();
-            Stream outStream = null;
+            Stream? outStream = null;
 
-            A.CallTo(() => fakeResult.IsFailure(out fakeError, out outStream!)).Returns(true);
+            A.CallTo(() => fakeResult.IsFailure(out fakeError, out outStream)).Returns(true);
             A.CallTo(() => _executionContext.Subject.ToolClient.ExtractExchangeSetAsync(A<JobId>._, A<string>._, A<string>._))
                 .Returns(Task.FromResult(fakeResult));
 
             var result = await _extractExchangeSetNode.ExecuteAsync(_executionContext);
 
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
-            A.CallTo(() => _logger.Log<LoggerMessageState>(
+            A.CallTo(() => _logger.Log(
                     LogLevel.Error,
                     A<EventId>.That.Matches(e => e.Name == "IICExtractExchangeSetError"),
                     A<LoggerMessageState>._,
@@ -101,7 +101,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
         public async Task WhenPerformExecuteAsyncThrowsException_ThenReturnFailed()
         {
             var exceptionMessage = "Extract exchange set failed";
-            string loggedMessage = null;
 
             A.CallTo(() => _executionContext.Subject.ToolClient.ExtractExchangeSetAsync(A<JobId>._, A<string>._, A<string>._))
                 .Throws(new Exception(exceptionMessage));
@@ -110,7 +109,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Distribute
 
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
 
-            A.CallTo(() => _logger.Log<LoggerMessageState>(
+            A.CallTo(() => _logger.Log(
                     LogLevel.Error,
                     A<EventId>.That.Matches(e => e.Name == "ExtractExchangeSetNodeFailed"),
                     A<LoggerMessageState>._,

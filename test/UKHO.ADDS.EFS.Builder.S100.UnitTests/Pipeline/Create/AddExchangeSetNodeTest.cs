@@ -35,9 +35,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         [SetUp]
         public void Setup()
         {
-            var exchangeSetPipelineContext = new S100ExchangeSetPipelineContext(null, _toolClient, null, null, _loggerFactory)
+            var exchangeSetPipelineContext = new S100ExchangeSetPipelineContext(null!, _toolClient, null!, null!, _loggerFactory)
             {
-                Build= new S100Build
+                Build = new S100Build
                 {
                     // TODO JobId == CorrelationId
 
@@ -58,7 +58,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         {
             var fakeResult = A.Fake<IResult<OperationResponse>>();
             var opResponse = new OperationResponse { Code = 0, Type = "Success", Message = "OK" };
-            IError error = null;
+            IError? error = null;
 
             A.CallTo(() => fakeResult.IsSuccess(out opResponse, out error))
                 .Returns(true);
@@ -74,7 +74,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         [Test]
         public async Task WhenPerformExecuteAsyncIsCalledAndAddExchangeSetFails_ThenReturnsFailed()
         {
-            OperationResponse value = default!;
             var fakeResult = A.Fake<IResult<OperationResponse>>();
             A.CallTo(() => _toolClient.AddExchangeSetAsync(A<JobId>._, A<string>._))
                 .Returns(Task.FromResult(fakeResult));

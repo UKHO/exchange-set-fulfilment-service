@@ -34,9 +34,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         private const string SpoolFolder = "spool";
         private const string DefaultBatchId = "b1";
         private const string DefaultProductName = "Product1";
-        private const string DefaultFileName = "file1.txt";
-        private const string ZipFileExtension = ".zip";
-        private const string TxtFileExtension = ".txt";
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
@@ -60,7 +57,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
             _tempDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             Directory.CreateDirectory(_tempDirectory);
 
-            var exchangeSetPipelineContext = new S100ExchangeSetPipelineContext(null, null, null, null, _loggerFactory)
+            var exchangeSetPipelineContext = new S100ExchangeSetPipelineContext(null!, null!, null!, null!, _loggerFactory)
             {
                 WorkSpaceRootPath = _tempDirectory,
                 Build = new S100Build
@@ -84,14 +81,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         public void Constructor_WhenFileShareReadOnlyClientIsNull_ThrowsArgumentNullException()
         {
             var configuration = A.Fake<IConfiguration>();
-            Assert.Throws<ArgumentNullException>(() => new DownloadFilesNode(null, configuration));
+            Assert.Throws<ArgumentNullException>(() => new DownloadFilesNode(null!, configuration));
         }
 
         [Test]
         public void Constructor_WhenConfigurationIsNull_ThrowsArgumentNullException()
         {
             var fileShareClient = A.Fake<IFileShareReadOnlyClient>();
-            Assert.Throws<ArgumentNullException>(() => new DownloadFilesNode(fileShareClient, null));
+            Assert.Throws<ArgumentNullException>(() => new DownloadFilesNode(fileShareClient, null!));
         }
 
         [Test]
@@ -121,7 +118,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [Test]
         public async Task ShouldExecuteAsync_WhenBatchDetailsIsNull_ReturnsFalse()
         {
-            _executionContext.Subject.BatchDetails = null;
+            _executionContext.Subject.BatchDetails = null!;
 
             var result = await _downloadFilesNode.ShouldExecuteAsync(_executionContext);
 
@@ -131,7 +128,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [Test]
         public async Task ShouldExecuteAsync_WhenBatchDetailsIsEmpty_ReturnsFalse()
         {
-            _executionContext.Subject.BatchDetails = new List<BatchDetails>();
+            _executionContext.Subject.BatchDetails = [];
 
             var result = await _downloadFilesNode.ShouldExecuteAsync(_executionContext);
 
@@ -142,7 +139,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         public async Task ShouldExecuteAsync_WhenBatchDetailsHasItems_ReturnsTrue()
         {
             var batch = CreateBatchDetails();
-            _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
+            _executionContext.Subject.BatchDetails = [batch];
 
             var result = await _downloadFilesNode.ShouldExecuteAsync(_executionContext);
 
@@ -153,7 +150,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         public async Task WhenDownloadFileAsyncFails_ThenReturnsFailed()
         {
             var batch = CreateBatchDetails();
-            _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
+            _executionContext.Subject.BatchDetails = [batch];
 
             var fakeResult = A.Fake<IResult<Stream>>();
             var outError = A.Fake<IError>();
@@ -174,7 +171,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         {
             var exceptionMessage = "Download file failed ";
             var batch = CreateBatchDetails();
-            _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
+            _executionContext.Subject.BatchDetails = [batch];
 
             A.CallTo(() => _fileShareReadOnlyClient.DownloadFileAsync(A<string>._, A<string>._, A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._))
                 .Throws(new Exception(exceptionMessage));
@@ -187,8 +184,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [Test]
         public async Task WhenBatchFilesIsEmpty_ThenReturnsSucceeded()
         {
-            var batch = CreateBatchDetails(fileNames: Array.Empty<string>());
-            _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
+            var batch = CreateBatchDetails(fileNames: []);
+            _executionContext.Subject.BatchDetails = [batch];
             var result = await _downloadFilesNode.ExecuteAsync(_executionContext);
 
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
@@ -197,9 +194,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [Test]
         public async Task WhenAllBatchesHaveNoFiles_ThenReturnsSucceeded()
         {
-            var batch1 = CreateBatchDetails(batchId: "b1", fileNames: Array.Empty<string>());
-            var batch2 = CreateBatchDetails(batchId: "b2", fileNames: Array.Empty<string>());
-            _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch1, batch2 };
+            var batch1 = CreateBatchDetails(batchId: "b1", fileNames: []);
+            var batch2 = CreateBatchDetails(batchId: "b2", fileNames: []);
+            _executionContext.Subject.BatchDetails = [batch1, batch2];
 
             var result = await _downloadFilesNode.ExecuteAsync(_executionContext);
 
@@ -209,8 +206,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [Test]
         public async Task WhenDownloadFileAsyncSucceeds_ThenReturnsSucceeded()
         {
-            var batch = CreateBatchDetails(fileNames: new[] { "file1.txt", "ABC1234.001", "DEF5678.h5" });
-            _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
+            var batch = CreateBatchDetails(fileNames: ["file1.txt", "ABC1234.001", "DEF5678.h5"]);
+            _executionContext.Subject.BatchDetails = [batch];
 
             var fakeResult = A.Fake<IResult<Stream>>();
             IError? outError = null;
@@ -231,7 +228,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
 
             var batch1 = CreateBatchDetails(batchId: "b1", publishedDate: olderDate);
             var batch2 = CreateBatchDetails(batchId: "b2", publishedDate: newerDate);
-            _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch1, batch2 };
+            _executionContext.Subject.BatchDetails = [batch1, batch2];
 
             var fakeResult = A.Fake<IResult<Stream>>();
             IError? outError = null;
@@ -249,8 +246,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         {
             const int FILE_COUNT = 50;
 
-            var batch = CreateBatchDetails(fileNames: Enumerable.Range(1, FILE_COUNT).Select(i => $"file{i}.txt").ToArray());
-            _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
+            var batch = CreateBatchDetails(fileNames: [.. Enumerable.Range(1, FILE_COUNT).Select(i => $"file{i}.txt")]);
+            _executionContext.Subject.BatchDetails = [batch];
 
             var fakeResult = A.Fake<IResult<Stream>>();
             IError? outError = null;
@@ -268,15 +265,18 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
 
             var expectedMaxDuration = (FILE_COUNT / CONCURRENCY_LIMIT) * 0.5 + 5;
 
-            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-            Assert.That(stopwatch.Elapsed.TotalSeconds, Is.LessThan(expectedMaxDuration), "Should complete quickly as all downloads are parallel");
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
+                Assert.That(stopwatch.Elapsed.TotalSeconds, Is.LessThan(expectedMaxDuration), "Should complete quickly as all downloads are parallel");
+            }
         }
 
         [Test]
         public async Task WhenExceptionThrownDuringDownload_ThenLogsAndReturnsFailed()
         {
             var batch = CreateBatchDetails();
-            _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
+            _executionContext.Subject.BatchDetails = [batch];
             var testException = new InvalidOperationException("Test exception");
             A.CallTo(() => _fileShareReadOnlyClient.DownloadFileAsync(A<string>._, A<string>._, A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._))
                 .Throws(testException);
@@ -289,8 +289,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [Test]
         public async Task WhenFileHasZeroSize_ThenSkipsDownloadButCreatesFile()
         {
-            var batch = CreateBatchDetails(fileNames: new[] { "zerosize.txt" }, fileSizes: new long?[] { 0 });
-            _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
+            var batch = CreateBatchDetails(fileNames: ["zerosize.txt"], fileSizes: [0]);
+            _executionContext.Subject.BatchDetails = [batch];
 
             var fakeResult = A.Fake<IResult<Stream>>();
             IError? outError = null;
@@ -307,8 +307,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [Test]
         public async Task WhenFileHasNullSize_ThenTreatsAsZeroSize()
         {
-            var batch = CreateBatchDetails(fileNames: new[] { "nullsize.txt" }, fileSizes: new long?[] { null });
-            _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
+            var batch = CreateBatchDetails(fileNames: ["nullsize.txt"], fileSizes: [null]);
+            _executionContext.Subject.BatchDetails = [batch];
 
             var fakeResult = A.Fake<IResult<Stream>>();
             IError? outError = null;
@@ -326,13 +326,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         public async Task WhenBatchHasNullAttributes_ThenIsFilteredOut()
         {
             var batch1 = CreateBatchDetails(batchId: "b1", attributes: null);
-            var batch2 = CreateBatchDetails(batchId: "b2", attributes: new List<BatchDetailsAttributes>
-            {
+            var batch2 = CreateBatchDetails(batchId: "b2", attributes:
+            [
                 new BatchDetailsAttributes("Product Name", "P2"),
                 new BatchDetailsAttributes("Edition Number", "2"),
                 new BatchDetailsAttributes("Update Number", "2")
-            });
-            _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch1, batch2 };
+            ]);
+            _executionContext.Subject.BatchDetails = [batch1, batch2];
 
             var fakeResult = A.Fake<IResult<Stream>>();
             IError? outError = null;
@@ -354,7 +354,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
 
             var batch1 = CreateBatchDetails(batchId: "b1", publishedDate: olderDate);
             var batch2 = CreateBatchDetails(batchId: "b2", publishedDate: newerDate);
-            _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch1, batch2 };
+            _executionContext.Subject.BatchDetails = [batch1, batch2];
 
             var fakeResult = A.Fake<IResult<Stream>>();
             IError? outError = null;
@@ -371,8 +371,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [Test]
         public async Task WhenZipFileDownloaded_ThenExtractsAndDeletesZip()
         {
-            var batch = CreateBatchDetails(fileNames: new[] { "test.zip" });
-            _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
+            var batch = CreateBatchDetails(fileNames: ["test.zip"]);
+            _executionContext.Subject.BatchDetails = [batch];
 
             var zipFilePath = Path.Combine(_tempDirectory, "test.zip");
             CreateTestZipFile(zipFilePath, new Dictionary<string, string> { { "file1.txt", "content1" } });
@@ -399,8 +399,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
             var extractedFolder = Path.Combine(workspaceSpoolPath, "test");
             var downloadedZipPath = Path.Combine(workspaceSpoolPath, "test.zip");
 
-            Assert.That(Directory.Exists(extractedFolder), Is.True, $"Expected extracted folder at: {extractedFolder}");
-            Assert.That(File.Exists(downloadedZipPath), Is.False, $"ZIP file should be deleted after extraction: {downloadedZipPath}");
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(Directory.Exists(extractedFolder), Is.True, $"Expected extracted folder at: {extractedFolder}");
+                Assert.That(File.Exists(downloadedZipPath), Is.False, $"ZIP file should be deleted after extraction: {downloadedZipPath}");
+            }
 
             var extractedFile = Path.Combine(extractedFolder, "file1.txt");
             Assert.That(File.Exists(extractedFile), Is.True, $"Expected extracted file at: {extractedFile}");
@@ -409,8 +412,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [Test]
         public async Task WhenZipExtractionFails_ThenLogsError()
         {
-            var batch = CreateBatchDetails(fileNames: new[] { "corrupted.zip" });
-            _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
+            var batch = CreateBatchDetails(fileNames: ["corrupted.zip"]);
+            _executionContext.Subject.BatchDetails = [batch];
 
             var fakeResult = A.Fake<IResult<Stream>>();
             IError? outError = null;
@@ -434,12 +437,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [Test]
         public async Task WhenZipContainsTooManyEntries_ThenSucceeds()
         {
-            var batch = CreateBatchDetails(fileNames: new[] { "largearchive.zip" });
-            _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
+            var batch = CreateBatchDetails(fileNames: ["largearchive.zip"]);
+            _executionContext.Subject.BatchDetails = [batch];
 
             var zipFilePath = Path.Combine(_tempDirectory, "largearchive.zip");
             var entries = new Dictionary<string, string>();
-            for (int i = 0; i < 100; i++)
+            for (var i = 0; i < 100; i++)
             {
                 entries[$"file{i}.txt"] = $"content{i}";
             }
@@ -467,8 +470,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [Test]
         public async Task WhenZipContainsDirectoryTraversalAttack_ThenSkipsMaliciousEntries()
         {
-            var batch = CreateBatchDetails(fileNames: new[] { "malicious.zip" });
-            _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
+            var batch = CreateBatchDetails(fileNames: ["malicious.zip"]);
+            _executionContext.Subject.BatchDetails = [batch];
 
             var zipFilePath = Path.Combine(_tempDirectory, "malicious.zip");
             CreateMaliciousZipFile(zipFilePath);
@@ -496,8 +499,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         public async Task WhenZipContainsEmptyEntryName_ThenSkipsEntry()
         {
             const string fileName = "emptyentry.zip";
-            var batch = CreateBatchDetails(fileNames: new[] { fileName });
-            _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
+            var batch = CreateBatchDetails(fileNames: [fileName]);
+            _executionContext.Subject.BatchDetails = [batch];
 
             var zipFilePath = Path.Combine(_tempDirectory, fileName);
             CreateTestZipFile(zipFilePath, new Dictionary<string, string>
@@ -529,8 +532,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         public async Task WhenFileAlreadyExists_ThenDeletesAndRecreates()
         {
             const string existingFileName = "existing.txt";
-            var batch = CreateBatchDetails(fileNames: new[] { existingFileName });
-            _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
+            var batch = CreateBatchDetails(fileNames: [existingFileName]);
+            _executionContext.Subject.BatchDetails = [batch];
 
             var workspaceSpoolPath = Path.Combine(_tempDirectory, SpoolFolder);
             Directory.CreateDirectory(workspaceSpoolPath);
@@ -546,16 +549,19 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
 
             var result = await _downloadFilesNode.ExecuteAsync(_executionContext);
 
-            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-            Assert.That(File.Exists(existingFilePath), Is.True);
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
+                Assert.That(File.Exists(existingFilePath), Is.True);
+            }
         }
 
         [Test]
         public async Task WhenSameFileDownloadedConcurrently_ThenHandledCorrectly()
         {
             const string concurrentFileName = "concurrent1.txt";
-            var batch = CreateBatchDetails(fileNames: new[] { concurrentFileName, concurrentFileName });
-            _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
+            var batch = CreateBatchDetails(fileNames: [concurrentFileName, concurrentFileName]);
+            _executionContext.Subject.BatchDetails = [batch];
 
             var fakeResult = A.Fake<IResult<Stream>>();
             IError? outError = null;
@@ -573,7 +579,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         public async Task WhenExceptionInPerformExecuteAsync_ThenLogsAndReturnsFailed()
         {
             var batch = CreateBatchDetails();
-            _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
+            _executionContext.Subject.BatchDetails = [batch];
 
             A.CallTo(() => _fileShareReadOnlyClient.DownloadFileAsync(A<string>._, A<string>._, A<Stream>._, A<string>._, A<long>._, A<CancellationToken>._))
                 .Throws(new UnauthorizedAccessException("Simulated access denied"));
@@ -586,8 +592,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [Test]
         public async Task WhenBatchFileNameDetailsSet_ThenContainsFileNamesWithoutExtensions()
         {
-            var batch = CreateBatchDetails(fileNames: new[] { "file1.txt", "file2.zip", "file3" });
-            _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
+            var batch = CreateBatchDetails(fileNames: ["file1.txt", "file2.zip", "file3"]);
+            _executionContext.Subject.BatchDetails = [batch];
 
             var fakeResult = A.Fake<IResult<Stream>>();
             IError? outError = null;
@@ -598,8 +604,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
 
             var result = await _downloadFilesNode.ExecuteAsync(_executionContext);
 
-            Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-            Assert.That(_executionContext.Subject.BatchFileNameDetails, Contains.Item("file1"));
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
+                Assert.That(_executionContext.Subject.BatchFileNameDetails, Contains.Item("file1"));
+            }
             Assert.That(_executionContext.Subject.BatchFileNameDetails, Contains.Item("file2"));
             Assert.That(_executionContext.Subject.BatchFileNameDetails, Contains.Item("file3"));
         }
@@ -609,8 +618,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         {
             const string fileName = "withdir.zip";
 
-            var batch = CreateBatchDetails(fileNames: new[] { fileName });
-            _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
+            var batch = CreateBatchDetails(fileNames: [fileName]);
+            _executionContext.Subject.BatchDetails = [batch];
 
             var zipFilePath = Path.Combine(_tempDirectory, fileName);
             CreateZipWithDirectoryEntry(zipFilePath);
@@ -637,8 +646,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [Test]
         public async Task WhenDirectoryAlreadyTracked_ThenSkipsCreation()
         {
-            var batch = CreateBatchDetails(fileNames: new[] { "file1.txt", "file2.txt" });
-            _executionContext.Subject.BatchDetails = new List<BatchDetails> { batch };
+            var batch = CreateBatchDetails(fileNames: ["file1.txt", "file2.txt"]);
+            _executionContext.Subject.BatchDetails = [batch];
 
             var fakeResult = A.Fake<IResult<Stream>>();
             IError? outError = null;
@@ -660,10 +669,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
 
         private static BatchDetails CreateBatchDetails(string batchId = "b1", string[]? fileNames = null, List<BatchDetailsAttributes>? attributes = null, DateTime? publishedDate = null, long?[]? fileSizes = null)
         {
-            var effectiveFileNames = fileNames ?? new[] { "file1.txt" };
+            var effectiveFileNames = fileNames ?? ["file1.txt"];
             var files = new List<BatchDetailsFiles>();
 
-            for (int i = 0; i < effectiveFileNames.Length; i++)
+            for (var i = 0; i < effectiveFileNames.Length; i++)
             {
                 var fileSize = fileSizes != null && i < fileSizes.Length ? fileSizes[i] : 1000;
                 files.Add(new BatchDetailsFiles(effectiveFileNames[i], fileSize));
@@ -671,12 +680,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
 
             return new BatchDetails(
                 batchId: batchId,
-                attributes: attributes ?? new List<BatchDetailsAttributes>
-                {
-                    new BatchDetailsAttributes("Product Name", "P1"),
-                    new BatchDetailsAttributes("Edition Number", "1"),
-                    new BatchDetailsAttributes("Update Number", "1")
-                },
+                attributes: attributes ??
+                [
+                    new("Product Name", "P1"),
+                    new("Edition Number", "1"),
+                    new("Update Number", "1")
+                ],
                 batchPublishedDate: publishedDate ?? DateTime.UtcNow,
                 files: files
             );
@@ -736,7 +745,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [TearDown]
         public void TearDown()
         {
-            HttpRetryPolicyFactory.SetConfiguration(null);
+            HttpRetryPolicyFactory.SetConfiguration(null!);
 
             if (Directory.Exists(_tempDirectory))
             {

@@ -1,7 +1,6 @@
 ﻿using FakeItEasy;
 using Microsoft.Extensions.Logging;
 using UKHO.ADDS.Clients.FileShareService.ReadOnly;
-using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble;
 using UKHO.ADDS.EFS.Domain.Builds.S100;
@@ -9,8 +8,6 @@ using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
-using UKHO.ADDS.Infrastructure.Results;
-using Error = UKHO.ADDS.Infrastructure.Results.Error;
 
 namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
 {
@@ -36,7 +33,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [SetUp]
         public void Setup()
         {
-            var exchangeSetPipelineContext = new S100ExchangeSetPipelineContext(null,  null, null, null, _loggerFactory)
+            var exchangeSetPipelineContext = new S100ExchangeSetPipelineContext(null!, null!, null!, null!, _loggerFactory)
             {
                 Build = new S100Build
                 {
@@ -45,13 +42,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
                     BatchId = BatchId.From("a-batch-id"),
                     ProductEditions =
                     [
-                        new ProductEdition 
+                        new ProductEdition
                         {
                             ProductName = ProductName.From("101TestProduct"),
                             EditionNumber = EditionNumber.From(1),
                             UpdateNumbers = [ UpdateNumber.From(0), UpdateNumber.From(1)]
                         },
-                        new ProductEdition 
+                        new ProductEdition
                         {
                             ProductName = ProductName.From("101TestProduct2"),
                             EditionNumber = EditionNumber.From(2),
@@ -68,7 +65,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [Test]
         public void WhenFileShareReadOnlyClientIsNull_ThenThrowsArgumentNullException()
         {
-            Assert.Throws<ArgumentNullException>(() => new ProductSearchNode(null));
+            Assert.Throws<ArgumentNullException>(() => new ProductSearchNode(null!));
         }
 
         //[Test]
@@ -83,7 +80,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
 
         //    var result = await _productSearchNode.ExecuteAsync(_executionContext);
 
-           
+
         //    Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
         //    Assert.That(_executionContext.Subject.BatchDetails, Is.Not.Null);
         //    Assert.That(_executionContext.Subject.BatchDetails.ToList(), Has.Count.EqualTo(2));
@@ -99,11 +96,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
 
             var result = await _productSearchNode.ExecuteAsync(_executionContext);
 
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
                 Assert.That(_executionContext.Subject?.BatchDetails, Is.Null);
-            });
+            }
         }
 
         //[Test]
@@ -112,7 +109,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         //    var error = new Error { Message = "Search failed" };
         //    A.CallTo(() => _fileShareReadOnlyClientFake.SearchAsync(A<string>._, A<int?>._, A<int?>._, A<string>._))
         //        .Returns(Result.Failure<BatchSearchResponse>(error));
-         
+
         //    var result = await _productSearchNode.ExecuteAsync(_executionContext);
 
         //    Assert.Multiple(() =>
@@ -239,7 +236,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         //            A<Exception>._,
         //            A<Func<LoggerMessageState, Exception?, string>>._))
         //        .MustHaveHappenedOnceExactly();
-            
+
         //    Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
         //}
 

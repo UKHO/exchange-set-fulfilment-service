@@ -1,4 +1,4 @@
-﻿using NUnit.Framework.Legacy;
+﻿using System.Reflection;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines;
 
 namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Services
@@ -9,9 +9,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Services
         [SetUp]
         public void Setup()
         {
-            typeof(IncrementingCounter)
-                .GetField("_counter", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
-                .SetValue(null, 0);
+            typeof(IncrementingCounter).GetField("_counter", BindingFlags.NonPublic | BindingFlags.Static)?.SetValue(null, 0);
         }
 
         [Test]
@@ -21,9 +19,12 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Services
             var secondValue = IncrementingCounter.GetNext();
             var thirdValue = IncrementingCounter.GetNext();
 
-            Assert.That(firstValue,Is.EqualTo("0001"));
-            Assert.That(secondValue, Is.EqualTo("0002"));
-            Assert.That(thirdValue, Is.EqualTo("0003"));
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(firstValue, Is.EqualTo("0001"));
+                Assert.That(secondValue, Is.EqualTo("0002"));
+                Assert.That(thirdValue, Is.EqualTo("0003"));
+            }
         }
 
         [Test]
@@ -48,11 +49,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Services
                 thread.Join();
             }
 
-            Assert.That(results.Distinct().Count(),Is.EqualTo(threadCount));
-            CollectionAssert.AreEqual(
-                Enumerable.Range(1, threadCount).Select(x => x.ToString("D4")),
-                results.OrderBy(x => x)
-            );
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(results.Distinct().Count(), Is.EqualTo(threadCount));
+                Assert.That(results.OrderBy(x => x), Is.EqualTo(Enumerable.Range(1, threadCount).Select(x => x.ToString("D4"))).AsCollection);
+            }
         }
     }
 }

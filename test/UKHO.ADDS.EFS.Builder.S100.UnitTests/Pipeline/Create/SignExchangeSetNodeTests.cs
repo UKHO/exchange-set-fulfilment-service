@@ -36,7 +36,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         [SetUp]
         public void SetUp()
         {
-            var exchangeSetPipelineContext = new S100ExchangeSetPipelineContext(null, _toolClient, null, null, _loggerFactory)
+            var exchangeSetPipelineContext = new S100ExchangeSetPipelineContext(null!, _toolClient, null!, null!, _loggerFactory)
             {
                 Build = new S100Build()
                 {
@@ -83,8 +83,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
                     A<Func<LoggerMessageState, Exception?, string>>._))
                 .MustHaveHappenedOnceExactly();
         }
-
-        
 
         [OneTimeTearDown]
         public void OneTimeTearDown()

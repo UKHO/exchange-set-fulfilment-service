@@ -29,7 +29,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         private const string SpoolFolder = "spool";
         private const string DataSetFilesFolder = "dataSet_files";
         private const string SupportFilesFolder = "support_files";
-        private static readonly List<string> DefaultBatchFileNameDetails = new() { "101GBTest1_1_0", "102GBTest2_1_0" };
+        private static readonly List<string> _defaultBatchFileNameDetails = ["101GBTest1_1_0", "102GBTest2_1_0"];
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
@@ -47,7 +47,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
             _loggerFactory = A.Fake<ILoggerFactory>();
             _logger = A.Fake<ILogger<AddContentExchangeSetNode>>();
 
-            var exchangeSetPipelineContext = new S100ExchangeSetPipelineContext(null, _toolClient, null, null, _loggerFactory)
+            var exchangeSetPipelineContext = new S100ExchangeSetPipelineContext(null!, _toolClient, null!, null!, _loggerFactory)
             {
                 Build = new S100Build
                 {
@@ -58,7 +58,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
                 JobId = Domain.Jobs.JobId.From(JobId),
                 WorkspaceAuthenticationKey = WorkspaceAuthKey,
                 WorkSpaceRootPath = _testDirectory,
-                BatchFileNameDetails = DefaultBatchFileNameDetails
+                BatchFileNameDetails = _defaultBatchFileNameDetails
             };
 
             var spoolPath = Path.Combine(_testDirectory, SpoolFolder);
@@ -94,9 +94,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
                 .Returns(Task.FromResult(fakeResult));
             var result = await _addContentExchangeSetNode.ExecuteAsync(_executionContext);
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-            A.CallTo(() => _toolClient.AddContentAsync($"{DefaultBatchFileNameDetails[0]}/S100_ROOT/CATALOG.XML", Domain.Jobs.JobId.From(JobId), WorkspaceAuthKey))
+            A.CallTo(() => _toolClient.AddContentAsync($"{_defaultBatchFileNameDetails[0]}/S100_ROOT/CATALOG.XML", Domain.Jobs.JobId.From(JobId), WorkspaceAuthKey))
                 .MustHaveHappenedOnceExactly();
-            A.CallTo(() => _toolClient.AddContentAsync($"{DefaultBatchFileNameDetails[1]}/S100_ROOT/CATALOG.XML", Domain.Jobs.JobId.From(JobId), WorkspaceAuthKey))
+            A.CallTo(() => _toolClient.AddContentAsync($"{_defaultBatchFileNameDetails[1]}/S100_ROOT/CATALOG.XML", Domain.Jobs.JobId.From(JobId), WorkspaceAuthKey))
                 .MustHaveHappenedOnceExactly();
         }
 
@@ -133,15 +133,15 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
             var fakeError = A.Fake<IError>();
             OperationResponse? failureOpResponse = null;
             A.CallTo(() => failureResult.IsSuccess(out failureOpResponse, out fakeError)).Returns(false);
-            A.CallTo(() => _toolClient.AddContentAsync($"{DefaultBatchFileNameDetails[0]}/S100_ROOT/CATALOG.XML", A<JobId>._, A<string>._))
+            A.CallTo(() => _toolClient.AddContentAsync($"{_defaultBatchFileNameDetails[0]}/S100_ROOT/CATALOG.XML", A<JobId>._, A<string>._))
                 .Returns(Task.FromResult(successResult));
-            A.CallTo(() => _toolClient.AddContentAsync($"{DefaultBatchFileNameDetails[1]}/S100_ROOT/CATALOG.XML", A<JobId>._, A<string>._))
+            A.CallTo(() => _toolClient.AddContentAsync($"{_defaultBatchFileNameDetails[1]}/S100_ROOT/CATALOG.XML", A<JobId>._, A<string>._))
                 .Returns(Task.FromResult(failureResult));
             var result = await _addContentExchangeSetNode.ExecuteAsync(_executionContext);
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
-            A.CallTo(() => _toolClient.AddContentAsync($"{DefaultBatchFileNameDetails[0]}/S100_ROOT/CATALOG.XML", Domain.Jobs.JobId.From(JobId), WorkspaceAuthKey))
+            A.CallTo(() => _toolClient.AddContentAsync($"{_defaultBatchFileNameDetails[0]}/S100_ROOT/CATALOG.XML", Domain.Jobs.JobId.From(JobId), WorkspaceAuthKey))
                 .MustHaveHappenedOnceExactly();
-            A.CallTo(() => _toolClient.AddContentAsync($"{DefaultBatchFileNameDetails[1]}/S100_ROOT/CATALOG.XML", Domain.Jobs.JobId.From(JobId), WorkspaceAuthKey))
+            A.CallTo(() => _toolClient.AddContentAsync($"{_defaultBatchFileNameDetails[1]}/S100_ROOT/CATALOG.XML", Domain.Jobs.JobId.From(JobId), WorkspaceAuthKey))
                 .MustHaveHappenedOnceExactly();
             A.CallTo(() => _logger.Log<LoggerMessageState>(
                     LogLevel.Error,
@@ -165,7 +165,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         public async Task WhenPerformExecuteAsyncIsCalledAndOnlyFirstBatchDirectoryExists_ThenReturnSucceededButNoCalls()
         {
             var spoolPath = Path.Combine(_testDirectory, SpoolFolder);
-            var firstBatchPath = Path.Combine(spoolPath, DefaultBatchFileNameDetails[0]);
+            var firstBatchPath = Path.Combine(spoolPath, _defaultBatchFileNameDetails[0]);
             Directory.CreateDirectory(firstBatchPath);
             var result = await _addContentExchangeSetNode.ExecuteAsync(_executionContext);
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
@@ -176,7 +176,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         [Test]
         public async Task WhenPerformExecuteAsyncIsCalledWithEmptyBatchFileNameDetails_ThenReturnSucceeded()
         {
-            _executionContext.Subject.BatchFileNameDetails = new List<string>();
+            _executionContext.Subject.BatchFileNameDetails = [];
             var result = await _addContentExchangeSetNode.ExecuteAsync(_executionContext);
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
         }
@@ -184,7 +184,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         [Test]
         public async Task WhenPerformExecuteAsyncIsCalledWithSingleBatchFile_ThenReturnSucceeded()
         {
-            _executionContext.Subject.BatchFileNameDetails = new List<string> { "SingleBatch_1_0" };
+            _executionContext.Subject.BatchFileNameDetails = ["SingleBatch_1_0"];
             var spoolPath = Path.Combine(_testDirectory, SpoolFolder);
             var batchPath = Path.Combine(spoolPath, "SingleBatch_1_0");
             Directory.CreateDirectory(batchPath);
