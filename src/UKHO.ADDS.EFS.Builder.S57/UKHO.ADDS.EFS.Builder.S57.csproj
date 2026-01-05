@@ -25,9 +25,9 @@
     <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
     <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.2.0" />
-    <PackageReference Include="Aspire.Azure.Data.Tables" Version="9.5.2" />
-    <PackageReference Include="Aspire.Azure.Storage.Queues" Version="9.5.2" />
-    <PackageReference Include="Aspire.Azure.Storage.Blobs" Version="9.5.2" />
+    <PackageReference Include="Aspire.Azure.Data.Tables" Version="13.0.2" />
+    <PackageReference Include="Aspire.Azure.Storage.Queues" Version="13.0.2" />
+    <PackageReference Include="Aspire.Azure.Storage.Blobs" Version="13.0.2" />
     <PackageReference Include="Handlebars.Net" Version="2.1.6" />
   </ItemGroup>
 
