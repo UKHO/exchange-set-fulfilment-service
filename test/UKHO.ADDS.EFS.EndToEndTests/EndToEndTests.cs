@@ -4,20 +4,18 @@ using System.Text.Json;
 using Aspire.Hosting;
 using UKHO.ADDS.Clients.Common.Constants;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Namespaces;
-using Xunit.Abstractions;
 
 namespace UKHO.ADDS.EFS.EndToEndTests
 {
     public class EndToEndTests : IAsyncLifetime
     {
-        private DistributedApplication _app;
-
+        private DistributedApplication _app = null!;
         private readonly string _projectDirectory;
+
         public EndToEndTests()
         {
             _projectDirectory = Directory.GetParent(AppContext.BaseDirectory)!.Parent!.Parent!.Parent!.FullName;
         }
-
 
         public async Task InitializeAsync()
         {
@@ -31,7 +29,6 @@ namespace UKHO.ADDS.EFS.EndToEndTests
             var resourceNotificationService = _app.Services.GetRequiredService<ResourceNotificationService>();
             await _app.StartAsync();
             await resourceNotificationService.WaitForResourceAsync(ProcessNames.OrchestratorService, KnownResourceStates.Running).WaitAsync(TimeSpan.FromSeconds(30));
-
         }
 
         public async Task DisposeAsync()
@@ -46,10 +43,10 @@ namespace UKHO.ADDS.EFS.EndToEndTests
             var outDir = Path.Combine(_projectDirectory, "out");
 
             if (Directory.Exists(outDir))
+            {
                 Array.ForEach(Directory.GetFiles(outDir, "*.zip"), File.Delete);
-
+            }
         }
-
 
         [Fact]
         public async Task S100EndToEnd()
@@ -70,7 +67,6 @@ namespace UKHO.ADDS.EFS.EndToEndTests
             var requestId = Guid.NewGuid().ToString();
             content.Headers.Add(ApiHeaderKeys.XCorrelationIdHeaderKey, $"job-0001-{requestId}");
 
-
             var jobSubmitResponse = await httpClient.PostAsync("/jobs", content);
             Assert.True(jobSubmitResponse.IsSuccessStatusCode, "Expected success status code but got: " + jobSubmitResponse.StatusCode);
             var responseContent = await jobSubmitResponse.Content.ReadAsStringAsync();
@@ -85,10 +81,10 @@ namespace UKHO.ADDS.EFS.EndToEndTests
             // 2.Check for notification that the job has been picked up by the builder and completed successfully. 
             string currentJobState;
             string currentBuildState;
-            double elapsedMinutes = 0;
+            double elapsedMinutes;
             var waitDuration = 2000; // 2 seconds
             var maxTimeToWait = 2; // 2 minutes
-            TimeOnly startTime = TimeOnly.FromDateTime(DateTime.Now);
+            var startTime = TimeOnly.FromDateTime(DateTime.Now);
             do
             {
                 var jobStateResponse = await httpClient.GetAsync($"/jobs/{jobId}");
@@ -134,14 +130,14 @@ namespace UKHO.ADDS.EFS.EndToEndTests
             StringContent content;
             var jobs = new List<string>();
             var completedJobs = new List<string>();
-            double elapsedMinutes = 0;
+            double elapsedMinutes;
             var numberOfJobs = 8; // Number of jobs to submit
 
             // 1.Submit multiple job requests and confirm that they were all submitted successfully.
             var requestId = Guid.NewGuid().ToString();
-            for (int i = 0; i < numberOfJobs; i++)
+            for (var i = 0; i < numberOfJobs; i++)
             {
-                string jobNumber = i.ToString("D4");
+                var jobNumber = i.ToString("D4");
 
                 content = new StringContent(
                 """
@@ -169,11 +165,10 @@ namespace UKHO.ADDS.EFS.EndToEndTests
             }
             Assert.Equal(numberOfJobs, jobs.Count);
 
-
             // 2.Check for notification that the jobs have been picked up by the builder and completed successfully.
             var waitDuration = 2000; // 2 seconds
             var maxTimeToWait = 3; // 3 minutes
-            TimeOnly startTime = TimeOnly.FromDateTime(DateTime.Now);
+            var startTime = TimeOnly.FromDateTime(DateTime.Now);
             do
             {
                 foreach (var jobId in jobs)
@@ -197,7 +192,6 @@ namespace UKHO.ADDS.EFS.EndToEndTests
 
             Assert.Equal(jobs.Count, completedJobs.Count);
 
-
             // 3.Check the builder has successfully returned build status for each completed job
             foreach (var jobId in completedJobs)
             {
@@ -208,8 +202,6 @@ namespace UKHO.ADDS.EFS.EndToEndTests
                 responseJson.RootElement.TryGetProperty("builderExitCode", out var builderExitCode);
                 Assert.Equal("success", builderExitCode.GetString());
             }
-
-
         }
 
         public async Task<string> DownloadExchangeSetAsZipAsync(string jobId)
@@ -217,8 +209,6 @@ namespace UKHO.ADDS.EFS.EndToEndTests
             var httpClientMock = _app.CreateHttpClient(ProcessNames.MockService);
             var mockResponse = await httpClientMock.GetAsync($"/_admin/files/FSS/S100-ExchangeSets/V01X01_{jobId}.zip");
             mockResponse.EnsureSuccessStatusCode();
-
-            var zipResponse = await mockResponse.Content.ReadAsStringAsync();
 
             await using var zipStream = await mockResponse.Content.ReadAsStreamAsync();
 
@@ -237,7 +227,7 @@ namespace UKHO.ADDS.EFS.EndToEndTests
             return destinationFilePath;
         }
 
-        public (HashSet<string> Folders, HashSet<string> Files) GetZipStructure(string zipPath)
+        private static (HashSet<string> Folders, HashSet<string> Files) GetZipStructure(string zipPath)
         {
             var folders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var files = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -249,9 +239,11 @@ namespace UKHO.ADDS.EFS.EndToEndTests
                 var entryPath = entry.FullName.Replace('\\', '/').TrimEnd('/');
 
                 if (string.IsNullOrEmpty(entryPath))
+                {
                     continue;
+                }
 
-                if (entry.FullName.EndsWith("/"))
+                if (entry.FullName.EndsWith('/'))
                 {
                     // It's a directory entry
                     folders.Add(entryPath);
@@ -273,10 +265,11 @@ namespace UKHO.ADDS.EFS.EndToEndTests
             }
             return (folders, files);
         }
-        private void CompareZipFolderStructure(string sourceZipPath, string targetZipPath)
+
+        private static void CompareZipFolderStructure(string sourceZipPath, string targetZipPath)
         {
-            var (sourceFolders, sourceFiles) = GetZipStructure(sourceZipPath);
-            var (targetFolders, targetFiles) = GetZipStructure(targetZipPath);
+            var (sourceFolders, _) = GetZipStructure(sourceZipPath);
+            var (targetFolders, _) = GetZipStructure(targetZipPath);
 
             // Find non-matching folders
             var foldersOnlyInSource = sourceFolders.Except(targetFolders).ToList();
@@ -287,9 +280,6 @@ namespace UKHO.ADDS.EFS.EndToEndTests
                 $"Folder structures do not match.\n" +
                 (foldersOnlyInSource.Count > 0 ? $"Folders only in source: {string.Join(", ", foldersOnlyInSource)}\n" : "") +
                 (foldersOnlyInTarget.Count > 0 ? $"Folders only in target: {string.Join(", ", foldersOnlyInTarget)}\n" : ""));
-
         }
-
-
     }
 }

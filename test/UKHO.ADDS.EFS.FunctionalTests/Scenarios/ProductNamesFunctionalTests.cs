@@ -18,7 +18,6 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
         private string _endpoint = TestEndpointConfiguration.ProductNamesEndpoint;
         private bool _assertCallbackTextFile = false;
 
-
         private void SetEndpoint(string? callbackUri)
         {
             _endpoint = EndpointUtility.BuildEndpoint(
@@ -27,7 +26,6 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
                 null, // No product identifier needed for this endpoint
                 out _assertCallbackTextFile);
         }
-
 
         //PBI 244063 - Use the existing Product Names Node (GetS100ProductNamesNode) from existing pipeline (S100AssemblyPipeline) to new pipeline (S100CustomAssemblyPipeline).
         [Theory]
@@ -55,12 +53,6 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
         [InlineData(new object[] { "" }, "https://valid.com/callback", HttpStatusCode.BadRequest, "ProductName cannot be null or empty")] //Test Case 243605 - Array with Empty string
         [InlineData(new object[] { "101GB40079ABCDEFG" }, "invalidCallbackUri.com", HttpStatusCode.BadRequest, "URI is malformed or does not use HTTPS")] // Test Case 245020 - Invalid CallBackUrl
         [InlineData(new object[] { }, "https://valid.com/callback", HttpStatusCode.BadRequest, "Either body is null or malformed")] // Test Case 243604 - Empty array
-        /*
-         * Suppressing the 1 failing assertion for the below bug
-         * BUG-247982 
-         * Once resolved , please reintroduce the assertion for response body "Either body is null or malformed" as currently passing "" to suppress assertion failure
-         * Updates on 01 Oct 2025, this bug will not be fixed, and the specifications will be update as per current behavior that for current scenarios under automation where the api responds back with 400 but the response body will be blank
-         */
         [InlineData(new object[] { "101GB40079ABCDEFG", 123, 456, 789 }, "https://valid.com/callback", HttpStatusCode.BadRequest, "")] //Test Case 243659 - Mixed valid and invalid data types
         public async Task ValidateProductNamesPayloadWithInvalidInputs(object[] productNames, string? callbackUri, HttpStatusCode expectedStatusCode, string expectedErrorMessage)
         {
@@ -72,6 +64,5 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
 
             await ExchangeSetApiAssertions.CustomExchangeSetSubmitPostRequestAndCheckResponse(_requestId, productNames, _endpoint, expectedStatusCode, expectedErrorMessage);
         }
-
     }
 }

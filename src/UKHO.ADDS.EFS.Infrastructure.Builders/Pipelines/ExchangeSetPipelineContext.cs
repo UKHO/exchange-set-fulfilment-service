@@ -13,14 +13,14 @@ namespace UKHO.ADDS.EFS.Infrastructure.Builders.Pipelines
     {
         private readonly IConfiguration _configuration;
 
-        private readonly QueueClientFactory _queueClientFactory;
+        private readonly IQueueClientFactory _queueClientFactory;
         private readonly BlobClientFactory _blobClientFactory;
         private readonly ILoggerFactory _loggerFactory;
         private readonly List<BuildNodeStatus> _statuses;
 
         protected ExchangeSetPipelineContext(
             IConfiguration configuration,
-            QueueClientFactory queueClientFactory,
+            IQueueClientFactory queueClientFactory,
             BlobClientFactory blobClientFactory,
             ILoggerFactory loggerFactory)
         {
@@ -36,7 +36,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Builders.Pipelines
 
         public ILoggerFactory LoggerFactory => _loggerFactory;
 
-        public QueueClientFactory QueueClientFactory => _queueClientFactory;
+        public IQueueClientFactory QueueClientFactory => _queueClientFactory;
 
         public BlobClientFactory BlobClientFactory => _blobClientFactory;
 

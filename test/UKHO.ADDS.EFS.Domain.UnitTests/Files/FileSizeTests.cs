@@ -47,7 +47,7 @@ namespace UKHO.ADDS.EFS.Domain.UnitTests.Files
         {
             var ok = FileSize.TryFrom(0, out var v);
             Assert.True(ok);
-            Assert.Equal(0, v.Value);
+            Assert.Equal(0, v?.Value);
             Assert.Equal(FileSize.Zero, v);
         }
 
@@ -59,7 +59,7 @@ namespace UKHO.ADDS.EFS.Domain.UnitTests.Files
         {
             var ok = FileSize.TryFrom(val, out var v);
             Assert.True(ok);
-            Assert.Equal(val, v.Value);
+            Assert.Equal(val, v?.Value);
         }
 
         [Fact]
@@ -72,7 +72,7 @@ namespace UKHO.ADDS.EFS.Domain.UnitTests.Files
         [Fact]
         public void WhenTryFromInvalid_ThenReturnsFalse()
         {
-            var ok = FileSize.TryFrom(-1, out var v);
+            var ok = FileSize.TryFrom(-1, out _);
             Assert.False(ok);
             // For invalid values, TryFrom should return false and the out parameter will be uninitialized
             // We can't use default(FileSize) so we just verify the method returns false

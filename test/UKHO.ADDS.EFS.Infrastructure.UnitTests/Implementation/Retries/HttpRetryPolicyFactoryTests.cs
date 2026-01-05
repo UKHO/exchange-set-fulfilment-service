@@ -94,7 +94,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.UnitTests.Implementation.Retries
         [Test]
         public void WhenExtractStatusCodeFromErrorWithNull_ThenReturnsNull()
         {
-            Assert.That(HttpRetryPolicyFactory.ExtractStatusCodeFromError(null!), Is.Null);
+            Assert.That(HttpRetryPolicyFactory.ExtractStatusCodeFromError(null), Is.Null);
         }
 
         [Test]
@@ -125,21 +125,59 @@ namespace UKHO.ADDS.EFS.Infrastructure.UnitTests.Implementation.Retries
         [Test]
         public void WhenLoadRetrySettingsWithNoConfiguration_ThenReturnsDefault()
         {
+            HttpRetryPolicyFactory.SetConfiguration(null!);
+
             var settings = typeof(HttpRetryPolicyFactory).GetMethod("LoadRetrySettings", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)?.Invoke(null, null);
-            Assert.That(settings, Is.Not.Null);
+            Assert.That(settings?.ToString(), Does.Contain("3").And.Contain("10000"));
         }
 
-        // TODO Reinstate
+        [Test]
+        public void WhenLoadRetrySettingsWithEmptyConfiguration_ThenReturnsDefault()
+        {
+            var configuration = A.Fake<IConfiguration>();
+            HttpRetryPolicyFactory.SetConfiguration(configuration);
 
-        //[Test]
-        //public void WhenLoadRetrySettingsWithConfiguration_ThenReturnsConfiguredValues()
-        //{
-        //    A.CallTo(() => _configuration["HttpRetry:MaxRetryAttempts"]).Returns("5");
-        //    A.CallTo(() => _configuration["HttpRetry:RetryDelayInMilliseconds"]).Returns("1234");
-        //    HttpRetryPolicyFactory.SetConfiguration(_configuration);
-        //    var settings = typeof(HttpRetryPolicyFactory).GetMethod("LoadRetrySettings", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).Invoke(null, null);
-        //    Assert.That(settings.ToString(), Does.Contain("5").And.Contain("1234"));
-        //}
+            var settings = typeof(HttpRetryPolicyFactory).GetMethod("LoadRetrySettings", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)?.Invoke(null, null);
+            Assert.That(settings?.ToString(), Does.Contain("3").And.Contain("10000"));
+        }
+
+        [Test]
+        public void WhenLoadRetrySettingsWithConfiguration_ConfigSource_ThenReturnsConfiguredValues()
+        {
+            var configuration = A.Fake<IConfiguration>();
+            A.CallTo(() => configuration["HttpRetry:MaxRetryAttempts"]).Returns("5");
+            A.CallTo(() => configuration["HttpRetry:RetryDelayInMilliseconds"]).Returns("1234");
+            HttpRetryPolicyFactory.SetConfiguration(configuration);
+
+            var settings = typeof(HttpRetryPolicyFactory).GetMethod("LoadRetrySettings", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)?.Invoke(null, null);
+            Assert.That(settings?.ToString(), Does.Contain("5").And.Contain("1234"));
+        }
+
+        [Test]
+        public void WhenLoadRetrySettingsWithConfiguration_EnvironmentSource_ThenReturnsConfiguredValues()
+        {
+            var configuration = A.Fake<IConfiguration>();
+            A.CallTo(() => configuration[BuilderEnvironmentVariables.MaxRetryAttempts]).Returns("6");
+            A.CallTo(() => configuration[BuilderEnvironmentVariables.RetryDelayMilliseconds]).Returns("5678");
+            HttpRetryPolicyFactory.SetConfiguration(configuration);
+
+            var settings = typeof(HttpRetryPolicyFactory).GetMethod("LoadRetrySettings", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)?.Invoke(null, null);
+            Assert.That(settings?.ToString(), Does.Contain("6").And.Contain("5678"));
+        }
+
+        [Test]
+        public void WhenLoadRetrySettingsWithConfiguration_BothSources_ThenReturnsConfiguredValuesFromEnvironment()
+        {
+            var configuration = A.Fake<IConfiguration>();
+            A.CallTo(() => configuration["HttpRetry:MaxRetryAttempts"]).Returns("7");
+            A.CallTo(() => configuration["HttpRetry:RetryDelayInMilliseconds"]).Returns("9012");
+            A.CallTo(() => configuration[BuilderEnvironmentVariables.MaxRetryAttempts]).Returns("8");
+            A.CallTo(() => configuration[BuilderEnvironmentVariables.RetryDelayMilliseconds]).Returns("1680");
+            HttpRetryPolicyFactory.SetConfiguration(configuration);
+
+            var settings = typeof(HttpRetryPolicyFactory).GetMethod("LoadRetrySettings", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)?.Invoke(null, null);
+            Assert.That(settings?.ToString(), Does.Contain("8").And.Contain("1680"));
+        }
 
         [Test]
         public async Task WhenGetRetryPolicyTWithRetriableStatusCode_ThenRetries()
