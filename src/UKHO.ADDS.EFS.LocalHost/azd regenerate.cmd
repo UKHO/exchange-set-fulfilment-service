@@ -13,8 +13,8 @@ if exist "%scriptdir%.azure" rmdir /s /q "%scriptdir%.azure"
 
 pause
 
-azd init
-azd infra gen
+azd init --debug
+azd infra gen --debug
 
 title Regenerate - done
 pause
