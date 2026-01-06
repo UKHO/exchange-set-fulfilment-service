@@ -32,7 +32,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor
             builder.Logging.ClearProviders();
             builder.Logging.AddSerilog(Log.Logger, dispose: true);
 
-            builder.AddAzureQueueClient(StorageConfiguration.QueuesName);
+            builder.AddAzureQueueServiceClient(StorageConfiguration.QueuesName);
 
             builder.Services.AddTransient<BuilderContainerService>();
 

@@ -43,23 +43,22 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
             var s100FileShareHealthUri = new Uri(s100FileShareUri!, "health");
 
             // Set the environment variables for the container - in production, these are set from the Azure environment (via the pipeline)
-            var containerId = await _containerService.CreateContainerAsync(ProcessNames.S100Builder, containerName, _command, request, env =>
+            var containerId = await _containerService.CreateContainerAsync(ProcessNames.S100Builder, containerName, _command, () => new BuilderEnvironment
             {
-                env.AddsEnvironment = AddsEnvironment.Local.Value;
-                env.RequestQueueName = StorageConfiguration.S100BuildRequestQueueName;
-                env.ResponseQueueName = StorageConfiguration.S100BuildResponseQueueName;
-                env.QueueEndpoint = $"http://host.docker.internal:{queuePort}/devstoreaccount1";
-                env.BlobEndpoint = $"http://host.docker.internal:{blobPort}/devstoreaccount1";
-                env.FileShareEndpoint = s100FileShareUri!.ToString();
-                env.FileShareHealthEndpoint = s100FileShareHealthUri!.ToString();
-                env.BlobContainerName = StorageConfiguration.S100BuildContainer;
-                env.MaxRetryAttempts = int.Parse(_configuration["buildRequestMonitor:S100:MaxRetries"]!);
-                env.RetryDelayMilliseconds = int.Parse(_configuration["buildRequestMonitor:S100:RetryDelayMilliseconds"]!);
-                env.ConcurrentDownloadLimitCount = int.Parse(_configuration["buildRequestMonitor:S100:ConcurrentDownloadLimitCount"]!);
+                RequestQueueName = StorageConfiguration.S100BuildRequestQueueName,
+                ResponseQueueName = StorageConfiguration.S100BuildResponseQueueName,
+                QueueEndpoint = $"http://host.docker.internal:{queuePort}/devstoreaccount1",
+                BlobContainerName = StorageConfiguration.S100BuildContainer,
+                BlobEndpoint = $"http://host.docker.internal:{blobPort}/devstoreaccount1",
+                AddsEnvironment = AddsEnvironment.Local.Value,
+                MaxRetryAttempts = int.Parse(_configuration["buildRequestMonitor:S100:MaxRetries"]!),
+                RetryDelayMilliseconds = int.Parse(_configuration["buildRequestMonitor:S100:RetryDelayMilliseconds"]!),
+                FileShareEndpoint = s100FileShareUri!.ToString(),
+                FileShareHealthEndpoint = s100FileShareHealthUri!.ToString(),
+                ConcurrentDownloadLimitCount = int.Parse(_configuration["buildRequestMonitor:S100:ConcurrentDownloadLimitCount"]!)
             });
 
             await _containerService.StartContainerAsync(containerId);
         }
-
     }
 }

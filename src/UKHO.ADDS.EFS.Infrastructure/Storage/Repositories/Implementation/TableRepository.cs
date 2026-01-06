@@ -205,7 +205,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Storage.Repositories.Implementation
             }
         }
 
-        private static async Task<List<T>> ToListAsync<T>(AsyncPageable<T> source)
+        private static async Task<List<T>> ToListAsync<T>(AsyncPageable<T> source) where T : notnull
         {
             var list = new List<T>();
 
