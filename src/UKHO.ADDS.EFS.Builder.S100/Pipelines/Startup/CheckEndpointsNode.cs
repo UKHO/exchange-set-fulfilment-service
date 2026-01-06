@@ -35,7 +35,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
             {
                 response.EnsureSuccessStatusCode();
             }
-            catch (HttpRequestException ex)
+            catch (HttpRequestException)
             {
 #pragma warning disable LOG001
                 Log.Information($"****** HEALTH {endpoint} FAILED (CHECK)");

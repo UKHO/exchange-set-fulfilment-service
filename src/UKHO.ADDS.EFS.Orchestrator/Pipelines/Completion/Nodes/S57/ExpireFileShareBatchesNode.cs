@@ -43,7 +43,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Completion.Nodes.S57
 
                 await _timestampService.SetTimestampForJobAsync(job);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return NodeResultStatus.Failed;
             }

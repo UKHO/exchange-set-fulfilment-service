@@ -38,7 +38,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.Pipelines.Assembly.Nodes.S57
                 job.BatchId = batch.BatchId;
                 build.BatchId = batch.BatchId;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Could not create a batch, so the job should fail
                 await context.Subject.SignalAssemblyError();

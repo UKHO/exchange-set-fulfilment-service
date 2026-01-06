@@ -55,7 +55,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Logging
             {
                 parsedLog = JsonCodec.Decode<Dictionary<string, object>>(logLine);
             }
-            catch (JsonException ex)
+            catch (JsonException)
             {
                 return;
             }

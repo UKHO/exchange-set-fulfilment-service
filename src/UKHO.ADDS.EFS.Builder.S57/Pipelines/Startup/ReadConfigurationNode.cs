@@ -44,7 +44,7 @@ namespace UKHO.ADDS.EFS.Builder.S57.Pipelines.Startup
 
                 return NodeResultStatus.Succeeded;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return NodeResultStatus.Failed;
             }
