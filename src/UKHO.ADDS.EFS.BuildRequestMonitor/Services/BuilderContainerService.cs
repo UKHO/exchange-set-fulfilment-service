@@ -3,28 +3,18 @@ using Docker.DotNet;
 using Docker.DotNet.Models;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Builders;
 using UKHO.ADDS.EFS.BuildRequestMonitor.Logging;
-using UKHO.ADDS.EFS.Domain.Builds;
 using UKHO.ADDS.EFS.Infrastructure.Configuration.Orchestrator;
 
 namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
 {
-    internal class BuilderContainerService
+    internal class BuilderContainerService(ILoggerFactory loggerFactory)
     {
-        private readonly ILoggerFactory _loggerFactory;
-        private readonly ILogger<BuilderContainerService> _logger;
-        private readonly DockerClient _dockerClient;
+        private readonly ILoggerFactory _loggerFactory = loggerFactory;
+        private readonly DockerClient _dockerClient = new DockerClientConfiguration(GetDockerEndpoint()).CreateClient();
 
-        public BuilderContainerService(ILoggerFactory loggerFactory)
+        public async Task<string> CreateContainerAsync(string image, string name, string[] command, Func<BuilderEnvironment> setEnvironmentFunc)
         {
-            _loggerFactory = loggerFactory;
-            _logger = _loggerFactory.CreateLogger<BuilderContainerService>();
-            _dockerClient = new DockerClientConfiguration(GetDockerEndpoint()).CreateClient();
-        }
-
-        public async Task<string> CreateContainerAsync(string image, string name, string[] command, BuildRequest request, Action<BuilderEnvironment> setEnvironmentFunc)
-        {
-            var environment = new BuilderEnvironment();
-            setEnvironmentFunc?.Invoke(environment);
+            var environment = setEnvironmentFunc();
 
             var response = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters
             {
@@ -34,8 +24,8 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
                 AttachStdout = true,
                 AttachStderr = true,
                 Tty = false,
-                Env = new List<string>
-                {
+                Env =
+                [
                     $"{BuilderEnvironmentVariables.RequestQueueName}={environment.RequestQueueName}",
                     $"{BuilderEnvironmentVariables.ResponseQueueName}={environment.ResponseQueueName}",
                     $"{BuilderEnvironmentVariables.QueueEndpoint}={environment.QueueEndpoint}",
@@ -48,7 +38,7 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Services
                     $"{BuilderEnvironmentVariables.MaxRetryAttempts}={environment.MaxRetryAttempts}",
                     $"{BuilderEnvironmentVariables.RetryDelayMilliseconds}={environment.RetryDelayMilliseconds}",
                     $"{BuilderEnvironmentVariables.ConcurrentDownloadLimitCount}={environment.ConcurrentDownloadLimitCount}",
-                }
+                ]
             });
 
             return response.ID;

@@ -44,22 +44,22 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
             var s63FileShareHealthUri = new Uri(s63FileShareUri!, "health");
 
             // Set the environment variables for the container - in production, these are set from the Azure environment (via the pipeline)
-            var containerId = await _containerService.CreateContainerAsync(ProcessNames.S63Builder, containerName, _command, request, env =>
+            var containerId = await _containerService.CreateContainerAsync(ProcessNames.S63Builder, containerName, _command, () => new BuilderEnvironment
             {
-                env.AddsEnvironment = AddsEnvironment.Local.Value;
-                env.RequestQueueName = StorageConfiguration.S63BuildRequestQueueName;
-                env.ResponseQueueName = StorageConfiguration.S63BuildResponseQueueName;
-                env.QueueEndpoint = $"http://host.docker.internal:{queuePort}/devstoreaccount1";
-                env.BlobEndpoint = $"http://host.docker.internal:{blobPort}/devstoreaccount1";
-                env.FileShareEndpoint = s63FileShareUri!.ToString();
-                env.FileShareHealthEndpoint = s63FileShareHealthUri!.ToString();
-                env.BlobContainerName = StorageConfiguration.S63BuildContainer;
-                env.MaxRetryAttempts = int.Parse(_configuration["buildRequestMonitor:S63:MaxRetries"]!);
-                env.RetryDelayMilliseconds = int.Parse(_configuration["buildRequestMonitor:S63:RetryDelayMilliseconds"]!);
+                RequestQueueName = StorageConfiguration.S63BuildRequestQueueName,
+                ResponseQueueName = StorageConfiguration.S63BuildResponseQueueName,
+                QueueEndpoint = $"http://host.docker.internal:{queuePort}/devstoreaccount1",
+                BlobContainerName = StorageConfiguration.S63BuildContainer,
+                BlobEndpoint = $"http://host.docker.internal:{blobPort}/devstoreaccount1",
+                AddsEnvironment = AddsEnvironment.Local.Value,
+                MaxRetryAttempts = int.Parse(_configuration["buildRequestMonitor:S63:MaxRetries"]!),
+                RetryDelayMilliseconds = int.Parse(_configuration["buildRequestMonitor:S63:RetryDelayMilliseconds"]!),
+                FileShareEndpoint = s63FileShareUri!.ToString(),
+                FileShareHealthEndpoint = s63FileShareHealthUri!.ToString(),
+                ConcurrentDownloadLimitCount = 0
             });
 
             await _containerService.StartContainerAsync(containerId);
         }
-
     }
 }

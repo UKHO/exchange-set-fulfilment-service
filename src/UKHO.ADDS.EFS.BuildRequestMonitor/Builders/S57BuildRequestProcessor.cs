@@ -43,22 +43,22 @@ namespace UKHO.ADDS.EFS.BuildRequestMonitor.Builders
             var s57FileShareHealthUri = new Uri(s57FileShareUri!, "health");
 
             // Set the environment variables for the container - in production, these are set from the Azure environment (via the pipeline)
-            var containerId = await _containerService.CreateContainerAsync(ProcessNames.S57Builder, containerName, _command, request, env =>
+            var containerId = await _containerService.CreateContainerAsync(ProcessNames.S57Builder, containerName, _command, () => new BuilderEnvironment
             {
-                env.AddsEnvironment = AddsEnvironment.Local.Value;
-                env.RequestQueueName = StorageConfiguration.S57BuildRequestQueueName;
-                env.ResponseQueueName = StorageConfiguration.S57BuildResponseQueueName;
-                env.QueueEndpoint = $"http://host.docker.internal:{queuePort}/devstoreaccount1";
-                env.BlobEndpoint = $"http://host.docker.internal:{blobPort}/devstoreaccount1";
-                env.FileShareEndpoint = s57FileShareUri!.ToString();
-                env.FileShareHealthEndpoint = s57FileShareHealthUri!.ToString();
-                env.BlobContainerName = StorageConfiguration.S57BuildContainer;
-                env.MaxRetryAttempts = int.Parse(_configuration["buildRequestMonitor:S57:MaxRetries"]!);
-                env.RetryDelayMilliseconds = int.Parse(_configuration["buildRequestMonitor:S57:RetryDelayMilliseconds"]!);
+                RequestQueueName = StorageConfiguration.S57BuildRequestQueueName,
+                ResponseQueueName = StorageConfiguration.S57BuildResponseQueueName,
+                QueueEndpoint = $"http://host.docker.internal:{queuePort}/devstoreaccount1",
+                BlobContainerName = StorageConfiguration.S57BuildContainer,
+                BlobEndpoint = $"http://host.docker.internal:{blobPort}/devstoreaccount1",
+                AddsEnvironment = AddsEnvironment.Local.Value,
+                MaxRetryAttempts = int.Parse(_configuration["buildRequestMonitor:S57:MaxRetries"]!),
+                RetryDelayMilliseconds = int.Parse(_configuration["buildRequestMonitor:S57:RetryDelayMilliseconds"]!),
+                FileShareEndpoint = s57FileShareUri!.ToString(),
+                FileShareHealthEndpoint = s57FileShareHealthUri!.ToString(),
+                ConcurrentDownloadLimitCount = 0
             });
 
             await _containerService.StartContainerAsync(containerId);
         }
-
     }
 }
