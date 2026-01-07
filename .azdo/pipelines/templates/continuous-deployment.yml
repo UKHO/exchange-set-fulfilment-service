@@ -84,11 +84,15 @@ jobs:
           displayName: NuGet restore
           inputs:
             command: restore
-            projects: |
-              **/*.csproj
-              !**/*Tests.csproj
-              ${{ if eq('${{ parameters.ShortName }}', 'dev') }}:
+            ${{ if eq('${{ parameters.ShortName }}', 'dev') }}:
+              projects: |
+                **/*.csproj
+                !**/*Tests.csproj
                 !!**/UKHO.ADDS.EFS.FunctionalTests.csproj
+            ${{ else }}:
+              projects: |
+                **/*.csproj
+                !**/*Tests.csproj
             feedsToUse: config
             noCache: true
             nugetConfigPath: '$(Build.SourcesDirectory)/efs/BuildNuget.config'
