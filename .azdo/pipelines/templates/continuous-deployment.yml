@@ -87,12 +87,16 @@ jobs:
             ${{ if eq('${{ parameters.ShortName }}', 'dev') }}:
               projects: |
                 **/*.csproj
-                !**/*Tests.csproj
-                !!**/UKHO.ADDS.EFS.FunctionalTests.csproj
+                !**/*.Tests.csproj
+                !**/*.UnitTests.csproj
+                !**/*.EndToEndTests.csproj
             ${{ else }}:
               projects: |
                 **/*.csproj
-                !**/*Tests.csproj
+                !**/*.Tests.csproj
+                !**/*.UnitTests.csproj
+                !**/*.EndToEndTests.csproj
+                !**/*.FunctionalTests.csproj
             feedsToUse: config
             noCache: true
             nugetConfigPath: '$(Build.SourcesDirectory)/efs/BuildNuget.config'
@@ -273,7 +277,7 @@ jobs:
 
         - task: DotNetCoreCLI@2
           displayName: Run Functional Tests
-          condition: eq('${{ parameters.ShortName }}', 'dev')
+          condition: and(succeeded(), eq('${{ parameters.ShortName }}', 'dev'))
           inputs:
             command: test
             projects: "**/UKHO.ADDS.EFS.FunctionalTests.csproj"
