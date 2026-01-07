@@ -95,6 +95,7 @@ namespace UKHO.ADDS.Aspire.Configuration.Seeder
         private static void ValidateUri(string url, string name)
         {
             Console.WriteLine($"URL is {name} : {url}");
+
             if (!Uri.TryCreate(url, UriKind.Absolute, out _))
             {
                 throw new ArgumentException($"Invalid URI: {url} ({name})");

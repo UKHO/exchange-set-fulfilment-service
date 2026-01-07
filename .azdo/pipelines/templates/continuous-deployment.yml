@@ -90,6 +90,8 @@ jobs:
                 !**/*.Tests.csproj
                 !**/*.UnitTests.csproj
                 !**/*.EndToEndTests.csproj
+                !**/*.UnitTestExamples.csproj
+                !**/*.BuildRequestMonitor.csproj
             ${{ else }}:
               projects: |
                 **/*.csproj
@@ -97,6 +99,8 @@ jobs:
                 !**/*.UnitTests.csproj
                 !**/*.EndToEndTests.csproj
                 !**/*.FunctionalTests.csproj
+                !**/*.UnitTestExamples.csproj
+                !**/*.BuildRequestMonitor.csproj
             feedsToUse: config
             noCache: true
             nugetConfigPath: '$(Build.SourcesDirectory)/efs/BuildNuget.config'
