@@ -84,7 +84,7 @@ jobs:
           displayName: NuGet restore
           inputs:
             command: restore
-            ${{ if eq('${{ parameters.ShortName }}', 'dev') }}:
+            ${{ if eq(parameters.ShortName, 'dev') }}:
               projects: |
                 **/*.csproj
                 !**/*.Tests.csproj
