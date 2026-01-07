@@ -81,12 +81,26 @@ jobs:
             version: $(SdkVersion)
 
         - task: DotNetCoreCLI@2
-          displayName: NuGet restore for non test projects only
+          displayName: NuGet restore
           inputs:
             command: restore
-            projects: |
-              **/*.csproj
-              !**/*Tests.csproj
+            ${{ if eq(parameters.ShortName, 'dev') }}:
+              projects: |
+                **/*.csproj
+                !**/*.Tests.csproj
+                !**/*.UnitTests.csproj
+                !**/*.EndToEndTests.csproj
+                !**/*.UnitTestExamples.csproj
+                !**/*.BuildRequestMonitor.csproj
+            ${{ else }}:
+              projects: |
+                **/*.csproj
+                !**/*.Tests.csproj
+                !**/*.UnitTests.csproj
+                !**/*.EndToEndTests.csproj
+                !**/*.FunctionalTests.csproj
+                !**/*.UnitTestExamples.csproj
+                !**/*.BuildRequestMonitor.csproj
             feedsToUse: config
             noCache: true
             nugetConfigPath: '$(Build.SourcesDirectory)/efs/BuildNuget.config'
@@ -266,27 +280,14 @@ jobs:
             arguments: "-healthEndPointUrl $(ORCHESTRATOR_URL)/health -waitTimeInMinute 2 -onErrorContinue 0"
 
         - task: DotNetCoreCLI@2
-          displayName: ".Net Core - NuGet restore test projects only"
-          condition: eq('${{ parameters.ShortName }}', 'dev')
-          inputs:
-            command: restore
-            projects: "**/UKHO.ADDS.EFS.FunctionalTests.csproj"
-            feedsToUse: config
-            noCache: true
-            nugetConfigPath: '$(Build.SourcesDirectory)/efs/BuildNuget.config'
-            workingDirectory: '$(Build.SourcesDirectory)/efs'
-            restoreDirectory: '$(Build.SourcesDirectory)/efs/packagesForTests'
-
-        - task: DotNetCoreCLI@2
           displayName: Run Functional Tests
-          condition: eq('${{ parameters.ShortName }}', 'dev')
+          condition: and(succeeded(), eq('${{ parameters.ShortName }}', 'dev'))
           inputs:
             command: test
             projects: "**/UKHO.ADDS.EFS.FunctionalTests.csproj"
             arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)/efs/test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura --no-restore'
             publishTestResults: true
             testRunTitle: FunctionalTests
-            restoreDirectory: '$(Build.SourcesDirectory)/efs/packagesForTests'
           env:
             ORCHESTRATOR_URL: $(ORCHESTRATOR_URL)
             ADDSMOCK_URL: $(ADDSMOCK_URL)        

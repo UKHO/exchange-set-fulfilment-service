@@ -4,12 +4,12 @@ using Xunit;
 
 namespace UKHO.ADDS.Aspire.Configuration.Seeder.Tests
 {
-    public class ExternakServiceDefinitionParserTests
+    public class ExternalServiceDefinitionParserTests
     {
         private const string EnvVarKey = "services__adds-mocks-efs__http__0";
         private const string EnvVarValue = "http://resolved-host:8080";
 
-        public ExternakServiceDefinitionParserTests()
+        public ExternalServiceDefinitionParserTests()
         {
             Environment.SetEnvironmentVariable(EnvVarKey, EnvVarValue);
         }
