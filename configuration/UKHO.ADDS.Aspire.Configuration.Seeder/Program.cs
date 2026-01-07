@@ -1,5 +1,4 @@
-﻿using System;
-using Azure.Data.AppConfiguration;
+﻿using Azure.Data.AppConfiguration;
 using Azure.Identity;
 using CommandLine;
 using Microsoft.Extensions.DependencyInjection;
@@ -96,8 +95,7 @@ namespace UKHO.ADDS.Aspire.Configuration.Seeder
         private static void ValidateUri(string url, string name)
         {
             Console.WriteLine($"URL is {name} : {url}");
-
-            if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            if (!Uri.TryCreate(url, UriKind.Absolute, out _))
             {
                 throw new ArgumentException($"Invalid URI: {url} ({name})");
             }
@@ -116,19 +114,19 @@ namespace UKHO.ADDS.Aspire.Configuration.Seeder
         public class CommandLineParameters
         {
             [Value(0, HelpText = "The ADDS service name (e.g. 'EFS')", Required = true)]
-            public string ServiceName { get; set; }
+            public required string ServiceName { get; set; }
 
             [Value(1, HelpText = "The ADDS environment name (e.g. 'dev')", Required = true)]
-            public string EnvironmentName { get; set; }
+            public required string EnvironmentName { get; set; }
 
             [Value(2, HelpText = "Configuration JSON file path", Required = true)]
-            public string ConfigurationFilePath { get; set; }
+            public required string ConfigurationFilePath { get; set; }
 
             [Value(3, HelpText = "Services JSON file path", Required = true)]
-            public string ServicesFilePath { get; set; }
+            public required string ServicesFilePath { get; set; }
 
             [Value(4, HelpText = "Azure App Configuration Service URL", Required = true)]
-            public string AppConfigServiceUrl { get; set; }
+            public required string AppConfigServiceUrl { get; set; }
         }
     }
 }
