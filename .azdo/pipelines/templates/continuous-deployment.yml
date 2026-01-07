@@ -87,7 +87,8 @@ jobs:
             projects: |
               **/*.csproj
               !**/*Tests.csproj
-              !!**/UKHO.ADDS.EFS.FunctionalTests.csproj
+              ${{ if eq('${{ parameters.ShortName }}', 'dev') }}:
+                !!**/UKHO.ADDS.EFS.FunctionalTests.csproj
             feedsToUse: config
             noCache: true
             nugetConfigPath: '$(Build.SourcesDirectory)/efs/BuildNuget.config'
@@ -275,7 +276,6 @@ jobs:
             arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)/efs/test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura --no-restore'
             publishTestResults: true
             testRunTitle: FunctionalTests
-            restoreDirectory: '$(Build.SourcesDirectory)/efs/packagesForTests'
           env:
             ORCHESTRATOR_URL: $(ORCHESTRATOR_URL)
             ADDSMOCK_URL: $(ADDSMOCK_URL)        
