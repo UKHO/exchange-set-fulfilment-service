@@ -223,7 +223,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         //public async Task WhenPerformExecuteAsyncIsCalledAndFilterMatchesNoProducts_ThenSignalsNoBuildRequiredAndReturnsSucceeded()
         //{
         //    var products = new ProductNameList();
-            
+
         //    products.Add(ProductName.From("101product1"));
         //    products.Add(ProductName.From("101product2"));
 

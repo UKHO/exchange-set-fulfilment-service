@@ -91,7 +91,7 @@ namespace UKHO.ADDS.EFS.Domain.Jobs
         /// <summary>
         /// Products that were requested but not included in the exchange set
         /// </summary>
-        public MissingProductList RequestedProductsNotInExchangeSet { get; set; } = new();
+        public MissingProductList RequestedProductsNotInExchangeSet { get; set; } = [];
 
         /// <summary>
         /// Deternimes the type of exchange set to be created
@@ -115,10 +115,10 @@ namespace UKHO.ADDS.EFS.Domain.Jobs
         /// </summary>
         public DataStandardProduct ProductIdentifier { get; init; }
 
-        public ProductVersionList ProductVersions { get; init; }
+        public ProductVersionList ProductVersions { get; init; } = [];
 
         public DateTime ProductsLastModified { get; set; }
 
-        public ExternalServiceError ExternalServiceError { get; set; }
+        public ExternalServiceError? ExternalServiceError { get; set; }
     }
 }

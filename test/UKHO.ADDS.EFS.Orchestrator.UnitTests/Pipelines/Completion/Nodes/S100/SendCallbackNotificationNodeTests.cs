@@ -56,7 +56,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
             _executionContext = A.Fake<IExecutionContext<PipelineContext<S100Build>>>();
             A.CallTo(() => _executionContext.Subject).Returns(_pipelineContext);
         }
-        
+
         [Test]
         public void WhenConstructorCalledWithNullCallbackNotificationService_ThenThrowsArgumentNullException()
         {
