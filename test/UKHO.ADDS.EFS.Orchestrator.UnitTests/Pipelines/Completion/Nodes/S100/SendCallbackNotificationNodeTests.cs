@@ -397,8 +397,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
             BatchId = batchId,
             CallbackUri = callbackUri,
             ExchangeSetType = ExchangeSetType.ProductNames,
-            ProductIdentifier = DataStandardProduct.S101,
-            ProductVersions = []
+            ProductIdentifier = DataStandardProduct.S101
         };
 
         private static Job CreateJobWithNoCallback() => CreateJob(CallbackUri.None, TestBatchId);

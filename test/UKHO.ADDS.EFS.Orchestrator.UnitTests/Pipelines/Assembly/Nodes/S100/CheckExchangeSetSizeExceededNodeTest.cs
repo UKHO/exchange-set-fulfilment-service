@@ -219,8 +219,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 RequestedFilter = string.Empty,
                 ExchangeSetType = exchangeSetType,
                 CallbackUri = CallbackUri.From(new Uri(TestCallbackUri)),
-                ProductIdentifier = DataStandardProduct.Undefined,
-                ProductVersions = []
+                ProductIdentifier = DataStandardProduct.Undefined
             };
         }
 
