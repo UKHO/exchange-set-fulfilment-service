@@ -44,6 +44,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 DataStandard = DataStandard.S100,
                 RequestedProducts = new ProductNameList(),
                 RequestedFilter = "productName eq '101GB004DEVQK'",
+                ProductVersions = []
             };
 
             _build = new S100Build
@@ -87,7 +88,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
                 RequestedProducts = new ProductNameList(),
-                RequestedFilter = string.Empty
+                RequestedFilter = string.Empty,
+                ProductVersions = []
             };
 
             var build = new S100Build
@@ -115,7 +117,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 Timestamp = DateTime.UtcNow,
                 DataStandard = DataStandard.S100,
                 RequestedProducts = new ProductNameList(),
-                RequestedFilter = null!
+                RequestedFilter = null!,
+                ProductVersions = []
             };
 
             var build = new S100Build
@@ -144,6 +147,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 DataStandard = DataStandard.S100,
                 RequestedProducts = new ProductNameList(),
                 RequestedFilter = "productName eq '101GB004DEVQK'",
+                ProductVersions = []
             };
 
             var build = new S100Build
@@ -169,6 +173,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 DataStandard = DataStandard.S100,
                 RequestedProducts = new ProductNameList(),
                 RequestedFilter = "productName eq '101GB004DEVQK'",
+                ProductVersions = []
             };
 
             var build = new S100Build
@@ -194,6 +199,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 DataStandard = DataStandard.S100,
                 RequestedProducts = new ProductNameList(),
                 RequestedFilter = "startswith(ProductName, '102')",
+                ProductVersions = []
             };
 
             _build = new S100Build
@@ -223,7 +229,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
         //public async Task WhenPerformExecuteAsyncIsCalledAndFilterMatchesNoProducts_ThenSignalsNoBuildRequiredAndReturnsSucceeded()
         //{
         //    var products = new ProductNameList();
-            
+
         //    products.Add(ProductName.From("101product1"));
         //    products.Add(ProductName.From("101product2"));
 

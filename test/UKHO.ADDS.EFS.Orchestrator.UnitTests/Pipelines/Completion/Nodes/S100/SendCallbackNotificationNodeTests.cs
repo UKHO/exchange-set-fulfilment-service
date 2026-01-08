@@ -56,7 +56,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
             _executionContext = A.Fake<IExecutionContext<PipelineContext<S100Build>>>();
             A.CallTo(() => _executionContext.Subject).Returns(_pipelineContext);
         }
-        
+
         [Test]
         public void WhenConstructorCalledWithNullCallbackNotificationService_ThenThrowsArgumentNullException()
         {
@@ -397,7 +397,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Completion.Nodes.S100
             BatchId = batchId,
             CallbackUri = callbackUri,
             ExchangeSetType = ExchangeSetType.ProductNames,
-            ProductIdentifier = DataStandardProduct.S101
+            ProductIdentifier = DataStandardProduct.S101,
+            ProductVersions = []
         };
 
         private static Job CreateJobWithNoCallback() => CreateJob(CallbackUri.None, TestBatchId);

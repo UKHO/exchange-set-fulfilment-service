@@ -194,7 +194,8 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
                 RequestedFilter = RequestedFilter, // Provide a default filter value for tests
                 ProductIdentifier = DataStandardProduct.From((int)DataStandardProductType.S101),
                 RequestedProducts = new ProductNameList(),
-                ExchangeSetType = exchangeSetType
+                ExchangeSetType = exchangeSetType,
+                ProductVersions = []
             };
             job.ValidateAndSet(jobState, BuildState.None);
 
