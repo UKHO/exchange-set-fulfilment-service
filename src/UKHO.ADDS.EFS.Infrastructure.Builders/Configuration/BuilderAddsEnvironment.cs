@@ -45,7 +45,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Builders.Configuration
         {
             if (TryParse(input, out var env))
             {
-                return env;
+                return env ?? throw new InvalidOperationException($"Parsed AddsEnvironment cannot be null: '{input}'"); ;
             }
 
             throw new ArgumentException($"Invalid AddsEnvironment: '{input}'", nameof(input));
@@ -55,9 +55,9 @@ namespace UKHO.ADDS.EFS.Infrastructure.Builders.Configuration
         {
             var env = Environment.GetEnvironmentVariable(BuilderEnvironmentVariables.AddsEnvironment);
 
-            if (string.IsNullOrEmpty(env) || !TryParse(env, out var addsEnvironment))
+            if (string.IsNullOrEmpty(env) || !TryParse(env, out _))
             {
-                throw new InvalidOperationException($"Environment variable '{BuilderEnvironmentVariables.AddsEnvironment}' is not set or invalid. Make sure the caller is registered using UKHO.ADDS.Aspire.Configuration.Hosting ");
+                throw new InvalidOperationException($"Environment variable '{BuilderEnvironmentVariables.AddsEnvironment}' is not set or invalid. Make sure the caller is registered using UKHO.ADDS.Aspire.Configuration.Hosting");
             }
 
             return Parse(env);

@@ -9,48 +9,33 @@ using UKHO.ADDS.Infrastructure.Serialization.Json;
 
 namespace UKHO.ADDS.EFS.Infrastructure.Builders.Pipelines
 {
-    public abstract class ExchangeSetPipelineContext<TBuild> where TBuild : Build
+    public abstract class ExchangeSetPipelineContext<TBuild>(
+        IConfiguration configuration,
+        IQueueClientFactory queueClientFactory,
+        BlobClientFactory blobClientFactory,
+        ILoggerFactory loggerFactory) where TBuild : Build
     {
-        private readonly IConfiguration _configuration;
+        private readonly List<BuildNodeStatus> _statuses = [];
 
-        private readonly IQueueClientFactory _queueClientFactory;
-        private readonly BlobClientFactory _blobClientFactory;
-        private readonly ILoggerFactory _loggerFactory;
-        private readonly List<BuildNodeStatus> _statuses;
+        public IConfiguration Configuration { get; } = configuration;
 
-        protected ExchangeSetPipelineContext(
-            IConfiguration configuration,
-            IQueueClientFactory queueClientFactory,
-            BlobClientFactory blobClientFactory,
-            ILoggerFactory loggerFactory)
-        {
-            _configuration = configuration;
-            _queueClientFactory = queueClientFactory;
-            _blobClientFactory = blobClientFactory;
-            _loggerFactory = loggerFactory;
+        public ILoggerFactory LoggerFactory { get; } = loggerFactory;
 
-            _statuses = [];
-        }
+        public IQueueClientFactory QueueClientFactory { get; } = queueClientFactory;
 
-        public IConfiguration Configuration => _configuration;
-
-        public ILoggerFactory LoggerFactory => _loggerFactory;
-
-        public IQueueClientFactory QueueClientFactory => _queueClientFactory;
-
-        public BlobClientFactory BlobClientFactory => _blobClientFactory;
+        public BlobClientFactory BlobClientFactory { get; } = blobClientFactory;
 
         public JobId JobId { get; set; }
 
         public BatchId BatchId { get; set; }
 
-        public string FileShareEndpoint { get; set; }
+        public string? FileShareEndpoint { get; set; }
 
-        public string FileShareHealthEndpoint { get; set; }
+        public string? FileShareHealthEndpoint { get; set; }
 
-        public TBuild Build { get; set; }
+        public TBuild? Build { get; set; }
 
-        public string ExchangeSetNameTemplate { get; set; }
+        public string? ExchangeSetNameTemplate { get; set; }
 
         public void AddStatus(BuildNodeStatus status)
         {
@@ -61,6 +46,11 @@ namespace UKHO.ADDS.EFS.Infrastructure.Builders.Pipelines
 
         public async Task CompleteBuild(IConfiguration configuration, JsonMemorySink sink, BuilderExitCode exitCode)
         {
+            if (Build is null)
+            {
+                throw new InvalidOperationException("Build is null in CompleteBuild.");
+            }
+
             Build.SetOutputs(Statuses, sink.GetLogLines());
 
             var queueClient = QueueClientFactory.CreateResponseQueueClient(configuration);
@@ -74,7 +64,6 @@ namespace UKHO.ADDS.EFS.Infrastructure.Builders.Pipelines
             var response = new BuildResponse() { JobId = JobId, ExitCode = exitCode };
 
             await queueClient.SendMessageAsync(JsonCodec.Encode(response));
-
         }
     }
 }
