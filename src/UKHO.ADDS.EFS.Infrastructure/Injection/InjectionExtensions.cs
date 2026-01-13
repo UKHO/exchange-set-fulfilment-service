@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Identity.Web;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.Kiota.Abstractions.Authentication;
 using Microsoft.Kiota.Authentication.Azure;
 using UKHO.ADDS.Aspire.Configuration;
@@ -262,8 +261,9 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
         /// </summary>
         private static (string clientId, string tenantId) GetAzureAdCredentials()
         {
-            var clientId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsAppRegClientId);
-            var tenantId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsAppRegTenantId);
+            var clientId = GetEnvironmentVariableWithNullCheck(GlobalEnvironmentVariables.EfsAppRegClientId);
+            var tenantId = GetEnvironmentVariableWithNullCheck(GlobalEnvironmentVariables.EfsAppRegTenantId);
+
             return (clientId, tenantId);
         }
 
@@ -272,18 +272,26 @@ namespace UKHO.ADDS.EFS.Infrastructure.Injection
         /// </summary>
         private static (string clientId, string domain, string instance, string policy) GetAzureB2CCredentials()
         {
-            var clientId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppClientId);
-            var domain = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppDomain);
-            var instance = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppInstance);
-            var policy = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppSignInPolicy);
+            var clientId = GetEnvironmentVariableWithNullCheck(GlobalEnvironmentVariables.EfsB2CAppClientId);
+            var domain = GetEnvironmentVariableWithNullCheck(GlobalEnvironmentVariables.EfsB2CAppDomain);
+            var instance = GetEnvironmentVariableWithNullCheck(GlobalEnvironmentVariables.EfsB2CAppInstance);
+            var policy = GetEnvironmentVariableWithNullCheck(GlobalEnvironmentVariables.EfsB2CAppSignInPolicy);
 
             return (clientId, domain, instance, policy);
         }
 
         /// <summary>
+        /// Retrieves the value of the specified environment variable, throwing an exception if the variable is not set.
+        /// </summary>
+        /// <param name="variable">The name of the environment variable to retrieve. Cannot be null or empty.</param>
+        /// <returns>The value of the specified environment variable.</returns>
+        /// <exception cref="Exception">Thrown if the specified environment variable does not exist or its value is null.</exception>
+        private static string GetEnvironmentVariableWithNullCheck(string variable) => Environment.GetEnvironmentVariable(variable) ?? throw new Exception($"Environment variable missing for {variable}");
+
+        /// <summary>
         /// Retrieves environment variables needed for authorization policies
         /// </summary>
-        private static (string adTenantId, string b2cTenantId, string b2cInstance) GetAuthorizationPolicyVariables()
+        private static (string? adTenantId, string? b2cTenantId, string? b2cInstance) GetAuthorizationPolicyVariables()
         {
             var adTenantId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsAppRegTenantId);
             var b2cTenantId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsB2CAppTenantId);
