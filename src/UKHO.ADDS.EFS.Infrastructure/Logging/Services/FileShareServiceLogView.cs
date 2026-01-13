@@ -1,4 +1,5 @@
-﻿using UKHO.ADDS.EFS.Domain.External;
+﻿using Microsoft.Extensions.Logging;
+using UKHO.ADDS.EFS.Domain.External;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.Infrastructure.Results;
 
@@ -10,6 +11,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Logging.Services
         public required JobId JobId { get; init; }
         public required string EndPoint { get; init; }
         public required CorrelationId CorrelationId { get; init; }
-        public IError Error { get; set; }
+        [LogProperties]
+        public required IError Error { get; init; }
     }
 }

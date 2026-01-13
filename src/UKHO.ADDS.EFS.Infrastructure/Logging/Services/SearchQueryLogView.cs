@@ -2,8 +2,8 @@
 {
     internal class SearchQueryLogView
     {
-        public int Limit { get; set; }
-        public int Start { get; set; }
-        public string Filter { get; set; }
+        public required int Limit { get; init; }
+        public required int Start { get; init; }
+        public required string Filter { get; init; }
     }
 }
