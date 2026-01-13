@@ -48,7 +48,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Builders.Pipelines
         {
             if (Build is null)
             {
-                throw new InvalidOperationException("Build is null in CompleteBuild.");
+                throw new InvalidOperationException($"Build is null in CompleteBuild for {BatchId.Value}");
             }
 
             Build.SetOutputs(Statuses, sink.GetLogLines());
