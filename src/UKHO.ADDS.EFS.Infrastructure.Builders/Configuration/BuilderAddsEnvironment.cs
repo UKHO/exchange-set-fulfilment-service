@@ -45,7 +45,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Builders.Configuration
         {
             if (TryParse(input, out var env))
             {
-                return env ?? throw new InvalidOperationException($"Parsed AddsEnvironment cannot be null: '{input}'"); ;
+                return env ?? throw new InvalidOperationException($"Parsed AddsEnvironment cannot be null: '{input}'");
             }
 
             throw new ArgumentException($"Invalid AddsEnvironment: '{input}'", nameof(input));
