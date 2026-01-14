@@ -6,8 +6,8 @@ namespace UKHO.ADDS.Clients.FileShareService.ReadOnly.Models
 {
     public class BatchSearchResponse : IEquatable<BatchSearchResponse>
     {
-        public BatchSearchResponse(int? count = default, int? total = default, List<BatchDetails> entries = default,
-            Links links = default)
+        public BatchSearchResponse(int? count = default, int? total = default, List<BatchDetails>? entries = default,
+            Links? links = default)
         {
             Count = count;
             Total = total;
@@ -24,11 +24,11 @@ namespace UKHO.ADDS.Clients.FileShareService.ReadOnly.Models
 
         [JsonPropertyName("total")] public int? Total { get; set; }
 
-        [JsonPropertyName("entries")] public List<BatchDetails> Entries { get; set; }
+        [JsonPropertyName("entries")] public List<BatchDetails>? Entries { get; set; }
 
-        [JsonPropertyName("_links")] public Links Links { get; set; }
+        [JsonPropertyName("_links")] public Links? Links { get; set; }
 
-        public bool Equals(BatchSearchResponse input)
+        public bool Equals(BatchSearchResponse? input)
         {
             if (input == null)
             {
@@ -63,17 +63,17 @@ namespace UKHO.ADDS.Clients.FileShareService.ReadOnly.Models
         {
             var sb = new StringBuilder();
             sb.Append("class BatchSearchResponse {\n");
-            sb.Append("  Count: ").Append(Count).Append("\n");
-            sb.Append("  Total: ").Append(Total).Append("\n");
-            sb.Append("  Entries: ").Append(Entries).Append("\n");
-            sb.Append("  Links: ").Append(Links).Append("\n");
+            sb.Append("  Count: ").Append(Count).Append('\n');
+            sb.Append("  Total: ").Append(Total).Append('\n');
+            sb.Append("  Entries: ").Append(Entries).Append('\n');
+            sb.Append("  Links: ").Append(Links).Append('\n');
             sb.Append("}\n");
             return sb.ToString();
         }
 
         public virtual string ToJson() => JsonCodec.Encode(this, JsonCodec.DefaultOptionsNoFormat);
 
-        public override bool Equals(object input) => Equals(input as BatchSearchResponse);
+        public override bool Equals(object? input) => Equals(input as BatchSearchResponse);
 
         public override int GetHashCode()
         {

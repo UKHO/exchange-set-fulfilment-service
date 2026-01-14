@@ -15,9 +15,9 @@ namespace UKHO.ADDS.Clients.FileShareService.ReadOnly.Models
         {
         }
 
-        [JsonPropertyName("href")] public string Href { get; set; }
+        [JsonPropertyName("href")] public string? Href { get; set; }
 
-        public bool Equals(Link input)
+        public bool Equals(Link? input)
         {
             if (input == null)
             {
@@ -34,7 +34,7 @@ namespace UKHO.ADDS.Clients.FileShareService.ReadOnly.Models
         {
             var sb = new StringBuilder();
             sb.Append("class Link {\n");
-            sb.Append("  Href: ").Append(Href).Append("\n");
+            sb.Append("  Href: ").Append(Href).Append('\n');
             sb.Append("}\n");
             return sb.ToString();
         }
@@ -45,7 +45,7 @@ namespace UKHO.ADDS.Clients.FileShareService.ReadOnly.Models
         /// <returns>JSON string presentation of the object</returns>
         public virtual string ToJson() => JsonCodec.Encode(this, JsonCodec.DefaultOptionsNoFormat);
 
-        public override bool Equals(object input) => Equals(input as Link);
+        public override bool Equals(object? input) => Equals(input as Link);
 
         public override int GetHashCode()
         {

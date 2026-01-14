@@ -2,8 +2,8 @@
 {
     public class ErrorResponseModel
     {
-        public string CorrelationId { get; set; }
-        public List<Error> Errors { get; set; } = new();
+        public string? CorrelationId { get; set; }
+        public List<Error> Errors { get; set; } = [];
     }
 
     public class Error

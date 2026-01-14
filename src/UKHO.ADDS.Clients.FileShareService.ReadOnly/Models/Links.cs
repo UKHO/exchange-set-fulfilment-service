@@ -6,7 +6,7 @@ namespace UKHO.ADDS.Clients.FileShareService.ReadOnly.Models
 {
     public class Links : IEquatable<Links>
     {
-        public Links(Link self, Link first = default, Link previous = default, Link next = default, Link last = default)
+        public Links(Link self, Link? first = default, Link? previous = default, Link? next = default, Link? last = default)
         {
             Self = self;
             First = first;
@@ -21,17 +21,17 @@ namespace UKHO.ADDS.Clients.FileShareService.ReadOnly.Models
         {
         }
 
-        [JsonPropertyName("self")] public Link Self { get; set; }
+        [JsonPropertyName("self")] public Link? Self { get; set; }
 
-        [JsonPropertyName("first")] public Link First { get; set; }
+        [JsonPropertyName("first")] public Link? First { get; set; }
 
-        [JsonPropertyName("previous")] public Link Previous { get; set; }
+        [JsonPropertyName("previous")] public Link? Previous { get; set; }
 
-        [JsonPropertyName("next")] public Link Next { get; set; }
+        [JsonPropertyName("next")] public Link? Next { get; set; }
 
-        [JsonPropertyName("last")] public Link Last { get; set; }
+        [JsonPropertyName("last")] public Link? Last { get; set; }
 
-        public bool Equals(Links input)
+        public bool Equals(Links? input)
         {
             if (input == null)
             {
@@ -70,11 +70,11 @@ namespace UKHO.ADDS.Clients.FileShareService.ReadOnly.Models
         {
             var sb = new StringBuilder();
             sb.Append("class Links {\n");
-            sb.Append("  Self: ").Append(Self).Append("\n");
-            sb.Append("  First: ").Append(First).Append("\n");
-            sb.Append("  Previous: ").Append(Previous).Append("\n");
-            sb.Append("  Next: ").Append(Next).Append("\n");
-            sb.Append("  Last: ").Append(Last).Append("\n");
+            sb.Append("  Self: ").Append(Self).Append('\n');
+            sb.Append("  First: ").Append(First).Append('\n');
+            sb.Append("  Previous: ").Append(Previous).Append('\n');
+            sb.Append("  Next: ").Append(Next).Append('\n');
+            sb.Append("  Last: ").Append(Last).Append('\n');
             sb.Append("}\n");
             return sb.ToString();
         }
@@ -85,7 +85,7 @@ namespace UKHO.ADDS.Clients.FileShareService.ReadOnly.Models
         /// <returns>JSON string presentation of the object</returns>
         public virtual string ToJson() => JsonCodec.Encode(this, JsonCodec.DefaultOptionsNoFormat);
 
-        public override bool Equals(object input) => Equals(input as Links);
+        public override bool Equals(object? input) => Equals(input as Links);
 
         public override int GetHashCode()
         {

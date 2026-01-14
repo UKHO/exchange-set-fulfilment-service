@@ -17,7 +17,6 @@ namespace UKHO.ADDS.Clients.FileShareService.ReadOnly.Models
             Failed = 5
         }
 
-
         public BatchStatusResponse(string batchId, StatusEnum? status)
         {
             BatchId = batchId;
@@ -29,7 +28,7 @@ namespace UKHO.ADDS.Clients.FileShareService.ReadOnly.Models
         {
         }
 
-        [JsonPropertyName("batchId")] public string BatchId { get; set; }
+        [JsonPropertyName("batchId")] public string? BatchId { get; set; }
 
         [JsonPropertyName("status")] public StatusEnum? Status { get; set; }
 
@@ -37,17 +36,17 @@ namespace UKHO.ADDS.Clients.FileShareService.ReadOnly.Models
         {
             var sb = new StringBuilder();
             sb.Append($"class  {GetType().Name}{{\n");
-            sb.Append("  BatchId: ").Append(BatchId).Append("\n");
-            sb.Append("  Status: ").Append(Status).Append("\n");
+            sb.Append("  BatchId: ").Append(BatchId).Append('\n');
+            sb.Append("  Status: ").Append(Status).Append('\n');
             sb.Append("}\n");
             return sb.ToString();
         }
 
         public virtual string ToJson() => JsonCodec.Encode(this, JsonCodec.DefaultOptionsNoFormat);
 
-        public override bool Equals(object input) => Equals(input as BatchStatusResponse);
+        public override bool Equals(object? input) => Equals(input as BatchStatusResponse);
 
-        public bool Equals(BatchStatusResponse input)
+        public bool Equals(BatchStatusResponse? input)
         {
             if (input == null)
             {

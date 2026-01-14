@@ -5,19 +5,13 @@ using UKHO.ADDS.Infrastructure.Serialization.Json;
 namespace UKHO.ADDS.Clients.FileShareService.ReadOnly.Models
 {
     [DataContract]
-    public class BatchDetailsAttributes : IEquatable<BatchDetailsAttributes>
+    public class BatchDetailsAttributes(string key, string value) : IEquatable<BatchDetailsAttributes>
     {
-        public BatchDetailsAttributes(string key = default, string value = default)
-        {
-            Key = key;
-            Value = value;
-        }
+        [DataMember(Name = "key", EmitDefaultValue = false)] public string Key { get; set; } = key;
 
-        [DataMember(Name = "key", EmitDefaultValue = false)] public string Key { get; set; }
+        [DataMember(Name = "value", EmitDefaultValue = false)] public string Value { get; set; } = value;
 
-        [DataMember(Name = "value", EmitDefaultValue = false)] public string Value { get; set; }
-
-        public bool Equals(BatchDetailsAttributes input)
+        public bool Equals(BatchDetailsAttributes? input)
         {
             if (input == null)
             {
@@ -41,15 +35,15 @@ namespace UKHO.ADDS.Clients.FileShareService.ReadOnly.Models
         {
             var sb = new StringBuilder();
             sb.Append("class BatchDetailsAttributes {\n");
-            sb.Append("  Key: ").Append(Key).Append("\n");
-            sb.Append("  Value: ").Append(Value).Append("\n");
+            sb.Append("  Key: ").Append(Key).Append('\n');
+            sb.Append("  Value: ").Append(Value).Append('\n');
             sb.Append("}\n");
             return sb.ToString();
         }
 
         public virtual string ToJson() => JsonCodec.Encode(this, JsonCodec.DefaultOptionsNoFormat);
 
-        public override bool Equals(object input) => Equals(input as BatchDetailsAttributes);
+        public override bool Equals(object? input) => Equals(input as BatchDetailsAttributes);
 
         public override int GetHashCode()
         {
