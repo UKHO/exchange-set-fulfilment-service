@@ -38,7 +38,7 @@ namespace UKHO.ADDS.Clients.FileShareService.ReadOnly.Models
         {
         }
 
-        [JsonPropertyName("batchId")] public string BatchId { get; set; }
+        [JsonPropertyName("batchId")] public required string BatchId { get; set; }
 
         [JsonPropertyName("status")] public StatusEnum? Status { get; set; }
 
@@ -54,7 +54,7 @@ namespace UKHO.ADDS.Clients.FileShareService.ReadOnly.Models
 
         [JsonPropertyName("allFilesZipSize")] public long? AllFilesZipSize { get; set; }
 
-        public bool Equals(BatchDetails input)
+        public bool Equals(BatchDetails? input)
         {
             if (input == null)
             {
@@ -110,21 +110,21 @@ namespace UKHO.ADDS.Clients.FileShareService.ReadOnly.Models
         {
             var sb = new StringBuilder();
             sb.Append("class BatchDetails {\n");
-            sb.Append("  BatchId: ").Append(BatchId).Append("\n");
-            sb.Append("  Status: ").Append(Status).Append("\n");
-            sb.Append("  Attributes: ").Append(Attributes).Append("\n");
-            sb.Append("  BusinessUnit: ").Append(BusinessUnit).Append("\n");
-            sb.Append("  BatchPublishedDate: ").Append(BatchPublishedDate).Append("\n");
-            sb.Append("  ExpiryDate: ").Append(ExpiryDate).Append("\n");
-            sb.Append("  Files: ").Append(Files).Append("\n");
-            sb.Append("  AllFilesZipSize: ").Append(AllFilesZipSize).Append("\n");
+            sb.Append("  BatchId: ").Append(BatchId).Append('\n');
+            sb.Append("  Status: ").Append(Status).Append('\n');
+            sb.Append("  Attributes: ").Append(Attributes).Append('\n');
+            sb.Append("  BusinessUnit: ").Append(BusinessUnit).Append('\n');
+            sb.Append("  BatchPublishedDate: ").Append(BatchPublishedDate).Append('\n');
+            sb.Append("  ExpiryDate: ").Append(ExpiryDate).Append('\n');
+            sb.Append("  Files: ").Append(Files).Append('\n');
+            sb.Append("  AllFilesZipSize: ").Append(AllFilesZipSize).Append('\n');
             sb.Append("}\n");
             return sb.ToString();
         }
 
         public virtual string ToJson() => JsonCodec.Encode(this, JsonCodec.DefaultOptionsNoFormat);
 
-        public override bool Equals(object input) => Equals(input as BatchDetails);
+        public override bool Equals(object? input) => Equals(input as BatchDetails);
 
         public override int GetHashCode()
         {

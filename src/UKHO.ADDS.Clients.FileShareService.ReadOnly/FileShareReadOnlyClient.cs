@@ -59,7 +59,7 @@ namespace UKHO.ADDS.Clients.FileShareService.ReadOnly
 
         public async Task<IResult<BatchSearchResponse>> SearchAsync(string searchQuery, int? pageSize, int? start) => await SearchAsync(searchQuery, pageSize, start, string.Empty, CancellationToken.None);
 
-        public async Task<IResult<BatchSearchResponse>> SearchAsync(string searchQuery, int? pageSize, int? start,  CancellationToken cancellationToken)
+        public async Task<IResult<BatchSearchResponse>> SearchAsync(string searchQuery, int? pageSize, int? start, CancellationToken cancellationToken)
         {
             var response = await SearchResponse(searchQuery, pageSize, start, string.Empty, cancellationToken);
 
@@ -76,7 +76,7 @@ namespace UKHO.ADDS.Clients.FileShareService.ReadOnly
         {
             var response = await SearchResponse(searchQuery, pageSize, start, correlationId, cancellationToken);
 
-            return await response.CreateResultAsync<BatchSearchResponse>(ApiNames.FileShareService, correlationId);            
+            return await response.CreateResultAsync<BatchSearchResponse>(ApiNames.FileShareService, correlationId);
         }
 
         protected IError TranslateErrors(ErrorResponseModel errorResponseModel, HttpStatusCode status)
@@ -117,9 +117,14 @@ namespace UKHO.ADDS.Clients.FileShareService.ReadOnly
 
         public async Task<IResult<DownloadFileResponse>> DownloadFileAsync(string batchId, string fileName, Stream destinationStream, long fileSizeInBytes = 0, CancellationToken cancellationToken = default)
         {
+            if (fileSizeInBytes == 0)
+            {
+                return Result.Success(new DownloadFileResponse());
+            }
+
             long startByte = 0;
             var endByte = fileSizeInBytes < _maxDownloadBytes ? fileSizeInBytes - 1 : _maxDownloadBytes - 1;
-            IResult<DownloadFileResponse> result = null;
+            IResult<DownloadFileResponse> result = null!;
 
             while (startByte <= endByte)
             {
@@ -136,7 +141,7 @@ namespace UKHO.ADDS.Clients.FileShareService.ReadOnly
                     }
 
                     var response = await httpClient.SendAsync(httpRequestMessage, cancellationToken);
-                    
+
                     result = await response.CreateResultAsync<DownloadFileResponse>();
 
                     if (!result.IsSuccess()) return result;
@@ -282,7 +287,7 @@ namespace UKHO.ADDS.Clients.FileShareService.ReadOnly
             return httpClient;
         }
 
-        protected async Task<HttpClient> CreateHttpClientWithHeadersAsync(string correlationId)
+        protected async Task<HttpClient> CreateHttpClientWithHeadersAsync(string? correlationId)
         {
             var httpClient = _httpClientFactory.CreateClient();
             await httpClient.SetAuthenticationHeaderAsync(_authTokenProvider);
@@ -290,7 +295,7 @@ namespace UKHO.ADDS.Clients.FileShareService.ReadOnly
             {
                 httpClient.SetCorrelationIdHeader(correlationId);
             }
-            
+
             return httpClient;
         }
 
