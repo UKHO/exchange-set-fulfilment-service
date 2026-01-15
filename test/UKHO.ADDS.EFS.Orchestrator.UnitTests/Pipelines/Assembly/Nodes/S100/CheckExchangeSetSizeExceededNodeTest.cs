@@ -109,11 +109,11 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
 
         [TestCase("dev", 350 * 1024 * 1024, true, true, NodeResultStatus.Failed)] // Dev environment, size exceeded, B2C user
         [TestCase("dev", 50 * 1024 * 1024, true, true, NodeResultStatus.Succeeded)] // Dev environment, size within limit, B2C user
-        [TestCase("preprod", 1000, false, false, NodeResultStatus.Succeeded)] // Non-dev environment, default size, non-B2C user
-        [TestCase("preprod", 350 * 1024 * 1024, false, false, NodeResultStatus.Succeeded)] // Non-dev environment, size exceeded, non-B2C user
-        [TestCase("preprod", 350 * 1024 * 1024, true, true, NodeResultStatus.Failed)] // Non-dev environment, size exceeded, B2C user
-        [TestCase("preprod", 50 * 1024 * 1024, true, true, NodeResultStatus.Succeeded)] // Non-dev environment, size within limit, B2C user
-        [TestCase("preprod", 300 * 1024 * 1024, true, true, NodeResultStatus.Succeeded)] // Non-dev environment, size at limit, B2C user
+        [TestCase("prp", 1000, false, false, NodeResultStatus.Succeeded)] // Non-dev environment, default size, non-B2C user
+        [TestCase("prp", 350 * 1024 * 1024, false, false, NodeResultStatus.Succeeded)] // Non-dev environment, size exceeded, non-B2C user
+        [TestCase("prp", 350 * 1024 * 1024, true, true, NodeResultStatus.Failed)] // Non-dev environment, size exceeded, B2C user
+        [TestCase("prp", 50 * 1024 * 1024, true, true, NodeResultStatus.Succeeded)] // Non-dev environment, size within limit, B2C user
+        [TestCase("prp", 300 * 1024 * 1024, true, true, NodeResultStatus.Succeeded)] // Non-dev environment, size at limit, B2C user
         public async Task WhenEnvironmentAndUserTypeAndSizeProvided_ThenExecuteAsyncReturnsExpectedResult(
             string environment, int fileSizeBytes, bool isB2CUser, bool setB2CEnvironmentVars, NodeResultStatus expectedResult)
         {
@@ -151,7 +151,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             var build = CreateS100BuildWithProductEditions(350 * 1024 * 1024); // 350MB (exceeds 300MB limit)
             SetupExecutionContextWithBuild(job, build);
             SetupB2CEnvironmentVariables();
-            SetAddsEnvironment("preprod");
+            SetAddsEnvironment("prp");
 
             if (string.IsNullOrEmpty(audience) && string.IsNullOrEmpty(issuer))
             {
@@ -177,7 +177,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             SetupExecutionContextWithBuild(job, build);
             SetupValidB2CUser();
             SetupB2CEnvironmentVariables();
-            SetAddsEnvironment("preprod");
+            SetAddsEnvironment("prp");
 
             await _checkExchangeSetSizeExceededNode.ExecuteAsync(_executionContext);
 
@@ -289,7 +289,7 @@ namespace UKHO.ADDS.EFS.Orchestrator.UnitTests.Pipelines.Assembly.Nodes.S100
             }
             else
             {
-                Environment.SetEnvironmentVariable(WellKnownConfigurationName.AddsEnvironmentName, "preprod");
+                Environment.SetEnvironmentVariable(WellKnownConfigurationName.AddsEnvironmentName, "prp");
             }
         }
     }
