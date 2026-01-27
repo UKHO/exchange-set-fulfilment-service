@@ -7,7 +7,7 @@
         public static readonly AddsEnvironment VNextIat = new("vni");
         public static readonly AddsEnvironment VNextE2E = new("vne");
         public static readonly AddsEnvironment Iat = new("iat");
-        public static readonly AddsEnvironment prp = new("prp");
+        public static readonly AddsEnvironment PreProd = new("prp");
         public static readonly AddsEnvironment Live = new("live");
 
         private static readonly Dictionary<string, AddsEnvironment> _known = new(StringComparer.OrdinalIgnoreCase)
@@ -17,7 +17,7 @@
             [VNextIat.Value] = VNextIat,
             [VNextE2E.Value] = VNextE2E,
             [Iat.Value] = Iat,
-            [prp.Value] = prp,
+            [PreProd.Value] = PreProd,
             [Live.Value] = Live
         };
 
