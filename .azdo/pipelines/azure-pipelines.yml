@@ -216,3 +216,20 @@ stages:
         IncludeAddsMock: false
         DeployRedis: ${{ parameters.DeployRedis }}
         RunAddsTests: 'IAT'
+
+  - stage: prpDeploy
+    dependsOn:
+    - iatDeploy
+    displayName: Pre-Pod Deploy
+  #  condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')))
+    jobs:
+    - template: templates/continuous-deployment.yml
+      parameters:
+        AzureDevOpsEnvironment: Ess-PreProd
+        ShortName: prp
+        AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+        DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
+        DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
+        DeployAddsMock: ${{ parameters.DeployAddsMock }}
+        IncludeAddsMock: false
+        DeployRedis: ${{ parameters.DeployRedis }}

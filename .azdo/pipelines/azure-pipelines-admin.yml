@@ -130,7 +130,7 @@ stages:
     dependsOn:
     - DevDeploy
     displayName: IAT Deploy
-    condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')))
+   # condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')))
     jobs:
     - template: templates/continuous-deployment-retain.yml
       parameters:
@@ -144,6 +144,25 @@ stages:
           ShortName: iat
           ContinueEvenIfResourcesAreGettingDestroyed: ${{ parameters.ContinueEvenIfResourcesAreGettingDestroyed }}
           ContainerImage: ${{ variables.Container }}
+  - stage: PrpDeploy
+    dependsOn:
+    - IatDeploy
+    displayName: Prp Deploy
+    #condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')))
+    jobs:
+    - template: templates/continuous-deployment-retain.yml
+      parameters:
+        AzureDevOpsEnvironment: Ess-PreProd
+        ShortName: prp
+        AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+
+    - template: templates/continuous-deployment-apim.yml
+      parameters:
+          AzureDevOpsEnvironment: Ess-PreProd
+          ShortName: prp
+          ContinueEvenIfResourcesAreGettingDestroyed: ${{ parameters.ContinueEvenIfResourcesAreGettingDestroyed }}
+          ContainerImage: ${{ variables.Container }}
+
 
 - ${{ if eq(parameters.DestroyResourcesDev, true) }}:
 

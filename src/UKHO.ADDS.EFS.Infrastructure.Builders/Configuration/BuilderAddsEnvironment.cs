@@ -9,7 +9,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Builders.Configuration
         public static readonly BuilderAddsEnvironment VNextIat = new("vni");
         public static readonly BuilderAddsEnvironment VNextE2E = new("vne");
         public static readonly BuilderAddsEnvironment Iat = new("iat");
-        public static readonly BuilderAddsEnvironment PreProd = new("preprod");
+        public static readonly BuilderAddsEnvironment PreProd = new("prp");
         public static readonly BuilderAddsEnvironment Live = new("live");
 
         private static readonly Dictionary<string, BuilderAddsEnvironment> _known = new(StringComparer.OrdinalIgnoreCase)
