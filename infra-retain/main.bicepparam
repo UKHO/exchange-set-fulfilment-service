@@ -2,7 +2,7 @@ using './main.bicep'
 
 param resourceGroupName = readEnvironmentVariable('EFS_RETAIN_RESOURCE_GROUP')
 param appResourceGroupName = readEnvironmentVariable('EFS_RESOURCE_GROUP')
-param efsServiceIdentityPartialName = readEnvironmentVariable('EFS_SERVICE_IDENTITY_PARTIAL_NAME')
+param efsServiceIdentityName = readEnvironmentVariable('EFS_SERVICE_IDENTITY_NAME')
 param efsLogAnalyticsWorkspacePartialName = readEnvironmentVariable('EFS_LOG_ANALYTICS_WORKSPACE_PARTIAL_NAME')
 param efsApplicationInsightsPartialName = readEnvironmentVariable('EFS_APPLICATION_INSIGHTS_PARTIAL_NAME')
 param efsAppConfigurationPartialName = readEnvironmentVariable('EFS_APP_CONFIGURATION_PARTIAL_NAME')

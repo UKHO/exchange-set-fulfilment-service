@@ -5,8 +5,8 @@ variables:
   value: efs-$(AZURE_ENV_NAME)-retain-rg
 - name: EFS_RESOURCE_GROUP
   value: efs-$(AZURE_ENV_NAME)-rg
-- name: EFS_SERVICE_IDENTITY_PARTIAL_NAME
-  value: efs_service_identity
+- name: EFS_SERVICE_IDENTITY_NAME
+  value: efs-$(AZURE_ENV_NAME)-service-identity
 - name: EFS_LOG_ANALYTICS_WORKSPACE_PARTIAL_NAME
   value: efslaw
 - name: EFS_CONTAINER_REGISTRY_PARTIAL_NAME

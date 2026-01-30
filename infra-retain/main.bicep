@@ -11,8 +11,8 @@ param resourceGroupName string
 param appResourceGroupName string
 
 @minLength(1)
-@description('The partial name (from the start) of the service identity resource.')
-param efsServiceIdentityPartialName string
+@description('The name of the service identity resource.')
+param efsServiceIdentityName string
 
 @minLength(1)
 @description('The partial name (from the start) of the log analytics workspace resource.')
@@ -76,7 +76,7 @@ module efs_service_identity 'efs-service-identity/efs-service-identity.module.bi
   scope: rg
   params: {
     location: location
-    efsServiceIdentityPartialName: efsServiceIdentityPartialName
+    efsServiceIdentityName: efsServiceIdentityName
   }
 }
 
