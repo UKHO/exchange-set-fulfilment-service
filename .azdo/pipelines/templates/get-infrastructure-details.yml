@@ -14,9 +14,6 @@ steps:
     scriptLocation: inlineScript
     inlineScript: |
       set -e
-      echo "Getting managed identity name..."
-      EFS_SERVICE_IDENTITY_NAME=$(az identity list --resource-group $EFS_RETAIN_RESOURCE_GROUP --query "[?starts_with(name, '$(EFS_SERVICE_IDENTITY_PARTIAL_NAME)')].name" --output tsv)
-
       echo "Getting log analytics workspace name..."
       EFS_LOG_ANALYTICS_WORKSPACE_NAME=$(az monitor log-analytics workspace list --resource-group $EFS_RETAIN_RESOURCE_GROUP --query "[?starts_with(name, '$(EFS_LOG_ANALYTICS_WORKSPACE_PARTIAL_NAME)')].name" --output tsv)
 
