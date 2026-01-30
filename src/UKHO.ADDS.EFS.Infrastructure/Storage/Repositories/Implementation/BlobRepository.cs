@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using UKHO.ADDS.EFS.Domain.Services.Storage;
 using UKHO.ADDS.Infrastructure.Results;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
@@ -143,7 +144,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Storage.Repositories.Implementation
             try
             {
                 var containerClient = _blobClient.GetBlobContainerClient(Name);
-                var blobs = containerClient.GetBlobsByHierarchyAsync(prefix: partitionKey);
+                var blobs = containerClient.GetBlobsByHierarchyAsync(BlobTraits.None, BlobStates.None, null, partitionKey, default);
 
                 var entities = new List<TEntity>();
 
@@ -231,7 +232,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Storage.Repositories.Implementation
             try
             {
                 var containerClient = _blobClient.GetBlobContainerClient(Name);
-                await foreach (var blobItem in containerClient.GetBlobsByHierarchyAsync(prefix: partitionKey))
+                await foreach (var blobItem in containerClient.GetBlobsByHierarchyAsync(BlobTraits.None, BlobStates.None, null, partitionKey, default))
                 {
                     var blobClient = containerClient.GetBlobClient(blobItem.Blob.Name);
                     await blobClient.DeleteIfExistsAsync();
