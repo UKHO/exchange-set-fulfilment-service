@@ -233,3 +233,20 @@ stages:
         DeployAddsMock: ${{ parameters.DeployAddsMock }}
         IncludeAddsMock: false
         DeployRedis: ${{ parameters.DeployRedis }}
+
+  - stage: Live
+    dependsOn:
+    - iatDeploy
+    displayName: Live Deploy
+  #  condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')))
+    jobs:
+    - template: templates/continuous-deployment.yml
+      parameters:
+        AzureDevOpsEnvironment: Ess-Live
+        ShortName: Live
+        AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+        DeployOrchestrator: ${{ parameters.DeployOrchestrator }}
+        DeployBuilderS100: ${{ parameters.DeployBuilderS100 }}
+        DeployAddsMock: ${{ parameters.DeployAddsMock }}
+        IncludeAddsMock: false
+        DeployRedis: ${{ parameters.DeployRedis }}

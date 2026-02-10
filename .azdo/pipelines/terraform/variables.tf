@@ -47,6 +47,7 @@ variable "env_suffix" {
     "vni"         = "VNI"
     "iat"         = "IAT"
     "prp"         = "PRP"
+    "live"        = "LIVE"
   }
 }
 
