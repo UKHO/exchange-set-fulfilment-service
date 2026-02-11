@@ -52,12 +52,29 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 var batchList = new List<BatchDetails>();
                 var groupedProducts = products
                     .GroupBy(p => p.ProductName)
-                    .Select(g => new BatchProductDetail
+                    .Select(g =>
                     {
-                        ProductName = g.Key,
-                        EditionNumber = g.First().EditionNumber,
-                        UpdateNumbers = g.SelectMany(p => p.UpdateNumbers.Select(x => (int?)x)).ToList()
-                    }).ToList();
+                        var cancellationProduct = g.FirstOrDefault(p => p.Cancellation != null);
+                        if (cancellationProduct != null)
+                        {
+                            return new BatchProductDetail
+                            {
+                                ProductName = g.Key,
+                                EditionNumber = cancellationProduct.Cancellation.EditionNumber,
+                                UpdateNumbers = [(int?)cancellationProduct.Cancellation.UpdateNumber]
+                            };
+                        }
+                        else
+                        {
+                            return new BatchProductDetail
+                            {
+                                ProductName = g.Key,
+                                EditionNumber = g.First().EditionNumber,
+                                UpdateNumbers = g.SelectMany(p => p.UpdateNumbers.Select(x => (int?)x)).ToList()
+                            };
+                        }
+                    })
+                    .ToList();
 
                 var productGroupCount = (int)Math.Ceiling((double)products.Count() / MaxSearchOperations);
                 var productsList = SplitList(groupedProducts, productGroupCount);

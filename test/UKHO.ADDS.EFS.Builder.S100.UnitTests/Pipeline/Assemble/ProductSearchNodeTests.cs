@@ -244,6 +244,72 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
         }
 
+        [Test]
+        public async Task WhenProductEditionHasCancellation_ThenCancellationEditionAndUpdateAreUsedInQuery()
+        {
+            string? capturedQuery = null;
+            var batchResponse = new BatchSearchResponse { Entries = [] };
+            A.CallTo(() => _fileShareReadOnlyClientFake.SearchAsync(A<string>._, A<int?>._, A<int?>._, A<string>._))
+                .Invokes((string query, int? pageSize, int? start, string correlationId) =>
+                {
+                    capturedQuery = query;
+                })
+                .Returns(Result.Success(batchResponse));
+
+            var cancellationEdition = EditionNumber.From(0);
+            var cancellationUpdate = UpdateNumber.From(99);
+
+            _executionContext.Subject.Build.ProductEditions =
+            [
+                new ProductEdition
+                {
+                    ProductName = ProductName.From("101TestCancelledProduct"),
+                    EditionNumber = EditionNumber.From(1),
+                    UpdateNumbers = [UpdateNumber.From(0), UpdateNumber.From(1)],
+                    Cancellation = new ProductCancellation
+                    {
+                        EditionNumber = cancellationEdition,
+                        UpdateNumber = cancellationUpdate
+                    }
+                }
+            ];
+
+            await _productSearchNode.ExecuteAsync(_executionContext);
+
+            var expectedQuery = $"BusinessUnit eq 'ADDS-S100' and $batch(Product Type) eq 'S-100' and (($batch(Product Name) eq '101TESTCANCELLEDPRODUCT' and $batch(Edition Number) eq '{cancellationEdition}' and (($batch(Update Number) eq '{cancellationUpdate}' ))))";
+            Assert.That(capturedQuery, Is.Not.Null);
+            Assert.That(capturedQuery, Is.EqualTo(expectedQuery));
+        }
+
+        [Test]
+        public async Task WhenProductEditionHasNoCancellation_ThenMainEditionAndUpdatesAreUsedInQuery()
+        {
+            string? capturedQuery = null;
+            var batchResponse = new BatchSearchResponse { Entries = [] };
+            A.CallTo(() => _fileShareReadOnlyClientFake.SearchAsync(A<string>._, A<int?>._, A<int?>._, A<string>._))
+                .Invokes((string query, int? pageSize, int? start, string correlationId) =>
+                {
+                    capturedQuery = query;
+                })
+                .Returns(Result.Success(batchResponse));
+
+            _executionContext.Subject.Build.ProductEditions =
+            [
+                new ProductEdition
+                {
+                    ProductName = ProductName.From("101TestProduct"),
+                    EditionNumber = EditionNumber.From(3),
+                    UpdateNumbers = [UpdateNumber.From(2), UpdateNumber.From(4)]
+                }
+            ];
+
+            await _productSearchNode.ExecuteAsync(_executionContext);
+
+            var expectedQuery = "BusinessUnit eq 'ADDS-S100' and $batch(Product Type) eq 'S-100' and (($batch(Product Name) eq '101TESTPRODUCT' and $batch(Edition Number) eq '3' and (($batch(Update Number) eq '2'  or $batch(Update Number) eq '4' ))))";
+            Assert.That(capturedQuery, Is.Not.Null);
+            Assert.That(capturedQuery, Is.EqualTo(expectedQuery));
+        }
+
         [OneTimeTearDown]
         public void OneTimeTearDown()
         {
