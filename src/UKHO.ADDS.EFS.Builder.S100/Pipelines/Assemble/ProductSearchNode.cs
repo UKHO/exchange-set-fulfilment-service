@@ -52,6 +52,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
 
                 var batchList = new List<BatchDetails>();
                 var groupedProducts = new List<BatchProductDetail>();
+
                 foreach (var group in products.GroupBy(p => p.ProductName))
                 {
                     var productName = group.Key;
@@ -62,7 +63,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                         .Select(p => (int?)p.Cancellation.UpdateNumber)
                         .ToList();
 
-                    // Remove cancellation updates from current edition
                     var filteredUpdateNumbers = updateNumbers.Except(cancellationUpdates).ToList();
                     if (filteredUpdateNumbers.Any())
                     {
@@ -74,7 +74,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                         });
                     }
 
-                    // Add BatchProductDetail for each cancellation update
                     foreach (var cancelUpdate in cancellationUpdates)
                     {
                         groupedProducts.Add(new BatchProductDetail
@@ -85,7 +84,6 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                         });
                     }
                 }
-
 
                 var productGroupCount = (int)Math.Ceiling((double)products.Count() / MaxSearchOperations);
                 var productsList = SplitList(groupedProducts, productGroupCount);
