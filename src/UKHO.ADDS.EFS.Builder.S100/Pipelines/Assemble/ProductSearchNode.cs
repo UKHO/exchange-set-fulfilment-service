@@ -5,6 +5,7 @@ using UKHO.ADDS.Clients.FileShareService.ReadOnly.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Models;
 using UKHO.ADDS.EFS.Domain.Exceptions;
+using UKHO.ADDS.EFS.Domain.Products;
 using UKHO.ADDS.EFS.Infrastructure.Retries;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
@@ -50,31 +51,41 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                 }
 
                 var batchList = new List<BatchDetails>();
-                var groupedProducts = products
-                    .GroupBy(p => p.ProductName)
-                    .Select(g =>
+                var groupedProducts = new List<BatchProductDetail>();
+                foreach (var group in products.GroupBy(p => p.ProductName))
+                {
+                    var productName = group.Key;
+                    var editionNumber = group.First().EditionNumber;
+                    var updateNumbers = group.SelectMany(p => p.UpdateNumbers.Select(x => (int?)x)).ToList();
+                    var cancellationUpdates = group
+                        .Where(p => p.Cancellation != null)
+                        .Select(p => (int?)p.Cancellation.UpdateNumber)
+                        .ToList();
+
+                    // Remove cancellation updates from current edition
+                    var filteredUpdateNumbers = updateNumbers.Except(cancellationUpdates).ToList();
+                    if (filteredUpdateNumbers.Any())
                     {
-                        var cancellationProduct = g.FirstOrDefault(p => p.Cancellation != null);
-                        if (cancellationProduct != null)
+                        groupedProducts.Add(new BatchProductDetail
                         {
-                            return new BatchProductDetail
-                            {
-                                ProductName = g.Key,
-                                EditionNumber = cancellationProduct.Cancellation.EditionNumber,
-                                UpdateNumbers = [(int?)cancellationProduct.Cancellation.UpdateNumber]
-                            };
-                        }
-                        else
+                            ProductName = productName,
+                            EditionNumber = editionNumber,
+                            UpdateNumbers = filteredUpdateNumbers
+                        });
+                    }
+
+                    // Add BatchProductDetail for each cancellation update
+                    foreach (var cancelUpdate in cancellationUpdates)
+                    {
+                        groupedProducts.Add(new BatchProductDetail
                         {
-                            return new BatchProductDetail
-                            {
-                                ProductName = g.Key,
-                                EditionNumber = g.First().EditionNumber,
-                                UpdateNumbers = g.SelectMany(p => p.UpdateNumbers.Select(x => (int?)x)).ToList()
-                            };
-                        }
-                    })
-                    .ToList();
+                            ProductName = productName,
+                            EditionNumber = (EditionNumber)0,
+                            UpdateNumbers = [cancelUpdate]
+                        });
+                    }
+                }
+
 
                 var productGroupCount = (int)Math.Ceiling((double)products.Count() / MaxSearchOperations);
                 var productsList = SplitList(groupedProducts, productGroupCount);
