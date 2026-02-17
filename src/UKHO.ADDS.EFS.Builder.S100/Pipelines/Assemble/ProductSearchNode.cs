@@ -63,6 +63,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                         .Select(p => (int?)p.Cancellation.UpdateNumber)
                         .ToList();
 
+                    var cancellationEdition = group
+                      .Where(p => p.Cancellation != null)
+                      .Select(p => (int)p.Cancellation.EditionNumber)
+                      .FirstOrDefault();
+
                     var filteredUpdateNumbers = updateNumbers.Except(cancellationUpdates).ToList();
                     if (filteredUpdateNumbers.Any())
                     {
@@ -79,7 +84,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                         groupedProducts.Add(new BatchProductDetail
                         {
                             ProductName = productName,
-                            EditionNumber = (EditionNumber)0,
+                            EditionNumber = (EditionNumber)cancellationEdition,
                             UpdateNumbers = [cancelUpdate]
                         });
                     }
