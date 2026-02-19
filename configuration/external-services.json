@@ -114,5 +114,47 @@
             ],
             "clientId": "0d7c4791-bf03-4f26-9c60-9a6c20de725b"
         }
+    },
+    "prp": {
+        "FileShare": {
+            "endpoints": [
+                {
+                    "url": "https://filespreprod.admiralty.co.uk",
+                    "tag": ""
+                }
+            ],
+            "clientId": "e56acda0-eb47-4a6a-a2a1-238665425082"
+        },
+        "SalesCatalogue": {
+            "endpoints": [
+                {
+                    "url": "https://salescataloguepreprod.ukho.gov.uk",
+                    "tag": ""
+                }
+            ],
+            "clientId": "93dd0f6a-078a-4efe-a587-08a55c5d2c74"
+        }
+    },    
+    "live": {
+        "FileShare": {
+            "endpoints": [
+                {
+                    "url": "https://files.admiralty.co.uk",
+                    "tag": ""
+                }
+            ],
+            "clientId": "30cc156d-765f-43ea-8c84-a97d5b8ce852"
+        },
+        "SalesCatalogue": {
+            "endpoints": [
+                {
+                    "url": "https://salescataloguelive.ukho.gov.uk",
+                    "tag": ""
+                }
+            ],
+            "clientId": "e3e56fdf-8c88-4b01-af64-23cba2286f11"
+        }
     }
+
+
 }

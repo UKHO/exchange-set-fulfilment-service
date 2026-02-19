@@ -304,5 +304,121 @@
             },
             "MaximumProductAge": "28.00:00:00"
         }
+    },
+    "prp": {
+        "orchestrator": {
+            "BusinessUnit": "ADDS-S100",
+            "Logging": {
+                "LogLevel": {
+                    "Default": "Information",
+                    "Microsoft.AspNetCore": "Warning",
+                    "Aspire.Hosting.Dcp": "Warning"
+                }
+            },
+            "AllowedHosts": "*",
+            "CloudEventNotification": {
+                "Source": "https://exchangeset.prp.admiralty.co.uk/s100Data"
+            },
+            "Deduplication": {
+                "Enabled": false, // Enable deduplication of requests
+                "Expiry": "23:00:00" // The timeframe for deduplication from first generation to expiry
+            },
+            "Errors": {
+                "FileNameTemplate": "error.txt",
+                "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]",
+                "ExchangeSetSizeExceededMessage": "The Exchange Set requested is large and will not be created, please use a standard Exchange Set provided by the UKHO."
+            },
+            "Response": {
+                "BatchExpiresIn": "7.00:00:00", // TimeSpan representing when the Batch expires
+                "MaxExchangeSetSizeInMB": 300 // Maximum total file size in MB for an exchange set
+            },
+            "Builders": {
+                "LogReplayLevel": "Information", // Log level for replaying builder logs
+                "S100": {
+                    "IICWorkspaceKey": "D89D11D265B19CA5C2BE97A7FCB1EF21", // Temporary - to be removed
+                    "ExchangeSetNameTemplate": "V01X01.zip",
+                    "Responses": {
+                        "BatchSize": 1,
+                        "PollingIntervalSeconds": 1
+                    }
+                },
+                "S63": {
+                    "ExchangeSetNameTemplate": "V01X01_S63_[jobid].zip", // Template for naming an exchange set: options are "jobid", "date"
+                    "Responses": {
+                        "BatchSize": 1,
+                        "PollingIntervalSeconds": 1
+                    }
+                },
+                "S57": {
+                    "ExchangeSetNameTemplate": "V01X01_S57_[jobid].zip", // Template for naming an exchange set: options are "jobid", "date"
+                    "Responses": {
+                        "BatchSize": 1,
+                        "PollingIntervalSeconds": 1
+                    }
+                }
+            },
+            "SchedulerJob": {
+                "ExchangeSetGenerationSchedule": "0 0 0 * * ?" //Quartz Cron expression for scheduling ExchangeSet generation
+            },
+            "MaximumProductAge": "28.00:00:00"
+        }
+    },
+    "live": {
+        "orchestrator": {
+            "BusinessUnit": "ADDS-S100",
+            "Logging": {
+                "LogLevel": {
+                    "Default": "Information",
+                    "Microsoft.AspNetCore": "Warning",
+                    "Aspire.Hosting.Dcp": "Warning"
+                }
+            },
+            "AllowedHosts": "*",
+            "CloudEventNotification": {
+                "Source": "https://exchangeset.admiralty.co.uk/s100Data"
+            },
+            "Deduplication": {
+                "Enabled": false, // Enable deduplication of requests
+                "Expiry": "23:00:00" // The timeframe for deduplication from first generation to expiry
+            },
+            "Errors": {
+                "FileNameTemplate": "error.txt",
+                "Message": "There has been a problem in creating your exchange set, so we are unable to fulfill your request at this time. Please contact UKHO Customer Services quoting correlation ID [jobid]",
+                "ExchangeSetSizeExceededMessage": "The Exchange Set requested is large and will not be created, please use a standard Exchange Set provided by the UKHO."
+            },
+            "Response": {
+                "BatchExpiresIn": "7.00:00:00", // TimeSpan representing when the Batch expires
+                "MaxExchangeSetSizeInMB": 300 // Maximum total file size in MB for an exchange set
+            },
+            "Builders": {
+                "LogReplayLevel": "Information", // Log level for replaying builder logs
+                "S100": {
+                    "IICWorkspaceKey": "D89D11D265B19CA5C2BE97A7FCB1EF21", // Temporary - to be removed
+                    "ExchangeSetNameTemplate": "V01X01.zip",
+                    "Responses": {
+                        "BatchSize": 1,
+                        "PollingIntervalSeconds": 1
+                    }
+                },
+                "S63": {
+                    "ExchangeSetNameTemplate": "V01X01_S63_[jobid].zip", // Template for naming an exchange set: options are "jobid", "date"
+                    "Responses": {
+                        "BatchSize": 1,
+                        "PollingIntervalSeconds": 1
+                    }
+                },
+                "S57": {
+                    "ExchangeSetNameTemplate": "V01X01_S57_[jobid].zip", // Template for naming an exchange set: options are "jobid", "date"
+                    "Responses": {
+                        "BatchSize": 1,
+                        "PollingIntervalSeconds": 1
+                    }
+                }
+            },
+            "SchedulerJob": {
+                "ExchangeSetGenerationSchedule": "0 0 0 * * ?" //Quartz Cron expression for scheduling ExchangeSet generation
+            },
+            "MaximumProductAge": "28.00:00:00"
+        }
     }
 }

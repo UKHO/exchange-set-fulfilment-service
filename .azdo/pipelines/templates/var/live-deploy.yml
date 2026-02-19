@@ -1,0 +1,8 @@
+variables:
+- group: EFS-Live-Variables
+- group: ESS-Deployment-Variables-Live
+- template: resource-values.yml
+- name: AzureSubscription
+  value: Exchange-Set-Service-Live-A-008-02
+- name: ApimAzureSubscription
+  value: UKHO-APIM-SOLAS-Live
