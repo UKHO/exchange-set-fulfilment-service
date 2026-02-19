@@ -27,6 +27,11 @@ param efsApplicationInsightsPartialName string
 param efsAppConfigurationPartialName string
 
 @minLength(1)
+@maxLength(24)
+@description('The name of the app config key vault resource.')
+param efsAppConfigKeyVaultName string
+
+@minLength(1)
 @description('The partial name (from the start) of the event hub namespace resource.')
 param efsEventHubsNamespacePartialName string
 
@@ -106,6 +111,16 @@ module efs_appconfig 'efs-appconfig/efs-appconfig.module.bicep' = {
     location: location
     principalId: efs_service_identity.outputs.principalId
     efsAppConfigurationPartialName: efsAppConfigurationPartialName
+  }
+}
+
+module efs_appconfig_kv 'efs-appconfig-kv/efs-appconfig-kv.module.bicep' = {
+  name: 'efs-appconfig-kv'
+  scope: rg
+  params: {
+    location: location
+    principalId: efs_service_identity.outputs.principalId
+    efsAppConfigKeyVaultName: efsAppConfigKeyVaultName
   }
 }
 
