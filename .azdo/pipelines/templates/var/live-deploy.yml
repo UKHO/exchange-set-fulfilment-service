@@ -5,4 +5,4 @@ variables:
 - name: AzureSubscription
   value: Exchange-Set-Service-Live-A-008-02
 - name: ApimAzureSubscription
-  value: UKHO-APIM-SOLAS-NonLive
+  value: UKHO-APIM-SOLAS-Live
