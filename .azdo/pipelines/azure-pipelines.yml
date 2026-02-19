@@ -220,7 +220,7 @@ stages:
   - stage: prpDeploy
     dependsOn:
     - iatDeploy
-    displayName: Pre-Pod Deploy
+    displayName: Pre-Prod Deploy
     condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')))
     jobs:
     - template: templates/continuous-deployment.yml
