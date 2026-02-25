@@ -189,6 +189,7 @@ output EFS_SERVICE_IDENTITY_NAME string = efs_service_identity.outputs.name
 output EFS_LAW_NAME string = efs_law.outputs.name
 output EFS_APP_INSIGHTS_NAME string = efs_app_insights.outputs.name
 output EFS_APPCONFIG_NAME string = efs_appconfig.outputs.name
+output EFS_APPCONFIG_KV_URI string = efs_appconfig_kv.outputs.vaultUri
 output EFS_EVENTS_NAMESPACE_NAME string = efs_events_namespace.outputs.name
 output EFS_CAE_NAME string = efs_cae.outputs.name
 output EFS_CAE_DEFAULT_DOMAIN string = efs_cae.outputs.defaultDomain

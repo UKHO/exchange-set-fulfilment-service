@@ -24,4 +24,16 @@ resource efs_dev_appconfig_kv 'Microsoft.KeyVault/vaults@2025-05-01' = {
   }
 }
 
+var roleDefinitionId_KeyVaultSecretsUser = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6')
+
+resource roleAssignment_KeyVaultSecretsUser 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(efs_dev_appconfig_kv.id, principalId, roleDefinitionId_KeyVaultSecretsUser)
+  properties: {
+    roleDefinitionId: roleDefinitionId_KeyVaultSecretsUser
+    principalId: principalId
+    principalType: 'ServicePrincipal'
+  }
+  scope: efs_dev_appconfig_kv
+}
+
 output vaultUri string = efs_dev_appconfig_kv.properties.vaultUri
