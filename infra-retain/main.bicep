@@ -22,9 +22,10 @@ param efsLogAnalyticsWorkspacePartialName string
 @description('The partial name (from the start) of the application insights resource.')
 param efsApplicationInsightsPartialName string
 
-@minLength(1)
-@description('The partial name (from the start) of the app configuration resource.')
-param efsAppConfigurationPartialName string
+@minLength(5)
+@maxLength(50)
+@description('The name of the app configuration resource.')
+param efsAppConfigurationName string
 
 @minLength(1)
 @maxLength(24)
@@ -110,13 +111,13 @@ module efs_appconfig 'efs-appconfig/efs-appconfig.module.bicep' = {
   params: {
     location: location
     principalId: efs_service_identity.outputs.principalId
-    efsAppConfigurationPartialName: efsAppConfigurationPartialName
+    efsAppConfigurationName: efsAppConfigurationName
   }
 }
 
 module efs_appconfig_kv 'efs-appconfig-kv/efs-appconfig-kv.module.bicep' = {
   name: 'efs-appconfig-kv'
-  scope: rg
+  scope: app_rg
   params: {
     location: location
     principalId: efs_service_identity.outputs.principalId

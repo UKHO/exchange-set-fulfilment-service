@@ -17,8 +17,8 @@ variables:
   value: efs_app_insights
 - name: EFS_EVENT_HUBS_NAMESPACE_PARTIAL_NAME
   value: efs-events-namespace
-- name: EFS_APP_CONFIGURATION_PARTIAL_NAME
-  value: efsappconfig
+- name: EFS_APP_CONFIGURATION_NAME
+  value: efs-$(AZURE_ENV_NAME)-appconfig
 - name: EFS_APP_CONFIGURATION_KV_NAME
   value: efs-$(AZURE_ENV_NAME)-appconfig-kv
 - name: EFS_STORAGE_ACCOUNT_PARTIAL_NAME
