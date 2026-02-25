@@ -12,7 +12,5 @@ param efsContainerRegistryPartialName = readEnvironmentVariable('EFS_CONTAINER_R
 param efsContainerAppsEnvironmentPartialName = readEnvironmentVariable('EFS_CONTAINER_APPS_ENVIRONMENT_PARTIAL_NAME')
 param efsStorageAccountPartialName = readEnvironmentVariable('EFS_STORAGE_ACCOUNT_PARTIAL_NAME')
 param location = readEnvironmentVariable('AZURE_LOCATION')
-param pipelineDeploymentName = readEnvironmentVariable('PIPELINE_DEPLOYMENT_NAME')
-param pipelineClientObjectId = readEnvironmentVariable('PIPELINE-CLIENT-OBJECT-ID')
 param subnetResourceId = readEnvironmentVariable('AZURE_SUBNET_RESOURCE_ID')
 param zoneRedundant = bool(readEnvironmentVariable('AZURE_ZONE_REDUNDANT'))

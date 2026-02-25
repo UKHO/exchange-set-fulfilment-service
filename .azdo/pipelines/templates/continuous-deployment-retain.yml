@@ -40,7 +40,6 @@ jobs:
               echo "Deploying resources..."
               DEPLOY_SECONDS=$EPOCHSECONDS
               DEPLOYMENT_NAME=$AZURE_ENV_NAME-retain-$DEPLOY_SECONDS
-              export PIPELINE_DEPLOYMENT_NAME=$AZURE_ENV_NAME-pipeline-roles-$DEPLOY_SECONDS
               cd "$(Build.SourcesDirectory)/infra-retain"
 
               if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
@@ -52,8 +51,6 @@ jobs:
               else
                 az deployment sub create --name $DEPLOYMENT_NAME --location $AZURE_LOCATION --no-prompt --parameters main.bicepparam
               fi
-          env:
-            PIPELINE-CLIENT-OBJECT-ID: $(PIPELINE-CLIENT-OBJECT-ID)
 
         - template: get-infrastructure-details.yml
           parameters:
