@@ -193,6 +193,7 @@ jobs:
                 echo "--------------------------------------------------------------------------------"
               fi
 
+              sed -i "s/{{app_config_kv_uri}}/${AZURE_EFS_APP_CONFIGURATION_KV_URI}/g" "$(Build.SourcesDirectory)/efs/configuration/configuration.json"
               sed -i "s/{{cae_domain}}/${AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN}/g" "$(Build.SourcesDirectory)/efs/configuration/external-services.json"
 
               if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then

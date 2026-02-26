@@ -53,6 +53,14 @@ param efsStorageAccountPartialName string
 param location string
 
 @minLength(1)
+@description('The name of the deployment for pipeline roles')
+param pipelineDeploymentName string
+
+@minLength(1)
+@description('The id of the pipeline service principal')
+param pipelineClientObjectId string
+
+@minLength(1)
 @description('Id of the container app subnet')
 param subnetResourceId string
 
@@ -156,6 +164,13 @@ module efs_storage 'efs-storage/efs-storage.module.bicep' = {
     location: location
     principalId: efs_service_identity.outputs.principalId
     efsStorageAccountPartialName: efsStorageAccountPartialName
+  }
+}
+
+module pipeline_roles 'pipeline-roles/pipeline-roles.module.bicep' = {
+  name: pipelineDeploymentName
+  params: {
+    principalId: pipelineClientObjectId
   }
 }
 
