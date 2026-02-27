@@ -170,7 +170,7 @@ jobs:
             AZURE_EFS_STORAGE_ACCOUNT_NAME: $(AZURE_EFS_STORAGE_ACCOUNT_NAME)
 
         - task: AzureCLI@2
-          displayName: Run configuration seeder
+          displayName: Load configuration
           inputs:
             azureSubscription: ${{ variables.AzureSubscription }}
             workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
@@ -178,6 +178,9 @@ jobs:
             scriptLocation: inlineScript
             inlineScript: |
               set -e
+              echo "Updating key vault..."
+              az keyvault secret set --name IICWorkspaceKey --vault-name ${AZURE_EFS_APP_CONFIGURATION_KV_NAME} --value $(IICWorkspaceKey)
+
               echo "Reading azd variables..."
               while IFS='=' read -r key value; do
                   value=$(echo "$value" | sed 's/^"//' | sed 's/"$//')
@@ -209,6 +212,7 @@ jobs:
             AZURE_ENV_NAME: $(AZURE_ENV_NAME)
             AZURE_LOCATION: $(AZURE_LOCATION)
             AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
+            IICWorkspaceKey: $(IICWorkspaceKey)
 
         - template: container-app-deploy.yml
           parameters:
