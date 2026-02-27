@@ -178,9 +178,6 @@ jobs:
             scriptLocation: inlineScript
             inlineScript: |
               set -e
-              echo "Updating key vault..."
-              az keyvault secret set --name IICWorkspaceKey --vault-name ${AZURE_EFS_APP_CONFIGURATION_KV_NAME} --value $(IICWorkspaceKey)
-
               echo "Reading azd variables..."
               while IFS='=' read -r key value; do
                   value=$(echo "$value" | sed 's/^"//' | sed 's/"$//')
@@ -196,16 +193,24 @@ jobs:
                 echo "--------------------------------------------------------------------------------"
               fi
 
+              echo "Updating key vault..."
+              az keyvault secret set --name IICWorkspaceKey --vault-name ${AZURE_EFS_APP_CONFIGURATION_KV_NAME} --value $(IICWorkspaceKey)
+
+              echo "Updating configuration files..."
               sed -i "s/{{app_config_kv_uri}}/${AZURE_EFS_APP_CONFIGURATION_KV_URI}/g" "$(Build.SourcesDirectory)/efs/configuration/configuration.json"
               sed -i "s/{{cae_domain}}/${AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN}/g" "$(Build.SourcesDirectory)/efs/configuration/external-services.json"
 
               if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
                 echo "external-services.json:"
                 echo "--------------------------------------------------------------------------------"
+                cat "$(Build.SourcesDirectory)/efs/configuration/configuration.json"
+                echo "--------------------------------------------------------------------------------"
+                echo "--------------------------------------------------------------------------------"
                 cat "$(Build.SourcesDirectory)/efs/configuration/external-services.json"
                 echo "--------------------------------------------------------------------------------"
               fi
 
+              echo "Seeding configuration..."
               dotnet run --project $(Build.SourcesDirectory)/efs/configuration/UKHO.ADDS.Aspire.Configuration.Seeder/UKHO.ADDS.Aspire.Configuration.Seeder.csproj --configuration Release --no-restore -- "efs" "$(AZURE_ENV_NAME)" "$(Build.SourcesDirectory)/efs/configuration/configuration.json" "$(Build.SourcesDirectory)/efs/configuration/external-services.json" "$EFS_APPCONFIG_APPCONFIGENDPOINT"
           env:
             AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
