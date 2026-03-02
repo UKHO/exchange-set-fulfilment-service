@@ -22,9 +22,15 @@ param efsLogAnalyticsWorkspacePartialName string
 @description('The partial name (from the start) of the application insights resource.')
 param efsApplicationInsightsPartialName string
 
+@minLength(5)
+@maxLength(50)
+@description('The name of the app configuration resource.')
+param efsAppConfigurationName string
+
 @minLength(1)
-@description('The partial name (from the start) of the app configuration resource.')
-param efsAppConfigurationPartialName string
+@maxLength(24)
+@description('The name of the app config key vault resource.')
+param efsAppConfigKeyVaultName string
 
 @minLength(1)
 @description('The partial name (from the start) of the event hub namespace resource.')
@@ -105,7 +111,17 @@ module efs_appconfig 'efs-appconfig/efs-appconfig.module.bicep' = {
   params: {
     location: location
     principalId: efs_service_identity.outputs.principalId
-    efsAppConfigurationPartialName: efsAppConfigurationPartialName
+    efsAppConfigurationName: efsAppConfigurationName
+  }
+}
+
+module efs_appconfig_kv 'efs-appconfig-kv/efs-appconfig-kv.module.bicep' = {
+  name: 'efs-appconfig-kv'
+  scope: app_rg
+  params: {
+    location: location
+    principalId: efs_service_identity.outputs.principalId
+    efsAppConfigKeyVaultName: efsAppConfigKeyVaultName
   }
 }
 
@@ -174,6 +190,7 @@ output EFS_SERVICE_IDENTITY_NAME string = efs_service_identity.outputs.name
 output EFS_LAW_NAME string = efs_law.outputs.name
 output EFS_APP_INSIGHTS_NAME string = efs_app_insights.outputs.name
 output EFS_APPCONFIG_NAME string = efs_appconfig.outputs.name
+output EFS_APPCONFIG_KV_URI string = efs_appconfig_kv.outputs.vaultUri
 output EFS_EVENTS_NAMESPACE_NAME string = efs_events_namespace.outputs.name
 output EFS_CAE_NAME string = efs_cae.outputs.name
 output EFS_CAE_DEFAULT_DOMAIN string = efs_cae.outputs.defaultDomain

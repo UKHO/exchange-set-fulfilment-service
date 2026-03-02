@@ -12,3 +12,14 @@ resource roleAssignment_AppConfigurationDataOwner 'Microsoft.Authorization/roleA
     principalType: 'ServicePrincipal'
   }
 }
+
+var roleDefinitionId_KeyVaultSecretsOfficer = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b86a8fe4-44ce-4948-aee5-eccb2c155cd7')
+
+resource roleAssignment_KeyVaultSecretsOfficer 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(subscription().id, principalId, roleDefinitionId_KeyVaultSecretsOfficer)
+  properties: {
+    roleDefinitionId: roleDefinitionId_KeyVaultSecretsOfficer
+    principalId: principalId
+    principalType: 'ServicePrincipal'
+  }
+}

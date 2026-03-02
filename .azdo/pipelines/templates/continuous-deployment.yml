@@ -170,7 +170,7 @@ jobs:
             AZURE_EFS_STORAGE_ACCOUNT_NAME: $(AZURE_EFS_STORAGE_ACCOUNT_NAME)
 
         - task: AzureCLI@2
-          displayName: Run configuration seeder
+          displayName: Load configuration
           inputs:
             azureSubscription: ${{ variables.AzureSubscription }}
             workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
@@ -193,21 +193,41 @@ jobs:
                 echo "--------------------------------------------------------------------------------"
               fi
 
-              sed -i "s/{{cae_domain}}/${AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN}/g" "$(Build.SourcesDirectory)/efs/configuration/external-services.json"
+              echo "Updating key vault..."
+              az keyvault secret set --name IICWorkspaceKey --vault-name ${AZURE_EFS_APP_CONFIGURATION_KV_NAME} --value $(IICWorkspaceKey)
+
+              echo "Updating configuration files..."
+              appConfigKvUriEscaped=$(printf '%s' "$AZURE_EFS_APP_CONFIGURATION_KV_URI" | sed 's/[\\&|]/\\&/g')
+              caeDomainEscaped=$(printf '%s' "$AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN" | sed 's/[\\&|]/\\&/g')
 
               if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
+                echo "Escaped values for sed:"
+                echo "appConfigKvUriEscaped $appConfigKvUriEscaped"
+                echo "caeDomainEscaped $caeDomainEscaped"
+              fi
+
+              sed -i "s|{{app_config_kv_uri}}|$appConfigKvUriEscaped|g" "$(Build.SourcesDirectory)/efs/configuration/configuration.json"
+              sed -i "s|{{cae_domain}}|$caeDomainEscaped|g" "$(Build.SourcesDirectory)/efs/configuration/external-services.json"
+
+              if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
+                echo "configuration.json:"
+                echo "--------------------------------------------------------------------------------"
+                cat "$(Build.SourcesDirectory)/efs/configuration/configuration.json"
+                echo "--------------------------------------------------------------------------------"
                 echo "external-services.json:"
                 echo "--------------------------------------------------------------------------------"
                 cat "$(Build.SourcesDirectory)/efs/configuration/external-services.json"
                 echo "--------------------------------------------------------------------------------"
               fi
 
+              echo "Seeding configuration..."
               dotnet run --project $(Build.SourcesDirectory)/efs/configuration/UKHO.ADDS.Aspire.Configuration.Seeder/UKHO.ADDS.Aspire.Configuration.Seeder.csproj --configuration Release --no-restore -- "efs" "$(AZURE_ENV_NAME)" "$(Build.SourcesDirectory)/efs/configuration/configuration.json" "$(Build.SourcesDirectory)/efs/configuration/external-services.json" "$EFS_APPCONFIG_APPCONFIGENDPOINT"
           env:
             AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
             AZURE_ENV_NAME: $(AZURE_ENV_NAME)
             AZURE_LOCATION: $(AZURE_LOCATION)
             AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
+            IICWorkspaceKey: $(IICWorkspaceKey)
 
         - template: container-app-deploy.yml
           parameters:
