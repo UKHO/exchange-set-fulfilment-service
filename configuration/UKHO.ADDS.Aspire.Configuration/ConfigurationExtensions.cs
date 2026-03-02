@@ -1,16 +1,14 @@
-﻿using Azure.Data.AppConfiguration;
-using Azure.Identity;
+﻿using Azure.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Serilog;
 using UKHO.ADDS.Aspire.Configuration.Remote;
 
 namespace UKHO.ADDS.Aspire.Configuration
 {
     public static class ConfigurationExtensions
     {
-        public static TBuilder AddConfiguration<TBuilder>(this TBuilder builder, string serviceName, string componentName, int refreshIntervalSeconds = 30) where TBuilder : IHostApplicationBuilder
+        public static TBuilder AddConfiguration<TBuilder>(this TBuilder builder, string serviceName, string componentName, string? serviceIdentityId = null, int refreshIntervalSeconds = 30) where TBuilder : IHostApplicationBuilder
         {
             var environment = AddsEnvironment.GetEnvironment();
 
@@ -29,19 +27,24 @@ namespace UKHO.ADDS.Aspire.Configuration
                         .ConfigureRefresh(refresh =>
                         {
                             refresh.Register(WellKnownConfigurationName.ReloadSentinelKey, refreshAll: true, label: serviceName.ToLowerInvariant())
-                                .SetRefreshInterval(TimeSpan.FromSeconds(refreshIntervalSeconds)); 
+                                .SetRefreshInterval(TimeSpan.FromSeconds(refreshIntervalSeconds));
                         });
                 });
             }
             else
             {
-                builder.AddAzureAppConfiguration(componentName.ToLowerInvariant(),null, o =>
+                builder.AddAzureAppConfiguration(componentName.ToLowerInvariant(), null, o =>
                 {
                     o.Select("*", serviceName.ToLowerInvariant())
                      .ConfigureRefresh(refresh =>
                     {
                         refresh.Register(WellKnownConfigurationName.ReloadSentinelKey, refreshAll: true, label: serviceName.ToLowerInvariant())
                             .SetRefreshInterval(TimeSpan.FromSeconds(refreshIntervalSeconds));
+                    });
+
+                    o.ConfigureKeyVault(keyVaultOptions =>
+                    {
+                        keyVaultOptions.SetCredential(new ManagedIdentityCredential(serviceIdentityId));
                     });
                 });
             }

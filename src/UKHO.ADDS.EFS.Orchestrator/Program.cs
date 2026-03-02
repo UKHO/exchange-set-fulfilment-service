@@ -67,7 +67,8 @@ namespace UKHO.ADDS.EFS.Orchestrator
                     builder.Services.AddAllElasticApm();
                 }
 
-                builder.AddConfiguration(ServiceConfiguration.ServiceName, ProcessNames.ConfigurationService);
+                var efsClientId = Environment.GetEnvironmentVariable(GlobalEnvironmentVariables.EfsClientId);
+                builder.AddConfiguration(ServiceConfiguration.ServiceName, ProcessNames.ConfigurationService, efsClientId);
 
                 builder.AddServiceDefaults().AddOrchestratorServices();
 
