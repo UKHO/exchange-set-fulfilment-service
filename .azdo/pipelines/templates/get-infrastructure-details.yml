@@ -51,7 +51,7 @@ steps:
       echo $EFS_EVENT_HUBS_NAMESPACE_NAME
       echo $EFS_APP_CONFIGURATION_NAME
       echo $EFS_APP_CONFIGURATION_KV_NAME
-      echo EFS_APP_CONFIGURATION_KV_URI
+      echo $EFS_APP_CONFIGURATION_KV_URI
       echo $EFS_STORAGE_ACCOUNT_NAME
       echo "--------------------------------------------------------------------------------"
 
