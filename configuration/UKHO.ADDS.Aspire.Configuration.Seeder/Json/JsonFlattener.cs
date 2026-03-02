@@ -4,7 +4,7 @@ namespace UKHO.ADDS.Aspire.Configuration.Seeder.Json
 {
     internal class JsonFlattener
     {
-        public static IDictionary<string, string> Flatten(AddsEnvironment environment, string json)
+        public static IDictionary<string, ConfigurationEntry> Flatten(AddsEnvironment environment, string json)
         {
             using var document = JsonDocument.Parse(json);
 
@@ -13,12 +13,12 @@ namespace UKHO.ADDS.Aspire.Configuration.Seeder.Json
                 throw new ArgumentException($"Environment '{environment}' not found in the JSON.");
             }
 
-            var result = new Dictionary<string, string>();
+            var result = new Dictionary<string, ConfigurationEntry>();
             FlattenElement(envElement, string.Empty, result);
             return result;
         }
 
-        private static void FlattenElement(JsonElement element, string prefix, IDictionary<string, string> result)
+        private static void FlattenElement(JsonElement element, string prefix, IDictionary<string, ConfigurationEntry> result)
         {
             switch (element.ValueKind)
             {
@@ -34,31 +34,41 @@ namespace UKHO.ADDS.Aspire.Configuration.Seeder.Json
                     break;
 
                 case JsonValueKind.Array:
-                    var index = 0;
-                    foreach (var item in element.EnumerateArray())
+                    var items = element.EnumerateArray().ToList();
+
+                    if (items.Count == 2 && items[0].ValueKind == JsonValueKind.String && items[1].ValueKind == JsonValueKind.String)
                     {
-                        var newPrefix = $"{prefix}:{index}";
-                        FlattenElement(item, newPrefix, result);
-                        index++;
+                        // First element is the value, second element is the content type
+                        result[prefix] = new ConfigurationEntry(items[0].ToString(), items[1].ToString());
+                    }
+                    else
+                    {
+                        var index = 0;
+                        foreach (var item in items)
+                        {
+                            var newPrefix = $"{prefix}:{index}";
+                            FlattenElement(item, newPrefix, result);
+                            index++;
+                        }
                     }
 
                     break;
 
                 case JsonValueKind.String:
-                    result[prefix] = element.GetString()!;
+                    result[prefix] = new ConfigurationEntry(element.GetString()!);
                     break;
 
                 case JsonValueKind.Number:
-                    result[prefix] = element.ToString();
+                    result[prefix] = new ConfigurationEntry(element.ToString());
                     break;
 
                 case JsonValueKind.True:
                 case JsonValueKind.False:
-                    result[prefix] = element.GetBoolean().ToString();
+                    result[prefix] = new ConfigurationEntry(element.GetBoolean().ToString());
                     break;
 
                 case JsonValueKind.Null:
-                    result[prefix] = "null";
+                    result[prefix] = new ConfigurationEntry("null");
                     break;
 
                 default:

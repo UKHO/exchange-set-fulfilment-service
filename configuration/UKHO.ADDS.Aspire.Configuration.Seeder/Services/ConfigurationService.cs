@@ -1,4 +1,5 @@
-﻿using Azure.Data.AppConfiguration;
+﻿using System.Net.Mime;
+using Azure.Data.AppConfiguration;
 using UKHO.ADDS.Aspire.Configuration.Seeder.Json;
 using UKHO.ADDS.Infrastructure.Serialization.Json;
 
@@ -10,6 +11,9 @@ namespace UKHO.ADDS.Aspire.Configuration.Seeder.Services
         {
             var label = serviceName.ToLowerInvariant();
 
+            var configurationSetting = new ConfigurationSetting(WellKnownConfigurationName.ReloadSentinelKey, "change this value to reload all", label) { ContentType = MediaTypeNames.Text.Plain };
+            await configurationClient.SetConfigurationSettingAsync(configurationSetting, false, cancellationToken);
+
             var configJson = await File.ReadAllTextAsync(configFilePath, cancellationToken);
             var configJsonCleaned = JsonStripper.StripJsonComments(configJson);
 
@@ -17,10 +21,9 @@ namespace UKHO.ADDS.Aspire.Configuration.Seeder.Services
 
             foreach (var value in flattenedConfig)
             {
-                await configurationClient.SetConfigurationSettingAsync(value.Key, value.Value, label, cancellationToken);
+                configurationSetting = new ConfigurationSetting(value.Key, value.Value.ConfigValue, label) { ContentType = value.Value.ContentType ?? MediaTypeNames.Text.Plain };
+                await configurationClient.SetConfigurationSettingAsync(configurationSetting, false, cancellationToken);
             }
-
-            await configurationClient.SetConfigurationSettingAsync(WellKnownConfigurationName.ReloadSentinelKey, "change this value to reload all", label, cancellationToken);
 
             var externalServiceJson = await File.ReadAllTextAsync(servicesFilePath, cancellationToken);
             var externalServiceJsonCleaned = JsonStripper.StripJsonComments(externalServiceJson);
@@ -32,7 +35,8 @@ namespace UKHO.ADDS.Aspire.Configuration.Seeder.Services
                 var json = JsonCodec.Encode(externalService);
                 var key = $"{WellKnownConfigurationName.ExternalServiceKeyPrefix}:{externalService.Service}";
 
-                await configurationClient.SetConfigurationSettingAsync(key, json, label, cancellationToken);
+                configurationSetting = new ConfigurationSetting(key, json, label) { ContentType = MediaTypeNames.Application.Json };
+                await configurationClient.SetConfigurationSettingAsync(configurationSetting, false, cancellationToken);
             }
         }
     }
