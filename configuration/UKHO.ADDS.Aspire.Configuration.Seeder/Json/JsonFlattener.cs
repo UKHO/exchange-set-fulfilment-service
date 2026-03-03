@@ -1,10 +1,11 @@
 ﻿using System.Text.Json;
+using Azure.Data.AppConfiguration;
 
 namespace UKHO.ADDS.Aspire.Configuration.Seeder.Json
 {
     internal class JsonFlattener
     {
-        public static IDictionary<string, ConfigurationEntry> Flatten(AddsEnvironment environment, string json)
+        public static IDictionary<string, ConfigurationSetting> Flatten(AddsEnvironment environment, string json, string label)
         {
             using var document = JsonDocument.Parse(json);
 
@@ -13,12 +14,12 @@ namespace UKHO.ADDS.Aspire.Configuration.Seeder.Json
                 throw new ArgumentException($"Environment '{environment}' not found in the JSON.");
             }
 
-            var result = new Dictionary<string, ConfigurationEntry>();
-            FlattenElement(envElement, string.Empty, result);
+            var result = new Dictionary<string, ConfigurationSetting>();
+            FlattenElement(envElement, string.Empty, result, label);
             return result;
         }
 
-        private static void FlattenElement(JsonElement element, string prefix, IDictionary<string, ConfigurationEntry> result)
+        private static void FlattenElement(JsonElement element, string prefix, IDictionary<string, ConfigurationSetting> result, string label)
         {
             switch (element.ValueKind)
             {
@@ -28,7 +29,7 @@ namespace UKHO.ADDS.Aspire.Configuration.Seeder.Json
                         var newPrefix = string.IsNullOrEmpty(prefix)
                             ? property.Name
                             : $"{prefix}:{property.Name}";
-                        FlattenElement(property.Value, newPrefix, result);
+                        FlattenElement(property.Value, newPrefix, result, label);
                     }
 
                     break;
@@ -39,7 +40,7 @@ namespace UKHO.ADDS.Aspire.Configuration.Seeder.Json
                     if (items.Count == 2 && items[0].ValueKind == JsonValueKind.String && items[1].ValueKind == JsonValueKind.String)
                     {
                         // First element is the value, second element is the content type
-                        result[prefix] = new ConfigurationEntry(items[0].ToString(), items[1].ToString());
+                        result[prefix] = new ConfigurationSetting(prefix, items[0].ToString(), label) { ContentType = items[1].ToString() };
                     }
                     else
                     {
@@ -47,7 +48,7 @@ namespace UKHO.ADDS.Aspire.Configuration.Seeder.Json
                         foreach (var item in items)
                         {
                             var newPrefix = $"{prefix}:{index}";
-                            FlattenElement(item, newPrefix, result);
+                            FlattenElement(item, newPrefix, result, label);
                             index++;
                         }
                     }
@@ -55,20 +56,20 @@ namespace UKHO.ADDS.Aspire.Configuration.Seeder.Json
                     break;
 
                 case JsonValueKind.String:
-                    result[prefix] = new ConfigurationEntry(element.GetString()!);
+                    result[prefix] = new ConfigurationSetting(prefix, element.GetString()!, label);
                     break;
 
                 case JsonValueKind.Number:
-                    result[prefix] = new ConfigurationEntry(element.ToString());
+                    result[prefix] = new ConfigurationSetting(prefix, element.ToString(), label);
                     break;
 
                 case JsonValueKind.True:
                 case JsonValueKind.False:
-                    result[prefix] = new ConfigurationEntry(element.GetBoolean().ToString());
+                    result[prefix] = new ConfigurationSetting(prefix, element.GetBoolean().ToString(), label);
                     break;
 
                 case JsonValueKind.Null:
-                    result[prefix] = new ConfigurationEntry("null");
+                    result[prefix] = new ConfigurationSetting(prefix, "null", label);
                     break;
 
                 default:
