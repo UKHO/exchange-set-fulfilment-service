@@ -43,6 +43,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
                     BatchId = context.Subject.BatchId,
                     FileShareEndpoint = fileShareEndpoint,
                     FileShareHealthEndpoint = fileShareHealthEndpoint,
+                    WorkspaceName = context.Subject.WorkspaceName,
                     WorkspaceAuthenticationKey = context.Subject.WorkspaceAuthenticationKey,
                     ExchangeSetNameTemplate = context.Subject.ExchangeSetNameTemplate,
                 };
