@@ -233,6 +233,7 @@ stages:
         DeployAddsMock: ${{ parameters.DeployAddsMock }}
         IncludeAddsMock: false
         DeployRedis: ${{ parameters.DeployRedis }}
+        IICWorkspace: live
 
   - stage: Live
     dependsOn:
@@ -250,3 +251,4 @@ stages:
         DeployAddsMock: ${{ parameters.DeployAddsMock }}
         IncludeAddsMock: false
         DeployRedis: ${{ parameters.DeployRedis }}
+        IICWorkspace: live

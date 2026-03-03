@@ -29,6 +29,7 @@ parameters:
 - name: AdditionalDebugging
   type: boolean
   default: false
+# Run the ADDS Tests pipeline after deployment, with the specified environment (vNextIAT or IAT). Set to 'skip' to not run the tests.
 - name: RunAddsTests
   type: string
   default: 'skip'
@@ -36,6 +37,13 @@ parameters:
   - 'skip'
   - 'vNextIAT'
   - 'IAT'
+# Select whether to use the live or dev IIC workspace.
+- name: IICWorkspace
+  type: string
+  default: 'dev'
+  values:
+  - 'live'
+  - 'dev'
 
 jobs:
 - deployment: ${{ parameters.ShortName }}DeployApp
@@ -61,7 +69,14 @@ jobs:
           path: s/pvtefs
 
         - script: |
-            cp "$(Build.SourcesDirectory)/pvtefs/root3.tar.gz" "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Builder.S100/root3.tar.gz"
+            if [ "${{ parameters.IICWorkspace }}" == "dev" ]; then
+              echo "Using dev IIC workspace"
+              cp "$(Build.SourcesDirectory)/pvtefs/efs-nonlive-root.tar.gz" "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Builder.S100/root3.tar.gz"
+            else
+              echo "Using live IIC workspace"
+              cp "$(Build.SourcesDirectory)/pvtefs/efs-live-root.tar.gz" "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Builder.S100/root3.tar.gz"
+            fi
+
             cp "$(Build.SourcesDirectory)/pvtefs/xchg-7.6.war" "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Builder.S100/xchg-7.6.war"
           condition: eq('${{ parameters.DeployBuilderS100 }}', true)
           displayName: Copy S100 builder files
