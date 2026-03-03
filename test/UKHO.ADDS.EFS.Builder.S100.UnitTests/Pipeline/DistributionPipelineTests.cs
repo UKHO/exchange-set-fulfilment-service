@@ -84,7 +84,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
             var fakeError = A.Fake<IError>();
 
             A.CallTo(() => fakeResult.IsFailure(out fakeError!, out outStream!)).Returns(false);
-            A.CallTo(() => _executionContext.Subject.ToolClient.ExtractExchangeSetAsync(A<JobId>._, A<string>._, A<string>._))
+            A.CallTo(() => _executionContext.Subject.ToolClient.ExtractExchangeSetAsync(A<JobId>._, A<string>._, A<string>._, A<string>._))
                 .Returns(Task.FromResult(fakeResult));
 
             var result = await _distributionPipeline.ExecutePipeline(_pipelineContext);
@@ -100,6 +100,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
                 .MustHaveHappenedOnceExactly();
             A.CallTo(() => _executionContext.Subject.ToolClient.ExtractExchangeSetAsync(
                     A<JobId>._,
+                    A<string>._,
                     A<string>._,
                     A<string>._))
                 .MustHaveHappenedOnceExactly();
@@ -137,7 +138,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
             var fakeError = A.Fake<IError>();
 
             A.CallTo(() => fakeResult.IsFailure(out fakeError!, out outStream!)).Returns(true);
-            A.CallTo(() => _executionContext.Subject.ToolClient.ExtractExchangeSetAsync(A<JobId>._, A<string>._, A<string>._))
+            A.CallTo(() => _executionContext.Subject.ToolClient.ExtractExchangeSetAsync(A<JobId>._, A<string>._, A<string>._, A<string>._))
                 .Returns(Task.FromResult(fakeResult));
 
             var result = await _distributionPipeline.ExecutePipeline(_pipelineContext);

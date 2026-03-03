@@ -20,6 +20,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Distribute
             {
                 var result = await context.Subject.ToolClient.ExtractExchangeSetAsync(
                     context.Subject.Build.JobId,
+                    context.Subject.WorkspaceName,
                     context.Subject.WorkspaceAuthenticationKey,
                     context.Subject.ExchangeSetArchiveFolderName);
 

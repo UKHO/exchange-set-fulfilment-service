@@ -3,6 +3,11 @@
     public class S100BuildRequest : BuildRequest
     {
         /// <summary>
+        /// The IIC workspace name
+        /// </summary>
+        public required string WorkspaceName { get; init; }
+
+        /// <summary>
         /// The IIC workspace key
         /// </summary>
         public required string WorkspaceKey { get; init; }

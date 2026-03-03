@@ -25,6 +25,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
 
         private const string JobId = "TestJobId";
         private const string BatchId = "a-valid-batch-id";
+        private const string WorkspaceName = "TestWorkspace";
         private const string WorkspaceAuthKey = "Test123";
         private const string SpoolFolder = "spool";
         private const string DataSetFilesFolder = "dataSet_files";
@@ -56,6 +57,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
                     DataStandard = DataStandard.S100,
                 },
                 JobId = Domain.Jobs.JobId.From(JobId),
+                WorkspaceName = WorkspaceName,
                 WorkspaceAuthenticationKey = WorkspaceAuthKey,
                 WorkSpaceRootPath = _testDirectory,
                 BatchFileNameDetails = _defaultBatchFileNameDetails
@@ -90,13 +92,13 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
             var opResponse = new OperationResponse { Code = 0, Type = "Success", Message = "OK" };
             IError? error = null;
             A.CallTo(() => fakeResult.IsSuccess(out opResponse, out error)).Returns(true);
-            A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<JobId>._, A<string>._))
+            A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<JobId>._, A<string>._, A<string>._))
                 .Returns(Task.FromResult(fakeResult));
             var result = await _addContentExchangeSetNode.ExecuteAsync(_executionContext);
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-            A.CallTo(() => _toolClient.AddContentAsync($"{_defaultBatchFileNameDetails[0]}/S100_ROOT/CATALOG.XML", Domain.Jobs.JobId.From(JobId), WorkspaceAuthKey))
+            A.CallTo(() => _toolClient.AddContentAsync($"{_defaultBatchFileNameDetails[0]}/S100_ROOT/CATALOG.XML", Domain.Jobs.JobId.From(JobId), WorkspaceName, WorkspaceAuthKey))
                 .MustHaveHappenedOnceExactly();
-            A.CallTo(() => _toolClient.AddContentAsync($"{_defaultBatchFileNameDetails[1]}/S100_ROOT/CATALOG.XML", Domain.Jobs.JobId.From(JobId), WorkspaceAuthKey))
+            A.CallTo(() => _toolClient.AddContentAsync($"{_defaultBatchFileNameDetails[1]}/S100_ROOT/CATALOG.XML", Domain.Jobs.JobId.From(JobId), WorkspaceName, WorkspaceAuthKey))
                 .MustHaveHappenedOnceExactly();
         }
 
@@ -108,7 +110,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
             var fakeError = A.Fake<IError>();
             OperationResponse? opResponse = null;
             A.CallTo(() => fakeResult.IsSuccess(out opResponse, out fakeError)).Returns(false);
-            A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<JobId>._, A<string>._))
+            A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<JobId>._, A<string>._, A<string>._))
                 .Returns(Task.FromResult(fakeResult));
             var result = await _addContentExchangeSetNode.ExecuteAsync(_executionContext);
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
@@ -133,15 +135,15 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
             var fakeError = A.Fake<IError>();
             OperationResponse? failureOpResponse = null;
             A.CallTo(() => failureResult.IsSuccess(out failureOpResponse, out fakeError)).Returns(false);
-            A.CallTo(() => _toolClient.AddContentAsync($"{_defaultBatchFileNameDetails[0]}/S100_ROOT/CATALOG.XML", A<JobId>._, A<string>._))
+            A.CallTo(() => _toolClient.AddContentAsync($"{_defaultBatchFileNameDetails[0]}/S100_ROOT/CATALOG.XML", A<JobId>._, A<string>._, A<string>._))
                 .Returns(Task.FromResult(successResult));
-            A.CallTo(() => _toolClient.AddContentAsync($"{_defaultBatchFileNameDetails[1]}/S100_ROOT/CATALOG.XML", A<JobId>._, A<string>._))
+            A.CallTo(() => _toolClient.AddContentAsync($"{_defaultBatchFileNameDetails[1]}/S100_ROOT/CATALOG.XML", A<JobId>._, A<string>._, A<string>._))
                 .Returns(Task.FromResult(failureResult));
             var result = await _addContentExchangeSetNode.ExecuteAsync(_executionContext);
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
-            A.CallTo(() => _toolClient.AddContentAsync($"{_defaultBatchFileNameDetails[0]}/S100_ROOT/CATALOG.XML", Domain.Jobs.JobId.From(JobId), WorkspaceAuthKey))
+            A.CallTo(() => _toolClient.AddContentAsync($"{_defaultBatchFileNameDetails[0]}/S100_ROOT/CATALOG.XML", Domain.Jobs.JobId.From(JobId), WorkspaceName, WorkspaceAuthKey))
                 .MustHaveHappenedOnceExactly();
-            A.CallTo(() => _toolClient.AddContentAsync($"{_defaultBatchFileNameDetails[1]}/S100_ROOT/CATALOG.XML", Domain.Jobs.JobId.From(JobId), WorkspaceAuthKey))
+            A.CallTo(() => _toolClient.AddContentAsync($"{_defaultBatchFileNameDetails[1]}/S100_ROOT/CATALOG.XML", Domain.Jobs.JobId.From(JobId), WorkspaceName, WorkspaceAuthKey))
                 .MustHaveHappenedOnceExactly();
             A.CallTo(() => _logger.Log<LoggerMessageState>(
                     LogLevel.Error,
@@ -157,7 +159,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         {
             var result = await _addContentExchangeSetNode.ExecuteAsync(_executionContext);
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-            A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<JobId>._, A<string>._))
+            A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<JobId>._, A<string>._, A<string>._))
                 .MustNotHaveHappened();
         }
 
@@ -169,7 +171,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
             Directory.CreateDirectory(firstBatchPath);
             var result = await _addContentExchangeSetNode.ExecuteAsync(_executionContext);
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-            A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<JobId>._, A<string>._))
+            A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<JobId>._, A<string>._, A<string>._))
                 .MustNotHaveHappened();
         }
 
@@ -192,11 +194,11 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
             var opResponse = new OperationResponse { Code = 0, Type = "Success", Message = "OK" };
             IError? error = null;
             A.CallTo(() => fakeResult.IsSuccess(out opResponse, out error)).Returns(true);
-            A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<JobId>._, A<string>._))
+            A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<JobId>._, A<string>._, A<string>._))
                 .Returns(Task.FromResult(fakeResult));
             var result = await _addContentExchangeSetNode.ExecuteAsync(_executionContext);
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
-            A.CallTo(() => _toolClient.AddContentAsync("SingleBatch_1_0/S100_ROOT/CATALOG.XML", Domain.Jobs.JobId.From(JobId), WorkspaceAuthKey))
+            A.CallTo(() => _toolClient.AddContentAsync("SingleBatch_1_0/S100_ROOT/CATALOG.XML", Domain.Jobs.JobId.From(JobId), WorkspaceName, WorkspaceAuthKey))
                 .MustHaveHappenedOnceExactly();
         }
 
@@ -208,7 +210,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
             var fakeError = A.Fake<IError>();
             OperationResponse? opResponse = null;
             A.CallTo(() => fakeResult.IsSuccess(out opResponse, out fakeError)).Returns(false);
-            A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<JobId>._, A<string>._))
+            A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<JobId>._, A<string>._, A<string>._))
                 .Returns(Task.FromResult(fakeResult));
             var result = await _addContentExchangeSetNode.ExecuteAsync(_executionContext);
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));

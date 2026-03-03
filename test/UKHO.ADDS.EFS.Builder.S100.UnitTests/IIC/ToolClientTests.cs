@@ -19,6 +19,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
         private readonly JobId _exchangeSetId = JobId.From("Test ExchangeSet Id");
 
         private const string ResourceLocation = "Test Resource Location";
+        private const string WorkspaceName = "Test Workspace";
         private const string AuthKey = "Test Auth Key";
         private const string ExceptionMessage = "Test ExceptionMessage";
         private const string DestinationPath = "xchg";
@@ -65,17 +66,17 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
         {
             var response = new OperationResponse { Code = 200, Type = "Success", Message = "ok" };
             SetupHttpResponse(HttpStatusCode.OK, JsonCodec.Encode(response));
-            var result = await _toolClient.AddExchangeSetAsync(_exchangeSetId, AuthKey);
+            var result = await _toolClient.AddExchangeSetAsync(_exchangeSetId, WorkspaceName, AuthKey);
             Assert.That(result.IsSuccess(out var value, out var error), Is.EqualTo(true));
             Assert.That(value?.Code, Is.EqualTo(200));
-            Assert.That(_handler.LastRequestUri!.ToString(), Is.EqualTo($"{IICBaseUrl}addExchangeSet/working9/{_exchangeSetId}?authkey={AuthKey}"));
+            Assert.That(_handler.LastRequestUri!.ToString(), Is.EqualTo($"{IICBaseUrl}addExchangeSet/{WorkspaceName}/{_exchangeSetId}?authkey={AuthKey}"));
         }
 
         [Test]
         public async Task WhenAddExchangeSetAsyncIsCalledAndFailure_ThenReturnsFailureResult()
         {
             SetupHttpResponse(HttpStatusCode.BadRequest, "{}");
-            var result = await _toolClient.AddExchangeSetAsync(_exchangeSetId, AuthKey);
+            var result = await _toolClient.AddExchangeSetAsync(_exchangeSetId, WorkspaceName, AuthKey);
             Assert.That(result.IsFailure(out var value, out var error), Is.EqualTo(true));
             Assert.That(value?.Message, Is.EqualTo("Bad request"));
         }
@@ -87,7 +88,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
                 .Where(call => call.Method.Name == "SendAsync")
                 .WithReturnType<Task<HttpResponseMessage>>()
                 .Throws(new Exception(ExceptionMessage));
-            var result = await _toolClient.AddExchangeSetAsync(_exchangeSetId, AuthKey);
+            var result = await _toolClient.AddExchangeSetAsync(_exchangeSetId, WorkspaceName, AuthKey);
             Assert.That(result.IsFailure(out var value, out var error), Is.EqualTo(true));
             Assert.That(value?.Message, Is.EqualTo(ExceptionMessage));
         }
@@ -97,17 +98,17 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
         {
             var response = new OperationResponse { Code = 200, Type = "Success", Message = "ok" };
             SetupHttpResponse(HttpStatusCode.OK, JsonCodec.Encode(response));
-            var result = await _toolClient.AddContentAsync(ResourceLocation, _exchangeSetId, AuthKey);
+            var result = await _toolClient.AddContentAsync(ResourceLocation, _exchangeSetId, WorkspaceName, AuthKey);
             Assert.That(result.IsSuccess(out var value, out var error), Is.EqualTo(true));
             Assert.That(value?.Code, Is.EqualTo(200));
-            Assert.That(_handler.LastRequestUri!.ToString(), Is.EqualTo($"{IICBaseUrl}addContent/working9/{_exchangeSetId}?authkey={AuthKey}&resourceLocation={ResourceLocation}"));
+            Assert.That(_handler.LastRequestUri!.ToString(), Is.EqualTo($"{IICBaseUrl}addContent/{WorkspaceName}/{_exchangeSetId}?authkey={AuthKey}&resourceLocation={ResourceLocation}"));
         }
 
         [Test]
         public async Task WhenAddContentAsyncIsCalledWithResourceLocationAndFailure_ThenReturnsFailureResult()
         {
             SetupHttpResponse(HttpStatusCode.BadRequest, "{}");
-            var result = await _toolClient.AddContentAsync(ResourceLocation, _exchangeSetId, AuthKey);
+            var result = await _toolClient.AddContentAsync(ResourceLocation, _exchangeSetId, WorkspaceName, AuthKey);
             Assert.That(result.IsFailure(out var value, out var error));
             Assert.That(value?.Message, Is.EqualTo("Bad request"));
         }
@@ -119,7 +120,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
                 .Where(call => call.Method.Name == "SendAsync")
                 .WithReturnType<Task<HttpResponseMessage>>()
                 .Throws(new Exception(ExceptionMessage));
-            var result = await _toolClient.AddContentAsync(ResourceLocation, _exchangeSetId, AuthKey);
+            var result = await _toolClient.AddContentAsync(ResourceLocation, _exchangeSetId, WorkspaceName, AuthKey);
             Assert.That(result.IsFailure(out var value, out var error));
             Assert.That(value?.Message, Is.EqualTo(ExceptionMessage));
         }
@@ -132,7 +133,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
             foreach (var d in Directory.GetDirectories(dirPath))
                 Directory.Delete(d, true);
 
-            var result = await _toolClient.AddContentAsync(ResourceLocation, _exchangeSetId, AuthKey);
+            var result = await _toolClient.AddContentAsync(ResourceLocation, _exchangeSetId, WorkspaceName, AuthKey);
             Assert.That(result.IsFailure(out var value, out var error), Is.EqualTo(true));
         }
 
@@ -146,10 +147,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
 
             var response = new OperationResponse { Code = 200, Type = "Success", Message = "ok" };
             SetupHttpResponse(HttpStatusCode.OK, JsonCodec.Encode(response));
-            var result = await _toolClient.AddContentAsync(ResourceLocation, _exchangeSetId, AuthKey);
+            var result = await _toolClient.AddContentAsync(ResourceLocation, _exchangeSetId, WorkspaceName, AuthKey);
             Assert.That(result.IsSuccess(out var value, out var error), Is.EqualTo(true));
             Assert.That(value?.Code, Is.EqualTo(200));
-            Assert.That(_handler.LastRequestUri!.ToString(), Is.EqualTo($"{IICBaseUrl}addContent/working9/{_exchangeSetId}?authkey={AuthKey}&resourceLocation={ResourceLocation}"));
+            Assert.That(_handler.LastRequestUri!.ToString(), Is.EqualTo($"{IICBaseUrl}addContent/{WorkspaceName}/{_exchangeSetId}?authkey={AuthKey}&resourceLocation={ResourceLocation}"));
             Directory.Delete(subDir, true);
         }
 
@@ -162,7 +163,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
             Directory.CreateDirectory(subDir);
 
             SetupHttpResponse(HttpStatusCode.BadRequest, "{}");
-            var result = await _toolClient.AddContentAsync(ResourceLocation, _exchangeSetId, AuthKey);
+            var result = await _toolClient.AddContentAsync(ResourceLocation, _exchangeSetId, WorkspaceName, AuthKey);
             Assert.That(result.IsFailure(out var value, out var error), Is.EqualTo(true));
             Assert.That(value?.Message, Is.EqualTo("Bad request"));
             Directory.Delete(subDir, true);
@@ -180,7 +181,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
                 .Where(call => call.Method.Name == "SendAsync")
                 .WithReturnType<Task<HttpResponseMessage>>()
                 .Throws(new Exception(ExceptionMessage));
-            var result = await _toolClient.AddContentAsync(ResourceLocation, _exchangeSetId, AuthKey);
+            var result = await _toolClient.AddContentAsync(ResourceLocation, _exchangeSetId, WorkspaceName, AuthKey);
             Assert.That(result.IsFailure(out var value, out var error), Is.EqualTo(true));
             Directory.Delete(subDir, true);
         }
@@ -191,20 +192,20 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
             var response = new SigningResponse { Certificate = "cert", SigningKey = "key", Status = "ok" };
             SetupHttpResponse(HttpStatusCode.OK, JsonCodec.Encode(response));
 
-            var result = await _toolClient.SignExchangeSetAsync(_exchangeSetId, AuthKey);
+            var result = await _toolClient.SignExchangeSetAsync(_exchangeSetId, WorkspaceName, AuthKey);
 
             Assert.That(result.IsSuccess(out var value, out var error));
             Assert.That(value?.Certificate, Is.EqualTo("cert"));
             Assert.That(value?.SigningKey, Is.EqualTo("key"));
             Assert.That(value?.Status, Is.EqualTo("ok"));
-            Assert.That(_handler.LastRequestUri!.ToString(), Is.EqualTo($"{IICBaseUrl}signExchangeSet/working9/{_exchangeSetId}?authkey={AuthKey}"));
+            Assert.That(_handler.LastRequestUri!.ToString(), Is.EqualTo($"{IICBaseUrl}signExchangeSet/{WorkspaceName}/{_exchangeSetId}?authkey={AuthKey}"));
         }
 
         [Test]
         public async Task WhenSignExchangeSetAsyncIsCalledWithFailure_ThenReturnsFailure()
         {
             SetupHttpResponse(HttpStatusCode.BadRequest, "{}");
-            var result = await _toolClient.SignExchangeSetAsync(_exchangeSetId, AuthKey);
+            var result = await _toolClient.SignExchangeSetAsync(_exchangeSetId, WorkspaceName, AuthKey);
             Assert.That(result.IsFailure(out var value, out var error));
             Assert.That(value?.Message, Is.EqualTo("Bad request"));
         }
@@ -217,7 +218,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
                 .WithReturnType<Task<HttpResponseMessage>>()
                 .Throws(new Exception(ExceptionMessage));
 
-            var result = await _toolClient.SignExchangeSetAsync(_exchangeSetId, AuthKey);
+            var result = await _toolClient.SignExchangeSetAsync(_exchangeSetId, WorkspaceName, AuthKey);
             Assert.That(result.IsFailure(out var value, out var error), Is.EqualTo(true));
             Assert.That(value?.Message, Is.EqualTo(ExceptionMessage));
         }
@@ -227,17 +228,17 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
         {
             var stream = new MemoryStream(Encoding.UTF8.GetBytes("data"));
             SetupHttpResponse(HttpStatusCode.OK, stream: stream);
-            var result = await _toolClient.ExtractExchangeSetAsync(_exchangeSetId, AuthKey, DestinationPath);
+            var result = await _toolClient.ExtractExchangeSetAsync(_exchangeSetId, WorkspaceName, AuthKey, DestinationPath);
             Assert.That(result.IsSuccess(out var value, out var error), Is.EqualTo(true));
             Assert.That(value, Is.Not.Null);
-            Assert.That(_handler.LastRequestUri!.ToString(), Is.EqualTo($"{IICBaseUrl}extractExchangeSet/working9/{_exchangeSetId}?authkey={AuthKey}&destination={DestinationPath}"));
+            Assert.That(_handler.LastRequestUri!.ToString(), Is.EqualTo($"{IICBaseUrl}extractExchangeSet/{WorkspaceName}/{_exchangeSetId}?authkey={AuthKey}&destination={DestinationPath}"));
         }
 
         [Test]
         public async Task WhenExtractExchangeSetAsyncIsCalledWithFailure_ThenReturnsFailure()
         {
             SetupHttpResponse(HttpStatusCode.BadRequest, "{}");
-            var result = await _toolClient.ExtractExchangeSetAsync(_exchangeSetId, AuthKey, DestinationPath);
+            var result = await _toolClient.ExtractExchangeSetAsync(_exchangeSetId, WorkspaceName, AuthKey, DestinationPath);
             Assert.That(result.IsFailure(out var value, out var error), Is.EqualTo(true));
             Assert.That(value?.Message, Is.EqualTo("Bad request"));
         }
@@ -249,7 +250,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.IIC
                 .Where(call => call.Method.Name == "SendAsync")
                 .WithReturnType<Task<HttpResponseMessage>>()
                 .Throws(new Exception(ExceptionMessage));
-            var result = await _toolClient.ExtractExchangeSetAsync(_exchangeSetId, AuthKey, DestinationPath);
+            var result = await _toolClient.ExtractExchangeSetAsync(_exchangeSetId, WorkspaceName, AuthKey, DestinationPath);
             Assert.That(result.IsFailure(out var value, out var error), Is.EqualTo(true));
             Assert.That(value?.Message, Is.EqualTo(ExceptionMessage));
         }

@@ -63,7 +63,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
             A.CallTo(() => fakeResult.IsSuccess(out opResponse, out error))
                 .Returns(true);
 
-            A.CallTo(() => _toolClient.AddExchangeSetAsync(A<JobId>._, A<string>._))
+            A.CallTo(() => _toolClient.AddExchangeSetAsync(A<JobId>._, A<string>._, A<string>._))
                 .Returns(Task.FromResult(fakeResult));
 
             var result = await _addExchangeSetNode.ExecuteAsync(_executionContext);
@@ -75,7 +75,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Create
         public async Task WhenPerformExecuteAsyncIsCalledAndAddExchangeSetFails_ThenReturnsFailed()
         {
             var fakeResult = A.Fake<IResult<OperationResponse>>();
-            A.CallTo(() => _toolClient.AddExchangeSetAsync(A<JobId>._, A<string>._))
+            A.CallTo(() => _toolClient.AddExchangeSetAsync(A<JobId>._, A<string>._, A<string>._))
                 .Returns(Task.FromResult(fakeResult));
 
             var result = await _addExchangeSetNode.ExecuteAsync(_executionContext);

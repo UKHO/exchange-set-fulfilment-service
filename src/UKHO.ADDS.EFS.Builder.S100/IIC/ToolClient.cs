@@ -13,11 +13,10 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
     public class ToolClient : IToolClient
     {
         private readonly HttpClient _httpClient;
-        private const string WorkSpaceId = "working9";
         private const string ApiVersion = "7.6";
         private const string ApplicationName = "IICToolAPI";
         private const string AddExchangeSet = "addExchangeSet";
-        private const string AddContent = "addContent";        
+        private const string AddContent = "addContent";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ToolClient"/> class.
@@ -54,44 +53,48 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
         /// Adds a new exchange set to the workspace.
         /// </summary>
         /// <param name="jobId">The ID of the exchange set.</param>
+        /// <param name="workspaceName">The workspace name.</param>
         /// <param name="authKey">The authentication key.</param>
         /// <returns>A result containing the operation response.</returns>
-        public Task<IResult<OperationResponse>> AddExchangeSetAsync(JobId jobId, string authKey) =>
-            SendApiRequestAsync<OperationResponse>("addExchangeSet", jobId, authKey);
+        public Task<IResult<OperationResponse>> AddExchangeSetAsync(JobId jobId, string workspaceName, string authKey) =>
+            SendApiRequestAsync<OperationResponse>("addExchangeSet", jobId, workspaceName, authKey);
 
         /// <summary>
         /// Adds content to an existing exchange set.
         /// </summary>
         /// <param name="resourceLocation">The location of the resource to add.</param>
         /// <param name="jobId">The ID of the exchange set.</param>
+        /// <param name="workspaceName">The workspace name.</param
         /// <param name="authKey">The authentication key.</param>
         /// <returns>A result containing the operation response.</returns>
-        public async Task<IResult<OperationResponse>> AddContentAsync(string resourceLocation, JobId jobId, string authKey)
+        public async Task<IResult<OperationResponse>> AddContentAsync(string resourceLocation, JobId jobId, string workspaceName, string authKey)
         {
-            return await SendApiRequestAsync<OperationResponse>("addContent", jobId, authKey, resourceLocation);
+            return await SendApiRequestAsync<OperationResponse>("addContent", jobId, workspaceName, authKey, resourceLocation);
         }
 
         /// <summary>
         /// Signs an exchange set.
         /// </summary>
         /// <param name="jobId">The ID of the exchange set.</param>
+        /// <param name="workspaceName">The workspace name.</param>
         /// <param name="authKey">The authentication key.</param>
         /// <returns>A result containing the signing response.</returns>
-        public Task<IResult<SigningResponse>> SignExchangeSetAsync(JobId jobId, string authKey) =>
-            SendApiRequestAsync<SigningResponse>("signExchangeSet", jobId, authKey);
+        public Task<IResult<SigningResponse>> SignExchangeSetAsync(JobId jobId, string workspaceName, string authKey) =>
+            SendApiRequestAsync<SigningResponse>("signExchangeSet", jobId, workspaceName, authKey);
 
         /// <summary>
         /// Extracts an exchange set as a stream.
         /// </summary>
         /// <param name="jobId">The ID of the exchange set.</param>
+        /// <param name="workspaceName">The workspace name.</param>
         /// <param name="authKey">The authentication key.</param>
         /// <param name="destination">The destination location.</param>
         /// <returns>A result containing the extracted stream.</returns>
-        public async Task<IResult<Stream>> ExtractExchangeSetAsync(JobId jobId, string authKey, string destination)
+        public async Task<IResult<Stream>> ExtractExchangeSetAsync(JobId jobId, string workspaceName, string authKey, string destination)
         {
             try
             {
-                var path = BuildApiPath("extractExchangeSet", jobId, authKey, null, destination);
+                var path = BuildApiPath("extractExchangeSet", jobId, workspaceName, authKey, null, destination);
                 var response = await _httpClient.GetAsync(path);
                 return await response.CreateResultAsync<Stream>(ApplicationName, (string)jobId);
             }
@@ -135,14 +138,15 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
         /// <typeparam name="T">The type of the expected response object.</typeparam>
         /// <param name="action">The API action to perform.</param>
         /// <param name="jobId">The ID of the exchange set.</param>
+        /// <param name="workspaceName">The workspace name.</param>
         /// <param name="authKey">The authentication key.</param>
         /// <param name="resourceLocation">Optional resource location parameter.</param>
         /// <returns>A result containing the deserialized response object.</returns>
-        private async Task<IResult<T>> SendApiRequestAsync<T>(string action, JobId jobId, string authKey, string? resourceLocation = null)
+        private async Task<IResult<T>> SendApiRequestAsync<T>(string action, JobId jobId, string workspaceName, string authKey, string? resourceLocation = null)
         {
             try
             {
-                var path = BuildApiPath(action, jobId, authKey, resourceLocation);
+                var path = BuildApiPath(action, jobId, workspaceName, authKey, resourceLocation);
                 using var response = await SendHttpRequestAsync(action, path);
                 var content = await response.Content.ReadAsStringAsync();
                 var resultObj = JsonCodec.Decode<T>(content);
@@ -171,7 +175,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
         {
             if (action == AddExchangeSet || action == AddContent)
             {
-                var emptyContent = new StringContent(string.Empty, System.Text.Encoding.UTF8,ApiHeaderKeys.ContentTypeJson );
+                var emptyContent = new StringContent(string.Empty, System.Text.Encoding.UTF8, ApiHeaderKeys.ContentTypeJson);
                 return await _httpClient.PutAsync(path, emptyContent);
             }
             return await _httpClient.GetAsync(path);
@@ -182,12 +186,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
         /// </summary>
         /// <param name="action">The API action.</param>
         /// <param name="jobId">The ID of the exchange set.</param>
+        /// <param name="workspaceName">The workspace name.</param>
         /// <param name="authKey">The authentication key.</param>
         /// <param name="resourceLocation">Optional resource location parameter.</param>
+        /// <param name="destination">The destination location.</param>
         /// <returns>The constructed API path.</returns>
-        private string BuildApiPath(string action, JobId jobId, string authKey, string? resourceLocation = null, string? destination = null)
+        private static string BuildApiPath(string action, JobId jobId, string workspaceName, string authKey, string? resourceLocation = null, string? destination = null)
         {
-            var basePath = $"/xchg-{ApiVersion}/v{ApiVersion}/{action}/{WorkSpaceId}/{jobId}";
+            var basePath = $"/xchg-{ApiVersion}/v{ApiVersion}/{action}/{workspaceName}/{jobId}";
             var query = $"?authkey={authKey}";
             if (!string.IsNullOrEmpty(resourceLocation))
             {
