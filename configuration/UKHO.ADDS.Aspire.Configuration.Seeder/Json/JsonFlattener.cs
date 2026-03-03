@@ -1,10 +1,15 @@
-﻿using System.Text.Json;
+﻿using System.Net.Mime;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using Azure.Data.AppConfiguration;
 
 namespace UKHO.ADDS.Aspire.Configuration.Seeder.Json
 {
-    internal class JsonFlattener
+    internal partial class JsonFlattener
     {
+        [GeneratedRegex(@"^{""uri"":""https:\/\/.+.vault.azure.net\/secrets\/.+""}$")]
+        private static partial Regex KeyVaultRegex();
+
         public static IDictionary<string, ConfigurationSetting> Flatten(AddsEnvironment environment, string json, string label)
         {
             using var document = JsonDocument.Parse(json);
@@ -16,6 +21,14 @@ namespace UKHO.ADDS.Aspire.Configuration.Seeder.Json
 
             var result = new Dictionary<string, ConfigurationSetting>();
             FlattenElement(envElement, string.Empty, result, label);
+
+            foreach (var item in result)
+            {
+                item.Value.ContentType = KeyVaultRegex().IsMatch(item.Value.Value)
+                    ? "application/vnd.microsoft.appconfig.keyvaultref+json;charset=utf-8"
+                    : MediaTypeNames.Text.Plain;
+            }
+
             return result;
         }
 
@@ -35,22 +48,12 @@ namespace UKHO.ADDS.Aspire.Configuration.Seeder.Json
                     break;
 
                 case JsonValueKind.Array:
-                    var items = element.EnumerateArray().ToList();
-
-                    if (items.Count == 2 && items[0].ValueKind == JsonValueKind.String && items[1].ValueKind == JsonValueKind.String)
+                    var index = 0;
+                    foreach (var item in element.EnumerateArray())
                     {
-                        // First element is the value, second element is the content type
-                        result[prefix] = new ConfigurationSetting(prefix, items[0].ToString(), label) { ContentType = items[1].ToString() };
-                    }
-                    else
-                    {
-                        var index = 0;
-                        foreach (var item in items)
-                        {
-                            var newPrefix = $"{prefix}:{index}";
-                            FlattenElement(item, newPrefix, result, label);
-                            index++;
-                        }
+                        var newPrefix = $"{prefix}:{index}";
+                        FlattenElement(item, newPrefix, result, label);
+                        index++;
                     }
 
                     break;
