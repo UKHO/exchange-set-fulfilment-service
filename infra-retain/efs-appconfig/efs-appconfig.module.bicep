@@ -3,12 +3,13 @@ param location string = resourceGroup().location
 
 param principalId string
 
-@minLength(1)
-@description('The partial name (from the start) of the app configuration resource.')
-param efsAppConfigurationPartialName string
+@minLength(5)
+@maxLength(50)
+@description('The name of the app configuration resource.')
+param efsAppConfigurationName string
 
 resource efs_appconfig 'Microsoft.AppConfiguration/configurationStores@2024-06-01' = {
-  name: take('${efsAppConfigurationPartialName}-${uniqueString(resourceGroup().id)}', 50)
+  name: efsAppConfigurationName
   location: location
   properties: {
     disableLocalAuth: true

@@ -26,16 +26,17 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
         {
             var logger = context.Subject.LoggerFactory.CreateLogger<AddContentExchangeSetNode>();
             var jobId = context.Subject.JobId;
+            var workspaceName = context.Subject.WorkspaceName;
             var authKey = context.Subject.WorkspaceAuthenticationKey;
             var toolClient = context.Subject.ToolClient;
             var downloadPath = Path.Combine(context.Subject.WorkSpaceRootPath, context.Subject.WorkSpaceSpoolPath);
-           
+
             var catalogPaths = GetCatalogPaths(context, downloadPath);
 
             // Process each catalog path
             foreach (var catalogPath in catalogPaths)
             {
-                if (!await AddContentForPathAsync(toolClient, catalogPath, jobId, authKey, logger))
+                if (!await AddContentForPathAsync(toolClient, catalogPath, jobId, workspaceName, authKey, logger))
                 {
                     return NodeResultStatus.Failed;
                 }
@@ -65,9 +66,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
             return catalogPaths;
         }
 
-        private async Task<bool> AddContentForPathAsync(IToolClient toolClient, string path, JobId jobId, string authKey, ILogger logger)
+        private static async Task<bool> AddContentForPathAsync(IToolClient toolClient, string path, JobId jobId, string workspaceName, string authKey, ILogger logger)
         {
-            var result = await toolClient.AddContentAsync(path, jobId, authKey);
+            var result = await toolClient.AddContentAsync(path, jobId, workspaceName, authKey);
 
             if (result.IsSuccess(out _, out var error))
             {

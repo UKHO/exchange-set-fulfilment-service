@@ -60,7 +60,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
             var queueMessage = QueuesModelFactory.QueueMessage(
                 messageId: "TestMessageId",
                 popReceipt: "TestPopReceipt",
-                messageText: messageText ?? "{\"Timestamp\":\"2025-12-24T14:02:02Z\",\"JobId\":\"TestJobId\",\"BatchId\":\"TestBatchId\",\"DataStandard\":0,\"ExchangeSetNameTemplate\":\"TestExchangeSetNameTemplate\",\"WorkspaceKey\":\"TestWorkspaceKey\"}",
+                messageText: messageText ?? "{\"Timestamp\":\"2025-12-24T14:02:02Z\",\"JobId\":\"TestJobId\",\"BatchId\":\"TestBatchId\",\"DataStandard\":0,\"ExchangeSetNameTemplate\":\"TestExchangeSetNameTemplate\",\"WorkspaceName\":\"TestWorkspaceName\",\"WorkspaceKey\":\"TestWorkspaceKey\"}",
                 insertedOn: DateTimeOffset.UtcNow,
                 expiresOn: DateTimeOffset.UtcNow.AddDays(7),
                 dequeueCount: 1);
@@ -83,6 +83,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
                 Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
                 Assert.That(_subject.JobId, Is.EqualTo("TestJobId"));
                 Assert.That(_subject.BatchId, Is.EqualTo("TestBatchId"));
+                Assert.That(_subject.WorkspaceName, Is.EqualTo("TestWorkspaceName"));
                 Assert.That(_subject.WorkspaceAuthenticationKey, Is.EqualTo("TestWorkspaceKey"));
                 Assert.That(_subject.ExchangeSetNameTemplate, Is.EqualTo("TestExchangeSetNameTemplate"));
                 Assert.That(_subject.FileShareEndpoint, Is.EqualTo("https://env-fileshare"));
@@ -104,6 +105,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Startup
                 Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
                 Assert.That(_subject.JobId, Is.EqualTo("TestJobId"));
                 Assert.That(_subject.BatchId, Is.EqualTo("TestBatchId"));
+                Assert.That(_subject.WorkspaceName, Is.EqualTo("TestWorkspaceName"));
                 Assert.That(_subject.WorkspaceAuthenticationKey, Is.EqualTo("TestWorkspaceKey"));
                 Assert.That(_subject.ExchangeSetNameTemplate, Is.EqualTo("TestExchangeSetNameTemplate"));
                 Assert.That(_subject.FileShareEndpoint, Is.EqualTo("https://debug-fileshare"));

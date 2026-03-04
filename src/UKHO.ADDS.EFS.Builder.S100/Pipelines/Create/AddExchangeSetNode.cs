@@ -20,6 +20,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
 
             var result = await context.Subject.ToolClient.AddExchangeSetAsync(
                 context.Subject.JobId,
+                context.Subject.WorkspaceName,
                 context.Subject.WorkspaceAuthenticationKey
             );
 

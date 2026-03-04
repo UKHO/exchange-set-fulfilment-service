@@ -27,6 +27,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
 
                 context.Subject.JobId = request.JobId;
                 context.Subject.BatchId = request.BatchId;
+                context.Subject.WorkspaceName = request.WorkspaceName;
                 context.Subject.WorkspaceAuthenticationKey = request.WorkspaceKey;
                 context.Subject.ExchangeSetNameTemplate = request.ExchangeSetNameTemplate;
 
@@ -42,6 +43,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Startup
                     BatchId = context.Subject.BatchId,
                     FileShareEndpoint = fileShareEndpoint,
                     FileShareHealthEndpoint = fileShareHealthEndpoint,
+                    WorkspaceName = context.Subject.WorkspaceName,
                     WorkspaceAuthenticationKey = context.Subject.WorkspaceAuthenticationKey,
                     ExchangeSetNameTemplate = context.Subject.ExchangeSetNameTemplate,
                 };

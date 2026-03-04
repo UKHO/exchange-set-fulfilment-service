@@ -29,6 +29,7 @@ parameters:
 - name: AdditionalDebugging
   type: boolean
   default: false
+# Run the ADDS Tests pipeline after deployment, with the specified environment (vNextIAT or IAT). Set to 'skip' to not run the tests.
 - name: RunAddsTests
   type: string
   default: 'skip'
@@ -36,6 +37,13 @@ parameters:
   - 'skip'
   - 'vNextIAT'
   - 'IAT'
+# Select whether to use the live or dev IIC workspace.
+- name: IICWorkspace
+  type: string
+  default: 'dev'
+  values:
+  - 'live'
+  - 'dev'
 
 jobs:
 - deployment: ${{ parameters.ShortName }}DeployApp
@@ -61,7 +69,14 @@ jobs:
           path: s/pvtefs
 
         - script: |
-            cp "$(Build.SourcesDirectory)/pvtefs/root3.tar.gz" "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Builder.S100/root3.tar.gz"
+            if [ "${{ parameters.IICWorkspace }}" == "dev" ]; then
+              echo "Using dev IIC workspace"
+              cp "$(Build.SourcesDirectory)/pvtefs/efs-nonlive-root.tar.gz" "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Builder.S100/root.tar.gz"
+            else
+              echo "Using live IIC workspace"
+              cp "$(Build.SourcesDirectory)/pvtefs/efs-live-root.tar.gz" "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Builder.S100/root.tar.gz"
+            fi
+
             cp "$(Build.SourcesDirectory)/pvtefs/xchg-7.6.war" "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Builder.S100/xchg-7.6.war"
           condition: eq('${{ parameters.DeployBuilderS100 }}', true)
           displayName: Copy S100 builder files
@@ -170,7 +185,7 @@ jobs:
             AZURE_EFS_STORAGE_ACCOUNT_NAME: $(AZURE_EFS_STORAGE_ACCOUNT_NAME)
 
         - task: AzureCLI@2
-          displayName: Run configuration seeder
+          displayName: Load configuration
           inputs:
             azureSubscription: ${{ variables.AzureSubscription }}
             workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
@@ -193,21 +208,32 @@ jobs:
                 echo "--------------------------------------------------------------------------------"
               fi
 
+              echo "Updating key vault..."
+              az keyvault secret set --name IICWorkspaceKey --vault-name ${AZURE_EFS_APP_CONFIGURATION_KV_NAME} --value $(IICWorkspaceKey)
+
+              echo "Updating configuration files..."
+              sed -i "s/{{app_config_kv_name}}/${AZURE_EFS_APP_CONFIGURATION_KV_NAME}/g" "$(Build.SourcesDirectory)/efs/configuration/configuration.json"
               sed -i "s/{{cae_domain}}/${AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN}/g" "$(Build.SourcesDirectory)/efs/configuration/external-services.json"
 
               if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
+                echo "configuration.json:"
+                echo "--------------------------------------------------------------------------------"
+                cat "$(Build.SourcesDirectory)/efs/configuration/configuration.json"
+                echo "--------------------------------------------------------------------------------"
                 echo "external-services.json:"
                 echo "--------------------------------------------------------------------------------"
                 cat "$(Build.SourcesDirectory)/efs/configuration/external-services.json"
                 echo "--------------------------------------------------------------------------------"
               fi
 
+              echo "Seeding configuration..."
               dotnet run --project $(Build.SourcesDirectory)/efs/configuration/UKHO.ADDS.Aspire.Configuration.Seeder/UKHO.ADDS.Aspire.Configuration.Seeder.csproj --configuration Release --no-restore -- "efs" "$(AZURE_ENV_NAME)" "$(Build.SourcesDirectory)/efs/configuration/configuration.json" "$(Build.SourcesDirectory)/efs/configuration/external-services.json" "$EFS_APPCONFIG_APPCONFIGENDPOINT"
           env:
             AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
             AZURE_ENV_NAME: $(AZURE_ENV_NAME)
             AZURE_LOCATION: $(AZURE_LOCATION)
             AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
+            IICWorkspaceKey: $(IICWorkspaceKey)
 
         - template: container-app-deploy.yml
           parameters:

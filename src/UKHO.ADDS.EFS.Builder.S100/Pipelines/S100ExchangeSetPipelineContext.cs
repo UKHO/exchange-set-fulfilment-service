@@ -28,6 +28,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines
 
         public IToolClient ToolClient => _toolClient;
 
+        public string WorkspaceName { get; set; }
         public string WorkspaceAuthenticationKey { get; set; }
         public IEnumerable<BatchDetails> BatchDetails { get; set; }
         public IEnumerable<string> BatchFileNameDetails { get; set; }

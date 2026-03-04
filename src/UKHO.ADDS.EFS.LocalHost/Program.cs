@@ -220,6 +220,22 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             var srcDirectory = Directory.GetParent(appRootDirectory)?.FullName!;
 
+            if (name == ProcessNames.S100Builder)
+            {
+                var workspaceFile = Path.Combine(srcDirectory, projectName, "efs-nonlive-root.tar.gz");
+                var imageWorkspaceFile = Path.Combine(srcDirectory, projectName, "root.tar.gz");
+                var iicToolFile = Path.Combine(srcDirectory, projectName, "xchg-7.6.war");
+
+                if (File.Exists(workspaceFile) && File.Exists(iicToolFile))
+                {
+                    File.Copy(workspaceFile, imageWorkspaceFile, true);
+                }
+                else
+                {
+                    throw new FileNotFoundException("The IIC Tool files efs-nonlive-root.tar.gz and xchg-7.6.war are missing.");
+                }
+            }
+
             var arguments = $"build -t {name} -f ./{projectName}/Dockerfile .";
 
             // 'docker' writes everything to stderr...

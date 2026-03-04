@@ -1,10 +1,16 @@
-﻿using System.Text.Json;
+﻿using System.Net.Mime;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+using Azure.Data.AppConfiguration;
 
 namespace UKHO.ADDS.Aspire.Configuration.Seeder.Json
 {
-    internal class JsonFlattener
+    internal partial class JsonFlattener
     {
-        public static IDictionary<string, string> Flatten(AddsEnvironment environment, string json)
+        [GeneratedRegex(@"^{""uri"":""https:\/\/.+.vault.azure.net\/secrets\/.+""}$")]
+        private static partial Regex KeyVaultRegex();
+
+        public static IDictionary<string, ConfigurationSetting> Flatten(AddsEnvironment environment, string json, string label)
         {
             using var document = JsonDocument.Parse(json);
 
@@ -13,12 +19,20 @@ namespace UKHO.ADDS.Aspire.Configuration.Seeder.Json
                 throw new ArgumentException($"Environment '{environment}' not found in the JSON.");
             }
 
-            var result = new Dictionary<string, string>();
-            FlattenElement(envElement, string.Empty, result);
+            var result = new Dictionary<string, ConfigurationSetting>();
+            FlattenElement(envElement, string.Empty, result, label);
+
+            foreach (var item in result)
+            {
+                item.Value.ContentType = KeyVaultRegex().IsMatch(item.Value.Value)
+                    ? "application/vnd.microsoft.appconfig.keyvaultref+json;charset=utf-8"
+                    : MediaTypeNames.Text.Plain;
+            }
+
             return result;
         }
 
-        private static void FlattenElement(JsonElement element, string prefix, IDictionary<string, string> result)
+        private static void FlattenElement(JsonElement element, string prefix, IDictionary<string, ConfigurationSetting> result, string label)
         {
             switch (element.ValueKind)
             {
@@ -28,7 +42,7 @@ namespace UKHO.ADDS.Aspire.Configuration.Seeder.Json
                         var newPrefix = string.IsNullOrEmpty(prefix)
                             ? property.Name
                             : $"{prefix}:{property.Name}";
-                        FlattenElement(property.Value, newPrefix, result);
+                        FlattenElement(property.Value, newPrefix, result, label);
                     }
 
                     break;
@@ -38,27 +52,27 @@ namespace UKHO.ADDS.Aspire.Configuration.Seeder.Json
                     foreach (var item in element.EnumerateArray())
                     {
                         var newPrefix = $"{prefix}:{index}";
-                        FlattenElement(item, newPrefix, result);
+                        FlattenElement(item, newPrefix, result, label);
                         index++;
                     }
 
                     break;
 
                 case JsonValueKind.String:
-                    result[prefix] = element.GetString()!;
+                    result[prefix] = new ConfigurationSetting(prefix, element.GetString()!, label);
                     break;
 
                 case JsonValueKind.Number:
-                    result[prefix] = element.ToString();
+                    result[prefix] = new ConfigurationSetting(prefix, element.ToString(), label);
                     break;
 
                 case JsonValueKind.True:
                 case JsonValueKind.False:
-                    result[prefix] = element.GetBoolean().ToString();
+                    result[prefix] = new ConfigurationSetting(prefix, element.GetBoolean().ToString(), label);
                     break;
 
                 case JsonValueKind.Null:
-                    result[prefix] = "null";
+                    result[prefix] = new ConfigurationSetting(prefix, "null", label);
                     break;
 
                 default:

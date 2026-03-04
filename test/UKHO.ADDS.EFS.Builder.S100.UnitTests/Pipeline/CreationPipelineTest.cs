@@ -40,6 +40,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
                     DataStandard = DataStandard.S100
                 },
                 JobId = JobId.From("TestJobId"),
+                WorkspaceName = "TestWorkspace",
                 WorkspaceAuthenticationKey = "Test123",
                 BatchFileNameDetails = ["101GBTest1_1_0", "102GBTest2_1_0"]
             };
@@ -54,28 +55,28 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
             var opResponse = new OperationResponse { Code = 0, Type = "Success", Message = "OK" };
             IError? error = null;
             A.CallTo(() => fakeAddExchangeSetResult.IsSuccess(out opResponse, out error)).Returns(true);
-            A.CallTo(() => _toolClient.AddExchangeSetAsync(_context.Subject.JobId, _context.Subject.WorkspaceAuthenticationKey)).Returns(Task.FromResult(fakeAddExchangeSetResult));
+            A.CallTo(() => _toolClient.AddExchangeSetAsync(_context.Subject.JobId, _context.Subject.WorkspaceName, _context.Subject.WorkspaceAuthenticationKey)).Returns(Task.FromResult(fakeAddExchangeSetResult));
 
             var fakeAddContentResult = A.Fake<IResult<OperationResponse>>();
             A.CallTo(() => fakeAddContentResult.IsSuccess(out opResponse, out error)).Returns(true);
-            A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<JobId>._, A<string>._))
+            A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<JobId>._, A<string>._, A<string>._))
                 .Returns(Task.FromResult(fakeAddContentResult));
 
             var fakeSignResult = A.Fake<IResult<SigningResponse>>();
             var signingResponse = new SigningResponse { Certificate = "cert", SigningKey = "key", Status = "Success" };
             IError? signError = null;
             A.CallTo(() => fakeSignResult.IsSuccess(out signingResponse, out signError)).Returns(true);
-            A.CallTo(() => _toolClient.SignExchangeSetAsync(A<JobId>._, A<string>._)).Returns(Task.FromResult(fakeSignResult));
+            A.CallTo(() => _toolClient.SignExchangeSetAsync(A<JobId>._, A<string>._, A<string>._)).Returns(Task.FromResult(fakeSignResult));
 
             var result = await _creationPipeline.ExecutePipeline(_context.Subject);
 
             Assert.That(result, Is.Not.Null);
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Succeeded));
 
-            A.CallTo(() => _toolClient.AddExchangeSetAsync(A<JobId>._, A<string>._))
+            A.CallTo(() => _toolClient.AddExchangeSetAsync(A<JobId>._, A<string>._, A<string>._))
                 .MustHaveHappened();
 
-            A.CallTo(() => _toolClient.SignExchangeSetAsync(A<JobId>._, A<string>._))
+            A.CallTo(() => _toolClient.SignExchangeSetAsync(A<JobId>._, A<string>._, A<string>._))
                 .MustHaveHappened();
         }
 
@@ -107,7 +108,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
         [Test]
         public async Task WhenCreateExchangeSetNodeFails_ThenReturnsFailedNodeResult()
         {
-            A.CallTo(() => _toolClient.AddExchangeSetAsync(JobId.From("TestJobId"), "Test123"))
+            A.CallTo(() => _toolClient.AddExchangeSetAsync(JobId.From("TestJobId"), "TestWorkspace", "Test123"))
                 .Throws<Exception>();
             var result = await _creationPipeline.ExecutePipeline(_context.Subject);
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
@@ -116,7 +117,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
         [Test]
         public async Task WhenAddContentExchangeSetNodeFails_ThenReturnsFailedNodeResult()
         {
-            A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<JobId>._, A<string>._))
+            A.CallTo(() => _toolClient.AddContentAsync(A<string>._, A<JobId>._, A<string>._, A<string>._))
                 .Throws<Exception>();
 
             var result = await _creationPipeline.ExecutePipeline(_context.Subject);
@@ -126,7 +127,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline
         [Test]
         public async Task WhenSignExchangeSetNodeFails_ThenReturnsFailedNodeResult()
         {
-            A.CallTo(() => _toolClient.SignExchangeSetAsync(JobId.From("TestJobId"), "Test123"))
+            A.CallTo(() => _toolClient.SignExchangeSetAsync(JobId.From("TestJobId"), "TestWorkspace", "Test123"))
                 .Throws<Exception>();
             var result = await _creationPipeline.ExecutePipeline(_context.Subject);
             Assert.That(result.Status, Is.EqualTo(NodeResultStatus.Failed));
