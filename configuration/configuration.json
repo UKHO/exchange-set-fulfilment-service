@@ -44,7 +44,7 @@
             "Builders": {
                 "LogReplayLevel": "Information", // Log level for replaying builder logs
                 "S100": {
-                    "IICWorkspaceName": "working9",
+                    "IICWorkspaceName": "efs-nonlive",
                     "IICWorkspaceKey": "D89D11D265B19CA5C2BE97A7FCB1EF21",
                     "ExchangeSetNameTemplate": "V01X01_[jobid].zip", // Template for naming an exchange set: options are "jobid", "date"                    
                     "Responses": {

@@ -71,10 +71,10 @@ jobs:
         - script: |
             if [ "${{ parameters.IICWorkspace }}" == "dev" ]; then
               echo "Using dev IIC workspace"
-              cp "$(Build.SourcesDirectory)/pvtefs/efs-nonlive-root.tar.gz" "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Builder.S100/root3.tar.gz"
+              cp "$(Build.SourcesDirectory)/pvtefs/efs-nonlive-root.tar.gz" "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Builder.S100/root.tar.gz"
             else
               echo "Using live IIC workspace"
-              cp "$(Build.SourcesDirectory)/pvtefs/efs-live-root.tar.gz" "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Builder.S100/root3.tar.gz"
+              cp "$(Build.SourcesDirectory)/pvtefs/efs-live-root.tar.gz" "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Builder.S100/root.tar.gz"
             fi
 
             cp "$(Build.SourcesDirectory)/pvtefs/xchg-7.6.war" "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Builder.S100/xchg-7.6.war"
