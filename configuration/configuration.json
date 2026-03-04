@@ -44,8 +44,7 @@
             "Builders": {
                 "LogReplayLevel": "Information", // Log level for replaying builder logs
                 "S100": {
-                    "IICWorkspace": "working9",
-                    //"IICWorkspaceKey": "{\"uri\":\"https://my-kv.vault.azure.net/secrets/IICWorkspaceKey\"}",
+                    "IICWorkspaceName": "working9",
                     "IICWorkspaceKey": "D89D11D265B19CA5C2BE97A7FCB1EF21",
                     "ExchangeSetNameTemplate": "V01X01_[jobid].zip", // Template for naming an exchange set: options are "jobid", "date"                    
                     "Responses": {
@@ -105,7 +104,7 @@
             "Builders": {
                 "LogReplayLevel": "Information", // Log level for replaying builder logs
                 "S100": {
-                    "IICWorkspace": "efs-nonlive",
+                    "IICWorkspaceName": "efs-nonlive",
                     "IICWorkspaceKey": "{\"uri\":\"https://{{app_config_kv_name}}.vault.azure.net/secrets/IICWorkspaceKey\"}",
                     "ExchangeSetNameTemplate": "V01X01_[jobid].zip", // Template for naming an exchange set: options are "jobid", "date"
                     "Responses": {
@@ -164,7 +163,7 @@
             "Builders": {
                 "LogReplayLevel": "Information", // Log level for replaying builder logs
                 "S100": {
-                    "IICWorkspace": "efs-nonlive",
+                    "IICWorkspaceName": "efs-nonlive",
                     "IICWorkspaceKey": "{\"uri\":\"https://{{app_config_kv_name}}.vault.azure.net/secrets/IICWorkspaceKey\"}",
                     "ExchangeSetNameTemplate": "V01X01.zip",
                     "Responses": {
@@ -223,7 +222,7 @@
             "Builders": {
                 "LogReplayLevel": "Information", // Log level for replaying builder logs
                 "S100": {
-                    "IICWorkspace": "efs-nonlive",
+                    "IICWorkspaceName": "efs-nonlive",
                     "IICWorkspaceKey": "{\"uri\":\"https://{{app_config_kv_name}}.vault.azure.net/secrets/IICWorkspaceKey\"}",
                     "ExchangeSetNameTemplate": "V01X01.zip",
                     "Responses": {
@@ -282,7 +281,7 @@
             "Builders": {
                 "LogReplayLevel": "Information", // Log level for replaying builder logs
                 "S100": {
-                    "IICWorkspace": "efs-nonlive",
+                    "IICWorkspaceName": "efs-nonlive",
                     "IICWorkspaceKey": "{\"uri\":\"https://{{app_config_kv_name}}.vault.azure.net/secrets/IICWorkspaceKey\"}",
                     "ExchangeSetNameTemplate": "V01X01.zip",
                     "Responses": {
@@ -341,7 +340,7 @@
             "Builders": {
                 "LogReplayLevel": "Information", // Log level for replaying builder logs
                 "S100": {
-                    "IICWorkspace": "efs-live",
+                    "IICWorkspaceName": "efs-live",
                     "IICWorkspaceKey": "{\"uri\":\"https://{{app_config_kv_name}}.vault.azure.net/secrets/IICWorkspaceKey\"}",
                     "ExchangeSetNameTemplate": "V01X01.zip",
                     "Responses": {
@@ -400,7 +399,7 @@
             "Builders": {
                 "LogReplayLevel": "Information", // Log level for replaying builder logs
                 "S100": {
-                    "IICWorkspace": "efs-live",
+                    "IICWorkspaceName": "efs-live",
                     "IICWorkspaceKey": "{\"uri\":\"https://{{app_config_kv_name}}.vault.azure.net/secrets/IICWorkspaceKey\"}",
                     "ExchangeSetNameTemplate": "V01X01.zip",
                     "Responses": {
