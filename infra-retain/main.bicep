@@ -44,9 +44,10 @@ param efsContainerRegistryPartialName string
 @description('The partial name (from the start) of the container apps environment resource.')
 param efsContainerAppsEnvironmentPartialName string
 
-@minLength(1)
-@description('The partial name (from the start) of the storage account resource.')
-param efsStorageAccountPartialName string
+@minLength(3)
+@maxLength(24)
+@description('The name of the storage account resource.')
+param efsStorageAccountName string
 
 @minLength(1)
 @description('The location used for all deployed resources')
@@ -163,7 +164,7 @@ module efs_storage 'efs-storage/efs-storage.module.bicep' = {
   params: {
     location: location
     principalId: efs_service_identity.outputs.principalId
-    efsStorageAccountPartialName: efsStorageAccountPartialName
+    efsStorageAccountName: efsStorageAccountName
   }
 }
 

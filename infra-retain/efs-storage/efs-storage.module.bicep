@@ -3,12 +3,13 @@ param location string = resourceGroup().location
 
 param principalId string
 
-@minLength(1)
-@description('The partial name (from the start) of the storage account resource.')
-param efsStorageAccountPartialName string
+@minLength(3)
+@maxLength(24)
+@description('The name of the storage account resource.')
+param efsStorageAccountName string
 
 resource efs_storage 'Microsoft.Storage/storageAccounts@2024-01-01' = {
-  name: take('${efsStorageAccountPartialName}${uniqueString(resourceGroup().id)}', 24)
+  name: efsStorageAccountName
   kind: 'StorageV2'
   location: location
   sku: {

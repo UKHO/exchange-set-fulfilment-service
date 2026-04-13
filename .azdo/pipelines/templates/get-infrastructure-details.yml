@@ -32,9 +32,6 @@ steps:
       echo "Getting event hub namespace name..."
       EFS_EVENT_HUBS_NAMESPACE_NAME=$(az eventhubs namespace list --resource-group $EFS_RETAIN_RESOURCE_GROUP --query "[?starts_with(name, '$(EFS_EVENT_HUBS_NAMESPACE_PARTIAL_NAME)')].name" --output tsv)
 
-      echo "Getting storage account name..."
-      EFS_STORAGE_ACCOUNT_NAME=$(az storage account list --resource-group $EFS_RESOURCE_GROUP --query "[?starts_with(name, '$(EFS_STORAGE_ACCOUNT_PARTIAL_NAME)')].name" --output tsv)
-
       echo "Existing resources found:"
       echo "--------------------------------------------------------------------------------"
       echo $EFS_RETAIN_RESOURCE_GROUP

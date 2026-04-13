@@ -21,5 +21,5 @@ variables:
   value: efs-$(AZURE_ENV_NAME)-appconfig
 - name: EFS_APP_CONFIGURATION_KV_NAME
   value: efs-$(AZURE_ENV_NAME)-appconfig-kv
-- name: EFS_STORAGE_ACCOUNT_PARTIAL_NAME
-  value: efsstorage
+- name: EFS_STORAGE_ACCOUNT_NAME
+  value: efs$(AZURE_ENV_NAME)storageukho
