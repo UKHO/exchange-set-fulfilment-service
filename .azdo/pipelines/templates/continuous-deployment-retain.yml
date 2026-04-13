@@ -37,6 +37,8 @@ jobs:
             scriptLocation: inlineScript
             inlineScript: |
               set -e
+              az role assignment list --role "Key Vault Secrets Officer" --assignee $(PIPELINE-CLIENT-OBJECT-ID)
+
               echo "Deploying resources..."
               DEPLOY_SECONDS=$EPOCHSECONDS
               DEPLOYMENT_NAME=$AZURE_ENV_NAME-retain-$DEPLOY_SECONDS
