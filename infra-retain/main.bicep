@@ -68,6 +68,24 @@ param subnetResourceId string
 @description('Enable zone redundancy during deployment')
 param zoneRedundant bool
 
+@description('Optional list of allowed IPv4 addresses or CIDR ranges as a JSON string.')
+param ipRulesJson string = '[]'
+
+@minLength(1)
+@description('Agent subnet')
+param azureAgent2204SubnetId string
+
+@minLength(1)
+@description('Agent subnet')
+param azureAgentPrdSubnetId string
+
+var ipRules = [
+  for ip in json(ipRulesJson): {
+    value: ip
+    action: 'Allow'
+  }
+]
+
 resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
   name: resourceGroupName
   location: location
@@ -165,6 +183,10 @@ module efs_storage 'efs-storage/efs-storage.module.bicep' = {
     location: location
     principalId: efs_service_identity.outputs.principalId
     efsStorageAccountName: efsStorageAccountName
+    ipRules: ipRules
+    subnetResourceId: subnetResourceId
+    azureAgent2204SubnetId: azureAgent2204SubnetId
+    azureAgentPrdSubnetId: azureAgentPrdSubnetId
   }
 }
 

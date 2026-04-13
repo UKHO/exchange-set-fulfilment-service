@@ -16,3 +16,6 @@ param pipelineDeploymentName = readEnvironmentVariable('PIPELINE_DEPLOYMENT_NAME
 param pipelineClientObjectId = readEnvironmentVariable('PIPELINE-CLIENT-OBJECT-ID')
 param subnetResourceId = readEnvironmentVariable('AZURE_SUBNET_RESOURCE_ID')
 param zoneRedundant = bool(readEnvironmentVariable('AZURE_ZONE_REDUNDANT'))
+param ipRulesJson = readEnvironmentVariable('AZURE_WHITE_LISTED_IPS')
+param azureAgent2204SubnetId = readEnvironmentVariable('AZURE_AGENT_2204_SUBNET_ID')
+param azureAgentPrdSubnetId = readEnvironmentVariable('AZURE_AGENT_PRD_SUBNET_ID')
