@@ -44,9 +44,10 @@ param efsContainerRegistryPartialName string
 @description('The partial name (from the start) of the container apps environment resource.')
 param efsContainerAppsEnvironmentPartialName string
 
-@minLength(1)
-@description('The partial name (from the start) of the storage account resource.')
-param efsStorageAccountPartialName string
+@minLength(3)
+@maxLength(24)
+@description('The name of the storage account resource.')
+param efsStorageAccountName string
 
 @minLength(1)
 @description('The location used for all deployed resources')
@@ -66,6 +67,24 @@ param subnetResourceId string
 
 @description('Enable zone redundancy during deployment')
 param zoneRedundant bool
+
+@description('Optional list of allowed IPv4 addresses or CIDR ranges as a JSON string.')
+param ipRulesJson string = '[]'
+
+@minLength(1)
+@description('Agent subnet')
+param azureAgent2204SubnetId string
+
+@minLength(1)
+@description('Agent subnet')
+param azureAgentPrdSubnetId string
+
+var ipRules = [
+  for ip in json(ipRulesJson): {
+    value: ip
+    action: 'Allow'
+  }
+]
 
 resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
   name: resourceGroupName
@@ -163,7 +182,11 @@ module efs_storage 'efs-storage/efs-storage.module.bicep' = {
   params: {
     location: location
     principalId: efs_service_identity.outputs.principalId
-    efsStorageAccountPartialName: efsStorageAccountPartialName
+    efsStorageAccountName: efsStorageAccountName
+    ipRules: ipRules
+    subnetResourceId: subnetResourceId
+    azureAgent2204SubnetId: azureAgent2204SubnetId
+    azureAgentPrdSubnetId: azureAgentPrdSubnetId
   }
 }
 

@@ -3,23 +3,58 @@ param location string = resourceGroup().location
 
 param principalId string
 
+@minLength(3)
+@maxLength(24)
+@description('The name of the storage account resource.')
+param efsStorageAccountName string
+
+@description('Optional list of allowed IPv4 addresses or CIDR ranges.')
+param ipRules array = []
+
 @minLength(1)
-@description('The partial name (from the start) of the storage account resource.')
-param efsStorageAccountPartialName string
+@description('Id of the container app subnet')
+param subnetResourceId string
+
+@minLength(1)
+@description('Agent subnet')
+param azureAgent2204SubnetId string
+
+@minLength(1)
+@description('Agent subnet')
+param azureAgentPrdSubnetId string
 
 resource efs_storage 'Microsoft.Storage/storageAccounts@2024-01-01' = {
-  name: take('${efsStorageAccountPartialName}${uniqueString(resourceGroup().id)}', 24)
+  name: efsStorageAccountName
   kind: 'StorageV2'
   location: location
   sku: {
-    name: 'Standard_GRS'
+    name: 'Standard_LRS'
   }
   properties: {
     accessTier: 'Hot'
     allowSharedKeyAccess: false
     minimumTlsVersion: 'TLS1_2'
     networkAcls: {
-      defaultAction: 'Allow'
+      bypass: 'Logging, Metrics, AzureServices'
+      virtualNetworkRules: [
+        {
+          id: subnetResourceId
+          action: 'Allow'
+          state: 'Succeeded'
+        }
+        {
+          id: azureAgent2204SubnetId
+          action: 'Allow'
+          state: 'Succeeded'
+        }
+        {
+          id: azureAgentPrdSubnetId
+          action: 'Allow'
+          state: 'Succeeded'
+        }
+      ]
+      ipRules: ipRules
+      defaultAction: 'Deny'
     }
   }
   tags: {
