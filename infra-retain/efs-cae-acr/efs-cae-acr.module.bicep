@@ -3,12 +3,13 @@ param location string = resourceGroup().location
 
 param principalId string
 
-@minLength(1)
-@description('The partial name (from the start) of the container registry resource.')
-param efsContainerRegistryPartialName string
+@minLength(5)
+@maxLength(50)
+@description('The name of the container registry resource.')
+param efsContainerRegistryName string
 
 resource efs_cae_acr 'Microsoft.ContainerRegistry/registries@2025-04-01' = {
-  name: take('${efsContainerRegistryPartialName}${uniqueString(resourceGroup().id)}', 50)
+  name: efsContainerRegistryName
   location: location
   sku: {
     name: 'Basic'
