@@ -18,9 +18,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.12" />
-    <PackageReference Include="UKHO.ADDS.Mocks" Version="0.0.60213-alpha.1" />
-    <PackageReference Include="UKHO.FakePenrose.S100SampleExchangeSets" Version="3.1.51215.12" /> 
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.14" />
+    <PackageReference Include="UKHO.ADDS.Mocks" Version="1.0.60408-rc.9" />
+    <PackageReference Include="UKHO.FakePenrose.S100SampleExchangeSets" Version="3.1.60226.1" /> 
   </ItemGroup>
 
 </Project>
