@@ -10,7 +10,7 @@ variables:
 - name: EFS_LOG_ANALYTICS_WORKSPACE_PARTIAL_NAME
   value: efslaw
 - name: EFS_CONTAINER_REGISTRY_NAME
-  value: efs$(AZURE_ENV_NAME)acr
+  value: efs$(AZURE_ENV_NAME)acrukho
 - name: EFS_CONTAINER_APPS_ENVIRONMENT_PARTIAL_NAME
   value: efscae
 - name: EFS_APPLICATION_INSIGHTS_PARTIAL_NAME

@@ -8,7 +8,10 @@ param principalId string
 @description('The name of the container registry resource.')
 param efsContainerRegistryName string
 
-resource efs_cae_acr 'Microsoft.ContainerRegistry/registries@2025-04-01' = {
+@description('Optional list of allowed IPv4 addresses or CIDR ranges.')
+param ipRules array = []
+
+resource efs_cae_acr 'Microsoft.ContainerRegistry/registries@2025-11-01' = {
   name: efsContainerRegistryName
   location: location
   sku: {
@@ -16,6 +19,14 @@ resource efs_cae_acr 'Microsoft.ContainerRegistry/registries@2025-04-01' = {
   }
   tags: {
     'hidden-title': 'EFS'
+  }
+  properties: {
+    networkRuleBypassAllowedForTasks: false
+    networkRuleBypassOptions: 'AzureServices'
+    networkRuleSet: {
+      defaultAction: 'Deny'
+      ipRules: ipRules
+    }
   }
 }
 

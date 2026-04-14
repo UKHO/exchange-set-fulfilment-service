@@ -162,6 +162,7 @@ module efs_cae_acr 'efs-cae-acr/efs-cae-acr.module.bicep' = {
     location: location
     principalId: efs_service_identity.outputs.principalId
     efsContainerRegistryName: efsContainerRegistryName
+    ipRules: ipRules
   }
 }
 
