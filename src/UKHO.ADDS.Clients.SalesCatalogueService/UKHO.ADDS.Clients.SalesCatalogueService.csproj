@@ -16,9 +16,9 @@
 
   <ItemGroup>
     <PackageReference Include="CsvHelper" Version="33.1.0" />
-    <PackageReference Include="Microsoft.Kiota.Bundle" Version="1.21.2" />
-    <PackageReference Include="UKHO.ADDS.Infrastructure.Results" Version="0.0.50327-alpha.2" />
-    <PackageReference Include="UKHO.ADDS.Infrastructure.Serialization" Version="0.0.50327-alpha.2" />
+    <PackageReference Include="Microsoft.Kiota.Bundle" Version="1.22.1" />
+    <PackageReference Include="UKHO.ADDS.Infrastructure.Results" Version="0.0.60217-alpha.1" />
+    <PackageReference Include="UKHO.ADDS.Infrastructure.Serialization" Version="0.0.60217-alpha.1" />
   </ItemGroup>
 
   <ItemGroup>

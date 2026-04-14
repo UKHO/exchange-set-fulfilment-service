@@ -50,7 +50,7 @@ jobs:
       severityThreshold: low
       testType: iac
       testDirectory: '$(Agent.TempDirectory)\$(Build.BuildId)'
-      monitorwhen: never
+      monitorwhen: always
       ${{ if eq(parameters.SnykOnlyFailIfFixable, true) }}:
         additionalArguments: --fail-on=all
 

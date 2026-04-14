@@ -27,7 +27,7 @@
     <PackageReference Include="Aspire.Hosting.Azure.OperationalInsights" Version="9.5.2" />
     <PackageReference Include="Aspire.Hosting.Azure.Storage" Version="9.5.2" />
     <PackageReference Include="Aspire.Hosting.Redis" Version="9.5.2" />
-    <PackageReference Include="CliWrap" Version="3.10.0" />
+    <PackageReference Include="CliWrap" Version="3.10.1" />
     <PackageReference Include="Docker.DotNet" Version="3.125.15" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
     <PackageReference Include="Aspire.Hosting.Azure.ApplicationInsights" Version="9.5.2" />
