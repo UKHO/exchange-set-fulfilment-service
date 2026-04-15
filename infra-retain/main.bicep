@@ -36,9 +36,10 @@ param efsAppConfigKeyVaultName string
 @description('The partial name (from the start) of the event hub namespace resource.')
 param efsEventHubsNamespacePartialName string
 
-@minLength(1)
-@description('The partial name (from the start) of the container registry resource.')
-param efsContainerRegistryPartialName string
+@minLength(5)
+@maxLength(50)
+@description('The name of the container registry resource.')
+param efsContainerRegistryName string
 
 @minLength(1)
 @description('The partial name (from the start) of the container apps environment resource.')
@@ -78,6 +79,14 @@ param azureAgent2204SubnetId string
 @minLength(1)
 @description('Agent subnet')
 param azureAgentPrdSubnetId string
+
+@description('The SKU of the Azure Container Registry')
+@allowed([
+  'Basic'
+  'Standard'
+  'Premium'
+])
+param azureAcrSku string
 
 var ipRules = [
   for ip in json(ipRulesJson): {
@@ -160,7 +169,8 @@ module efs_cae_acr 'efs-cae-acr/efs-cae-acr.module.bicep' = {
   params: {
     location: location
     principalId: efs_service_identity.outputs.principalId
-    efsContainerRegistryPartialName: efsContainerRegistryPartialName
+    efsContainerRegistryName: efsContainerRegistryName
+    azureAcrSku: azureAcrSku
   }
 }
 
