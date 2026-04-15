@@ -80,6 +80,14 @@ param azureAgent2204SubnetId string
 @description('Agent subnet')
 param azureAgentPrdSubnetId string
 
+@description('The SKU of the Azure Container Registry')
+@allowed([
+  'Basic'
+  'Standard'
+  'Premium'
+])
+param azureAcrSku string
+
 var ipRules = [
   for ip in json(ipRulesJson): {
     value: ip
@@ -162,7 +170,7 @@ module efs_cae_acr 'efs-cae-acr/efs-cae-acr.module.bicep' = {
     location: location
     principalId: efs_service_identity.outputs.principalId
     efsContainerRegistryName: efsContainerRegistryName
-    ipRules: ipRules
+    azureAcrSku: azureAcrSku
   }
 }
 
