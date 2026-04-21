@@ -28,7 +28,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\configuration\UKHO.ADDS.Aspire.Configuration\UKHO.ADDS.Aspire.Configuration.csproj" />
     <ProjectReference Include="..\UKHO.ADDS.EFS.Domain.Services\UKHO.ADDS.EFS.Domain.Services.csproj" />
-    <ProjectReference Include="..\UKHO.ADDS.Clients.SalesCatalogueService\UKHO.ADDS.Clients.SalesCatalogueService.csproj" />
   </ItemGroup>
 
   <ItemGroup>
