@@ -19,12 +19,12 @@
     <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.1" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
     <PackageReference Include="Konscious.Security.Cryptography.Blake2" Version="1.1.1" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.14" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.5" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.15" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.7" />
     <PackageReference Include="Quartz" Version="3.18.0" />
     <PackageReference Include="Quartz.Extensions.DependencyInjection" Version="3.18.0" />
     <PackageReference Include="Quartz.Extensions.Hosting" Version="3.18.0" />
-    <PackageReference Include="Scalar.AspNetCore" Version="2.13.22" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.14.3" />
     <PackageReference Include="Serilog" Version="4.3.1" />
     <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageReference Include="Serilog.Expressions" Version="5.0.0" />

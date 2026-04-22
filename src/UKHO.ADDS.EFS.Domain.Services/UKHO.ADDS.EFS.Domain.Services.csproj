@@ -17,4 +17,9 @@
     <InternalsVisibleTo Include="UKHO.ADDS.EFS.Domain.Services.UnitTests" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="UKHO.ADDS.Clients.FileShareService.ReadWrite" Version="1.0.60422-alpha.1" />
+    <PackageReference Include="UKHO.ADDS.Clients.SalesCatalogueService" Version="1.0.60422-alpha.1" />
+  </ItemGroup>
+
 </Project>
