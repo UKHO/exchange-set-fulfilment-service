@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using Aspire.Hosting.Azure;
+using Azure.Provisioning.AppContainers;
 using CliWrap;
 using Docker.DotNet;
 using Docker.DotNet.Models;
@@ -64,6 +65,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             var efsB2cAppDomain = builder.AddPublishOnlyParameter("efsB2cAppDomain");
             var efsB2cAppInstance = builder.AddPublishOnlyParameter("efsB2cAppInstance");
             var efsB2cAppSigninPolicy = builder.AddPublishOnlyParameter("efsB2cAppSigninPolicy");
+            var whiteListedIps = builder.AddPublishOnlyParameter("whiteListedIps");
 
             // Existing user managed identity
             var efsServiceIdentity = builder.AddAzureUserAssignedIdentity(ServiceConfiguration.EfsServiceIdentity).PublishAsExistingWithNullCheck(efsServiceIdentityName, efsRetainResourceGroup);
@@ -113,6 +115,12 @@ namespace UKHO.ADDS.EFS.LocalHost
                     var container = app.Template.Containers.Single().Value!;
                     container.Resources.Cpu = addsMocksCpu!.AsProvisioningParameter(infra, "addsMocksCpu");
                     container.Resources.Memory = addsMocksMemory!.AsProvisioningParameter(infra, "addsMocksMemory");
+                    app.Configuration.Ingress = new ContainerAppIngressConfiguration
+                    {
+                        External = true,
+                        Transport = ContainerAppIngressTransportMethod.Http,
+                        IPSecurityRestrictions = whiteListedIps!.AsProvisioningParameter(infra, "whiteListedIps")
+                    };
                 });
             }
 

@@ -80,6 +80,9 @@
       "orchestratorMemory": {
         "value": "${AZURE_ORCHESTRATOR_MEMORY}"
       },
+      "whiteListedIps": {
+        "value": "${AZURE_WHITE_LISTED_IPS}"
+      },
       "environmentName": {
         "value": "${AZURE_ENV_NAME}"
       },
