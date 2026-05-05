@@ -17,6 +17,17 @@ param addsMocksCpu string
 
 param addsMocksMemory string
 
+param whiteListedIps string
+
+var ipSecurityRestrictions = [
+  for ip in json(whiteListedIps): {
+    name: ip
+    description: 'Allow access from ${ip}'
+    ipAddressRange: ip
+    action: 'Allow'
+  }
+]
+
 resource adds_mocks_efs 'Microsoft.App/containerApps@2025-02-02-preview' = {
   name: 'adds-mocks-efs'
   location: location
@@ -24,8 +35,9 @@ resource adds_mocks_efs 'Microsoft.App/containerApps@2025-02-02-preview' = {
     configuration: {
       activeRevisionsMode: 'Single'
       ingress: {
-        external: false
+        external: true
         transport: 'http'
+        ipSecurityRestrictions: ipSecurityRestrictions
       }
       registries: [
         {

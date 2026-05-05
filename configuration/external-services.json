@@ -31,11 +31,11 @@
         "FileShare": {
             "endpoints": [
                 {
-                    "url": "https://adds-mocks-efs.internal.{{cae_domain}}/fss/",
+                    "url": "https://adds-mocks-efs.{{cae_domain}}/fss/",
                     "tag": ""
                 },
                 {
-                    "url": "https://adds-mocks-efs.internal.{{cae_domain}}/fss6357/",
+                    "url": "https://adds-mocks-efs.{{cae_domain}}/fss6357/",
                     "tag": "legacy"
                 }
             ],
@@ -44,11 +44,11 @@
         "SalesCatalogue": {
             "endpoints": [
                 {
-                    "url": "https://adds-mocks-efs.internal.{{cae_domain}}/scs/",
+                    "url": "https://adds-mocks-efs.{{cae_domain}}/scs/",
                     "tag": ""
                 },
                 {
-                    "url": "https://adds-mocks-efs.internal.{{cae_domain}}/scs6357/",
+                    "url": "https://adds-mocks-efs.{{cae_domain}}/scs6357/",
                     "tag": "legacy"
                 }
             ],
