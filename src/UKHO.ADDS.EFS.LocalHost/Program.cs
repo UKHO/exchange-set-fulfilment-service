@@ -117,9 +117,8 @@ namespace UKHO.ADDS.EFS.LocalHost
                     container.Resources.Memory = addsMocksMemory!.AsProvisioningParameter(infra, "addsMocksMemory");
                     app.Configuration.Ingress = new ContainerAppIngressConfiguration
                     {
-                        External = true,
-                        Transport = ContainerAppIngressTransportMethod.Http,
-                        IPSecurityRestrictions = whiteListedIps!.AsProvisioningParameter(infra, "whiteListedIps")
+                        External = false,
+                        Transport = ContainerAppIngressTransportMethod.Http
                     };
                 });
             }
