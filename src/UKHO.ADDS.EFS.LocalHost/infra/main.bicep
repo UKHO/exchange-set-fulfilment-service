@@ -49,7 +49,6 @@ param elasticAPMServerURL string
 param elasticAPMServiceName string
 param orchestratorCpu string
 param orchestratorMemory string
-param whiteListedIps string
 
 var tags = {
   'azd-env-name': environmentName

@@ -8,4 +8,4 @@ param efs_cae_outputs_azure_container_apps_environment_default_domain = '{{ .Env
 param efs_cae_outputs_azure_container_apps_environment_id = '{{ .Env.EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_ID }}'
 param efs_cae_outputs_azure_container_registry_endpoint = '{{ .Env.EFS_CAE_AZURE_CONTAINER_REGISTRY_ENDPOINT }}'
 param efs_cae_outputs_azure_container_registry_managed_identity_id = '{{ .Env.EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID }}'
-param whiteListedIps = '{{ .Env.AZURE_WHITE_LISTED_IPS }}'
+param whiteListedIps = readEnvironmentVariable('AZURE_WHITE_LISTED_IPS')

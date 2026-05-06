@@ -36,6 +36,7 @@ resource adds_mocks_efs 'Microsoft.App/containerApps@2025-02-02-preview' = {
       activeRevisionsMode: 'Single'
       ingress: {
         external: true
+        targetPort: int(adds_mocks_efs_containerport)
         transport: 'http'
         ipSecurityRestrictions: ipSecurityRestrictions
       }

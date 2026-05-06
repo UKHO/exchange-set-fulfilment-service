@@ -4,7 +4,7 @@ parameters:
   - name: DisableStryker
     displayName: "Disable Stryker"
     type: boolean
-    default: false
+    default: true
   - name: SnykOnlyFailIfFixable
     displayName: "Snyk - fail only if an issue has an available fix"
     type: boolean
@@ -16,11 +16,11 @@ parameters:
   - name: DeployOrchestrator
     displayName: "Deploy orchestrator"
     type: boolean
-    default: true
+    default: false
   - name: DeployBuilderS100
     displayName: "Deploy S100 builder"
     type: boolean
-    default: true
+    default: false
   - name: DeployAddsMock
     displayName: "Deploy ADDS mock"
     type: boolean
@@ -28,11 +28,11 @@ parameters:
   - name: DeployRedis
     displayName: "Deploy Redis"
     type: boolean
-    default: true
+    default: false
   - name: AdditionalDebugging
     displayName: "Enable optional pipeline debugging"
     type: boolean
-    default: false
+    default: true
 
 trigger:
   - main
