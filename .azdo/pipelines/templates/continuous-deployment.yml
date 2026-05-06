@@ -68,25 +68,6 @@ jobs:
           clean: true
           path: s/pvtefs
 
-        # - bash: |
-        #     set -e
-        #     tempWhiteListedIps="${AZURE_WHITE_LISTED_IPS_RAW//\"/\\\\\\\"}"
-        #     echo "Processed white listed IPs"
-        #     echo $tempWhiteListedIps
-        #     echo "##vso[task.setvariable variable=AZURE_WHITE_LISTED_IPS;]$tempWhiteListedIps"
-        #   displayName: Update white listed IPs variable
-        #   env:
-        #     AZURE_WHITE_LISTED_IPS_RAW: $(AZURE_WHITE_LISTED_IPS)
-
-        # - ${{ if eq(parameters.AdditionalDebugging, true) }}:
-        #   - bash: |
-        #       set -e
-        #       echo "Current environment variables:"
-        #       echo "--------------------------------------------------------------------------------"
-        #       env | sort
-        #       echo "--------------------------------------------------------------------------------"
-        #     displayName: List environment variables
-
         - script: |
             if [ "${{ parameters.IICWorkspace }}" == "dev" ]; then
               echo "Using dev IIC workspace"
@@ -202,7 +183,6 @@ jobs:
             AZURE_EFS_EVENT_HUBS_NAMESPACE_NAME: $(AZURE_EFS_EVENT_HUBS_NAMESPACE_NAME)
             AZURE_EFS_APP_CONFIGURATION_NAME: $(AZURE_EFS_APP_CONFIGURATION_NAME)
             AZURE_EFS_STORAGE_ACCOUNT_NAME: $(AZURE_EFS_STORAGE_ACCOUNT_NAME)
-            AZURE_WHITE_LISTED_IPS_RAW: $(AZURE_WHITE_LISTED_IPS)
 
         - task: AzureCLI@2
           displayName: Load configuration

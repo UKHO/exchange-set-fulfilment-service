@@ -1,6 +1,5 @@
 using System.Runtime.InteropServices;
 using Aspire.Hosting.Azure;
-using Azure.Provisioning.AppContainers;
 using CliWrap;
 using Docker.DotNet;
 using Docker.DotNet.Models;
