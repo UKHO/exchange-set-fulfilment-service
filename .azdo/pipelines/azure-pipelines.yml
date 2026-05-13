@@ -168,7 +168,6 @@ stages:
         DeployAddsMock: ${{ parameters.DeployAddsMock }}
         IncludeAddsMock: true
         DeployRedis: ${{ parameters.DeployRedis }}
-        RetainPipeline: true
 
   - stage: vnextiatDeploy
     dependsOn:
