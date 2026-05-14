@@ -29,6 +29,8 @@ namespace UKHO.ADDS.EFS.FunctionalTests.IO
 
                     try
                     {
+                        TestOutput.WriteLine($"ReasonPhrase: {response.ReasonPhrase}");
+                        TestOutput.WriteLine($"Content: {await response.Content.ReadAsStringAsync()}");
                         response.EnsureSuccessStatusCode();
                         mockResponse = response; // success; keep for later stream copy and dispose after
                         break; // Success - exit the retry loop
