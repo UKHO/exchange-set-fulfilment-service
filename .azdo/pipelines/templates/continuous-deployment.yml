@@ -83,216 +83,215 @@ jobs:
 
         - download: none
   
+        # - script: |
+        #     curl -fsSL https://aka.ms/install-azd.sh | bash
+        #     azd version
+        #     azd config set auth.useAzCliAuth "true"
+        #   displayName: Install azd
+
+        # - task: UseDotNet@2
+        #   displayName: Use .NET SDK $(SdkVersion)
+        #   inputs:
+        #     packageType: sdk
+        #     version: $(SdkVersion)
+
+        # - task: DotNetCoreCLI@2
+        #   displayName: NuGet restore
+        #   inputs:
+        #     command: restore
+        #     ${{ if eq(parameters.ShortName, 'dev') }}:
+        #       projects: |
+        #         **/*.csproj
+        #         !**/*.Tests.csproj
+        #         !**/*.UnitTests.csproj
+        #         !**/*.EndToEndTests.csproj
+        #         !**/*.UnitTestExamples.csproj
+        #         !**/*.BuildRequestMonitor.csproj
+        #     ${{ else }}:
+        #       projects: |
+        #         **/*.csproj
+        #         !**/*.Tests.csproj
+        #         !**/*.UnitTests.csproj
+        #         !**/*.EndToEndTests.csproj
+        #         !**/*.FunctionalTests.csproj
+        #         !**/*.UnitTestExamples.csproj
+        #         !**/*.BuildRequestMonitor.csproj
+        #     feedsToUse: config
+        #     noCache: true
+        #     nugetConfigPath: '$(Build.SourcesDirectory)/efs/BuildNuget.config'
+
+        # - template: get-infrastructure-details.yml
+        #   parameters:
+        #     AzureSubscription: ${{ variables.AzureSubscription }}
+
+        # - task: AzureCLI@2
+        #   displayName: Package application
+        #   inputs:
+        #     azureSubscription: ${{ variables.AzureSubscription }}
+        #     workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
+        #     scriptType: bash
+        #     scriptLocation: inlineScript
+        #     ${{ if eq(parameters.AdditionalDebugging, true) }}:
+        #       inlineScript: |
+        #         set -e
+        #         azd package --no-prompt --debug
+
+        #         echo "Current azd variables:"
+        #         echo "--------------------------------------------------------------------------------"
+        #         azd env get-values
+        #         echo "--------------------------------------------------------------------------------"
+        #     ${{ else }}:
+        #       inlineScript: |
+        #         azd package --no-prompt
+        #   env:
+        #     AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+        #     AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+        #     AZURE_LOCATION: $(AZURE_LOCATION)
+        #     AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
+
+        # - task: AzureCLI@2
+        #   displayName: Provision infrastructure
+        #   inputs:
+        #     azureSubscription: ${{ variables.AzureSubscription }}
+        #     workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
+        #     scriptType: bash
+        #     scriptLocation: inlineScript
+        #     ${{ if eq(parameters.AdditionalDebugging, true) }}:
+        #       inlineScript: |
+        #         set -e
+        #         azd provision --no-prompt --debug
+
+        #         echo "Current azd variables:"
+        #         echo "--------------------------------------------------------------------------------"
+        #         azd env get-values
+        #         echo "--------------------------------------------------------------------------------"
+        #     ${{ else }}:
+        #       inlineScript: |
+        #         azd provision --no-prompt
+        #   env:
+        #     AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+        #     AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+        #     AZURE_LOCATION: $(AZURE_LOCATION)
+        #     AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
+        #     AZURE_ADDS_ENVIRONMENT: $(AZURE_ENV_NAME)
+        #     AZURE_EFS_RETAIN_RESOURCE_GROUP: $(AZURE_EFS_RETAIN_RESOURCE_GROUP)
+        #     AZURE_EFS_SERVICE_IDENTITY_NAME: $(AZURE_EFS_SERVICE_IDENTITY_NAME)
+        #     AZURE_EFS_LOG_ANALYTICS_WORKSPACE_NAME: $(AZURE_EFS_LOG_ANALYTICS_WORKSPACE_NAME)
+        #     AZURE_EFS_CONTAINER_REGISTRY_NAME: $(AZURE_EFS_CONTAINER_REGISTRY_NAME)
+        #     AZURE_EFS_CONTAINER_APPS_ENVIRONMENT_NAME: $(AZURE_EFS_CONTAINER_APPS_ENVIRONMENT_NAME)
+        #     AZURE_EFS_APPLICATION_INSIGHTS_NAME: $(AZURE_EFS_APPLICATION_INSIGHTS_NAME)
+        #     AZURE_EFS_EVENT_HUBS_NAMESPACE_NAME: $(AZURE_EFS_EVENT_HUBS_NAMESPACE_NAME)
+        #     AZURE_EFS_APP_CONFIGURATION_NAME: $(AZURE_EFS_APP_CONFIGURATION_NAME)
+        #     AZURE_EFS_STORAGE_ACCOUNT_NAME: $(AZURE_EFS_STORAGE_ACCOUNT_NAME)
+
+        # - task: AzureCLI@2
+        #   displayName: Load configuration
+        #   inputs:
+        #     azureSubscription: ${{ variables.AzureSubscription }}
+        #     workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
+        #     scriptType: bash
+        #     scriptLocation: inlineScript
+        #     inlineScript: |
+        #       set -e
+        #       echo "Reading azd variables..."
+        #       while IFS='=' read -r key value; do
+        #           value=$(echo "$value" | sed 's/^"//' | sed 's/"$//')
+        #           export "$key=$value"
+        #       done <<EOF
+        #       $(azd env get-values)
+        #       EOF
+
+        #       if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
+        #         echo "Current environment variables:"
+        #         echo "--------------------------------------------------------------------------------"
+        #         env | sort
+        #         echo "--------------------------------------------------------------------------------"
+        #       fi
+
+        #       echo "Updating key vault..."
+        #       az keyvault secret set --name IICWorkspaceKey --vault-name ${AZURE_EFS_APP_CONFIGURATION_KV_NAME} --value $(IICWorkspaceKey)
+
+        #       echo "Updating configuration files..."
+        #       sed -i "s/{{app_config_kv_name}}/${AZURE_EFS_APP_CONFIGURATION_KV_NAME}/g" "$(Build.SourcesDirectory)/efs/configuration/configuration.json"
+        #       sed -i "s/{{cae_domain}}/${AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN}/g" "$(Build.SourcesDirectory)/efs/configuration/external-services.json"
+
+        #       if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
+        #         echo "configuration.json:"
+        #         echo "--------------------------------------------------------------------------------"
+        #         cat "$(Build.SourcesDirectory)/efs/configuration/configuration.json"
+        #         echo "--------------------------------------------------------------------------------"
+        #         echo "external-services.json:"
+        #         echo "--------------------------------------------------------------------------------"
+        #         cat "$(Build.SourcesDirectory)/efs/configuration/external-services.json"
+        #         echo "--------------------------------------------------------------------------------"
+        #       fi
+
+        #       echo "Seeding configuration..."
+        #       dotnet run --project $(Build.SourcesDirectory)/efs/configuration/UKHO.ADDS.Aspire.Configuration.Seeder/UKHO.ADDS.Aspire.Configuration.Seeder.csproj --configuration Release --no-restore -- "efs" "$(AZURE_ENV_NAME)" "$(Build.SourcesDirectory)/efs/configuration/configuration.json" "$(Build.SourcesDirectory)/efs/configuration/external-services.json" "$EFS_APPCONFIG_APPCONFIGENDPOINT"
+        #   env:
+        #     AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+        #     AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+        #     AZURE_LOCATION: $(AZURE_LOCATION)
+        #     AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
+        #     IICWorkspaceKey: $(IICWorkspaceKey)
+
+        # - template: container-app-deploy.yml
+        #   parameters:
+        #     AzureSubscription: ${{ variables.AzureSubscription }}
+        #     AppName: efs-redis
+        #     AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+        #     DeployApp: ${{ parameters.DeployRedis }}
+
+        # - ${{ if eq(parameters.IncludeAddsMock, true) }}:
+
+        #   - template: container-app-deploy.yml
+        #     parameters:
+        #       AzureSubscription: ${{ variables.AzureSubscription }}
+        #       AppName: adds-mocks-efs
+        #       AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+        #       DeployApp: ${{ parameters.DeployAddsMock }}
+
+        # - template: container-app-deploy.yml
+        #   parameters:
+        #     AzureSubscription: ${{ variables.AzureSubscription }}
+        #     AppName: efs-orchestrator
+        #     AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+        #     DeployApp: ${{ parameters.DeployOrchestrator }}
+
+        # - template: container-app-job-deploy.yml
+        #   parameters:
+        #     AzureSubscription: ${{ variables.AzureSubscription }}
+        #     AppName: efs-builder-s100
+        #     ProjectFolder: UKHO.ADDS.EFS.Builder.S100
+        #     BuilderType: S100
+        #     AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
+        #     DeployApp: ${{ parameters.DeployBuilderS100 }}
+
+        # - template: check-container.yml
+        #   parameters:
+        #     AzureSubscription: ${{ variables.AzureSubscription }}
+        #     AppName: efs-orchestrator
+        #     MaxWaitTime: 15
+
+        # - template: check-container.yml
+        #   parameters:
+        #     AzureSubscription: ${{ variables.AzureSubscription }}
+        #     AppName: efs-redis
+        #     MaxWaitTime: 15
+
+        # - ${{ if eq(parameters.IncludeAddsMock, true) }}:
+
+        #   - template: check-container.yml
+        #     parameters:
+        #       AzureSubscription: ${{ variables.AzureSubscription }}
+        #       AppName: adds-mocks-efs
+        #       MaxWaitTime: 1
+
         - script: |
-            curl -fsSL https://aka.ms/install-azd.sh | bash
-            azd version
-            azd config set auth.useAzCliAuth "true"
-          displayName: Install azd
-
-        - task: UseDotNet@2
-          displayName: Use .NET SDK $(SdkVersion)
-          inputs:
-            packageType: sdk
-            version: $(SdkVersion)
-
-        - task: DotNetCoreCLI@2
-          displayName: NuGet restore
-          inputs:
-            command: restore
-            ${{ if eq(parameters.ShortName, 'dev') }}:
-              projects: |
-                **/*.csproj
-                !**/*.Tests.csproj
-                !**/*.UnitTests.csproj
-                !**/*.EndToEndTests.csproj
-                !**/*.UnitTestExamples.csproj
-                !**/*.BuildRequestMonitor.csproj
-            ${{ else }}:
-              projects: |
-                **/*.csproj
-                !**/*.Tests.csproj
-                !**/*.UnitTests.csproj
-                !**/*.EndToEndTests.csproj
-                !**/*.FunctionalTests.csproj
-                !**/*.UnitTestExamples.csproj
-                !**/*.BuildRequestMonitor.csproj
-            feedsToUse: config
-            noCache: true
-            nugetConfigPath: '$(Build.SourcesDirectory)/efs/BuildNuget.config'
-
-        - template: get-infrastructure-details.yml
-          parameters:
-            AzureSubscription: ${{ variables.AzureSubscription }}
-
-        - task: AzureCLI@2
-          displayName: Package application
-          inputs:
-            azureSubscription: ${{ variables.AzureSubscription }}
-            workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
-            scriptType: bash
-            scriptLocation: inlineScript
-            ${{ if eq(parameters.AdditionalDebugging, true) }}:
-              inlineScript: |
-                set -e
-                azd package --no-prompt --debug
-
-                echo "Current azd variables:"
-                echo "--------------------------------------------------------------------------------"
-                azd env get-values
-                echo "--------------------------------------------------------------------------------"
-            ${{ else }}:
-              inlineScript: |
-                azd package --no-prompt
-          env:
-            AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-            AZURE_ENV_NAME: $(AZURE_ENV_NAME)
-            AZURE_LOCATION: $(AZURE_LOCATION)
-            AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
-
-        - task: AzureCLI@2
-          displayName: Provision infrastructure
-          inputs:
-            azureSubscription: ${{ variables.AzureSubscription }}
-            workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
-            scriptType: bash
-            scriptLocation: inlineScript
-            ${{ if eq(parameters.AdditionalDebugging, true) }}:
-              inlineScript: |
-                set -e
-                azd provision --no-prompt --debug
-
-                echo "Current azd variables:"
-                echo "--------------------------------------------------------------------------------"
-                azd env get-values
-                echo "--------------------------------------------------------------------------------"
-            ${{ else }}:
-              inlineScript: |
-                azd provision --no-prompt
-          env:
-            AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-            AZURE_ENV_NAME: $(AZURE_ENV_NAME)
-            AZURE_LOCATION: $(AZURE_LOCATION)
-            AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
-            AZURE_ADDS_ENVIRONMENT: $(AZURE_ENV_NAME)
-            AZURE_EFS_RETAIN_RESOURCE_GROUP: $(AZURE_EFS_RETAIN_RESOURCE_GROUP)
-            AZURE_EFS_SERVICE_IDENTITY_NAME: $(AZURE_EFS_SERVICE_IDENTITY_NAME)
-            AZURE_EFS_LOG_ANALYTICS_WORKSPACE_NAME: $(AZURE_EFS_LOG_ANALYTICS_WORKSPACE_NAME)
-            AZURE_EFS_CONTAINER_REGISTRY_NAME: $(AZURE_EFS_CONTAINER_REGISTRY_NAME)
-            AZURE_EFS_CONTAINER_APPS_ENVIRONMENT_NAME: $(AZURE_EFS_CONTAINER_APPS_ENVIRONMENT_NAME)
-            AZURE_EFS_APPLICATION_INSIGHTS_NAME: $(AZURE_EFS_APPLICATION_INSIGHTS_NAME)
-            AZURE_EFS_EVENT_HUBS_NAMESPACE_NAME: $(AZURE_EFS_EVENT_HUBS_NAMESPACE_NAME)
-            AZURE_EFS_APP_CONFIGURATION_NAME: $(AZURE_EFS_APP_CONFIGURATION_NAME)
-            AZURE_EFS_STORAGE_ACCOUNT_NAME: $(AZURE_EFS_STORAGE_ACCOUNT_NAME)
-
-        - task: AzureCLI@2
-          displayName: Load configuration
-          inputs:
-            azureSubscription: ${{ variables.AzureSubscription }}
-            workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
-            scriptType: bash
-            scriptLocation: inlineScript
-            inlineScript: |
-              set -e
-              echo "Reading azd variables..."
-              while IFS='=' read -r key value; do
-                  value=$(echo "$value" | sed 's/^"//' | sed 's/"$//')
-                  export "$key=$value"
-              done <<EOF
-              $(azd env get-values)
-              EOF
-
-              if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
-                echo "Current environment variables:"
-                echo "--------------------------------------------------------------------------------"
-                env | sort
-                echo "--------------------------------------------------------------------------------"
-              fi
-
-              echo "Updating key vault..."
-              az keyvault secret set --name IICWorkspaceKey --vault-name ${AZURE_EFS_APP_CONFIGURATION_KV_NAME} --value $(IICWorkspaceKey)
-
-              echo "Updating configuration files..."
-              sed -i "s/{{app_config_kv_name}}/${AZURE_EFS_APP_CONFIGURATION_KV_NAME}/g" "$(Build.SourcesDirectory)/efs/configuration/configuration.json"
-              sed -i "s/{{cae_domain}}/${AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN}/g" "$(Build.SourcesDirectory)/efs/configuration/external-services.json"
-
-              if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
-                echo "configuration.json:"
-                echo "--------------------------------------------------------------------------------"
-                cat "$(Build.SourcesDirectory)/efs/configuration/configuration.json"
-                echo "--------------------------------------------------------------------------------"
-                echo "external-services.json:"
-                echo "--------------------------------------------------------------------------------"
-                cat "$(Build.SourcesDirectory)/efs/configuration/external-services.json"
-                echo "--------------------------------------------------------------------------------"
-              fi
-
-              echo "Seeding configuration..."
-              dotnet run --project $(Build.SourcesDirectory)/efs/configuration/UKHO.ADDS.Aspire.Configuration.Seeder/UKHO.ADDS.Aspire.Configuration.Seeder.csproj --configuration Release --no-restore -- "efs" "$(AZURE_ENV_NAME)" "$(Build.SourcesDirectory)/efs/configuration/configuration.json" "$(Build.SourcesDirectory)/efs/configuration/external-services.json" "$EFS_APPCONFIG_APPCONFIGENDPOINT"
-          env:
-            AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-            AZURE_ENV_NAME: $(AZURE_ENV_NAME)
-            AZURE_LOCATION: $(AZURE_LOCATION)
-            AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
-            IICWorkspaceKey: $(IICWorkspaceKey)
-
-        - template: container-app-deploy.yml
-          parameters:
-            AzureSubscription: ${{ variables.AzureSubscription }}
-            AppName: efs-redis
-            AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
-            DeployApp: ${{ parameters.DeployRedis }}
-
-        - ${{ if eq(parameters.IncludeAddsMock, true) }}:
-
-          - template: container-app-deploy.yml
-            parameters:
-              AzureSubscription: ${{ variables.AzureSubscription }}
-              AppName: adds-mocks-efs
-              AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
-              DeployApp: ${{ parameters.DeployAddsMock }}
-
-        - template: container-app-deploy.yml
-          parameters:
-            AzureSubscription: ${{ variables.AzureSubscription }}
-            AppName: efs-orchestrator
-            AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
-            DeployApp: ${{ parameters.DeployOrchestrator }}
-
-        - template: container-app-job-deploy.yml
-          parameters:
-            AzureSubscription: ${{ variables.AzureSubscription }}
-            AppName: efs-builder-s100
-            ProjectFolder: UKHO.ADDS.EFS.Builder.S100
-            BuilderType: S100
-            AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
-            DeployApp: ${{ parameters.DeployBuilderS100 }}
-
-        - template: check-container.yml
-          parameters:
-            AzureSubscription: ${{ variables.AzureSubscription }}
-            AppName: efs-orchestrator
-            MaxWaitTime: 15
-
-        - template: check-container.yml
-          parameters:
-            AzureSubscription: ${{ variables.AzureSubscription }}
-            AppName: efs-redis
-            MaxWaitTime: 15
-
-        - ${{ if eq(parameters.IncludeAddsMock, true) }}:
-
-          - template: check-container.yml
-            parameters:
-              AzureSubscription: ${{ variables.AzureSubscription }}
-              AppName: adds-mocks-efs
-              MaxWaitTime: 1
-
-        - script: |
-            DOMAIN=$(azd env get-value EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN)
-            URL="https://efs-orchestrator.$DOMAIN"
+            URL="https://efs-orchestrator.redmoss-3083029b.uksouth.azurecontainerapps.io"
             echo "Orchestrator Endpoint: $URL"
             echo "##vso[task.setvariable variable=ORCHESTRATOR_URL]$URL"
-            MockURL="https://adds-mocks-efs.$DOMAIN"
+            MockURL="https://adds-mocks-efs.redmoss-3083029b.uksouth.azurecontainerapps.io"
             echo "Adds Mock Endpoint: $MockURL"
             echo "##vso[task.setvariable variable=ADDSMOCK_URL]$MockURL"
           displayName: 'Set Endpoint Variables'
@@ -307,7 +306,7 @@ jobs:
 
         - task: DotNetCoreCLI@2
           displayName: Run Functional Tests
-          condition: and(succeeded(), eq('${{ parameters.ShortName }}', 'dev'))
+          #condition: and(succeeded(), eq('${{ parameters.ShortName }}', 'dev'))
           inputs:
             command: test
             projects: "**/UKHO.ADDS.EFS.FunctionalTests.csproj"
@@ -318,10 +317,10 @@ jobs:
             ORCHESTRATOR_URL: $(ORCHESTRATOR_URL)
             ADDSMOCK_URL: $(ADDSMOCK_URL)        
 
-- ${{ if ne(parameters.RunAddsTests, 'skip') }}:
-  - template:  template.yml@TriggerADDSAutoTestsPipeline
-    parameters:
-      serviceConnection: 'addse2eauto Test - A.011.13'
-      environment: ${{ parameters.RunAddsTests }}
-      dependsOn:
-      - ${{ parameters.ShortName }}DeployApp
+# - ${{ if ne(parameters.RunAddsTests, 'skip') }}:
+#   - template:  template.yml@TriggerADDSAutoTestsPipeline
+#     parameters:
+#       serviceConnection: 'addse2eauto Test - A.011.13'
+#       environment: ${{ parameters.RunAddsTests }}
+#       dependsOn:
+#       - ${{ parameters.ShortName }}DeployApp
