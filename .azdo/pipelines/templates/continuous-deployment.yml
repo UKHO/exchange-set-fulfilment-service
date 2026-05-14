@@ -310,7 +310,7 @@ jobs:
           inputs:
             command: test
             projects: "**/UKHO.ADDS.EFS.FunctionalTests.csproj"
-            arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)/efs/test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura --no-restore'
+            arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)/efs/test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura'
             publishTestResults: true
             testRunTitle: FunctionalTests
           env:
