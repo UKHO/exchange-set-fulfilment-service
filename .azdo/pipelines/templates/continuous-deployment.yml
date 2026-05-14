@@ -95,30 +95,30 @@ jobs:
             packageType: sdk
             version: $(SdkVersion)
 
-        # - task: DotNetCoreCLI@2
-        #   displayName: NuGet restore
-        #   inputs:
-        #     command: restore
-        #     ${{ if eq(parameters.ShortName, 'dev') }}:
-        #       projects: |
-        #         **/*.csproj
-        #         !**/*.Tests.csproj
-        #         !**/*.UnitTests.csproj
-        #         !**/*.EndToEndTests.csproj
-        #         !**/*.UnitTestExamples.csproj
-        #         !**/*.BuildRequestMonitor.csproj
-        #     ${{ else }}:
-        #       projects: |
-        #         **/*.csproj
-        #         !**/*.Tests.csproj
-        #         !**/*.UnitTests.csproj
-        #         !**/*.EndToEndTests.csproj
-        #         !**/*.FunctionalTests.csproj
-        #         !**/*.UnitTestExamples.csproj
-        #         !**/*.BuildRequestMonitor.csproj
-        #     feedsToUse: config
-        #     noCache: true
-        #     nugetConfigPath: '$(Build.SourcesDirectory)/efs/BuildNuget.config'
+        - task: DotNetCoreCLI@2
+          displayName: NuGet restore
+          inputs:
+            command: restore
+            ${{ if eq(parameters.ShortName, 'dev') }}:
+              projects: |
+                **/*.csproj
+                !**/*.Tests.csproj
+                !**/*.UnitTests.csproj
+                !**/*.EndToEndTests.csproj
+                !**/*.UnitTestExamples.csproj
+                !**/*.BuildRequestMonitor.csproj
+            ${{ else }}:
+              projects: |
+                **/*.csproj
+                !**/*.Tests.csproj
+                !**/*.UnitTests.csproj
+                !**/*.EndToEndTests.csproj
+                !**/*.FunctionalTests.csproj
+                !**/*.UnitTestExamples.csproj
+                !**/*.BuildRequestMonitor.csproj
+            feedsToUse: config
+            noCache: true
+            nugetConfigPath: '$(Build.SourcesDirectory)/efs/BuildNuget.config'
 
         # - template: get-infrastructure-details.yml
         #   parameters:
@@ -310,7 +310,7 @@ jobs:
           inputs:
             command: test
             projects: "**/UKHO.ADDS.EFS.FunctionalTests.csproj"
-            arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)/efs/test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura'
+            arguments: '--configuration $(BuildConfiguration) --settings "$(Build.SourcesDirectory)/efs/test.runsettings" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura --no-restore'
             publishTestResults: true
             testRunTitle: FunctionalTests
           env:
