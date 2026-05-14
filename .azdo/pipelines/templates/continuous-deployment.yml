@@ -89,11 +89,11 @@ jobs:
         #     azd config set auth.useAzCliAuth "true"
         #   displayName: Install azd
 
-        # - task: UseDotNet@2
-        #   displayName: Use .NET SDK $(SdkVersion)
-        #   inputs:
-        #     packageType: sdk
-        #     version: $(SdkVersion)
+        - task: UseDotNet@2
+          displayName: Use .NET SDK $(SdkVersion)
+          inputs:
+            packageType: sdk
+            version: $(SdkVersion)
 
         # - task: DotNetCoreCLI@2
         #   displayName: NuGet restore
