@@ -200,19 +200,19 @@ module efs_cae 'efs-cae/efs-cae.module.bicep' = {
   }
 }
 
-module efs_storage 'efs-storage/efs-storage.module.bicep' = {
-  name: 'efs-storage'
-  scope: app_rg
-  params: {
-    location: location
-    principalId: efs_service_identity.outputs.principalId
-    efsStorageAccountName: efsStorageAccountName
-    ipRules: ipRules
-    subnetResourceId: subnetResourceId
-    azureAgent2204SubnetId: azureAgent2204SubnetId
-    azureAgentPrdSubnetId: azureAgentPrdSubnetId
-  }
-}
+// module efs_storage 'efs-storage/efs-storage.module.bicep' = {
+//   name: 'efs-storage'
+//   scope: app_rg
+//   params: {
+//     location: location
+//     principalId: efs_service_identity.outputs.principalId
+//     efsStorageAccountName: efsStorageAccountName
+//     ipRules: ipRules
+//     subnetResourceId: subnetResourceId
+//     azureAgent2204SubnetId: azureAgent2204SubnetId
+//     azureAgentPrdSubnetId: azureAgentPrdSubnetId
+//   }
+// }
 
 module pipeline_roles 'pipeline-roles/pipeline-roles.module.bicep' = {
   name: pipelineDeploymentName
