@@ -89,12 +89,25 @@ param azureAgentPrdSubnetId string
 param azureAcrSku string
 
 var jsonObject object = json(ipRulesJson)
+
+// Debug outputs to inspect the parsed JSON and resulting array
+output DEBUG_jsonObject object = jsonObject
+output DEBUG_ipRulesJson string = ipRulesJson
+output DEBUG_ipRules array = [
+  for addressEntry in jsonObject.addresses: {
+    value: addressEntry.address
+    action: 'Allow'
+  }
+]
+
 var ipRules array = [
   for addressEntry in jsonObject.addresses: {
     value: addressEntry.address
     action: 'Allow'
   }
 ]
+output DEBUG_ipRulesCount int = length(ipRules)
+output DEBUG_ipRulesPassedToStorage array = ipRules
 
 resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
   name: resourceGroupName
