@@ -39,7 +39,7 @@ resource adds_mocks_efs 'Microsoft.App/containerApps@2025-02-02-preview' = {
         external: true
         targetPort: int(adds_mocks_efs_containerport)
         transport: 'http'
-        ipSecurityRestrictions: ipSecurityRestrictions
+        ipSecurityRestrictions: concat(ipSecurityRestrictions, [{name: 'AdditionalEntryName', description: 'Azure DevOps', ipAddressRange: '51.104.26.0/24', action: 'Allow'}])
       }
       registries: [
         {
