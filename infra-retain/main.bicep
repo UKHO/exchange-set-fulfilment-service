@@ -194,19 +194,19 @@ module efs_cae 'efs-cae/efs-cae.module.bicep' = {
   }
 }
 
-module efs_storage 'efs-storage/efs-storage.module.bicep' = {
-  name: 'efs-storage'
-  scope: app_rg
-  params: {
-    location: location
-    principalId: efs_service_identity.outputs.principalId
-    efsStorageAccountName: efsStorageAccountName
-    ipRules: ipRules
-    subnetResourceId: subnetResourceId
-    azureAgent2204SubnetId: azureAgent2204SubnetId
-    azureAgentPrdSubnetId: azureAgentPrdSubnetId
-  }
-}
+// module efs_storage 'efs-storage/efs-storage.module.bicep' = {
+//   name: 'efs-storage'
+//   scope: app_rg
+//   params: {
+//     location: location
+//     principalId: efs_service_identity.outputs.principalId
+//     efsStorageAccountName: efsStorageAccountName
+//     ipRules: ipRules
+//     subnetResourceId: subnetResourceId
+//     azureAgent2204SubnetId: azureAgent2204SubnetId
+//     azureAgentPrdSubnetId: azureAgentPrdSubnetId
+//   }
+// }
 
 module pipeline_roles 'pipeline-roles/pipeline-roles.module.bicep' = {
   name: pipelineDeploymentName
@@ -215,15 +215,15 @@ module pipeline_roles 'pipeline-roles/pipeline-roles.module.bicep' = {
   }
 }
 
-module efs_storage_diagnostic_settings 'efs-storage-diagnostic-settings/efs-storage-diagnostic-settings.module.bicep' = {
-  name: 'efs-storage-diagnostic-settings'
-  scope: app_rg
-  params: {
-    storageAccountName: efs_storage.outputs.name
-    eventHubAuthorizationRuleId: efs_events_namespace.outputs.eventHubAuthorizationRuleId
-    eventHubName: efs_events_namespace.outputs.eventHubName
-  }
-}
+// module efs_storage_diagnostic_settings 'efs-storage-diagnostic-settings/efs-storage-diagnostic-settings.module.bicep' = {
+//   name: 'efs-storage-diagnostic-settings'
+//   scope: app_rg
+//   params: {
+//     storageAccountName: efs_storage.outputs.name
+//     eventHubAuthorizationRuleId: efs_events_namespace.outputs.eventHubAuthorizationRuleId
+//     eventHubName: efs_events_namespace.outputs.eventHubName
+//   }
+// }
 
 output EFS_RETAIN_RESOURCE_GROUP string = rg.name
 output EFS_RESOURCE_GROUP string = app_rg.name
