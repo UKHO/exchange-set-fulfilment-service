@@ -70,7 +70,7 @@ param subnetResourceId string
 param zoneRedundant bool
 
 @description('Optional list of allowed IPv4 addresses or CIDR ranges as a JSON string.')
-param ipRulesJson string = '[]'
+param ipRulesJson string = '{"addresses":[]}'
 
 @minLength(1)
 @description('Agent subnet')
@@ -88,9 +88,10 @@ param azureAgentPrdSubnetId string
 ])
 param azureAcrSku string
 
-var ipRules = [
-  for ip in json(ipRulesJson): {
-    value: ip
+var jsonObject object = json(ipRulesJson)
+var ipRules array = [
+  for addressEntry in jsonObject.addresses: {
+    value: addressEntry.address
     action: 'Allow'
   }
 ]
