@@ -19,11 +19,12 @@ param addsMocksMemory string
 
 param whiteListedIps string
 
-var ipSecurityRestrictions = [
-  for ip in json(whiteListedIps): {
-    name: ip
-    description: 'Allow access from ${ip}'
-    ipAddressRange: ip
+var jsonObject object = json(whiteListedIps)
+var ipSecurityRestrictions array = [
+  for addressEntry in jsonObject.addresses: {
+    name: addressEntry.name
+    description: addressEntry.name
+    ipAddressRange: addressEntry.address
     action: 'Allow'
   }
 ]
