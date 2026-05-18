@@ -19,6 +19,8 @@ param addsMocksMemory string
 
 param whiteListedIps string
 
+param agentIpAddress string
+
 var jsonObject object = json(whiteListedIps)
 var ipSecurityRestrictions array = [
   for addressEntry in jsonObject.addresses: {
@@ -39,7 +41,7 @@ resource adds_mocks_efs 'Microsoft.App/containerApps@2025-02-02-preview' = {
         external: true
         targetPort: int(adds_mocks_efs_containerport)
         transport: 'http'
-        ipSecurityRestrictions: concat(ipSecurityRestrictions, [{name: 'AdditionalEntryName', description: 'Azure DevOps', ipAddressRange: '51.104.26.0/24', action: 'Allow'}])
+        ipSecurityRestrictions: concat(ipSecurityRestrictions, [{name: 'Azure DevOps Agent', description: 'Azure DevOps Agent', ipAddressRange: agentIpAddress, action: 'Allow'}])
       }
       registries: [
         {

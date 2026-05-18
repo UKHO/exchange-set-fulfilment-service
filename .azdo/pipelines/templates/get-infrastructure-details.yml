@@ -58,3 +58,9 @@ steps:
       echo "##vso[task.setvariable variable=AZURE_EFS_APP_CONFIGURATION_NAME;]$EFS_APP_CONFIGURATION_NAME"
       echo "##vso[task.setvariable variable=AZURE_EFS_APP_CONFIGURATION_KV_NAME;]$EFS_APP_CONFIGURATION_KV_NAME"
       echo "##vso[task.setvariable variable=AZURE_EFS_STORAGE_ACCOUNT_NAME;]$EFS_STORAGE_ACCOUNT_NAME"
+
+- pwsh: |
+    $agentIpAddress = (Invoke-WebRequest -uri "http://ifconfig.me/ip").Content
+    Write-Host "##vso[task.setvariable variable=AZURE_DEVOPS_AGENT_IP;]$agentIpAddress"
+  name: GetAgentIpAddress
+  displayName: Get agent IP address
