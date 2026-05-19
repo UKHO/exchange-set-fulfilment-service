@@ -49,8 +49,10 @@ jobs:
 - deployment: ${{ parameters.ShortName }}DeployApp
   displayName: "${{ upper(parameters.ShortName) }} - app deploy"
   environment: ${{ parameters.AzureDevOpsEnvironment }}
-  #pool: $(LinuxPool)
-  pool: Tiberius
+  pool: $(LinuxPool)
+  # pool:
+  #   name: Tiberius
+  #   demand: ENVIRONMENT -equals ENG
   workspace:
     clean: all
   variables:

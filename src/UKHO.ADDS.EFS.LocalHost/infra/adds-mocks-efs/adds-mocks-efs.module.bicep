@@ -21,15 +21,15 @@ param whiteListedIps string
 
 param agentIpAddress string
 
-var jsonObject object = json(whiteListedIps)
-var ipSecurityRestrictions array = [
-  for addressEntry in jsonObject.addresses: {
+var ips array = [
+  for addressEntry in json(whiteListedIps).addresses: {
     name: addressEntry.name
     description: addressEntry.name
     ipAddressRange: addressEntry.address
     action: 'Allow'
   }
 ]
+var ipSecurityRestrictions = concat(ips, [{name: 'Azure DevOps Agent', description: 'Azure DevOps Agent', ipAddressRange: agentIpAddress, action: 'Allow'}])
 
 resource adds_mocks_efs 'Microsoft.App/containerApps@2025-02-02-preview' = {
   name: 'adds-mocks-efs'
@@ -41,7 +41,6 @@ resource adds_mocks_efs 'Microsoft.App/containerApps@2025-02-02-preview' = {
         external: true
         targetPort: int(adds_mocks_efs_containerport)
         transport: 'http'
-        // ipSecurityRestrictions: concat(ipSecurityRestrictions, [{name: 'Azure DevOps Agent', description: 'Azure DevOps Agent', ipAddressRange: agentIpAddress, action: 'Allow'}])
         ipSecurityRestrictions: ipSecurityRestrictions
       }
       registries: [

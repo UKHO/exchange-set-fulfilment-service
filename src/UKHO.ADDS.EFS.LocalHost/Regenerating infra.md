@@ -8,20 +8,25 @@ If we need to regenerate from scratch again then you can run the `azd regenerate
 2. `efs-orchestrator.module.bicep`
    1. Change ```cpu: orchestratorCpu``` to ```cpu: json(orchestratorCpu)```.
    2. Remove the ```efs_cae_outputs_azure_container_registry_managed_identity_id``` reference from identity/useridentities collection as both identities will now be the same and duplicates aren't allowed.
-3. `adds-mocks-efs.tmpl.bicepparam` Add a new parameter ```param whiteListedIps = readEnvironmentVariable('AZURE_WHITE_LISTED_IPS')```.
+3. `adds-mocks-efs.tmpl.bicepparam` Add new parameters:
+   1. ```param whiteListedIps = readEnvironmentVariable('AZURE_WHITE_LISTED_IPS')```
+   2. ```param agentIpAddress = readEnvironmentVariable('AZURE_DEVOPS_AGENT_IP')```
 4. `adds-mocks-efs.module.bicep`
    1. Change ```cpu: addsMocksCpu``` to ```cpu: json(addsMocksCpu)```.
-   2. Add parameter ```param whiteListedIps string```.
+   2. Add parameters:
+      1. ```param whiteListedIps string```
+      2. ```param agentIpAddress string```
    3. Add code to parse the JSON string:
       ```
-      var ipSecurityRestrictions = [
-        for ip in json(whiteListedIps): {
-          name: ip
-          description: 'Allow access from ${ip}'
-          ipAddressRange: ip
+      var ips array = [
+        for addressEntry in json(whiteListedIps): {
+          name: addressEntry.name
+          description: addressEntry.name
+          ipAddressRange: addressEntry.address
           action: 'Allow'
         }
       ]
+      var ipSecurityRestrictions = concat(ips, [{name: 'Azure DevOps Agent', description: 'Azure DevOps Agent', ipAddressRange: agentIpAddress, action: 'Allow'}])
       ```
    4. Add ```ipSecurityRestrictions: ipSecurityRestrictions``` to the ingress settings of the resource.
 5. `efs-orchestrator-roles-efs-appconfig` Remove this folder and bicep file. It is generated in error.
