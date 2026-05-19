@@ -44,15 +44,21 @@ parameters:
   values:
   - 'live'
   - 'dev'
+# Select environment for Tiberius pool
+- name: TiberiusEnvironment
+  type: string
+  default: 'ENG'
+  values:
+  - 'ENG'
+  - 'BUS'
 
 jobs:
 - deployment: ${{ parameters.ShortName }}DeployApp
   displayName: "${{ upper(parameters.ShortName) }} - app deploy"
   environment: ${{ parameters.AzureDevOpsEnvironment }}
-  pool: $(LinuxPool)
-  # pool:
-  #   name: Tiberius
-  #   demand: ENVIRONMENT -equals ENG
+  pool:
+    name: $(LinuxPool)
+    demand: ENVIRONMENT -equals ${{ parameters.TiberiusEnvironment }}
   workspace:
     clean: all
   variables:

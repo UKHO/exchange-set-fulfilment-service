@@ -59,7 +59,7 @@ variables:
   - name: WindowsPool
     value: "Mare Nubium"
   - name: LinuxPool
-    value: "Mare Nectaris"
+    value: "Tiberius"
   - name: snykAbzuOrganizationId
     value: aeb7543b-8394-457c-8334-a31493d8910d
 
@@ -252,3 +252,4 @@ stages:
         IncludeAddsMock: false
         DeployRedis: ${{ parameters.DeployRedis }}
         IICWorkspace: live
+        TiberiusEnvironment: BUS

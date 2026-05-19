@@ -19,9 +19,9 @@ param addsMocksMemory string
 
 param whiteListedIps string
 
-param agentIpAddress string
+//param agentIpAddress string
 
-var ips array = [
+var ipSecurityRestrictions array = [
   for addressEntry in json(whiteListedIps).addresses: {
     name: addressEntry.name
     description: addressEntry.name
@@ -29,7 +29,7 @@ var ips array = [
     action: 'Allow'
   }
 ]
-var ipSecurityRestrictions = concat(ips, [{name: 'Azure DevOps Agent', description: 'Azure DevOps Agent', ipAddressRange: agentIpAddress, action: 'Allow'}])
+//var ipSecurityRestrictions = concat(ips, [{name: 'Azure DevOps Agent', description: 'Azure DevOps Agent', ipAddressRange: agentIpAddress, action: 'Allow'}])
 
 resource adds_mocks_efs 'Microsoft.App/containerApps@2025-02-02-preview' = {
   name: 'adds-mocks-efs'
