@@ -41,7 +41,7 @@ namespace UKHO.ADDS.EFS.FunctionalTests.IO
                         throw; // rethrow to be handled below
                     }
                 }
-                catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound && retryCount < maxRetries - 1)
+                catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound && retryCount < maxRetries - 1)
                 {
                     // Only retry for 404 errors as the httpClient already has resilience for other error types
                     // StatusCode can be null for some failures; in that case, this filter won't match and will not retry here)
