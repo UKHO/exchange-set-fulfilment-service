@@ -14,6 +14,6 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Configuration
         // External URLs
         public const string ValidCallbackUrl = "https://valid.com/callback";
         public const string LocalhostCallbackMockUrl = "https://adds-mocks-efs/callback/callback";
-        public const string AzureCallbackMockUrl = "https://adds-mocks-efs.redmoss-3083029b.uksouth.azurecontainerapps.io/callback/callback";
+        public const string AzureCallbackMockUrl = "https://adds-mocks-efs.internal.redmoss-3083029b.uksouth.azurecontainerapps.io/callback/callback";
     }
 }
