@@ -58,7 +58,7 @@ jobs:
   environment: ${{ parameters.AzureDevOpsEnvironment }}
   pool:
     name: $(LinuxPool)
-    demand: ENVIRONMENT -equals ${{ parameters.TiberiusEnvironment }}
+    demands: ENVIRONMENT -equals ${{ parameters.TiberiusEnvironment }}
   workspace:
     clean: all
   variables:
