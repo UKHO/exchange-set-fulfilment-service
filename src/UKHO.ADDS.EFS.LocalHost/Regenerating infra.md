@@ -15,18 +15,16 @@ If we need to regenerate from scratch again then you can run the `azd regenerate
    1. Change ```cpu: addsMocksCpu``` to ```cpu: json(addsMocksCpu)```.
    2. Add parameters:
       1. ```param whiteListedIps string```
-      2. ```param agentIpAddress string```
    3. Add code to parse the JSON string:
       ```
-      var ips array = [
-        for addressEntry in json(whiteListedIps): {
+      var ipSecurityRestrictions array = [
+        for addressEntry in json(whiteListedIps).addresses: {
           name: addressEntry.name
           description: addressEntry.name
           ipAddressRange: addressEntry.address
           action: 'Allow'
         }
       ]
-      var ipSecurityRestrictions = concat(ips, [{name: 'Azure DevOps Agent', description: 'Azure DevOps Agent', ipAddressRange: agentIpAddress, action: 'Allow'}])
       ```
    4. Add ```ipSecurityRestrictions: ipSecurityRestrictions``` to the ingress settings of the resource.
 5. `efs-orchestrator-roles-efs-appconfig` Remove this folder and bicep file. It is generated in error.
