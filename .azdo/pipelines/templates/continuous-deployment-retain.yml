@@ -43,7 +43,7 @@ jobs:
               if [ "$roleExists" -eq "0" ]; then
                 echo "Assigning 'Key Vault Secrets Officer' role to pipeline client principal..."
                 #az role assignment create --assignee $PIPELINE_CLIENT_OBJECT_ID --role b86a8fe4-44ce-4948-aee5-eccb2c155cd7 --scope /subscriptions/$AZURE_SUBSCRIPTION_ID
-                az role assignment create --assignee $PIPELINE_CLIENT_OBJECT_ID --role 7f951dda-4ed3-4680-a7ca-43fe172d538d --scope /subscriptions/$AZURE_SUBSCRIPTION_ID --assignee-principal-type ServicePrincipal
+                az role assignment create --assignee-object-id $PIPELINE_CLIENT_OBJECT_ID --role 7f951dda-4ed3-4680-a7ca-43fe172d538d --scope /subscriptions/$AZURE_SUBSCRIPTION_ID --assignee-principal-type ServicePrincipal
               else
                 echo "'Key Vault Secrets Officer' role already assigned to pipeline client principal, skipping assignment"
               fi
