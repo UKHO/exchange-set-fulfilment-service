@@ -29,24 +29,23 @@ jobs:
         - download: none
 
         - task: AzureCLI@2
-          displayName: Deploy permanent infrastructure
+          displayName: Check Key Vault Secrets Officer role
           inputs:
             azureSubscription: ${{ variables.AzureSubscription }}
             workingDirectory: $(Build.SourcesDirectory)
             scriptType: bash
             scriptLocation: inlineScript
             inlineScript: |
-              set -e
               #7f951dda-4ed3-4680-a7ca-43fe172d538d
-              #$roleExists=$(az role assignment list --scope /subscriptions/$AZURE_SUBSCRIPTION_ID --role b86a8fe4-44ce-4948-aee5-eccb2c155cd7 --assignee $PIPELINE_CLIENT_OBJECT_ID --query "[] | length(@)")
-              $roleExists=$(az role assignment list --scope /subscriptions/$AZURE_SUBSCRIPTION_ID --role 7f951dda-4ed3-4680-a7ca-43fe172d538d --assignee $PIPELINE_CLIENT_OBJECT_ID --query "[] | length(@)")
+              #roleExists=$(az role assignment list --scope /subscriptions/$AZURE_SUBSCRIPTION_ID --role b86a8fe4-44ce-4948-aee5-eccb2c155cd7 --assignee $PIPELINE_CLIENT_OBJECT_ID --query "[] | length(@)")
+              roleExists=$(az role assignment list --scope /subscriptions/$AZURE_SUBSCRIPTION_ID --role 7f951dda-4ed3-4680-a7ca-43fe172d538d --assignee $PIPELINE_CLIENT_OBJECT_ID --query "[] | length(@)")
 
               if [ "$roleExists" -eq "0" ]; then
-                echo "Assigning 'User Access Administrator' role to pipeline client principal..."
+                echo "Assigning 'Key Vault Secrets Officer' role to pipeline client principal..."
                 #az role assignment create --assignee $PIPELINE_CLIENT_OBJECT_ID --role b86a8fe4-44ce-4948-aee5-eccb2c155cd7 --scope /subscriptions/$AZURE_SUBSCRIPTION_ID
                 az role assignment create --assignee $PIPELINE_CLIENT_OBJECT_ID --role 7f951dda-4ed3-4680-a7ca-43fe172d538d --scope /subscriptions/$AZURE_SUBSCRIPTION_ID --assignee-principal-type ServicePrincipal
               else
-                echo "'User Access Administrator' role already assigned to pipeline client principal, skipping assignment"
+                echo "'Key Vault Secrets Officer' role already assigned to pipeline client principal, skipping assignment"
               fi
           env:
             PIPELINE_CLIENT_OBJECT_ID: $(PIPELINE-CLIENT-OBJECT-ID)
