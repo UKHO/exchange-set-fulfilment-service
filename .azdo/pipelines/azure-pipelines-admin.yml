@@ -65,21 +65,21 @@ variables:
   value: "ukhydrographicoffice/terraform-azure-powershell-unzip:1.13.0"
 
 stages:
-# - stage: VulnerabilityChecks
-#   displayName: Checks
-#   dependsOn: []
-#   jobs:
-#   - template: templates/checks.yml
-#     parameters:
-#       SnykOnlyFailIfFixable: ${{ parameters.SnykOnlyFailIfFixable }}
-#       SnykPassOnIssues: ${{ parameters.SnykPassOnIssues }}
-#       IacOnly: true
+- stage: VulnerabilityChecks
+  displayName: Checks
+  dependsOn: []
+  jobs:
+  - template: templates/checks.yml
+    parameters:
+      SnykOnlyFailIfFixable: ${{ parameters.SnykOnlyFailIfFixable }}
+      SnykPassOnIssues: ${{ parameters.SnykPassOnIssues }}
+      IacOnly: true
 
 - ${{ if eq(parameters.DeployPermanentResources, true) }}:
 
   - stage: DevDeploy
-    dependsOn: []
-    #- VulnerabilityChecks
+    dependsOn:
+    - VulnerabilityChecks
     displayName: Dev deploy
     jobs:
     - template: templates/continuous-deployment-retain.yml
