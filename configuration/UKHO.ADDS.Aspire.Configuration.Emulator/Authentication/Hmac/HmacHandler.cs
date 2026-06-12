@@ -17,7 +17,7 @@ public class HmacHandler(IOptionsMonitor<HmacOptions> options, ILoggerFactory lo
         AuthenticationParameters.Credential,
         AuthenticationParameters.Signature
     };
-    
+
     private IDictionary<string, IEnumerable<string>> RequiredSignedHeaders { get; } = new Dictionary<string, IEnumerable<string>>
     {
         { HeaderNames.Date, new List<string> { HeaderNames.XMsDate, HeaderNames.Date } },
@@ -146,12 +146,14 @@ public class HmacHandler(IOptionsMonitor<HmacOptions> options, ILoggerFactory lo
         return Convert.ToBase64String(await sha256.ComputeHashAsync(content));
     }
 
+    private static string SanitiseForLog(string value) => value.Replace("\r", string.Empty).Replace("\n", string.Empty);
+
     private string ComputeHash(string value)
     {
         Logger.LogDebug("Constructing a new HMAC-SHA-256 instance with the secret '{Secret}'.", Options.Secret);
         using var hmac = new HMACSHA256(Convert.FromBase64String(Options.Secret));
 
-        Logger.LogDebug("Computing the HMAC-SHA-256 hash of the value '{Value}'.", value);
+        Logger.LogDebug("Computing the HMAC-SHA-256 hash of the value '{Value}'.", SanitiseForLog(value));
         return Convert.ToBase64String(hmac.ComputeHash(Encoding.ASCII.GetBytes(value)));
     }
 
@@ -160,7 +162,7 @@ public class HmacHandler(IOptionsMonitor<HmacOptions> options, ILoggerFactory lo
         var builder = new StringBuilder();
 
         var method = Request.Method.ToUpper();
-        Logger.LogDebug("Appending the method '{Method}' to the string to sign.", method);
+        Logger.LogDebug("Appending the method '{Method}' to the string to sign.", SanitiseForLog(method));
         builder.Append($"{method}\n");
 
         var target = Context.Features.GetRequiredFeature<IHttpRequestFeature>().RawTarget;
@@ -179,10 +181,10 @@ public class HmacHandler(IOptionsMonitor<HmacOptions> options, ILoggerFactory lo
                 Logger.LogDebug("Removing the port from the host request header value.");
                 signedHeadersValue = signedHeadersValue[..signedHeadersValue.IndexOf(':')];
             }
-            Logger.LogDebug("Adding the signed headers value '{Value}' to the signed headers values.", signedHeadersValue);
+            Logger.LogDebug("Adding the signed headers value '{Value}' to the signed headers values.", SanitiseForLog(signedHeadersValue));
             signedHeadersValues.Add(signedHeadersValue);
         }
-        Logger.LogDebug("Appending the signed headers values '{Values}' to the string to sign.", signedHeadersValues);
+        Logger.LogDebug("Appending the signed headers values '{Values}' to the string to sign.", SanitiseForLog(string.Join(";", signedHeadersValues)));
         builder.AppendJoin(';', signedHeadersValues);
 
         return ComputeHash(builder.ToString());
@@ -213,7 +215,7 @@ public class HmacHandler(IOptionsMonitor<HmacOptions> options, ILoggerFactory lo
         public const string Date = "Date";
 
         public const string Host = "Host";
-        
+
         public const string WwwAuthenticate = "WWW-Authenticate";
 
         public const string XMsContentSha256 = "x-ms-content-sha256";
