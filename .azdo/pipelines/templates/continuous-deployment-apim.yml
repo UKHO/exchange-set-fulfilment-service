@@ -91,6 +91,6 @@ jobs:
             TF_VAR_apim_name: $(APIM_SERVICE_NAME)
             TF_VAR_apim_api_backend_url: https://efs-orchestrator.$(AZURE_EFS_CONTAINER_APPS_ENVIRONMENT_DEFAULTDOMAIN)
             TF_VAR_b2c_token_issuer: $(APIM_B2C_TOKEN_ISSUER)
-            TF_VAR_b2c_client_id: $(AZURE_EFS_B2C_APP_CLIENTID)
-            TF_VAR_client_credentials_tenant_id: $(AZURE_EFS_B2C_APP_TENANTID)
-            TF_VAR_client_credentials_scope: "$(AZURE_EFS_B2C_APP_CLIENTID)/.default"
+            TF_VAR_b2c_client_id: $(AZURE_EFS_B2C_APP_CLIENT_ID)
+            TF_VAR_client_credentials_tenant_id: $(AZURE_EFS_B2C_APP_TENANT_ID)
+            TF_VAR_client_credentials_scope: "$(AZURE_EFS_B2C_APP_CLIENT_ID)/.default"
