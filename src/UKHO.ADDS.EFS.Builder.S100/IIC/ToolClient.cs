@@ -13,7 +13,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.IIC
     public class ToolClient : IToolClient
     {
         private readonly HttpClient _httpClient;
-        private const string ApiVersion = "7.6";
+        private const string ApiVersion = "7.7";
         private const string ApplicationName = "IICToolAPI";
         private const string AddExchangeSet = "addExchangeSet";
         private const string AddContent = "addContent";

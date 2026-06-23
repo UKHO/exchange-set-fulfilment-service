@@ -90,7 +90,7 @@ jobs:
               cp "$(Build.SourcesDirectory)/pvtefs/efs-live-root.tar.gz" "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Builder.S100/root.tar.gz"
             fi
 
-            cp "$(Build.SourcesDirectory)/pvtefs/xchg-7.6.war" "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Builder.S100/xchg-7.6.war"
+            cp "$(Build.SourcesDirectory)/pvtefs/xchg-7.7.war" "$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.Builder.S100/xchg-7.7.war"
           condition: eq('${{ parameters.DeployBuilderS100 }}', true)
           displayName: Copy S100 builder files
 

@@ -224,7 +224,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             {
                 var workspaceFile = Path.Combine(srcDirectory, projectName, "efs-nonlive-root.tar.gz");
                 var imageWorkspaceFile = Path.Combine(srcDirectory, projectName, "root.tar.gz");
-                var iicToolFile = Path.Combine(srcDirectory, projectName, "xchg-7.6.war");
+                var iicToolFile = Path.Combine(srcDirectory, projectName, "xchg-7.7.war");
 
                 if (File.Exists(workspaceFile) && File.Exists(iicToolFile))
                 {
@@ -232,7 +232,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                 }
                 else
                 {
-                    throw new FileNotFoundException("The IIC Tool files efs-nonlive-root.tar.gz and xchg-7.6.war are missing.");
+                    throw new FileNotFoundException("The IIC Tool files efs-nonlive-root.tar.gz and xchg-7.7.war are missing.");
                 }
             }
 
