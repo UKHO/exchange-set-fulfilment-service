@@ -29,7 +29,6 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Assertions
 
             // Get distinct directory paths from source archive
             var sourceDirectories = sourceArchive.Entries
-                //.Where(x => x.Length > 0)
                 .Select(e => GetDirectoryPath(e.FullName))
                 .Distinct()
                 .OrderBy(e => e)
@@ -39,7 +38,6 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Assertions
 
             // Get distinct directory paths from target archive
             var targetDirectories = targetArchive.Entries
-                //.Where(x => x.Length > 0)
                 .Select(e => GetDirectoryPath(e.FullName))
                 .Distinct()
                 .OrderBy(e => e)
