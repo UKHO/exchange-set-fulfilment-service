@@ -148,7 +148,7 @@
         "SalesCatalogue": {
             "endpoints": [
                 {
-                    "url": "https://salescataloguelive.ukho.gov.uk",
+                    "url": "https://salescatalogue.ukho.gov.uk",
                     "tag": ""
                 }
             ],
