@@ -43,7 +43,8 @@ namespace UKHO.ADDS.EFS.Orchestrator
                         ConfigureSerilog(lc, services, builder.Configuration, oltpEndpoint)
                             .Enrich.WithProperty("Environment", environment.Value)
                             .Enrich.WithProperty("System", ServiceConfiguration.ServiceName)
-                            .Enrich.WithProperty("Service", ServiceConfiguration.ServiceName)
+                            .Enrich.WithProperty("Service", ServiceConfiguration.ServiceName),
+                        writeToProviders: true
                     );
                 }
                 else
@@ -61,7 +62,8 @@ namespace UKHO.ADDS.EFS.Orchestrator
                                 options.EventHubFullyQualifiedNamespace = fullyQualifiedNamespace;
                                 options.EventHubEntityPath = eventHubName;
                                 options.TokenCredential = new DefaultAzureCredential();
-                            })
+                            }),
+                        writeToProviders: true
                     );
 
                     builder.Services.AddAllElasticApm();
