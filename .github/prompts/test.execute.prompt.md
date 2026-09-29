@@ -56,7 +56,7 @@ High-level Workflow
 2) Determine target test project(s)
 - For scope src/[Project], expected test project: test/[Project].UnitTests.
 - If missing, create a new test project with:
-  - TargetFramework net9.0; IsPackable=false; Nullable=enable.
+  - TargetFramework net10.0; IsPackable=false; Nullable=enable.
   - Packages: xunit, xunit.runner.visualstudio (PrivateAssets=all), Microsoft.NET.Test.Sdk, Shouldly, coverlet.collector (PrivateAssets=all).
   - For Blazor tests: add bunit when the source project is Blazor.
 
@@ -68,8 +68,8 @@ High-level Workflow
 
 3a) Remove NUnit tests and migrate (mandatory)
 - Coverage pre-check before migration:
-  - For each NUnit test file, compare the behaviors it covers against the approved plan’s mapping and existing xUnit/Shouldly tests.
-  - If the NUnit test’s behaviors are already covered by the plan/tests, delete the NUnit file instead of migrating it.
+  - For each NUnit test file, compare the behaviors it covers against the approved planâ€™s mapping and existing xUnit/Shouldly tests.
+  - If the NUnit testâ€™s behaviors are already covered by the plan/tests, delete the NUnit file instead of migrating it.
   - If not covered, migrate the NUnit test following the rules below.
 - Identify NUnit usage across the repository:
   - Namespaces: using NUnit.Framework; using NUnit; aliases to NUnit Assert/Constraints
@@ -131,7 +131,7 @@ High-level Workflow
 - Use xUnit collection/class fixtures when sharing expensive setup across tests.
 
 8) Apply plan work items
-- Execute the plan’s checklist tasks (scaffold files, move/rename, package cleanup).
+- Execute the planâ€™s checklist tasks (scaffold files, move/rename, package cleanup).
 
 9) Validate locally
 - dotnet restore

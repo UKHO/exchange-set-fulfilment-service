@@ -1,5 +1,5 @@
-﻿# Use the .NET 9 SDK image for build *and* run
-FROM mcr.microsoft.com/dotnet/sdk:9.0
+# Use the .NET 9 SDK image for build *and* run
+FROM mcr.microsoft.com/dotnet/sdk:10.0
 
 # Optional build configuration argument (default to Release)
 ARG BUILD_CONFIGURATION=Release

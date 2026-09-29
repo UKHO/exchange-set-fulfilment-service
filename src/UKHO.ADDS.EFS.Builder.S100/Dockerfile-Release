@@ -1,4 +1,4 @@
-﻿#
+#
 # This dockerfile builds the EFS S100 Builder container. It is based on the Eclipse Temurin JDK 8 base (Ubuntu)
 #
 # It creates the .NET 9 SDK layer and builds the S100 Builder application into /app/build.
@@ -6,7 +6,7 @@
 # Then it copies the .Net build artifacs to /dotnet and sets this as the ENTRYPOINT
 # for the container. 
 #
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 
 ARG BUILD_CONFIGURATION=Release
 
@@ -207,7 +207,7 @@ RUN wget -q https://packages.microsoft.com/config/ubuntu/22.04/prod.list -O /etc
 
 # Install the .NET runtime 
 RUN apt-get update && \
-    apt-get install -y aspnetcore-runtime-9.0
+    apt-get install -y aspnetcore-runtime-10.0
 
 	
 

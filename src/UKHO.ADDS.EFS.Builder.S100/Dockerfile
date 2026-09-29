@@ -1,8 +1,8 @@
-﻿#
+#
 # This dockerfile builds the EFS S100 Builder container. It is based on the Eclipse Temurin JDK 8 base (Ubuntu)
 #
 # It downloads and builds the Tomcat source, configures Tomcat and installs the IIC WAR application. It then
-# downloads and installs the .NET 9 SDK, builds the S100 Builder application and sets this as the ENTRYPOINT
+# downloads and installs the .NET 10 SDK, builds the S100 Builder application and sets this as the ENTRYPOINT
 # for the container. 
 #
 
@@ -174,10 +174,10 @@ RUN apt-get update && \
 
 RUN wget -q https://packages.microsoft.com/keys/microsoft.asc -O /etc/apt/trusted.gpg.d/microsoft.asc
 
-RUN wget -q https://packages.microsoft.com/config/ubuntu/20.04/prod.list -O /etc/apt/sources.list.d/dotnetdev.list
+RUN wget -q https://packages.microsoft.com/config/ubuntu/22.04/prod.list -O /etc/apt/sources.list.d/dotnetdev.list
 
 RUN apt-get update && \
-    apt-get install -y dotnet-sdk-9.0
+    apt-get install -y dotnet-sdk-10.0
 
 ARG BUILD_CONFIGURATION=Debug
 

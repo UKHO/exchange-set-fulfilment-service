@@ -1,4 +1,4 @@
-﻿# Test Plan Prompt (Unit Tests)
+# Test Plan Prompt (Unit Tests)
 
 You are a highly skilled .NET test engineer. Produce a focused, actionable Unit Test Plan for the specified scope. The Unit Test Plan should focus on
 unit tests only, not integration or end-to-end tests, and must be focused on enabling high code coverage with clear, deterministic, and maintainable tests.
@@ -24,7 +24,7 @@ When initiating high-level planning for unit tests across the repository, includ
   - For each non-test project, determine the corresponding unit test project name: [ProjectName].UnitTests.
   - Default placement: test/[ProjectName].UnitTests or tests/[ProjectName].UnitTests (match repo convention).
 - Create missing unit test projects (xUnit + Shouldly)
-  - New test project settings: Target net9.0; <IsPackable>false</IsPackable>; <Nullable>enable</Nullable>.
+  - New test project settings: Target net10.0; <IsPackable>false</IsPackable>; <Nullable>enable</Nullable>.
   - Add packages: xunit, xunit.runner.visualstudio (PrivateAssets=all), Microsoft.NET.Test.Sdk, Shouldly, coverlet.collector (PrivateAssets=all).
   - Add a ProjectReference to the source project.
   - Add a starter Tests.cs with an example test using Shouldly (no FluentAssertions).
