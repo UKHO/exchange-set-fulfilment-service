@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="BouncyCastle.Cryptography" Version="2.7.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.20" />
     <PackageReference Include="UKHO.ADDS.Mocks" Version="1.0.60702-rc.1" />
     <PackageReference Include="UKHO.FakePenrose.S100SampleExchangeSets" Version="3.1.60226.1" /> 
