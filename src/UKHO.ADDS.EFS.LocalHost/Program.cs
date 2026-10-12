@@ -78,11 +78,10 @@ namespace UKHO.ADDS.EFS.LocalHost
                 ? builder.AddAzureEventHubs(ServiceConfiguration.EventHubsNamespaceName).PublishAsExisting(efsEventHubsNamespaceName!, efsRetainResourceGroup)
                 : null;
 
-            // Container registry
-            var acr = builder.AddAzureContainerRegistry(ServiceConfiguration.ContainerRegistryName).PublishAsExistingWithNullCheck(efsContainerRegistryName, null);
-
             // Container apps environment
-            var acaEnv = builder.AddAzureContainerAppEnvironment(ServiceConfiguration.AcaEnvironmentName).PublishAsExistingWithNullCheck(efsContainerAppsEnvironmentName, efsRetainResourceGroup);
+            var acaEnv = builder.AddAzureContainerAppEnvironment(ServiceConfiguration.AcaEnvironmentName)
+                .PublishAsExistingWithNullCheck(efsContainerAppsEnvironmentName, efsRetainResourceGroup);
+            acaEnv.GetAzureContainerRegistry().PublishAsExistingWithNullCheck(efsContainerRegistryName, null);
 
             // Storage configuration
             var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e => { e.WithDataVolume(); }).PublishAsExistingWithNullCheck(efsStorageAccountName, null);
