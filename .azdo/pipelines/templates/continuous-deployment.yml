@@ -137,16 +137,8 @@ jobs:
           parameters:
             AzureSubscription: ${{ variables.AzureSubscription }}
 
-        - task: DotNetCoreCLI@2
-          displayName: Build AppHost
-          inputs:
-            command: build
-            projects: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost/UKHO.ADDS.EFS.LocalHost.csproj
-            arguments: --no-restore
-
         - task: AzureCLI@2
           displayName: Package application
-          timeoutInMinutes: 20
           inputs:
             azureSubscription: ${{ variables.AzureSubscription }}
             workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
