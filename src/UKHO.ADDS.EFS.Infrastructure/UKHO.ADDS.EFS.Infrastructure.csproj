@@ -12,6 +12,7 @@
 </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Aspire.Microsoft.Extensions.Configuration.AzureAppConfiguration" Version="13.5.4" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.12" />
     <PackageReference Include="Microsoft.Extensions.Telemetry.Abstractions" Version="10.7.0" />
     <PackageReference Include="Microsoft.Identity.Web" Version="4.12.2" />
