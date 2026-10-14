@@ -1,12 +1,12 @@
 ﻿#
 # This dockerfile builds the EFS S100 Builder container. It is based on the Eclipse Temurin JDK 8 base (Ubuntu)
 #
-# It creates the .NET 9 SDK layer and builds the S100 Builder application into /app/build.
-# It downloads and builds the Tomcat source, configures Tomcat and installs the IIC WAR application.
+# It creates the .NET 10 SDK layer and builds the S100 Builder application into /app/build.
+# It downloads
 # Then it copies the .Net build artifacs to /dotnet and sets this as the ENTRYPOINT
 # for the container. 
 #
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 
 ARG BUILD_CONFIGURATION=Release
 
@@ -195,19 +195,11 @@ RUN apt-get update && \
     apt-transport-https \
     software-properties-common 
 
-# Add Microsoft package signing key
-RUN wget -q https://packages.microsoft.com/keys/microsoft.asc -O /etc/apt/trusted.gpg.d/microsoft.asc
-
-# Note: As of July 2025, official Microsoft package repositories for Ubuntu 24.04 may not be fully signed or supported.
-# noble is the codename for Ubuntu 24.04 LTS ("Noble Numbat"), the distro the IIC tool is installed on
-# For now we must get the runtime from ubuntu 22.04 repository.
-
-RUN wget -q https://packages.microsoft.com/config/ubuntu/22.04/prod.list -O /etc/apt/sources.list.d/dotnetdev.list
-
+# .NET 10 is available from the Ubuntu 24.04 (noble) archive, so no Microsoft package feed is needed.
 
 # Install the .NET runtime 
 RUN apt-get update && \
-    apt-get install -y aspnetcore-runtime-9.0
+    apt-get install -y aspnetcore-runtime-10.0
 
 	
 
