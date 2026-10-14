@@ -1,5 +1,5 @@
-﻿using Xunit;
-using Xunit.Abstractions;
+﻿using Xunit.Abstractions;
+using Xunit;
 
 namespace UKHO.ADDS.EFS.UnitTests.Steps.Tests
 {
