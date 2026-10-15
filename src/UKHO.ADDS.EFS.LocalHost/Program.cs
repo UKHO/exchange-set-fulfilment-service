@@ -28,9 +28,17 @@ namespace UKHO.ADDS.EFS.LocalHost
             var builder = DistributedApplication.CreateBuilder(args);
             builder.Configuration.SetBasePath(Directory.GetCurrentDirectory());
 
+            Log.Information("Before BuildEfs");
+
             await BuildEfs(builder);
 
+            Log.Information("After BuildEfs");
+
+            Log.Information("Before Build");
+
             var application = builder.Build();
+
+            Log.Information("After Build");
 
             await application.RunAsync();
 
@@ -39,7 +47,10 @@ namespace UKHO.ADDS.EFS.LocalHost
 
         private static async Task BuildEfs(IDistributedApplicationBuilder builder)
         {
+            Log.Information("BUILD EFS START");
+
             // Get parameters
+            Log.Information("PARAMETERS");
             var efsServiceIdentityName = builder.AddPublishOnlyParameter("efsServiceIdentityName");
             var efsRetainResourceGroup = builder.AddPublishOnlyParameter("efsRetainResourceGroup");
             var efsContainerAppsEnvironmentName = builder.AddPublishOnlyParameter("efsContainerAppsEnvironmentName");
@@ -66,30 +77,36 @@ namespace UKHO.ADDS.EFS.LocalHost
             var efsB2cAppSigninPolicy = builder.AddPublishOnlyParameter("efsB2cAppSigninPolicy");
 
             // Existing user managed identity
+            Log.Information("IDENTITY");
             var efsServiceIdentity = builder.AddAzureUserAssignedIdentity(ServiceConfiguration.EfsServiceIdentity).PublishAsExistingWithNullCheck(efsServiceIdentityName, efsRetainResourceGroup);
 
             // App insights
+            Log.Information("APP INSIGHTS");
             var appInsights = builder.ExecutionContext.IsPublishMode
                 ? builder.AddAzureApplicationInsights(ServiceConfiguration.AppInsightsName).PublishAsExisting(efsApplicationInsightsName!, null)
                 : null;
 
             // Event hubs
+            Log.Information("EVENT HUBS");
             var eventHubs = builder.ExecutionContext.IsPublishMode
                 ? builder.AddAzureEventHubs(ServiceConfiguration.EventHubsNamespaceName).PublishAsExisting(efsEventHubsNamespaceName!, efsRetainResourceGroup)
                 : null;
 
             // Container apps environment
+            Log.Information("ACA ENV");
             var acaEnv = builder.AddAzureContainerAppEnvironment(ServiceConfiguration.AcaEnvironmentName)
                 .PublishAsExistingWithNullCheck(efsContainerAppsEnvironmentName, efsRetainResourceGroup);
             acaEnv.GetAzureContainerRegistry().PublishAsExistingWithNullCheck(efsContainerRegistryName, null);
 
             // Storage configuration
+            Log.Information("STORAGE");
             var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e => { e.WithDataVolume(); }).PublishAsExistingWithNullCheck(efsStorageAccountName, null);
             var storageQueue = storage.AddQueues(StorageConfiguration.QueuesName);
             var storageTable = storage.AddTables(StorageConfiguration.TablesName);
             var storageBlob = storage.AddBlobs(StorageConfiguration.BlobsName);
 
             // Redis cache
+            Log.Information("REDIS");
             var redisCache = builder.AddRedis(ProcessNames.RedisCache)
                 .WithRedisInsight()
                 .PublishAsAzureContainerApp((infra, app) =>
@@ -98,6 +115,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                 });
 
             // ADDS Mock
+            Log.Information("MOCK SERVICE");
             var mockService = builder.AddProject<UKHO_ADDS_Mocks_EFS>(ProcessNames.MockService)
                 .WithDashboard("Dashboard")
                 .WithExternalHttpEndpoints();
@@ -116,6 +134,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             }
 
             // Build Request Monitor
+            Log.Information("REQUEST MONITOR");
             IResourceBuilder<ProjectResource>? requestMonitor = null;
 
             if (builder.ExecutionContext.IsRunMode)
@@ -130,6 +149,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             }
 
             // Orchestrator
+            Log.Information("ORCHESTRATOR");
             var orchestratorService = builder.AddProject<UKHO_ADDS_EFS_Orchestrator>(ProcessNames.OrchestratorService)
                 .WithReference(storageQueue)
                 .WaitFor(storageQueue)
@@ -177,6 +197,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             }
 
             // Configuration
+            Log.Information("CONFIGURATION");
             if (builder.ExecutionContext.IsRunMode)
             {
                 builder.AddConfigurationEmulator(ServiceConfiguration.ServiceName, [orchestratorService, requestMonitor!], [mockService], @"../../configuration/configuration.json", @"../../configuration/external-services.json");
@@ -185,7 +206,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             {
                 var appConfig = builder.AddConfiguration(ProcessNames.ConfigurationService, addsEnvironment!, [orchestratorService]).PublishAsExistingWithNullCheck(efsAppConfigurationName, null);
             }
-
+            Log.Information("BUILD EFS END");
             //if (builder.ExecutionContext.IsRunMode)
             //{
             //    var appRootPath = builder.Environment.ContentRootPath;
