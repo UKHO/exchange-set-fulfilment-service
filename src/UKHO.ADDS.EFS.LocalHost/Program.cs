@@ -186,13 +186,13 @@ namespace UKHO.ADDS.EFS.LocalHost
                 var appConfig = builder.AddConfiguration(ProcessNames.ConfigurationService, addsEnvironment!, [orchestratorService]).PublishAsExistingWithNullCheck(efsAppConfigurationName, null);
             }
 
-            if (builder.ExecutionContext.IsRunMode)
-            {
-                var appRootPath = builder.Environment.ContentRootPath;
-                await CreateBuilderContainerImages(ProcessNames.S100Builder, "latest", "UKHO.ADDS.EFS.Builder.S100", appRootPath);
-                await CreateBuilderContainerImages(ProcessNames.S63Builder, "latest", "UKHO.ADDS.EFS.Builder.S63", appRootPath);
-                await CreateBuilderContainerImages(ProcessNames.S57Builder, "latest", "UKHO.ADDS.EFS.Builder.S57", appRootPath);
-            }
+            //if (builder.ExecutionContext.IsRunMode)
+            //{
+            //    var appRootPath = builder.Environment.ContentRootPath;
+            //    await CreateBuilderContainerImages(ProcessNames.S100Builder, "latest", "UKHO.ADDS.EFS.Builder.S100", appRootPath);
+            //    await CreateBuilderContainerImages(ProcessNames.S63Builder, "latest", "UKHO.ADDS.EFS.Builder.S63", appRootPath);
+            //    await CreateBuilderContainerImages(ProcessNames.S57Builder, "latest", "UKHO.ADDS.EFS.Builder.S57", appRootPath);
+            //}
         }
 
         private static async Task CreateBuilderContainerImages(string name, string tag, string projectName, string appRootDirectory)
