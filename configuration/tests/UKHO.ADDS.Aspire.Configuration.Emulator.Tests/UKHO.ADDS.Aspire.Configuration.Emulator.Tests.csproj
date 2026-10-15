@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
-    <RunSettingsFilePath>D:\ADDS_Support_Project\exchange-set-fulfilment-service\configuration\tests\UKHO.ADDS.Aspire.Configuration.Emulator.Tests\bin\Debug\net10.0\fine-code-coverage\coverage-tool-output\UKHO.ADDS.Aspire.Configuration.Emulator.Tests-fcc-mscodecoverage-generated.runsettings</RunSettingsFilePath>
+    <RunSettingsFilePath>$(MSBuildProjectDirectory)\bin\Debug\$(TargetFramework)\fine-code-coverage\coverage-tool-output\$(MSBuildProjectName)-fcc-mscodecoverage-generated.runsettings</RunSettingsFilePath>
   </PropertyGroup>
 
   <ItemGroup>
