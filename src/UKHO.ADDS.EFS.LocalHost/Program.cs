@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using System.Text;
 using Aspire.Hosting.Azure;
 using CliWrap;
 using Docker.DotNet;
@@ -198,6 +199,8 @@ namespace UKHO.ADDS.EFS.LocalHost
 
         private static async Task CreateBuilderContainerImages(string name, string tag, string projectName, string appRootDirectory)
         {
+            const int maxBuildAttempts = 3;
+
             // Check to see if we need to build any images
             var reference = $"{name}:{tag}";
 
@@ -236,26 +239,78 @@ namespace UKHO.ADDS.EFS.LocalHost
                 }
             }
 
-            var arguments = $"build -t {name} -f ./{projectName}/Dockerfile .";
-
-            // 'docker' writes everything to stderr...
-
-            var result = await Cli.Wrap("docker")
-                .WithArguments(arguments)
-                .WithWorkingDirectory(srcDirectory)
-                .WithValidation(CommandResultValidation.None)
-                .WithStandardOutputPipe(PipeTarget.ToDelegate(Log.Information))
-                .WithStandardErrorPipe(PipeTarget.ToDelegate(Log.Information))
-                .ExecuteAsync();
-
-            if (result.IsSuccess)
+            var dockerFileName = name == ProcessNames.S100Builder ? "Dockerfile-Release" : "Dockerfile";
+            var arguments = $"build -t {name} -f ./{projectName}/{dockerFileName} .";
+            for (var attempt = 1; attempt <= maxBuildAttempts; attempt++)
             {
-                Log.Information($"{name} built ok");
+                var standardOutput = new StringBuilder();
+                var standardError = new StringBuilder();
+
+                // 'docker' writes everything to stderr...
+
+                var result = await Cli.Wrap("docker")
+                    .WithArguments(arguments)
+                    .WithWorkingDirectory(srcDirectory)
+                    .WithValidation(CommandResultValidation.None)
+                    .WithStandardOutputPipe(PipeTarget.ToDelegate(line =>
+                    {
+                        Log.Information(line);
+                        standardOutput.AppendLine(line);
+                    }))
+                    .WithStandardErrorPipe(PipeTarget.ToDelegate(line =>
+                    {
+                        Log.Information(line);
+                        standardError.AppendLine(line);
+                    }))
+                    .ExecuteAsync();
+
+                if (result.IsSuccess)
+                {
+                    Log.Information($"{name} built ok");
+                    return;
+                }
+
+                var stderrText = standardError.ToString();
+                var stdoutText = standardOutput.ToString();
+                var retryReason = GetRetryableDockerBuildFailureReason(stderrText, stdoutText);
+
+                if (retryReason is not null && attempt < maxBuildAttempts)
+                {
+                    var retryDelaySeconds = attempt * 5;
+                    Log.Warning("Docker build failed for {Name}. Attempt {Attempt}/{MaxAttempts}. Reason: {RetryReason}. Retrying in {RetryDelaySeconds}s.", name, attempt, maxBuildAttempts, retryReason, retryDelaySeconds);
+                    await Task.Delay(TimeSpan.FromSeconds(retryDelaySeconds));
+                    continue;
+                }
+
+                throw new Exception($"Failed to create {name} builder container image. ExitCode: {result.ExitCode}. Attempt: {attempt}/{maxBuildAttempts}. Command: docker {arguments}. StdErr: {standardError}. StdOut: {standardOutput}");
             }
-            else
+        }
+
+        private static string? GetRetryableDockerBuildFailureReason(string standardError, string standardOutput)
+        {
+            var commandOutput = $"{standardError}\n{standardOutput}";
+
+            if (string.IsNullOrWhiteSpace(commandOutput))
             {
-                throw new Exception($"Failed to create {name} builder container image");
+                return null;
             }
+
+            if (commandOutput.Contains("unexpected EOF", StringComparison.OrdinalIgnoreCase)
+                || commandOutput.Contains(" EOF", StringComparison.OrdinalIgnoreCase)
+                || commandOutput.Contains("failed to copy", StringComparison.OrdinalIgnoreCase)
+                || commandOutput.Contains("failed to do request", StringComparison.OrdinalIgnoreCase)
+                || commandOutput.Contains("failed to solve", StringComparison.OrdinalIgnoreCase)
+                || commandOutput.Contains("failed to compute cache key", StringComparison.OrdinalIgnoreCase)
+                || commandOutput.Contains("short read", StringComparison.OrdinalIgnoreCase)
+                || commandOutput.Contains("connection reset", StringComparison.OrdinalIgnoreCase)
+                || commandOutput.Contains("TLS handshake timeout", StringComparison.OrdinalIgnoreCase)
+                || commandOutput.Contains("i/o timeout", StringComparison.OrdinalIgnoreCase)
+                || commandOutput.Contains("context canceled", StringComparison.OrdinalIgnoreCase))
+            {
+                return "transient Docker/network layer download issue";
+            }
+
+            return null;
         }
 
         private static Uri GetDockerEndpoint() => RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
