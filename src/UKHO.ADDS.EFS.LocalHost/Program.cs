@@ -244,7 +244,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                 return;
             }
 
-            throw new Exception($"Failed to create {name} builder container image. ExitCode: {dockerBuildResult.Result.ExitCode}. Command: docker {arguments}. StdErr: {dockerBuildResult.StandardError}. StdOut: {dockerBuildResult.StandardOutput}");
+            throw new Exception($"Failed to create {name} builder container image. ExitCode: {dockerBuildResult.Result.ExitCode}. Command: docker {arguments}. StdErr: {dockerBuildResult.StandardError}. StdOut: {dockerBuildResult.StandardOutput}. MaxBuildAttempts: {maxBuildAttempts}");
         }
 
         private static void EnsureS100BuilderAssets(string srcDirectory, string projectName)
@@ -268,7 +268,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                 {
                     MaxRetryAttempts = maxBuildAttempts - 1,
                     DelayGenerator = arguments => ValueTask.FromResult<TimeSpan?>(TimeSpan.FromSeconds((arguments.AttemptNumber + 1) * 5)),
-                    ShouldHandle = arguments => ValueTask.FromResult(ShouldRetryDockerBuild(arguments.Outcome.Result)),
+                    ShouldHandle = arguments => ValueTask.FromResult(arguments.Outcome.Exception is null && ShouldRetryDockerBuild(arguments.Outcome.Result)),
                     OnRetry = arguments =>
                     {
                         var attemptNumber = arguments.AttemptNumber + 1;
