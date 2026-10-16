@@ -23,7 +23,8 @@
     <PackageReference Include="Aspire.Azure.Storage.Blobs" Version="9.5.2" />
     <PackageReference Include="Azure.Messaging.EventHubs" Version="5.12.2" />
     <PackageReference Include="Konscious.Security.Cryptography.Blake2" Version="1.1.1" />
-    <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.7" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.13" />
   </ItemGroup>
 
   <ItemGroup>
