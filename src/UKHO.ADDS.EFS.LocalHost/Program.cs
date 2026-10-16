@@ -5,6 +5,8 @@ using CliWrap;
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using Microsoft.Extensions.Configuration;
+using Polly;
+using Polly.Retry;
 using Projects;
 using Serilog;
 using UKHO.ADDS.Aspire.Configuration.Hosting;
@@ -18,6 +20,8 @@ namespace UKHO.ADDS.EFS.LocalHost
     /// </summary>
     internal class Program
     {
+        private sealed record DockerBuildAttemptResult(CommandResult Result, string StandardOutput, string StandardError);
+
         private static async Task<int> Main(string[] args)
         {
             Log.Logger = new LoggerConfiguration()
@@ -225,65 +229,87 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             if (name == ProcessNames.S100Builder)
             {
-                var workspaceFile = Path.Combine(srcDirectory, projectName, "efs-nonlive-root.tar.gz");
-                var imageWorkspaceFile = Path.Combine(srcDirectory, projectName, "root.tar.gz");
-                var iicToolFile = Path.Combine(srcDirectory, projectName, "xchg-7.7.war");
-
-                if (File.Exists(workspaceFile) && File.Exists(iicToolFile))
-                {
-                    File.Copy(workspaceFile, imageWorkspaceFile, true);
-                }
-                else
-                {
-                    throw new FileNotFoundException("The IIC Tool files efs-nonlive-root.tar.gz and xchg-7.7.war are missing.");
-                }
+                EnsureS100BuilderAssets(srcDirectory, projectName);
             }
 
             var dockerFileName = name == ProcessNames.S100Builder ? "Dockerfile-Release" : "Dockerfile";
             var arguments = $"build -t {name} -f ./{projectName}/{dockerFileName} .";
-            for (var attempt = 1; attempt <= maxBuildAttempts; attempt++)
+
+            var retryPipeline = CreateDockerBuildRetryPipeline(name, maxBuildAttempts);
+            var dockerBuildResult = await retryPipeline.ExecuteAsync(async _ => await ExecuteDockerBuild(arguments, srcDirectory));
+
+            if (dockerBuildResult.Result.IsSuccess)
             {
-                var standardOutput = new StringBuilder();
-                var standardError = new StringBuilder();
-
-                // 'docker' writes everything to stderr...
-
-                var result = await Cli.Wrap("docker")
-                    .WithArguments(arguments)
-                    .WithWorkingDirectory(srcDirectory)
-                    .WithValidation(CommandResultValidation.None)
-                    .WithStandardOutputPipe(PipeTarget.ToDelegate(line =>
-                    {
-                        Log.Information(line);
-                        standardOutput.AppendLine(line);
-                    }))
-                    .WithStandardErrorPipe(PipeTarget.ToDelegate(line =>
-                    {
-                        Log.Information(line);
-                        standardError.AppendLine(line);
-                    }))
-                    .ExecuteAsync();
-
-                if (result.IsSuccess)
-                {
-                    Log.Information($"{name} built ok");
-                    return;
-                }
-
-                var stderrText = standardError.ToString();
-                var stdoutText = standardOutput.ToString();
-                var retryReason = GetRetryableDockerBuildFailureReason(stderrText, stdoutText);
-
-                if (retryReason is not null && attempt < maxBuildAttempts)
-                {
-                    var retryDelaySeconds = attempt * 5;
-                    Log.Warning("Docker build failed for {Name}. Attempt {Attempt}/{MaxAttempts}. Reason: {RetryReason}. Retrying in {RetryDelaySeconds}s.", name, attempt, maxBuildAttempts, retryReason, retryDelaySeconds);
-                    await Task.Delay(TimeSpan.FromSeconds(retryDelaySeconds));
-                    continue;
-                }
-
-                throw new Exception($"Failed to create {name} builder container image. ExitCode: {result.ExitCode}. Attempt: {attempt}/{maxBuildAttempts}. Command: docker {arguments}. StdErr: {standardError}. StdOut: {standardOutput}");
+                Log.Information($"{name} built ok");
+                return;
             }
+
+            throw new Exception($"Failed to create {name} builder container image. ExitCode: {dockerBuildResult.Result.ExitCode}. Command: docker {arguments}. StdErr: {dockerBuildResult.StandardError}. StdOut: {dockerBuildResult.StandardOutput}");
+        }
+
+        private static void EnsureS100BuilderAssets(string srcDirectory, string projectName)
+        {
+            var workspaceFile = Path.Combine(srcDirectory, projectName, "efs-nonlive-root.tar.gz");
+            var imageWorkspaceFile = Path.Combine(srcDirectory, projectName, "root.tar.gz");
+            var iicToolFile = Path.Combine(srcDirectory, projectName, "xchg-7.7.war");
+
+            if (!File.Exists(workspaceFile) || !File.Exists(iicToolFile))
+            {
+                throw new FileNotFoundException("The IIC Tool files efs-nonlive-root.tar.gz and xchg-7.7.war are missing.");
+            }
+
+            File.Copy(workspaceFile, imageWorkspaceFile, true);
+        }
+
+        private static ResiliencePipeline<DockerBuildAttemptResult> CreateDockerBuildRetryPipeline(string name, int maxBuildAttempts)
+        {
+            return new ResiliencePipelineBuilder<DockerBuildAttemptResult>()
+                .AddRetry(new RetryStrategyOptions<DockerBuildAttemptResult>
+                {
+                    MaxRetryAttempts = maxBuildAttempts - 1,
+                    DelayGenerator = arguments => ValueTask.FromResult<TimeSpan?>(TimeSpan.FromSeconds((arguments.AttemptNumber + 1) * 5)),
+                    ShouldHandle = arguments => ValueTask.FromResult(ShouldRetryDockerBuild(arguments.Outcome.Result)),
+                    OnRetry = arguments =>
+                    {
+                        var attemptNumber = arguments.AttemptNumber + 1;
+                        var retryReason = GetRetryableDockerBuildFailureReason(arguments.Outcome.Result.StandardError, arguments.Outcome.Result.StandardOutput)!;
+                        var retryDelaySeconds = (attemptNumber * 5);
+
+                        Log.Warning("Docker build failed for {Name}. Attempt {Attempt}. Reason: {RetryReason}. Retrying in {RetryDelaySeconds}s.", name, attemptNumber, retryReason, retryDelaySeconds);
+                        return default;
+                    }
+                })
+                .Build();
+        }
+
+        private static bool ShouldRetryDockerBuild(DockerBuildAttemptResult result)
+        {
+            return !result.Result.IsSuccess
+                && GetRetryableDockerBuildFailureReason(result.StandardError, result.StandardOutput) is not null;
+        }
+
+        private static async Task<DockerBuildAttemptResult> ExecuteDockerBuild(string arguments, string srcDirectory)
+        {
+            var standardOutput = new StringBuilder();
+            var standardError = new StringBuilder();
+
+            var result = await Cli.Wrap("docker")
+                .WithArguments(arguments)
+                .WithWorkingDirectory(srcDirectory)
+                .WithValidation(CommandResultValidation.None)
+                .WithStandardOutputPipe(PipeTarget.ToDelegate(line =>
+                {
+                    Log.Information(line);
+                    standardOutput.AppendLine(line);
+                }))
+                .WithStandardErrorPipe(PipeTarget.ToDelegate(line =>
+                {
+                    Log.Information(line);
+                    standardError.AppendLine(line);
+                }))
+                .ExecuteAsync();
+
+            return new DockerBuildAttemptResult(result, standardOutput.ToString(), standardError.ToString());
         }
 
         private static string? GetRetryableDockerBuildFailureReason(string standardError, string standardOutput)
