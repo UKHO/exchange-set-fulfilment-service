@@ -103,6 +103,8 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             CreateDirectoryIfNotExists(workSpaceRootPath, createdDirectories);
 
             var allFilesToProcess = GetAllFilesToProcess(latestBatches);
+            _logger.LogDownloadFilesNodeFssDownloadResponseCount(allFilesToProcess.Count, (string)correlationId);
+
             if (allFilesToProcess.Count == 0)
             {
                 // Changed to return Succeeded for empty file lists
@@ -124,6 +126,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                     fileLocks);
 
                 await Task.WhenAll(downloadTasks);
+                _logger.LogDownloadFilesNodeFssDownloadResponseCount(allFilesToProcess.Count, (string)correlationId);
                 return NodeResultStatus.Succeeded;
             }
             catch (Exception ex)

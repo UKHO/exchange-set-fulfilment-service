@@ -14,6 +14,9 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
         private const int DownloadFilesNodeFssDownloadFailedId = BaseEventId + 5;
         private const int DownloadFilesNodeNoFilesToProcessErrorId = BaseEventId + 6;
         private const int ZipExtractionFailedId = BaseEventId + 7;
+        private const int ProductSearchNodeFssResponseCountId = BaseEventId + 8;
+        private const int DownloadFilesNodeFssDownloadResponseCountId = BaseEventId + 9;
+        private const int ProductSearchNodeFssMatchSummaryId = BaseEventId + 10;
 
         // The assembly pipeline failed
         public static readonly EventId AssemblyPipelineFailed = new(AssemblyPipelineFailedId, nameof(AssemblyPipelineFailed));
@@ -56,5 +59,14 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble.Logging
         
         [LoggerMessage(ZipExtractionFailedId, LogLevel.Error, "ZIP extraction failed: {@zipExtractionError}", EventName = nameof(ZipExtractionFailed))]
         public static partial void LogZipExtractionFailed(this ILogger logger, [LogProperties] ZipExtractionErrorLogView zipExtractionError);
+
+        [LoggerMessage(ProductSearchNodeFssResponseCountId, LogLevel.Information, "ProductSearchNode FSS search response count: {ResponseCount}, query count: {QueryCount}, correlationId: {CorrelationId}", EventName = nameof(LogProductSearchNodeFssResponseCount))]
+        public static partial void LogProductSearchNodeFssResponseCount(this ILogger logger, int responseCount, int queryCount, string correlationId);
+
+        [LoggerMessage(DownloadFilesNodeFssDownloadResponseCountId, LogLevel.Information, "DownloadFilesNode FSS download response count: {ResponseCount}, correlationId: {CorrelationId}", EventName = nameof(LogDownloadFilesNodeFssDownloadResponseCount))]
+        public static partial void LogDownloadFilesNodeFssDownloadResponseCount(this ILogger logger, int responseCount, string correlationId);
+
+        [LoggerMessage(ProductSearchNodeFssMatchSummaryId, LogLevel.Information, "ProductSearchNode FSS match summary: RequestedProducts={RequestedProductsCount}, MatchedProducts={MatchedProductsCount}, MissingProducts={MissingProductsCount}, MissingProductNames={MissingProductNames}, correlationId: {CorrelationId}", EventName = nameof(LogProductSearchNodeFssMatchSummary))]
+        public static partial void LogProductSearchNodeFssMatchSummary(this ILogger logger, int requestedProductsCount, int matchedProductsCount, int missingProductsCount, string missingProductNames, string correlationId);
     }
 }

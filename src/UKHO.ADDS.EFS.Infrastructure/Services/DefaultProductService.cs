@@ -25,6 +25,9 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
         private readonly ILogger<DefaultProductService> _logger;
         private readonly KiotaSalesCatalogueService _salesCatalogueClient;
         private const string DateTimeFormat = "R";
+        private const string ProductNamesEndpoint = "v2/products/s100/productNames";
+        private const string ProductVersionsEndpoint = "v2/products/s100/productVersions";
+        private const string UpdatesSinceEndpoint = "v2/products/s100/updatesSince";
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="DefaultProductService" /> class.
@@ -68,6 +71,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
 
                 if (s100BasicCatalogueResult.IsSuccess(out var catalogueList) && catalogueList is not null)
                 {
+                    _logger.LogSalesCatalogueCatalogueCount(catalogueList.Count, (string)job.GetCorrelationId());
                     var response = catalogueList.ToDomain(lastModifiedActual);
                     return (response, new ExternalServiceError(HttpStatusCode.OK, ExternalServiceName.NotDefined), response.ProductsLastModified);
                 }
@@ -119,6 +123,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                 var s100ProductNamesResult = await retryPolicy.ExecuteAsync(async () =>
                 {
                     var payload = productNames.Select(x => (string)x).ToList();
+                    _logger.LogSalesCatalogueRequestCount(ProductNamesEndpoint, payload.Count, (string)job.GetCorrelationId());
 
                     var result = await _salesCatalogueClient.V2.Products.S100.ProductNames.PostAsync(payload,
                         requestConfiguration =>
@@ -131,7 +136,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                     return Result.Success(result);
                 });
 
-                return ProcessProductNamesResult(s100ProductNamesResult, headersOption, job);
+                return ProcessProductNamesResult(s100ProductNamesResult, headersOption, job, ProductNamesEndpoint);
             }
             catch (ApiException apiException)
             {
@@ -150,6 +155,8 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
 
                 var s100ProductUpdatesResult = await retryPolicy.ExecuteAsync(async () =>
                 {
+                    _logger.LogSalesCatalogueRequestCount(UpdatesSinceEndpoint, 1, (string)job.GetCorrelationId());
+
                     var result = await _salesCatalogueClient.V2.Products.S100.UpdatesSince
                         .GetAsync(
                             requestConfiguration =>
@@ -169,7 +176,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
 
                 });
 
-                return ProcessProductNamesResult(s100ProductUpdatesResult, headersOption, job);
+                return ProcessProductNamesResult(s100ProductUpdatesResult, headersOption, job, UpdatesSinceEndpoint);
             }
             catch (ApiException apiException)
             {
@@ -199,6 +206,8 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
 
                 var s100ProductVersionResult = await retryPolicy.ExecuteAsync(async () =>
                 {
+                    _logger.LogSalesCatalogueRequestCount(ProductVersionsEndpoint, payload.Count, (string)job.GetCorrelationId());
+
                     var result = await _salesCatalogueClient.V2.Products.S100.ProductVersions.PostAsync(
                         payload,
                         requestConfiguration =>
@@ -211,7 +220,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
                     return Result.Success(result);
                 });
 
-                return ProcessProductNamesResult(s100ProductVersionResult, headersOption, job);
+                return ProcessProductNamesResult(s100ProductVersionResult, headersOption, job, ProductVersionsEndpoint);
             }
             catch (ApiException apiException)
             {
@@ -247,7 +256,7 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
             return (productEditionList, externalServiceError);
         }
 
-        private (ProductEditionList, ExternalServiceError?) ProcessProductNamesResult(IResult<S100ProductResponse?> s100ProductNamesResult, HeadersInspectionHandlerOption headersOption, Job job)
+        private (ProductEditionList, ExternalServiceError?) ProcessProductNamesResult(IResult<S100ProductResponse?> s100ProductNamesResult, HeadersInspectionHandlerOption headersOption, Job job, string endpointName)
         {
             var lastModifiedHeader = headersOption.ResponseHeaders.TryGetValue(ApiHeaderKeys.LastModifiedHeaderKey, out var values)
                 ? values.FirstOrDefault()
@@ -257,6 +266,14 @@ namespace UKHO.ADDS.EFS.Infrastructure.Services
 
             if (s100ProductNamesResult.IsSuccess(out var productList) && productList is not null)
             {
+                var responseProductsCount = productList.Products?.Count ?? 0;
+                var returnedProductCount = productList.ProductCounts?.ReturnedProductCount ?? 0;
+                var requestedProductCount = productList.ProductCounts?.RequestedProductCount ?? 0;
+                var alreadyUpToDateCount = productList.ProductCounts?.RequestedProductsAlreadyUpToDateCount ?? 0;
+                var notReturnedCount = productList.ProductCounts?.RequestedProductsNotReturned?.Count ?? 0;
+
+                _logger.LogSalesCatalogueResponseCount(endpointName, responseProductsCount, returnedProductCount, (string)job.GetCorrelationId());
+                _logger.LogSalesCatalogueResponseSummary(endpointName, requestedProductCount, returnedProductCount, alreadyUpToDateCount, notReturnedCount, responseProductsCount, (string)job.GetCorrelationId());
                 return (productList.ToDomain(lastModifiedActual), null);
             }
 

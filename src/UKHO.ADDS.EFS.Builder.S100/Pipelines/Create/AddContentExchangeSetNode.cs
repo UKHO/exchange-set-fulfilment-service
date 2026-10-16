@@ -1,8 +1,11 @@
-﻿using UKHO.ADDS.EFS.Builder.S100.IIC;
+﻿using System.Linq;
+using UKHO.ADDS.EFS.Builder.S100.IIC;
+using UKHO.ADDS.EFS.Builder.S100.IIC.Models;
 using UKHO.ADDS.EFS.Builder.S100.Pipelines.Create.Logging;
 using UKHO.ADDS.EFS.Domain.Jobs;
 using UKHO.ADDS.Infrastructure.Pipelines;
 using UKHO.ADDS.Infrastructure.Pipelines.Nodes;
+using UKHO.ADDS.Infrastructure.Results;
 
 namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
 {
@@ -31,24 +34,35 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
             var toolClient = context.Subject.ToolClient;
             var downloadPath = Path.Combine(context.Subject.WorkSpaceRootPath, context.Subject.WorkSpaceSpoolPath);
 
-            var catalogPaths = GetCatalogPaths(context, downloadPath);
+            logger.LogAddContentExchangeSetNodeStartedDiagnostic((string)jobId, downloadPath);
+
+            var catalogPaths = GetCatalogPaths(context, downloadPath, logger);
 
             // Process each catalog path
+            var successfulAdds = 0;
             foreach (var catalogPath in catalogPaths)
             {
+                logger.LogAddContentExchangeSetNodeAddingCatalogPathDiagnostic(catalogPath, (string)jobId);
                 if (!await AddContentForPathAsync(toolClient, catalogPath, jobId, workspaceName, authKey, logger))
                 {
+                    logger.LogAddContentExchangeSetNodeCatalogPathAddFailedDiagnostic(catalogPath, (string)jobId);
                     return NodeResultStatus.Failed;
                 }
+
+                successfulAdds++;
             }
+
+            logger.LogAddContentExchangeSetNodeCompletedDiagnostic((string)jobId, successfulAdds, catalogPaths.Count);
 
             return NodeResultStatus.Succeeded;
         }
 
-        private static List<string> GetCatalogPaths(IExecutionContext<S100ExchangeSetPipelineContext> context, string downloadPath)
+        private static List<string> GetCatalogPaths(IExecutionContext<S100ExchangeSetPipelineContext> context, string downloadPath, ILogger logger)
         {
             var batchFileNameDetails = context.Subject.BatchFileNameDetails;
             var catalogPaths = new List<string>();
+
+            logger.LogAddContentExchangeSetNodeResolvingCatalogPathsDiagnostic(batchFileNameDetails.Count(), downloadPath);
 
             foreach (var folderName in batchFileNameDetails)
             {
@@ -56,10 +70,18 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
 
                 if (!Directory.Exists(fullFolderPath))
                 {
+                    logger.LogAddContentExchangeSetNodeBatchFolderMissingDiagnostic(fullFolderPath);
                     return [];
                 }
 
                 var catalogPath = folderName + "/S100_ROOT/CATALOG.XML";
+                var fullCatalogPath = Path.Combine(downloadPath, folderName, "S100_ROOT", "CATALOG.XML");
+
+                if (!File.Exists(fullCatalogPath))
+                {
+                    logger.LogAddContentExchangeSetNodeCatalogMissingDiagnostic(fullCatalogPath, catalogPath);
+                }
+
                 catalogPaths.Add(catalogPath);
             }
 
@@ -69,13 +91,19 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Create
         private static async Task<bool> AddContentForPathAsync(IToolClient toolClient, string path, JobId jobId, string workspaceName, string authKey, ILogger logger)
         {
             var result = await toolClient.AddContentAsync(path, jobId, workspaceName, authKey);
+            OperationResponse? operationResponse = null;
+            IError? error = null;
 
-            if (result.IsSuccess(out _, out var error))
+            if (result.IsSuccess(out operationResponse, out error))
             {
+                if (operationResponse is not null)
+                {
+                    logger.LogAddContentExchangeSetNodeAddContentResponseDiagnostic(path, operationResponse.Code, operationResponse.Type, operationResponse.Message);
+                }
                 return true;
             }
 
-            logger.LogAddContentExchangeSetNodeFailed(error);
+            logger.LogAddContentExchangeSetNodeFailed(error!);
             return false;
         }
     }

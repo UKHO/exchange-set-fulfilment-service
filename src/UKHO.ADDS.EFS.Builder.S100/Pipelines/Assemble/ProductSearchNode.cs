@@ -101,6 +101,33 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
                         batchList.AddRange(batchDetails);
                     }
                 }
+
+                var requestedProductNames = groupedProducts
+                    .Select(x => (string)x.ProductName)
+                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+                var matchedProductNames = batchList
+                    .SelectMany(x => x.Attributes ?? [])
+                    .Where(x => x.Key == "Product Name")
+                    .Select(x => x.Value)
+                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+                var missingProductNames = requestedProductNames
+                    .Except(matchedProductNames, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+                _logger.LogProductSearchNodeFssResponseCount(batchList.Count, productsList.Count(), (string)context.Subject.Build?.GetCorrelationId()!);
+                _logger.LogProductSearchNodeFssMatchSummary(
+                    requestedProductNames.Count,
+                    matchedProductNames.Count,
+                    missingProductNames.Count,
+                    string.Join(",", missingProductNames),
+                    (string)context.Subject.Build?.GetCorrelationId()!);
+
                 context.Subject.BatchDetails = batchList;
                 return NodeResultStatus.Succeeded;
             }
@@ -176,6 +203,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.Pipelines.Assemble
             } while (batchSearchResponse.Entries.Count < totalUpdateCount && !string.IsNullOrWhiteSpace(filter));
 
             batchSearchResponse.Count = queryCount;
+            _logger.LogProductSearchNodeFssResponseCount(batchSearchResponse.Entries.Count, queryCount, correlationId);
             return batchSearchResponse;
         }
 
