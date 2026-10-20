@@ -97,6 +97,6 @@ namespace UKHO.ADDS.EFS.Domain.Products
             return true;
         }
 
-        private static string NormalizeInput(string input) => input.Trim().ToUpperInvariant();
+        private static string NormalizeInput(string input) => input.Trim();
     }
 }
