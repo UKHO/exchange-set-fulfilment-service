@@ -35,13 +35,13 @@ namespace UKHO.ADDS.EFS.Domain.UnitTests.Products
 
         [Theory]
         [MemberData(nameof(S100Codes))]
-        public void From_S100_Code_WithSuffix_Normalizes_And_Maps(int code)
+        public void From_S100_Code_WithSuffix_Trims_And_Maps(int code)
         {
-            // Mixed case + padding; suffix is arbitrary and must be uppercased
+            // Mixed case + padding; suffix is preserved (only Trim normalization)
             var raw = $"  {code}ab-C  ";
             var pn = ProductName.From(raw);
 
-            Assert.Equal($"{code}AB-C", pn.Value);                  // Trim + ToUpperInvariant
+            Assert.Equal($"{code}ab-C", pn.Value);                  // Trim only
             Assert.Equal(DataStandard.S100, pn.DataStandard);       // S-100 based on 3-digit prefix
             Assert.Equal((DataStandardProductType)code, pn.DataStandardProduct.AsEnum);
         }
@@ -65,7 +65,7 @@ namespace UKHO.ADDS.EFS.Domain.UnitTests.Products
             var padded = $"  {raw}  ";
             var pn = ProductName.From(padded);
 
-            Assert.Equal(raw.ToUpperInvariant(), pn.Value); // Trim + ToUpperInvariant
+            Assert.Equal(raw, pn.Value); // Trim only
             Assert.Equal(DataStandard.S57, pn.DataStandard);
             Assert.Equal(DataStandardProductType.S57, pn.DataStandardProduct.AsEnum);
         }
@@ -110,7 +110,7 @@ namespace UKHO.ADDS.EFS.Domain.UnitTests.Products
         [Fact]
         public void DataStandardProperty_S57_Example()
         {
-            var pn = ProductName.From("ab12cd34");
+            var pn = ProductName.From("AB12CD34");
             Assert.Equal(DataStandard.S57, pn.DataStandard);
             Assert.Equal(DataStandardProductType.S57, pn.DataStandardProduct.AsEnum);
         }

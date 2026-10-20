@@ -134,7 +134,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
         [Test]
         public async Task WhenPerformExecuteAsyncIsCalled_ThenQueryIsCorrectlyConfigured()
         {
-            var searchQuery = "BusinessUnit eq 'ADDS-S100' and $batch(Product Type) eq 'S-100' and (($batch(Product Name) eq '101TESTPRODUCT2' and $batch(Edition Number) eq '2' and (($batch(Update Number) eq '1' ))))";
+            var searchQuery = "BusinessUnit eq 'ADDS-S100' and $batch(Product Type) eq 'S-100' and (($batch(Product Name) eq '101TestProduct2' and $batch(Edition Number) eq '2' and (($batch(Update Number) eq '1' ))))";
             string? capturedQuery = null;
             var batchResponse = new BatchSearchResponse
             {
@@ -276,7 +276,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
 
             await _productSearchNode.ExecuteAsync(_executionContext);
 
-            var expectedQuery = $"BusinessUnit eq 'ADDS-S100' and $batch(Product Type) eq 'S-100' and (($batch(Product Name) eq '101TESTCANCELLEDPRODUCT' and $batch(Edition Number) eq '{cancellationEdition}' and (($batch(Update Number) eq '{cancellationUpdate}' ))))";
+            var expectedQuery = $"BusinessUnit eq 'ADDS-S100' and $batch(Product Type) eq 'S-100' and (($batch(Product Name) eq '101TestCancelledProduct' and $batch(Edition Number) eq '{cancellationEdition}' and (($batch(Update Number) eq '{cancellationUpdate}' ))))";
             Assert.That(capturedQuery, Is.Not.Null);
             Assert.That(capturedQuery, Is.EqualTo(expectedQuery));
         }
@@ -305,7 +305,7 @@ namespace UKHO.ADDS.EFS.Builder.S100.UnitTests.Pipeline.Assemble
 
             await _productSearchNode.ExecuteAsync(_executionContext);
 
-            var expectedQuery = "BusinessUnit eq 'ADDS-S100' and $batch(Product Type) eq 'S-100' and (($batch(Product Name) eq '101TESTPRODUCT' and $batch(Edition Number) eq '3' and (($batch(Update Number) eq '2'  or $batch(Update Number) eq '4' ))))";
+            var expectedQuery = "BusinessUnit eq 'ADDS-S100' and $batch(Product Type) eq 'S-100' and (($batch(Product Name) eq '101TestProduct' and $batch(Edition Number) eq '3' and (($batch(Update Number) eq '2'  or $batch(Update Number) eq '4' ))))";
             Assert.That(capturedQuery, Is.Not.Null);
             Assert.That(capturedQuery, Is.EqualTo(expectedQuery));
         }

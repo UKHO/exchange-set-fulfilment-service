@@ -62,10 +62,10 @@ namespace UKHO.ADDS.EFS.Domain.UnitTests.Implementation.Serialization
         }
 
         [Fact]
-        public void RoundTrip_TwoItems_PreservesOrder_AndUppercases()
+        public void RoundTrip_TwoItems_PreservesOrder_AndCasing()
         {
             var opts = CreateOptions();
-            var original = MakeList("101-prod1", "102-prod2"); // ctor uppercases
+            var original = MakeList("101-prod1", "102-prod2");
 
             var json = JsonSerializer.Serialize(original, opts);
 
@@ -73,31 +73,31 @@ namespace UKHO.ADDS.EFS.Domain.UnitTests.Implementation.Serialization
 
             Assert.Equal(JsonValueKind.Array, doc.RootElement.ValueKind);
             Assert.Equal(2, doc.RootElement.GetArrayLength());
-            Assert.Equal("101-PROD1", doc.RootElement[0].GetString());
-            Assert.Equal("102-PROD2", doc.RootElement[1].GetString());
+            Assert.Equal("101-prod1", doc.RootElement[0].GetString());
+            Assert.Equal("102-prod2", doc.RootElement[1].GetString());
 
             var roundTripped = JsonSerializer.Deserialize<ProductNameList>(json, opts)!;
 
             Assert.Equal(new[]
             {
-                "101-PROD1", "102-PROD2"
+                "101-prod1", "102-prod2"
             }, Names(roundTripped));
         }
 
         [Fact]
-        public void Deserialize_MixedCaseInput_Uppercases_AllItems()
+        public void Deserialize_MixedCaseInput_PreservesCasing_ForAllItems()
         {
             var json = @"[ ""101-alpha"", ""102-Beta"", ""101-GaMmA"" ]";
             var list = JsonSerializer.Deserialize<ProductNameList>(json, CreateOptions())!;
 
             Assert.Equal(new[]
             {
-                "101-ALPHA", "102-BETA", "101-GAMMA"
+                "101-alpha", "102-Beta", "101-GaMmA"
             }, Names(list));
         }
 
         [Fact]
-        public void Serialize_InsideContainer_NonNullable_WritesUppercaseArray()
+        public void Serialize_InsideContainer_NonNullable_WritesTrimmedArray()
         {
             var container = new ContainerNonNullable
             {
@@ -112,9 +112,9 @@ namespace UKHO.ADDS.EFS.Domain.UnitTests.Implementation.Serialization
             var arr = namesNode!.AsArray();
 
             Assert.Equal(3, arr.Count);
-            Assert.Equal("101-A", arr[0]!.GetValue<string>());
-            Assert.Equal("101-B", arr[1]!.GetValue<string>());
-            Assert.Equal("102-C", arr[2]!.GetValue<string>());
+            Assert.Equal("101-a", arr[0]!.GetValue<string>());
+            Assert.Equal("101-b", arr[1]!.GetValue<string>());
+            Assert.Equal("102-c", arr[2]!.GetValue<string>());
         }
 
         [Fact]
@@ -128,7 +128,7 @@ namespace UKHO.ADDS.EFS.Domain.UnitTests.Implementation.Serialization
         }
 
         [Fact]
-        public void Deserialize_InsideContainer_Array_BindsAndUppercases()
+        public void Deserialize_InsideContainer_Array_BindsAndPreservesCasing()
         {
             var json = @"{ ""Names"": [""101-alpha"", ""102-beta""] }";
             var c = JsonSerializer.Deserialize<ContainerNullable>(json, CreateOptions())!;
@@ -136,19 +136,19 @@ namespace UKHO.ADDS.EFS.Domain.UnitTests.Implementation.Serialization
             Assert.NotNull(c.Names);
             Assert.Equal(new[]
             {
-                "101-ALPHA", "102-BETA"
+                "101-alpha", "102-beta"
             }, Names(c.Names!));
         }
 
         [Fact]
-        public void Deserialize_Array_WithDuplicates_PreservesDuplicates_AndUppercases()
+        public void Deserialize_Array_WithDuplicates_PreservesDuplicates_AndCasing()
         {
             var json = @"[ ""101-dup"", ""101-dup"", ""102-x"" ]";
             var list = JsonSerializer.Deserialize<ProductNameList>(json, CreateOptions())!;
 
             Assert.Equal(new[]
             {
-                "101-DUP", "101-DUP", "102-X"
+                "101-dup", "101-dup", "102-x"
             }, Names(list));
         }
 
@@ -187,17 +187,17 @@ namespace UKHO.ADDS.EFS.Domain.UnitTests.Implementation.Serialization
         }
 
         [Fact]
-        public void IReadOnlyList_Surface_Behaves_As_List_AndUppercases()
+        public void IReadOnlyList_Surface_Behaves_As_List_AndPreservesCasing()
         {
             var list = MakeList("101-a", "101-b", "102-c");
 
             Assert.Equal(3, ((IReadOnlyCollection<ProductName>)list).Count);
-            Assert.Equal("101-A", list[0].ToString());
-            Assert.Equal("102-C", list[2].ToString());
+            Assert.Equal("101-a", list[0].ToString());
+            Assert.Equal("102-c", list[2].ToString());
             Assert.Collection(list,
-                p => Assert.Equal("101-A", p.ToString()),
-                p => Assert.Equal("101-B", p.ToString()),
-                p => Assert.Equal("102-C", p.ToString()));
+                p => Assert.Equal("101-a", p.ToString()),
+                p => Assert.Equal("101-b", p.ToString()),
+                p => Assert.Equal("102-c", p.ToString()));
         }
 
         private sealed class ContainerNullable
