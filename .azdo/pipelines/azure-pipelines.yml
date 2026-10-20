@@ -55,7 +55,7 @@ variables:
   - name: UKHOAssemblyCopyright
     value: "Copyright � UK Hydrographic Office"
   - name: SdkVersion
-    value: "9.0.x"
+    value: "10.0.x"
   - name: WindowsPool
     value: "Mare Nubium"
   - name: LinuxPool
