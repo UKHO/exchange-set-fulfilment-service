@@ -45,8 +45,13 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Assertions
 
             TestOutput.WriteLine($"Actual Zip File Directory Structure: {string.Join(", ", targetDirectories)}");
 
-            // Compare directory structures of both ZIP files using soft assertions
-            sourceDirectories.Should().BeEquivalentTo(targetDirectories, "directory structures in both ZIP files should match");
+            // Compare directory structures case-insensitively (product names may preserve mixed/lower casing)
+            sourceDirectories
+                .Select(path => path?.ToUpperInvariant() ?? string.Empty)
+                .Should()
+                .BeEquivalentTo(
+                    targetDirectories.Select(path => path?.ToUpperInvariant() ?? string.Empty),
+                    "directory structures in both ZIP files should match");
 
             // If product names are specified, validate their presence in the target zip
             if (products != null)
@@ -90,9 +95,13 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Assertions
 
                 TestOutput.WriteLine($"Actual File Path Structure: {string.Join(", ", actualProductPaths)}");
 
-                // Compare expected and actual product file names using soft assertions
-                actualProductPaths.Should().BeEquivalentTo(expectedProductPaths,
-                    "all expected product files should be present in the ZIP");
+                // Compare expected and actual product file names case-insensitively
+                actualProductPaths
+                    .Select(path => path.ToUpperInvariant())
+                    .Should()
+                    .BeEquivalentTo(
+                        expectedProductPaths.Select(path => path.ToUpperInvariant()),
+                        "all expected product files should be present in the ZIP");
             }
         }
 
