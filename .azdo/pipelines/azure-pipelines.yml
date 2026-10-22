@@ -85,6 +85,7 @@ stages:
   - stage: VulnerabilityChecks
     displayName: Checks
     dependsOn: []
+    condition: succeeded()
     jobs:
     - template: templates/checks.yml
       parameters:
@@ -173,7 +174,7 @@ stages:
     dependsOn:
     - DevDeploy
     displayName: vNext IAT Deploy
-    condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/dev/')))
+    condition: false
     jobs:
     - template: templates/continuous-deployment.yml
       parameters:
@@ -189,9 +190,10 @@ stages:
 
   - stage: vnexte2eDeploy
     dependsOn:
-    - vnextiatDeploy
+    - VulnerabilityChecks
+    - Test
     displayName: vNextE2E Deploy
-    condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/dev/')))
+    condition: succeeded()
     jobs:
     - template: templates/continuous-deployment.yml
       parameters:

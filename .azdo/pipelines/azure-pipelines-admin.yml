@@ -167,7 +167,7 @@ stages:
     dependsOn:
     - DevDeploy
     displayName: vNext IAT Deploy
-    condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/dev/')))
+    condition: succeeded()
     jobs:
     - template: templates/continuous-deployment-retain.yml
       parameters:
@@ -186,7 +186,7 @@ stages:
     dependsOn:
     - vNextIatDeploy
     displayName: vNext E2E Deploy
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    condition: succeeded()
     jobs:
     - template: templates/continuous-deployment-retain.yml
       parameters:
