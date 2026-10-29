@@ -14,9 +14,10 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
     [EnableParallelization] // Needed to parallelize inside the class, not just between classes
     public class ProductNamesFunctionalTests(StartupFixture startup, ITestOutputHelper output) : FunctionalTestBase(startup, output)
     {
-        private readonly string _requestId = $"job-productNamesAutoTest-" + Guid.NewGuid();
         private string _endpoint = TestEndpointConfiguration.ProductNamesEndpoint;
         private bool _assertCallbackTextFile = false;
+
+        private static string CreateRequestId() => $"job-productNamesAutoTest-{Guid.NewGuid()}";
 
         private void SetEndpoint(string? callbackUri)
         {
@@ -41,9 +42,10 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
 
             SetEndpoint(callbackUri);
 
-            TestOutput.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {System.Text.Json.JsonSerializer.Serialize(requestPayload)}\nCallbackUri: {callbackUri}\nExpectedZipFileName:{zipFileName}");
+            var requestId = CreateRequestId();
+            TestOutput.WriteLine($"RequestId: {requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {System.Text.Json.JsonSerializer.Serialize(requestPayload)}\nCallbackUri: {callbackUri}\nExpectedZipFileName:{zipFileName}");
 
-            await TestExecutionHelper.ExecuteCustomExchangeSetTestSteps(_requestId, requestPayload, _endpoint, zipFileName, expectedRequestedProductCount, expectedExchangeSetProductCount, _assertCallbackTextFile, requestPayload);
+            await TestExecutionHelper.ExecuteCustomExchangeSetTestSteps(requestId, requestPayload, _endpoint, zipFileName, expectedRequestedProductCount, expectedExchangeSetProductCount, _assertCallbackTextFile, requestPayload);
         }
 
         //PBI 242670 - Input validation for the ESS API - Product Name Endpoint
@@ -60,9 +62,10 @@ namespace UKHO.ADDS.EFS.FunctionalTests.Scenarios
 
             SetEndpoint(callbackUri);
 
-            TestOutput.WriteLine($"RequestId: {_requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {System.Text.Json.JsonSerializer.Serialize(productNames)}\nExpectedStatusCode: {expectedStatusCode}\nExpectedErrorMessage:{expectedErrorMessage}");
+            var requestId = CreateRequestId();
+            TestOutput.WriteLine($"RequestId: {requestId}\nRequest EndPoint: {_endpoint}\nRequest Payload: {System.Text.Json.JsonSerializer.Serialize(productNames)}\nExpectedStatusCode: {expectedStatusCode}\nExpectedErrorMessage:{expectedErrorMessage}");
 
-            await ExchangeSetApiAssertions.CustomExchangeSetSubmitPostRequestAndCheckResponse(_requestId, productNames, _endpoint, expectedStatusCode, expectedErrorMessage);
+            await ExchangeSetApiAssertions.CustomExchangeSetSubmitPostRequestAndCheckResponse(requestId, productNames, _endpoint, expectedStatusCode, expectedErrorMessage);
         }
     }
 }
