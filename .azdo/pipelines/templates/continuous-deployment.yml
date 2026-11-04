@@ -158,6 +158,8 @@ jobs:
                 azd package --no-prompt
           env:
             AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+            ASPIRE_SUPPRESS_CLI_RUN_HOOK: 'true'
+            MSBUILDDISABLENODEREUSE: '1'
             AZURE_ENV_NAME: $(AZURE_ENV_NAME)
             AZURE_LOCATION: $(AZURE_LOCATION)
             AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
