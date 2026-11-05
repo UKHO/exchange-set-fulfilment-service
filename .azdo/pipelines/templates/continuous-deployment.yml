@@ -147,6 +147,23 @@ jobs:
             ${{ if eq(parameters.AdditionalDebugging, true) }}:
               inlineScript: |
                 set -e
+
+                echo "=== SDK ==="
+                dotnet --info
+
+                echo "=== AZD ==="
+                azd version
+
+                echo "=== Aspire properties ==="
+                aspire_use_cli_bundle=$(dotnet msbuild ./UKHO.ADDS.EFS.LocalHost.csproj -getProperty:AspireUseCliBundle | tr -d '\r' | awk 'NF { last=$0 } END { print last }')
+                echo "AspireUseCliBundle=$aspire_use_cli_bundle"
+
+                if [ "${aspire_use_cli_bundle,,}" = "true" ]; then
+                  echo "AspireUseCliBundle is enabled. Disable it for CI packaging to avoid CLI bundle/runtime conflicts."
+                  exit 1
+                fi
+
+                echo "=== Starting AZD packaging ==="
                 azd package --no-prompt --debug
 
                 echo "Current azd variables:"
@@ -155,11 +172,30 @@ jobs:
                 echo "--------------------------------------------------------------------------------"
             ${{ else }}:
               inlineScript: |
+                set -e
+
+                echo "=== SDK ==="
+                dotnet --info
+
+                echo "=== AZD ==="
+                azd version
+
+                echo "=== Aspire properties ==="
+                aspire_use_cli_bundle=$(dotnet msbuild ./UKHO.ADDS.EFS.LocalHost.csproj -getProperty:AspireUseCliBundle | tr -d '\r' | awk 'NF { last=$0 } END { print last }')
+                echo "AspireUseCliBundle=$aspire_use_cli_bundle"
+
+                if [ "${aspire_use_cli_bundle,,}" = "true" ]; then
+                  echo "AspireUseCliBundle is enabled. Disable it for CI packaging to avoid CLI bundle/runtime conflicts."
+                  exit 1
+                fi
+
+                echo "=== Starting AZD packaging ==="
                 azd package --no-prompt
           env:
             AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
             ASPIRE_SUPPRESS_CLI_RUN_HOOK: 'true'
             MSBUILDDISABLENODEREUSE: '1'
+            DOTNET_CLI_TELEMETRY_OPTOUT: '1'
             AZURE_ENV_NAME: $(AZURE_ENV_NAME)
             AZURE_LOCATION: $(AZURE_LOCATION)
             AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
