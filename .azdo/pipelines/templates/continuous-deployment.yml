@@ -161,6 +161,9 @@ jobs:
                 echo "=== Aspire properties ==="
                 aspire_use_cli_bundle=$(dotnet msbuild ./UKHO.ADDS.EFS.LocalHost.csproj -getProperty:AspireUseCliBundle | tr -d '\r' | awk 'NF { last=$0 } END { print last }')
                 echo "AspireUseCliBundle=$aspire_use_cli_bundle"
+                dotnet msbuild ./UKHO.ADDS.EFS.LocalHost.csproj \
+                  -getProperty:AspireUseCliBundle \
+                  -getProperty:_AspireSuppressCliRunHook
 
                 if [ "${aspire_use_cli_bundle,,}" = "true" ]; then
                   echo "AspireUseCliBundle is enabled. Disable it for CI packaging to avoid CLI bundle/runtime conflicts."
@@ -193,6 +196,9 @@ jobs:
                 echo "=== Aspire properties ==="
                 aspire_use_cli_bundle=$(dotnet msbuild ./UKHO.ADDS.EFS.LocalHost.csproj -getProperty:AspireUseCliBundle | tr -d '\r' | awk 'NF { last=$0 } END { print last }')
                 echo "AspireUseCliBundle=$aspire_use_cli_bundle"
+                dotnet msbuild ./UKHO.ADDS.EFS.LocalHost.csproj \
+                  -getProperty:AspireUseCliBundle \
+                  -getProperty:_AspireSuppressCliRunHook
 
                 if [ "${aspire_use_cli_bundle,,}" = "true" ]; then
                   echo "AspireUseCliBundle is enabled. Disable it for CI packaging to avoid CLI bundle/runtime conflicts."

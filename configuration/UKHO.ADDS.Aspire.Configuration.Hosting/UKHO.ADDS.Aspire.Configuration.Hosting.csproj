@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AspireUseCliBundle>false</AspireUseCliBundle>
+    <_AspireSuppressCliRunHook>true</_AspireSuppressCliRunHook>
   </PropertyGroup>
 
   <ItemGroup>
