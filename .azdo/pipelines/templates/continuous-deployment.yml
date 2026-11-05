@@ -154,6 +154,10 @@ jobs:
                 echo "=== AZD ==="
                 azd version
 
+                export ASPIRE_SUPPRESS_CLI_RUN_HOOK=true
+                export MSBUILDDISABLENODEREUSE=1
+                export DOTNET_CLI_USE_MSBUILD_SERVER=0
+
                 echo "=== Aspire properties ==="
                 aspire_use_cli_bundle=$(dotnet msbuild ./UKHO.ADDS.EFS.LocalHost.csproj -getProperty:AspireUseCliBundle | tr -d '\r' | awk 'NF { last=$0 } END { print last }')
                 echo "AspireUseCliBundle=$aspire_use_cli_bundle"
@@ -162,6 +166,12 @@ jobs:
                   echo "AspireUseCliBundle is enabled. Disable it for CI packaging to avoid CLI bundle/runtime conflicts."
                   exit 1
                 fi
+
+                echo "=== Generating Aspire manifest ==="
+                dotnet run \
+                  --project ./UKHO.ADDS.EFS.LocalHost.csproj \
+                  --publisher manifest \
+                  --output-path /tmp/manifest.json
 
                 echo "=== Starting AZD packaging ==="
                 azd package --no-prompt --debug
@@ -188,6 +198,12 @@ jobs:
                   echo "AspireUseCliBundle is enabled. Disable it for CI packaging to avoid CLI bundle/runtime conflicts."
                   exit 1
                 fi
+
+                echo "=== Generating Aspire manifest ==="
+                dotnet run \
+                  --project ./UKHO.ADDS.EFS.LocalHost.csproj \
+                  --publisher manifest \
+                  --output-path /tmp/manifest.json
 
                 echo "=== Starting AZD packaging ==="
                 azd package --no-prompt
