@@ -170,14 +170,8 @@ jobs:
                   exit 1
                 fi
 
-                echo "=== Generating Aspire manifest ==="
-                dotnet run \
-                  --project ./UKHO.ADDS.EFS.LocalHost.csproj \
-                  --publisher manifest \
-                  --output-path /tmp/manifest.json
-
                 echo "=== Starting AZD packaging ==="
-                azd package --no-prompt --debug
+                timeout 20m azd package --no-prompt --debug
 
                 echo "Current azd variables:"
                 echo "--------------------------------------------------------------------------------"
@@ -205,14 +199,8 @@ jobs:
                   exit 1
                 fi
 
-                echo "=== Generating Aspire manifest ==="
-                dotnet run \
-                  --project ./UKHO.ADDS.EFS.LocalHost.csproj \
-                  --publisher manifest \
-                  --output-path /tmp/manifest.json
-
                 echo "=== Starting AZD packaging ==="
-                azd package --no-prompt
+                timeout 20m azd package --no-prompt --debug
           env:
             AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
             ASPIRE_SUPPRESS_CLI_RUN_HOOK: 'true'
