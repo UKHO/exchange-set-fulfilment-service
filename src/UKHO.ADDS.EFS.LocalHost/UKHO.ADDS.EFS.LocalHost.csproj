@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <Sdk Name="Aspire.AppHost.Sdk" Version="13.6.4" />
+  <Sdk Name="Aspire.AppHost.Sdk" Version="13.4.6" />
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -9,7 +9,6 @@
     <Nullable>enable</Nullable>
     <UserSecretsId>617ed8ee-7a57-43d5-a818-8ddb59a31b6e</UserSecretsId>
     <AspireUseCliBundle>false</AspireUseCliBundle>
-    <_AspireSuppressCliRunHook>true</_AspireSuppressCliRunHook>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,19 +21,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.AppHost" Version="13.6.4" />
-    <PackageReference Include="Aspire.Hosting.Azure.AppContainers" Version="13.6.4" />
-    <PackageReference Include="Aspire.Hosting.Azure.AppConfiguration" Version="13.6.4" />
-    <PackageReference Include="Aspire.Hosting.Azure.ContainerRegistry" Version="13.6.4" />
-    <PackageReference Include="Aspire.Hosting.Azure.OperationalInsights" Version="13.6.4" />
-    <PackageReference Include="Aspire.Hosting.Azure.Storage" Version="13.6.4" />
-    <PackageReference Include="Aspire.Hosting.Redis" Version="13.6.4" />
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="13.4.6" />
+    <PackageReference Include="Aspire.Hosting.Azure.AppContainers" Version="13.4.6" />
+    <PackageReference Include="Aspire.Hosting.Azure.AppConfiguration" Version="13.4.6" />
+    <PackageReference Include="Aspire.Hosting.Azure.ContainerRegistry" Version="13.4.6" />
+    <PackageReference Include="Aspire.Hosting.Azure.OperationalInsights" Version="13.4.6" />
+    <PackageReference Include="Aspire.Hosting.Azure.Storage" Version="13.4.6" />
+    <PackageReference Include="Aspire.Hosting.Redis" Version="13.4.6" />
     <PackageReference Include="CliWrap" Version="3.10.2" />
     <PackageReference Include="Docker.DotNet" Version="3.125.15" />
     <PackageReference Include="Polly" Version="8.7.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
-    <PackageReference Include="Aspire.Hosting.Azure.ApplicationInsights" Version="13.6.4" />
-    <PackageReference Include="Aspire.Hosting.Azure.EventHubs" Version="13.6.4" />
+    <PackageReference Include="Aspire.Hosting.Azure.ApplicationInsights" Version="13.4.6" />
+    <PackageReference Include="Aspire.Hosting.Azure.EventHubs" Version="13.4.6" />
 		<PackageReference Include="Azure.ResourceManager" Version="1.14.0" />
     <PackageReference Include="MessagePack" Version="2.5.307" />
 	</ItemGroup>
