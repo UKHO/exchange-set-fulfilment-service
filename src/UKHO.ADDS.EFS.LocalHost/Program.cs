@@ -82,10 +82,9 @@ namespace UKHO.ADDS.EFS.LocalHost
             var eventHubs = builder.ExecutionContext.IsPublishMode
                 ? builder.AddAzureEventHubs(ServiceConfiguration.EventHubsNamespaceName).PublishAsExisting(efsEventHubsNamespaceName!, efsRetainResourceGroup)
                 : null;
-            // Existing Azure Container Registry
-            var acr = builder
-                .AddAzureContainerRegistry("efs-existing-acr")
-                .PublishAsExisting(efsContainerRegistryName, null);
+            // Container registry (logical name must differ from the default "<env>-acr" created by the ACA environment)
+            var acr = builder.AddAzureContainerRegistry("efs-existing-acr").PublishAsExisting(efsContainerRegistryName, null);
+
             // Container apps environment
             var acaEnv = builder.AddAzureContainerAppEnvironment(ServiceConfiguration.AcaEnvironmentName).PublishAsExisting(efsContainerAppsEnvironmentName, efsRetainResourceGroup).WithAzureContainerRegistry(acr);
 
