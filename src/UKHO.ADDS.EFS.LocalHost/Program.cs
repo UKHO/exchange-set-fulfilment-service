@@ -84,10 +84,10 @@ namespace UKHO.ADDS.EFS.LocalHost
                 : null;
             // Existing Azure Container Registry
             var acr = builder
-                .AddAzureContainerRegistry(ServiceConfiguration.ContainerRegistryName)
+                .AddAzureContainerRegistry("efs-existing-acr")
                 .PublishAsExisting(efsContainerRegistryName, null);
             // Container apps environment
-            var acaEnv = builder.AddAzureContainerAppEnvironment(ServiceConfiguration.AcaEnvironmentName).PublishAsExistingWithNullCheck(efsContainerAppsEnvironmentName, efsRetainResourceGroup).WithAzureContainerRegistry(acr);
+            var acaEnv = builder.AddAzureContainerAppEnvironment(ServiceConfiguration.AcaEnvironmentName).PublishAsExisting(efsContainerAppsEnvironmentName, efsRetainResourceGroup).WithAzureContainerRegistry(acr);
 
             // Storage configuration
             var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e => { e.WithDataVolume(); }).PublishAsExistingWithNullCheck(efsStorageAccountName, null);
