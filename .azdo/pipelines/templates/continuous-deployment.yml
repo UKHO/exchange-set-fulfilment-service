@@ -155,7 +155,7 @@ jobs:
                 echo "--------------------------------------------------------------------------------"
             ${{ else }}:
               inlineScript: |
-                azd package --no-prompt
+                azd package --no-prompt --debug
           env:
             AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
             AZURE_ENV_NAME: $(AZURE_ENV_NAME)
