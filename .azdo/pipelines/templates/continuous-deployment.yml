@@ -293,25 +293,12 @@ jobs:
             AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
             IICWorkspaceKey: $(IICWorkspaceKey)
 
-        - script: |
-            echo "Checking Aspire publishing output..."
-            find . -name "*.module.bicep" -o -name "*.bicepparam"
-
-            echo "Checking azd version..."
-            azd version
-
-            echo "Checking .NET SDK..."
-            dotnet --info
-          displayName: Inspect Aspire deployment artifacts
-          workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
-          continueOnError: true
-
         - template: container-app-deploy.yml
           parameters:
             AzureSubscription: ${{ variables.AzureSubscription }}
             AppName: efs-redis
             AdditionalDebugging: ${{ parameters.AdditionalDebugging }}
-            DeployApp: false
+            DeployApp: ${{ parameters.DeployRedis }}
 
         - ${{ if eq(parameters.IncludeAddsMock, true) }}:
 

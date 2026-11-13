@@ -26,13 +26,23 @@ steps:
     ${{ if eq(parameters.AdditionalDebugging, true) }}:
       inlineScript: |
         set -e
+         echo "========== AZD VERSION =========="
+          azd version
 
-        azd deploy ${{ parameters.AppName }} --no-prompt --debug
+         echo "========== DOTNET VERSION =========="
+          dotnet --info
 
-        echo "Current azd variables:"
-        echo "--------------------------------------------------------------------------------"
-        azd env get-values
-        echo "--------------------------------------------------------------------------------"
+         echo "========== ASPIRE PROJECTS =========="
+          find . -name "*.csproj"
+
+         echo "========== EXISTING BICEP FILES =========="
+          find . -type f \( -name "*.bicep" -o -name "*.bicepparam" \)
+
+         echo "========== AZD ENVIRONMENT =========="
+          azd env get-values
+
+         echo "========== STARTING DEPLOYMENT =========="
+          azd deploy ${{ parameters.AppName }} --no-prompt --debug
        
     ${{ else }}:
       inlineScript: |
