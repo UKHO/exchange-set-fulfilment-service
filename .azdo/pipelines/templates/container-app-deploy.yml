@@ -73,23 +73,49 @@ steps:
     ${{ else }}:
       inlineScript: |
   
-         echo "========== AZD VERSION =========="
-          azd version
+          CAPTURE_DIR="$(Build.ArtifactStagingDirectory)/azd-bicep-debug"
+          mkdir -p "$CAPTURE_DIR"
 
-         echo "========== DOTNET VERSION =========="
-          dotnet --info
+          echo "Starting temporary Bicep directory monitor..."
 
-         echo "========== ASPIRE PROJECTS =========="
-          find . -name "*.csproj"
+           (
+             while true; do
+               for dir in /tmp/efs-redis-build*; do
+                 if [ -d "$dir" ]; then
+                   target="$CAPTURE_DIR/$(basename "$dir")"
+                   mkdir -p "$target"
+                   cp -a "$dir/." "$target/" 2>/dev/null || true
+                 fi
+               done
+               sleep 0.1
+             done
+           ) &
+           
+           WATCHER_PID=$!
+           
+           set +e
+           azd deploy efs-redis --no-prompt --debug
+           DEPLOY_EXIT_CODE=$?
+           set -e
+           
+           kill "$WATCHER_PID" 2>/dev/null || true
+           wait "$WATCHER_PID" 2>/dev/null || true
+           
+           echo "========== CAPTURED BICEP FILES =========="
+           
+           find "$CAPTURE_DIR" -type f -printf '%P\n'
+           
+           echo "========== GENERATED PARAMETER REFERENCES =========="
+           
+           find "$CAPTURE_DIR" -name "main.bicepparam" \
+             -exec head -n 3 {} \;
+           
+           echo "========== EXPECTED MODULE =========="
+           
+           find "$CAPTURE_DIR" -name "efs-redis.module.bicep"
+           
+           exit "$DEPLOY_EXIT_CODE"
 
-         echo "========== EXISTING BICEP FILES =========="
-          find . -type f \( -name "*.bicep" -o -name "*.bicepparam" \)
-
-         echo "========== AZD ENVIRONMENT =========="
-          azd env get-values
-
-         echo "========== STARTING DEPLOYMENT =========="
-          azd deploy ${{ parameters.AppName }} --no-prompt --debug
   env:
     AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
     AZURE_ENV_NAME: $(AZURE_ENV_NAME)
