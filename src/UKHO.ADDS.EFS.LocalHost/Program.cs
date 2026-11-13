@@ -169,6 +169,10 @@ namespace UKHO.ADDS.EFS.LocalHost
             {
                 redisCache.WithRedisInsight();
             }
+            else
+            {
+                redisCache.WithComputeEnvironment(acaEnv);
+            }
 
             // ADDS Mock
             var mockService = builder.AddProject<UKHO_ADDS_Mocks_EFS>(ProcessNames.MockService)
