@@ -46,7 +46,24 @@ steps:
        
     ${{ else }}:
       inlineScript: |
-        azd deploy ${{ parameters.AppName }} --no-prompt
+  
+         echo "========== AZD VERSION =========="
+          azd version
+
+         echo "========== DOTNET VERSION =========="
+          dotnet --info
+
+         echo "========== ASPIRE PROJECTS =========="
+          find . -name "*.csproj"
+
+         echo "========== EXISTING BICEP FILES =========="
+          find . -type f \( -name "*.bicep" -o -name "*.bicepparam" \)
+
+         echo "========== AZD ENVIRONMENT =========="
+          azd env get-values
+
+         echo "========== STARTING DEPLOYMENT =========="
+          azd deploy ${{ parameters.AppName }} --no-prompt --debug
   env:
     AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
     AZURE_ENV_NAME: $(AZURE_ENV_NAME)
