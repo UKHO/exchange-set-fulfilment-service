@@ -24,7 +24,7 @@ parameters:
 # Deploy the Redis container app.
 - name: DeployRedis
   type: boolean
-  default: false
+  default: true
 # If true, additional debugging will be enabled.
 - name: AdditionalDebugging
   type: boolean
@@ -144,68 +144,23 @@ jobs:
             workingDirectory: $(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost
             scriptType: bash
             scriptLocation: inlineScript
-            inlineScript: |
-              echo "=== Tool versions ==="
-              dotnet --info
-              azd version
-              docker --version || true
-              docker info 2>&1 | head -n 20 || true
+            ${{ if eq(parameters.AdditionalDebugging, true) }}:
+              inlineScript: |
+               set -e
+                azd package --no-prompt --debug
 
-              echo "=== Aspire / MSBuild properties ==="
-              dotnet msbuild ./UKHO.ADDS.EFS.LocalHost.csproj -getProperty:AspireUseCliBundle -getProperty:_AspireSuppressCliRunHook -getProperty:TargetFramework || true
-
-              echo "=== Aspire package versions ==="
-              dotnet list ./UKHO.ADDS.EFS.LocalHost.csproj package --include-transitive 2>&1 | grep -i aspire || true
-
-              echo "=== azd environment (secrets are masked by azd) ==="
-              azd env list || true
-              azd env get-values | sed -E 's/(KEY|SECRET|PASSWORD|TOKEN)([^=]*)=.*/\1\2=***/I' || true
-
-              echo "=== Starting azd package (timeout 20m) ==="
-              (while true; do sleep 60; echo "--- heartbeat $(date -u +%H:%M:%S) ---"; ps -eo pid,etimes,pcpu,pmem,args --sort=-etimes | grep -Ei 'azd|dotnet|docker|aspire' | grep -v grep | cut -c1-220; done) &
-              heartbeat_pid=$!
-
-              set +e
-              timeout --signal=INT --kill-after=30s 20m azd package --no-prompt --debug
-              exit_code=$?
-              set -e
-              kill $heartbeat_pid 2>/dev/null || true
-
-              echo "=== azd package finished with exit code ${exit_code} ==="
-
-              if [ "${exit_code}" -ne 0 ]; then
-                echo "=== Diagnostics after failure ==="
-                ps -eo pid,etimes,pcpu,pmem,args --sort=-etimes | grep -Ei 'azd|dotnet|docker|aspire' | grep -v grep | cut -c1-220 || true
-                for dir in "$HOME/.azd/logs" "$HOME/.azd"; do
-                  if [ -d "$dir" ]; then
-                    echo "--- ${dir} ---"
-                    ls -la "$dir" | head -n 30
-                  fi
-                done
-                for f in $(ls -t "$HOME"/.azd/logs/* 2>/dev/null | head -n 2); do
-                  echo "--- tail of ${f} ---"
-                  tail -n 200 "$f"
-                done
-                exit ${exit_code}
-              fi
-
-              if [ "${{ parameters.AdditionalDebugging }}" == "True" ]; then
                 echo "Current azd variables:"
                 echo "--------------------------------------------------------------------------------"
                 azd env get-values
                 echo "--------------------------------------------------------------------------------"
-              fi
+            ${{ else }}:
+              inlineScript: |
+                azd package --no-prompt --debug
           env:
             AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
             AZURE_ENV_NAME: $(AZURE_ENV_NAME)
             AZURE_LOCATION: $(AZURE_LOCATION)
             AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
-            ASPIRE_SUPPRESS_CLI_RUN_HOOK: 'true'
-            MSBUILDDISABLENODEREUSE: '1'
-            DOTNET_CLI_USE_MSBUILD_SERVER: '0'
-            DOTNET_CLI_TELEMETRY_OPTOUT: '1'
-            DOTNET_NOLOGO: '1'
-            Logging__LogLevel__Default: Debug
 
         - task: AzureCLI@2
           displayName: Provision infrastructure
