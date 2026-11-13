@@ -37,9 +37,77 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             var application = builder.Build();
 
+            if (builder.ExecutionContext.IsPublishMode)
+            {
+                await RunPublishAsync(application, args);
+                Log.CloseAndFlush();
+                Environment.Exit(0);
+                return 0;
+            }
+
             await application.RunAsync();
 
             return 0;
+        }
+
+        /// <summary>
+        /// Aspire 13.x keeps the AppHost process alive after the manifest has been published (observed in the azd package/provision pipeline),
+        /// which makes 'azd' wait forever. When an output path is supplied, stop the host once the manifest file has been written.
+        /// </summary>
+        private static async Task RunPublishAsync(DistributedApplication application, string[] args)
+        {
+            var startedUtc = DateTime.UtcNow;
+            var outputPath = GetArgumentValue(args, "--output-path");
+            var runTask = application.RunAsync();
+
+            if (outputPath is null)
+            {
+                await runTask;
+                return;
+            }
+
+            var deadline = startedUtc.AddMinutes(15);
+
+            while (!runTask.IsCompleted && DateTime.UtcNow < deadline)
+            {
+                var manifest = new FileInfo(outputPath);
+
+                if (manifest.Exists && manifest.Length > 0 && manifest.LastWriteTimeUtc >= startedUtc)
+                {
+                    Log.Information("Manifest written to {OutputPath}, stopping AppHost", outputPath);
+                    await Task.Delay(TimeSpan.FromSeconds(5));
+                    break;
+                }
+
+                await Task.Delay(TimeSpan.FromMilliseconds(500));
+            }
+
+            if (!runTask.IsCompleted)
+            {
+                using var stopTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+                try
+                {
+                    await application.StopAsync(stopTimeout.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    Log.Warning("Timed out stopping the AppHost after publishing");
+                }
+            }
+        }
+
+        private static string? GetArgumentValue(string[] args, string name)
+        {
+            for (var i = 0; i < args.Length - 1; i++)
+            {
+                if (string.Equals(args[i], name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return args[i + 1];
+                }
+            }
+
+            return null;
         }
 
         private static async Task BuildEfs(IDistributedApplicationBuilder builder)
