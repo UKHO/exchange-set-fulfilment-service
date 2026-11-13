@@ -8,7 +8,7 @@ parameters:
 # If true, additional debugging will be enabled.
 - name: AdditionalDebugging
   type: boolean
-  default: false
+  default: true
 # Skip deployment if false.
 - name: DeployApp
   type: boolean
