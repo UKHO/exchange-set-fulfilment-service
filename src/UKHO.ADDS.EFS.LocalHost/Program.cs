@@ -95,12 +95,12 @@ namespace UKHO.ADDS.EFS.LocalHost
             var storageBlob = storage.AddBlobs(StorageConfiguration.BlobsName);
 
             // Redis cache
-            var redisCache = builder.AddRedis(ProcessNames.RedisCache)
-                .WithRedisInsight()
-                .PublishAsAzureContainerApp((infra, app) =>
-                {
-                    app.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
-                });
+            var redisCache = builder.AddRedis(ProcessNames.RedisCache);
+
+            if (builder.ExecutionContext.IsRunMode)
+            {
+                redisCache.WithRedisInsight();
+            }
 
             // ADDS Mock
             var mockService = builder.AddProject<UKHO_ADDS_Mocks_EFS>(ProcessNames.MockService)
