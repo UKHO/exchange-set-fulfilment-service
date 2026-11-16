@@ -162,6 +162,24 @@ jobs:
             AZURE_LOCATION: $(AZURE_LOCATION)
             AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
 
+        - script: |
+            set -e
+
+            infraPath="$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost/infra"
+            moduleCount=0
+
+            while IFS= read -r sourceFile; do
+              targetFile="${sourceFile/-containerapp.module.bicep/.module.bicep}"
+              cp -f "$sourceFile" "$targetFile"
+              echo "Mapped $(basename "$sourceFile") -> $(basename "$targetFile")"
+              moduleCount=$((moduleCount + 1))
+            done < <(find "$infraPath" -type f -name '*-containerapp.module.bicep')
+
+            if [ "$moduleCount" -eq 0 ]; then
+              echo "No *-containerapp.module.bicep files found in $infraPath"
+            fi
+          displayName: Normalize generated Bicep module names
+
         - task: AzureCLI@2
           displayName: Provision infrastructure
           inputs:
