@@ -26,96 +26,28 @@ steps:
     ${{ if eq(parameters.AdditionalDebugging, true) }}:
       inlineScript: |
         set -e
+          echo "Checking Aspire deployment artifacts..."
+         find . -type f \( -name "*.bicep" -o -name "*.bicepparam" \) -print
 
-         CAPTURE_DIR="$(Build.ArtifactStagingDirectory)/azd-bicep-debug"
-         mkdir -p "$CAPTURE_DIR"
+          echo "Checking generated module references..."
+           grep -R "using './efs-redis" . \
+            --include="*.bicepparam" || true
 
-          echo "Starting temporary Bicep directory monitor..."
-
-           (
-             while true; do
-               for dir in /tmp/efs-redis-build*; do
-                 if [ -d "$dir" ]; then
-                   target="$CAPTURE_DIR/$(basename "$dir")"
-                   mkdir -p "$target"
-                   cp -a "$dir/." "$target/" 2>/dev/null || true
-                 fi
-               done
-               sleep 0.1
-             done
-           ) &
-           
-           WATCHER_PID=$!
-           
-           set +e
-           azd deploy efs-redis --no-prompt --debug
-           DEPLOY_EXIT_CODE=$?
-           set -e
-           
-           kill "$WATCHER_PID" 2>/dev/null || true
-           wait "$WATCHER_PID" 2>/dev/null || true
-           
-           echo "========== CAPTURED BICEP FILES =========="
-           
-           find "$CAPTURE_DIR" -type f -printf '%P\n'
-           
-           echo "========== GENERATED PARAMETER REFERENCES =========="
-           
-           find "$CAPTURE_DIR" -name "main.bicepparam" \
-             -exec head -n 3 {} \;
-           
-           echo "========== EXPECTED MODULE =========="
-           
-           find "$CAPTURE_DIR" -name "efs-redis.module.bicep"
-           
-           exit "$DEPLOY_EXIT_CODE"
-                  
+         echo "========== STARTING DEPLOYMENT =========="
+          azd deploy ${{ parameters.AppName }} --no-prompt --debug
+       
     ${{ else }}:
       inlineScript: |
   
-          CAPTURE_DIR="$(Build.ArtifactStagingDirectory)/azd-bicep-debug"
-          mkdir -p "$CAPTURE_DIR"
+         echo "Checking Aspire deployment artifacts..."
+         find . -type f \( -name "*.bicep" -o -name "*.bicepparam" \) -print
 
-          echo "Starting temporary Bicep directory monitor..."
+          echo "Checking generated module references..."
+           grep -R "using './efs-redis" . \
+            --include="*.bicepparam" || true
 
-           (
-             while true; do
-               for dir in /tmp/efs-redis-build*; do
-                 if [ -d "$dir" ]; then
-                   target="$CAPTURE_DIR/$(basename "$dir")"
-                   mkdir -p "$target"
-                   cp -a "$dir/." "$target/" 2>/dev/null || true
-                 fi
-               done
-               sleep 0.1
-             done
-           ) &
-           
-           WATCHER_PID=$!
-           
-           set +e
-           azd deploy efs-redis --no-prompt --debug
-           DEPLOY_EXIT_CODE=$?
-           set -e
-           
-           kill "$WATCHER_PID" 2>/dev/null || true
-           wait "$WATCHER_PID" 2>/dev/null || true
-           
-           echo "========== CAPTURED BICEP FILES =========="
-           
-           find "$CAPTURE_DIR" -type f -printf '%P\n'
-           
-           echo "========== GENERATED PARAMETER REFERENCES =========="
-           
-           find "$CAPTURE_DIR" -name "main.bicepparam" \
-             -exec head -n 3 {} \;
-           
-           echo "========== EXPECTED MODULE =========="
-           
-           find "$CAPTURE_DIR" -name "efs-redis.module.bicep"
-           
-           exit "$DEPLOY_EXIT_CODE"
-
+         echo "========== STARTING DEPLOYMENT =========="
+          azd deploy ${{ parameters.AppName }} --no-prompt --debug
   env:
     AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
     AZURE_ENV_NAME: $(AZURE_ENV_NAME)
