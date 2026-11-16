@@ -163,22 +163,20 @@ jobs:
             AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
 
         - script: |
-            set -e
+                 set -e
 
-            infraPath="$(Build.SourcesDirectory)/efs/src/UKHO.ADDS.EFS.LocalHost/infra"
-            moduleCount=0
+                 echo "Checking generated Redis infrastructure"
 
-            while IFS= read -r sourceFile; do
-              targetFile="${sourceFile/-containerapp.module.bicep/.module.bicep}"
-              cp -f "$sourceFile" "$targetFile"
-              echo "Mapped $(basename "$sourceFile") -> $(basename "$targetFile")"
-              moduleCount=$((moduleCount + 1))
-            done < <(find "$infraPath" -type f -name '*-containerapp.module.bicep')
+                 find . -type f \( -name "*.bicep" -o -name "*.bicepparam" \) -print
 
-            if [ "$moduleCount" -eq 0 ]; then
-              echo "No *-containerapp.module.bicep files found in $infraPath"
-            fi
-          displayName: Normalize generated Bicep module names
+                  echo "Searching for Redis module references"
+
+                   grep -R -n "efs-redis.module.bicep" . \
+                   --include="*.bicepparam" || true
+
+                   grep -R -n "efs-redis-containerapp.module.bicep" . \
+                    --include="*.bicepparam" || true
+                 displayName: Diagnose Redis Bicep artifacts
 
         - task: AzureCLI@2
           displayName: Provision infrastructure
