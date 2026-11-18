@@ -162,22 +162,6 @@ jobs:
             AZURE_LOCATION: $(AZURE_LOCATION)
             AZURE_SUBNET_RESOURCE_ID: $(AZURE_SUBNET_RESOURCE_ID)
 
-        - script: |
-                 set -e
-
-                 echo "Checking generated Redis infrastructure"
-
-                 find . -type f \( -name "*.bicep" -o -name "*.bicepparam" \) -print
-
-                  echo "Searching for Redis module references"
-
-                   grep -R -n "efs-redis.module.bicep" . \
-                   --include="*.bicepparam" || true
-
-                   grep -R -n "efs-redis-containerapp.module.bicep" . \
-                    --include="*.bicepparam" || true
-                 displayName: Diagnose Redis Bicep artifacts
-
         - task: AzureCLI@2
           displayName: Provision infrastructure
           inputs:
