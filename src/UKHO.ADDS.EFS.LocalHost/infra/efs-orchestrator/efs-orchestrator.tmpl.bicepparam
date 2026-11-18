@@ -1,4 +1,4 @@
-using './efs-orchestrator.module.bicep'
+using './efs-orchestrator-containerapp.module.bicep'
 
 param addsenvironment_value = '{{ parameter "addsEnvironment" }}'
 param efs_app_insights_outputs_appinsightsconnectionstring = '{{ .Env.EFS_APP_INSIGHTS_APPINSIGHTSCONNECTIONSTRING }}'

@@ -1,4 +1,4 @@
-using './adds-mocks-efs.module.bicep'
+using './adds-mocks-efs-containerapp.module.bicep'
 
 param addsMocksCpu = '{{ parameter "addsMocksCpu" }}'
 param addsMocksMemory = '{{ parameter "addsMocksMemory" }}'
