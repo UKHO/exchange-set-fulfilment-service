@@ -33,6 +33,11 @@ steps:
            grep -R "using './efs-redis" . \
             --include="*.bicepparam" || true
 
+         if [ -z "$EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME" ] && [ -n "$EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT" ]; then
+           EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME=$(echo "$EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT" | sed -e 's#^sb://##' -e 's#/$##')
+           export EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME
+         fi
+
          echo "========== STARTING DEPLOYMENT =========="
           azd deploy ${{ parameters.AppName }} --no-prompt --debug
        
@@ -45,6 +50,11 @@ steps:
           echo "Checking generated module references..."
            grep -R "using './efs-redis" . \
             --include="*.bicepparam" || true
+
+         if [ -z "$EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME" ] && [ -n "$EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT" ]; then
+           EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME=$(echo "$EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT" | sed -e 's#^sb://##' -e 's#/$##')
+           export EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME
+         fi
 
          echo "========== STARTING DEPLOYMENT =========="
           azd deploy ${{ parameters.AppName }} --no-prompt --debug
@@ -69,4 +79,5 @@ steps:
     AZURE_ELASTIC_APMSERVER_URL: $(AZURE_ELASTIC_APMSERVER_URL)
     AZURE_ELASTIC_APMENVIRONMENT: $(AZURE_ELASTIC_APMENVIRONMENT)
     AZURE_ELASTIC_APMSERVICE_NAME: $(AZURE_ELASTIC_APMSERVICE_NAME)
+    EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT: $(EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT)
     EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME: $(AZURE_EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME)
