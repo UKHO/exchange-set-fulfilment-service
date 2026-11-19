@@ -36,6 +36,17 @@ steps:
          EVENTHUBS_HOSTNAME=$(azd env get-value EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME 2>/dev/null || true)
          EVENTHUBS_ENDPOINT=$(azd env get-value EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT 2>/dev/null || true)
 
+         if [[ "$EVENTHUBS_HOSTNAME" == ERROR:* ]]; then
+           EVENTHUBS_HOSTNAME=""
+         fi
+         if [[ "$EVENTHUBS_ENDPOINT" == ERROR:* ]]; then
+           EVENTHUBS_ENDPOINT=""
+         fi
+
+         if [ -z "$EVENTHUBS_ENDPOINT" ] && [ -n "$EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT" ]; then
+           EVENTHUBS_ENDPOINT="$EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT"
+         fi
+
          if [ -z "$EVENTHUBS_ENDPOINT" ] && [ -n "$AZURE_EFS_EVENT_HUBS_NAMESPACE_NAME" ] && [ -n "$AZURE_EFS_RETAIN_RESOURCE_GROUP" ]; then
            EVENTHUBS_ENDPOINT=$(az eventhubs namespace show --name "$AZURE_EFS_EVENT_HUBS_NAMESPACE_NAME" --resource-group "$AZURE_EFS_RETAIN_RESOURCE_GROUP" --query "properties.serviceBusEndpoint" --output tsv)
            if [ -n "$EVENTHUBS_ENDPOINT" ]; then
@@ -43,17 +54,33 @@ steps:
            fi
          fi
 
-         if [ -z "$EVENTHUBS_HOSTNAME" ] && [ -n "$EVENTHUBS_ENDPOINT" ]; then
-           EVENTHUBS_HOSTNAME=$(echo "$EVENTHUBS_ENDPOINT" | sed -e 's#^sb://##' -e 's#/$##')
-           azd env set EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME "$EVENTHUBS_HOSTNAME"
+          if [ -n "$EVENTHUBS_ENDPOINT" ]; then
+            azd env set EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT "$EVENTHUBS_ENDPOINT"
+          fi
+
+          if [ -z "$EVENTHUBS_HOSTNAME" ] && [ -n "$EVENTHUBS_ENDPOINT" ]; then
+            EVENTHUBS_HOSTNAME=$(echo "$EVENTHUBS_ENDPOINT" | sed -E -e 's#^[a-z]+://##' -e 's#:[0-9]+/?$##' -e 's#/$##')
+          fi
+
+          if [ -n "$EVENTHUBS_HOSTNAME" ]; then
+            azd env set EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME "$EVENTHUBS_HOSTNAME"
          fi
 
+         if [ -z "$EVENTHUBS_HOSTNAME" ]; then
+           EVENTHUBS_HOSTNAME=$(azd env get-value EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME 2>/dev/null || true)
+         fi
          if [ -n "$EVENTHUBS_HOSTNAME" ]; then
            export EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME="$EVENTHUBS_HOSTNAME"
          fi
 
-         echo "EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT=$(azd env get-value EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT 2>/dev/null || true)"
-         echo "EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME=$(azd env get-value EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME 2>/dev/null || true)"
+          echo "EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT=${EVENTHUBS_ENDPOINT}"
+          echo "EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME=${EVENTHUBS_HOSTNAME}"
+
+          if [ -z "$EVENTHUBS_HOSTNAME" ]; then
+            echo "Failed to resolve EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME in azd env."
+            azd env get-values | grep EFS_EVENTS_NAMESPACE || true
+            exit 1
+          fi
 
          echo "========== STARTING DEPLOYMENT =========="
           azd deploy ${{ parameters.AppName }} --no-prompt --debug
@@ -71,6 +98,17 @@ steps:
          EVENTHUBS_HOSTNAME=$(azd env get-value EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME 2>/dev/null || true)
          EVENTHUBS_ENDPOINT=$(azd env get-value EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT 2>/dev/null || true)
 
+         if [[ "$EVENTHUBS_HOSTNAME" == ERROR:* ]]; then
+           EVENTHUBS_HOSTNAME=""
+         fi
+         if [[ "$EVENTHUBS_ENDPOINT" == ERROR:* ]]; then
+           EVENTHUBS_ENDPOINT=""
+         fi
+
+         if [ -z "$EVENTHUBS_ENDPOINT" ] && [ -n "$EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT" ]; then
+           EVENTHUBS_ENDPOINT="$EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT"
+         fi
+
          if [ -z "$EVENTHUBS_ENDPOINT" ] && [ -n "$AZURE_EFS_EVENT_HUBS_NAMESPACE_NAME" ] && [ -n "$AZURE_EFS_RETAIN_RESOURCE_GROUP" ]; then
            EVENTHUBS_ENDPOINT=$(az eventhubs namespace show --name "$AZURE_EFS_EVENT_HUBS_NAMESPACE_NAME" --resource-group "$AZURE_EFS_RETAIN_RESOURCE_GROUP" --query "properties.serviceBusEndpoint" --output tsv)
            if [ -n "$EVENTHUBS_ENDPOINT" ]; then
@@ -78,17 +116,33 @@ steps:
            fi
          fi
 
-         if [ -z "$EVENTHUBS_HOSTNAME" ] && [ -n "$EVENTHUBS_ENDPOINT" ]; then
-           EVENTHUBS_HOSTNAME=$(echo "$EVENTHUBS_ENDPOINT" | sed -e 's#^sb://##' -e 's#/$##')
-           azd env set EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME "$EVENTHUBS_HOSTNAME"
+          if [ -n "$EVENTHUBS_ENDPOINT" ]; then
+            azd env set EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT "$EVENTHUBS_ENDPOINT"
+          fi
+
+          if [ -z "$EVENTHUBS_HOSTNAME" ] && [ -n "$EVENTHUBS_ENDPOINT" ]; then
+            EVENTHUBS_HOSTNAME=$(echo "$EVENTHUBS_ENDPOINT" | sed -E -e 's#^[a-z]+://##' -e 's#:[0-9]+/?$##' -e 's#/$##')
+          fi
+
+          if [ -n "$EVENTHUBS_HOSTNAME" ]; then
+            azd env set EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME "$EVENTHUBS_HOSTNAME"
          fi
 
+         if [ -z "$EVENTHUBS_HOSTNAME" ]; then
+           EVENTHUBS_HOSTNAME=$(azd env get-value EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME 2>/dev/null || true)
+         fi
          if [ -n "$EVENTHUBS_HOSTNAME" ]; then
            export EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME="$EVENTHUBS_HOSTNAME"
          fi
 
-         echo "EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT=$(azd env get-value EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT 2>/dev/null || true)"
-         echo "EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME=$(azd env get-value EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME 2>/dev/null || true)"
+          echo "EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT=${EVENTHUBS_ENDPOINT}"
+          echo "EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME=${EVENTHUBS_HOSTNAME}"
+
+          if [ -z "$EVENTHUBS_HOSTNAME" ]; then
+            echo "Failed to resolve EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME in azd env."
+            azd env get-values | grep EFS_EVENTS_NAMESPACE || true
+            exit 1
+          fi
 
          echo "========== STARTING DEPLOYMENT =========="
           azd deploy ${{ parameters.AppName }} --no-prompt --debug
