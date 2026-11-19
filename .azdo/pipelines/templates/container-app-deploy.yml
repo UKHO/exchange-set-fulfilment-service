@@ -33,9 +33,16 @@ steps:
            grep -R "using './efs-redis" . \
             --include="*.bicepparam" || true
 
-         if [ -z "$EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME" ] && [ -n "$EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT" ]; then
-           EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME=$(echo "$EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT" | sed -e 's#^sb://##' -e 's#/$##')
-           export EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME
+         EVENTHUBS_HOSTNAME=$(azd env get-value EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME 2>/dev/null || true)
+         EVENTHUBS_ENDPOINT=$(azd env get-value EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT 2>/dev/null || true)
+
+         if [ -z "$EVENTHUBS_HOSTNAME" ] && [ -n "$EVENTHUBS_ENDPOINT" ]; then
+           EVENTHUBS_HOSTNAME=$(echo "$EVENTHUBS_ENDPOINT" | sed -e 's#^sb://##' -e 's#/$##')
+           azd env set EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME "$EVENTHUBS_HOSTNAME"
+         fi
+
+         if [ -n "$EVENTHUBS_HOSTNAME" ]; then
+           export EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME="$EVENTHUBS_HOSTNAME"
          fi
 
          echo "========== STARTING DEPLOYMENT =========="
@@ -51,9 +58,16 @@ steps:
            grep -R "using './efs-redis" . \
             --include="*.bicepparam" || true
 
-         if [ -z "$EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME" ] && [ -n "$EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT" ]; then
-           EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME=$(echo "$EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT" | sed -e 's#^sb://##' -e 's#/$##')
-           export EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME
+         EVENTHUBS_HOSTNAME=$(azd env get-value EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME 2>/dev/null || true)
+         EVENTHUBS_ENDPOINT=$(azd env get-value EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT 2>/dev/null || true)
+
+         if [ -z "$EVENTHUBS_HOSTNAME" ] && [ -n "$EVENTHUBS_ENDPOINT" ]; then
+           EVENTHUBS_HOSTNAME=$(echo "$EVENTHUBS_ENDPOINT" | sed -e 's#^sb://##' -e 's#/$##')
+           azd env set EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME "$EVENTHUBS_HOSTNAME"
+         fi
+
+         if [ -n "$EVENTHUBS_HOSTNAME" ]; then
+           export EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME="$EVENTHUBS_HOSTNAME"
          fi
 
          echo "========== STARTING DEPLOYMENT =========="
