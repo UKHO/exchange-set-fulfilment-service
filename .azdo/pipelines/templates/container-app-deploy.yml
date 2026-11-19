@@ -33,12 +33,13 @@ steps:
            grep -R "using './efs-redis" . \
             --include="*.bicepparam" || true
 
-         EVENTHUBS_HOSTNAME=$(azd env get-value EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME 2>/dev/null || true)
-         EVENTHUBS_ENDPOINT=$(azd env get-value EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT 2>/dev/null || true)
+         EVENTHUBS_HOSTNAME="$EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME"
+         EVENTHUBS_ENDPOINT="$EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT"
 
-         if [[ "$EVENTHUBS_HOSTNAME" == ERROR:* ]]; then
-           EVENTHUBS_HOSTNAME=""
+         if [ -z "$EVENTHUBS_ENDPOINT" ]; then
+           EVENTHUBS_ENDPOINT=$(azd env get-value EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT 2>/dev/null || true)
          fi
+
          if [[ "$EVENTHUBS_ENDPOINT" == ERROR:* ]]; then
            EVENTHUBS_ENDPOINT=""
          fi
@@ -66,10 +67,13 @@ steps:
             azd env set EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME "$EVENTHUBS_HOSTNAME"
          fi
 
-         if [ -z "$EVENTHUBS_HOSTNAME" ]; then
-           EVENTHUBS_HOSTNAME=$(azd env get-value EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME 2>/dev/null || true)
-         fi
-         if [ -n "$EVENTHUBS_HOSTNAME" ]; then
+          if [ -z "$EVENTHUBS_HOSTNAME" ]; then
+            EVENTHUBS_HOSTNAME=$(azd env get-values | sed -n 's/^EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME=//p' | tail -n 1)
+          fi
+          if [[ "$EVENTHUBS_HOSTNAME" == ERROR:* ]]; then
+            EVENTHUBS_HOSTNAME=""
+          fi
+          if [ -n "$EVENTHUBS_HOSTNAME" ]; then
            export EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME="$EVENTHUBS_HOSTNAME"
          fi
 
@@ -95,12 +99,13 @@ steps:
            grep -R "using './efs-redis" . \
             --include="*.bicepparam" || true
 
-         EVENTHUBS_HOSTNAME=$(azd env get-value EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME 2>/dev/null || true)
-         EVENTHUBS_ENDPOINT=$(azd env get-value EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT 2>/dev/null || true)
+         EVENTHUBS_HOSTNAME="$EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME"
+         EVENTHUBS_ENDPOINT="$EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT"
 
-         if [[ "$EVENTHUBS_HOSTNAME" == ERROR:* ]]; then
-           EVENTHUBS_HOSTNAME=""
+         if [ -z "$EVENTHUBS_ENDPOINT" ]; then
+           EVENTHUBS_ENDPOINT=$(azd env get-value EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT 2>/dev/null || true)
          fi
+
          if [[ "$EVENTHUBS_ENDPOINT" == ERROR:* ]]; then
            EVENTHUBS_ENDPOINT=""
          fi
@@ -128,10 +133,13 @@ steps:
             azd env set EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME "$EVENTHUBS_HOSTNAME"
          fi
 
-         if [ -z "$EVENTHUBS_HOSTNAME" ]; then
-           EVENTHUBS_HOSTNAME=$(azd env get-value EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME 2>/dev/null || true)
-         fi
-         if [ -n "$EVENTHUBS_HOSTNAME" ]; then
+          if [ -z "$EVENTHUBS_HOSTNAME" ]; then
+            EVENTHUBS_HOSTNAME=$(azd env get-values | sed -n 's/^EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME=//p' | tail -n 1)
+          fi
+          if [[ "$EVENTHUBS_HOSTNAME" == ERROR:* ]]; then
+            EVENTHUBS_HOSTNAME=""
+          fi
+          if [ -n "$EVENTHUBS_HOSTNAME" ]; then
            export EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME="$EVENTHUBS_HOSTNAME"
          fi
 
