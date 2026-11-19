@@ -28,6 +28,8 @@ param efs_app_insights_outputs_appinsightsconnectionstring string
 
 param efs_events_namespace_outputs_eventhubsendpoint string
 
+param efs_events_namespace_outputs_eventhubshostname string
+
 @secure()
 param elasticapmapikey_value string
 
