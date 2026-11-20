@@ -86,6 +86,28 @@ steps:
             exit 1
           fi
 
+          ORCHESTRATOR_IDENTITY_ID="${EFS_SERVICE_IDENTITY_ID:-}"
+          REGISTRY_IDENTITY_ID=$(azd env get-value EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID 2>/dev/null || true)
+
+          if [[ "$REGISTRY_IDENTITY_ID" == ERROR:* ]]; then
+            REGISTRY_IDENTITY_ID=""
+          fi
+
+          if [ -n "$ORCHESTRATOR_IDENTITY_ID" ] && [ "$ORCHESTRATOR_IDENTITY_ID" = "$REGISTRY_IDENTITY_ID" ]; then
+            CAE_IDENTITY_ID=$(az containerapp env show --name "$AZURE_EFS_CONTAINER_APPS_ENVIRONMENT_NAME" --resource-group "$AZURE_EFS_RETAIN_RESOURCE_GROUP" --query "identity.userAssignedIdentities | keys(@) | [0]" --output tsv 2>/dev/null || true)
+
+            if [ -n "$CAE_IDENTITY_ID" ] && [ "$CAE_IDENTITY_ID" != "null" ] && [ "$CAE_IDENTITY_ID" != "$ORCHESTRATOR_IDENTITY_ID" ]; then
+              azd env set EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID "$CAE_IDENTITY_ID"
+              REGISTRY_IDENTITY_ID="$CAE_IDENTITY_ID"
+            fi
+          fi
+
+          if [ -n "$ORCHESTRATOR_IDENTITY_ID" ] && [ "$ORCHESTRATOR_IDENTITY_ID" = "$REGISTRY_IDENTITY_ID" ]; then
+            echo "Identity collision detected: EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID matches EFS_SERVICE_IDENTITY_ID."
+            echo "Set a distinct registry pull identity for the Container Apps environment and rerun deploy."
+            exit 1
+          fi
+
          echo "========== STARTING DEPLOYMENT =========="
           azd deploy ${{ parameters.AppName }} --no-prompt --debug
        
@@ -152,6 +174,28 @@ steps:
             exit 1
           fi
 
+          ORCHESTRATOR_IDENTITY_ID="${EFS_SERVICE_IDENTITY_ID:-}"
+          REGISTRY_IDENTITY_ID=$(azd env get-value EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID 2>/dev/null || true)
+
+          if [[ "$REGISTRY_IDENTITY_ID" == ERROR:* ]]; then
+            REGISTRY_IDENTITY_ID=""
+          fi
+
+          if [ -n "$ORCHESTRATOR_IDENTITY_ID" ] && [ "$ORCHESTRATOR_IDENTITY_ID" = "$REGISTRY_IDENTITY_ID" ]; then
+            CAE_IDENTITY_ID=$(az containerapp env show --name "$AZURE_EFS_CONTAINER_APPS_ENVIRONMENT_NAME" --resource-group "$AZURE_EFS_RETAIN_RESOURCE_GROUP" --query "identity.userAssignedIdentities | keys(@) | [0]" --output tsv 2>/dev/null || true)
+
+            if [ -n "$CAE_IDENTITY_ID" ] && [ "$CAE_IDENTITY_ID" != "null" ] && [ "$CAE_IDENTITY_ID" != "$ORCHESTRATOR_IDENTITY_ID" ]; then
+              azd env set EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID "$CAE_IDENTITY_ID"
+              REGISTRY_IDENTITY_ID="$CAE_IDENTITY_ID"
+            fi
+          fi
+
+          if [ -n "$ORCHESTRATOR_IDENTITY_ID" ] && [ "$ORCHESTRATOR_IDENTITY_ID" = "$REGISTRY_IDENTITY_ID" ]; then
+            echo "Identity collision detected: EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID matches EFS_SERVICE_IDENTITY_ID."
+            echo "Set a distinct registry pull identity for the Container Apps environment and rerun deploy."
+            exit 1
+          fi
+
          echo "========== STARTING DEPLOYMENT =========="
           azd deploy ${{ parameters.AppName }} --no-prompt --debug
   env:
@@ -173,6 +217,7 @@ steps:
     AZURE_EFS_B2C_APP_TENANT_ID : $(AZURE_EFS_B2C_APP_TENANT_ID)
     AZURE_EFS_EVENT_HUBS_NAMESPACE_NAME: $(AZURE_EFS_EVENT_HUBS_NAMESPACE_NAME)
     AZURE_EFS_RETAIN_RESOURCE_GROUP: $(AZURE_EFS_RETAIN_RESOURCE_GROUP)
+    AZURE_EFS_CONTAINER_APPS_ENVIRONMENT_NAME: $(AZURE_EFS_CONTAINER_APPS_ENVIRONMENT_NAME)
     AZURE_ELASTIC_APMAPI_KEY: $(AZURE_ELASTIC_APMAPI_KEY)
     AZURE_ELASTIC_APMSERVER_URL: $(AZURE_ELASTIC_APMSERVER_URL)
     AZURE_ELASTIC_APMENVIRONMENT: $(AZURE_ELASTIC_APMENVIRONMENT)
