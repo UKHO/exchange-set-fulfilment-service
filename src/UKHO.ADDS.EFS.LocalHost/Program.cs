@@ -113,7 +113,6 @@ namespace UKHO.ADDS.EFS.LocalHost
         private static async Task BuildEfs(IDistributedApplicationBuilder builder)
         {
             // Get parameters
-            var efsServiceIdentityName = builder.AddPublishOnlyParameter("efsServiceIdentityName");
             var efsRetainResourceGroup = builder.AddPublishOnlyParameter("efsRetainResourceGroup");
             var efsContainerAppsEnvironmentName = builder.AddPublishOnlyParameter("efsContainerAppsEnvironmentName");
             var efsApplicationInsightsName = builder.AddPublishOnlyParameter("efsApplicationInsightsName");
@@ -137,9 +136,6 @@ namespace UKHO.ADDS.EFS.LocalHost
             var efsB2cAppDomain = builder.AddPublishOnlyParameter("efsB2cAppDomain");
             var efsB2cAppInstance = builder.AddPublishOnlyParameter("efsB2cAppInstance");
             var efsB2cAppSigninPolicy = builder.AddPublishOnlyParameter("efsB2cAppSigninPolicy");
-
-            // Existing user managed identity
-            var efsServiceIdentity = builder.AddAzureUserAssignedIdentity(ServiceConfiguration.EfsServiceIdentity).PublishAsExistingWithNullCheck(efsServiceIdentityName, efsRetainResourceGroup);
 
             // App insights
             var appInsights = builder.ExecutionContext.IsPublishMode
@@ -210,7 +206,6 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WaitFor(mockService)
                 .WithReference(redisCache)
                 .WaitFor(redisCache)
-                .WithAzureUserAssignedIdentity(efsServiceIdentity)
                 .WithExternalHttpEndpoints()
                 .WithScalar("API Browser");
 
