@@ -13,6 +13,8 @@ output AZURE_CONTAINER_APPS_ENVIRONMENT_ID string = efs_cae.id
 
 output AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN string = efs_cae.properties.defaultDomain
 
-output AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID string = length(objectKeys(efs_cae.identity.userAssignedIdentities)) > 0
-  ? objectKeys(efs_cae.identity.userAssignedIdentities)[0]
+var caeFull = reference(efs_cae.id, '2025-01-01', 'full')
+
+output AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID string = contains(caeFull, 'identity') && contains(caeFull.identity, 'userAssignedIdentities') && length(objectKeys(caeFull.identity.userAssignedIdentities)) > 0
+  ? objectKeys(caeFull.identity.userAssignedIdentities)[0]
   : ''
