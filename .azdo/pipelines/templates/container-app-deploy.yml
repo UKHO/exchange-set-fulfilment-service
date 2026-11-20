@@ -87,10 +87,23 @@ steps:
           fi
 
           ORCHESTRATOR_IDENTITY_ID="${EFS_SERVICE_IDENTITY_ID:-}"
+          if [ -z "$ORCHESTRATOR_IDENTITY_ID" ]; then
+            ORCHESTRATOR_IDENTITY_ID=$(azd env get-value EFS_SERVICE_IDENTITY_ID 2>/dev/null || true)
+          fi
+
+          if [[ "$ORCHESTRATOR_IDENTITY_ID" == ERROR:* ]] || [[ "$ORCHESTRATOR_IDENTITY_ID" == '$('* ]]; then
+            ORCHESTRATOR_IDENTITY_ID=""
+          fi
+
           REGISTRY_IDENTITY_ID=$(azd env get-value EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID 2>/dev/null || true)
 
-          if [[ "$REGISTRY_IDENTITY_ID" == ERROR:* ]]; then
+          if [[ "$REGISTRY_IDENTITY_ID" == ERROR:* ]] || [[ "$REGISTRY_IDENTITY_ID" == '$('* ]]; then
             REGISTRY_IDENTITY_ID=""
+          fi
+
+          if [ -z "$REGISTRY_IDENTITY_ID" ] && [ -n "$ORCHESTRATOR_IDENTITY_ID" ]; then
+            azd env set EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID "$ORCHESTRATOR_IDENTITY_ID"
+            REGISTRY_IDENTITY_ID="$ORCHESTRATOR_IDENTITY_ID"
           fi
 
           if [ -n "$ORCHESTRATOR_IDENTITY_ID" ] && [ "$ORCHESTRATOR_IDENTITY_ID" = "$REGISTRY_IDENTITY_ID" ]; then
@@ -175,10 +188,23 @@ steps:
           fi
 
           ORCHESTRATOR_IDENTITY_ID="${EFS_SERVICE_IDENTITY_ID:-}"
+          if [ -z "$ORCHESTRATOR_IDENTITY_ID" ]; then
+            ORCHESTRATOR_IDENTITY_ID=$(azd env get-value EFS_SERVICE_IDENTITY_ID 2>/dev/null || true)
+          fi
+
+          if [[ "$ORCHESTRATOR_IDENTITY_ID" == ERROR:* ]] || [[ "$ORCHESTRATOR_IDENTITY_ID" == '$('* ]]; then
+            ORCHESTRATOR_IDENTITY_ID=""
+          fi
+
           REGISTRY_IDENTITY_ID=$(azd env get-value EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID 2>/dev/null || true)
 
-          if [[ "$REGISTRY_IDENTITY_ID" == ERROR:* ]]; then
+          if [[ "$REGISTRY_IDENTITY_ID" == ERROR:* ]] || [[ "$REGISTRY_IDENTITY_ID" == '$('* ]]; then
             REGISTRY_IDENTITY_ID=""
+          fi
+
+          if [ -z "$REGISTRY_IDENTITY_ID" ] && [ -n "$ORCHESTRATOR_IDENTITY_ID" ]; then
+            azd env set EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID "$ORCHESTRATOR_IDENTITY_ID"
+            REGISTRY_IDENTITY_ID="$ORCHESTRATOR_IDENTITY_ID"
           fi
 
           if [ -n "$ORCHESTRATOR_IDENTITY_ID" ] && [ "$ORCHESTRATOR_IDENTITY_ID" = "$REGISTRY_IDENTITY_ID" ]; then
