@@ -12,3 +12,7 @@ output AZURE_CONTAINER_APPS_ENVIRONMENT_NAME string = efs_cae.name
 output AZURE_CONTAINER_APPS_ENVIRONMENT_ID string = efs_cae.id
 
 output AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN string = efs_cae.properties.defaultDomain
+
+output AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID string = length(objectKeys(efs_cae.identity.userAssignedIdentities)) > 0
+  ? objectKeys(efs_cae.identity.userAssignedIdentities)[0]
+  : ''
