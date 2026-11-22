@@ -84,11 +84,18 @@ namespace UKHO.ADDS.EFS.LocalHost
                 : null;
 
             // Container registry
-            var acr = builder.AddAzureContainerRegistry(ServiceConfiguration.ContainerRegistryName).PublishAsExistingWithNullCheck(efsContainerRegistryName, null);
+            //var acr = builder.AddAzureContainerRegistry(ServiceConfiguration.ContainerRegistryName).PublishAsExistingWithNullCheck(efsContainerRegistryName, null);
 
             // Container apps environment
-            var acaEnv = builder.AddAzureContainerAppEnvironment(ServiceConfiguration.AcaEnvironmentName).WithAzureContainerRegistry(acr).PublishAsExistingWithNullCheck(efsContainerAppsEnvironmentName, efsRetainResourceGroup);
+            var acaEnv = builder.AddAzureContainerAppEnvironment(ServiceConfiguration.AcaEnvironmentName).PublishAsExistingWithNullCheck(efsContainerAppsEnvironmentName, efsRetainResourceGroup);
 
+            var acrResource = builder.Resources
+             .OfType<AzureContainerRegistryResource>()
+             .Single(r => string.Equals(((IResource)r).Name, efsContainerRegistryName.Resource.Value, StringComparison.OrdinalIgnoreCase));
+
+            // 3. Wrap it in a resource builder and configure PublishAsExisting
+            var acr = builder.CreateResourceBuilder(acrResource)
+                             .PublishAsExisting(efsContainerRegistryName, null);
             // Storage configuration
             var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e => { e.WithDataVolume(); }).PublishAsExistingWithNullCheck(efsStorageAccountName, null);
             var storageQueue = storage.AddQueues(StorageConfiguration.QueuesName);
