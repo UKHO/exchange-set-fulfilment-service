@@ -40,6 +40,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             {
                 await RunPublishAsync(application, args);
                 Log.CloseAndFlush();
+                Environment.Exit(0);
                 return 0;
             }
 
@@ -109,12 +110,16 @@ namespace UKHO.ADDS.EFS.LocalHost
             var storageBlob = storage.AddBlobs(StorageConfiguration.BlobsName);
 
             // Redis cache
-            var redisCache = builder.AddRedis(ProcessNames.RedisCache)
-                .WithRedisInsight()
-                .PublishAsAzureContainerApp((infra, app) =>
-                {
-                    app.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
-                });
+            var redisCache = builder.AddRedis(ProcessNames.RedisCache);
+
+            if (builder.ExecutionContext.IsRunMode)
+            {
+                redisCache.WithRedisInsight();
+            }
+            else
+            {
+                redisCache.WithComputeEnvironment(acaEnv);
+            }
 
             // ADDS Mock
             var mockService = builder.AddProject<UKHO_ADDS_Mocks_EFS>(ProcessNames.MockService)
@@ -123,15 +128,7 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             if (builder.ExecutionContext.IsPublishMode)
             {
-                mockService.PublishAsAzureContainerApp((infra, app) =>
-                {
-                    app.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
-                    app.Template.Scale.MinReplicas = 1;
-                    app.Template.Scale.MaxReplicas = 1;
-                    var container = app.Template.Containers.Single().Value!;
-                    container.Resources.Cpu = addsMocksCpu!.AsProvisioningParameter(infra, "addsMocksCpu");
-                    container.Resources.Memory = addsMocksMemory!.AsProvisioningParameter(infra, "addsMocksMemory");
-                });
+                mockService.WithComputeEnvironment(acaEnv);
             }
 
             // Build Request Monitor
@@ -181,13 +178,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                 orchestratorService.WithEnvironment("EFS_B2C_APP_DOMAIN", efsB2cAppDomain!);
                 orchestratorService.WithEnvironment("EFS_B2C_APP_INSTANCE", efsB2cAppInstance!);
                 orchestratorService.WithEnvironment("EFS_B2C_APP_SIGNIN_POLICY", efsB2cAppSigninPolicy!);
-                orchestratorService.PublishAsAzureContainerApp((infra, app) =>
-                {
-                    app.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
-                    var container = app.Template.Containers.Single().Value!;
-                    container.Resources.Cpu = orchestratorCpu!.AsProvisioningParameter(infra, "orchestratorCpu");
-                    container.Resources.Memory = orchestratorMemory!.AsProvisioningParameter(infra, "orchestratorMemory");
-                });
+                orchestratorService.WithComputeEnvironment(acaEnv);
             }
 
             if (builder.ExecutionContext.IsRunMode)
