@@ -91,7 +91,7 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             var acrResource = builder.Resources
              .OfType<AzureContainerRegistryResource>()
-             .Single(r => string.Equals(((IResource)r).Name, efsContainerRegistryName.Resource.Value, StringComparison.OrdinalIgnoreCase));
+             .Single(r => string.Equals(((IResource)r).Name, ServiceConfiguration.ContainerRegistryName, StringComparison.OrdinalIgnoreCase));
 
             // 3. Wrap it in a resource builder and configure PublishAsExisting
             var acr = builder.CreateResourceBuilder(acrResource)
