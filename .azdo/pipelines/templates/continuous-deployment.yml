@@ -147,7 +147,7 @@ jobs:
             ${{ if eq(parameters.AdditionalDebugging, true) }}:
               inlineScript: |
                 set -e
-                azd package --no-prompt --debug
+                timeout --foreground -k 10s 60s azd package --no-prompt --debug
 
                 echo "Current azd variables:"
                 echo "--------------------------------------------------------------------------------"
@@ -155,7 +155,7 @@ jobs:
                 echo "--------------------------------------------------------------------------------"
             ${{ else }}:
               inlineScript: |
-                azd package --no-prompt --debug
+               timeout --foreground -k 10s 60s azd package --no-prompt --debug
           env:
             AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
             AZURE_ENV_NAME: $(AZURE_ENV_NAME)
