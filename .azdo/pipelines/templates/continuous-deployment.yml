@@ -24,7 +24,7 @@ parameters:
 # Deploy the Redis container app.
 - name: DeployRedis
   type: boolean
-  default: false
+  default: true
 # If true, additional debugging will be enabled.
 - name: AdditionalDebugging
   type: boolean
@@ -146,8 +146,8 @@ jobs:
             scriptLocation: inlineScript
             ${{ if eq(parameters.AdditionalDebugging, true) }}:
               inlineScript: |
-                set -e
-                timeout --foreground -k 10s 60s azd package --no-prompt --debug
+               set -e
+                azd package --no-prompt --debug
 
                 echo "Current azd variables:"
                 echo "--------------------------------------------------------------------------------"
@@ -155,7 +155,7 @@ jobs:
                 echo "--------------------------------------------------------------------------------"
             ${{ else }}:
               inlineScript: |
-               timeout --foreground -k 10s 60s azd package --no-prompt --debug
+                azd package --no-prompt --debug
           env:
             AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
             AZURE_ENV_NAME: $(AZURE_ENV_NAME)
@@ -349,4 +349,3 @@ jobs:
     - template: retain-pipelinerun/retain-pipelinerun.yml@UKHOTemplates
       parameters:
         DaysValid: 365
-
