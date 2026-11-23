@@ -36,6 +36,7 @@ namespace UKHO.ADDS.EFS.LocalHost
             await BuildEfs(builder);
 
             var application = builder.Build();
+
             if (builder.ExecutionContext.IsPublishMode)
             {
                 await RunPublishAsync(application, args);
@@ -48,163 +49,6 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             return 0;
         }
-
-        private static async Task BuildEfs(IDistributedApplicationBuilder builder)
-        {
-            // Get parameters
-            var efsServiceIdentityName = builder.AddPublishOnlyParameter("efsServiceIdentityName");
-            var efsRetainResourceGroup = builder.AddPublishOnlyParameter("efsRetainResourceGroup");
-            var efsContainerAppsEnvironmentName = builder.AddPublishOnlyParameter("efsContainerAppsEnvironmentName");
-            var efsContainerRegistryName = builder.AddPublishOnlyParameter("efsContainerRegistryName");
-            var efsApplicationInsightsName = builder.AddPublishOnlyParameter("efsApplicationInsightsName");
-            var efsEventHubsNamespaceName = builder.AddPublishOnlyParameter("efsEventHubsNamespaceName");
-            var efsAppConfigurationName = builder.AddPublishOnlyParameter("efsAppConfigurationName");
-            var efsStorageAccountName = builder.AddPublishOnlyParameter("efsStorageAccountName");
-            var addsEnvironment = builder.AddPublishOnlyParameter("addsEnvironment");
-            var addsMocksCpu = builder.AddPublishOnlyParameter("addsMocksCpu");
-            var addsMocksMemory = builder.AddPublishOnlyParameter("addsMocksMemory");
-            var orchestratorCpu = builder.AddPublishOnlyParameter("orchestratorCpu");
-            var orchestratorMemory = builder.AddPublishOnlyParameter("orchestratorMemory");
-            var elasticApmApiKey = builder.AddPublishOnlyParameter("elasticAPMApiKey", true);
-            var elasticApmServerUrl = builder.AddPublishOnlyParameter("elasticAPMServerURL");
-            var elasticApmServiceName = builder.AddPublishOnlyParameter("elasticAPMServiceName");
-            var elasticApmEnvironment = builder.AddPublishOnlyParameter("elasticAPMEnvironment");
-            var efsAppRegClientId = builder.AddPublishOnlyParameter("efsAppRegClientId");
-            var efsAppRegTenantId = builder.AddPublishOnlyParameter("efsAppRegTenantId");
-            var efsB2cAppClientId = builder.AddPublishOnlyParameter("efsB2cAppClientId");
-            var efsB2cAppTenantId = builder.AddPublishOnlyParameter("efsB2cAppTenantId");
-            var efsB2cAppDomain = builder.AddPublishOnlyParameter("efsB2cAppDomain");
-            var efsB2cAppInstance = builder.AddPublishOnlyParameter("efsB2cAppInstance");
-            var efsB2cAppSigninPolicy = builder.AddPublishOnlyParameter("efsB2cAppSigninPolicy");
-
-            // Existing user managed identity
-            var efsServiceIdentity = builder.AddAzureUserAssignedIdentity(ServiceConfiguration.EfsServiceIdentity).PublishAsExistingWithNullCheck(efsServiceIdentityName, efsRetainResourceGroup);
-
-            // App insights
-            var appInsights = builder.ExecutionContext.IsPublishMode
-                ? builder.AddAzureApplicationInsights(ServiceConfiguration.AppInsightsName).PublishAsExisting(efsApplicationInsightsName!, null)
-                : null;
-
-            // Event hubs
-            var eventHubs = builder.ExecutionContext.IsPublishMode
-                ? builder.AddAzureEventHubs(ServiceConfiguration.EventHubsNamespaceName).PublishAsExisting(efsEventHubsNamespaceName!, efsRetainResourceGroup)
-                : null;
-
-            // Container registry
-            //var acr = builder.AddAzureContainerRegistry(ServiceConfiguration.ContainerRegistryName).PublishAsExistingWithNullCheck(efsContainerRegistryName, null);
-
-            // Container apps environment
-            var acaEnv = builder.AddAzureContainerAppEnvironment(ServiceConfiguration.AcaEnvironmentName).PublishAsExistingWithNullCheck(efsContainerAppsEnvironmentName, efsRetainResourceGroup);
-
-            var acrResource = builder.Resources
-             .OfType<AzureContainerRegistryResource>()
-             .Single(r => string.Equals(((IResource)r).Name, ServiceConfiguration.ContainerRegistryName, StringComparison.OrdinalIgnoreCase));
-
-            // 3. Wrap it in a resource builder and configure PublishAsExisting
-            var acr = builder.CreateResourceBuilder(acrResource)
-                             .PublishAsExisting(efsContainerRegistryName, null);
-            // Storage configuration
-            var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e => { e.WithDataVolume(); }).PublishAsExistingWithNullCheck(efsStorageAccountName, null);
-            var storageQueue = storage.AddQueues(StorageConfiguration.QueuesName);
-            var storageTable = storage.AddTables(StorageConfiguration.TablesName);
-            var storageBlob = storage.AddBlobs(StorageConfiguration.BlobsName);
-
-            // Redis cache
-            var redisCache = builder.AddRedis(ProcessNames.RedisCache);
-
-            if (builder.ExecutionContext.IsRunMode)
-            {
-                redisCache.WithRedisInsight();
-            }
-            else
-            {
-                redisCache.WithComputeEnvironment(acaEnv);
-            }
-
-            // ADDS Mock
-            var mockService = builder.AddProject<UKHO_ADDS_Mocks_EFS>(ProcessNames.MockService)
-                .WithDashboard("Dashboard")
-                .WithExternalHttpEndpoints();
-
-            if (builder.ExecutionContext.IsPublishMode)
-            {
-                mockService.WithComputeEnvironment(acaEnv);
-            }
-
-            // Build Request Monitor
-            IResourceBuilder<ProjectResource>? requestMonitor = null;
-
-            if (builder.ExecutionContext.IsRunMode)
-            {
-                requestMonitor = builder.AddProject<UKHO_ADDS_EFS_BuildRequestMonitor>(ProcessNames.RequestMonitorService)
-                    .WithReference(storageQueue)
-                    .WaitFor(storageQueue)
-                    .WithReference(mockService)
-                    .WaitFor(mockService)
-                    .WithReference(storageBlob)
-                    .WaitFor(storageBlob);
-            }
-
-            // Orchestrator
-            var orchestratorService = builder.AddProject<UKHO_ADDS_EFS_Orchestrator>(ProcessNames.OrchestratorService)
-                .WithReference(storageQueue)
-                .WaitFor(storageQueue)
-                .WithReference(storageTable)
-                .WaitFor(storageTable)
-                .WithReference(storageBlob)
-                .WaitFor(storageBlob)
-                .WithReference(mockService)
-                .WaitFor(mockService)
-                .WithReference(redisCache)
-                .WaitFor(redisCache)
-                .WithAzureUserAssignedIdentity(efsServiceIdentity)
-                .WithExternalHttpEndpoints()
-                .WithScalar("API Browser");
-
-            if (builder.ExecutionContext.IsPublishMode)
-            {
-                orchestratorService.WithReference(appInsights!);
-                orchestratorService.WaitFor(appInsights!);
-                orchestratorService.WithReference(eventHubs!);
-                orchestratorService.WaitFor(eventHubs!);
-                orchestratorService.WithEnvironment("ElasticAPM__ApiKey", elasticApmApiKey!);
-                orchestratorService.WithEnvironment("ElasticAPM__ServerURL", elasticApmServerUrl!);
-                orchestratorService.WithEnvironment("ElasticAPM__ServiceName", elasticApmServiceName!);
-                orchestratorService.WithEnvironment("ElasticAPM__Environment", elasticApmEnvironment!);
-                orchestratorService.WithEnvironment("EFS_APP_REG_CLIENT_ID", efsAppRegClientId!);
-                orchestratorService.WithEnvironment("EFS_APP_REG_TENANT_ID", efsAppRegTenantId!);
-                orchestratorService.WithEnvironment("EFS_B2C_APP_CLIENT_ID", efsB2cAppClientId!);
-                orchestratorService.WithEnvironment("EFS_B2C_APP_TENANT_ID", efsB2cAppTenantId!);
-                orchestratorService.WithEnvironment("EFS_B2C_APP_DOMAIN", efsB2cAppDomain!);
-                orchestratorService.WithEnvironment("EFS_B2C_APP_INSTANCE", efsB2cAppInstance!);
-                orchestratorService.WithEnvironment("EFS_B2C_APP_SIGNIN_POLICY", efsB2cAppSigninPolicy!);
-                orchestratorService.WithComputeEnvironment(acaEnv);
-            }
-
-            if (builder.ExecutionContext.IsRunMode)
-            {
-                orchestratorService.WaitFor(requestMonitor!);
-            }
-
-            // Configuration
-            if (builder.ExecutionContext.IsRunMode)
-            {
-                builder.AddConfigurationEmulator(ServiceConfiguration.ServiceName, [orchestratorService, requestMonitor!], [mockService], @"../../configuration/configuration.json", @"../../configuration/external-services.json");
-            }
-            else
-            {
-                var appConfig = builder.AddConfiguration(ProcessNames.ConfigurationService, addsEnvironment!, [orchestratorService]).PublishAsExistingWithNullCheck(efsAppConfigurationName, null);
-            }
-
-            if (builder.ExecutionContext.IsRunMode)
-            {
-                var appRootPath = builder.Environment.ContentRootPath;
-                await CreateBuilderContainerImages(ProcessNames.S100Builder, "latest", "UKHO.ADDS.EFS.Builder.S100", appRootPath);
-                await CreateBuilderContainerImages(ProcessNames.S63Builder, "latest", "UKHO.ADDS.EFS.Builder.S63", appRootPath);
-                await CreateBuilderContainerImages(ProcessNames.S57Builder, "latest", "UKHO.ADDS.EFS.Builder.S57", appRootPath);
-            }
-        }
-
 
         /// <summary>
         /// Aspire 13.x keeps the AppHost process alive after the manifest has been published (observed in the azd package/provision pipeline),
@@ -265,6 +109,150 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             return null;
         }
+
+        private static async Task BuildEfs(IDistributedApplicationBuilder builder)
+        {
+            // Get parameters
+            var efsRetainResourceGroup = builder.AddPublishOnlyParameter("efsRetainResourceGroup");
+            var efsContainerAppsEnvironmentName = builder.AddPublishOnlyParameter("efsContainerAppsEnvironmentName");
+            var efsApplicationInsightsName = builder.AddPublishOnlyParameter("efsApplicationInsightsName");
+            var efsEventHubsNamespaceName = builder.AddPublishOnlyParameter("efsEventHubsNamespaceName");
+            var efsAppConfigurationName = builder.AddPublishOnlyParameter("efsAppConfigurationName");
+            var efsContainerRegistryName = builder.AddPublishOnlyParameter("efsContainerRegistryName");
+            var efsStorageAccountName = builder.AddPublishOnlyParameter("efsStorageAccountName");
+            var addsEnvironment = builder.AddPublishOnlyParameter("addsEnvironment");
+            var addsMocksCpu = builder.AddPublishOnlyParameter("addsMocksCpu");
+            var addsMocksMemory = builder.AddPublishOnlyParameter("addsMocksMemory");
+            var orchestratorCpu = builder.AddPublishOnlyParameter("orchestratorCpu");
+            var orchestratorMemory = builder.AddPublishOnlyParameter("orchestratorMemory");
+            var elasticApmApiKey = builder.AddPublishOnlyParameter("elasticAPMApiKey", true);
+            var elasticApmServerUrl = builder.AddPublishOnlyParameter("elasticAPMServerURL");
+            var elasticApmServiceName = builder.AddPublishOnlyParameter("elasticAPMServiceName");
+            var elasticApmEnvironment = builder.AddPublishOnlyParameter("elasticAPMEnvironment");
+            var efsAppRegClientId = builder.AddPublishOnlyParameter("efsAppRegClientId");
+            var efsAppRegTenantId = builder.AddPublishOnlyParameter("efsAppRegTenantId");
+            var efsB2cAppClientId = builder.AddPublishOnlyParameter("efsB2cAppClientId");
+            var efsB2cAppTenantId = builder.AddPublishOnlyParameter("efsB2cAppTenantId");
+            var efsB2cAppDomain = builder.AddPublishOnlyParameter("efsB2cAppDomain");
+            var efsB2cAppInstance = builder.AddPublishOnlyParameter("efsB2cAppInstance");
+            var efsB2cAppSigninPolicy = builder.AddPublishOnlyParameter("efsB2cAppSigninPolicy");
+
+            // App insights
+            var appInsights = builder.ExecutionContext.IsPublishMode
+                ? builder.AddAzureApplicationInsights(ServiceConfiguration.AppInsightsName).PublishAsExisting(efsApplicationInsightsName!, null)
+                : null;
+
+            // Event hubs
+            var eventHubs = builder.ExecutionContext.IsPublishMode
+                ? builder.AddAzureEventHubs(ServiceConfiguration.EventHubsNamespaceName).PublishAsExisting(efsEventHubsNamespaceName!, efsRetainResourceGroup)
+                : null;
+            // Container registry (logical name must differ from the default "<env>-acr" created by the ACA environment)
+            var acr = builder.AddAzureContainerRegistry("efs-existing-acr").PublishAsExisting(efsContainerRegistryName, null);
+
+            // Container apps environment
+            var acaEnv = builder.AddAzureContainerAppEnvironment(ServiceConfiguration.AcaEnvironmentName).PublishAsExisting(efsContainerAppsEnvironmentName, efsRetainResourceGroup).WithAzureContainerRegistry(acr);
+
+            // Storage configuration
+            var storage = builder.AddAzureStorage(StorageConfiguration.StorageName).RunAsEmulator(e => { e.WithDataVolume(); }).PublishAsExistingWithNullCheck(efsStorageAccountName, null);
+            var storageQueue = storage.AddQueues(StorageConfiguration.QueuesName);
+            var storageTable = storage.AddTables(StorageConfiguration.TablesName);
+            var storageBlob = storage.AddBlobs(StorageConfiguration.BlobsName);
+
+            // Redis cache
+            var redisCache = builder.AddRedis(ProcessNames.RedisCache);
+
+            if (builder.ExecutionContext.IsRunMode)
+            {
+                redisCache.WithRedisInsight();
+            }
+            else
+            {
+                redisCache.WithComputeEnvironment(acaEnv);
+            }
+
+            // ADDS Mock
+            var mockService = builder.AddProject<UKHO_ADDS_Mocks_EFS>(ProcessNames.MockService)
+                .WithDashboard("Dashboard")
+                .WithExternalHttpEndpoints();
+
+            if (builder.ExecutionContext.IsPublishMode)
+            {
+                mockService.WithComputeEnvironment(acaEnv);
+            }
+
+            // Build Request Monitor
+            IResourceBuilder<ProjectResource>? requestMonitor = null;
+
+            if (builder.ExecutionContext.IsRunMode)
+            {
+                requestMonitor = builder.AddProject<UKHO_ADDS_EFS_BuildRequestMonitor>(ProcessNames.RequestMonitorService)
+                    .WithReference(storageQueue)
+                    .WaitFor(storageQueue)
+                    .WithReference(mockService)
+                    .WaitFor(mockService)
+                    .WithReference(storageBlob)
+                    .WaitFor(storageBlob);
+            }
+
+            // Orchestrator
+            var orchestratorService = builder.AddProject<UKHO_ADDS_EFS_Orchestrator>(ProcessNames.OrchestratorService)
+                .WithReference(storageQueue)
+                .WaitFor(storageQueue)
+                .WithReference(storageTable)
+                .WaitFor(storageTable)
+                .WithReference(storageBlob)
+                .WaitFor(storageBlob)
+                .WithReference(mockService)
+                .WaitFor(mockService)
+                .WithReference(redisCache)
+                .WaitFor(redisCache)
+                .WithExternalHttpEndpoints()
+                .WithScalar("API Browser");
+
+            if (builder.ExecutionContext.IsPublishMode)
+            {
+                orchestratorService.WithReference(appInsights!);
+                orchestratorService.WaitFor(appInsights!);
+                orchestratorService.WithReference(eventHubs!);
+                orchestratorService.WaitFor(eventHubs!);
+                orchestratorService.WithEnvironment("ElasticAPM__ApiKey", elasticApmApiKey!);
+                orchestratorService.WithEnvironment("ElasticAPM__ServerURL", elasticApmServerUrl!);
+                orchestratorService.WithEnvironment("ElasticAPM__ServiceName", elasticApmServiceName!);
+                orchestratorService.WithEnvironment("ElasticAPM__Environment", elasticApmEnvironment!);
+                orchestratorService.WithEnvironment("EFS_APP_REG_CLIENT_ID", efsAppRegClientId!);
+                orchestratorService.WithEnvironment("EFS_APP_REG_TENANT_ID", efsAppRegTenantId!);
+                orchestratorService.WithEnvironment("EFS_B2C_APP_CLIENT_ID", efsB2cAppClientId!);
+                orchestratorService.WithEnvironment("EFS_B2C_APP_TENANT_ID", efsB2cAppTenantId!);
+                orchestratorService.WithEnvironment("EFS_B2C_APP_DOMAIN", efsB2cAppDomain!);
+                orchestratorService.WithEnvironment("EFS_B2C_APP_INSTANCE", efsB2cAppInstance!);
+                orchestratorService.WithEnvironment("EFS_B2C_APP_SIGNIN_POLICY", efsB2cAppSigninPolicy!);
+                orchestratorService.WithComputeEnvironment(acaEnv);
+            }
+
+            if (builder.ExecutionContext.IsRunMode)
+            {
+                orchestratorService.WaitFor(requestMonitor!);
+            }
+
+            // Configuration
+            if (builder.ExecutionContext.IsRunMode)
+            {
+                builder.AddConfigurationEmulator(ServiceConfiguration.ServiceName, [orchestratorService, requestMonitor!], [mockService], @"../../configuration/configuration.json", @"../../configuration/external-services.json");
+            }
+            else
+            {
+                var appConfig = builder.AddConfiguration(ProcessNames.ConfigurationService, addsEnvironment!, [orchestratorService]).PublishAsExistingWithNullCheck(efsAppConfigurationName, null);
+            }
+
+            if (builder.ExecutionContext.IsRunMode)
+            {
+                var appRootPath = builder.Environment.ContentRootPath;
+                await CreateBuilderContainerImages(ProcessNames.S100Builder, "latest", "UKHO.ADDS.EFS.Builder.S100", appRootPath);
+                await CreateBuilderContainerImages(ProcessNames.S63Builder, "latest", "UKHO.ADDS.EFS.Builder.S63", appRootPath);
+                await CreateBuilderContainerImages(ProcessNames.S57Builder, "latest", "UKHO.ADDS.EFS.Builder.S57", appRootPath);
+            }
+        }
+
         private static async Task CreateBuilderContainerImages(string name, string tag, string projectName, string appRootDirectory)
         {
             const int maxBuildAttempts = 3;
