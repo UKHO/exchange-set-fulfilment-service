@@ -11,7 +11,7 @@ If we need to regenerate from scratch again then you can run the `azd regenerate
 3. `adds-mocks-efs.tmpl.bicepparam` Add new parameters:
    1. ```param whiteListedIps = readEnvironmentVariable('AZURE_WHITE_LISTED_IPS')```
    2. ```param agentIpAddress = readEnvironmentVariable('AZURE_DEVOPS_AGENT_IP')```
-4. `adds-mocks-efs.module.bicep`
+4. `adds-mocks-efs-containerapp.module.bicep`
    1. Change ```cpu: addsMocksCpu``` to ```cpu: json(addsMocksCpu)```.
    2. Add parameters:
       1. ```param whiteListedIps string```
