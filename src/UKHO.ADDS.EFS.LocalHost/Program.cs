@@ -113,6 +113,7 @@ namespace UKHO.ADDS.EFS.LocalHost
         private static async Task BuildEfs(IDistributedApplicationBuilder builder)
         {
             // Get parameters
+            var efsServiceIdentityName = builder.AddPublishOnlyParameter("efsServiceIdentityName");
             var efsRetainResourceGroup = builder.AddPublishOnlyParameter("efsRetainResourceGroup");
             var efsContainerAppsEnvironmentName = builder.AddPublishOnlyParameter("efsContainerAppsEnvironmentName");
             var efsApplicationInsightsName = builder.AddPublishOnlyParameter("efsApplicationInsightsName");
@@ -136,6 +137,9 @@ namespace UKHO.ADDS.EFS.LocalHost
             var efsB2cAppDomain = builder.AddPublishOnlyParameter("efsB2cAppDomain");
             var efsB2cAppInstance = builder.AddPublishOnlyParameter("efsB2cAppInstance");
             var efsB2cAppSigninPolicy = builder.AddPublishOnlyParameter("efsB2cAppSigninPolicy");
+
+            // Existing user managed identity
+            var efsServiceIdentity = builder.AddAzureUserAssignedIdentity(ServiceConfiguration.EfsServiceIdentity).PublishAsExistingWithNullCheck(efsServiceIdentityName, efsRetainResourceGroup);
 
             // App insights
             var appInsights = builder.ExecutionContext.IsPublishMode
@@ -173,7 +177,15 @@ namespace UKHO.ADDS.EFS.LocalHost
 
             if (builder.ExecutionContext.IsPublishMode)
             {
-                mockService.WithComputeEnvironment(acaEnv);
+                mockService.PublishAsAzureContainerApp((infra, app) =>
+                {
+                    app.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
+                    app.Template.Scale.MinReplicas = 1;
+                    app.Template.Scale.MaxReplicas = 1;
+                    var container = app.Template.Containers.Single().Value!;
+                    container.Resources.Cpu = addsMocksCpu!.AsProvisioningParameter(infra, "addsMocksCpu");
+                    container.Resources.Memory = addsMocksMemory!.AsProvisioningParameter(infra, "addsMocksMemory");
+                });
             }
 
             // Build Request Monitor
@@ -202,6 +214,7 @@ namespace UKHO.ADDS.EFS.LocalHost
                 .WaitFor(mockService)
                 .WithReference(redisCache)
                 .WaitFor(redisCache)
+                .WithAzureUserAssignedIdentity(efsServiceIdentity)
                 .WithExternalHttpEndpoints()
                 .WithScalar("API Browser");
 
@@ -222,8 +235,15 @@ namespace UKHO.ADDS.EFS.LocalHost
                 orchestratorService.WithEnvironment("EFS_B2C_APP_DOMAIN", efsB2cAppDomain!);
                 orchestratorService.WithEnvironment("EFS_B2C_APP_INSTANCE", efsB2cAppInstance!);
                 orchestratorService.WithEnvironment("EFS_B2C_APP_SIGNIN_POLICY", efsB2cAppSigninPolicy!);
-                orchestratorService.WithComputeEnvironment(acaEnv);
-            }
+                orchestratorService.PublishAsAzureContainerApp((infra, app) =>
+                {
+                    app.Tags.Add("hidden-title", ServiceConfiguration.ServiceName);
+                    var container = app.Template.Containers.Single().Value!;
+                    container.Resources.Cpu = orchestratorCpu!.AsProvisioningParameter(infra, "orchestratorCpu");
+                    container.Resources.Memory = orchestratorMemory!.AsProvisioningParameter(infra, "orchestratorMemory");
+                });
+            
+        }
 
             if (builder.ExecutionContext.IsRunMode)
             {
