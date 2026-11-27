@@ -16,7 +16,7 @@ parameters:
 # Deploy the ADDS mock container app.
 - name: DeployAddsMock
   type: boolean
-  default: false
+  default: true
 # Include the ADDS mock container app in the deployment.
 - name: IncludeAddsMock
   type: boolean
