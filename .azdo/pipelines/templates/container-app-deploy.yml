@@ -26,59 +26,52 @@ steps:
     ${{ if eq(parameters.AdditionalDebugging, true) }}:
       inlineScript: |
         set -e
+        APP_NAME="${{ parameters.AppName }}"
+        APP_SLUG="${APP_NAME//[^a-zA-Z0-9-]/-}"
 
-          echo "========== ASPIRE PROJECTS =========="
-          find . -name "*.csproj"
+        echo "========== ASPIRE PROJECTS =========="
+        find . -name "*.csproj"
 
-         echo "========== EXISTING BICEP FILES =========="
-          find . -type f \( -name "*.bicep" -o -name "*.bicepparam" \)
+        echo "========== EXISTING BICEP FILES =========="
+        find . -type f \( -name "*.bicep" -o -name "*.bicepparam" \)
 
+        CAPTURE_DIR="$(Build.ArtifactStagingDirectory)/azd-bicep-debug/$APP_SLUG"
+        mkdir -p "$CAPTURE_DIR"
 
-         echo "========== EXISTING BICEP FILES =========="
-          CAPTURE_DIR="$(Build.ArtifactStagingDirectory)/azd-bicep-debug"
-          mkdir -p "$CAPTURE_DIR"
-
-
+        echo "========== STARTING TEMP FOLDER WATCHER =========="
         (
-             while true; do
-               for dir in /tmp/efs-redis-build*; do
-                 if [ -d "$dir" ]; then
-                   target="$CAPTURE_DIR/$(basename "$dir")"
-                   mkdir -p "$target"
-                   cp -a "$dir/." "$target/" 2>/dev/null || true
-                 fi
-               done
-               sleep 0.1
-             done
-           ) &
-           
-           WATCHER_PID=$!
-           
-           set +e
-           azd deploy efs-redis --no-prompt --debug
-           DEPLOY_EXIT_CODE=$?
-           set -e
-           
-           kill "$WATCHER_PID" 2>/dev/null || true
-           wait "$WATCHER_PID" 2>/dev/null || true
-           
-           echo "========== CAPTURED BICEP FILES =========="
-           
-           find "$CAPTURE_DIR" -type f -printf '%P\n'
-           
-           echo "========== GENERATED PARAMETER REFERENCES =========="
-           
-           find "$CAPTURE_DIR" -name "main.bicepparam" \
-             -exec head -n 3 {} \;
-           
-           echo "========== EXPECTED MODULE =========="
-           
-           find "$CAPTURE_DIR" -name "efs-redis.module.bicep"
-           
-           exit "$DEPLOY_EXIT_CODE"
+          while true; do
+            for dir in /tmp/*-build*; do
+              if [ -d "$dir" ]; then
+                target="$CAPTURE_DIR/$(basename "$dir")"
+                mkdir -p "$target"
+                cp -a "$dir/." "$target/" 2>/dev/null || true
+              fi
+            done
+            sleep 0.1
+          done
+        ) &
+        WATCHER_PID=$!
 
-           echo "========== STARTING DEPLOYMENT =========="
-          azd deploy ${{ parameters.AppName }} --no-prompt --debug
+        echo "========== STARTING DEPLOYMENT =========="
+        set +e
+        azd deploy "$APP_NAME" --no-prompt --debug
+        DEPLOY_EXIT_CODE=$?
+        set -e
+
+        kill "$WATCHER_PID" 2>/dev/null || true
+        wait "$WATCHER_PID" 2>/dev/null || true
+
+        echo "========== CAPTURED BICEP FILES =========="
+        find "$CAPTURE_DIR" -type f -printf '%P\n' || true
+
+        echo "========== GENERATED PARAMETER FILE HEADERS =========="
+        find "$CAPTURE_DIR" -name "*.bicepparam" -exec sh -c 'echo "--- $1"; head -n 20 "$1"' _ {} \; || true
+
+        echo "========== GENERATED MODULE FILES =========="
+        find "$CAPTURE_DIR" -name "*.module.bicep" -exec sh -c 'echo "--- $1"; sed -n "1,220p" "$1"' _ {} \; || true
+
+        exit "$DEPLOY_EXIT_CODE"
        
     ${{ else }}:
       inlineScript: |
