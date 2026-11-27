@@ -42,6 +42,8 @@ resource efs_events_namespace_AzureEventHubsDataOwner 'Microsoft.Authorization/r
 
 output eventHubsEndpoint string = efs_events_namespace.properties.serviceBusEndpoint
 
+output eventHubsHostName string = replace(replace(efs_events_namespace.properties.serviceBusEndpoint, 'sb://', ''), '/', '')
+
 output name string = efs_events_namespace.name
 
 output eventHubAuthorizationRuleId string = '${efs_events_namespace.id}/AuthorizationRules/RootManageSharedAccessKey'

@@ -125,6 +125,7 @@ output EFS_CAE_AZURE_CONTAINER_APPS_ENVIRONMENT_ID string = efs_cae.outputs.AZUR
 output EFS_CAE_AZURE_CONTAINER_REGISTRY_ENDPOINT string = efs_cae_acr.outputs.loginServer
 output EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID string = efs_service_identity.outputs.id
 output EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT string = efs_events_namespace.outputs.eventHubsEndpoint
+output EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME string = efs_events_namespace.outputs.eventHubsHostName
 output EFS_SERVICE_IDENTITY_CLIENTID string = efs_service_identity.outputs.clientId
 output EFS_SERVICE_IDENTITY_ID string = efs_service_identity.outputs.id
 output EFS_STORAGE_BLOBENDPOINT string = efs_storage.outputs.blobEndpoint

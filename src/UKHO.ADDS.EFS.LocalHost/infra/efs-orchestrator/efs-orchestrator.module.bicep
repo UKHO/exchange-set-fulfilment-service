@@ -28,6 +28,8 @@ param efs_app_insights_outputs_appinsightsconnectionstring string
 
 param efs_events_namespace_outputs_eventhubsendpoint string
 
+param efs_events_namespace_outputs_eventhubshostname string
+
 @secure()
 param elasticapmapikey_value string
 
@@ -152,6 +154,10 @@ resource efs_orchestrator 'Microsoft.App/containerApps@2025-02-02-preview' = {
             {
               name: 'ConnectionStrings__efs-events-namespace'
               value: efs_events_namespace_outputs_eventhubsendpoint
+            }
+            {
+              name: 'EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME'
+              value: efs_events_namespace_outputs_eventhubshostname
             }
             {
               name: 'ElasticAPM__ApiKey'

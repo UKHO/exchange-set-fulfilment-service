@@ -9,4 +9,6 @@ resource efs_events_namespace 'Microsoft.EventHub/namespaces@2024-01-01' existin
 
 output eventHubsEndpoint string = efs_events_namespace.properties.serviceBusEndpoint
 
+output eventHubsHostName string = replace(replace(efs_events_namespace.properties.serviceBusEndpoint, 'sb://', ''), '/', '')
+
 output name string = efsEventHubsNamespaceName

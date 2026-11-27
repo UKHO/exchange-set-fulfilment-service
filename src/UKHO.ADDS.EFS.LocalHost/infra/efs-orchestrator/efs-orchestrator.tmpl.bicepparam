@@ -8,6 +8,7 @@ param efs_cae_outputs_azure_container_apps_environment_id = '{{ .Env.EFS_CAE_AZU
 param efs_cae_outputs_azure_container_registry_endpoint = '{{ .Env.EFS_CAE_AZURE_CONTAINER_REGISTRY_ENDPOINT }}'
 param efs_cae_outputs_azure_container_registry_managed_identity_id = '{{ .Env.EFS_CAE_AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID }}'
 param efs_events_namespace_outputs_eventhubsendpoint = '{{ .Env.EFS_EVENTS_NAMESPACE_EVENTHUBSENDPOINT }}'
+param efs_events_namespace_outputs_eventhubshostname = '{{ .Env.EFS_EVENTS_NAMESPACE_EVENTHUBSHOSTNAME }}'
 param efs_orchestrator_containerimage = '{{ .Image }}'
 param efs_orchestrator_containerport = '{{ targetPortOrDefault 8080 }}'
 param efs_redis_password_value = '{{ securedParameter "efs_redis_password" }}'
