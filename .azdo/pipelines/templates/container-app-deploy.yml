@@ -59,11 +59,27 @@ steps:
         DEPLOY_EXIT_CODE=$?
         set -e
 
+        echo "========== TMP BUILD DIRECTORIES (LIVE) =========="
+        find /tmp -maxdepth 1 -type d -name "*-build*" -print || true
+
+        echo "========== COPYING TMP BUILD DIRECTORIES (FINAL SNAPSHOT) =========="
+        for dir in /tmp/*-build*; do
+          if [ -d "$dir" ]; then
+            target="$CAPTURE_DIR/$(basename "$dir")"
+            mkdir -p "$target"
+            cp -a "$dir/." "$target/" 2>/dev/null || true
+            echo "copied: $dir -> $target"
+          fi
+        done
+
         kill "$WATCHER_PID" 2>/dev/null || true
         wait "$WATCHER_PID" 2>/dev/null || true
 
         echo "========== CAPTURED BICEP FILES =========="
         find "$CAPTURE_DIR" -type f -printf '%P\n' || true
+
+        echo "========== CAPTURED MAIN PARAM FILES =========="
+        find "$CAPTURE_DIR" -name "main.bicepparam" -exec sh -c 'echo "--- $1"; sed -n "1,80p" "$1"' _ {} \; || true
 
         echo "========== GENERATED PARAMETER FILE HEADERS =========="
         find "$CAPTURE_DIR" -name "*.bicepparam" -exec sh -c 'echo "--- $1"; head -n 20 "$1"' _ {} \; || true
